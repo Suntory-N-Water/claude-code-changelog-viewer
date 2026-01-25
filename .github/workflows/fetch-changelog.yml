@@ -1,0 +1,75 @@
+name: Fetch Claude Code CHANGELOG
+
+on:
+  schedule:
+    # 毎時間実行（cron は常に UTC 基準、TZ 環境変数とは無関係）
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: fetch-changelog
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  fetch-changelog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      TZ: Asia/Tokyo
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Fetch CHANGELOG
+        run: python3 apps/changelog-fetcher/scripts/parse_changelog.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git add -A
+          git diff --staged --quiet || echo "changed=true" >> "$GITHUB_OUTPUT"
+          CHANGED_FILES=$(git diff --staged --name-only | wc -l)
+          echo "changed_files=$CHANGED_FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Commit changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S JST')
+
+          if [ "$CHANGED_COUNT" -eq 1 ]; then
+            COMMIT_MSG="📝 Update CHANGELOG - 1 file changed"
+          else
+            COMMIT_MSG="📝 Update CHANGELOG - $CHANGED_COUNT files changed"
+          fi
+
+          git commit -m "$COMMIT_MSG" -m "Automated CHANGELOG update at $TIMESTAMP"
+        env:
+          CHANGED_COUNT: ${{ steps.git-check.outputs.changed_files }}
+
+      - name: Push changes
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git pull --rebase origin main
+          git push
+
+      - name: Report status
+        if: always()
+        run: |
+          if [ -f "apps/changelog-fetcher/metadata/last_fetch.json" ]; then
+            echo "📊 Fetch Summary:"
+            cat apps/changelog-fetcher/metadata/last_fetch.json | jq .
+          fi
