@@ -2,7 +2,6 @@ import { exec } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
-import fetch from 'node-fetch';
 
 const execAsync = promisify(exec);
 
