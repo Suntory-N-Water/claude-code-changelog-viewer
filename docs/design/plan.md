@@ -468,9 +468,75 @@ grep -A 3 -B 3 -iE "(keyword1|keyword2)" docs/**/*.md
 
 ---
 
+## 実装完了（2026-01-26）
+
+### Phase 1: 恩恵推論機能の実装
+
+**実装内容**:
+- ✅ GitHub Copilot SDK統合（`@github/copilot-sdk`）
+- ✅ Valibotスキーマ定義（`InferenceResultSchema`を`analysis.ts`に統合、DRY原則適用）
+- ✅ プロンプト分離（`src/prompts/inference-prompt.ts`）
+- ✅ 推論スクリプト（`src/infer-benefits.ts`）
+- ✅ GitHub Actions統合（`.github/workflows/fetch-changelog.yml`）
+
+**技術決定**:
+- モデル設定: 環境変数 `COPILOT_MODEL`（デフォルトなしで事故防止）
+- タイムアウト: `120 * 1000`（2分）
+- 出力形式: Before/After/Benefit（**Target削除**）
+- エラーハンドリング: try-catchで一括処理、`inference_failed`マーク
+
+**テスト結果（v2.1.19）**:
+- 成功: 5/5件（100%）
+- トークン削減: スニペットベース推論により目標達成
+- 品質: SKILL.md準拠のコグニティブ・デザイン形式で高品質な日本語説明生成
+
+**ファイル構成**:
+```
+apps/changelog-fetcher/src/
+├── infer-benefits.ts           # エントリー（81行）
+├── prompts/
+│   └── inference-prompt.ts     # プロンプト構築（70行）
+├── schemas/
+│   └── analysis.ts             # スキーマ統合（inference含む）
+└── utils/
+    └── json-extractor.ts       # JSON抽出
+```
+
+---
+
+## 次のタスク
+
+### Phase 2: UI実装（Astro）
+
+**目的**: `final_vX.X.X.json`を読み込んでWebページに表示
+
+**実装内容**:
+1. **バージョン一覧ページ**
+   - `final_*.json`の一覧表示
+   - 各バージョンへのリンク
+
+2. **バージョン詳細ページ**（例: `/changelog/v2.1.19`）
+   - CHANGELOG項目一覧
+   - 各項目の表示:
+     - 変更内容（`content`）
+     - 重要度スコア（`importance_score`）
+     - Before（`inference.before`）
+     - After（`inference.after`）
+     - Benefit（`inference.benefit`）
+     - 関連ドキュメントリンク（`related_docs[]`）
+
+3. **未分析項目の表示**
+   - `analysis_status === "inference_failed"`: 「推論失敗」
+   - `analysis_status === "no_docs_found"`: 「関連ドキュメント未発見」
+   - `analysis_status === "sdk_only"`: 「SDK専用（一般ユーザー向けではない）」
+
+**技術選択**: Astro + Tailwind CSS
+
+---
+
 ## 未決定事項・今後の検討課題
 
-- **Copilot CLI vs Claude API**: 認証調査の結果次第で最終決定
+- **既存バージョンの一括分析**: v2.1.19以外のバージョンも分析
+- **トークン消費の最適化**: 必要に応じてHaiku 4.5に切り替え
 - **グルーピングの閾値**: 実データで調整（キーワード重複度など）
-- **生成されたMarkdownファイルのフォーマット詳細**: UI構築時に確定
 - **メタデータ生成のタイミング**: git diffで変更検出時のみ実行

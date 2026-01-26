@@ -1,0 +1,472 @@
+{
+  "version": "2.1.19",
+  "analyzed_at": "2026-01-26T14:34:30.862Z",
+  "items": [
+    {
+      "content": "- Added env var `CLAUDE_CODE_ENABLE_TASKS`, set to `false` to keep the old system temporarily",
+      "prefix": "Added",
+      "importance_score": 8,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [
+          "CLAUDE_CODE_ENABLE_TASKS",
+          "false"
+        ],
+        "normalized": [
+          "CLAUDE",
+          "CODE",
+          "ENABLE",
+          "TASKS",
+          "false"
+        ]
+      },
+      "search_strategy": "exact",
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 159,
+          "context_score": 22,
+          "total_score": 3498,
+          "snippets": [
+            "-",
+            "title: settings\nsource: https://code.claude.com/docs/en/settings.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Claude Code settings\n\n> Configure Claude Code with global and project-level settings, and environment variables.\n\nClaude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command when using the interactive REPL, which opens a tabbed Settings interface where you can view status information and modify configuration options.\n\n## Configuration scopes\n\nClaude Code uses a **scope system** to determine where configurations apply and who they're shared with. Understanding scopes helps you decide how to configure Claude Code for personal use, team collaboration, or enterprise deployment.\n\n### Available scopes\n\n| Scope       | Location                             | Who it affects                       | Shared with team?      |\n| :---------- | :----------------------------------- | :----------------------------------- | :--------------------- |\n| **Managed** | System-level `managed-settings.json` | All users on the machine             | Yes (deployed by IT)   |\n| **User**    | `~/.claude/` directory               | You, across all projects             | No                     |\n| **Project** | `.claude/` in repository             | All collaborators on this repository | Yes (committed to git) |\n| **Local**   | `.claude/*.local.*` files            | You, in this repository only         | No (gitignored)        |\n\n### When to use each scope",
+            "### What uses scopes\n\nScopes apply to many Claude Code features:\n\n| Feature         | User location             | Project location                   | Local location                 |\n| :-------------- | :------------------------ | :--------------------------------- | :----------------------------- |\n| **Settings**    | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | —                              |\n| **MCP servers** | `~/.claude.json`          | `.mcp.json`                        | `~/.claude.json` (per-project) |\n| **Plugins**     | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | `CLAUDE.local.md`              |\n\n***\n\n## Settings files\n\nThe `settings.json` file is our official mechanism for configuring Claude\nCode through hierarchical settings:\n\n* **User settings** are defined in `~/.claude/settings.json` and apply to all\n  projects.\n* **Project settings** are saved in your project directory:\n  * `.claude/settings.json` for settings that are checked into source control and shared with your team\n  * `.claude/settings.local.json` for settings that are not checked in, useful for personal preferences and experimentation. Claude Code will configure git to ignore `.claude/settings.local.json` when it is created.\n* **Managed settings**: For organizations that need centralized control, Claude Code supports `managed-settings.json` and `managed-mcp.json` files that can be deployed to system directories:\n\n  * macOS: `/Library/Application Support/ClaudeCode/`\n  * Linux and WSL: `/etc/claude-code/`\n  * Windows: `C:\\Program Files\\ClaudeCode\\`\n\n  <Note>\n    These are system-wide paths (not user home directories like `~/Library/...`) that require administrator privileges. They are designed to be deployed by IT administrators.",
+            "Managed deployments can also restrict **plugin marketplace additions** using\n    `strictKnownMarketplaces`. For more information, see [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions).\n  </Note>\n* **Other configuration** is stored in `~/.claude.json`. This file contains your preferences (theme, notification settings, editor mode), OAuth session, [MCP server](/en/mcp) configurations for user and local scopes, per-project state (allowed tools, trust settings), and various caches. Project-scoped MCP servers are stored separately in `.mcp.json`.\n\n```JSON Example settings.json theme={null}\n{"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 153,
+          "context_score": 17,
+          "total_score": 2601,
+          "snippets": [
+            "-",
+            "title: hooks\nsource: https://code.claude.com/docs/en/hooks.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Hooks reference\n\n> This page provides reference documentation for implementing hooks in Claude Code.\n\n<Tip>\n  For a quickstart guide with examples, see [Get started with Claude Code hooks](/en/hooks-guide).\n</Tip>\n\n## Hook lifecycle\n\nHooks fire at specific points during a Claude Code session.\n\n<div style={{maxWidth: \"500px\", margin: \"0 auto\"}}>\n  <Frame>\n    <img src=\"https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=5c25fedbc3db6f8882af50c3cc478c32\" alt=\"Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd\" data-og-width=\"8876\" width=\"8876\" data-og-height=\"12492\" height=\"12492\" data-path=\"images/hooks-lifecycle.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=280&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=62406fcd5d4a189cc8842ee1bd946b84 280w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=560&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=fa3049022a6973c5f974e0f95b28169d 560w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=840&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=bd2890897db61a03160b93d4f972ff8e 840w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=1100&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=7ae8e098340479347135e39df4a13454 1100w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=1650&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=848a8606aab22c2ccaa16b6a18431e32 1650w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=2500&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=f3a9ef7feb61fa8fe362005aa185efbc 2500w\" />\n  </Frame>\n</div>",
+            "| `PostToolUseFailure` | After tool fails                |\n| `SubagentStart`      | When spawning a subagent        |\n| `SubagentStop`       | When subagent finishes          |\n| `Stop`               | Claude finishes responding      |\n| `PreCompact`         | Before context compaction       |\n| `SessionEnd`         | Session terminates              |\n| `Notification`       | Claude Code sends notifications |\n\n## Configuration\n\nClaude Code hooks are configured in your [settings files](/en/settings):\n\n* `~/.claude/settings.json` - User settings\n* `.claude/settings.json` - Project settings\n* `.claude/settings.local.json` - Local project settings (not committed)\n* Managed policy settings\n\n<Note>",
+            "`matcher` blank.\n* **hooks**: Array of hooks to execute when the pattern matches\n  * `type`: Hook execution type - `\"command\"` for bash commands or `\"prompt\"` for LLM-based evaluation\n  * `command`: (For `type: \"command\"`) The bash command to execute (can use `$CLAUDE_PROJECT_DIR` environment variable)\n  * `prompt`: (For `type: \"prompt\"`) The prompt to send to the LLM for evaluation\n  * `timeout`: (Optional) How long a hook should run, in seconds, before canceling that specific hook"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md",
+          "hit_count": 123,
+          "context_score": 20,
+          "total_score": 2460,
+          "snippets": [
+            "-",
+            "title: vs-code\nsource: https://code.claude.com/docs/en/vs-code.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Use Claude Code in VS Code\n\n> Install and configure the Claude Code extension for VS Code. Get AI coding assistance with inline diffs, @-mentions, plan review, and keyboard shortcuts.\n\n<img src=\"https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=300652d5678c63905e6b0ea9e50835f8\" alt=\"VS Code editor with the Claude Code extension panel open on the right side, showing a conversation with Claude\" data-og-width=\"2500\" width=\"2500\" data-og-height=\"1155\" height=\"1155\" data-path=\"images/vs-code-extension-interface.jpg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=280&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=87630c671517a3d52e9aee627041696e 280w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=560&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=716b093879204beec8d952649ef75292 560w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=840&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=c1525d1a01513acd9d83d8b5a8fe2fc8 840w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=1100&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=1d90021d58bbb51f871efec13af955c3 1100w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=1650&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=7babdd25440099886f193cfa99af88ae 1650w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=2500&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=08c92eedfb56fe61a61e480fb63784b6 2500w\" />\n\nThe VS Code extension provides a native graphical interface for Claude Code, integrated directly into your IDE. This is the recommended way to use Claude Code in VS Code.\n\nWith the extension, you can review and edit Claude's plans before accepting them, auto-accept edits as they're made, @-mention files with specific line ranges from your selection, access conversation history, and open multiple conversations in separate tabs or windows.\n\n## Prerequisites\n\n* VS Code 1.98.0 or higher\n* An Anthropic account (you'll sign in when you first open the extension). If you're using a third-party provider like Amazon Bedrock or Google Vertex AI, see [Use third-party providers](#use-third-party-providers) instead.\n\n<Tip>\n  The extension includes the CLI (command-line interface), which you can access from VS Code's integrated terminal for advanced features. See [VS Code extension vs. Claude Code CLI](#vs-code-extension-vs-claude-code-cli) for details.\n</Tip>\n\n## Install the extension\n\nClick the link for your IDE to install directly:\n\n* [Install for VS Code](vscode:extension/anthropic.claude-code)\n* [Install for Cursor](cursor:extension/anthropic.claude-code)\n\nOr in VS Code, press `Cmd+Shift+X` (Mac) or `Ctrl+Shift+X` (Windows/Linux) to open the Extensions view, search for \"Claude Code\", and click **Install**.\n\n<Note>If the extension doesn't appear after installation, restart VS Code or run \"Developer: Reload Window\" from the Command Palette.</Note>\n\n## Get started\n\nOnce installed, you can start using Claude Code through the VS Code interface:\n\n<Steps>\n  <Step title=\"Open the Claude Code panel\">\n    Throughout VS Code, the Spark icon indicates Claude Code: <img src=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=a734d84e785140016672f08e0abb236c\" alt=\"Spark icon\" style={{display: \"inline\", height: \"0.85em\", verticalAlign: \"middle\"}} data-og-width=\"16\" width=\"16\" data-og-height=\"16\" height=\"16\" data-path=\"images/vs-code-spark-icon.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=280&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=9a45aad9a84b9fa1701ac99a1f9aa4e9 280w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=560&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=3f4cb9254c4d4e93989c4b6bf9292f4b 560w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=840&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=e75ccc9faa3e572db8f291ceb65bb264 840w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=1100&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=f147bd81a381a62539a4ce361fac41c7 1100w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=1650&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=78fe68efaee5d6e844bbacab1b442ed5 1650w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=2500&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=efb8dbe1dfa722d094edc6ad2ad4bedb 2500w\" />\n\n    The quickest way to open Claude is to click the Spark icon in the **Editor Toolbar** (top-right corner of the editor). The icon only appears when you have a file open.\n\n        <img src=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=eb4540325d94664c51776dbbfec4cf02\" alt=\"VS Code editor showing the Spark icon in the Editor Toolbar\" data-og-width=\"2796\" width=\"2796\" data-og-height=\"734\" height=\"734\" data-path=\"images/vs-code-editor-icon.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=280&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=56f218d5464359d6480cfe23f70a923e 280w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=560&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=344a8db024b196c795a80dc85cacb8d1 560w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=840&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=f30bf834ee0625b2a4a635d552d87163 840w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=1100&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=81fdf984840e43a9f08ae42729d1484d 1100w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=1650&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=8b60fb32de54717093d512afaa99785c 1650w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=2500&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=893e6bda8f2e9d42c8a294d394f0b736 2500w\" />\n\n    Other ways to open Claude Code:\n\n    * **Command Palette**: `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux), type \"Claude Code\", and select an option like \"Open in New Tab\"\n    * **Status Bar**: Click **✱ Claude Code** in the bottom-right corner of the window. This works even when no file is open.\n\n    You can drag the Claude panel to reposition it anywhere in VS Code. See [Customize your workflow](#customize-your-workflow) for details.\n  </Step>\n\n  <Step title=\"Send a prompt\">\n    Ask Claude to help with your code or files, whether that's explaining how something works, debugging an issue, or making changes.\n\n    <Tip>Claude automatically sees your selected text. Press `Option+K` (Mac) / `Alt+K` (Windows/Linux) to also insert an @-mention reference (like `@file.ts#5-10`) into your prompt.</Tip>\n\n    Here's an example of asking about a particular line in a file:\n\n        <img src=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=ede3ed8d8d5f940e01c5de636d009cfd\" alt=\"VS Code editor with lines 2-3 selected in a Python file, and the Claude Code panel showing a question about those lines with an @-mention reference\" data-og-width=\"3288\" width=\"3288\" data-og-height=\"1876\" height=\"1876\" data-path=\"images/vs-code-send-prompt.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=280&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=f40bde7b2c245fe8f0f5b784e8106492 280w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=560&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=fad66a27a9a6faa23b05370aa4f398b2 560w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=840&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=4539c8a3823ca80a5c8771f6c088ce9e 840w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=1100&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=fae8ebf300c7853409a562ffa46d9c71 1100w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=1650&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=22e4462bb8cf0c0ca20f8102bc4c971a 1650w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=2500&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=739bfd045f70fe7be1a109a53494590e 2500w\" />\n  </Step>\n\n  <Step title=\"Review changes\">\n    When Claude wants to edit a file, it shows a side-by-side comparison of the original and proposed changes, then asks for permission. You can accept, reject, or tell Claude what to do instead.\n\n        <img src=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=e005f9b41c541c5c7c59c082f7c4841c\" alt=\"VS Code showing a diff of Claude's proposed changes with a permission prompt asking whether to make the edit\" data-og-width=\"3292\" width=\"3292\" data-og-height=\"1876\" height=\"1876\" data-path=\"images/vs-code-edits.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=280&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=cb5d41b81087f79b842a56b5a3304660 280w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=560&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=90bb691960decdc06393c3c21cd62c75 560w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=840&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=9a11bf878ba619e850380904ff4f38e8 840w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=1100&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=6dddbf596b4f69ec6245bdc5eb6dd487 1100w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=1650&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=ef2713b8cbfd2cee97af817d813d64c7 1650w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=2500&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=1f7e1c52919cdfddf295f32a2ec7ae59 2500w\" />\n  </Step>\n</Steps>\n\nFor more ideas on what you can do with Claude Code, see [Common workflows](/en/common-workflows).\n\n<Tip>\n  The extension includes two built-in tutorials:\n\n  * **VS Code walkthrough**: Run \"Claude Code: Open Walkthrough\" from the Command Palette for a guided tour of the basics.\n  * **Interactive checklist**: Click the graduation cap icon in the Claude panel header to work through features like writing code, using Plan mode, and setting up rules.\n</Tip>\n\n## Use the prompt box\n\nThe prompt box supports several features:\n\n* **Permission modes**: Click the mode indicator at the bottom of the prompt box to switch modes. In normal mode, Claude asks permission before each action. In Plan mode, Claude describes what it will do and waits for approval before making changes. In auto-accept mode, Claude makes edits without asking. Set the default in VS Code settings under `claudeCode.initialPermissionMode`.\n* **Command menu**: Click `/` or type `/` to open the command menu. Options include attaching files, switching models, toggling extended thinking, and viewing plan usage (`/usage`). The Customize section provides access to MCP servers, hooks, memory, permissions, and plugins. Items with a terminal icon open in the integrated terminal.\n* **Context indicator**: The prompt box shows how much of Claude's context window you're using. Claude automatically compacts when needed, or you can run `/compact` manually.\n* **Extended thinking**: Lets Claude spend more time reasoning through complex problems. Toggle it on via the command menu (`/`). See [Extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) for details.\n* **Multi-line input**: Press `Shift+Enter` to add a new line without sending.\n\n### Reference files and folders\n\nUse @-mentions to give Claude context about specific files or folders. When you type `@` followed by a file or folder name, Claude reads that content and can answer questions about it or make changes to it. Claude Code supports fuzzy matching, so you can type partial names to find what you need:\n\n```\n> Explain the logic in @auth (fuzzy matches auth.js, AuthService.ts, etc.)\n> What's in @src/components/ (include a trailing slash for folders)\n```\n\nWhen you select text in the editor, Claude can see your highlighted code automatically. The prompt box footer shows how many lines are selected. Press `Option+K` (Mac) / `Alt+K` (Windows/Linux) to insert an @-mention with the file path and line numbers (e.g., `@app.ts#5-10`). Click the selection indicator to toggle whether Claude can see your highlighted text - the eye-slash icon means the selection is hidden from Claude.\n\nYou can also hold `Shift` while dragging files into the prompt box to add them as attachments. Click the X on any attachment to remove it from context.\n\n### Resume past conversations\n\nClick the dropdown at the top of the Claude Code panel to access your conversation history. You can search by keyword or browse by time (Today, Yesterday, Last 7 days, etc.). Click any conversation to resume it with the full message history. For more on resuming sessions, see [Common workflows](/en/common-workflows#resume-previous-conversations).\n\n### Resume remote sessions from Claude.ai\n\nIf you use [Claude Code on the web](/en/claude-code-on-the-web), you can resume those remote sessions directly in VS Code. This requires signing in with **Claude.ai Subscription**, not Anthropic Console.\n\n<Steps>\n  <Step title=\"Open Past Conversations\">\n    Click the **Past Conversations** dropdown at the top of the Claude Code panel.\n  </Step>\n\n  <Step title=\"Select the Remote tab\">\n    The dialog shows two tabs: Local and Remote. Click **Remote** to see sessions from claude.ai.\n  </Step>\n\n  <Step title=\"Select a session to resume\">",
+            "</Steps>\n\n<Note>\n  Only web sessions started with a GitHub repository appear in the Remote tab. Resuming loads the conversation history locally; changes are not synced back to claude.ai.\n</Note>\n\n## Customize your workflow\n\nOnce you're up and running, you can reposition the Claude panel, run multiple sessions, or switch to terminal mode.\n\n### Choose where Claude lives\n\nYou can drag the Claude panel to reposition it anywhere in VS Code. Grab the panel's tab or title bar and drag it to:\n\n* **Secondary sidebar**: The right side of the window. Keeps Claude visible while you code.\n* **Primary sidebar**: The left sidebar with icons for Explorer, Search, etc.\n* **Editor area**: Opens Claude as a tab alongside your files. Useful for side tasks.\n\n<Tip>\n  Use the sidebar for your main Claude session and open additional tabs for side tasks. Claude remembers your preferred location. Note that the Spark icon only appears in the Activity Bar when the Claude panel is docked to the left. Since Claude defaults to the right side, use the Editor Toolbar icon to open Claude.\n</Tip>\n\n### Run multiple conversations\n\nUse **Open in New Tab** or **Open in New Window** from the Command Palette to start additional conversations. Each conversation maintains its own history and context, allowing you to work on different tasks in parallel.\n\nWhen using tabs, a small colored dot on the spark icon indicates status: blue means a permission request is pending, orange means Claude finished while the tab was hidden.\n\n### Switch to terminal mode\n\nBy default, the extension opens a graphical chat panel. If you prefer the CLI-style interface, open the [Use Terminal setting](vscode://settings/claudeCode.useTerminal) and check the box.\n\nYou can also open VS Code settings (`Cmd+,` on Mac or `Ctrl+,` on Windows/Linux), go to Extensions → Claude Code, and check **Use Terminal**.\n\n## Manage plugins\n\nThe VS Code extension includes a graphical interface for installing and managing [plugins](/en/plugins). Type `/plugins` in the prompt box to open the **Manage plugins** interface.\n\n### Install plugins",
+            "In the Plugins tab:\n\n* **Installed plugins** appear at the top with toggle switches to enable or disable them\n* **Available plugins** from your configured marketplaces appear below\n* Search to filter plugins by name or description\n* Click **Install** on any available plugin"
+          ]
+        }
+      ],
+      "analysis_status": "completed",
+      "inference": {
+        "before": "新しいタスクシステムが導入され、既存のワークフローから強制的に移行する必要がありました。慣れ親しんだ操作方法が突然変わることで、作業効率が一時的に低下するリスクがありました。",
+        "after": "環境変数 `CLAUDE_CODE_ENABLE_TASKS=false` を設定することで、一時的に以前のシステムを維持できるようになりました。新旧のシステムを自分のペースで切り替えられます。",
+        "benefit": "業務を止めることなく、都合の良いタイミングで新機能を試せます。問題があれば即座に元のシステムに戻せるため、安心して新機能を評価できます。段階的な移行により、チーム全体での導入もスムーズになります。",
+        "target_users": "Claude Code を業務で使用しており、急な変更による作業中断を避けたい既存ユーザー。新機能を慎重に評価してから本格導入したい開発チームや、安定性を重視するエンタープライズユーザー。"
+      }
+    },
+    {
+      "content": "- Added shorthand `$0`, `$1`, etc. for accessing individual arguments in custom commands",
+      "prefix": "Added",
+      "importance_score": 8,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [
+          "$0",
+          "$1"
+        ],
+        "normalized": [
+          "0",
+          "1"
+        ]
+      },
+      "search_strategy": "normalized",
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 44,
+          "context_score": 24,
+          "total_score": 1056,
+          "snippets": [
+            "Configure OpenTelemetry using environment variables:\n\n```bash  theme={null}\n# 1. Enable telemetry\nexport CLAUDE_CODE_ENABLE_TELEMETRY=1\n\n# 2. Choose exporters (both are optional - configure only what you need)\nexport OTEL_METRICS_EXPORTER=otlp       # Options: otlp, prometheus, console",
+            "# 3. Configure OTLP endpoint (for OTLP exporter)\nexport OTEL_EXPORTER_OTLP_PROTOCOL=grpc\nexport OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317\n\n# 4. Set authentication (if required)\nexport OTEL_EXPORTER_OTLP_HEADERS=\"Authorization=Bearer your-token\"\n\n# 5. For debugging: reduce export intervals\nexport OTEL_METRIC_EXPORT_INTERVAL=10000  # 10 seconds (default: 60000ms)\nexport OTEL_LOGS_EXPORT_INTERVAL=5000     # 5 seconds (default: 5000ms)\n\n# 6. Run Claude Code\nclaude\n```\n\n<Note>\n  The default export intervals are 60 seconds for metrics and 5 seconds for logs. During setup, you may want to use shorter intervals for debugging purposes. Remember to reset these for production use.\n</Note>\n\nFor full configuration options, see the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/exporter.md#configuration-options).",
+            "```json  theme={null}\n{\n  \"env\": {\n    \"CLAUDE_CODE_ENABLE_TELEMETRY\": \"1\",\n    \"OTEL_METRICS_EXPORTER\": \"otlp\",\n    \"OTEL_LOGS_EXPORTER\": \"otlp\",\n    \"OTEL_EXPORTER_OTLP_PROTOCOL\": \"grpc\",\n    \"OTEL_EXPORTER_OTLP_ENDPOINT\": \"http://collector.company.com:4317\",\n    \"OTEL_EXPORTER_OTLP_HEADERS\": \"Authorization=Bearer company-token\"\n  }\n}",
+            "| Environment Variable                            | Description                                                               | Example Values                       |\n| ----------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------ |\n| `CLAUDE_CODE_ENABLE_TELEMETRY`                  | Enables telemetry collection (required)                                   | `1`                                  |\n| `OTEL_METRICS_EXPORTER`                         | Metrics exporter type(s) (comma-separated)                                | `console`, `otlp`, `prometheus`      |\n| `OTEL_LOGS_EXPORTER`                            | Logs/events exporter type(s) (comma-separated)                            | `console`, `otlp`                    |\n| `OTEL_EXPORTER_OTLP_PROTOCOL`                   | Protocol for OTLP exporter (all signals)                                  | `grpc`, `http/json`, `http/protobuf` |\n| `OTEL_EXPORTER_OTLP_ENDPOINT`                   | OTLP collector endpoint (all signals)                                     | `http://localhost:4317`              |\n| `OTEL_EXPORTER_OTLP_METRICS_PROTOCOL`           | Protocol for metrics (overrides general)                                  | `grpc`, `http/json`, `http/protobuf` |\n| `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT`           | OTLP metrics endpoint (overrides general)                                 | `http://localhost:4318/v1/metrics`   |\n| `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL`              | Protocol for logs (overrides general)                                     | `grpc`, `http/json`, `http/protobuf` |\n| `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT`              | OTLP logs endpoint (overrides general)                                    | `http://localhost:4318/v1/logs`      |\n| `OTEL_EXPORTER_OTLP_HEADERS`                    | Authentication headers for OTLP                                           | `Authorization=Bearer token`         |\n| `OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY`         | Client key for mTLS authentication                                        | Path to client key file              |\n| `OTEL_EXPORTER_OTLP_METRICS_CLIENT_CERTIFICATE` | Client certificate for mTLS authentication                                | Path to client cert file             |\n| `OTEL_METRIC_EXPORT_INTERVAL`                   | Export interval in milliseconds (default: 60000)                          | `5000`, `60000`                      |\n| `OTEL_LOGS_EXPORT_INTERVAL`                     | Logs export interval in milliseconds (default: 5000)                      | `1000`, `10000`                      |\n| `OTEL_LOG_USER_PROMPTS`                         | Enable logging of user prompt content (default: disabled)                 | `1` to enable                        |\n| `CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS`   | Interval for refreshing dynamic headers (default: 1740000ms / 29 minutes) | `900000`                             |\n\n### Metrics cardinality control",
+            "```bash  theme={null}\n# Add custom attributes for team identification\nexport OTEL_RESOURCE_ATTRIBUTES=\"department=engineering,team.id=platform,cost_center=eng-123\"\n```\n\nThese custom attributes will be included in all metrics and events, allowing you to:"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 48,
+          "context_score": 18,
+          "total_score": 864,
+          "snippets": [
+            "When explaining code, always include:\n\n    1. **Start with an analogy**: Compare the code to something from everyday life\n    2. **Draw a diagram**: Use ASCII art to show the flow, structure, or relationships\n    3. **Walk through the code**: Explain step-by-step what happens\n    4. **Highlight a gotcha**: What's a common mistake or misconception?",
+            "-",
+            "Deploy the application:\n1. Run the test suite\n2. Build the application\n3. Push to the deployment target\n```",
+            "- For usage examples, see [examples.md](examples.md)\n```\n\n<Tip>Keep `SKILL.md` under 500 lines. Move detailed reference material to separate files.</Tip>\n\n### Control who invokes a skill",
+            "Deploy $ARGUMENTS to production:\n\n1. Run the test suite\n2. Build the application\n3. Push to the deployment target\n4. Verify the deployment succeeded"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md",
+          "hit_count": 37,
+          "context_score": 23,
+          "total_score": 851,
+          "snippets": [
+            "</Note>\n\n<Info>\n  **Claude Opus 4.5 is now available.** Claude Code GitHub Actions default to Sonnet. To use Opus 4.5, configure the [model parameter](#breaking-changes-reference) to use `claude-opus-4-5-20251101`.\n</Info>\n\n## Why use Claude Code GitHub Actions?",
+            "If the `/install-github-app` command fails or you prefer manual setup, please follow these manual setup instructions:\n\n1. **Install the Claude GitHub app** to your repository: [https://github.com/apps/claude](https://github.com/apps/claude)\n\n   The Claude GitHub app requires the following repository permissions:",
+            "## Upgrading from Beta\n\n<Warning>\n  Claude Code GitHub Actions v1.0 introduces breaking changes that require updating your workflow files in order to upgrade to v1.0 from the beta version.\n</Warning>\n\nIf you're currently using the beta version of Claude Code GitHub Actions, we recommend that you update your workflows to use the GA version. The new version simplifies configuration while adding powerful new features like automatic mode detection.",
+            "All beta users must make these changes to their workflow files in order to upgrade:\n\n1. **Update the action version**: Change `@beta` to `@v1`\n2. **Remove mode configuration**: Delete `mode: \"tag\"` or `mode: \"agent\"` (now auto-detected)\n3. **Update prompt inputs**: Replace `direct_prompt` with `prompt`\n4. **Move CLI options**: Convert `max_turns`, `model`, `custom_instructions`, etc. to `claude_args`\n\n### Breaking Changes Reference\n\n| Old Beta Input        | New v1.0 Input                        |\n| --------------------- | ------------------------------------- |\n| `mode`                | *(Removed - auto-detected)*           |\n| `direct_prompt`       | `prompt`                              |",
+            "direct_prompt: \"Review this PR for security issues\"\n    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n    custom_instructions: \"Follow our coding standards\"\n    max_turns: \"10\"\n    model: \"claude-sonnet-4-5-20250929\"\n```\n\n**GA version (v1.0):**\n\n```yaml  theme={null}\n- uses: anthropics/claude-code-action@v1\n  with:\n    prompt: \"Review this PR for security issues\"\n    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n    claude_args: |\n      --append-system-prompt \"Follow our coding standards\"\n      --max-turns 10\n      --model claude-sonnet-4-5-20250929\n```\n\n<Tip>"
+          ]
+        }
+      ],
+      "analysis_status": "completed",
+      "inference": {
+        "before": "カスタムコマンドで引数を扱う際、すべての引数をまとめた `$ARGUMENTS` 変数しか利用できませんでした。個別の引数にアクセスするには、自分で文字列を分割・パースする処理を書く必要がありました。",
+        "after": "`$0`、`$1`、`$2` などのショートハンド記法で、各引数に直接アクセスできるようになりました。シェルスクリプトのような直感的な書き方で、特定の引数だけを簡単に参照できます。",
+        "benefit": "カスタムコマンドの実装がシンプルになり、引数処理のコードを書く手間が省けます。シェルスクリプトに慣れた開発者なら即座に理解できる記法で、メンテナンス性も向上します。複数の引数を使うコマンドでも、位置指定で明確に参照できるため、バグも減らせます。",
+        "target_users": "Claude Code のカスタムコマンド（スキル）を作成・活用しているユーザー。特に複数の引数を受け取るコマンドを定義している開発者や、チーム全体で共有するスキルを整備している方。"
+      }
+    },
+    {
+      "content": "- Fixed crashes on processors without AVX instruction support",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [
+          "AVX"
+        ],
+        "normalized": [
+          "AVX"
+        ]
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    },
+    {
+      "content": "- Fixed dangling Claude Code processes when terminal is closed by catching EIO errors from `process.exit()` and using SIGKILL as fallback",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [
+          "process.exit()",
+          "EIO",
+          "SIGKILL"
+        ],
+        "normalized": [
+          "process",
+          "exit",
+          "EIO",
+          "SIGKILL"
+        ]
+      },
+      "search_strategy": "normalized",
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 44,
+          "context_score": 25,
+          "total_score": 1100,
+          "snippets": [
+            "1. Send the hook input and your prompt to a fast LLM (Haiku)\n2. The LLM responds with structured JSON containing a decision\n3. Claude Code processes the decision automatically\n\n### Configuration",
+            "| --------------------- | ----------------------- | ------------------------------ |\n| **Execution**         | Runs bash script        | Queries LLM                    |\n| **Decision logic**    | You implement in code   | LLM evaluates context          |\n| **Setup complexity**  | Requires script file    | Configure prompt               |\n| **Context awareness** | Limited to script logic | Natural language understanding |\n| **Performance**       | Fast (local execution)  | Slower (API call)              |\n| **Use case**          | Deterministic rules     | Context-aware decisions        |",
+            "### PreToolUse\n\nRuns after Claude creates tool parameters and before processing the tool call.\n\n**Common matchers:**",
+            "### UserPromptSubmit\n\nRuns when the user submits a prompt, before Claude processes it. This allows you\nto add additional context based on the prompt/conversation, validate prompts, or\nblock certain types of prompts.",
+            "echo 'export PATH=\"$PATH:./node_modules/.bin\"' >> \"$CLAUDE_ENV_FILE\"\nfi\n\nexit 0\n```\n\n**Example: Persisting all environment changes from the hook**"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md",
+          "hit_count": 11,
+          "context_score": 24,
+          "total_score": 264,
+          "snippets": [
+            "-",
+            "```\n\nClaude Code [passes hook input as JSON](/en/hooks#pretooluse-input) via stdin to hook commands. The validation script reads this JSON, extracts the Bash command, and [exits with code 2](/en/hooks#exit-code-2-behavior) to block write operations:\n\n```bash  theme={null}\n#!/bin/bash",
+            "# Block SQL write operations (case-insensitive)\nif echo \"$COMMAND\" | grep -iE '\\b(INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|TRUNCATE)\\b' > /dev/null; then\n  echo \"Blocked: Only SELECT queries are allowed\" >&2\n  exit 2\nfi\n\nexit 0\n```\n\nSee [Hook input](/en/hooks#pretooluse-input) for the complete input schema and [exit codes](/en/hooks#simple-exit-code) for how exit codes affect behavior.\n\n#### Disable specific subagents",
+            "#### Isolate high-volume operations\n\nOne of the most effective uses for subagents is isolating operations that produce large amounts of output. Running tests, fetching documentation, or processing log files can consume significant context. By delegating these to a subagent, the verbose output stays in the subagent's context while only the relevant summary returns to your main conversation.\n\n```\nUse a subagent to run the test suite and report only the failing tests with their error messages",
+            "4. Implement minimal fix\n5. Verify solution works\n\nDebugging process:\n- Analyze error messages and logs\n- Check recent code changes\n- Form and test hypotheses"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md",
+          "hit_count": 8,
+          "context_score": 31,
+          "total_score": 248,
+          "snippets": [
+            "# Manage costs effectively\n\n> Track token usage, set team spend limits, and reduce Claude Code costs with context management, model selection, extended thinking settings, and preprocessing hooks.\n\nClaude Code consumes tokens for each interaction. Costs vary based on codebase size, query complexity, and conversation length. The average cost is \\$6 per developer per day, with daily costs remaining below \\$12 for 90% of users.\n\nFor team usage, Claude Code charges by API token consumption. On average, Claude Code costs \\~\\$100-200/developer per month with Sonnet 4.5 though there is large variance depending on how many instances users are running and whether they're using it in automation.",
+            "## Reduce token usage\n\nToken costs scale with context size: the more context Claude processes, the more tokens you use. Claude Code automatically optimizes costs through prompt caching (which reduces costs for repeated content like system prompts) and auto-compaction (which summarizes conversation history when approaching context limits).\n\nThe following strategies help you keep context small and reduce per-message costs.",
+            "[Code intelligence plugins](/en/discover-plugins#code-intelligence) give Claude precise symbol navigation instead of text-based search, reducing unnecessary file reads when exploring unfamiliar code. A single \"go to definition\" call replaces what might otherwise be a grep followed by reading multiple candidate files. Installed language servers also report type errors automatically after edits, so Claude catches mistakes without running a compiler.\n\n### Offload processing to hooks and skills\n\nCustom [hooks](/en/hooks) can preprocess data before Claude sees it. Instead of Claude reading a 10,000-line log file to find errors, a hook can grep for `ERROR` and return only matching lines, reducing context from tens of thousands of tokens to hundreds.\n\nA [skill](/en/skills) can give Claude domain knowledge so it doesn't have to explore. For example, a \"codebase-overview\" skill could describe your project's architecture, key directories, and naming conventions. When Claude invokes the skill, it gets this context immediately instead of spending tokens reading multiple files to understand the structure.",
+            "### Delegate verbose operations to subagents\n\nRunning tests, fetching documentation, or processing log files can consume significant context. Delegate these to [subagents](/en/sub-agents#isolate-high-volume-operations) so the verbose output stays in the subagent's context while only a summary returns to your main conversation.\n\n### Write specific prompts",
+            "Claude Code uses tokens for some background functionality even when idle:\n\n* **Conversation summarization**: Background jobs that summarize previous conversations for the `claude --resume` feature\n* **Command processing**: Some commands like `/cost` may generate requests to check status\n\nThese background processes consume a small amount of tokens (typically under \\$0.04 per session) even without active interaction.\n\n## Understanding changes in Claude Code behavior"
+          ]
+        }
+      ],
+      "analysis_status": "completed",
+      "inference": {
+        "before": "ターミナルを閉じても Claude Code のプロセスが完全に終了せず、バックグラウンドで残り続けることがありました。これにより、不要なプロセスがシステムリソース（メモリやCPU）を消費し続ける可能性がありました。",
+        "after": "ターミナルを閉じると Claude Code のプロセスが確実に終了するようになりました。ターミナル切断時に発生する I/O エラーを適切に処理し、必要に応じて強制終了の仕組みを使ってプロセスを確実にクリーンアップします。",
+        "benefit": "システムリソースの無駄な消費を防げます。複数のセッションを開いて作業する際も、閉じたセッションのプロセスが残り続けることがなくなり、システムが安定します。手動でプロセスを探して終了させる手間も不要になります。",
+        "target_users": "Claude Code を日常的に使用し、複数のターミナルセッションを開閉するすべてのユーザー。特にメモリやCPUリソースが限られた環境で作業している方や、長時間の作業で多数のセッションを扱う開発者。"
+      }
+    },
+    {
+      "content": "- Fixed `/rename` and `/tag` not updating the correct session when resuming from a different directory (e.g., git worktrees)",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [
+          "/rename",
+          "/tag"
+        ],
+        "normalized": [
+          "rename",
+          "tag"
+        ]
+      },
+      "search_strategy": "exact",
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md",
+          "hit_count": 5,
+          "context_score": 6,
+          "total_score": 30,
+          "snippets": [
+            "<Steps>\n  <Step title=\"Name the current session\">\n    Use `/rename` during a session to give it a memorable name:\n\n    ```\n    > /rename auth-refactor\n    ```\n\n    You can also rename any session from the picker: run `/resume`, navigate to a session, and press `R`.\n  </Step>\n\n  <Step title=\"Resume by name later\">",
+            "| `→` / `←` | Expand or collapse grouped sessions               |\n| `Enter`   | Select and resume the highlighted session         |\n| `P`       | Preview the session content                       |\n| `R`       | Rename the highlighted session                    |\n| `/`       | Search to filter sessions                         |\n| `A`       | Toggle between current directory and all projects |\n| `B`       | Filter to sessions from your current git branch   |",
+            "<Tip>\n  Tips:\n\n  * **Name sessions early**: Use `/rename` when starting work on a distinct task—it's much easier to find \"payment-integration\" than \"explain this function\" later\n  * Use `--continue` for quick access to your most recent conversation in the current directory\n  * Use `--resume session-name` when you know which session you need\n  * Use `--resume` (without a name) when you need to browse and select"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 2,
+          "context_score": 10,
+          "total_score": 20,
+          "snippets": [
+            "## Manage your session\n\nConversations are persistent and reversible. Use this to your advantage!\n\n### Course-correct early and often",
+            "claude --resume      # Select from recent conversations\n```\n\nUse `/rename` to give sessions descriptive names (`\"oauth-migration\"`, `\"debugging-memory-leak\"`) so you can find them later. Treat sessions like branches. Different workstreams can have separate, persistent contexts.\n\n***"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md",
+          "hit_count": 1,
+          "context_score": 3,
+          "total_score": 3,
+          "snippets": [
+            "Use `/cost` to check your current token usage, or [configure your status line](/en/statusline#context-window-usage) to display it continuously.\n\n* **Clear between tasks**: Use `/clear` to start fresh when switching to unrelated work. Stale context wastes tokens on every subsequent message. Use `/rename` before clearing so you can easily find the session later, then `/resume` to return to it.\n* **Add custom compaction instructions**: `/compact Focus on code samples and API usage` tells Claude what to preserve during summarization.\n\nYou can also customize compaction behavior in your CLAUDE.md:"
+          ]
+        }
+      ],
+      "analysis_status": "inference_failed"
+    },
+    {
+      "content": "- Fixed resuming sessions by custom title not working when run from a different directory",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [],
+        "normalized": []
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    },
+    {
+      "content": "- Fixed pasted text content being lost when using prompt stash (Ctrl+S) and restore",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [],
+        "normalized": []
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    },
+    {
+      "content": "- Fixed agent list displaying \"Sonnet (default)\" instead of \"Inherit (default)\" for agents without an explicit model setting",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [],
+        "normalized": []
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    },
+    {
+      "content": "- Fixed backgrounded hook commands not returning early, potentially causing the session to wait on a process that was intentionally backgrounded",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [],
+        "normalized": []
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    },
+    {
+      "content": "- Fixed file write preview omitting empty lines",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [],
+        "normalized": []
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    },
+    {
+      "content": "- Changed skills without additional permissions or hooks to be allowed without requiring approval",
+      "prefix": "Changed",
+      "importance_score": 6,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [],
+        "normalized": []
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    },
+    {
+      "content": "- Changed indexed argument syntax from `$ARGUMENTS.0` to `$ARGUMENTS[0]` (bracket syntax)",
+      "prefix": "Changed",
+      "importance_score": 6,
+      "tags": [],
+      "pipeline": "general",
+      "keywords": {
+        "original": [
+          "$ARGUMENTS.0",
+          "$ARGUMENTS[0]"
+        ],
+        "normalized": [
+          "ARGUMENTS",
+          "0",
+          "ARGUMENTS",
+          "0"
+        ]
+      },
+      "search_strategy": "normalized",
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 38,
+          "context_score": 27,
+          "total_score": 1026,
+          "snippets": [
+            "| :------------------------- | :---------- | :---------------------------------------------------------------------------------------------------------------------------------------------------- |\n| `name`                     | No          | Display name for the skill. If omitted, uses the directory name. Lowercase letters, numbers, and hyphens only (max 64 characters).                    |\n| `description`              | Recommended | What the skill does and when to use it. Claude uses this to decide when to apply the skill. If omitted, uses the first paragraph of markdown content. |\n| `argument-hint`            | No          | Hint shown during autocomplete to indicate expected arguments. Example: `[issue-number]` or `[filename] [format]`.                                    |\n| `disable-model-invocation` | No          | Set to `true` to prevent Claude from automatically loading this skill. Use for workflows you want to trigger manually with `/name`. Default: `false`. |\n| `user-invocable`           | No          | Set to `false` to hide from the `/` menu. Use for background knowledge users shouldn't invoke directly. Default: `true`.                              |\n| `allowed-tools`            | No          | Tools Claude can use without asking permission when this skill is active.                                                                             |",
+            "| Variable               | Description                                                                                                                                  |\n| :--------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- |\n| `$ARGUMENTS`           | All arguments passed when invoking the skill. If `$ARGUMENTS` is not present in the content, arguments are appended as `ARGUMENTS: <value>`. |\n| `${CLAUDE_SESSION_ID}` | The current session ID. Useful for logging, creating session-specific files, or correlating skill output with sessions.                      |\n\n**Example using substitutions:**",
+            "Log the following to logs/${CLAUDE_SESSION_ID}.log:\n\n$ARGUMENTS\n```\n\n### Add supporting files",
+            "- For usage examples, see [examples.md](examples.md)\n```\n\n<Tip>Keep `SKILL.md` under 500 lines. Move detailed reference material to separate files.</Tip>\n\n### Control who invokes a skill",
+            "disable-model-invocation: true\n-"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md",
+          "hit_count": 18,
+          "context_score": 33,
+          "total_score": 594,
+          "snippets": [
+            "> Track token usage, set team spend limits, and reduce Claude Code costs with context management, model selection, extended thinking settings, and preprocessing hooks.\n\nClaude Code consumes tokens for each interaction. Costs vary based on codebase size, query complexity, and conversation length. The average cost is \\$6 per developer per day, with daily costs remaining below \\$12 for 90% of users.\n\nFor team usage, Claude Code charges by API token consumption. On average, Claude Code costs \\~\\$100-200/developer per month with Sonnet 4.5 though there is large variance depending on how many instances users are running and whether they're using it in automation.\n\nThis page covers how to [track your costs](#track-your-costs), [manage costs for teams](#managing-costs-for-teams), and [reduce token usage](#reduce-token-usage).",
+            "The `/cost` command provides detailed token usage statistics for your current session:\n\n```\nTotal cost:            $0.55\nTotal duration (API):  6m 19.7s\nTotal duration (wall): 6h 33m 10.2s\nTotal code changes:    0 lines added, 0 lines removed\n```\n\n## Managing costs for teams",
+            "| Team size     | TPM per user | RPM per user |\n| ------------- | ------------ | ------------ |\n| 1-5 users     | 200k-300k    | 5-7          |\n| 5-20 users    | 100k-150k    | 2.5-3.5      |\n| 20-50 users   | 50k-75k      | 1.25-1.75    |\n| 50-100 users  | 25k-35k      | 0.62-0.87    |\n| 100-500 users | 15k-20k      | 0.37-0.47    |\n| 500+ users    | 10k-15k      | 0.25-0.35    |\n\nFor example, if you have 200 users, you might request 20k TPM for each user, or 4 million total TPM (200\\*20,000 = 4 million).\n\nThe TPM per user decreases as team size grows because we expect fewer users to use Claude Code concurrently in larger organizations. These rate limits apply at the organization level, not per individual user, which means individual users can temporarily consume more than their calculated share when others aren't actively using the service.",
+            "* **Prefer CLI tools when available**: Tools like `gh`, `aws`, `gcloud`, and `sentry-cli` are more context-efficient than MCP servers because they don't add persistent tool definitions. Claude can run CLI commands directly without the overhead.\n* **Disable unused servers**: Run `/mcp` to see configured servers and disable any you're not actively using.\n* **Tool search is automatic**: When MCP tool descriptions exceed 10% of your context window, Claude Code automatically defers them and loads tools on-demand via [tool search](/en/mcp#scale-with-mcp-tool-search). Since deferred tools only enter context when actually used, a lower threshold means fewer idle tool definitions consuming space. Set a lower threshold with `ENABLE_TOOL_SEARCH=auto:<N>` (for example, `auto:5` triggers when tools exceed 5% of your context window).\n\n### Install code intelligence plugins for typed languages",
+            "### Offload processing to hooks and skills\n\nCustom [hooks](/en/hooks) can preprocess data before Claude sees it. Instead of Claude reading a 10,000-line log file to find errors, a hook can grep for `ERROR` and return only matching lines, reducing context from tens of thousands of tokens to hundreds.\n\nA [skill](/en/skills) can give Claude domain knowledge so it doesn't have to explore. For example, a \"codebase-overview\" skill could describe your project's architecture, key directories, and naming conventions. When Claude invokes the skill, it gets this context immediately instead of spending tokens reading multiple files to understand the structure."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md",
+          "hit_count": 21,
+          "context_score": 26,
+          "total_score": 546,
+          "snippets": [
+            "</Note>\n\n<Info>\n  **Claude Opus 4.5 is now available.** Claude Code GitHub Actions default to Sonnet. To use Opus 4.5, configure the [model parameter](#breaking-changes-reference) to use `claude-opus-4-5-20251101`.\n</Info>\n\n## Why use Claude Code GitHub Actions?",
+            "## Upgrading from Beta\n\n<Warning>\n  Claude Code GitHub Actions v1.0 introduces breaking changes that require updating your workflow files in order to upgrade to v1.0 from the beta version.\n</Warning>\n\nIf you're currently using the beta version of Claude Code GitHub Actions, we recommend that you update your workflows to use the GA version. The new version simplifies configuration while adding powerful new features like automatic mode detection.",
+            "### Breaking Changes Reference\n\n| Old Beta Input        | New v1.0 Input                        |\n| --------------------- | ------------------------------------- |\n| `mode`                | *(Removed - auto-detected)*           |\n| `direct_prompt`       | `prompt`                              |",
+            "direct_prompt: \"Review this PR for security issues\"\n    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n    custom_instructions: \"Follow our coding standards\"\n    max_turns: \"10\"\n    model: \"claude-sonnet-4-5-20250929\"\n```\n\n**GA version (v1.0):**\n\n```yaml  theme={null}\n- uses: anthropics/claude-code-action@v1",
+            "anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n    claude_args: |\n      --append-system-prompt \"Follow our coding standards\"\n      --max-turns 10\n      --model claude-sonnet-4-5-20250929\n```\n\n<Tip>"
+          ]
+        }
+      ],
+      "analysis_status": "completed",
+      "inference": {
+        "before": "スキル（カスタムコマンド）で個別の引数にアクセスする際、`$ARGUMENTS.0` というドット記法を使用していました。この記法は一般的なプログラミング言語の配列アクセス構文とは異なるため、直感的ではありませんでした。",
+        "after": "引数アクセスの構文が `$ARGUMENTS[0]` というブラケット記法に変更されました。JavaScript、Python、シェルスクリプトなど、多くのプログラミング言語で標準的な配列アクセスの書き方と同じになります。",
+        "benefit": "他の言語での経験をそのまま活かせるため、スキルの作成が直感的になります。配列アクセスであることが一目で分かり、コードの可読性も向上します。新しくスキルを学ぶメンバーも、馴染みのある構文ですぐに理解できます。",
+        "target_users": "Claude Code のスキル（カスタムコマンド）を作成・メンテナンスしているユーザー。特に複数の引数を扱うスキルを定義している開発者や、チーム全体で共有するスキルを整備している方。"
+      }
+    },
+    {
+      "content": "- [SDK] Added replay of `queued_command` attachment messages as `SDKUserMessageReplay` events when `replayUserMessages` is enabled",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "tags": [
+        "SDK"
+      ],
+      "pipeline": "developer",
+      "keywords": {
+        "original": [
+          "queued_command",
+          "SDKUserMessageReplay",
+          "replayUserMessages"
+        ],
+        "normalized": [
+          "queued",
+          "command",
+          "SDKUserMessageReplay",
+          "replayUserMessages"
+        ]
+      },
+      "search_strategy": "skip",
+      "related_docs": [],
+      "analysis_status": "sdk_only"
+    },
+    {
+      "content": "- [VSCode] Enabled session forking and rewind functionality for all users",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "tags": [
+        "VSCode"
+      ],
+      "pipeline": "extension",
+      "keywords": {
+        "original": [],
+        "normalized": []
+      },
+      "search_strategy": "multi",
+      "related_docs": [],
+      "analysis_status": "no_docs_found"
+    }
+  ]
+}

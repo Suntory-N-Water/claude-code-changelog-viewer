@@ -15,6 +15,13 @@ export const RelatedDocSchema = v.object({
   snippets: v.array(v.string()), // ["| `$ARGUMENTS` | All arguments...", ...]
 });
 
+// AI推論結果
+export const InferenceResultSchema = v.object({
+  before: v.pipe(v.string(), v.minLength(10), v.maxLength(500)),
+  after: v.pipe(v.string(), v.minLength(10), v.maxLength(500)),
+  benefit: v.pipe(v.string(), v.minLength(10), v.maxLength(500)),
+});
+
 // CHANGELOG項目
 export const ChangelogItemSchema = v.object({
   content: v.string(),
@@ -30,7 +37,10 @@ export const ChangelogItemSchema = v.object({
     'docs_pending',
     'sdk_only',
     'no_docs_found',
+    'completed',
+    'inference_failed',
   ]),
+  inference: v.optional(InferenceResultSchema),
 });
 
 // 最終出力
@@ -44,3 +54,4 @@ export type Analysis = v.InferOutput<typeof AnalysisSchema>;
 export type ChangelogItem = v.InferOutput<typeof ChangelogItemSchema>;
 export type RelatedDoc = v.InferOutput<typeof RelatedDocSchema>;
 export type Keywords = v.InferOutput<typeof KeywordsSchema>;
+export type InferenceResult = v.InferOutput<typeof InferenceResultSchema>;
