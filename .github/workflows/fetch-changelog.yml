@@ -36,27 +36,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Analyze CHANGELOG
-        id: analyze
-        run: |
-          pnpm --filter changelog-fetcher analyze
-          # 最新のanalysis_*.jsonからバージョン番号を抽出
-          if ls apps/changelog-fetcher/metadata/analysis_*.json 1> /dev/null 2>&1; then
-            VERSION=$(ls -1 apps/changelog-fetcher/metadata/analysis_*.json | tail -1 | sed 's/.*analysis_v\(.*\)\.json/\1/')
-            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-            echo "has_analysis=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_analysis=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Infer benefits using Copilot SDK
-        if: steps.analyze.outputs.has_analysis == 'true'
-        run: |
-          VERSION="${{ steps.analyze.outputs.version }}"
-          pnpm --filter changelog-fetcher infer "$VERSION"
-        env:
-          COPILOT_MODEL: claude-sonnet-4.5
-
       - name: Check for changes
         id: git-check
         run: |
@@ -73,10 +52,7 @@ jobs:
 
           TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S JST')
 
-          # バージョン番号が利用可能な場合はコミットメッセージに含める
-          if [ "$HAS_ANALYSIS" = "true" ] && [ -n "$VERSION" ]; then
-            COMMIT_MSG="feat: add AI benefits for v$VERSION"
-          elif [ "$CHANGED_COUNT" -eq 1 ]; then
+          if [ "$CHANGED_COUNT" -eq 1 ]; then
             COMMIT_MSG="📝 Update CHANGELOG - 1 file changed"
           else
             COMMIT_MSG="📝 Update CHANGELOG - $CHANGED_COUNT files changed"
@@ -85,8 +61,6 @@ jobs:
           git commit -m "$COMMIT_MSG" -m "Automated CHANGELOG update at $TIMESTAMP"
         env:
           CHANGED_COUNT: ${{ steps.git-check.outputs.changed_files }}
-          HAS_ANALYSIS: ${{ steps.analyze.outputs.has_analysis }}
-          VERSION: ${{ steps.analyze.outputs.version }}
 
       - name: Push changes
         if: steps.git-check.outputs.changed == 'true'
