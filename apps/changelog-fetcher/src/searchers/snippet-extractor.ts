@@ -5,6 +5,13 @@ import type { SnippetResult } from '../types';
 
 const MAX_SNIPPETS_PER_FILE = 5;
 
+/**
+ * 正規表現メタ文字をエスケープ
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // プロジェクトルート
 const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
 
@@ -27,7 +34,7 @@ function countMatches(file: string, keywords: Keywords): number {
   }
 
   try {
-    const pattern = allKeywords.join('|');
+    const pattern = allKeywords.map(escapeRegex).join('|');
     const absolutePath = toAbsolutePath(file);
     const command = `grep -c -iE '(${pattern})' "${absolutePath}"`;
     const result = execSync(command, { encoding: 'utf-8' });
@@ -42,7 +49,7 @@ function countMatches(file: string, keywords: Keywords): number {
 }
 
 /**
- * ファイルからスニペットを抽出（前後3行）
+ * ファイルからスニペットを抽出(前後3行)
  */
 function extractSnippetsFromFile(file: string, keywords: Keywords): string[] {
   const { original, normalized } = keywords;
@@ -53,7 +60,7 @@ function extractSnippetsFromFile(file: string, keywords: Keywords): string[] {
   }
 
   try {
-    const pattern = allKeywords.join('|');
+    const pattern = allKeywords.map(escapeRegex).join('|');
     const absolutePath = toAbsolutePath(file);
     const command = `grep -iE '(${pattern})' -B 3 -A 3 "${absolutePath}"`;
     const result = execSync(command, { encoding: 'utf-8' });

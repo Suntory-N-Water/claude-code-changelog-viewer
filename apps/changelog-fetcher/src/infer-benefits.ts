@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { CopilotClient } from '@github/copilot-sdk';
 import * as v from 'valibot';
@@ -11,15 +11,13 @@ import {
 } from './schemas/analysis';
 import { extractJSON } from './utils/json-extractor';
 
-/**
- * メイン処理: analysis_vX.X.X.json → final_vX.X.X.json
- */
 async function inferBenefits(version: string): Promise<void> {
-  const metadataDir = join(process.cwd(), 'metadata');
-  const analysisPath = join(metadataDir, `analysis_v${version}.json`);
-  const finalPath = join(metadataDir, `final_v${version}.json`);
+  const analysisDir = join(process.cwd(), 'analysis');
+  const inferredDir = join(process.cwd(), 'inferred');
+  const analysisPath = join(analysisDir, `analysis_${version}.json`);
+  const inferredPath = join(inferredDir, `inferred_${version}.json`);
 
-  // 1. analysis_vX.X.X.json を読み込み
+  // 1. analysis_{version}.json を読み込み
   console.log(`Reading ${analysisPath}...`);
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
   const analysis: Analysis = v.parse(AnalysisSchema, JSON.parse(rawAnalysis));
@@ -86,14 +84,15 @@ async function inferBenefits(version: string): Promise<void> {
   await session.destroy();
   await client.stop();
 
-  // 5. final_vX.X.X.json に保存
+  // 5. inferred_{version}.json に保存
   analysis.analyzed_at = new Date().toISOString();
 
   // Valibot で最終検証
   const validated = v.parse(AnalysisSchema, analysis);
 
-  writeFileSync(finalPath, JSON.stringify(validated, null, 2), 'utf-8');
-  console.log(`\nSaved to ${finalPath}`);
+  mkdirSync(inferredDir, { recursive: true });
+  writeFileSync(inferredPath, JSON.stringify(validated, null, 2), 'utf-8');
+  console.log(`\nSaved to ${inferredPath}`);
 
   // 統計表示
   const completedCount = validated.items.filter(

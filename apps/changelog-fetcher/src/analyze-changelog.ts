@@ -1,13 +1,13 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as v from 'valibot';
-import { parseChangelog } from '../src/parsers/changelog-parser';
-import { extractKeywords } from '../src/parsers/keyword-extractor';
-import { type Analysis, AnalysisSchema } from '../src/schemas/analysis';
-import { getTopDocs } from '../src/scorers/context-scorer';
-import { searchDocs, shouldSkipSearch } from '../src/searchers/grep-executor';
-import { extractSnippets } from '../src/searchers/snippet-extractor';
-import type { AnalysisStatus } from '../src/types';
+import { parseChangelog } from './parsers/changelog-parser';
+import { extractKeywords } from './parsers/keyword-extractor';
+import { type Analysis, AnalysisSchema } from './schemas/analysis';
+import { getTopDocs } from './scorers/context-scorer';
+import { searchDocs, shouldSkipSearch } from './searchers/grep-executor';
+import { extractSnippets } from './searchers/snippet-extractor';
+import type { AnalysisStatus } from './types';
 
 /**
  * 関連ドキュメント数から分析ステータスを判定
@@ -109,7 +109,7 @@ async function main() {
   // 5. JSON出力
   const outputPath = path.join(
     process.cwd(),
-    'metadata',
+    'analysis',
     `analysis_${version}.json`,
   );
   await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
