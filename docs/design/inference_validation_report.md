@@ -36,7 +36,7 @@
 **参照ドキュメント:** `apps/docs-tracker/docs/en/monitoring-usage.md`
 
 **評価:** ❌ **不適切**
-- **Inference内容（日本語説明）**: ✅ 機能として理にかなっており、説明は適切
+- **Inference内容(日本語説明)**: ✅ 機能として理にかなっており、説明は適切
 - **参照ドキュメント**: ❌ **完全に誤り**
   - `monitoring-usage.md` は OpenTelemetry や使用状況監視に関するドキュメントで、カスタムコマンドの引数アクセスとは無関係
   - 本来参照すべきは `skills.md`, `settings.md`, `plugins-reference.md` など

@@ -56,7 +56,7 @@ async function main() {
       // キーワード抽出
       const keywords = extractKeywords(item);
 
-      // タグによる特別処理（SDK/API）
+      // タグによる特別処理(SDK/API)
       if (shouldSkipSearch(item.tags)) {
         return {
           ...item,

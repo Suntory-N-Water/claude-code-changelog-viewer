@@ -33,7 +33,7 @@ cat apps/changelog-fetcher/changelogs/v${VERSION}.md
 
 個別の changelog 項目を抽出する。各項目の特徴:
 - ダッシュ (`-`) で始まる
-- タグプレフィックス（`[SDK]`, `[VSCode]`, `[Windows]` など）を持つ場合がある
+- タグプレフィックス(`[SDK]`, `[VSCode]`, `[Windows]` など)を持つ場合がある
 - 動詞で始まる: `Added`, `Fixed`, `Changed`, `Improved`, `Updated`, `Removed`
 
 **項目の例**:
@@ -47,7 +47,7 @@ cat apps/changelog-fetcher/changelogs/v${VERSION}.md
 
 各 changelog 項目から、以下の優先順位でキーワードを抽出:
 
-### 優先度1: バッククォートで囲まれた文字列（最優先）
+### 優先度1: バッククォートで囲まれた文字列(最優先)
 バッククォート内のテキストを全て抽出:
 - `` `CLAUDE_CODE_ENABLE_TASKS` `` → `CLAUDE_CODE_ENABLE_TASKS`
 - `` `$ARGUMENTS[0]` `` → `$ARGUMENTS[0]` と正規化版 `ARGUMENTS` の両方
@@ -60,12 +60,12 @@ cat apps/changelog-fetcher/changelogs/v${VERSION}.md
 - `[Windows]` → `Windows`
 
 ### 優先度3: 技術用語
-ドメイン固有の用語（2語以上の連続大文字単語、または技術的な略語）:
-- `AVX`（CPU 命令セット）
-- `EIO`（エラーコード）
-- `SIGKILL`（シグナル）
+ドメイン固有の用語(2語以上の連続大文字単語、または技術的な略語):
+- `AVX`(CPU 命令セット)
+- `EIO`(エラーコード)
+- `SIGKILL`(シグナル)
 
-**除外ワード**（ブラックリスト）:
+**除外ワード**(ブラックリスト):
 - 動詞: `Added`, `Fixed`, `Changed`, `Improved`, `Updated`, `Removed`
 - 汎用名詞: `bug`, `issue`, `error`, `feature`, `performance`, `overall`, `system`
 - 冠詞・接続詞: `the`, `and`, `or`, `with`, `for`, `to`, `in`, `on`
@@ -92,7 +92,7 @@ grep -l -F '`keyword`' apps/docs-tracker/docs/en/*.md
 
 0件なら戦略2へ。
 
-#### 戦略2: 正規化キーワード検索（記号除去）
+#### 戦略2: 正規化キーワード検索(記号除去)
 ```bash
 grep -l -iE 'keyword' apps/docs-tracker/docs/en/*.md
 ```
@@ -109,7 +109,7 @@ grep -l -iE '(keyword1|keyword2|keyword3)' apps/docs-tracker/docs/en/*.md
 ### タグ別の特別処理
 
 **`[SDK]` または `[API]` タグ付き項目**:
-- grep 検索をスキップ（SDK専用、一般ドキュメントに存在しない）
+- grep 検索をスキップ(SDK専用、一般ドキュメントに存在しない)
 - パイプラインを `developer` にマーク
 - 恩恵推論: 簡易的な技術説明のみ
 
@@ -132,16 +132,16 @@ grep でマッチした各ファイルについて:
 grep -c -iE '(keyword1|keyword2)' apps/docs-tracker/docs/en/matched-file.md
 ```
 
-### コンテキストスニペットを抽出（前後3行）
+### コンテキストスニペットを抽出(前後3行)
 ```bash
 grep -iE '(keyword1|keyword2)' -B 3 -A 3 apps/docs-tracker/docs/en/matched-file.md
 ```
 
 ### コンテキストスコアを計算
 各スニペットについて、以下の基準でスコア付け:
-- 見出しを含む（`##` または `###`）: +5点
-- コードブロックを含む（` ``` `）: +3点
-- 解説キーワードを含む（`how to`, `example`, `usage`, `説明`, `使い方`）: +2点
+- 見出しを含む(`##` または `###`): +5点
+- コードブロックを含む(` ``` `): +3点
+- 解説キーワードを含む(`how to`, `example`, `usage`, `説明`, `使い方`): +2点
 - 基本スコア: +1点
 
 **総合スコア** = `ヒット数 × コンテキストスコア`
@@ -236,20 +236,20 @@ JSON ファイルを生成: `apps/changelog-fetcher/metadata/analysis_v${VERSION
 
 **項目レベルのフィールド**:
 - `content`: 元の changelog テキスト
-- `prefix`: 先頭の動詞（Added/Fixed/Changed）
-- `importance_score`: プレフィックスから計算（Added=8, Changed=6, Fixed=4, [Breaking]=+3）
-- `tags`: 抽出されたタグ（`["SDK"]` や `["VSCode"]`）
+- `prefix`: 先頭の動詞(Added/Fixed/Changed)
+- `importance_score`: プレフィックスから計算(Added=8, Changed=6, Fixed=4, [Breaking]=+3)
+- `tags`: 抽出されたタグ(`["SDK"]` や `["VSCode"]`)
 - `pipeline`: `developer` | `extension` | `general`
 - `keywords.original`: 記号付きの抽出キーワード
 - `keywords.normalized`: 記号除去後のキーワード
-- `search_strategy`: 成功した grep 戦略（`exact` | `normalized` | `multi`）
+- `search_strategy`: 成功した grep 戦略(`exact` | `normalized` | `multi`)
 - `related_docs`: マッチしたドキュメントとスコアの配列
 - `analysis_status`: `ready_for_inference` | `docs_pending` | `sdk_only` | `no_docs_found`
 
 **解析ステータスの判定基準**:
-- `ready_for_inference`: 関連ドキュメントが1件以上見つかった（changelog.md除く）
-- `docs_pending`: changelog.md のみマッチ（新機能）
-- `sdk_only`: SDK/API タグ付き項目（一般ドキュメントをスキップ）
+- `ready_for_inference`: 関連ドキュメントが1件以上見つかった(changelog.md除く)
+- `docs_pending`: changelog.md のみマッチ(新機能)
+- `sdk_only`: SDK/API タグ付き項目(一般ドキュメントをスキップ)
 - `no_docs_found`: grep で0件
 
 ## 重要度スコア算出リファレンス
@@ -291,7 +291,7 @@ JSON ファイルを生成: `apps/changelog-fetcher/metadata/analysis_v${VERSION
 スキルは以下を実行:
 1. `apps/changelog-fetcher/changelogs/v2.1.19.md` の全項目を処理
 2. `apps/changelog-fetcher/metadata/analysis_v2.1.19.json` を生成
-3. 統計情報を報告（処理項目数、ドキュメント発見数、解析準備状況）
+3. 統計情報を報告(処理項目数、ドキュメント発見数、解析準備状況)
 
 ## 期待される出力サマリー
 

@@ -1,7 +1,7 @@
 /**
  * AIレスポンスから```json ... ```コードブロックを抽出
  * @param aiResponse AIモデルからのテキストレスポンス
- * @returns 抽出されたJSON文字列（パース前）
+ * @returns 抽出されたJSON文字列(パース前)
  * @throws AIレスポンスにJSONコードブロックが見つからない場合
  */
 export function extractJSON(aiResponse: string): string {

@@ -6,7 +6,7 @@ import type { SearchResult } from '../types';
 // プロジェクトルート
 const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
 
-// ドキュメントディレクトリ（絶対パス）
+// ドキュメントディレクトリ(絶対パス)
 const DOCS_DIR = path.join(PROJECT_ROOT, 'apps', 'docs-tracker', 'docs', 'en');
 const EXCLUDED_FILE = 'changelog.md';
 
@@ -60,7 +60,7 @@ function exactSearch(keywords: string[]): string[] {
 }
 
 /**
- * 戦略2: 正規化キーワード検索（大文字小文字無視）
+ * 戦略2: 正規化キーワード検索(大文字小文字無視)
  */
 function normalizedSearch(keywords: string[]): string[] {
   if (keywords.length === 0) {
@@ -88,7 +88,7 @@ function multiSearch(
 }
 
 /**
- * キーワードから関連ドキュメントを検索（フォールバック方式）
+ * キーワードから関連ドキュメントを検索(フォールバック方式)
  */
 export function searchDocs(keywords: Keywords): SearchResult {
   const { original, normalized } = keywords;

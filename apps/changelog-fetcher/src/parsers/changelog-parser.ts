@@ -38,7 +38,7 @@ function calculateImportance(prefix: string, tags: string[]): number {
 }
 
 /**
- * プリフィックスを抽出（Added, Fixed など）
+ * プリフィックスを抽出(Added, Fixed など)
  */
 function extractPrefix(content: string): string {
   const match = content.match(/^-\s*(\w+)/);
@@ -46,7 +46,7 @@ function extractPrefix(content: string): string {
 }
 
 /**
- * タグを抽出（[SDK], [VSCode] など）
+ * タグを抽出([SDK], [VSCode] など)
  */
 function extractTags(content: string): string[] {
   const tagPattern = /\[([A-Z][A-Za-z]*)\]/g;
@@ -70,7 +70,7 @@ export function parseChangelog(changelog: string): ParsedItem[] {
       continue;
     }
 
-    // 項目の開始（- で始まる行）
+    // 項目の開始(- で始まる行)
     if (trimmed.startsWith('-')) {
       // 前の項目を保存
       if (currentItem) {

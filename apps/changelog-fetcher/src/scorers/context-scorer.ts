@@ -7,12 +7,12 @@ import type { SnippetResult } from '../types';
 function calculateSnippetScore(snippet: string): number {
   let score = 1; // 基本スコア
 
-  // 見出しを含む（## で始まる行）
+  // 見出しを含む(## で始まる行)
   if (/^##+ /m.test(snippet)) {
     score += 5;
   }
 
-  // コードブロックを含む（```）
+  // コードブロックを含む(```)
   if (/```/.test(snippet)) {
     score += 3;
   }
@@ -42,7 +42,7 @@ export function calculateContextScore(snippetResult: SnippetResult): number {
 }
 
 /**
- * 総合スコアを計算（ヒット数 × コンテキストスコア）
+ * 総合スコアを計算(ヒット数 × コンテキストスコア)
  */
 export function calculateTotalScore(
   hit_count: number,
@@ -52,7 +52,7 @@ export function calculateTotalScore(
 }
 
 /**
- * スニペット結果をRelatedDocに変換（スコア付き）
+ * スニペット結果をRelatedDocに変換(スコア付き)
  */
 export function scoreSnippetResult(snippetResult: SnippetResult): RelatedDoc {
   const { file, snippets, hit_count } = snippetResult;

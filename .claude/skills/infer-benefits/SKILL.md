@@ -41,10 +41,10 @@ disable-model-invocation: true
 
 **目的 (Purpose)**:
 この変更について、以下を明確に説明する:
-1. Before: 変更前の状況（何が不便だったか）
-2. After: 変更後の状況（何が改善されたか）
-3. Benefit: ユーザーへの恩恵（なぜこれが嬉しいのか）
-4. Target: 対象ユーザー（誰が恩恵を受けるか）
+1. Before: 変更前の状況(何が不便だったか)
+2. After: 変更後の状況(何が改善されたか)
+3. Benefit: ユーザーへの恩恵(なぜこれが嬉しいのか)
+4. Target: 対象ユーザー(誰が恩恵を受けるか)
 
 **動機 (Motive)**:
 単なる事実の羅列ではなく、ユーザーが「この変更で自分の作業がどう楽になるか」を直感的に理解できる説明を生成する。snippets の情報を活用し、技術的に正確で具体的な説明を心がける。
@@ -53,13 +53,13 @@ disable-model-invocation: true
 - 専門用語を使う場合は必ず文脈で意味が分かるように説明する
 - Before/After は2-3文で簡潔に
 - snippets に記載がない推測は避ける
-- バグ修正（prefix: "Fixed"）の場合、Before はバグの症状を CHANGELOG の記述から推測してよい
-- 機能追加（prefix: "Added", "Enabled"）の場合、Before は snippets から変更前の状態を推測する
+- バグ修正(prefix: "Fixed")の場合、Before はバグの症状を CHANGELOG の記述から推測してよい
+- 機能追加(prefix: "Added", "Enabled")の場合、Before は snippets から変更前の状態を推測する
 
 #### パイプライン別の処理
 
 **general パイプライン**:
-- 詳細な恩恵推論を実施（上記のコグニティブ・デザイン全要素を使用）
+- 詳細な恩恵推論を実施(上記のコグニティブ・デザイン全要素を使用)
 - Before/After/Benefit/Target をすべて記述
 
 **extension パイプライン**:
@@ -70,8 +70,8 @@ disable-model-invocation: true
 - 簡易説明のみ
 - Before は省略可、After と Benefit のみ記述
 
-**SDK タグがある項目（analysis_status: "sdk_only"）**:
-- スキップする（恩恵推論を行わない）
+**SDK タグがある項目(analysis_status: "sdk_only")**:
+- スキップする(恩恵推論を行わない)
 
 ### 4. 出力形式
 
@@ -95,9 +95,9 @@ disable-model-invocation: true
 ```
 
 **重要な注意事項**:
-- `item_index` は analysis_v2.1.19.json の配列インデックス（0始まり）です
+- `item_index` は analysis_v2.1.19.json の配列インデックス(0始まり)です
 - `inferred_at` には実行時の ISO 8601 形式のタイムスタンプを記録してください
-- `ready_for_inference` ステータスの項目のみを出力してください（`docs_pending` や `sdk_only` は除外）
+- `ready_for_inference` ステータスの項目のみを出力してください(`docs_pending` や `sdk_only` は除外)
 
 ### 5. 統合メタデータの生成
 
@@ -132,10 +132,10 @@ disable-model-invocation: true
 
 1. `apps/changelog-fetcher/metadata/analysis_v2.1.19.json` を読み込む
 2. `ready_for_inference` 項目を特定
-3. 各項目の `related_docs.snippets` を確認（ファイルの全文は読まない）
-4. snippets を使って恩恵推論を実行（パイプライン別に処理を分岐）
+3. 各項目の `related_docs.snippets` を確認(ファイルの全文は読まない)
+4. snippets を使って恩恵推論を実行(パイプライン別に処理を分岐)
 5. `benefits_v2.1.19.json` を生成
-6. `final_v2.1.19.json` を生成（analysis と benefits を統合）
+6. `final_v2.1.19.json` を生成(analysis と benefits を統合)
 
 ## トークン削減のための重要な注意
 
@@ -145,4 +145,4 @@ disable-model-invocation: true
 
 ## 出力例
 
-検証結果（`docs/design/benefit-inference-validation.md`）を参考にしてください。
+検証結果(`docs/design/benefit-inference-validation.md`)を参考にしてください。

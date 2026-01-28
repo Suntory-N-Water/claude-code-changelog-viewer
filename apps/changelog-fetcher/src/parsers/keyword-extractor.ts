@@ -1,7 +1,7 @@
 import type { Keywords } from '../schemas/analysis';
 import type { ParsedItem } from '../types';
 
-// 除外ワード（ブラックリスト）
+// 除外ワード(ブラックリスト)
 const EXCLUDED_WORDS = new Set([
   // 動詞
   'Added',
@@ -33,7 +33,7 @@ const EXCLUDED_WORDS = new Set([
 ]);
 
 /**
- * キーワードを正規化（記号除去 + 分割）
+ * キーワードを正規化(記号除去 + 分割)
  * @example
  * "$ARGUMENTS[0]" → ["ARGUMENTS", "0"]
  * "/rename" → ["rename"]
@@ -56,7 +56,7 @@ function extractBacktickKeywords(content: string): string[] {
 }
 
 /**
- * 技術用語を抽出（連続大文字2文字以上）
+ * 技術用語を抽出(連続大文字2文字以上)
  */
 function extractTechnicalTerms(content: string): string[] {
   // バッククォートとタグを除外した文字列から抽出
@@ -76,10 +76,10 @@ function extractTechnicalTerms(content: string): string[] {
 export function extractKeywords(item: ParsedItem): Keywords {
   const { content } = item;
 
-  // 優先度1: バッククォート（最優先）
+  // 優先度1: バッククォート(最優先)
   const backtickKeywords = extractBacktickKeywords(content);
 
-  // 優先度2: タグ（既にitem.tagsに含まれている）
+  // 優先度2: タグ(既にitem.tagsに含まれている)
 
   // 優先度3: 技術用語
   const technicalTerms = extractTechnicalTerms(content);

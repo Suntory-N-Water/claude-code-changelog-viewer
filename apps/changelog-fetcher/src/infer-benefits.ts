@@ -24,7 +24,7 @@ async function inferBenefits(version: string): Promise<void> {
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
   const analysis: Analysis = v.parse(AnalysisSchema, JSON.parse(rawAnalysis));
 
-  // 2. モデル設定（環境変数から取得、デフォルトなしで事故防止）
+  // 2. モデル設定(環境変数から取得、デフォルトなしで事故防止)
   const model = process.env.COPILOT_MODEL || '';
   if (!model) {
     throw new Error(
@@ -73,7 +73,7 @@ async function inferBenefits(version: string): Promise<void> {
         item.analysis_status = 'completed';
         console.log(`✓ Completed: ${item.content.substring(0, 50)}...`);
       } catch (error) {
-        // 全エラー（通信、JSON解析、Valibot）を一括キャッチ
+        // 全エラー(通信、JSON解析、Valibot)を一括キャッチ
         console.error(
           `✗ Inference failed for: ${item.content.substring(0, 50)}...`,
         );
