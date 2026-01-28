@@ -1,0 +1,32 @@
+---
+import { getOfficialDocUrl, type RelatedDoc } from '@claude-code-changelog-viewer/types';
+
+interface Props {
+  docs: RelatedDoc[];
+}
+
+const { docs } = Astro.props;
+
+if (docs.length === 0) return null;
+---
+<div class="mt-4">
+  <h4 class="font-semibold text-sm text-gray-600 mb-2">関連ドキュメント</h4>
+  <ul class="space-y-1">
+    {docs.map(doc => {
+      const url = getOfficialDocUrl(doc.file);
+      const fileName = doc.file.split('/').pop() || doc.file;
+      return (
+        <li>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline"
+          >
+            {fileName} →
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+</div>

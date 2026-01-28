@@ -1,0 +1,61 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
+
+export async function getStaticPaths() {
+  const allChangelogs = await getCollection('changelog');
+
+  return allChangelogs.map((entry) => ({
+    params: { version: `v${entry.data.version}` },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { version, items } = entry.data;
+
+// 重要度降順でソート
+const sortedItems = [...items].sort(
+  (a, b) => b.importance_score - a.importance_score,
+);
+---
+
+<Layout
+  title={`Claude Code v${version} 変更履歴`}
+  description={`Claude Code v${version}の変更内容と恩恵の解説`}
+>
+  <div class='min-h-dvh py-12 px-4'>
+    <div class='max-w-4xl mx-auto'>
+      <nav class='mb-8'>
+        <a
+          href='/'
+          class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline'
+        >
+          ← バージョン一覧に戻る
+        </a>
+      </nav>
+
+      <header class='mb-8'>
+        <h1 class='text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-2'>
+          Claude Code v{version}
+        </h1>
+        <div class='flex items-center gap-4 text-sm text-gray-600'>
+          <p>変更項目: {sortedItems.length}件</p>
+          <a
+            href={`https://github.com/anthropics/claude-code/releases/tag/v${version}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline'
+          >
+            GitHub Release →
+          </a>
+        </div>
+      </header>
+
+      <div class='space-y-6'>
+        {sortedItems.map((item) => <ChangelogItemCard item={item} />)}
+      </div>
+    </div>
+  </div>
+</Layout>
