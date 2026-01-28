@@ -1,10 +1,7 @@
-export type Pipeline = 'developer' | 'extension' | 'general';
-export type SearchStrategy = 'exact' | 'normalized' | 'multi' | 'skip';
-export type AnalysisStatus =
-  | 'ready_for_inference'
-  | 'docs_pending'
-  | 'sdk_only'
-  | 'no_docs_found';
+import type {
+  Pipeline,
+  SearchStrategy,
+} from '@claude-code-changelog-viewer/types';
 
 export type ParsedItem = {
   content: string;

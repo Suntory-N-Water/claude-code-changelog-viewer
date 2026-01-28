@@ -1,14 +1,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { CopilotClient } from '@github/copilot-sdk';
-import * as v from 'valibot';
-import { buildInferencePrompt } from './prompts/inference-prompt';
 import {
-  type Analysis,
   AnalysisSchema,
-  type InferenceResult,
   InferenceResultSchema,
-} from './schemas/analysis';
+} from '@claude-code-changelog-viewer/types';
+import { CopilotClient } from '@github/copilot-sdk';
+import { buildInferencePrompt } from './prompts/inference-prompt';
 import { extractJSON } from './utils/json-extractor';
 
 async function inferBenefits(version: string): Promise<void> {
@@ -20,7 +17,7 @@ async function inferBenefits(version: string): Promise<void> {
   // 1. analysis_{version}.json を読み込み
   console.log(`Reading ${analysisPath}...`);
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
-  const analysis: Analysis = v.parse(AnalysisSchema, JSON.parse(rawAnalysis));
+  const analysis = AnalysisSchema.parse(JSON.parse(rawAnalysis));
 
   // 2. モデル設定(環境変数から取得、デフォルトなしで事故防止)
   const model = process.env.COPILOT_MODEL || '';
@@ -61,17 +58,14 @@ async function inferBenefits(version: string): Promise<void> {
         }
 
         const rawJSON = extractJSON(response.data.content);
-        const inference: InferenceResult = v.parse(
-          InferenceResultSchema,
-          JSON.parse(rawJSON),
-        );
+        const inference = InferenceResultSchema.parse(JSON.parse(rawJSON));
 
         // 推論成功
         item.inference = inference;
         item.analysis_status = 'completed';
         console.log(`✓ Completed: ${item.content.substring(0, 50)}...`);
       } catch (error) {
-        // 全エラー(通信、JSON解析、Valibot)を一括キャッチ
+        // 全エラー(通信、JSON解析、Zod)を一括キャッチ
         console.error(
           `✗ Inference failed for: ${item.content.substring(0, 50)}...`,
         );
@@ -87,8 +81,8 @@ async function inferBenefits(version: string): Promise<void> {
   // 5. inferred_{version}.json に保存
   analysis.analyzed_at = new Date().toISOString();
 
-  // Valibot で最終検証
-  const validated = v.parse(AnalysisSchema, analysis);
+  // Zod で最終検証
+  const validated = AnalysisSchema.parse(analysis);
 
   mkdirSync(inferredDir, { recursive: true });
   writeFileSync(inferredPath, JSON.stringify(validated, null, 2), 'utf-8');

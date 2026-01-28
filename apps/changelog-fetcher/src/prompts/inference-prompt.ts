@@ -1,4 +1,4 @@
-import type { ChangelogItem } from '../schemas/analysis';
+import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 
 /**
  * プロンプトを構築(SKILL.md のコグニティブ・デザイン形式)

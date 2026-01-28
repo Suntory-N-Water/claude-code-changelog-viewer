@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import * as path from 'node:path';
-import type { Keywords } from '../schemas/analysis';
+import type { Keywords } from '@claude-code-changelog-viewer/types';
 import type { SearchResult } from '../types';
 
 // プロジェクトルート

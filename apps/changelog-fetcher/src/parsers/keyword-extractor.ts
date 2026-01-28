@@ -1,4 +1,4 @@
-import type { Keywords } from '../schemas/analysis';
+import type { Keywords } from '@claude-code-changelog-viewer/types';
 import type { ParsedItem } from '../types';
 
 // 除外ワード(ブラックリスト)

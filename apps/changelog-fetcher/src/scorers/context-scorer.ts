@@ -1,4 +1,4 @@
-import type { RelatedDoc } from '../schemas/analysis';
+import type { RelatedDoc } from '@claude-code-changelog-viewer/types';
 import type { SnippetResult } from '../types';
 
 /**

@@ -1,13 +1,15 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import * as v from 'valibot';
+import {
+  type Analysis,
+  AnalysisSchema,
+  type AnalysisStatus,
+} from '@claude-code-changelog-viewer/types';
 import { parseChangelog } from './parsers/changelog-parser';
 import { extractKeywords } from './parsers/keyword-extractor';
-import { type Analysis, AnalysisSchema } from './schemas/analysis';
 import { getTopDocs } from './scorers/context-scorer';
 import { searchDocs, shouldSkipSearch } from './searchers/grep-executor';
 import { extractSnippets } from './searchers/snippet-extractor';
-import type { AnalysisStatus } from './types';
 
 /**
  * 関連ドキュメント数から分析ステータスを判定
@@ -89,19 +91,17 @@ async function main() {
     }),
   );
 
-  // 4. Valibot検証
+  // 4. Zod検証
   let result: Analysis;
   try {
-    result = v.parse(AnalysisSchema, {
+    result = AnalysisSchema.parse({
       version: version.replace('v', ''),
       analyzed_at: new Date().toISOString(),
       items: analyzedItems,
     });
   } catch (error) {
     console.error('❌ Validation failed:');
-    if (error instanceof v.ValiError) {
-      console.error(v.flatten(error.issues));
-    }
+    console.error(error);
     console.error('Data:', JSON.stringify(analyzedItems, null, 2));
     process.exit(1);
   }
