@@ -1,5 +1,4 @@
-import { readdir, mkdir } from 'node:fs/promises';
-import { symlink, unlink, readlink } from 'node:fs/promises';
+import { mkdir, readdir, readlink, symlink, unlink } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
 const INFERRED_DIR = join(process.cwd(), '..', 'changelog-fetcher', 'inferred');
