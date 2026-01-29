@@ -34,15 +34,26 @@ jobs:
       - name: Fetch CHANGELOG
         id: fetch
         continue-on-error: true
-        run: pnpm --filter changelog-fetcher run fetch
+        run: |
+          set +e
+          pnpm --filter changelog-fetcher run fetch
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: Report no changes
-        if: steps.fetch.outcome == 'failure'
+        if: steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code == '1'
         run: |
           echo "ℹ️  No changelog updates detected."
           echo "All versions are up to date."
+
+      - name: Report error
+        if: steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code != '1'
+        run: |
+          echo "❌ Error occurred while fetching changelog."
+          exit 1
 
       - name: Check for changes
         id: git-check
