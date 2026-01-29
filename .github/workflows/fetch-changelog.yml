@@ -35,7 +35,6 @@ jobs:
         id: fetch
         continue-on-error: true
         run: |
-          set +e
           pnpm --filter changelog-fetcher run fetch
           EXIT_CODE=$?
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
@@ -50,7 +49,7 @@ jobs:
           echo "All versions are up to date."
 
       - name: Report error
-        if: steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code != '1'
+        if: steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code != '1' && steps.fetch.outputs.exit_code != '0'
         run: |
           echo "❌ Error occurred while fetching changelog."
           exit 1

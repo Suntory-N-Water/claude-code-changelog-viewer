@@ -46,7 +46,7 @@ function parseChangelog(content: string): Record<string, string> {
   return versions;
 }
 
-async function main() {
+function main() {
   const appDir = join(__dirname, '..');
   const outputDir = join(appDir, 'changelogs');
   const metadataFile = join(appDir, 'metadata', 'last_fetch.json');
@@ -124,8 +124,10 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+try {
+  main();
+} catch (error) {
   console.error('\n❌ Error occurred:');
   console.error(error);
   process.exit(2);
-});
+}
