@@ -115,3 +115,9 @@ console.log('✓ Fetch completed:');
 console.log(`  - New: ${newCount}`);
 console.log(`  - Updated: ${updatedCount}`);
 console.log(`  - Unchanged: ${unchangedCount}`);
+
+// 更新がない場合は exit 1 を返す
+if (newCount === 0 && updatedCount === 0) {
+  console.log('\nℹ️  No changes detected.');
+  process.exit(1);
+}

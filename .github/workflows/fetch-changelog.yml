@@ -32,9 +32,17 @@ jobs:
       - uses: ./.github/actions/setup
 
       - name: Fetch CHANGELOG
+        id: fetch
+        continue-on-error: true
         run: pnpm --filter changelog-fetcher run fetch
         env:
           GH_TOKEN: ${{ github.token }}
+
+      - name: Report no changes
+        if: steps.fetch.outcome == 'failure'
+        run: |
+          echo "ℹ️  No changelog updates detected."
+          echo "All versions are up to date."
 
       - name: Check for changes
         id: git-check
