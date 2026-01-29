@@ -26,14 +26,20 @@
     "claude-code"
   ],
   "scripts": {
-    "format": "biome format --write ./apps",
-    "check": "biome check ./apps",
-    "check:fix": "biome check --write ./apps",
-    "lint": "biome lint ./apps",
-    "lint:unsafe-fix": "biome lint --write --unsafe ./apps",
-    "lint:ai": "biome lint --reporter=github ./apps 2>&1 | { grep '^::' || true; }",
-    "type-check": "pnpm -r exec tsc --noEmit",
-    "type-check:ai": "pnpm -r exec tsc --noEmit --pretty false"
+    "dev": "pnpm --filter www run dev",
+    "build": "pnpm --filter www run build",
+    "fetch:docs": "pnpm --filter docs-tracker run build && pnpm --filter docs-tracker run fetch-docs",
+    "fetch:changelog": "pnpm --filter changelog-fetcher run fetch",
+    "analyze": "pnpm --filter changelog-fetcher run analyze",
+    "infer": "pnpm --filter changelog-fetcher run infer",
+    "format": "biome format --write ./apps ./packages && pnpm --filter www run format",
+    "check": "biome check ./apps ./packages",
+    "check:fix": "biome check --write ./apps ./packages",
+    "lint": "biome lint ./apps ./packages",
+    "lint:unsafe-fix": "biome lint --write --unsafe ./apps ./packages",
+    "lint:ai": "biome lint --reporter=github ./apps ./packages 2>&1 | { grep '^::' || true; }",
+    "type-check": "pnpm -r exec tsc --noEmit && pnpm --filter www run check",
+    "type-check:ai": "pnpm -r exec tsc --noEmit --pretty false && pnpm --filter www run check"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
