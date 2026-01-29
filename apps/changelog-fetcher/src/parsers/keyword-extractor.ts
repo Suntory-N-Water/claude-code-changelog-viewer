@@ -1,4 +1,4 @@
-import type { ParsedItem, Keywords } from '../types';
+import type { Keywords, ParsedItem } from '../types';
 
 // 除外ワード(ブラックリスト)
 const EXCLUDED_WORDS = new Set([
