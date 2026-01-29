@@ -1,26 +1,54 @@
 ---
-import ImportanceBadge from './ImportanceBadge.astro';
-import AnalysisStatusBadge from './AnalysisStatusBadge.astro';
 import InferenceDetail from './InferenceDetail.astro';
 import RelatedDocsList from './RelatedDocsList.astro';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
+import { formatChangelogContent } from '../../lib/changelog';
 
 interface Props {
   item: ChangelogItem;
 }
 
 const { item } = Astro.props;
-const hasInference = item.analysis_status === 'completed' && item.inference;
+const hasInference = !!item.inference;
+const formattedContent = formatChangelogContent(item.content);
+
+// プレフィックスのスタイルマッピング - Claude オフィシャルカラーで明確に差別化
+const prefixStyles: Record<string, string> = {
+  Added: 'bg-[hsl(var(--cc-main-orange))] text-white shadow-sm',
+  Fixed: 'bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]',
+  Updated: 'bg-[hsl(var(--cc-main-black))] text-[hsl(var(--cc-main-white))]',
+  Changed: 'bg-[hsl(var(--cc-main-black))] text-[hsl(var(--cc-main-white))]',
+  Removed:
+    'border-2 border-[hsl(var(--cc-main-black))] text-[hsl(var(--cc-main-black))] bg-transparent',
+};
+
+const prefixStyle =
+  prefixStyles[item.prefix] ||
+  'border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] bg-[hsl(var(--cc-main-white))]';
 ---
-<article class="border border-[hsl(var(--cc-gray))] rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow">
-  <div class="flex items-start justify-between gap-4">
-    <div class="flex-1">
-      <p class="text-base text-pretty mb-3">{item.content}</p>
-    </div>
-    <div class="flex flex-col gap-2 items-end">
-      <ImportanceBadge score={item.importance_score} />
-      <AnalysisStatusBadge status={item.analysis_status} />
-    </div>
+
+<article
+  class='border border-[hsl(var(--cc-gray))] rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-[hsl(var(--cc-main-orange))]'
+>
+  <div class='flex-1 min-w-0'>
+    <!-- プレフィックスバッジ -->
+    {
+      item.prefix && (
+        <div class='mb-3'>
+          <span
+            class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${prefixStyle}`}
+          >
+            {item.prefix}
+          </span>
+        </div>
+      )
+    }
+
+    <!-- 本文: サイズ拡大、行間改善 -->
+    <div
+      class='text-lg leading-relaxed text-[hsl(var(--cc-main-black))]'
+      set:html={formattedContent}
+    />
   </div>
 
   {hasInference && <InferenceDetail inference={item.inference!} />}
