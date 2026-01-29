@@ -1,18 +1,10 @@
 {
   "version": "2.1.19",
-  "analyzed_at": "2026-01-28T13:46:18.227Z",
   "items": [
     {
       "content": "- Added env var `CLAUDE_CODE_ENABLE_TASKS`, set to `false` to keep the old system temporarily",
       "prefix": "Added",
       "importance_score": 8,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": ["CLAUDE_CODE_ENABLE_TASKS", "false"],
-        "normalized": ["CLAUDE", "CODE", "ENABLE", "TASKS", "false"]
-      },
-      "search_strategy": "exact",
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -54,24 +46,16 @@
           ]
         }
       ],
-      "analysis_status": "completed",
       "inference": {
-        "before": "新しい「tasks」機能（タスク管理の仕組み）が導入されつつありましたが、切り替え用の明示的な設定が無く、利用者や既存ワークフローに対して挙動が突然変わるリスクがありました。結果として、チームや運用側で新機能の有効化／無効化を柔軟に試せない不便がありました。",
-        "after": "環境変数 CLAUDE_CODE_ENABLE_TASKS が追加され、デフォルトで false に設定されたため、既存の（旧）システム動作がそのまま維持されます。必要に応じてデプロイ／プロジェクト環境でこの環境変数を true に切り替えることで、新しい tasks 機能を明示的に有効化できます（環境変数は通常の OS/ランタイムの env 設定を指します）。",
-        "benefit": "既存ワークフローの安定性を保ちながら新機能を段階的に評価でき、誤動作や突発的な挙動変更による混乱を防げます。チーム単位や環境ごとにオンオフを切り替えられるため、リスクを抑えたロールアウトや安全なテスト運用が可能になります。"
+        "before": "環境変数による制御手段が用意されておらず、実行環境ごとに新しいタスク処理の切り替えを簡単に行えなかった。そのため、新システム導入時に既存の挙動を維持したまま段階的に移行するのが難しく、予期せぬ動作変化に対する対応が煩雑だった。",
+        "after": "CLAUDE_CODE_ENABLE_TASKS という環境変数が追加され、これを false に設定すると一時的に旧タスクシステムの動作を維持できるようになった。つまり、デプロイやユーザー側で明示的に有効化しない限り既存の挙動が続くため、移行タイミングを運用側で管理できる。",
+        "benefit": "環境変数（実行環境で設定するフラグ）で新旧システムを切り替えられるため、安定稼働を保ちながら段階的に新機能を検証・ロールアウトでき、障害リスクや運用コストが下がる。"
       }
     },
     {
       "content": "- Added shorthand `$0`, `$1`, etc. for accessing individual arguments in custom commands",
       "prefix": "Added",
       "importance_score": 8,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": ["$0", "$1"],
-        "normalized": ["0", "1"]
-      },
-      "search_strategy": "exact",
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/skills.md",
@@ -86,34 +70,18 @@
             "- For usage examples, see [examples.md](examples.md)\n```\n\n<Tip>Keep `SKILL.md` under 500 lines. Move detailed reference material to separate files.</Tip>\n\n### Control who invokes a skill"
           ]
         }
-      ],
-      "analysis_status": "docs_pending"
+      ]
     },
     {
       "content": "- Fixed crashes on processors without AVX instruction support",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": ["AVX"],
-        "normalized": ["AVX"]
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     },
     {
       "content": "- Fixed dangling Claude Code processes when terminal is closed by catching EIO errors from `process.exit()` and using SIGKILL as fallback",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": ["process.exit()", "EIO", "SIGKILL"],
-        "normalized": ["process", "exit", "EIO", "SIGKILL"]
-      },
-      "search_strategy": "normalized",
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md",
@@ -155,24 +123,16 @@
           ]
         }
       ],
-      "analysis_status": "completed",
       "inference": {
-        "before": "ターミナルを閉じた際に process.exit() 実行中に EIO（端末への書き込み等で起きる入出力エラー）が発生すると終了処理が中断され、Claude Code のプロセスが残ってリソースを消費したり停止できないことがありました。",
-        "after": "修正では process.exit() の EIO を捕捉し、通常終了できない場合に SIGKILL（強制終了シグナル）をフォールバックで送るようにしたため、ターミナル閉鎖時にプロセスが確実に終了するようになりました。",
-        "benefit": "端末を閉じたときにダングリングプロセスが残らなくなり、システム資源や課金トークンの無駄を防げるほか、再起動や自動化ワークフローの信頼性が向上します。"
+        "before": "端末を閉じたときに process.exit() が EIO エラーを投げるケースがあり、その結果 Claude Code の子プロセスやサブエージェントが正常に終了せずバックグラウンドに残る（いわゆる“ダングリング”プロセス）が発生していた。残存プロセスはCPU/メモリや外部リソースを消費し、再起動時の衝突や不要なコスト、デバッグの混乱を招いていた。",
+        "after": "process.exit() で EIO（端末入出力が閉じられた際の入出力例外）を検出して適切に扱うようになり、通常の終了が失敗した場合は SIGKILL（プロセスを即時強制終了するシグナル）をフォールバックで送ることで残存プロセスを確実に止めるようになった。これにより端末を閉じた際も Claude Code のプロセスがクリーンに終了するようになっている。",
+        "benefit": "端末を閉じたときにオーファンプロセスが残らなくなるため、マシン負荷や不要なコストが減り、再起動やデバッグが予測どおりに行えるようになる。結果として運用上の手間が減り、hooks やサブエージェントなど長時間走る処理を安心して使えるようになる。"
       }
     },
     {
       "content": "- Fixed `/rename` and `/tag` not updating the correct session when resuming from a different directory (e.g., git worktrees)",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": ["/rename", "/tag"],
-        "normalized": ["rename", "tag"]
-      },
-      "search_strategy": "exact",
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/common-workflows.md",
@@ -205,108 +165,52 @@
           ]
         }
       ],
-      "analysis_status": "completed",
       "inference": {
-        "before": "別のディレクトリ（たとえば同じリポジトリの git worktree）から /resume で会話を再開したとき、/rename や /tag が意図したセッションではなく別のセッションに対して適用されてしまう不整合が発生していました。結果として名前付けやタグ付けが期待どおりに残らず、後で目的の会話を見つけにくくなる問題がありました。",
-        "after": "再開したセッションを現在の作業ディレクトリや worktree の違いに影響されず正しく識別するよう修正され、/rename と /tag が再開中の（ユーザーが選んだ）正しいセッションに対して確実に適用されます。これにより、ディレクトリを切り替えても操作対象のセッションがずれることはありません。",
-        "benefit": "作業ディレクトリや git worktree を跨いで作業している開発者でも、会話を再開してその場で名前やタグを付ければ期待どおりに保存・検索できるため、セッション管理が直感的かつ信頼できるものになります。これにより「どの会話に付けたタグか分からない」「名前を付けたはずのセッションが見つからない」といった手戻りが減り、作業の切り替えや後続の再開が楽になります。"
+        "before": "別ディレクトリ（例: Git の worktree = 同じリポジトリの複数作業ツリー）からセッションを再開した際、/rename や /tag が意図した再開対象のセッションではなく別のセッションに対して適用されてしまっていた。結果としてセッション名やタグが誤った会話に付与され、後で目的のセッションを探したり復元したりするのが難しかった。",
+        "after": "/rename と /tag が、現在の作業ディレクトリと異なる場所（例: worktree）からセッションを再開しても、正しく“再開したそのセッション”に対して更新を行うよう修正された。これにより名前やタグが意図した会話に確実に反映される。",
+        "benefit": "セッションの名前付けやタグ付けが常に期待どおりの会話に適用されるため、作業の切り替えや後続の再開が素早く確実に行える。誤ったセッションの上書きや探し直しによる時間ロスが減り、複数作業ツリーでの並行作業が快適になる。"
       }
     },
     {
       "content": "- Fixed resuming sessions by custom title not working when run from a different directory",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": [],
-        "normalized": []
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     },
     {
       "content": "- Fixed pasted text content being lost when using prompt stash (Ctrl+S) and restore",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": [],
-        "normalized": []
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     },
     {
       "content": "- Fixed agent list displaying \"Sonnet (default)\" instead of \"Inherit (default)\" for agents without an explicit model setting",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": [],
-        "normalized": []
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     },
     {
       "content": "- Fixed backgrounded hook commands not returning early, potentially causing the session to wait on a process that was intentionally backgrounded",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": [],
-        "normalized": []
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     },
     {
       "content": "- Fixed file write preview omitting empty lines",
       "prefix": "Fixed",
       "importance_score": 4,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": [],
-        "normalized": []
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     },
     {
       "content": "- Changed skills without additional permissions or hooks to be allowed without requiring approval",
       "prefix": "Changed",
       "importance_score": 6,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": [],
-        "normalized": []
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     },
     {
       "content": "- Changed indexed argument syntax from `$ARGUMENTS.0` to `$ARGUMENTS[0]` (bracket syntax)",
       "prefix": "Changed",
       "importance_score": 6,
-      "tags": [],
-      "pipeline": "general",
-      "keywords": {
-        "original": ["$ARGUMENTS.0", "$ARGUMENTS[0]"],
-        "normalized": ["ARGUMENTS", "0", "ARGUMENTS", "0"]
-      },
-      "search_strategy": "exact",
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/skills.md",
@@ -321,45 +225,19 @@
             "disable-model-invocation: true\n-"
           ]
         }
-      ],
-      "analysis_status": "docs_pending"
+      ]
     },
     {
       "content": "- [SDK] Added replay of `queued_command` attachment messages as `SDKUserMessageReplay` events when `replayUserMessages` is enabled",
       "prefix": "Unknown",
       "importance_score": 5,
-      "tags": ["SDK"],
-      "pipeline": "developer",
-      "keywords": {
-        "original": [
-          "queued_command",
-          "SDKUserMessageReplay",
-          "replayUserMessages"
-        ],
-        "normalized": [
-          "queued",
-          "command",
-          "SDKUserMessageReplay",
-          "replayUserMessages"
-        ]
-      },
-      "search_strategy": "skip",
-      "related_docs": [],
-      "analysis_status": "sdk_only"
+      "related_docs": []
     },
     {
       "content": "- [VSCode] Enabled session forking and rewind functionality for all users",
       "prefix": "Unknown",
       "importance_score": 5,
-      "tags": ["VSCode"],
-      "pipeline": "extension",
-      "keywords": {
-        "original": [],
-        "normalized": []
-      },
-      "search_strategy": "multi",
-      "related_docs": [],
-      "analysis_status": "no_docs_found"
+      "related_docs": []
     }
   ]
 }
