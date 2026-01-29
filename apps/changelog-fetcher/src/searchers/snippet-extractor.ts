@@ -1,7 +1,6 @@
 import { execSync } from 'node:child_process';
 import * as path from 'node:path';
-import type { Keywords } from '@claude-code-changelog-viewer/types';
-import type { SnippetResult } from '../types';
+import type { SnippetResult, Keywords } from '../types';
 
 const MAX_SNIPPETS_PER_FILE = 5;
 

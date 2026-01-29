@@ -1,7 +1,6 @@
 import { execSync } from 'node:child_process';
 import * as path from 'node:path';
-import type { Keywords } from '@claude-code-changelog-viewer/types';
-import type { SearchResult } from '../types';
+import type { SearchResult, Keywords } from '../types';
 
 // プロジェクトルート
 const PROJECT_ROOT = path.join(process.cwd(), '..', '..');

@@ -11,14 +11,6 @@ export function buildInferencePrompt(item: ChangelogItem): string {
     })
     .join('\n\n');
 
-  // パイプライン別の指示
-  const pipelineInstruction =
-    item.pipeline === 'developer'
-      ? '**developer パイプライン**: 簡易説明のみ。Before は省略可、After と Benefit のみ記述。'
-      : item.pipeline === 'extension'
-        ? '**extension パイプライン**: 標準的な恩恵推論。Before/After/Benefit/Target をすべて記述。'
-        : '**general パイプライン**: 詳細な恩恵推論。Before/After/Benefit/Target をすべて記述。';
-
   return `
 # 思考のレンズ
 
@@ -48,9 +40,6 @@ ${snippetsText}
 - バグ修正(prefix: "Fixed")の場合、Before はバグの症状を CHANGELOG の記述から推測してよい
 - 機能追加(prefix: "Added", "Enabled")の場合、Before は snippets から変更前の状態を推測する
 - 必ずJSONコードブロック(\`\`\`json ... \`\`\`)形式で出力する
-
-## パイプライン指示
-${pipelineInstruction}
 
 # 出力形式
 \`\`\`json

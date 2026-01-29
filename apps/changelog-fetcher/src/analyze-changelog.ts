@@ -3,32 +3,12 @@ import * as path from 'node:path';
 import {
   type Analysis,
   AnalysisSchema,
-  type AnalysisStatus,
 } from '@claude-code-changelog-viewer/types';
 import { parseChangelog } from './parsers/changelog-parser';
 import { extractKeywords } from './parsers/keyword-extractor';
 import { getTopDocs } from './scorers/context-scorer';
 import { searchDocs, shouldSkipSearch } from './searchers/grep-executor';
 import { extractSnippets } from './searchers/snippet-extractor';
-
-/**
- * 関連ドキュメント数から分析ステータスを判定
- */
-function determineStatus(
-  relatedDocsCount: number,
-  isSkipped: boolean,
-): AnalysisStatus {
-  if (isSkipped) {
-    return 'sdk_only';
-  }
-  if (relatedDocsCount === 0) {
-    return 'no_docs_found';
-  }
-  if (relatedDocsCount >= 2) {
-    return 'ready_for_inference';
-  }
-  return 'docs_pending';
-}
 
 async function main() {
   const version = process.argv[2]; // v2.1.19
@@ -61,11 +41,10 @@ async function main() {
       // タグによる特別処理(SDK/API)
       if (shouldSkipSearch(item.tags)) {
         return {
-          ...item,
-          keywords,
-          search_strategy: 'skip' as const,
+          content: item.content,
+          prefix: item.prefix,
+          importance_score: item.importance_score,
           related_docs: [],
-          analysis_status: 'sdk_only' as const,
         };
       }
 
@@ -78,15 +57,11 @@ async function main() {
       // スコアリング & 上位3件取得
       const topDocs = getTopDocs(snippetResults, 3);
 
-      // ステータス判定
-      const status = determineStatus(topDocs.length, false);
-
       return {
-        ...item,
-        keywords,
-        search_strategy: searchResult.strategy,
+        content: item.content,
+        prefix: item.prefix,
+        importance_score: item.importance_score,
         related_docs: topDocs,
-        analysis_status: status,
       };
     }),
   );
@@ -96,7 +71,6 @@ async function main() {
   try {
     result = AnalysisSchema.parse({
       version: version.replace('v', ''),
-      analyzed_at: new Date().toISOString(),
       items: analyzedItems,
     });
   } catch (error) {
@@ -117,18 +91,6 @@ async function main() {
   console.log(`✅ Analysis complete: ${outputPath}`);
   console.log('📊 Stats:');
   console.log(`  - Total items: ${result.items.length}`);
-  console.log(
-    `  - Ready for inference: ${result.items.filter((i) => i.analysis_status === 'ready_for_inference').length}`,
-  );
-  console.log(
-    `  - Docs pending: ${result.items.filter((i) => i.analysis_status === 'docs_pending').length}`,
-  );
-  console.log(
-    `  - SDK only: ${result.items.filter((i) => i.analysis_status === 'sdk_only').length}`,
-  );
-  console.log(
-    `  - No docs found: ${result.items.filter((i) => i.analysis_status === 'no_docs_found').length}`,
-  );
 }
 
 main().catch((error) => {

@@ -1,5 +1,4 @@
-import type { Keywords } from '@claude-code-changelog-viewer/types';
-import type { ParsedItem } from '../types';
+import type { ParsedItem, Keywords } from '../types';
 
 // 除外ワード(ブラックリスト)
 const EXCLUDED_WORDS = new Set([

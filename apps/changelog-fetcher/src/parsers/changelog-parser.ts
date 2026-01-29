@@ -1,5 +1,4 @@
-import type { Pipeline } from '@claude-code-changelog-viewer/types';
-import type { ParsedItem } from '../types';
+import type { ParsedItem, Pipeline } from '../types';
 
 // プリフィックスごとの重要度スコア
 const IMPORTANCE_SCORES: Record<string, number> = {

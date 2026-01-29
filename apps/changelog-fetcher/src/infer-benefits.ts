@@ -27,9 +27,9 @@ async function inferBenefits(version: string): Promise<void> {
     );
   }
 
-  // 3. ready_for_inference の項目を抽出
+  // 3. related_docs が2件以上ある項目を抽出
   const itemsToInfer = analysis.items.filter(
-    (item) => item.analysis_status === 'ready_for_inference',
+    (item) => item.related_docs.length >= 2,
   );
 
   console.log(`Found ${itemsToInfer.length} items to infer.`);
@@ -48,7 +48,7 @@ async function inferBenefits(version: string): Promise<void> {
   console.log(`Starting inference with model: ${model}...`);
 
   for (const item of analysis.items) {
-    if (item.analysis_status === 'ready_for_inference') {
+    if (item.related_docs.length >= 2 && !item.inference) {
       try {
         const prompt = buildInferencePrompt(item);
         const response = await session.sendAndWait({ prompt }, 120 * 1000); // 2分タイムアウト
@@ -62,7 +62,6 @@ async function inferBenefits(version: string): Promise<void> {
 
         // 推論成功
         item.inference = inference;
-        item.analysis_status = 'completed';
         console.log(`✓ Completed: ${item.content.substring(0, 50)}...`);
       } catch (error) {
         // 全エラー(通信、JSON解析、Zod)を一括キャッチ
@@ -70,7 +69,6 @@ async function inferBenefits(version: string): Promise<void> {
           `✗ Inference failed for: ${item.content.substring(0, 50)}...`,
         );
         console.error(error);
-        item.analysis_status = 'inference_failed';
       }
     }
   }
@@ -79,8 +77,6 @@ async function inferBenefits(version: string): Promise<void> {
   await client.stop();
 
   // 5. inferred_{version}.json に保存
-  analysis.analyzed_at = new Date().toISOString();
-
   // Zod で最終検証
   const validated = AnalysisSchema.parse(analysis);
 
@@ -90,15 +86,11 @@ async function inferBenefits(version: string): Promise<void> {
 
   // 統計表示
   const completedCount = validated.items.filter(
-    (item) => item.analysis_status === 'completed',
-  ).length;
-  const failedCount = validated.items.filter(
-    (item) => item.analysis_status === 'inference_failed',
+    (item) => item.inference !== undefined,
   ).length;
 
   console.log(`\n--- Summary ---`);
   console.log(`Completed: ${completedCount}`);
-  console.log(`Failed: ${failedCount}`);
   console.log(`Total items: ${validated.items.length}`);
 }
 
