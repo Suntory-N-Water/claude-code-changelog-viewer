@@ -1,12 +1,10 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  AnalysisSchema,
-  InferenceResultSchema,
-} from '@claude-code-changelog-viewer/types';
-import { CopilotClient } from '@github/copilot-sdk';
-import { buildInferencePrompt } from './prompts/inference-prompt';
-import { extractJSON } from './utils/json-extractor';
+import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
+import { GeminiClient } from './ai/gemini-client';
+import { buildInferencePrompt } from './ai/prompts/inference-prompt';
+import { buildSummaryPrompt } from './ai/prompts/summary-prompt';
+import { buildTranslationPrompt } from './ai/prompts/translation-prompt';
 
 async function inferBenefits(version: string): Promise<void> {
   const analysisDir = join(process.cwd(), 'analysis');
@@ -19,62 +17,76 @@ async function inferBenefits(version: string): Promise<void> {
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
   const analysis = AnalysisSchema.parse(JSON.parse(rawAnalysis));
 
-  // 2. モデル設定(環境変数から取得、デフォルトなしで事故防止)
-  const model = process.env.COPILOT_MODEL || '';
-  if (!model) {
-    throw new Error(
-      'COPILOT_MODEL environment variable is required (e.g., claude-sonnet-4.5)',
-    );
+  // 2. Gemini API キー取得
+  const apiKey = process.env.GEMINI_API_KEY || '';
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY environment variable is required');
   }
 
-  // 3. related_docs が2件以上ある項目を抽出
-  const itemsToInfer = analysis.items.filter(
-    (item) => item.related_docs.length >= 2,
-  );
+  // 3. Gemini クライアント初期化
+  const client = new GeminiClient(apiKey);
 
-  console.log(`Found ${itemsToInfer.length} items to infer.`);
+  console.log('Starting processing with model: gemini-3-flash-preview...');
+  console.log(`Total items: ${analysis.items.length}`);
 
-  if (itemsToInfer.length === 0) {
-    console.log('No items to infer. Exiting.');
-    return;
-  }
-
-  // 4. Copilot SDK で推論
-  const client = new CopilotClient();
-  await client.start();
-
-  const session = await client.createSession({ model });
-
-  console.log(`Starting inference with model: ${model}...`);
-
+  // 4. 全項目を処理（レート制限を遵守しつつ個別リクエスト）
   for (const item of analysis.items) {
-    if (item.related_docs.length >= 2 && !item.inference) {
-      try {
+    // 既に処理済みの項目はスキップ
+    if (item.content_ja && item.inference) {
+      console.log(
+        `⊘ Skipped (already processed): ${item.content.substring(0, 50)}...`,
+      );
+      continue;
+    }
+
+    try {
+      // related_docs が2件以上: 翻訳 + 推論
+      if (item.related_docs.length >= 2) {
         const prompt = buildInferencePrompt(item);
-        const response = await session.sendAndWait({ prompt }, 120 * 1000); // 2分タイムアウト
-
-        if (!response?.data?.content) {
-          throw new Error('AIレスポンスが空です');
-        }
-
-        const rawJSON = extractJSON(response.data.content);
-        const inference = InferenceResultSchema.parse(JSON.parse(rawJSON));
-
-        // 推論成功
-        item.inference = inference;
-        console.log(`✓ Completed: ${item.content.substring(0, 50)}...`);
-      } catch (error) {
-        // 全エラー(通信、JSON解析、Zod)を一括キャッチ
-        console.error(
-          `✗ Inference failed for: ${item.content.substring(0, 50)}...`,
+        const result = await client.inferWithTranslation(prompt);
+        item.content_ja = result.content_ja;
+        item.inference = {
+          before: result.before,
+          after: result.after,
+          benefit: result.benefit,
+        };
+        console.log(
+          `✓ Translation + Inference: ${item.content.substring(0, 50)}...`,
         );
-        console.error(error);
+      } else {
+        // related_docs が2件未満: 翻訳のみ
+        const prompt = buildTranslationPrompt(item);
+        const contentJa = await client.translateOnly(prompt);
+        item.content_ja = contentJa;
+        console.log(`✓ Translation only: ${item.content.substring(0, 50)}...`);
       }
+    } catch (error) {
+      console.error(
+        `✗ Processing failed for: ${item.content.substring(0, 50)}...`,
+      );
+      console.error(error);
     }
   }
 
-  await session.destroy();
-  await client.stop();
+  // 4-2. バージョンサマリー生成
+  if (!analysis.summary) {
+    console.log('\nGenerating version summary...');
+    try {
+      const summaryPrompt = buildSummaryPrompt(
+        analysis.items.map((item) => ({
+          content: item.content,
+          prefix: item.prefix,
+        })),
+        version,
+      );
+      const summary = await client.generateVersionSummary(summaryPrompt);
+      analysis.summary = summary;
+      console.log('✓ Version summary generated');
+    } catch (error) {
+      console.error('✗ Version summary generation failed');
+      console.error(error);
+    }
+  }
 
   // 5. inferred_{version}.json に保存
   // Zod で最終検証
@@ -86,11 +98,12 @@ async function inferBenefits(version: string): Promise<void> {
 
   // 統計表示
   const completedCount = validated.items.filter(
-    (item) => item.inference !== undefined,
+    (item) => item.inference !== undefined && item.content_ja !== undefined,
   ).length;
 
   console.log(`\n--- Summary ---`);
   console.log(`Completed: ${completedCount}`);
+  console.log(`Version summary: ${validated.summary ? 'Yes' : 'No'}`);
   console.log(`Total items: ${validated.items.length}`);
 }
 

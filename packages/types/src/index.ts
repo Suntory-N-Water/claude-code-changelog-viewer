@@ -18,6 +18,17 @@ export const InferenceResultSchema = z.object({
 });
 export type InferenceResult = z.infer<typeof InferenceResultSchema>;
 
+// InferenceWithTranslation (翻訳含む推論結果)
+export const InferenceWithTranslationSchema = z.object({
+  content_ja: z.string().min(10).max(500),
+  before: z.string().min(10).max(500),
+  after: z.string().min(10).max(500),
+  benefit: z.string().min(10).max(500),
+});
+export type InferenceWithTranslation = z.infer<
+  typeof InferenceWithTranslationSchema
+>;
+
 // ChangelogItem
 export const ChangelogItemSchema = z.object({
   content: z.string(), // 英語原文
@@ -32,7 +43,7 @@ export type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
 // Analysis (最終出力)
 export const AnalysisSchema = z.object({
   version: z.string(),
-  summary: z.string().optional(), // バージョン全体のサマリー（日本語）
+  summary: z.string().optional(), // バージョン全体のサマリー(日本語)
   items: z.array(ChangelogItemSchema),
 });
 export type Analysis = z.infer<typeof AnalysisSchema>;
