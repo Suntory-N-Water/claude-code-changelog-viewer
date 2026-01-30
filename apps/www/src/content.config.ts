@@ -5,7 +5,7 @@ const changelogCollection = defineCollection({
   loader: glob({ pattern: '**/*.json', base: './src/content/changelog' }),
   schema: z.object({
     version: z.string(),
-    summary: z.string().optional(), // バージョン全体のサマリー（日本語）
+    summary: z.string().optional(), // バージョン全体のサマリー(日本語)
     items: z.array(
       z.object({
         content: z.string(), // 英語原文

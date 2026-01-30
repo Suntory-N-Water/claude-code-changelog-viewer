@@ -5,7 +5,7 @@
 
 @layer theme {
   :root {
-    /* CC-Vault カラーテーマ（Claude オレンジ） */
+    /* CC-Vault カラーテーマ(Claude オレンジ) */
     --cc-main-orange: 15 62% 62%;    /* #DB8163 */
     --cc-main-white: 48 43% 97%;     /* #FAF9F5 */
     --cc-main-black: 60 4% 8%;       /* #141413 */
@@ -31,6 +31,127 @@
 
   article code:hover {
     @apply bg-[hsl(var(--cc-main-orange)/0.1)] text-[hsl(var(--cc-main-orange))];
+  }
+
+  /* View Transitions カスタムアニメーション */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes slide-from-right {
+    from {
+      transform: translateX(30px);
+    }
+  }
+
+  @keyframes slide-to-left {
+    to {
+      transform: translateX(-30px);
+    }
+  }
+
+  ::view-transition-old(root) {
+    animation: 180ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+      300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-left;
+  }
+
+  ::view-transition-new(root) {
+    animation: 420ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
+      340ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-right;
+  }
+
+  /* 戻るボタン用の逆方向アニメーション */
+  @keyframes slide-from-left {
+    from {
+      transform: translateX(-30px);
+    }
+  }
+
+  @keyframes slide-to-right {
+    to {
+      transform: translateX(30px);
+    }
+  }
+
+  ::view-transition-old(root):active-view-transition-type(back) {
+    animation: 180ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
+      300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-to-right;
+  }
+
+  ::view-transition-new(root):active-view-transition-type(back) {
+    animation: 420ms cubic-bezier(0, 0, 0.2, 1) 90ms both fade-in,
+      340ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-left;
+  }
+
+  /* reduce-motionを尊重 */
+  @media (prefers-reduced-motion) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none !important;
+    }
+  }
+
+  /* 変更履歴カードのスタガードアニメーション */
+  @keyframes stagger-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .changelog-card {
+    animation: stagger-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .changelog-card:nth-child(1) { animation-delay: 0.05s; }
+  .changelog-card:nth-child(2) { animation-delay: 0.10s; }
+  .changelog-card:nth-child(3) { animation-delay: 0.15s; }
+  .changelog-card:nth-child(4) { animation-delay: 0.20s; }
+  .changelog-card:nth-child(5) { animation-delay: 0.25s; }
+  .changelog-card:nth-child(6) { animation-delay: 0.30s; }
+  .changelog-card:nth-child(7) { animation-delay: 0.35s; }
+  .changelog-card:nth-child(8) { animation-delay: 0.40s; }
+  .changelog-card:nth-child(9) { animation-delay: 0.45s; }
+  .changelog-card:nth-child(n+10) { animation-delay: 0.50s; }
+
+  @media (prefers-reduced-motion) {
+    .changelog-card {
+      animation: none !important;
+    }
+  }
+
+  /* バージョンカードのスタガードアニメーション */
+  .version-card {
+    animation: stagger-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+
+  .version-card:nth-child(1) { animation-delay: 0.05s; }
+  .version-card:nth-child(2) { animation-delay: 0.10s; }
+  .version-card:nth-child(3) { animation-delay: 0.15s; }
+  .version-card:nth-child(4) { animation-delay: 0.20s; }
+  .version-card:nth-child(5) { animation-delay: 0.25s; }
+  .version-card:nth-child(6) { animation-delay: 0.30s; }
+  .version-card:nth-child(7) { animation-delay: 0.35s; }
+  .version-card:nth-child(8) { animation-delay: 0.40s; }
+  .version-card:nth-child(9) { animation-delay: 0.45s; }
+  .version-card:nth-child(n+10) { animation-delay: 0.50s; }
+
+  @media (prefers-reduced-motion) {
+    .version-card {
+      animation: none !important;
+    }
   }
 }
 

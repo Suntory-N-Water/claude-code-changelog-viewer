@@ -11,6 +11,10 @@ interface Props {
 const { item } = Astro.props;
 const hasInference = !!item.inference;
 const formattedContent = formatChangelogContent(item.content);
+const hasJaTranslation = !!item.content_ja;
+const formattedContentJa = item.content_ja
+  ? formatChangelogContent(item.content_ja)
+  : '';
 
 // プレフィックスのスタイルマッピング - Claude オフィシャルカラーで明確に差別化
 const prefixStyles: Record<string, string> = {
@@ -28,7 +32,7 @@ const prefixStyle =
 ---
 
 <article
-  class='border border-[hsl(var(--cc-gray))] rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-[hsl(var(--cc-main-orange))]'
+  class='changelog-card border border-[hsl(var(--cc-gray))] rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-[hsl(var(--cc-main-orange))]'
 >
   <div class='flex-1 min-w-0'>
     <!-- プレフィックスバッジ -->
@@ -44,11 +48,33 @@ const prefixStyle =
       )
     }
 
-    <!-- 本文: サイズ拡大、行間改善 -->
-    <div
-      class='text-lg leading-relaxed text-[hsl(var(--cc-main-black))]'
-      set:html={formattedContent}
-    />
+    <!-- 日本語訳がある場合 -->
+    {
+      hasJaTranslation ? (
+        <>
+          <div class='mb-4 p-4 bg-[hsl(var(--cc-main-orange)/0.05)] border-l-4 border-[hsl(var(--cc-main-orange))] rounded-r'>
+            <div
+              class='text-base leading-relaxed text-[hsl(var(--cc-main-black))] font-medium'
+              set:html={formattedContentJa}
+            />
+          </div>
+          <details class='mb-2'>
+            <summary class='text-sm text-gray-600 hover:text-[hsl(var(--cc-main-orange))] cursor-pointer transition-colors mb-2'>
+              英語原文を表示
+            </summary>
+            <div
+              class='text-base leading-relaxed text-gray-700 pl-3 border-l-4 border-gray-300'
+              set:html={formattedContent}
+            />
+          </details>
+        </>
+      ) : (
+        <div
+          class='text-lg leading-relaxed text-[hsl(var(--cc-main-black))]'
+          set:html={formattedContent}
+        />
+      )
+    }
   </div>
 
   {hasInference && <InferenceDetail inference={item.inference!} />}
