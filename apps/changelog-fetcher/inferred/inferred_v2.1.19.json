@@ -1,8 +1,10 @@
 {
   "version": "2.1.19",
+  "summary": "本バージョンでは、カスタムコマンドでの引数利用の簡略化や、特定の条件下で発生していたクラッシュ・セッション管理の不具合が修正され、動作の安定性が大幅に向上しました。また、一部のスキルの実行承認が不要になるなど操作性が改善されたほか、VS Codeでのセッション分岐・巻き戻し機能が全ユーザーに開放され、より柔軟で効率的な開発体験が提供されます。",
   "items": [
     {
       "content": "- Added env var `CLAUDE_CODE_ENABLE_TASKS`, set to `false` to keep the old system temporarily",
+      "content_ja": "環境変数 `CLAUDE_CODE_ENABLE_TASKS` を追加。以前のシステムを一時的に継続利用する場合は `false` に設定可能",
       "prefix": "Added",
       "importance_score": 8,
       "related_docs": [
@@ -47,13 +49,14 @@
         }
       ],
       "inference": {
-        "before": "環境変数による制御手段が用意されておらず、実行環境ごとに新しいタスク処理の切り替えを簡単に行えなかった。そのため、新システム導入時に既存の挙動を維持したまま段階的に移行するのが難しく、予期せぬ動作変化に対する対応が煩雑だった。",
-        "after": "CLAUDE_CODE_ENABLE_TASKS という環境変数が追加され、これを false に設定すると一時的に旧タスクシステムの動作を維持できるようになった。つまり、デプロイやユーザー側で明示的に有効化しない限り既存の挙動が続くため、移行タイミングを運用側で管理できる。",
-        "benefit": "環境変数（実行環境で設定するフラグ）で新旧システムを切り替えられるため、安定稼働を保ちながら段階的に新機能を検証・ロールアウトでき、障害リスクや運用コストが下がる。"
+        "before": "新しいタスク処理システムが導入された際、万が一ワークフローに支障が出ても、以前の安定した動作環境へ簡単に戻す手段が提供されていませんでした。",
+        "after": "環境変数によって新旧システムの切り替えが可能になり、新しいタスク管理機能の利用をユーザー側で制御できるようになりました。",
+        "benefit": "新機能に不具合があった場合や既存のプロジェクトとの相性が悪い場合に、設定一つで使い慣れた旧システムに戻せるため、開発の手を止めるリスクを最小限に抑えられます。"
       }
     },
     {
       "content": "- Added shorthand `$0`, `$1`, etc. for accessing individual arguments in custom commands",
+      "content_ja": "カスタムコマンドで個々の引数にアクセスするための `$0`、`$1` などのショートカットを追加しました。",
       "prefix": "Added",
       "importance_score": 8,
       "related_docs": [
@@ -74,12 +77,14 @@
     },
     {
       "content": "- Fixed crashes on processors without AVX instruction support",
+      "content_ja": "AVX命令セットをサポートしないプロセッサでのクラッシュを修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed dangling Claude Code processes when terminal is closed by catching EIO errors from `process.exit()` and using SIGKILL as fallback",
+      "content_ja": "ターミナル終了時に Claude Code のプロセスが残留する問題を修正しました。`process.exit()` 実行時の EIO エラーを捕捉し、フォールバックとして SIGKILL を使用するように変更しています。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -124,13 +129,14 @@
         }
       ],
       "inference": {
-        "before": "端末を閉じたときに process.exit() が EIO エラーを投げるケースがあり、その結果 Claude Code の子プロセスやサブエージェントが正常に終了せずバックグラウンドに残る（いわゆる“ダングリング”プロセス）が発生していた。残存プロセスはCPU/メモリや外部リソースを消費し、再起動時の衝突や不要なコスト、デバッグの混乱を招いていた。",
-        "after": "process.exit() で EIO（端末入出力が閉じられた際の入出力例外）を検出して適切に扱うようになり、通常の終了が失敗した場合は SIGKILL（プロセスを即時強制終了するシグナル）をフォールバックで送ることで残存プロセスを確実に止めるようになった。これにより端末を閉じた際も Claude Code のプロセスがクリーンに終了するようになっている。",
-        "benefit": "端末を閉じたときにオーファンプロセスが残らなくなるため、マシン負荷や不要なコストが減り、再起動やデバッグが予測どおりに行えるようになる。結果として運用上の手間が減り、hooks やサブエージェントなど長時間走る処理を安心して使えるようになる。"
+        "before": "ターミナルウィンドウを直接閉じたり、特定の環境でセッションを終了したりすると、Claude Code のバックグラウンドプロセスが正常に終了せず、ゾンビプロセスとしてシステムに残ってしまうことがありました。",
+        "after": "プロセス終了処理中に発生する入出力エラー (EIO) を適切に検知できるようになりました。通常の終了処理が失敗した場合でも、強制終了 (SIGKILL) を実行して確実にプロセスを停止させます。",
+        "benefit": "不要なバックグラウンドプロセスがメモリや CPU リソースを消費し続けるのを防ぎ、OS 全体の動作を安定させることができます。手動でプロセスを探して kill する手間もなくなります。"
       }
     },
     {
       "content": "- Fixed `/rename` and `/tag` not updating the correct session when resuming from a different directory (e.g., git worktrees)",
+      "content_ja": "git worktree などの異なるディレクトリから再開した際に、/rename や /tag が正しいセッションを更新しない不具合を修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -166,49 +172,56 @@
         }
       ],
       "inference": {
-        "before": "別ディレクトリ（例: Git の worktree = 同じリポジトリの複数作業ツリー）からセッションを再開した際、/rename や /tag が意図した再開対象のセッションではなく別のセッションに対して適用されてしまっていた。結果としてセッション名やタグが誤った会話に付与され、後で目的のセッションを探したり復元したりするのが難しかった。",
-        "after": "/rename と /tag が、現在の作業ディレクトリと異なる場所（例: worktree）からセッションを再開しても、正しく“再開したそのセッション”に対して更新を行うよう修正された。これにより名前やタグが意図した会話に確実に反映される。",
-        "benefit": "セッションの名前付けやタグ付けが常に期待どおりの会話に適用されるため、作業の切り替えや後続の再開が素早く確実に行える。誤ったセッションの上書きや探し直しによる時間ロスが減り、複数作業ツリーでの並行作業が快適になる。"
+        "before": "git worktree を利用して別のディレクトリから過去のセッションを再開（/resume）した場合、セッション名の変更（/rename）やタグ付け（/tag）を行っても、現在のセッションではなく誤ったセッション情報が更新されることがありました。",
+        "after": "どのディレクトリからセッションを再開した場合でも、Claude Code が現在アクティブなセッションを正確に追跡し、名前の変更やタグ付けが確実に適用されるようになりました。",
+        "benefit": "複数のブランチや作業ディレクトリを並行して扱う開発者でも、セッション管理機能を安心して利用できます。後から特定の作業内容を検索・特定しやすくなり、コンテキストの整理がより確実になります。"
       }
     },
     {
       "content": "- Fixed resuming sessions by custom title not working when run from a different directory",
+      "content_ja": "カスタムタイトルでセッションを再開する際、別ディレクトリから実行した場合に機能しない問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed pasted text content being lost when using prompt stash (Ctrl+S) and restore",
+      "content_ja": "プロンプトスタッシュ（Ctrl+S）と復元機能使用時に、貼り付けたテキストが失われる問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed agent list displaying \"Sonnet (default)\" instead of \"Inherit (default)\" for agents without an explicit model setting",
+      "content_ja": "明示的なモデル設定がないエージェントで、デフォルトで \"Inherit (default)\" と表示されるべきところが \"Sonnet (default)\" と表示されていた問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed backgrounded hook commands not returning early, potentially causing the session to wait on a process that was intentionally backgrounded",
+      "content_ja": "バックグラウンドで実行されていたフックコマンドが早期に終了しない問題を修正しました。これにより、意図的にバックグラウンド化されたプロセスでセッションが待機してしまう可能性がありました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed file write preview omitting empty lines",
+      "content_ja": "ファイル書き込みプレビューで空行が省略される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Changed skills without additional permissions or hooks to be allowed without requiring approval",
+      "content_ja": "追加の権限やフックなしに変更されたスキルは、承認なしで許可されるように変更しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Changed indexed argument syntax from `$ARGUMENTS.0` to `$ARGUMENTS[0]` (bracket syntax)",
+      "content_ja": "インデックス引数の構文を `$ARGUMENTS.0` から `$ARGUMENTS[0]` (ブラケット構文) に変更しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": [
@@ -229,12 +242,14 @@
     },
     {
       "content": "- [SDK] Added replay of `queued_command` attachment messages as `SDKUserMessageReplay` events when `replayUserMessages` is enabled",
+      "content_ja": "SDK: `replayUserMessages` が有効な場合、`queued_command` の添付メッセージを `SDKUserMessageReplay` イベントとしてリプレイする機能を追加しました。",
       "prefix": "Unknown",
       "importance_score": 5,
       "related_docs": []
     },
     {
       "content": "- [VSCode] Enabled session forking and rewind functionality for all users",
+      "content_ja": "VSCode: セッションフォークと巻き戻し機能を全ユーザーが利用可能になりました",
       "prefix": "Unknown",
       "importance_score": 5,
       "related_docs": []
