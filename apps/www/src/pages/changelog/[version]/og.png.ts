@@ -1,5 +1,5 @@
-import type { APIContext, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
+import type { APIContext, GetStaticPaths } from 'astro';
 import { generateVersionPageOgp } from '@/lib/ogp';
 
 /**
