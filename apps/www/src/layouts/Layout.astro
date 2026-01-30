@@ -5,9 +5,16 @@ import { ClientRouter } from 'astro:transitions';
 interface Props {
   title: string;
   description?: string;
+  image?: string;
 }
 
-const { title, description } = Astro.props;
+const { title, description, image } = Astro.props;
+const defaultDescription =
+  'Claude Code の更新履歴を分かりやすく表示する Web アプリケーション';
+const pageDescription = description || defaultDescription;
+const siteUrl = import.meta.env.SITE;
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
+const ogImage = image || `${siteUrl}/og-image.png`;
 ---
 
 <!doctype html>
@@ -15,11 +22,23 @@ const { title, description } = Astro.props;
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width' />
-    <meta
-      name='description'
-      content={description || 'Claude Code Changelog Viewerビューアー'}
-    />
+    <meta name='description' content={pageDescription} />
+    <link rel='canonical' href={canonicalUrl} />
+    <link rel='sitemap' href='/sitemap-index.xml' />
     <title>{title}</title>
+
+    <meta property='og:type' content='website' />
+    <meta property='og:url' content={canonicalUrl} />
+    <meta property='og:title' content={title} />
+    <meta property='og:description' content={pageDescription} />
+    <meta property='og:image' content={ogImage} />
+    <meta property='og:locale' content='ja_JP' />
+
+    <meta name='twitter:card' content='summary_large_image' />
+    <meta name='twitter:title' content={title} />
+    <meta name='twitter:description' content={pageDescription} />
+    <meta name='twitter:image' content={ogImage} />
+
     <ClientRouter />
   </head>
   <body>
