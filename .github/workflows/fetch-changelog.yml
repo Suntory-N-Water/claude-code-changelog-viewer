@@ -58,12 +58,26 @@ jobs:
         id: git-check
         run: |
           git add -A
-          git diff --staged --quiet || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+          # チェンジログ（*.md）ファイルの変更のみをカウント
+          CHANGELOG_CHANGES=$(git diff --staged --name-only -- 'apps/changelog-fetcher/changelogs/*.md' | wc -l)
+          echo "changelog_changes=$CHANGELOG_CHANGES" >> "$GITHUB_OUTPUT"
+
+          # チェンジログに変更がある場合のみ should_push=true
+          if [ "$CHANGELOG_CHANGES" -gt 0 ]; then
+            echo "should_push=true" >> "$GITHUB_OUTPUT"
+            echo "✅ チェンジログに更新あり: $CHANGELOG_CHANGES ファイル"
+            git diff --staged --name-only -- 'apps/changelog-fetcher/changelogs/*.md'
+          else
+            echo "ℹ️ チェンジログに更新なし（メタデータのみの変更はスキップ）"
+          fi
+
+          # 全変更ファイル数（コミットメッセージ用）
           CHANGED_FILES=$(git diff --staged --name-only | wc -l)
           echo "changed_files=$CHANGED_FILES" >> "$GITHUB_OUTPUT"
 
       - name: Commit changes
-        if: steps.git-check.outputs.changed == 'true'
+        if: steps.git-check.outputs.should_push == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -81,7 +95,7 @@ jobs:
           CHANGED_COUNT: ${{ steps.git-check.outputs.changed_files }}
 
       - name: Push changes
-        if: steps.git-check.outputs.changed == 'true'
+        if: steps.git-check.outputs.should_push == 'true'
         run: |
           git pull --rebase origin main
           git push
