@@ -12,14 +12,15 @@ Claude Code の更新履歴を分かりやすく表示する Web アプリケー
 
 ## 技術スタック
 
-- TypeScript ~5.9.3 (strict mode), Astro ^5.16.15, Tailwind CSS
-- Biome 2.3.8 (linter/formatter) - **Prettier や ESLint は使用しない**
-- Node.js ≥22.0.0, pnpm ≥10.0.0 **必須**(npm/yarn 不可)
+- TypeScript ~5.9.3
+- Astro ^5.16.15
+- Tailwind CSS v4
 - Cloudflare Workers (デプロイ先)
 
-## 主要コマンド(全体)
+## 主要コマンド
 
-コード修正後は以下の手順で静的解析を行い、エラーがなくなるまで実施。
+コード修正後はプロジェクトのルートで以下の手順で静的解析を行い、エラーがなくなるまで実施する。
+ユーザーへの許可は不要です。
 
 - pnpm run format → フォーマッター
 - pnpm run lint:ai → AI ベースのリント
