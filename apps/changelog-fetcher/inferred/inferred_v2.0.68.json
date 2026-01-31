@@ -1,0 +1,161 @@
+{
+  "version": "2.0.68",
+  "items": [
+    {
+      "content": "- Fixed IME (Input Method Editor) support for languages like Chinese, Japanese, and Korean by correctly positioning the composition window at the cursor",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 15,
+          "context_score": 29,
+          "total_score": 435,
+          "snippets": [
+            "Claude Code supports OpenTelemetry (OTel) metrics and events for monitoring and observability.\n\nAll metrics are time series data exported via OpenTelemetry's standard metrics protocol, and events are exported via OpenTelemetry's logs/events protocol. It is the user's responsibility to ensure their metrics and logs backends are properly configured and that the aggregation granularity meets their monitoring requirements.\n\n## Quick start",
+            "| `claude_code.cost.usage`              | Cost of the Claude Code session                 | USD    |\n| `claude_code.token.usage`             | Number of tokens used                           | tokens |\n| `claude_code.code_edit_tool.decision` | Count of code editing tool permission decisions | count  |\n| `claude_code.active_time.total`       | Total active time in seconds                    | s      |\n\n### Metric details",
+            "* `decision`: User decision (`\"accept\"`, `\"reject\"`)\n* `language`: Programming language of the edited file (for example, `\"TypeScript\"`, `\"Python\"`, `\"JavaScript\"`, `\"Markdown\"`). Returns `\"unknown\"` for unrecognized file extensions.\n\n#### Active time counter\n\nTracks actual time spent actively using Claude Code (not idle time). This metric is incremented during user interactions such as typing prompts or receiving responses.\n\n**Attributes**:",
+            "* All [standard attributes](#standard-attributes)\n* `event.name`: `\"user_prompt\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `prompt_length`: Length of the prompt\n* `prompt`: Prompt content (redacted by default, enable with `OTEL_LOG_USER_PROMPTS=1`)",
+            "* All [standard attributes](#standard-attributes)\n* `event.name`: `\"tool_result\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `tool_name`: Name of the tool\n* `success`: `\"true\"` or `\"false\"`\n* `duration_ms`: Execution time in milliseconds\n* `error`: Error message (if failed)\n* `decision`: Either `\"accept\"` or `\"reject\"`\n* `source`: Decision source - `\"config\"`, `\"user_permanent\"`, `\"user_temporary\"`, `\"user_abort\"`, or `\"user_reject\"`\n* `tool_parameters`: JSON string containing tool-specific parameters (when available)\n  * For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `sandbox`\n\n#### API request event"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 16,
+          "context_score": 17,
+          "total_score": 272,
+          "snippets": [
+            "For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "| Field           | Required | Description                                                                                                                                   |\n| :-------------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |\n| `type`          | yes      | `\"command\"`, `\"prompt\"`, or `\"agent\"`                                                                                                         |\n| `timeout`       | no       | Seconds before canceling. Defaults: 600 for command, 30 for prompt, 60 for agent                                                              |\n| `statusMessage` | no       | Custom spinner message displayed while the hook runs                                                                                          |\n| `once`          | no       | If `true`, runs only once per session then is removed. Skills only, not agents. See [Hooks in skills and agents](#hooks-in-skills-and-agents) |",
+            "{\n                \"type\": \"command\",\n                \"command\": \"${CLAUDE_PLUGIN_ROOT}/scripts/format.sh\",\n                \"timeout\": 30\n              }\n            ]\n          }",
+            "All hook events are supported. For subagents, `Stop` hooks are automatically converted to `SubagentStop` since that is the event that fires when a subagent completes.\n\nHooks use the same configuration format as settings-based hooks but are scoped to the component's lifetime and cleaned up when it finishes.\n\nThis skill defines a `PreToolUse` hook that runs a security validation script before each `Bash` command:",
+            "| :------------------ | :------ | :----------------- | :-------------------------------------------- |\n| `command`           | string  | `\"npm test\"`       | The shell command to execute                  |\n| `description`       | string  | `\"Run test suite\"` | Optional description of what the command does |\n| `timeout`           | number  | `120000`           | Optional timeout in milliseconds              |\n| `run_in_background` | boolean | `false`            | Whether to run the command in background      |\n\n##### Write"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 12,
+          "context_score": 20,
+          "total_score": 240,
+          "snippets": [
+            "| **Scope the task.** Specify which file, what scenario, and testing preferences.                  | *\"add tests for foo.py\"*                             | *\"write a test for foo.py covering the edge case where the user is logged out. avoid mocks.\"*                                                                                                                                                                                                                                                                    |\n| **Point to sources.** Direct Claude to the source that can answer a question.                    | *\"why does ExecutionFactory have such a weird api?\"* | *\"look through ExecutionFactory's git history and summarize how its api came to be\"*                                                                                                                                                                                                                                                                             |\n| **Reference existing patterns.** Point Claude to patterns in your codebase.                      | *\"add a calendar widget\"*                            | *\"look at how existing widgets are implemented on the home page to understand the patterns. HotDogWidget.php is a good example. follow the pattern to implement a new calendar widget that lets the user select a month and paginate forwards/backwards to pick a year. build from scratch without libraries other than the ones already used in the codebase.\"* |\n| **Describe the symptom.** Provide the symptom, the likely location, and what \"fixed\" looks like. | *\"fix the login bug\"*                                | *\"users report that login fails after session timeout. check the auth flow in src/auth/, especially token refresh. write a failing test that reproduces the issue, then fix it\"*                                                                                                                                                                                 |\n\nVague prompts can be useful when you're exploring and can afford to course-correct. A prompt like `\"what would you improve in this file?\"` can surface things you wouldn't have thought to ask about.",
+            "### Write an effective CLAUDE.md\n\n<Tip>\n  Run `/init` to generate a starter CLAUDE.md file based on your current project structure, then refine over time.\n</Tip>\n\nCLAUDE.md is a special file that Claude reads at the start of every conversation. Include Bash commands, code style, and workflow rules. This gives Claude persistent context **it can't infer from code alone**.",
+            "- Prefer running single tests, and not the whole test suite, for performance\n```\n\nCLAUDE.md is loaded every session, so only include things that apply broadly. For domain knowledge or workflows that are only relevant sometimes, use [skills](/en/skills) instead. Claude loads them on demand without bloating every conversation.\n\nKeep it concise. For each line, ask: *\"Would removing this cause Claude to make mistakes?\"* If not, cut it. Bloated CLAUDE.md files cause Claude to ignore your actual instructions!",
+            "If Claude keeps doing something you don't want despite having a rule against it, the file is probably too long and the rule is getting lost. If Claude asks you questions that are answered in CLAUDE.md, the phrasing might be ambiguous. Treat CLAUDE.md like code: review it when things go wrong, prune it regularly, and test changes by observing whether Claude's behavior actually shifts.\n\nYou can tune instructions by adding emphasis (e.g., \"IMPORTANT\" or \"YOU MUST\") to improve adherence. Check CLAUDE.md into git so your team can contribute. The file compounds in value over time.\n\nCLAUDE.md files can import additional files using `@path/to/import` syntax:",
+            "### Set up hooks\n\n<Tip>\n  Use hooks for actions that must happen every time with zero exceptions.\n</Tip>\n\n[Hooks](/en/hooks-guide) run scripts automatically at specific points in Claude's workflow. Unlike CLAUDE.md instructions which are advisory, hooks are deterministic and guarantee the action happens."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed a bug where disallowed MCP tools were visible to the model",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 203,
+          "context_score": 7,
+          "total_score": 1421,
+          "snippets": [
+            "-",
+            "title: mcp\nsource: https://code.claude.com/docs/en/mcp.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Connect Claude Code to tools via MCP\n\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('limit', '100');\n          if (cursor) {",
+            "}\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }\n          const data = await response.json();\n          allServers.push(...data.servers);"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 19,
+          "context_score": 32,
+          "total_score": 608,
+          "snippets": [
+            "# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |",
+            "`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools\n\n[MCP](/en/mcp) server tools appear as regular tools in tool events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`), so you can match them the same way you match any other tool name.\n\nMCP tools follow the naming pattern `mcp__<server>__<tool>`, for example:\n\n* `mcp__memory__create_entities`: Memory server's create entities tool\n* `mcp__filesystem__read_file`: Filesystem server's read file tool\n* `mcp__github__search_repositories`: GitHub server's search tool\n\nUse regex patterns to target specific MCP tools or groups of tools:\n\n* `mcp__memory__.*` matches all tools from the `memory` server\n* `mcp__.*__write.*` matches any tool containing \"write\" from any server\n\nThis example logs all memory server operations and validates write operations from any MCP server:\n\n```json  theme={null}\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"mcp__memory__.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'Memory operation initiated' >> ~/mcp-operations.log\"\n          }\n        ]\n      },\n      {\n        \"matcher\": \"mcp__.*__write.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/user/scripts/validate-mcp-write.py\"\n          }\n        ]\n      }",
+            "### PreToolUse\n\nRuns after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Task`, `WebFetch`, `WebSearch`, and any [MCP tool names](#match-mcp-tools).\n\nUse [PreToolUse decision control](#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.",
+            "| `decision`             | `\"block\"` prompts Claude with the `reason`. Omit to allow the action to proceed            |\n| `reason`               | Explanation shown to Claude when `decision` is `\"block\"`                                   |\n| `additionalContext`    | Additional context for Claude to consider                                                  |\n| `updatedMCPToolOutput` | For [MCP tools](#match-mcp-tools) only: replaces the tool's output with the provided value |\n\n```json  theme={null}\n{"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
+          "hit_count": 22,
+          "context_score": 18,
+          "total_score": 396,
+          "snippets": [
+            "* `prompt`: Evaluate a prompt with an LLM (uses `$ARGUMENTS` placeholder for context)\n* `agent`: Run an agentic verifier with tools for complex verification tasks\n\n### MCP servers\n\nPlugins can bundle Model Context Protocol (MCP) servers to connect Claude Code with external tools and services.\n\n**Location**: `.mcp.json` in plugin root, or inline in plugin.json\n\n**Format**: Standard MCP server configuration\n\n**MCP server configuration**:\n\n```json  theme={null}\n{\n  \"mcpServers\": {\n    \"plugin-database\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\",\n      \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"],",
+            "},\n    \"plugin-api-client\": {\n      \"command\": \"npx\",\n      \"args\": [\"@company/mcp-server\", \"--plugin-mode\"],\n      \"cwd\": \"${CLAUDE_PLUGIN_ROOT}\"\n    }\n  }",
+            "**Integration behavior**:\n\n* Plugin MCP servers start automatically when the plugin is enabled\n* Servers appear as standard MCP tools in Claude's toolkit\n* Server capabilities integrate seamlessly with Claude's existing tools\n* Plugin servers can be configured independently of user MCP servers\n\n### LSP servers",
+            "\"agents\": \"./custom/agents/\",\n  \"skills\": \"./custom/skills/\",\n  \"hooks\": \"./config/hooks.json\",\n  \"mcpServers\": \"./mcp-config.json\",\n  \"outputStyles\": \"./styles/\",\n  \"lspServers\": \"./.lsp.json\"\n}",
+            "| `agents`       | string\\|array  | Additional agent files                                                                                                                                   | `\"./custom/agents/\"`                   |\n| `skills`       | string\\|array  | Additional skill directories                                                                                                                             | `\"./custom/skills/\"`                   |\n| `hooks`        | string\\|object | Hook config path or inline config                                                                                                                        | `\"./hooks.json\"`                       |\n| `mcpServers`   | string\\|object | MCP config path or inline config                                                                                                                         | `\"./mcp-config.json\"`                  |\n| `outputStyles` | string\\|array  | Additional output style files/directories                                                                                                                | `\"./styles/\"`                          |\n| `lspServers`   | string\\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) config for code intelligence (go to definition, find references, etc.) | `\"./.lsp.json\"`                        |"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed an issue where steering messages could be lost while a subagent is working",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed Option+Arrow word navigation treating entire CJK (Chinese, Japanese, Korean) text sequences as a single word instead of navigating by word boundaries",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Improved plan mode exit UX: show simplified yes/no dialog when exiting with empty or missing plan instead of throwing an error",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md",
+          "hit_count": 14,
+          "context_score": 15,
+          "total_score": 210,
+          "snippets": [
+            "* [Install for VS Code](vscode:extension/anthropic.claude-code)\n* [Install for Cursor](cursor:extension/anthropic.claude-code)\n\nOr in VS Code, press `Cmd+Shift+X` (Mac) or `Ctrl+Shift+X` (Windows/Linux) to open the Extensions view, search for \"Claude Code\", and click **Install**.\n\n<Note>If the extension doesn't appear after installation, restart VS Code or run \"Developer: Reload Window\" from the Command Palette.</Note>",
+            "Other ways to open Claude Code:\n\n    * **Command Palette**: `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux), type \"Claude Code\", and select an option like \"Open in New Tab\"\n    * **Status Bar**: Click **✱ Claude Code** in the bottom-right corner of the window. This works even when no file is open.\n\n    You can drag the Claude panel to reposition it anywhere in VS Code. See [Customize your workflow](#customize-your-workflow) for details.",
+            "<Step title=\"Send a prompt\">\n    Ask Claude to help with your code or files, whether that's explaining how something works, debugging an issue, or making changes.\n\n    <Tip>Claude automatically sees your selected text. Press `Option+K` (Mac) / `Alt+K` (Windows/Linux) to also insert an @-mention reference (like `@file.ts#5-10`) into your prompt.</Tip>\n\n    Here's an example of asking about a particular line in a file:",
+            "> What's in @src/components/ (include a trailing slash for folders)\n```\n\nWhen you select text in the editor, Claude can see your highlighted code automatically. The prompt box footer shows how many lines are selected. Press `Option+K` (Mac) / `Alt+K` (Windows/Linux) to insert an @-mention with the file path and line numbers (e.g., `@app.ts#5-10`). Click the selection indicator to toggle whether Claude can see your highlighted text - the eye-slash icon means the selection is hidden from Claude.\n\nYou can also hold `Shift` while dragging files into the prompt box to add them as attachments. Click the X on any attachment to remove it from context.",
+            "By default, the extension opens a graphical chat panel. If you prefer the CLI-style interface, open the [Use Terminal setting](vscode://settings/claudeCode.useTerminal) and check the box.\n\nYou can also open VS Code settings (`Cmd+,` on Mac or `Ctrl+,` on Windows/Linux), go to Extensions → Claude Code, and check **Use Terminal**.\n\n## Manage plugins"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md",
+          "hit_count": 10,
+          "context_score": 18,
+          "total_score": 180,
+          "snippets": [
+            "**OS/platform detection issues**: If you receive an error during installation, WSL may be using Windows `npm`. Try:\n\n* Run `npm config set os linux` before installation\n* Install with `npm install -g @anthropic-ai/claude-code --force --no-os-check` (Do NOT use `sudo`)\n\n**Node not found errors**: If you see `exec: node: not found` when running `claude`, your WSL environment may be using a Windows installation of Node.js. You can confirm this with `which npm` and `which node`, which should point to Linux paths starting with `/usr/` rather than `/mnt/c/`. To fix this, try installing Node via your Linux distribution's package manager or via [`nvm`](https://github.com/nvm-sh/nvm).\n\n**nvm version conflicts**: If you have nvm installed in both WSL and Windows, you may experience version conflicts when switching Node versions in WSL. This happens because WSL imports the Windows PATH by default, causing Windows nvm/npm to take priority over the WSL installation.",
+            "* Running `which npm` and `which node` - if they point to Windows paths (starting with `/mnt/c/`), Windows versions are being used\n* Experiencing broken functionality after switching Node versions with nvm in WSL\n\nTo resolve this issue, fix your Linux PATH to ensure the Linux node/npm versions take priority:\n\n**Primary solution: Ensure nvm is properly loaded in your shell**",
+            "**Alternative: Adjust PATH order**\n\nIf nvm is properly loaded but Windows paths still take priority, you can explicitly prepend your Linux paths to PATH in your shell configuration:\n\n```bash  theme={null}\nexport PATH=\"$HOME/.nvm/versions/node/$(node -v)/bin:$PATH\"",
+            "WSL1 does not support sandboxing. If you see \"Sandboxing requires WSL2\", you need to upgrade to WSL2 or run Claude Code without sandboxing.\n\n### Linux and Mac installation issues: permission or command not found errors\n\nWhen installing Claude Code with npm, `PATH` problems may prevent access to `claude`.\nYou may also encounter permission errors if your npm global prefix is not user writable (for example, `/usr`, or `/usr/local`).",
+            "Use the following command to run the native installer.\n\n**macOS, Linux, WSL:**\n\n```bash  theme={null}\n# Install stable version (default)"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md",
+          "hit_count": 7,
+          "context_score": 22,
+          "total_score": 154,
+          "snippets": [
+            "<Tabs>\n  <Tab title=\"Native Install (Recommended)\">\n    **macOS, Linux, WSL:**\n\n    ```bash  theme={null}\n    curl -fsSL https://claude.ai/install.sh | bash",
+            "</Tip>\n\n<Note>\n  **Alpine Linux and other musl/uClibc-based distributions**: The native installer requires `libgcc`, `libstdc++`, and `ripgrep`. For Alpine: `apk add libgcc libstdc++ ripgrep`. Set `USE_BUILTIN_RIPGREP=0`.\n</Note>\n\n### Authentication",
+            "To install the latest version (default):\n\n<Tabs>\n  <Tab title=\"macOS, Linux, WSL\">\n    ```bash  theme={null}\n    curl -fsSL https://claude.ai/install.sh | bash\n    ```",
+            "To install the stable version:\n\n<Tabs>\n  <Tab title=\"macOS, Linux, WSL\">\n    ```bash  theme={null}\n    curl -fsSL https://claude.ai/install.sh | bash -s stable\n    ```",
+            "To install a specific version number:\n\n<Tabs>\n  <Tab title=\"macOS, Linux, WSL\">\n    ```bash  theme={null}\n    curl -fsSL https://claude.ai/install.sh | bash -s 1.0.58\n    ```"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Add support for enterprise managed settings. Contact your Anthropic account team to enable this feature.",
+      "prefix": "Add",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}

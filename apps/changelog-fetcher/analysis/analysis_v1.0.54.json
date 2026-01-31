@@ -1,0 +1,74 @@
+{
+  "version": "1.0.54",
+  "items": [
+    {
+      "content": "- Hooks: Added UserPromptSubmit hook and the current working directory to hook inputs",
+      "prefix": "Hooks",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Custom slash commands: Added argument-hint to frontmatter",
+      "prefix": "Custom",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Windows: OAuth uses port 45454 and properly constructs browser URL",
+      "prefix": "Windows",
+      "importance_score": 5,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md",
+          "hit_count": 20,
+          "context_score": 18,
+          "total_score": 360,
+          "snippets": [
+            "| `description` | string  | Brief plugin description                                                                                                                                                                                                                                                                                                                                                                                                         |\n| `version`     | string  | Plugin version                                                                                                                                                                                                                                                                                                                                                                                                                   |\n| `author`      | object  | Plugin author information (`name` required, `email` optional)                                                                                                                                                                                                                                                                                                                                                                    |\n| `homepage`    | string  | Plugin homepage or documentation URL                                                                                                                                                                                                                                                                                                                                                                                             |\n| `repository`  | string  | Source code repository URL                                                                                                                                                                                                                                                                                                                                                                                                       |\n| `license`     | string  | SPDX license identifier (for example, MIT, Apache-2.0)                                                                                                                                                                                                                                                                                                                                                                           |\n| `keywords`    | array   | Tags for plugin discovery and categorization                                                                                                                                                                                                                                                                                                                                                                                     |\n| `category`    | string  | Plugin category for organization                                                                                                                                                                                                                                                                                                                                                                                                 |",
+            "```\n\n<Note>\n  Relative paths only work when users add your marketplace via Git (GitHub, GitLab, or git URL). If users add your marketplace via a direct URL to the `marketplace.json` file, relative paths will not resolve correctly. For URL-based distribution, use GitHub, npm, or git URL sources instead. See [Troubleshooting](#plugins-with-relative-paths-fail-in-url-based-marketplaces) for details.\n</Note>\n\n### GitHub repositories",
+            "{\n  \"name\": \"git-plugin\",\n  \"source\": {\n    \"source\": \"url\",\n    \"url\": \"https://gitlab.com/team/plugin.git\"\n  }\n}\n```",
+            "{\n  \"name\": \"git-plugin\",\n  \"source\": {\n    \"source\": \"url\",\n    \"url\": \"https://gitlab.com/team/plugin.git\",\n    \"ref\": \"main\",\n    \"sha\": \"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0\"\n  }",
+            "| Field | Type   | Description                                                           |\n| :---- | :----- | :-------------------------------------------------------------------- |\n| `url` | string | Required. Full git repository URL (must end with `.git`)              |\n| `ref` | string | Optional. Git branch or tag (defaults to repository default branch)   |\n| `sha` | string | Optional. Full 40-character git commit SHA to pin to an exact version |"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 63,
+          "context_score": 5,
+          "total_score": 315,
+          "snippets": [
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('limit', '100');\n          if (cursor) {\n            url.searchParams.set('cursor', cursor);\n          }\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }",
+            "const httpRemote = remotes.find(r => r.type === 'streamable-http');\n          const sseRemote = remotes.find(r => r.type === 'sse');\n          const preferredRemote = httpRemote || sseRemote;\n          const remoteUrl = preferredRemote?.url || meta.url;\n          const remoteType = preferredRemote?.type;\n          const isTemplatedUrl = remoteUrl?.includes('{');\n          let setupUrl;\n          if (isTemplatedUrl && meta.requiredFields) {\n            const urlField = meta.requiredFields.find(f => f.field === 'url');\n            setupUrl = urlField?.sourceUrl || meta.documentation;\n          }\n          const urls = {};\n          if (!isTemplatedUrl) {\n            if (remoteType === 'streamable-http') {\n              urls.http = remoteUrl;\n            } else if (remoteType === 'sse') {\n              urls.sse = remoteUrl;\n            }\n          }\n          let envVars = [];\n          if (server.packages && server.packages.length > 0) {\n            const npmPackage = server.packages.find(p => p.registryType === 'npm');\n            if (npmPackage) {\n              urls.stdio = `npx -y ${npmPackage.identifier}`;\n              if (npmPackage.environmentVariables) {\n                envVars = npmPackage.environmentVariables;\n              }",
+            "name: meta.displayName || server.title || server.name,\n            description: meta.oneLiner || server.description,\n            documentation: meta.documentation,\n            urls: urls,\n            envVars: envVars,\n            availability: availability,\n            customCommands: meta.claudeCodeCopyText ? {\n              claudeCode: meta.claudeCodeCopyText\n            } : undefined,\n            setupUrl: setupUrl\n          };\n        });\n        setServers(transformedServers);",
+            "return server.customCommands.claudeCode;\n    }\n    const serverSlug = server.name.toLowerCase().replace(/[^a-z0-9]/g, '-');\n    if (server.urls.http) {\n      return `claude mcp add ${serverSlug} --transport http ${server.urls.http}`;\n    }\n    if (server.urls.sse) {\n      return `claude mcp add ${serverSlug} --transport sse ${server.urls.sse}`;\n    }\n    if (server.urls.stdio) {\n      const envFlags = server.envVars && server.envVars.length > 0 ? server.envVars.map(v => `--env ${v.name}=YOUR_${v.name}`).join(' ') : '';\n      const baseCommand = `claude mcp add ${serverSlug} --transport stdio`;\n      return envFlags ? `${baseCommand} ${envFlags} -- ${server.urls.stdio}` : `${baseCommand} -- ${server.urls.stdio}`;\n    }\n    return null;\n  };",
+            "<div className=\"cards-container\">\n        {filteredServers.map(server => {\n    const claudeCodeCommand = generateClaudeCodeCommand(server);\n    const mcpUrl = server.urls.http || server.urls.sse;\n    const commandToShow = platform === \"claudeCode\" ? claudeCodeCommand : mcpUrl;\n    return <div key={server.name} className=\"server-card\">\n              <div>\n                {server.documentation ? <a href={server.documentation}>"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md",
+          "hit_count": 8,
+          "context_score": 31,
+          "total_score": 248,
+          "snippets": [
+            "</Tip>\n\n* **GitHub repositories**: `owner/repo` format (for example, `anthropics/claude-code`)\n* **Git URLs**: any git repository URL (GitLab, Bitbucket, self-hosted)\n* **Local paths**: directories or direct paths to `marketplace.json` files\n* **Remote URLs**: direct URLs to hosted `marketplace.json` files\n\n### Add from GitHub",
+            "### Add from other Git hosts\n\nAdd any git repository by providing the full URL. This works with any Git host, including GitLab, Bitbucket, and self-hosted servers:\n\nUsing HTTPS:",
+            "/plugin marketplace add ./path/to/marketplace.json\n```\n\n### Add from remote URLs\n\nAdd a remote `marketplace.json` file via URL:\n\n```shell  theme={null}\n/plugin marketplace add https://example.com/marketplace.json\n```\n\n<Note>\n  URL-based marketplaces have some limitations compared to Git-based marketplaces. If you encounter \"path not found\" errors when installing plugins, see [Troubleshooting](/en/plugin-marketplaces#plugins-with-relative-paths-fail-in-url-based-marketplaces).\n</Note>\n\n## Install plugins",
+            "### Common issues\n\n* **Marketplace not loading**: Verify the URL is accessible and that `.claude-plugin/marketplace.json` exists at the path\n* **Plugin installation failures**: Check that plugin source URLs are accessible and repositories are public (or you have access)\n* **Files not found after installation**: Plugins are copied to a cache, so paths referencing files outside the plugin directory won't work\n* **Plugin skills not appearing**: Clear the cache with `rm -rf ~/.claude/plugins/cache`, restart Claude Code, and reinstall the plugin."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Windows: mode switching now uses alt + m, and plan mode renders properly",
+      "prefix": "Windows",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Shell: Switch to in-memory shell snapshot to fix file-related errors",
+      "prefix": "Shell",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}

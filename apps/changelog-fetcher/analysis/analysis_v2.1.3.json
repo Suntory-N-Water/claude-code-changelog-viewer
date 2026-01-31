@@ -1,0 +1,191 @@
+{
+  "version": "2.1.3",
+  "items": [
+    {
+      "content": "- Merged slash commands and skills, simplifying the mental model with no change in behavior",
+      "prefix": "Merged",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Added release channel (`stable` or `latest`) toggle to `/config`",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 60,
+          "context_score": 27,
+          "total_score": 1620,
+          "snippets": [
+            "# Claude Code settings\n\n> Configure Claude Code with global and project-level settings, and environment variables.\n\nClaude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command when using the interactive REPL, which opens a tabbed Settings interface where you can view status information and modify configuration options.\n\n## Configuration scopes\n\nClaude Code uses a **scope system** to determine where configurations apply and who they're shared with. Understanding scopes helps you decide how to configure Claude Code for personal use, team collaboration, or enterprise deployment.\n\n### Available scopes",
+            "* Security policies that must be enforced organization-wide\n* Compliance requirements that can't be overridden\n* Standardized configurations deployed by IT/DevOps\n\n**User scope** is best for:",
+            "**Local scope** is best for:\n\n* Personal overrides for a specific project\n* Testing configurations before sharing with the team\n* Machine-specific settings that won't work for others\n\n### How scopes interact\n\nWhen the same setting is configured in multiple scopes, more specific scopes take precedence:\n\n1. **Managed** (highest) - can't be overridden by anything\n2. **Command line arguments** - temporary session overrides",
+            "## Settings files\n\nThe `settings.json` file is our official mechanism for configuring Claude\nCode through hierarchical settings:\n\n* **User settings** are defined in `~/.claude/settings.json` and apply to all\n  projects.\n* **Project settings** are saved in your project directory:\n  * `.claude/settings.json` for settings that are checked into source control and shared with your team\n  * `.claude/settings.local.json` for settings that are not checked in, useful for personal preferences and experimentation. Claude Code will configure git to ignore `.claude/settings.local.json` when it is created.\n* **Managed settings**: For organizations that need centralized control, Claude Code supports `managed-settings.json` and `managed-mcp.json` files that can be deployed to system directories:\n\n  * macOS: `/Library/Application Support/ClaudeCode/`",
+            "These are system-wide paths (not user home directories like `~/Library/...`) that require administrator privileges. They are designed to be deployed by IT administrators.\n  </Note>\n\n  See [Managed settings](/en/iam#managed-settings) and [Managed MCP configuration](/en/mcp#managed-mcp-configuration) for details.\n\n  <Note>\n    Managed deployments can also restrict **plugin marketplace additions** using\n    `strictKnownMarketplaces`. For more information, see [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions).\n  </Note>\n* **Other configuration** is stored in `~/.claude.json`. This file contains your preferences (theme, notification settings, editor mode), OAuth session, [MCP server](/en/mcp) configurations for user and local scopes, per-project state (allowed tools, trust settings), and various caches. Project-scoped MCP servers are stored separately in `.mcp.json`.\n\n<Note>\n  Claude Code automatically creates timestamped backups of configuration files and retains the five most recent backups to prevent data loss.\n</Note>\n\n```JSON Example settings.json theme={null}"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md",
+          "hit_count": 20,
+          "context_score": 21,
+          "total_score": 420,
+          "snippets": [
+            "* **Operating Systems**: macOS 13.0+, Ubuntu 20.04+/Debian 10+, or Windows 10 1809+ / Windows Server 2019+ (with WSL 1, WSL 2, or Git for Windows)\n* **Hardware**: 4 GB+ RAM\n* **Network**: Internet connection required (see [network configuration](/en/network-config#network-access-requirements))\n* **Shell**: Works best in Bash or Zsh\n* **Location**: [Anthropic supported countries](https://www.anthropic.com/supported-countries)",
+            "```\n\n    <Info>\n      Native installations automatically update in the background to keep you on the latest version.\n    </Info>\n  </Tab>",
+            "```\n\n    <Info>\n      Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes.\n    </Info>\n  </Tab>",
+            "```\n\n    <Info>\n      WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCode` periodically to get the latest features and security fixes.\n    </Info>\n  </Tab>\n</Tabs>",
+            "1. **Claude for Teams or Enterprise** (recommended): Subscribe to [Claude for Teams](https://claude.com/pricing#team-&-enterprise) or [Claude for Enterprise](https://anthropic.com/contact-sales) for centralized billing, team management, and access to both Claude Code and Claude on the web. Team members log in with their Claude.ai accounts.\n2. **Claude Console with team billing**: Set up a shared [Claude Console](https://console.anthropic.com) organization with team billing. Invite team members and assign roles for usage tracking.\n3. **Cloud providers**: Configure Claude Code to use [Amazon Bedrock, Google Vertex AI, or Microsoft Foundry](/en/third-party-integrations) for deployments with your existing cloud infrastructure.\n\n### Install a specific version\n\nThe native installer accepts either a specific version number or a release channel (`latest` or `stable`). The channel you choose at install time becomes your default for auto-updates. See [Configure release channel](#configure-release-channel) for more information.\n\nTo install the latest version (default):\n\n<Tabs>\n  <Tab title=\"macOS, Linux, WSL\">"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md",
+          "hit_count": 13,
+          "context_score": 28,
+          "total_score": 364,
+          "snippets": [
+            "* Ask Claude to explain the benefits of the modern approach\n  * Request that changes maintain backward compatibility when needed\n  * Do refactoring in small, testable increments\n</Tip>\n\n***",
+            "<Tip>Press `Ctrl+G` to open the plan in your default text editor, where you can edit it directly before Claude proceeds.</Tip>\n\n### Configure Plan Mode as default\n\n```json  theme={null}\n// .claude/settings.json",
+            "}\n```\n\nSee [settings documentation](/en/settings#available-settings) for more configuration options.\n\n***",
+            "> /commit-push-pr\n```\n\nIf you have a Slack MCP server configured and specify channels in your CLAUDE.md (for example, \"post PR URLs to #team-prs\"), the skill automatically posts the PR URL to those channels.\n\nFor more control over the process, guide Claude through it step-by-step or [create your own skill](/en/skills):",
+            "Phrases like \"think\", \"think hard\", \"ultrathink\", and \"think more\" are interpreted as regular prompt instructions and don't allocate thinking tokens.\n</Note>\n\n### Configure thinking mode\n\nThinking is enabled by default, but you can adjust or disable it.\n\n| Scope                  | How to configure                                                                     | Details                                                                                                                                  |\n| ---------------------- | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |\n| **Toggle shortcut**    | Press `Option+T` (macOS) or `Alt+T` (Windows/Linux)                                  | Toggle thinking on/off for the current session. May require [terminal configuration](/en/terminal-config) to enable Option key shortcuts |\n| **Global default**     | Use `/config` to toggle thinking mode                                                | Sets your default across all projects.<br />Saved as `alwaysThinkingEnabled` in `~/.claude/settings.json`                                |\n| **Limit token budget** | Set [`MAX_THINKING_TOKENS`](/en/settings#environment-variables) environment variable | Limit the thinking budget to a specific number of tokens. Example: `export MAX_THINKING_TOKENS=10000`                                    |\n\nTo view Claude's thinking process, press `Ctrl+O` to toggle verbose mode and see the internal reasoning displayed as gray italic text."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added detection and warnings for unreachable permission rules, with warnings in `/doctor` and after saving rules that include the source of each rule and actionable fix guidance",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md",
+          "hit_count": 3,
+          "context_score": 11,
+          "total_score": 33,
+          "snippets": [
+            "Verify installation:\n\n```bash  theme={null}\nclaude doctor # Check installation health\n```\n\n## Permissions and authentication",
+            "Disk read performance penalties when [working across file systems on WSL](https://learn.microsoft.com/en-us/windows/wsl/filesystems) may result in fewer-than-expected matches (but not a complete lack of search functionality) when using Claude Code on WSL.\n\n<Note>\n  `/doctor` will show Search as OK in this case.\n</Note>\n\n**Solutions:**",
+            "1. Use the `/bug` command within Claude Code to report problems directly to Anthropic\n2. Check the [GitHub repository](https://github.com/anthropics/claude-code) for known issues\n3. Run `/doctor` to diagnose issues. It checks:\n   * Installation type, version, and search functionality\n   * Auto-update status and available versions\n   * Invalid settings files (malformed JSON, incorrect types)"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md",
+          "hit_count": 1,
+          "context_score": 6,
+          "total_score": 6,
+          "snippets": [
+            "* `/init` walks you through creating a CLAUDE.md for your project\n* `/agents` helps you configure custom subagents\n* `/doctor` diagnoses common issues with your installation\n\n### It's a conversation"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md",
+          "hit_count": 1,
+          "context_score": 3,
+          "total_score": 3,
+          "snippets": [
+            "| `/config`                 | Open the Settings interface (Config tab)                                                                                    |\n| `/context`                | Visualize current context usage as a colored grid                                                                           |\n| `/cost`                   | Show token usage statistics. See [cost tracking guide](/en/costs#using-the-cost-command) for subscription-specific details. |\n| `/doctor`                 | Checks the health of your Claude Code installation                                                                          |\n| `/exit`                   | Exit the REPL                                                                                                               |\n| `/export [filename]`      | Export the current conversation to a file or clipboard                                                                      |\n| `/help`                   | Get usage help                                                                                                              |"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed plan files persisting across `/clear` commands, now ensuring a fresh plan file is used after clearing a conversation",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 9,
+          "context_score": 15,
+          "total_score": 135,
+          "snippets": [
+            "Claude performs dramatically better when it can verify its own work, like run tests, compare screenshots, and validate outputs.\n\nWithout clear success criteria, it might produce something that looks right but actually doesn't work. You become the only feedback loop, and every mistake requires your attention.\n\n| Strategy                              | Before                                                  | After                                                                                                                                                                                                   |\n| ------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |",
+            "<Callout>\n  Plan Mode is useful, but also adds overhead.\n\n  For tasks where the scope is clear and the fix is small (like fixing a typo, adding a log line, or renaming a variable) ask Claude to do it directly.\n\n  Planning is most useful when you're uncertain about the approach, when the change modifies multiple files, or when you're unfamiliar with the code being modified. If you could describe the diff in one sentence, skip the plan.\n</Callout>",
+            "* **`Esc`**: Stop Claude mid-action with the `Esc` key. Context is preserved, so you can redirect.\n* **`Esc + Esc` or `/rewind`**: Press `Esc` twice or run `/rewind` to open the rewind menu and restore previous conversation and code state.\n* **`\"Undo that\"`**: Have Claude revert its changes.\n* **`/clear`**: Reset context between unrelated tasks. Long sessions with irrelevant context can reduce performance.\n\nIf you've corrected Claude more than twice on the same issue in one session, the context is cluttered with failed approaches. Run `/clear` and start fresh with a more specific prompt that incorporates what you learned. A clean session with a better prompt almost always outperforms a long session with accumulated corrections.\n\n### Manage context aggressively\n\n<Tip>\n  Run `/clear` between unrelated tasks to reset context.\n</Tip>\n\nClaude Code automatically compacts conversation history when you approach context limits, which preserves important code and decisions while freeing space.\n\nDuring long sessions, Claude's context window can fill with irrelevant conversation, file contents, and commands. This can reduce performance and sometimes distract Claude.\n\n* Use `/clear` frequently between tasks to reset the context window entirely\n* When auto compaction triggers, Claude summarizes what matters most, including code patterns, file states, and key decisions\n* For more control, run `/compact <instructions>`, like `/compact Focus on the API changes`\n* Customize compaction behavior in CLAUDE.md with instructions like `\"When compacting, always preserve the full list of modified files and any test commands\"` to ensure critical context survives summarization",
+            "These are common mistakes. Recognizing them early saves time:\n\n* **The kitchen sink session.** You start with one task, then ask Claude something unrelated, then go back to the first task. Context is full of irrelevant information.\n  > **Fix**: `/clear` between unrelated tasks.\n* **Correcting over and over.** Claude does something wrong, you correct it, it's still wrong, you correct again. Context is polluted with failed approaches.\n  > **Fix**: After two failed corrections, `/clear` and write a better initial prompt incorporating what you learned.\n* **The over-specified CLAUDE.md.** If your CLAUDE.md is too long, Claude ignores half of it because important rules get lost in the noise.\n  > **Fix**: Ruthlessly prune. If Claude already does something correctly without the instruction, delete it or convert it to a hook.\n* **The trust-then-verify gap.** Claude produces a plausible-looking implementation that doesn't handle edge cases.",
+            "Pay attention to what works. When Claude produces great output, notice what you did: the prompt structure, the context you provided, the mode you were in. When Claude struggles, ask why. Was the context too noisy? The prompt too vague? The task too big for one pass?\n\nOver time, you'll develop intuition that no guide can capture. You'll know when to be specific and when to be open-ended, when to plan and when to explore, when to clear context and when to let it accumulate.\n\n## Related resources"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md",
+          "hit_count": 5,
+          "context_score": 14,
+          "total_score": 70,
+          "snippets": [
+            "| `Ctrl+C`                                          | Cancel current input or generation | Standard interrupt                                                                            |\n| `Ctrl+D`                                          | Exit Claude Code session           | EOF signal                                                                                    |\n| `Ctrl+G`                                          | Open in default text editor        | Edit your prompt or custom response in your default text editor                               |\n| `Ctrl+L`                                          | Clear terminal screen              | Keeps conversation history                                                                    |\n| `Ctrl+O`                                          | Toggle verbose output              | Shows detailed tool usage and execution                                                       |\n| `Ctrl+R`                                          | Reverse search command history     | Search through previous commands interactively                                                |\n| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard         | Pastes an image or path to an image file                                                      |",
+            "| `Up/Down arrows`                                  | Navigate command history           | Recall previous inputs                                                                        |\n| `Esc` + `Esc`                                     | Rewind the code/conversation       | Restore the code and/or conversation to a previous point                                      |\n| `Shift+Tab` or `Alt+M` (some configurations)      | Toggle permission modes            | Switch between Auto-Accept Mode, Plan Mode, and normal mode                                   |\n| `Option+P` (macOS) or `Alt+P` (Windows/Linux)     | Switch model                       | Switch models without clearing your prompt                                                    |\n| `Option+T` (macOS) or `Alt+T` (Windows/Linux)     | Toggle extended thinking           | Enable or disable extended thinking mode. Run `/terminal-setup` first to enable this shortcut |\n\n### Text editing",
+            "| Command                   | Purpose                                                                                                                     |\n| :------------------------ | :-------------------------------------------------------------------------------------------------------------------------- |\n| `/clear`                  | Clear conversation history                                                                                                  |\n| `/compact [instructions]` | Compact conversation with optional focus instructions                                                                       |\n| `/config`                 | Open the Settings interface (Config tab)                                                                                    |\n| `/context`                | Visualize current context usage as a colored grid                                                                           |",
+            "Claude Code maintains command history for the current session:\n\n* History is stored per working directory\n* Cleared with `/clear` command\n* Use Up/Down arrows to navigate (see keyboard shortcuts above)\n* **Note**: History expansion (`!`) is disabled by default",
+            "When working on complex, multi-step work, Claude creates a task list to track progress. Tasks appear in the status area of your terminal with indicators showing what's pending, in progress, or complete.\n\n* Press `Ctrl+T` to toggle the task list view. The display shows up to 10 tasks at a time\n* To see all tasks or clear them, ask Claude directly: \"show me all tasks\" or \"clear all tasks\"\n* Tasks persist across context compactions, helping Claude stay organized on larger projects\n* To share a task list across sessions, set `CLAUDE_CODE_TASK_LIST_ID` to use a named directory in `~/.claude/tasks/`: `CLAUDE_CODE_TASK_LIST_ID=my-project claude`\n* To revert to the previous TODO list, set `CLAUDE_CODE_ENABLE_TASKS=false`."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 5,
+          "context_score": 13,
+          "total_score": 65,
+          "snippets": [
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |\n| `SubagentStart`                                                        | agent type                | `Bash`, `Explore`, `Plan`, or custom agent names                               |\n| `PreCompact`                                                           | what triggered compaction | `manual`, `auto`                                                               |",
+            "| :-------- | :------------------------------------- |\n| `startup` | New session                            |\n| `resume`  | `--resume`, `--continue`, or `/resume` |\n| `clear`   | `/clear`                               |\n| `compact` | Auto or manual compaction              |\n\n#### SessionStart input\n\nIn addition to the [common input fields](#common-input-fields), SessionStart hooks receive `source`, `model`, and optionally `agent_type`. The `source` field indicates how the session started: `\"startup\"` for new sessions, `\"resume\"` for resumed sessions, `\"clear\"` after `/clear`, or `\"compact\"` after compaction. The `model` field contains the model identifier. If you start Claude Code with `claude --agent <name>`, an `agent_type` field contains the agent name.\n\n```json  theme={null}\n{",
+            "| Reason                        | Description                                |\n| :---------------------------- | :----------------------------------------- |\n| `clear`                       | Session cleared with `/clear` command      |\n| `logout`                      | User logged out                            |\n| `prompt_input_exit`           | User exited while prompt input was visible |\n| `bypass_permissions_disabled` | Bypass permissions mode was disabled       |"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed false skill duplicate detection on filesystems with large inodes (e.g., ExFAT) by using 64-bit precision for inode values",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed mismatch between background task count in status bar and items shown in tasks dialog",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed sub-agents using the wrong model during conversation compaction",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed web search in sub-agents using incorrect model",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed trust dialog acceptance when running from the home directory not enabling trust-requiring features like hooks during the session",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Improved terminal rendering stability by preventing uncontrolled writes from corrupting cursor state",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- Improved slash command suggestion readability by truncating long descriptions to 2 lines",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- Changed tool hook execution timeout from 60 seconds to 10 minutes",
+      "prefix": "Changed",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- [VSCode] Added clickable destination selector for permission requests, allowing you to choose where settings are saved (this project, all projects, shared with team, or session only)",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}

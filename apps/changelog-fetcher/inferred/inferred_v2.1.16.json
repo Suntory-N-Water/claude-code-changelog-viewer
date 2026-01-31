@@ -1,0 +1,80 @@
+{
+  "version": "2.1.16",
+  "items": [
+    {
+      "content": "- Added new task management system, including new capabilities like dependency tracking",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": []
+    },
+    {
+      "content": "- [VSCode] Added native plugin management support",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- [VSCode] Added ability for OAuth users to browse and resume remote Claude sessions from the Sessions dialog",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed out-of-memory crashes when resuming sessions with heavy subagent usage",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed an issue where the \"context remaining\" warning was not hidden after running `/compact`",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 14,
+          "context_score": 33,
+          "total_score": 462,
+          "snippets": [
+            "| `SubagentStart`      | When a subagent is spawned                           |\n| `SubagentStop`       | When a subagent finishes                             |\n| `Stop`               | When Claude finishes responding                      |\n| `PreCompact`         | Before context compaction                            |\n| `SessionEnd`         | When a session terminates                            |\n\n### How a hook resolves",
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |\n| `SubagentStart`                                                        | agent type                | `Bash`, `Explore`, `Plan`, or custom agent names                               |\n| `PreCompact`                                                           | what triggered compaction | `manual`, `auto`                                                               |\n| `SubagentStop`                                                         | agent type                | same values as `SubagentStart`                                                 |\n| `UserPromptSubmit`, `Stop`                                             | no matcher support        | always fires on every occurrence                                               |",
+            "| `SubagentStart`      | No         | Shows stderr to user only                                 |\n| `SessionStart`       | No         | Shows stderr to user only                                 |\n| `SessionEnd`         | No         | Shows stderr to user only                                 |\n| `PreCompact`         | No         | Shows stderr to user only                                 |\n\n### JSON output",
+            "| `startup` | New session                            |\n| `resume`  | `--resume`, `--continue`, or `/resume` |\n| `clear`   | `/clear`                               |\n| `compact` | Auto or manual compaction              |\n\n#### SessionStart input\n\nIn addition to the [common input fields](#common-input-fields), SessionStart hooks receive `source`, `model`, and optionally `agent_type`. The `source` field indicates how the session started: `\"startup\"` for new sessions, `\"resume\"` for resumed sessions, `\"clear\"` after `/clear`, or `\"compact\"` after compaction. The `model` field contains the model identifier. If you start Claude Code with `claude --agent <name>`, an `agent_type` field contains the agent name.\n\n```json  theme={null}\n{",
+            "}\n```\n\n### PreCompact\n\nRuns before Claude Code is about to run a compact operation.\n\nThe matcher value indicates whether compaction was triggered manually or automatically:\n\n| Matcher  | When it fires                                |\n| :------- | :------------------------------------------- |\n| `manual` | `/compact`                                   |\n| `auto`   | Auto-compact when the context window is full |\n\n#### PreCompact input\n\nIn addition to the [common input fields](#common-input-fields), PreCompact hooks receive `trigger` and `custom_instructions`. For `manual`, `custom_instructions` contains what the user passes into `/compact`. For `auto`, `custom_instructions` is empty.\n\n```json  theme={null}\n{"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md",
+          "hit_count": 3,
+          "context_score": 6,
+          "total_score": 18,
+          "snippets": [
+            "### The context window\n\nClaude's context window holds your conversation history, file contents, command outputs, [CLAUDE.md](/en/memory), loaded skills, and system instructions. As you work, context fills up. Claude compacts automatically, but instructions from early in the conversation can get lost. Put persistent rules in CLAUDE.md, and run `/context` to see what's using space.\n\n#### When context fills up\n\nClaude Code manages context automatically as you approach the limit. It clears older tool outputs first, then summarizes the conversation if needed. Your requests and key code snippets are preserved; detailed instructions from early in the conversation may be lost. Put persistent rules in CLAUDE.md rather than relying on conversation history.\n\nTo control what's preserved during compaction, add a \"Compact Instructions\" section to CLAUDE.md or run `/compact` with a focus (like `/compact focus on the API changes`).\n\nRun `/context` to see what's using space. MCP servers add tool definitions to every request, so a few servers can consume significant context before you start working. Run `/mcp` to check per-server costs.\n\n#### Manage context with skills and subagents\n\nBeyond compaction, you can use other features to control what loads into context.\n\n[Skills](/en/skills) load on demand. Claude sees skill descriptions at session start, but the full content only loads when a skill is used. For skills you invoke manually, set `disable-model-invocation: true` to keep descriptions out of context until you need them."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 2,
+          "context_score": 7,
+          "total_score": 14,
+          "snippets": [
+            "Skills extend what Claude can do. Create a `SKILL.md` file with instructions, and Claude adds it to its toolkit. Claude uses skills when relevant, or you can invoke one directly with `/skill-name`.\n\n<Note>\n  For built-in commands like `/help` and `/compact`, see [interactive mode](/en/interactive-mode#built-in-commands).\n\n  **Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n</Note>",
+            "### Restrict Claude's skill access\n\nBy default, Claude can invoke any skill that doesn't have `disable-model-invocation: true` set. Skills that define `allowed-tools` grant Claude access to those tools without per-use approval when the skill is active. Your [permission settings](/en/iam) still govern baseline approval behavior for all other tools. Built-in commands like `/compact` and `/init` are not available through the Skill tool.\n\nThree ways to control which skills Claude can invoke:"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed session titles on the resume screen not respecting the user's language setting",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- [IDE] Fixed a race condition on Windows where the Claude Code sidebar view container would not appear on start",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}

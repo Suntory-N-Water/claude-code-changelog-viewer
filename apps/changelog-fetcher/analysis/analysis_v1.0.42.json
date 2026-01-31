@@ -1,0 +1,38 @@
+{
+  "version": "1.0.42",
+  "items": [
+    {
+      "content": "- Added tilde (`~`) expansion support to `/add-dir` command",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md",
+          "hit_count": 30,
+          "context_score": 32,
+          "total_score": 960,
+          "snippets": [
+            "**Primary solution: Ensure nvm is properly loaded in your shell**\n\nThe most common cause is that nvm isn't loaded in non-interactive shells. Add the following to your shell configuration file (`~/.bashrc`, `~/.zshrc`, etc.):\n\n```bash  theme={null}\n# Load nvm if it exists\nexport NVM_DIR=\"$HOME/.nvm\"\n[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\"\n[ -s \"$NVM_DIR/bash_completion\" ] && \\. \"$NVM_DIR/bash_completion\"\n```\n\nOr run directly in your current session:\n\n```bash  theme={null}\nsource ~/.nvm/nvm.sh\n```\n\n**Alternative: Adjust PATH order**",
+            "### WSL2 sandbox setup\n\n[Sandboxing](/en/sandboxing) is supported on WSL2 but requires installing additional packages. If you see an error like \"Sandbox requires socat and bubblewrap\" when running `/sandbox`, install the dependencies:\n\n<Tabs>\n  <Tab title=\"Ubuntu/Debian\">",
+            "```\n\nThis command installs the appropriate build of Claude Code for your operating system and architecture and adds a symlink to the installation at `~/.local/bin/claude` (or `%USERPROFILE%\\.local\\bin\\claude.exe` on Windows).\n\n<Tip>\n  Make sure that you have the installation directory in your system PATH.\n</Tip>\n\n### Windows: \"Claude Code on Windows requires git-bash\"",
+            "$env:CLAUDE_CODE_GIT_BASH_PATH=\"C:\\Program Files\\Git\\bin\\bash.exe\"\n   ```\n\n2. Or add it to your system environment variables permanently through System Properties → Environment Variables.\n\nIf Git is installed in a non-standard location, adjust the path accordingly.\n\n### Windows: \"installMethod is native, but claude command not found\"\n\nIf you see this error after installation, the `claude` command isn't in your PATH. Add it manually:\n\n<Steps>\n  <Step title=\"Open Environment Variables\">",
+            "</Step>\n\n  <Step title=\"Edit User PATH\">\n    Under \"User variables\", select **Path** and click **Edit**. Click **New** and add:\n\n    ```\n    %USERPROFILE%\\.local\\bin"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/iam.md",
+          "hit_count": 22,
+          "context_score": 19,
+          "total_score": 418,
+          "snippets": [
+            "[Claude for Teams](https://claude.com/pricing#team-&-enterprise) and [Claude for Enterprise](https://anthropic.com/contact-sales) provide the best experience for organizations using Claude Code. Team members get access to both Claude Code and Claude on the web with centralized billing and team management.\n\n* **Claude for Teams**: Self-service plan with collaboration features, admin tools, and billing management. Best for smaller teams.\n* **Claude for Enterprise**: Adds SSO, domain capture, role-based permissions, compliance API, and managed policy settings for organization-wide Claude Code configurations. Best for larger organizations with security and compliance requirements.\n\n**To set up Claude Code access:**",
+            "**To set up Claude Code access for your team via Claude Console:**\n\n1. Use your existing Claude Console account or create a new Claude Console account\n2. You can add users through either method below:\n   * Bulk invite users from within the Console (Console -> Settings -> Members -> Invite)\n   * [Set up SSO](https://support.claude.com/en/articles/13132885-setting-up-single-sign-on-sso)\n3. When inviting users, they need one of the following roles:",
+            "| Tool Type         | Example          | Approval Required | \"Yes, don't ask again\" Behavior               |\n| :---------------- | :--------------- | :---------------- | :-------------------------------------------- |\n| Read-only         | File reads, Grep | No                | N/A                                           |\n| Bash Commands     | Shell execution  | Yes               | Permanently per project directory and command |\n| File Modification | Edit/write files | Yes               | Until session end                             |\n\n### Configuring permissions",
+            "Rules are evaluated in order: **deny → ask → allow**. The first matching rule wins, so deny rules always take precedence.\n\n* **Additional directories** extend Claude's file access to directories beyond the initial working directory.\n* **Default mode** controls Claude's permission behavior when encountering new requests.\n\nPermission rules use the format: `Tool` or `Tool(optional-specifier)`\n\nA rule that is just the tool name matches any use of that tool. For example, adding `Bash` to the allow list allows Claude Code to use the Bash tool without requiring user approval. `Bash(*)` is equivalent to `Bash` and can be used interchangeably.\n\n<Note>\n  For a quick reference on permission rule syntax including wildcards, see [Permission rule syntax](/en/settings#permission-rule-syntax) in the settings documentation.",
+            "| `dontAsk`           | Auto-denies tools unless pre-approved via `/permissions` or [`permissions.allow`](/en/settings#permission-settings) rules |\n| `bypassPermissions` | Skips all permission prompts (requires safe environment - see warning below)                                              |\n\n#### Working directories\n\nBy default, Claude has access to files in the directory where it was launched. You can extend this access:\n\n* **During startup**: Use `--add-dir <path>` CLI argument\n* **During session**: Use `/add-dir` command\n* **Persistent configuration**: Add to `additionalDirectories` in [settings files](/en/settings#settings-files)\n\nFiles in additional directories follow the same permission rules as the original working directory - they become readable without prompts, and file editing permissions follow the current permission mode.\n\n#### Tool-specific permission rules"
+          ]
+        }
+      ]
+    }
+  ]
+}

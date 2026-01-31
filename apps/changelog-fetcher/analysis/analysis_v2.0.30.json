@@ -1,0 +1,334 @@
+{
+  "version": "2.0.30",
+  "items": [
+    {
+      "content": "- Added helpful hint to run `security unlock-keychain` when encountering API key errors on macOS with locked keychain",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md",
+          "hit_count": 47,
+          "context_score": 15,
+          "total_score": 705,
+          "snippets": [
+            "* **Instant PR creation**: Describe what you need, and Claude creates a complete PR with all necessary changes\n* **Automated code implementation**: Turn issues into working code with a single command\n* **Follows your standards**: Claude respects your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Get started in minutes with our installer and API key\n* **Secure by default**: Your code stays on Github's runners\n\n## What can Claude do?",
+            "<Note>\n  * You must be a repository admin to install the GitHub app and add secrets\n  * The GitHub app will request read & write permissions for Contents, Issues, and Pull requests\n  * This quickstart method is only available for direct Claude API users. If\n    you're using AWS Bedrock or Google Vertex AI, please see the [Using with AWS\n    Bedrock & Google Vertex AI](#using-with-aws-bedrock-%26-google-vertex-ai)\n    section.",
+            "* **Issues**: Read & write (to respond to issues)\n   * **Pull requests**: Read & write (to create PRs and push changes)\n\n   For more details on security and permissions, see the [security documentation](https://github.com/anthropics/claude-code-action/blob/main/docs/security.md).\n2. **Add ANTHROPIC\\_API\\_KEY** to your repository secrets ([Learn how to use secrets in GitHub Actions](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions))\n3. **Copy the workflow file** from [examples/claude.yml](https://github.com/anthropics/claude-code-action/blob/main/examples/claude.yml) into your repository's `.github/workflows/`\n\n<Tip>",
+            "- uses: anthropics/claude-code-action@beta\n  with:\n    mode: \"tag\"\n    direct_prompt: \"Review this PR for security issues\"\n    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n    custom_instructions: \"Follow our coding standards\"\n    max_turns: \"10\"\n    model: \"claude-sonnet-4-5-20250929\"",
+            "```yaml  theme={null}\n- uses: anthropics/claude-code-action@v1\n  with:\n    prompt: \"Review this PR for security issues\"\n    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}\n    claude_args: |\n      --append-system-prompt \"Follow our coding standards\"\n      --max-turns 10"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md",
+          "hit_count": 27,
+          "context_score": 23,
+          "total_score": 621,
+          "snippets": [
+            "```\n& Fix the flaky test in auth.spec.ts\n& Update the API documentation\n& Refactor the logger to use structured output\n```",
+            "Environment variables must be specified as key-value pairs, in [`.env` format](https://www.dotenv.org/). For example:\n\n  ```\n  API_KEY=your_api_key\n  DEBUG=true\n  ```\n</Note>",
+            "SessionStart hooks can persist environment variables for subsequent bash commands by writing to the file specified in the `CLAUDE_ENV_FILE` environment variable. For details, see [SessionStart hooks](/en/hooks#sessionstart) in the hooks reference.\n\n## Network access and security\n\n### Network policy\n\n#### GitHub proxy\n\nFor security, all GitHub operations go through a dedicated proxy service that transparently handles all git interactions. Inside the sandbox, the git client authenticates using a custom-built scoped credential. This proxy:\n\n* Manages GitHub authentication securely - the git client uses a scoped credential inside the sandbox, which the proxy verifies and translates to your actual GitHub authentication token\n* Restricts git push operations to the current working branch for safety\n* Enables seamless cloning, fetching, and PR operations while maintaining security boundaries\n\n#### Security proxy\n\nEnvironments run behind an HTTP/HTTPS network proxy for security and abuse prevention purposes. All outbound internet traffic passes through this proxy, which provides:\n\n* Protection against malicious requests\n* Rate limiting and abuse prevention\n* Content filtering for enhanced security\n\n### Access levels",
+            "#### Anthropic Services\n\n* api.anthropic.com\n* statsig.anthropic.com\n* docs.claude.com\n* code.claude.com",
+            "* github.com\n* [www.github.com](http://www.github.com)\n* api.github.com\n* npm.pkg.github.com\n* raw\\.githubusercontent.com\n* pkg-npm.githubusercontent.com"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 15,
+          "context_score": 39,
+          "total_score": 585,
+          "snippets": [
+            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
+            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "* `tool_parameters`: JSON string containing tool-specific parameters (when available)\n  * For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `sandbox`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")\n* `cost_usd`: Estimated cost in USD",
+            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")\n* `error`: Error message"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added `allowUnsandboxedCommands` sandbox setting to disable the dangerouslyDisableSandbox escape hatch at policy level",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 1,
+          "context_score": 1,
+          "total_score": 1,
+          "snippets": [
+            "| `enabled`                     | Enable bash sandboxing (macOS, Linux, and WSL2). Default: false                                                                                                                                                                                                                                                                   | `true`                          |\n| `autoAllowBashIfSandboxed`    | Auto-approve bash commands when sandboxed. Default: true                                                                                                                                                                                                                                                                          | `true`                          |\n| `excludedCommands`            | Commands that should run outside of the sandbox                                                                                                                                                                                                                                                                                   | `[\"git\", \"docker\"]`             |\n| `allowUnsandboxedCommands`    | Allow commands to run outside the sandbox via the `dangerouslyDisableSandbox` parameter. When set to `false`, the `dangerouslyDisableSandbox` escape hatch is completely disabled and all commands must run sandboxed (or be in `excludedCommands`). Useful for enterprise policies that require strict sandboxing. Default: true | `false`                         |\n| `network.allowUnixSockets`    | Unix socket paths accessible in sandbox (for SSH agents, etc.)                                                                                                                                                                                                                                                                    | `[\"~/.ssh/agent-socket\"]`       |\n| `network.allowAllUnixSockets` | Allow all Unix socket connections in sandbox. Default: false                                                                                                                                                                                                                                                                      | `true`                          |\n| `network.allowLocalBinding`   | Allow binding to localhost ports (macOS only). Default: false                                                                                                                                                                                                                                                                     | `true`                          |"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added `disallowedTools` field to custom agent definitions for explicit tool blocking",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md",
+          "hit_count": 5,
+          "context_score": 14,
+          "total_score": 70,
+          "snippets": [
+            "| `name`            | Yes      | Unique identifier using lowercase letters and hyphens                                                                                                                                                        |\n| `description`     | Yes      | When Claude should delegate to this subagent                                                                                                                                                                 |\n| `tools`           | No       | [Tools](#available-tools) the subagent can use. Inherits all tools if omitted                                                                                                                                |\n| `disallowedTools` | No       | Tools to deny, removed from inherited or specified list                                                                                                                                                      |\n| `model`           | No       | [Model](#choose-a-model) to use: `sonnet`, `opus`, `haiku`, or `inherit`. Defaults to `inherit`                                                                                                              |\n| `permissionMode`  | No       | [Permission mode](#permission-modes): `default`, `acceptEdits`, `dontAsk`, `bypassPermissions`, or `plan`                                                                                                    |\n| `skills`          | No       | [Skills](/en/skills) to load into the subagent's context at startup. The full skill content is injected, not just made available for invocation. Subagents don't inherit skills from the parent conversation |",
+            "Subagents can use any of Claude Code's [internal tools](/en/settings#tools-available-to-claude). By default, subagents inherit all tools from the main conversation, including MCP tools.\n\nTo restrict tools, use the `tools` field (allowlist) or `disallowedTools` field (denylist):\n\n```yaml  theme={null}\n-",
+            "name: safe-researcher\ndescription: Research agent with restricted capabilities\ntools: Read, Grep, Glob, Bash\ndisallowedTools: Write, Edit\n-",
+            "```",
+            "}\n```\n\nThis works for both built-in and custom subagents. You can also use the `--disallowedTools` CLI flag:\n\n```bash  theme={null}\nclaude --disallowedTools \"Task(Explore)\"\n```\n\nSee [IAM documentation](/en/iam#tool-specific-permission-rules) for more details on permission rules."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 1,
+          "context_score": 4,
+          "total_score": 4,
+          "snippets": [
+            "Or set the value in your [settings.json `env` field](/en/settings#available-settings).\n\nYou can also disable the MCPSearch tool specifically using the `disallowedTools` setting:\n\n```json  theme={null}\n{"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added prompt-based stop hooks",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": []
+    },
+    {
+      "content": "- VSCode: Added respectGitIgnore configuration to include .gitignored files in file searches (defaults to true)",
+      "prefix": "VSCode",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Enabled SSE MCP servers on native build",
+      "prefix": "Enabled",
+      "importance_score": 6,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 215,
+          "context_score": 7,
+          "total_score": 1505,
+          "snippets": [
+            "-",
+            "title: mcp\nsource: https://code.claude.com/docs/en/mcp.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Connect Claude Code to tools via MCP\n\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('limit', '100');\n          if (cursor) {",
+            "}\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }\n          const data = await response.json();\n          allServers.push(...data.servers);"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 33,
+          "context_score": 24,
+          "total_score": 792,
+          "snippets": [
+            "# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle\n\nHooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, this arrives on stdin. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:\n\n<div style={{maxWidth: \"500px\", margin: \"0 auto\"}}>\n  <Frame>",
+            "| Event                | When it fires                                        |\n| :------------------- | :--------------------------------------------------- |\n| `SessionStart`       | When a session begins or resumes                     |\n| `UserPromptSubmit`   | When you submit a prompt, before Claude processes it |\n| `PreToolUse`         | Before a tool call executes. Can block it            |\n| `PermissionRequest`  | When a permission dialog appears                     |\n| `PostToolUse`        | After a tool call succeeds                           |",
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |",
+            "`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools\n\n[MCP](/en/mcp) server tools appear as regular tools in tool events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`), so you can match them the same way you match any other tool name.\n\nMCP tools follow the naming pattern `mcp__<server>__<tool>`, for example:\n\n* `mcp__memory__create_entities`: Memory server's create entities tool\n* `mcp__filesystem__read_file`: Filesystem server's read file tool\n* `mcp__github__search_repositories`: GitHub server's search tool\n\nUse regex patterns to target specific MCP tools or groups of tools:\n\n* `mcp__memory__.*` matches all tools from the `memory` server\n* `mcp__.*__write.*` matches any tool containing \"write\" from any server\n\nThis example logs all memory server operations and validates write operations from any MCP server:\n\n```json  theme={null}\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"mcp__memory__.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'Memory operation initiated' >> ~/mcp-operations.log\"\n          }\n        ]\n      },\n      {\n        \"matcher\": \"mcp__.*__write.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/user/scripts/validate-mcp-write.py\"\n          }\n        ]\n      }",
+            "The exit code from your hook command tells Claude Code whether the action should proceed, be blocked, or be ignored.\n\n**Exit 0** means success. Claude Code parses stdout for [JSON output fields](#json-output) like `decision` or `reason`. JSON output is only processed on exit 0. For most events, stdout is only shown in verbose mode (`Ctrl+O`). The exceptions are `UserPromptSubmit` and `SessionStart`, where stdout is added as context that Claude can see and act on.\n\n**Exit 2** means a blocking error. Claude Code ignores stdout and any JSON in it. Instead, stderr text is fed back to Claude as an error message. The effect depends on the event: `PreToolUse` blocks the tool call, `UserPromptSubmit` rejects the prompt, and so on. See [exit code 2 behavior](#exit-code-2-behavior-per-event) for the full list."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
+          "hit_count": 24,
+          "context_score": 18,
+          "total_score": 432,
+          "snippets": [
+            "* `prompt`: Evaluate a prompt with an LLM (uses `$ARGUMENTS` placeholder for context)\n* `agent`: Run an agentic verifier with tools for complex verification tasks\n\n### MCP servers\n\nPlugins can bundle Model Context Protocol (MCP) servers to connect Claude Code with external tools and services.\n\n**Location**: `.mcp.json` in plugin root, or inline in plugin.json\n\n**Format**: Standard MCP server configuration\n\n**MCP server configuration**:\n\n```json  theme={null}\n{\n  \"mcpServers\": {\n    \"plugin-database\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\",\n      \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"],",
+            "},\n    \"plugin-api-client\": {\n      \"command\": \"npx\",\n      \"args\": [\"@company/mcp-server\", \"--plugin-mode\"],\n      \"cwd\": \"${CLAUDE_PLUGIN_ROOT}\"\n    }\n  }",
+            "**Integration behavior**:\n\n* Plugin MCP servers start automatically when the plugin is enabled\n* Servers appear as standard MCP tools in Claude's toolkit\n* Server capabilities integrate seamlessly with Claude's existing tools\n* Plugin servers can be configured independently of user MCP servers\n\n### LSP servers",
+            "| `args`                  | Command-line arguments for the LSP server                 |\n| `transport`             | Communication transport: `stdio` (default) or `socket`    |\n| `env`                   | Environment variables to set when starting the server     |\n| `initializationOptions` | Options passed to the server during initialization        |\n| `settings`              | Settings passed via `workspace/didChangeConfiguration`    |\n| `workspaceFolder`       | Workspace folder path for the server                      |\n| `startupTimeout`        | Max time to wait for server startup (milliseconds)        |\n| `shutdownTimeout`       | Max time to wait for graceful shutdown (milliseconds)     |",
+            "\"agents\": \"./custom/agents/\",\n  \"skills\": \"./custom/skills/\",\n  \"hooks\": \"./config/hooks.json\",\n  \"mcpServers\": \"./mcp-config.json\",\n  \"outputStyles\": \"./styles/\",\n  \"lspServers\": \"./.lsp.json\"\n}"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Deprecated output styles. Review options in `/output-style` and use --system-prompt-file, --system-prompt, --append-system-prompt, CLAUDE.md, or plugins instead",
+      "prefix": "Deprecated",
+      "importance_score": 5,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/output-styles.md",
+          "hit_count": 44,
+          "context_score": 21,
+          "total_score": 924,
+          "snippets": [
+            "-",
+            "title: output-styles\nsource: https://code.claude.com/docs/en/output-styles.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Output styles\n\n> Adapt Claude Code for uses beyond software engineering\n\nOutput styles allow you to use Claude Code as any type of agent while keeping\nits core capabilities, such as running local scripts, reading/writing files, and\ntracking TODOs.\n\n## Built-in output styles\n\nClaude Code's **Default** output style is the existing system prompt, designed\nto help you complete software engineering tasks efficiently.\n\nThere are two additional built-in output styles focused on teaching you the\ncodebase and how Claude operates:\n\n* **Explanatory**: Provides educational \"Insights\" in between helping you\n  complete software engineering tasks. Helps you understand implementation\n  choices and codebase patterns.\n\n* **Learning**: Collaborative, learn-by-doing mode where Claude will not only\n  share \"Insights\" while coding, but also ask you to contribute small, strategic\n  pieces of code yourself. Claude Code will add `TODO(human)` markers in your\n  code for you to implement.\n\n## How output styles work\n\nOutput styles directly modify Claude Code's system prompt.\n\n* All output styles exclude instructions for efficient output (such as\n  responding concisely).\n* Custom output styles exclude instructions for coding (such as verifying code\n  with tests), unless `keep-coding-instructions` is true.\n* All output styles have their own custom instructions added to the end of the\n  system prompt.\n* All output styles trigger reminders for Claude to adhere to the output style\n  instructions during the conversation.\n\n## Change your output style\n\nYou can either:\n\n* Run `/output-style` to access a menu and select your output style (this can\n  also be accessed from the `/config` menu)\n\n* Run `/output-style [style]`, such as `/output-style explanatory`, to directly\n  switch to a style\n\nThese changes apply to the [local project level](/en/settings) and are saved in\n`.claude/settings.local.json`. You can also directly edit the `outputStyle`\nfield in a settings file at a different level.\n\n## Create a custom output style\n\nCustom output styles are Markdown files with frontmatter and the text that will\nbe added to the system prompt:\n\n```markdown  theme={null}\n-",
+            "name: My Custom Style\ndescription:\n  A brief description of what this style does, to be displayed to the user\n-",
+            "# Custom Style Instructions\n\nYou are an interactive CLI tool that helps users with software engineering\ntasks. [Your custom instructions here...]\n\n## Specific Behaviors\n\n[Define how the assistant should behave in this style...]\n```\n\nYou can save these files at the user level (`~/.claude/output-styles`) or\nproject level (`.claude/output-styles`).\n\n### Frontmatter\n\nOutput style files support frontmatter, useful for specifying metadata about the\ncommand:\n\n| Frontmatter                | Purpose                                                                     | Default                 |\n| :------------------------- | :-------------------------------------------------------------------------- | :---------------------- |\n| `name`                     | Name of the output style, if not the file name                              | Inherits from file name |\n| `description`              | Description of the output style. Used only in the UI of `/output-style`     | None                    |\n| `keep-coding-instructions` | Whether to keep the parts of Claude Code's system prompt related to coding. | false                   |\n\n## Comparisons to related features\n\n### Output Styles vs. CLAUDE.md vs. --append-system-prompt\n\nOutput styles completely \"turn off\" the parts of Claude Code's default system\nprompt specific to software engineering. Neither CLAUDE.md nor\n`--append-system-prompt` edit Claude Code's default system prompt. CLAUDE.md\nadds the contents as a user message *following* Claude Code's default system\nprompt. `--append-system-prompt` appends the content to the system prompt.\n\n### Output Styles vs. [Agents](/en/sub-agents)\n\nOutput styles directly affect the main agent loop and only affect the system\nprompt. Agents are invoked to handle specific tasks and can include additional\nsettings like the model to use, the tools they have available, and some context\nabout when to use the agent.\n\n### Output Styles vs. [Skills](/en/skills)\n\nOutput styles modify how Claude responds (formatting, tone, structure) and are always active once selected. Skills are task-specific prompts that you invoke with `/skill-name` or that Claude loads automatically when relevant. Use output styles for consistent formatting preferences; use skills for reusable workflows and tasks."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Removed support for custom ripgrep configuration, resolving an issue where Search returns no results and config discovery fails",
+      "prefix": "Removed",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed Explore agent creating unwanted .md investigation files during codebase exploration",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed a bug where `/context` would sometimes fail with \"max_tokens must be greater than thinking.budget_tokens\" error message",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md",
+          "hit_count": 18,
+          "context_score": 29,
+          "total_score": 522,
+          "snippets": [
+            "## The agentic loop\n\nWhen you give Claude a task, it works through three phases: **gather context**, **take action**, and **verify results**. These phases blend together. Claude uses tools throughout, whether searching files to understand your code, editing to make changes, or running tests to check its work.\n\n<img src=\"https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=e30acfc80d6ff01ec877dd19c7af58b2\" alt=\"The agentic loop: Your prompt leads to Claude gathering context, taking action, verifying results, and repeating until task complete. You can interrupt at any point.\" data-og-width=\"720\" width=\"720\" data-og-height=\"280\" height=\"280\" data-path=\"images/agentic-loop.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=280&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=8620f6ebce761a1e8bbf7f0a0255cc15 280w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=560&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=7b46b5ff4454aa4a03725eee625b39a0 560w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=840&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=7fa0397bc37d147e3bf3bb6296c6477f 840w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=1100&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=73b2a7040c4c93821c4d5bbee9f4a2d4 1100w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=1650&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=17703cbeb6f59b40a00ab24f56d5f8f9 1650w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=2500&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=20dedb60b95d45a1bd60a0cccaf3e1ff 2500w\" />\n\nThe loop adapts to what you ask. A question about your codebase might only need context gathering. A bug fix cycles through all three phases repeatedly. A refactor might involve extensive verification. Claude decides what each step requires based on what it learned from the previous step, chaining dozens of actions together and course-correcting along the way.\n\nYou're part of this loop too. You can interrupt at any point to steer Claude in a different direction, provide additional context, or ask it to try a different approach. Claude works autonomously but stays responsive to your input.\n\nThe agentic loop is powered by two components: [models](#models) that reason and [tools](#tools) that act. Claude Code serves as the **agentic harness** around Claude: it provides the tools, context management, and execution environment that turn a language model into a capable coding agent.\n\n### Models",
+            "* **Your project.** Files in your directory and subdirectories, plus files elsewhere with your permission.\n* **Your terminal.** Any command you could run: build tools, git, package managers, system utilities, scripts. If you can do it from the command line, Claude can too.\n* **Your git state.** Current branch, uncommitted changes, and recent commit history.\n* **Your [CLAUDE.md](/en/memory).** A markdown file where you store project-specific instructions, conventions, and context that Claude should know every session.\n* **Extensions you configure.** [MCP servers](/en/mcp) for external services, [skills](/en/skills) for workflows, [subagents](/en/sub-agents) for delegated work, and [Claude in Chrome](/en/chrome) for browser interaction.\n\nBecause Claude sees your whole project, it can work across it. When you ask Claude to \"fix the authentication bug,\" it searches for relevant files, reads multiple files to understand context, makes coordinated edits across them, runs tests to verify the fix, and commits the changes if you ask. This is different from inline code assistants that only see the current file.\n\n## Work with sessions",
+            "**Same session in multiple terminals**: If you resume the same session in multiple terminals, both terminals write to the same session file. Messages from both get interleaved, like two people writing in the same notebook. Nothing corrupts, but the conversation becomes jumbled. Each terminal only sees its own messages during the session, but if you resume that session later, you'll see everything interleaved. For parallel work from the same starting point, use `--fork-session` to give each terminal its own clean session.\n\n### The context window\n\nClaude's context window holds your conversation history, file contents, command outputs, [CLAUDE.md](/en/memory), loaded skills, and system instructions. As you work, context fills up. Claude compacts automatically, but instructions from early in the conversation can get lost. Put persistent rules in CLAUDE.md, and run `/context` to see what's using space.\n\n#### When context fills up\n\nClaude Code manages context automatically as you approach the limit. It clears older tool outputs first, then summarizes the conversation if needed. Your requests and key code snippets are preserved; detailed instructions from early in the conversation may be lost. Put persistent rules in CLAUDE.md rather than relying on conversation history.\n\nTo control what's preserved during compaction, add a \"Compact Instructions\" section to CLAUDE.md or run `/compact` with a focus (like `/compact focus on the API changes`).\n\nRun `/context` to see what's using space. MCP servers add tool definitions to every request, so a few servers can consume significant context before you start working. Run `/mcp` to check per-server costs.\n\n#### Manage context with skills and subagents\n\nBeyond compaction, you can use other features to control what loads into context.\n\n[Skills](/en/skills) load on demand. Claude sees skill descriptions at session start, but the full content only loads when a skill is used. For skills you invoke manually, set `disable-model-invocation: true` to keep descriptions out of context until you need them.\n\n[Subagents](/en/sub-agents) get their own fresh context, completely separate from your main conversation. Their work doesn't bloat your context. When done, they return a summary. This isolation is why subagents help with long sessions.\n\nSee [context costs](/en/features-overview#understand-context-costs) for what each feature costs, and [reduce token usage](/en/costs#reduce-token-usage) for tips on managing context.\n\n## Stay safe with checkpoints and permissions",
+            "### Delegate, don't dictate\n\nThink of delegating to a capable colleague. Give context and direction, then trust Claude to figure out the details:\n\n```\n> The checkout flow is broken for users with expired cards."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 25,
+          "context_score": 18,
+          "total_score": 450,
+          "snippets": [
+            "**Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n</Note>\n\nClaude Code skills follow the [Agent Skills](https://agentskills.io) open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like [invocation control](#control-who-invokes-a-skill), [subagent execution](#run-skills-in-a-subagent), and [dynamic context injection](#inject-dynamic-context).\n\n## Getting started",
+            "Skill files can contain any instructions, but thinking about how you want to invoke them helps guide what to include:\n\n**Reference content** adds knowledge Claude applies to your current work. Conventions, patterns, style guides, domain knowledge. This content runs inline so Claude can use it alongside your conversation context.\n\n```yaml  theme={null}\n-",
+            "-",
+            "name: deploy\ndescription: Deploy the application to production\ncontext: fork\ndisable-model-invocation: true\n-",
+            "| `user-invocable`           | No          | Set to `false` to hide from the `/` menu. Use for background knowledge users shouldn't invoke directly. Default: `true`.                              |\n| `allowed-tools`            | No          | Tools Claude can use without asking permission when this skill is active.                                                                             |\n| `model`                    | No          | Model to use when this skill is active.                                                                                                               |\n| `context`                  | No          | Set to `fork` to run in a forked subagent context.                                                                                                    |\n| `agent`                    | No          | Which subagent type to use when `context: fork` is set.                                                                                               |\n| `hooks`                    | No          | Hooks scoped to this skill's lifecycle. See [Hooks in skills and agents](/en/hooks#hooks-in-skills-and-agents) for configuration format.              |\n\n#### Available string substitutions"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md",
+          "hit_count": 13,
+          "context_score": 33,
+          "total_score": 429,
+          "snippets": [
+            "# Manage costs effectively\n\n> Track token usage, set team spend limits, and reduce Claude Code costs with context management, model selection, extended thinking settings, and preprocessing hooks.\n\nClaude Code consumes tokens for each interaction. Costs vary based on codebase size, query complexity, and conversation length. The average cost is \\$6 per developer per day, with daily costs remaining below \\$12 for 90% of users.",
+            "## Reduce token usage\n\nToken costs scale with context size: the more context Claude processes, the more tokens you use. Claude Code automatically optimizes costs through prompt caching (which reduces costs for repeated content like system prompts) and auto-compaction (which summarizes conversation history when approaching context limits).\n\nThe following strategies help you keep context small and reduce per-message costs.\n\n### Manage context proactively\n\nUse `/cost` to check your current token usage, or [configure your status line](/en/statusline#context-window-usage) to display it continuously.\n\n* **Clear between tasks**: Use `/clear` to start fresh when switching to unrelated work. Stale context wastes tokens on every subsequent message. Use `/rename` before clearing so you can easily find the session later, then `/resume` to return to it.\n* **Add custom compaction instructions**: `/compact Focus on code samples and API usage` tells Claude what to preserve during summarization.\n\nYou can also customize compaction behavior in your CLAUDE.md:",
+            "### Reduce MCP server overhead\n\nEach MCP server adds tool definitions to your context, even when idle. Run `/context` to see what's consuming space.\n\n* **Prefer CLI tools when available**: Tools like `gh`, `aws`, `gcloud`, and `sentry-cli` are more context-efficient than MCP servers because they don't add persistent tool definitions. Claude can run CLI commands directly without the overhead.\n* **Disable unused servers**: Run `/mcp` to see configured servers and disable any you're not actively using.\n* **Tool search is automatic**: When MCP tool descriptions exceed 10% of your context window, Claude Code automatically defers them and loads tools on-demand via [tool search](/en/mcp#scale-with-mcp-tool-search). Since deferred tools only enter context when actually used, a lower threshold means fewer idle tool definitions consuming space. Set a lower threshold with `ENABLE_TOOL_SEARCH=auto:<N>` (for example, `auto:5` triggers when tools exceed 5% of your context window).\n\n### Install code intelligence plugins for typed languages",
+            "### Offload processing to hooks and skills\n\nCustom [hooks](/en/hooks) can preprocess data before Claude sees it. Instead of Claude reading a 10,000-line log file to find errors, a hook can grep for `ERROR` and return only matching lines, reducing context from tens of thousands of tokens to hundreds.\n\nA [skill](/en/skills) can give Claude domain knowledge so it doesn't have to explore. For example, a \"codebase-overview\" skill could describe your project's architecture, key directories, and naming conventions. When Claude invokes the skill, it gets this context immediately instead of spending tokens reading multiple files to understand the structure.\n\nFor example, this PreToolUse hook filters test output to show only failures:",
+            "### Move instructions from CLAUDE.md to skills\n\nYour [CLAUDE.md](/en/memory) file is loaded into context at session start. If it contains detailed instructions for specific workflows (like PR reviews or database migrations), those tokens are present even when you're doing unrelated work. [Skills](/en/skills) load on-demand only when invoked, so moving specialized instructions into skills keeps your base context smaller. Aim to keep CLAUDE.md under \\~500 lines by including only essentials.\n\n### Adjust extended thinking"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `--mcp-config` flag to correctly override file-based MCP configurations",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md",
+          "hit_count": 34,
+          "context_score": 35,
+          "total_score": 1190,
+          "snippets": [
+            "</Note>\n\n<Info>\n  **Claude Opus 4.5 is now available.** Claude Code GitHub Actions default to Sonnet. To use Opus 4.5, configure the [model parameter](#breaking-changes-reference) to use `claude-opus-4-5-20251101`.\n</Info>\n\n## Why use Claude Code GitHub Actions?",
+            "Claude Code GitHub Actions v1.0 introduces breaking changes that require updating your workflow files in order to upgrade to v1.0 from the beta version.\n</Warning>\n\nIf you're currently using the beta version of Claude Code GitHub Actions, we recommend that you update your workflows to use the GA version. The new version simplifies configuration while adding powerful new features like automatic mode detection.\n\n### Essential changes\n\nAll beta users must make these changes to their workflow files in order to upgrade:\n\n1. **Update the action version**: Change `@beta` to `@v1`\n2. **Remove mode configuration**: Delete `mode: \"tag\"` or `mode: \"agent\"` (now auto-detected)\n3. **Update prompt inputs**: Replace `direct_prompt` with `prompt`\n4. **Move CLI options**: Convert `max_turns`, `model`, `custom_instructions`, etc. to `claude_args`",
+            "```\n\n<Tip>\n  The action now automatically detects whether to run in interactive mode (responds to `@claude` mentions) or automation mode (runs immediately with a prompt) based on your configuration.\n</Tip>\n\n## Example use cases",
+            "## Best practices\n\n### CLAUDE.md configuration\n\nCreate a `CLAUDE.md` file in your repository root to define code style guidelines, review criteria, project-specific rules, and preferred patterns. This file guides Claude's understanding of your project standards.",
+            "### Optimizing performance\n\nUse issue templates to provide context, keep your `CLAUDE.md` concise and focused, and configure appropriate timeouts for your workflows.\n\n### CI costs"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md",
+          "hit_count": 6,
+          "context_score": 16,
+          "total_score": 96,
+          "snippets": [
+            "| `claude -c -p \"query\"`          | Continue via SDK                                       | `claude -c -p \"Check for type errors\"`            |\n| `claude -r \"<session>\" \"query\"` | Resume session by ID or name                           | `claude -r \"auth-refactor\" \"Finish this PR\"`      |\n| `claude update`                 | Update to latest version                               | `claude update`                                   |\n| `claude mcp`                    | Configure Model Context Protocol (MCP) servers         | See the [Claude Code MCP documentation](/en/mcp). |\n\n## CLI flags",
+            "| `--chrome`                             | Enable [Chrome browser integration](/en/chrome) for web automation and testing                                                                                                                            | `claude --chrome`                                                                                  |\n| `--continue`, `-c`                     | Load the most recent conversation in the current directory                                                                                                                                                | `claude --continue`                                                                                |\n| `--dangerously-skip-permissions`       | Skip all permission prompts (use with caution)                                                                                                                                                            | `claude --dangerously-skip-permissions`                                                            |\n| `--debug`                              | Enable debug mode with optional category filtering (for example, `\"api,hooks\"` or `\"!statsig,!file\"`)                                                                                                     | `claude --debug \"api,mcp\"`                                                                         |\n| `--disable-slash-commands`             | Disable all skills and slash commands for this session                                                                                                                                                    | `claude --disable-slash-commands`                                                                  |\n| `--disallowedTools`                    | Tools that are removed from the model's context and cannot be used                                                                                                                                        | `\"Bash(git log *)\" \"Bash(git diff *)\" \"Edit\"`                                                      |\n| `--fallback-model`                     | Enable automatic fallback to specified model when default model is overloaded (print mode only)                                                                                                           | `claude -p --fallback-model sonnet \"query\"`                                                        |",
+            "| `--maintenance`                        | Run maintenance hooks and exit                                                                                                                                                                            | `claude --maintenance`                                                                             |\n| `--max-budget-usd`                     | Maximum dollar amount to spend on API calls before stopping (print mode only)                                                                                                                             | `claude -p --max-budget-usd 5.00 \"query\"`                                                          |\n| `--max-turns`                          | Limit the number of agentic turns (print mode only). Exits with an error when the limit is reached. No limit by default                                                                                   | `claude -p --max-turns 3 \"query\"`                                                                  |\n| `--mcp-config`                         | Load MCP servers from JSON files or strings (space-separated)                                                                                                                                             | `claude --mcp-config ./mcp.json`                                                                   |\n| `--model`                              | Sets the model for the current session with an alias for the latest model (`sonnet` or `opus`) or a model's full name                                                                                     | `claude --model claude-sonnet-4-5-20250929`                                                        |\n| `--no-chrome`                          | Disable [Chrome browser integration](/en/chrome) for this session                                                                                                                                         | `claude --no-chrome`                                                                               |\n| `--no-session-persistence`             | Disable session persistence so sessions are not saved to disk and cannot be resumed (print mode only)                                                                                                     | `claude -p --no-session-persistence \"query\"`                                                       |\n| `--output-format`                      | Specify output format for print mode (options: `text`, `json`, `stream-json`)                                                                                                                             | `claude -p \"query\" --output-format json`                                                           |\n| `--permission-mode`                    | Begin in a specified [permission mode](/en/iam#permission-modes)                                                                                                                                          | `claude --permission-mode plan`                                                                    |\n| `--permission-prompt-tool`             | Specify an MCP tool to handle permission prompts in non-interactive mode                                                                                                                                  | `claude -p --permission-prompt-tool mcp_auth_tool \"query\"`                                         |\n| `--plugin-dir`                         | Load plugins from directories for this session only (repeatable)                                                                                                                                          | `claude --plugin-dir ./my-plugins`                                                                 |\n| `--print`, `-p`                        | Print response without interactive mode (see [SDK documentation](https://docs.claude.com/en/docs/agent-sdk) for programmatic usage details)                                                               | `claude -p \"query\"`                                                                                |\n| `--remote`                             | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description                                                                                                    | `claude --remote \"Fix the login bug\"`                                                              |",
+            "| `--session-id`                         | Use a specific session ID for the conversation (must be a valid UUID)                                                                                                                                     | `claude --session-id \"550e8400-e29b-41d4-a716-446655440000\"`                                       |\n| `--setting-sources`                    | Comma-separated list of setting sources to load (`user`, `project`, `local`)                                                                                                                              | `claude --setting-sources user,project`                                                            |\n| `--settings`                           | Path to a settings JSON file or a JSON string to load additional settings from                                                                                                                            | `claude --settings ./settings.json`                                                                |\n| `--strict-mcp-config`                  | Only use MCP servers from `--mcp-config`, ignoring all other MCP configurations                                                                                                                           | `claude --strict-mcp-config --mcp-config ./mcp.json`                                               |\n| `--system-prompt`                      | Replace the entire system prompt with custom text (works in both interactive and print modes)                                                                                                             | `claude --system-prompt \"You are a Python expert\"`                                                 |\n| `--system-prompt-file`                 | Load system prompt from a file, replacing the default prompt (print mode only)                                                                                                                            | `claude -p --system-prompt-file ./custom-prompt.txt \"query\"`                                       |\n| `--teleport`                           | Resume a [web session](/en/claude-code-on-the-web) in your local terminal                                                                                                                                 | `claude --teleport`                                                                                |",
+            "* [Interactive mode](/en/interactive-mode) - Shortcuts, input modes, and interactive features\n* [Quickstart guide](/en/quickstart) - Getting started with Claude Code\n* [Common workflows](/en/common-workflows) - Advanced workflows and patterns\n* [Settings](/en/settings) - Configuration options\n* [SDK documentation](https://docs.claude.com/en/docs/agent-sdk) - Programmatic usage and integrations"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed bug that saved session permissions to local settings",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed MCP tools not being available to sub-agents",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 203,
+          "context_score": 7,
+          "total_score": 1421,
+          "snippets": [
+            "-",
+            "title: mcp\nsource: https://code.claude.com/docs/en/mcp.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Connect Claude Code to tools via MCP\n\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('limit', '100');\n          if (cursor) {",
+            "}\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }\n          const data = await response.json();\n          allServers.push(...data.servers);"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 19,
+          "context_score": 32,
+          "total_score": 608,
+          "snippets": [
+            "# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |",
+            "`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools\n\n[MCP](/en/mcp) server tools appear as regular tools in tool events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`), so you can match them the same way you match any other tool name.\n\nMCP tools follow the naming pattern `mcp__<server>__<tool>`, for example:\n\n* `mcp__memory__create_entities`: Memory server's create entities tool\n* `mcp__filesystem__read_file`: Filesystem server's read file tool\n* `mcp__github__search_repositories`: GitHub server's search tool\n\nUse regex patterns to target specific MCP tools or groups of tools:\n\n* `mcp__memory__.*` matches all tools from the `memory` server\n* `mcp__.*__write.*` matches any tool containing \"write\" from any server\n\nThis example logs all memory server operations and validates write operations from any MCP server:\n\n```json  theme={null}\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"mcp__memory__.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'Memory operation initiated' >> ~/mcp-operations.log\"\n          }\n        ]\n      },\n      {\n        \"matcher\": \"mcp__.*__write.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/user/scripts/validate-mcp-write.py\"\n          }\n        ]\n      }",
+            "### PreToolUse\n\nRuns after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Task`, `WebFetch`, `WebSearch`, and any [MCP tool names](#match-mcp-tools).\n\nUse [PreToolUse decision control](#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.",
+            "| `decision`             | `\"block\"` prompts Claude with the `reason`. Omit to allow the action to proceed            |\n| `reason`               | Explanation shown to Claude when `decision` is `\"block\"`                                   |\n| `additionalContext`    | Additional context for Claude to consider                                                  |\n| `updatedMCPToolOutput` | For [MCP tools](#match-mcp-tools) only: replaces the tool's output with the provided value |\n\n```json  theme={null}\n{"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
+          "hit_count": 22,
+          "context_score": 18,
+          "total_score": 396,
+          "snippets": [
+            "* `prompt`: Evaluate a prompt with an LLM (uses `$ARGUMENTS` placeholder for context)\n* `agent`: Run an agentic verifier with tools for complex verification tasks\n\n### MCP servers\n\nPlugins can bundle Model Context Protocol (MCP) servers to connect Claude Code with external tools and services.\n\n**Location**: `.mcp.json` in plugin root, or inline in plugin.json\n\n**Format**: Standard MCP server configuration\n\n**MCP server configuration**:\n\n```json  theme={null}\n{\n  \"mcpServers\": {\n    \"plugin-database\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\",\n      \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"],",
+            "},\n    \"plugin-api-client\": {\n      \"command\": \"npx\",\n      \"args\": [\"@company/mcp-server\", \"--plugin-mode\"],\n      \"cwd\": \"${CLAUDE_PLUGIN_ROOT}\"\n    }\n  }",
+            "**Integration behavior**:\n\n* Plugin MCP servers start automatically when the plugin is enabled\n* Servers appear as standard MCP tools in Claude's toolkit\n* Server capabilities integrate seamlessly with Claude's existing tools\n* Plugin servers can be configured independently of user MCP servers\n\n### LSP servers",
+            "\"agents\": \"./custom/agents/\",\n  \"skills\": \"./custom/skills/\",\n  \"hooks\": \"./config/hooks.json\",\n  \"mcpServers\": \"./mcp-config.json\",\n  \"outputStyles\": \"./styles/\",\n  \"lspServers\": \"./.lsp.json\"\n}",
+            "| `agents`       | string\\|array  | Additional agent files                                                                                                                                   | `\"./custom/agents/\"`                   |\n| `skills`       | string\\|array  | Additional skill directories                                                                                                                             | `\"./custom/skills/\"`                   |\n| `hooks`        | string\\|object | Hook config path or inline config                                                                                                                        | `\"./hooks.json\"`                       |\n| `mcpServers`   | string\\|object | MCP config path or inline config                                                                                                                         | `\"./mcp-config.json\"`                  |\n| `outputStyles` | string\\|array  | Additional output style files/directories                                                                                                                | `\"./styles/\"`                          |\n| `lspServers`   | string\\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) config for code intelligence (go to definition, find references, etc.) | `\"./.lsp.json\"`                        |"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed hooks and plugins not executing when using --dangerously-skip-permissions flag",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed delay when navigating through typeahead suggestions with arrow keys",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- VSCode: Restored selection indicator in input footer showing current file or code selection status",
+      "prefix": "VSCode",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}

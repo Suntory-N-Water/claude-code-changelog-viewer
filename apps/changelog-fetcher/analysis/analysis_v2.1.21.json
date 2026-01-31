@@ -1,0 +1,219 @@
+{
+  "version": "2.1.21",
+  "items": [
+    {
+      "content": "- Added support for full-width (zenkaku) number input from Japanese IME in option selection prompts",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 15,
+          "context_score": 29,
+          "total_score": 435,
+          "snippets": [
+            "Claude Code supports OpenTelemetry (OTel) metrics and events for monitoring and observability.\n\nAll metrics are time series data exported via OpenTelemetry's standard metrics protocol, and events are exported via OpenTelemetry's logs/events protocol. It is the user's responsibility to ensure their metrics and logs backends are properly configured and that the aggregation granularity meets their monitoring requirements.\n\n## Quick start",
+            "| `claude_code.cost.usage`              | Cost of the Claude Code session                 | USD    |\n| `claude_code.token.usage`             | Number of tokens used                           | tokens |\n| `claude_code.code_edit_tool.decision` | Count of code editing tool permission decisions | count  |\n| `claude_code.active_time.total`       | Total active time in seconds                    | s      |\n\n### Metric details",
+            "* `decision`: User decision (`\"accept\"`, `\"reject\"`)\n* `language`: Programming language of the edited file (for example, `\"TypeScript\"`, `\"Python\"`, `\"JavaScript\"`, `\"Markdown\"`). Returns `\"unknown\"` for unrecognized file extensions.\n\n#### Active time counter\n\nTracks actual time spent actively using Claude Code (not idle time). This metric is incremented during user interactions such as typing prompts or receiving responses.\n\n**Attributes**:",
+            "* All [standard attributes](#standard-attributes)\n* `event.name`: `\"user_prompt\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `prompt_length`: Length of the prompt\n* `prompt`: Prompt content (redacted by default, enable with `OTEL_LOG_USER_PROMPTS=1`)",
+            "* All [standard attributes](#standard-attributes)\n* `event.name`: `\"tool_result\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `tool_name`: Name of the tool\n* `success`: `\"true\"` or `\"false\"`\n* `duration_ms`: Execution time in milliseconds\n* `error`: Error message (if failed)\n* `decision`: Either `\"accept\"` or `\"reject\"`\n* `source`: Decision source - `\"config\"`, `\"user_permanent\"`, `\"user_temporary\"`, `\"user_abort\"`, or `\"user_reject\"`\n* `tool_parameters`: JSON string containing tool-specific parameters (when available)\n  * For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `sandbox`\n\n#### API request event"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 16,
+          "context_score": 17,
+          "total_score": 272,
+          "snippets": [
+            "For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "| Field           | Required | Description                                                                                                                                   |\n| :-------------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |\n| `type`          | yes      | `\"command\"`, `\"prompt\"`, or `\"agent\"`                                                                                                         |\n| `timeout`       | no       | Seconds before canceling. Defaults: 600 for command, 30 for prompt, 60 for agent                                                              |\n| `statusMessage` | no       | Custom spinner message displayed while the hook runs                                                                                          |\n| `once`          | no       | If `true`, runs only once per session then is removed. Skills only, not agents. See [Hooks in skills and agents](#hooks-in-skills-and-agents) |",
+            "{\n                \"type\": \"command\",\n                \"command\": \"${CLAUDE_PLUGIN_ROOT}/scripts/format.sh\",\n                \"timeout\": 30\n              }\n            ]\n          }",
+            "All hook events are supported. For subagents, `Stop` hooks are automatically converted to `SubagentStop` since that is the event that fires when a subagent completes.\n\nHooks use the same configuration format as settings-based hooks but are scoped to the component's lifetime and cleaned up when it finishes.\n\nThis skill defines a `PreToolUse` hook that runs a security validation script before each `Bash` command:",
+            "| :------------------ | :------ | :----------------- | :-------------------------------------------- |\n| `command`           | string  | `\"npm test\"`       | The shell command to execute                  |\n| `description`       | string  | `\"Run test suite\"` | Optional description of what the command does |\n| `timeout`           | number  | `120000`           | Optional timeout in milliseconds              |\n| `run_in_background` | boolean | `false`            | Whether to run the command in background      |\n\n##### Write"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 12,
+          "context_score": 20,
+          "total_score": 240,
+          "snippets": [
+            "| **Scope the task.** Specify which file, what scenario, and testing preferences.                  | *\"add tests for foo.py\"*                             | *\"write a test for foo.py covering the edge case where the user is logged out. avoid mocks.\"*                                                                                                                                                                                                                                                                    |\n| **Point to sources.** Direct Claude to the source that can answer a question.                    | *\"why does ExecutionFactory have such a weird api?\"* | *\"look through ExecutionFactory's git history and summarize how its api came to be\"*                                                                                                                                                                                                                                                                             |\n| **Reference existing patterns.** Point Claude to patterns in your codebase.                      | *\"add a calendar widget\"*                            | *\"look at how existing widgets are implemented on the home page to understand the patterns. HotDogWidget.php is a good example. follow the pattern to implement a new calendar widget that lets the user select a month and paginate forwards/backwards to pick a year. build from scratch without libraries other than the ones already used in the codebase.\"* |\n| **Describe the symptom.** Provide the symptom, the likely location, and what \"fixed\" looks like. | *\"fix the login bug\"*                                | *\"users report that login fails after session timeout. check the auth flow in src/auth/, especially token refresh. write a failing test that reproduces the issue, then fix it\"*                                                                                                                                                                                 |\n\nVague prompts can be useful when you're exploring and can afford to course-correct. A prompt like `\"what would you improve in this file?\"` can surface things you wouldn't have thought to ask about.",
+            "### Write an effective CLAUDE.md\n\n<Tip>\n  Run `/init` to generate a starter CLAUDE.md file based on your current project structure, then refine over time.\n</Tip>\n\nCLAUDE.md is a special file that Claude reads at the start of every conversation. Include Bash commands, code style, and workflow rules. This gives Claude persistent context **it can't infer from code alone**.",
+            "- Prefer running single tests, and not the whole test suite, for performance\n```\n\nCLAUDE.md is loaded every session, so only include things that apply broadly. For domain knowledge or workflows that are only relevant sometimes, use [skills](/en/skills) instead. Claude loads them on demand without bloating every conversation.\n\nKeep it concise. For each line, ask: *\"Would removing this cause Claude to make mistakes?\"* If not, cut it. Bloated CLAUDE.md files cause Claude to ignore your actual instructions!",
+            "If Claude keeps doing something you don't want despite having a rule against it, the file is probably too long and the rule is getting lost. If Claude asks you questions that are answered in CLAUDE.md, the phrasing might be ambiguous. Treat CLAUDE.md like code: review it when things go wrong, prune it regularly, and test changes by observing whether Claude's behavior actually shifts.\n\nYou can tune instructions by adding emphasis (e.g., \"IMPORTANT\" or \"YOU MUST\") to improve adherence. Check CLAUDE.md into git so your team can contribute. The file compounds in value over time.\n\nCLAUDE.md files can import additional files using `@path/to/import` syntax:",
+            "### Set up hooks\n\n<Tip>\n  Use hooks for actions that must happen every time with zero exceptions.\n</Tip>\n\n[Hooks](/en/hooks-guide) run scripts automatically at specific points in Claude's workflow. Unlike CLAUDE.md instructions which are advisory, hooks are deterministic and guarantee the action happens."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed shell completion cache files being truncated on exit",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed API errors when resuming sessions that were interrupted during tool execution",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 14,
+          "context_score": 39,
+          "total_score": 546,
+          "snippets": [
+            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
+            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "* `tool_parameters`: JSON string containing tool-specific parameters (when available)\n  * For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `sandbox`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")\n* `cost_usd`: Estimated cost in USD",
+            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")\n* `error`: Error message"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
+          "hit_count": 28,
+          "context_score": 17,
+          "total_score": 476,
+          "snippets": [
+            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
+            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)",
+            "### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   * Go to **Settings** → **CI/CD** → **Variables**\n   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**",
+            "# Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+            "script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 26,
+          "context_score": 17,
+          "total_score": 442,
+          "snippets": [
+            "> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('limit', '100');\n          if (cursor) {",
+            "} while (cursor);\n        const transformedServers = allServers.map(item => {\n          const server = item.server;\n          const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];",
+            "</>;\n};\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP",
+            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed auto-compact triggering too early on models with large output token limits",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed task IDs potentially being reused after deletion",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed file search not working in VS Code extension on Windows",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md",
+          "hit_count": 50,
+          "context_score": 12,
+          "total_score": 600,
+          "snippets": [
+            "-",
+            "title: vs-code\nsource: https://code.claude.com/docs/en/vs-code.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Use Claude Code in VS Code\n\n> Install and configure the Claude Code extension for VS Code. Get AI coding assistance with inline diffs, @-mentions, plan review, and keyboard shortcuts.\n\n<img src=\"https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=300652d5678c63905e6b0ea9e50835f8\" alt=\"VS Code editor with the Claude Code extension panel open on the right side, showing a conversation with Claude\" data-og-width=\"2500\" width=\"2500\" data-og-height=\"1155\" height=\"1155\" data-path=\"images/vs-code-extension-interface.jpg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=280&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=87630c671517a3d52e9aee627041696e 280w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=560&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=716b093879204beec8d952649ef75292 560w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=840&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=c1525d1a01513acd9d83d8b5a8fe2fc8 840w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=1100&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=1d90021d58bbb51f871efec13af955c3 1100w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=1650&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=7babdd25440099886f193cfa99af88ae 1650w, https://mintcdn.com/claude-code/-YhHHmtSxwr7W8gy/images/vs-code-extension-interface.jpg?w=2500&fit=max&auto=format&n=-YhHHmtSxwr7W8gy&q=85&s=08c92eedfb56fe61a61e480fb63784b6 2500w\" />\n\nThe VS Code extension provides a native graphical interface for Claude Code, integrated directly into your IDE. This is the recommended way to use Claude Code in VS Code.\n\nWith the extension, you can review and edit Claude's plans before accepting them, auto-accept edits as they're made, @-mention files with specific line ranges from your selection, access conversation history, and open multiple conversations in separate tabs or windows.\n\n## Prerequisites\n\n* VS Code 1.98.0 or higher\n* An Anthropic account (you'll sign in when you first open the extension). If you're using a third-party provider like Amazon Bedrock or Google Vertex AI, see [Use third-party providers](#use-third-party-providers) instead.\n\n<Tip>\n  The extension includes the CLI (command-line interface), which you can access from VS Code's integrated terminal for advanced features. See [VS Code extension vs. Claude Code CLI](#vs-code-extension-vs-claude-code-cli) for details.\n</Tip>\n\n## Install the extension\n\nClick the link for your IDE to install directly:\n\n* [Install for VS Code](vscode:extension/anthropic.claude-code)\n* [Install for Cursor](cursor:extension/anthropic.claude-code)\n\nOr in VS Code, press `Cmd+Shift+X` (Mac) or `Ctrl+Shift+X` (Windows/Linux) to open the Extensions view, search for \"Claude Code\", and click **Install**.\n\n<Note>If the extension doesn't appear after installation, restart VS Code or run \"Developer: Reload Window\" from the Command Palette.</Note>\n\n## Get started\n\nOnce installed, you can start using Claude Code through the VS Code interface:\n\n<Steps>\n  <Step title=\"Open the Claude Code panel\">\n    Throughout VS Code, the Spark icon indicates Claude Code: <img src=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=a734d84e785140016672f08e0abb236c\" alt=\"Spark icon\" style={{display: \"inline\", height: \"0.85em\", verticalAlign: \"middle\"}} data-og-width=\"16\" width=\"16\" data-og-height=\"16\" height=\"16\" data-path=\"images/vs-code-spark-icon.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=280&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=9a45aad9a84b9fa1701ac99a1f9aa4e9 280w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=560&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=3f4cb9254c4d4e93989c4b6bf9292f4b 560w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=840&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=e75ccc9faa3e572db8f291ceb65bb264 840w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=1100&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=f147bd81a381a62539a4ce361fac41c7 1100w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=1650&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=78fe68efaee5d6e844bbacab1b442ed5 1650w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-spark-icon.svg?w=2500&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=efb8dbe1dfa722d094edc6ad2ad4bedb 2500w\" />\n\n    The quickest way to open Claude is to click the Spark icon in the **Editor Toolbar** (top-right corner of the editor). The icon only appears when you have a file open.\n\n        <img src=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=eb4540325d94664c51776dbbfec4cf02\" alt=\"VS Code editor showing the Spark icon in the Editor Toolbar\" data-og-width=\"2796\" width=\"2796\" data-og-height=\"734\" height=\"734\" data-path=\"images/vs-code-editor-icon.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=280&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=56f218d5464359d6480cfe23f70a923e 280w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=560&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=344a8db024b196c795a80dc85cacb8d1 560w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=840&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=f30bf834ee0625b2a4a635d552d87163 840w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=1100&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=81fdf984840e43a9f08ae42729d1484d 1100w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=1650&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=8b60fb32de54717093d512afaa99785c 1650w, https://mintcdn.com/claude-code/mfM-EyoZGnQv8JTc/images/vs-code-editor-icon.png?w=2500&fit=max&auto=format&n=mfM-EyoZGnQv8JTc&q=85&s=893e6bda8f2e9d42c8a294d394f0b736 2500w\" />\n\n    Other ways to open Claude Code:\n\n    * **Command Palette**: `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux), type \"Claude Code\", and select an option like \"Open in New Tab\"\n    * **Status Bar**: Click **✱ Claude Code** in the bottom-right corner of the window. This works even when no file is open.\n\n    You can drag the Claude panel to reposition it anywhere in VS Code. See [Customize your workflow](#customize-your-workflow) for details.\n  </Step>\n\n  <Step title=\"Send a prompt\">",
+            "Here's an example of asking about a particular line in a file:\n\n        <img src=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=ede3ed8d8d5f940e01c5de636d009cfd\" alt=\"VS Code editor with lines 2-3 selected in a Python file, and the Claude Code panel showing a question about those lines with an @-mention reference\" data-og-width=\"3288\" width=\"3288\" data-og-height=\"1876\" height=\"1876\" data-path=\"images/vs-code-send-prompt.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=280&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=f40bde7b2c245fe8f0f5b784e8106492 280w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=560&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=fad66a27a9a6faa23b05370aa4f398b2 560w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=840&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=4539c8a3823ca80a5c8771f6c088ce9e 840w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=1100&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=fae8ebf300c7853409a562ffa46d9c71 1100w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=1650&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=22e4462bb8cf0c0ca20f8102bc4c971a 1650w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-send-prompt.png?w=2500&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=739bfd045f70fe7be1a109a53494590e 2500w\" />\n  </Step>\n\n  <Step title=\"Review changes\">\n    When Claude wants to edit a file, it shows a side-by-side comparison of the original and proposed changes, then asks for permission. You can accept, reject, or tell Claude what to do instead.\n\n        <img src=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=e005f9b41c541c5c7c59c082f7c4841c\" alt=\"VS Code showing a diff of Claude's proposed changes with a permission prompt asking whether to make the edit\" data-og-width=\"3292\" width=\"3292\" data-og-height=\"1876\" height=\"1876\" data-path=\"images/vs-code-edits.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=280&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=cb5d41b81087f79b842a56b5a3304660 280w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=560&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=90bb691960decdc06393c3c21cd62c75 560w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=840&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=9a11bf878ba619e850380904ff4f38e8 840w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=1100&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=6dddbf596b4f69ec6245bdc5eb6dd487 1100w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=1650&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=ef2713b8cbfd2cee97af817d813d64c7 1650w, https://mintcdn.com/claude-code/FVYz38sRY-VuoGHA/images/vs-code-edits.png?w=2500&fit=max&auto=format&n=FVYz38sRY-VuoGHA&q=85&s=1f7e1c52919cdfddf295f32a2ec7ae59 2500w\" />\n  </Step>\n</Steps>",
+            "<Tip>\n  The extension includes two built-in tutorials:\n\n  * **VS Code walkthrough**: Run \"Claude Code: Open Walkthrough\" from the Command Palette for a guided tour of the basics.\n  * **Interactive checklist**: Click the graduation cap icon in the Claude panel header to work through features like writing code, using Plan mode, and setting up rules.\n</Tip>"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/devcontainer.md",
+          "hit_count": 5,
+          "context_score": 13,
+          "total_score": 65,
+          "snippets": [
+            "* **Production-ready Node.js**: Built on Node.js 20 with essential development dependencies\n* **Security by design**: Custom firewall restricting network access to only necessary services\n* **Developer-friendly tools**: Includes git, ZSH with productivity enhancements, fzf, and more\n* **Seamless VS Code integration**: Pre-configured extensions and optimized settings\n* **Session persistence**: Preserves command history and configurations between container restarts\n* **Works everywhere**: Compatible with macOS, Windows, and Linux development environments\n\n## Getting started in 4 steps\n\n1. Install VS Code and the Remote - Containers extension\n2. Clone the [Claude Code reference implementation](https://github.com/anthropics/claude-code/tree/main/.devcontainer) repository\n3. Open the repository in VS Code\n4. When prompted, click \"Reopen in Container\" (or use Command Palette: Cmd+Shift+P → \"Remote-Containers: Reopen in Container\")\n\n## Configuration breakdown",
+            "The devcontainer configuration is designed to be adaptable to your needs:\n\n* Add or remove VS Code extensions based on your workflow\n* Modify resource allocations for different hardware environments\n* Adjust network access permissions\n* Customize shell configurations and developer tooling",
+            "## Related resources\n\n* [VS Code devcontainers documentation](https://code.visualstudio.com/docs/devcontainers/containers)\n* [Claude Code security best practices](/en/security)\n* [Enterprise network configuration](/en/network-config)"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/output-styles.md",
+          "hit_count": 3,
+          "context_score": 12,
+          "total_score": 36,
+          "snippets": [
+            "## Comparisons to related features\n\n### Output Styles vs. CLAUDE.md vs. --append-system-prompt\n\nOutput styles completely \"turn off\" the parts of Claude Code's default system\nprompt specific to software engineering. Neither CLAUDE.md nor",
+            "adds the contents as a user message *following* Claude Code's default system\nprompt. `--append-system-prompt` appends the content to the system prompt.\n\n### Output Styles vs. [Agents](/en/sub-agents)\n\nOutput styles directly affect the main agent loop and only affect the system\nprompt. Agents are invoked to handle specific tasks and can include additional\nsettings like the model to use, the tools they have available, and some context\nabout when to use the agent.\n\n### Output Styles vs. [Skills](/en/skills)\n\nOutput styles modify how Claude responds (formatting, tone, structure) and are always active once selected. Skills are task-specific prompts that you invoke with `/skill-name` or that Claude loads automatically when relevant. Use output styles for consistent formatting preferences; use skills for reusable workflows and tasks."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Improved read/search progress indicators to show \"Reading…\" while in progress and \"Read\" when complete",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- Improved Claude to prefer file operation tools (Read, Edit, Write) over bash equivalents (cat, sed, awk)",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- [VSCode] Added automatic Python virtual environment activation, ensuring `python` and `pip` commands use the correct interpreter (configurable via `claudeCode.usePythonEnvironment` setting)",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
+          "hit_count": 12,
+          "context_score": 22,
+          "total_score": 264,
+          "snippets": [
+            "# - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'\n  variables:\n    GIT_STRATEGY: fetch\n  before_script:",
+            "--debug\n```\n\nAfter adding the job and your `ANTHROPIC_API_KEY` variable, test by running the job manually from **CI/CD** → **Pipelines**, or trigger it from an MR to let Claude propose updates in a branch and open an MR if needed.\n\n<Note>\n  To run on AWS Bedrock or Google Vertex AI instead of the Claude API, see the [Using with AWS Bedrock & Google Vertex AI](#using-with-aws-bedrock--google-vertex-ai) section below for authentication and environment setup.",
+            "4. **(Optional) Enable mention-driven triggers**:\n   * Add a project webhook for \"Comments (notes)\" to your event listener (if you use one)\n   * Have the listener call the pipeline trigger API with variables like `AI_FLOW_INPUT` and `AI_FLOW_CONTEXT` when a comment contains `@claude`\n\n## Example use cases",
+            "## Configuration examples\n\nBelow are ready-to-use snippets you can adapt to your pipeline.\n\n### Basic .gitlab-ci.yml (Claude API)",
+            "stage: ai\n  image: node:24-alpine3.21\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'\n  variables:\n    GIT_STRATEGY: fetch\n  before_script:"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md",
+          "hit_count": 6,
+          "context_score": 25,
+          "total_score": 150,
+          "snippets": [
+            "# Run Claude Code programmatically\n\n> Use the Agent SDK to run Claude Code programmatically from the CLI, Python, or TypeScript.\n\nThe [Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) gives you the same tools, agent loop, and context management that power Claude Code. It's available as a CLI for scripts and CI/CD, or as [Python](https://platform.claude.com/docs/en/agent-sdk/python) and [TypeScript](https://platform.claude.com/docs/en/agent-sdk/typescript) packages for full programmatic control.\n\n<Note>\n  The CLI was previously called \"headless mode.\" The `-p` flag and all CLI options work the same way.",
+            "claude -p \"Find and fix the bug in auth.py\" --allowedTools \"Read,Edit,Bash\"\n```\n\nThis page covers using the Agent SDK via the CLI (`claude -p`). For the Python and TypeScript SDK packages with structured outputs, tool approval callbacks, and native message objects, see the [full Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview).\n\n## Basic usage",
+            "### Customize the system prompt\n\nUse `--append-system-prompt` to add instructions while keeping Claude Code's default behavior. This example pipes a PR diff to Claude and instructs it to review for security vulnerabilities:\n\n```bash  theme={null}\ngh pr diff \"$1\" | claude -p \\",
+            "<CardGroup cols={2}>\n  <Card title=\"Agent SDK quickstart\" icon=\"play\" href=\"https://platform.claude.com/docs/en/agent-sdk/quickstart\">\n    Build your first agent with Python or TypeScript\n  </Card>\n\n  <Card title=\"CLI reference\" icon=\"terminal\" href=\"/en/cli-reference\">",
+            "</Card>\n\n  <Card title=\"GitLab CI/CD\" icon=\"gitlab\" href=\"/en/gitlab-ci-cd\">\n    Use the Agent SDK in GitLab pipelines\n  </Card>\n</CardGroup>"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md",
+          "hit_count": 7,
+          "context_score": 20,
+          "total_score": 140,
+          "snippets": [
+            "The universal image includes pre-configured environments for:\n\n* **Python**: Python 3.x with pip, poetry, and common scientific libraries\n* **Node.js**: Latest LTS versions with npm, yarn, pnpm, and bun\n* **Ruby**: Versions 3.1.6, 3.2.6, 3.3.6 (default: 3.3.6) with gem, bundler, and rbenv for version management\n* **PHP**: Version 8.4.14",
+            "```bash  theme={null}\n#!/bin/bash\nnpm install\npip install -r requirements.txt\nexit 0\n```",
+            "fi\n\nnpm install\npip install -r requirements.txt\n```\n\n#### Persisting environment variables",
+            "* yarnpkg.com\n* registry.yarnpkg.com\n\n#### Package Managers - Python\n\n* pypi.org\n* [www.pypi.org](http://www.pypi.org)\n* files.pythonhosted.org\n* pythonhosted.org\n* test.pypi.org\n* pypi.python.org\n* pypa.io\n* [www.pypa.io](http://www.pypa.io)"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- [VSCode] Fixed message action buttons having incorrect background colors",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}

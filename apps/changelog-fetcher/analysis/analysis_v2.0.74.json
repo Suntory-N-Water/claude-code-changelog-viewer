@@ -1,0 +1,250 @@
+{
+  "version": "2.0.74",
+  "items": [
+    {
+      "content": "- Added LSP (Language Server Protocol) tool for code intelligence features like go-to-definition, find references, and hover documentation",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
+          "hit_count": 19,
+          "context_score": 21,
+          "total_score": 399,
+          "snippets": [
+            "* Server capabilities integrate seamlessly with Claude's existing tools\n* Plugin servers can be configured independently of user MCP servers\n\n### LSP servers\n\n<Tip>\n  Looking to use LSP plugins? Install them from the official marketplace—search for \"lsp\" in the `/plugin` Discover tab. This section documents how to create LSP plugins for languages not covered by the official marketplace.\n</Tip>\n\nPlugins can provide [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) servers to give Claude real-time code intelligence while working on your codebase.\n\nLSP integration provides:\n\n* **Instant diagnostics**: Claude sees errors and warnings immediately after each edit\n* **Code navigation**: go to definition, find references, and hover information\n* **Language awareness**: type information and documentation for code symbols\n\n**Location**: `.lsp.json` in plugin root, or inline in `plugin.json`\n\n**Format**: JSON configuration mapping language server names to their configurations\n\n**`.lsp.json` file format**:\n\n```json  theme={null}\n{",
+            "```json  theme={null}\n{\n  \"name\": \"my-plugin\",\n  \"lspServers\": {\n    \"go\": {\n      \"command\": \"gopls\",\n      \"args\": [\"serve\"],",
+            "| Field                 | Description                                  |\n| :-------------------- | :------------------------------------------- |\n| `command`             | The LSP binary to execute (must be in PATH)  |\n| `extensionToLanguage` | Maps file extensions to language identifiers |\n\n**Optional fields:**\n\n| Field                   | Description                                               |\n| :---------------------- | :-------------------------------------------------------- |\n| `args`                  | Command-line arguments for the LSP server                 |\n| `transport`             | Communication transport: `stdio` (default) or `socket`    |\n| `env`                   | Environment variables to set when starting the server     |\n| `initializationOptions` | Options passed to the server during initialization        |",
+            "| `maxRestarts`           | Maximum number of restart attempts before giving up       |\n\n<Warning>\n  **You must install the language server binary separately.** LSP plugins configure how Claude Code connects to a language server, but they don't include the server itself. If you see `Executable not found in $PATH` in the `/plugin` Errors tab, install the required binary for your language.\n</Warning>\n\n**Available LSP plugins:**\n\n| Plugin           | Language server            | Install command                                                                            |\n| :--------------- | :------------------------- | :----------------------------------------------------------------------------------------- |\n| `pyright-lsp`    | Pyright (Python)           | `pip install pyright` or `npm install -g pyright`                                          |\n| `typescript-lsp` | TypeScript Language Server | `npm install -g typescript-language-server typescript`                                     |\n| `rust-lsp`       | rust-analyzer              | [See rust-analyzer installation](https://rust-analyzer.github.io/manual.html#installation) |\n\nInstall the language server first, then install the plugin from the marketplace.",
+            "\"hooks\": \"./config/hooks.json\",\n  \"mcpServers\": \"./mcp-config.json\",\n  \"outputStyles\": \"./styles/\",\n  \"lspServers\": \"./.lsp.json\"\n}\n```"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md",
+          "hit_count": 8,
+          "context_score": 27,
+          "total_score": 216,
+          "snippets": [
+            "## Plugin structure overview\n\nYou've created a plugin with a skill, but plugins can include much more: custom agents, hooks, MCP servers, and LSP servers.\n\n<Warning>\n  **Common mistake**: Don't put `commands/`, `agents/`, `skills/`, or `hooks/` inside the `.claude-plugin/` directory. Only `plugin.json` goes inside `.claude-plugin/`. All other directories must be at the plugin root level.",
+            "| `skills/`         | Plugin root | Agent Skills with `SKILL.md` files              |\n| `hooks/`          | Plugin root | Event handlers in `hooks.json`                  |\n| `.mcp.json`       | Plugin root | MCP server configurations                       |\n| `.lsp.json`       | Plugin root | LSP server configurations for code intelligence |\n\n<Note>\n  **Next steps**: Ready to add more features? Jump to [Develop more complex plugins](#develop-more-complex-plugins) to add agents, hooks, MCP servers, and LSP servers. For complete technical specifications of all plugin components, see [Plugins reference](/en/plugins-reference).\n</Note>\n\n## Develop more complex plugins",
+            "After installing the plugin, restart Claude Code to load the Skills. For complete Skill authoring guidance including progressive disclosure and tool restrictions, see [Agent Skills](/en/skills).\n\n### Add LSP servers to your plugin\n\n<Tip>\n  For common languages like TypeScript, Python, and Rust, install the pre-built LSP plugins from the official marketplace. Create custom LSP plugins only when you need support for languages not already covered.\n</Tip>\n\nLSP (Language Server Protocol) plugins give Claude real-time code intelligence. If you need to support a language that doesn't have an official LSP plugin, you can create your own by adding an `.lsp.json` file to your plugin:\n\n```json .lsp.json theme={null}\n{\n  \"go\": {\n    \"command\": \"gopls\",",
+            "Users installing your plugin must have the language server binary installed on their machine.\n\nFor complete LSP configuration options, see [LSP servers](/en/plugins-reference#lsp-servers).\n\n### Organize complex plugins"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md",
+          "hit_count": 13,
+          "context_score": 6,
+          "total_score": 78,
+          "snippets": [
+            "### Code intelligence\n\nCode intelligence plugins enable Claude Code's built-in LSP tool, giving Claude the ability to jump to definitions, find references, and see type errors immediately after edits. These plugins configure [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) connections, the same technology that powers VS Code's code intelligence.\n\nThese plugins require the language server binary to be installed on your system. If you already have a language server installed, Claude may prompt you to install the corresponding plugin when you open a project.\n\n| Language   | Plugin              | Binary required              |\n| :--------- | :------------------ | :--------------------------- |\n| C/C++      | `clangd-lsp`        | `clangd`                     |\n| C#         | `csharp-lsp`        | `csharp-ls`                  |\n| Go         | `gopls-lsp`         | `gopls`                      |\n| Java       | `jdtls-lsp`         | `jdtls`                      |\n| Kotlin     | `kotlin-lsp`        | `kotlin-language-server`     |\n| Lua        | `lua-lsp`           | `lua-language-server`        |\n| PHP        | `php-lsp`           | `intelephense`               |\n| Python     | `pyright-lsp`       | `pyright-langserver`         |\n| Rust       | `rust-analyzer-lsp` | `rust-analyzer`              |\n| Swift      | `swift-lsp`         | `sourcekit-lsp`              |\n| TypeScript | `typescript-lsp`    | `typescript-language-server` |\n\nYou can also [create your own LSP plugin](/en/plugins-reference#lsp-servers) for other languages.\n\n<Note>\n  If you see `Executable not found in $PATH` in the `/plugin` Errors tab after installing a plugin, install the required binary from the table above."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added `/terminal-setup` support for Kitty, Alacritty, Zed, and Warp terminals",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md",
+          "hit_count": 17,
+          "context_score": 20,
+          "total_score": 340,
+          "snippets": [
+            "-",
+            "title: terminal-config\nsource: https://code.claude.com/docs/en/terminal-config.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Optimize your terminal setup\n\n> Claude Code works best when your terminal is properly configured. Follow these guidelines to optimize your experience.\n\n### Themes and appearance\n\nClaude cannot control the theme of your terminal. That's handled by your terminal application. You can match Claude Code's theme to your terminal any time via the `/config` command.\n\nFor additional customization of the Claude Code interface itself, you can configure a [custom status line](/en/statusline) to display contextual information like the current model, working directory, or git branch at the bottom of your terminal.\n\n### Line breaks",
+            "* **Quick escape**: Type `\\` followed by Enter to create a newline\n* **Shift+Enter**: Works out of the box in iTerm2, WezTerm, Ghostty, and Kitty\n* **Keyboard shortcut**: Set up a keybinding to insert a newline in other terminals\n\n**Set up Shift+Enter for other terminals**\n\nRun `/terminal-setup` within Claude Code to automatically configure Shift+Enter for VS Code, Alacritty, Zed, and Warp.\n\n<Note>\n  The `/terminal-setup` command is only visible in terminals that require manual configuration. If you're using iTerm2, WezTerm, Ghostty, or Kitty, you won't see this command because Shift+Enter already works natively.\n</Note>\n\n**Set up Option+Enter (VS Code, iTerm2 or macOS Terminal.app)**\n\n**For Mac Terminal.app:**\n\n1. Open Settings → Profiles → Keyboard\n2. Check \"Use Option as Meta Key\"\n\n**For iTerm2 and VS Code terminal:**\n\n1. Open Settings → Profiles → Keys\n2. Under General, set Left/Right Option key to \"Esc+\"\n\n### Notification setup\n\nNever miss when Claude completes a task with proper notification configuration:",
+            "For iTerm 2 alerts when tasks complete:\n\n1. Open iTerm 2 Preferences\n2. Navigate to Profiles → Terminal\n3. Enable \"Silence bell\" and Filter Alerts → \"Send escape sequence-generated alerts\"\n4. Set your preferred notification delay\n\nNote that these notifications are specific to iTerm 2 and not available in the default macOS Terminal.\n\n#### Custom notification hooks"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md",
+          "hit_count": 9,
+          "context_score": 27,
+          "total_score": 243,
+          "snippets": [
+            "## Keyboard shortcuts\n\n<Note>\n  Keyboard shortcuts may vary by platform and terminal. Press `?` to see available shortcuts for your environment.\n\n  **macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+M`, `Alt+P`) require configuring Option as Meta in your terminal:\n\n  * **iTerm2**: Settings → Profiles → Keys → Set Left/Right Option key to \"Esc+\"\n  * **Terminal.app**: Settings → Profiles → Keyboard → Check \"Use Option as Meta Key\"\n  * **VS Code**: Settings → Profiles → Keys → Set Left/Right Option key to \"Esc+\"\n\n  See [Terminal configuration](/en/terminal-config) for details.\n</Note>\n\n### General controls",
+            "| `Ctrl+C`                                          | Cancel current input or generation | Standard interrupt                                                                            |\n| `Ctrl+D`                                          | Exit Claude Code session           | EOF signal                                                                                    |\n| `Ctrl+G`                                          | Open in default text editor        | Edit your prompt or custom response in your default text editor                               |\n| `Ctrl+L`                                          | Clear terminal screen              | Keeps conversation history                                                                    |\n| `Ctrl+O`                                          | Toggle verbose output              | Shows detailed tool usage and execution                                                       |\n| `Ctrl+R`                                          | Reverse search command history     | Search through previous commands interactively                                                |\n| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard         | Pastes an image or path to an image file                                                      |",
+            "| `Esc` + `Esc`                                     | Rewind the code/conversation       | Restore the code and/or conversation to a previous point                                      |\n| `Shift+Tab` or `Alt+M` (some configurations)      | Toggle permission modes            | Switch between Auto-Accept Mode, Plan Mode, and normal mode                                   |\n| `Option+P` (macOS) or `Alt+P` (Windows/Linux)     | Switch model                       | Switch models without clearing your prompt                                                    |\n| `Option+T` (macOS) or `Alt+T` (Windows/Linux)     | Toggle extended thinking           | Enable or disable extended thinking mode. Run `/terminal-setup` first to enable this shortcut |\n\n### Text editing",
+            "| Method           | Shortcut       | Context                                                 |\n| :--------------- | :------------- | :------------------------------------------------------ |\n| Quick escape     | `\\` + `Enter`  | Works in all terminals                                  |\n| macOS default    | `Option+Enter` | Default on macOS                                        |\n| Shift+Enter      | `Shift+Enter`  | Works out of the box in iTerm2, WezTerm, Ghostty, Kitty |\n| Control sequence | `Ctrl+J`       | Line feed character for multiline                       |\n| Paste mode       | Paste directly | For code blocks, logs                                   |\n\n<Tip>\n  Shift+Enter works without configuration in iTerm2, WezTerm, Ghostty, and Kitty. For other terminals (VS Code, Alacritty, Zed, Warp), run `/terminal-setup` to install the binding.\n</Tip>\n\n### Quick commands",
+            "## Task list\n\nWhen working on complex, multi-step work, Claude creates a task list to track progress. Tasks appear in the status area of your terminal with indicators showing what's pending, in progress, or complete.\n\n* Press `Ctrl+T` to toggle the task list view. The display shows up to 10 tasks at a time\n* To see all tasks or clear them, ask Claude directly: \"show me all tasks\" or \"clear all tasks\""
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added ctrl+t shortcut in `/theme` to toggle syntax highlighting on/off",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md",
+          "hit_count": 4,
+          "context_score": 13,
+          "total_score": 52,
+          "snippets": [
+            "| `Alt+B`                  | Move cursor back one word    | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS                                      |\n| `Alt+F`                  | Move cursor forward one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS                                      |\n\n### Theme and display\n\n| Shortcut | Description                                | Context                                                                                                      |\n| :------- | :----------------------------------------- | :----------------------------------------------------------------------------------------------------------- |\n| `Ctrl+T` | Toggle syntax highlighting for code blocks | Only works inside the `/theme` picker menu. Controls whether code in Claude's responses uses syntax coloring |\n\n<Note>\n  Syntax highlighting is only available in the native build of Claude Code.",
+            "| `/copy`                   | Copy the last assistant response to clipboard                                                                               |\n| `/tasks`                  | List and manage background tasks                                                                                            |\n| `/teleport`               | Resume a remote session from claude.ai (subscribers only)                                                                   |\n| `/theme`                  | Change the color theme                                                                                                      |\n| `/todos`                  | List current TODO items                                                                                                     |\n| `/usage`                  | For subscription plans only: show plan usage limits and rate limit status                                                   |",
+            "Run bash commands directly without going through Claude by prefixing your input with `!`:\n\n```bash  theme={null}\n! npm test\n! git status\n! ls -la"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added syntax highlighting info to theme picker",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": []
+    },
+    {
+      "content": "- Added guidance for macOS users when Alt shortcuts fail due to terminal configuration",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed skill `allowed-tools` not being applied to tools invoked by the skill",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 10,
+          "context_score": 20,
+          "total_score": 200,
+          "snippets": [
+            "**Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n</Note>\n\nClaude Code skills follow the [Agent Skills](https://agentskills.io) open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like [invocation control](#control-who-invokes-a-skill), [subagent execution](#run-skills-in-a-subagent), and [dynamic context injection](#inject-dynamic-context).\n\n## Getting started",
+            "name: my-skill\ndescription: What this skill does\ndisable-model-invocation: true\nallowed-tools: Read, Grep\n-",
+            "Your skill instructions here...",
+            "| `argument-hint`            | No          | Hint shown during autocomplete to indicate expected arguments. Example: `[issue-number]` or `[filename] [format]`.                                    |\n| `disable-model-invocation` | No          | Set to `true` to prevent Claude from automatically loading this skill. Use for workflows you want to trigger manually with `/name`. Default: `false`. |\n| `user-invocable`           | No          | Set to `false` to hide from the `/` menu. Use for background knowledge users shouldn't invoke directly. Default: `true`.                              |\n| `allowed-tools`            | No          | Tools Claude can use without asking permission when this skill is active.                                                                             |\n| `model`                    | No          | Model to use when this skill is active.                                                                                                               |\n| `context`                  | No          | Set to `fork` to run in a forked subagent context.                                                                                                    |\n| `agent`                    | No          | Which subagent type to use when `context: fork` is set.                                                                                               |",
+            "### Restrict tool access\n\nUse the `allowed-tools` field to limit which tools Claude can use when a skill is active. This skill creates a read-only mode where Claude can explore files but not modify them:\n\n```yaml  theme={null}\n-"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed Opus 4.5 tip incorrectly showing when user was already using Opus",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed a potential crash when syntax highlighting isn't initialized correctly",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed visual bug in `/plugins discover` where list selection indicator showed while search box was focused",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md",
+          "hit_count": 57,
+          "context_score": 23,
+          "total_score": 1311,
+          "snippets": [
+            "-",
+            "title: discover-plugins\nsource: https://code.claude.com/docs/en/discover-plugins.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Discover and install prebuilt plugins through marketplaces\n\n> Find and install plugins from marketplaces to extend Claude Code with new commands, agents, and capabilities.\n\nPlugins extend Claude Code with skills, agents, hooks, and MCP servers. Plugin marketplaces are catalogs that help you discover and install these extensions without building them yourself.\n\nLooking to create and distribute your own marketplace? See [Create and distribute a plugin marketplace](/en/plugin-marketplaces).\n\n## How marketplaces work\n\nA marketplace is a catalog of plugins that someone else has created and shared. Using a marketplace is a two-step process:\n\n<Steps>\n  <Step title=\"Add the marketplace\">\n    This registers the catalog with Claude Code so you can browse what's available. No plugins are installed yet.\n  </Step>\n\n  <Step title=\"Install individual plugins\">\n    Browse the catalog and install the plugins you want.\n  </Step>\n</Steps>",
+            "## Official Anthropic marketplace\n\nThe official Anthropic marketplace (`claude-plugins-official`) is automatically available when you start Claude Code. Run `/plugin` and go to the **Discover** tab to browse what's available.\n\nTo install a plugin from the official marketplace:\n\n```shell  theme={null}\n/plugin install plugin-name@claude-plugins-official\n```\n\n<Note>\n  The official marketplace is maintained by Anthropic. To distribute your own plugins, [create your own marketplace](/en/plugin-marketplaces) and share it with users.\n</Note>\n\nThe official marketplace includes several categories of plugins:\n\n### Code intelligence\n\nCode intelligence plugins enable Claude Code's built-in LSP tool, giving Claude the ability to jump to definitions, find references, and see type errors immediately after edits. These plugins configure [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) connections, the same technology that powers VS Code's code intelligence.\n\nThese plugins require the language server binary to be installed on your system. If you already have a language server installed, Claude may prompt you to install the corresponding plugin when you open a project.\n\n| Language   | Plugin              | Binary required              |\n| :--------- | :------------------ | :--------------------------- |",
+            "| Swift      | `swift-lsp`         | `sourcekit-lsp`              |\n| TypeScript | `typescript-lsp`    | `typescript-language-server` |\n\nYou can also [create your own LSP plugin](/en/plugins-reference#lsp-servers) for other languages.\n\n<Note>\n  If you see `Executable not found in $PATH` in the `/plugin` Errors tab after installing a plugin, install the required binary from the table above.\n</Note>\n\n#### What Claude gains from code intelligence plugins\n\nOnce a code intelligence plugin is installed and its language server binary is available, Claude gains two capabilities:"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md",
+          "hit_count": 54,
+          "context_score": 21,
+          "total_score": 1134,
+          "snippets": [
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Create and distribute a plugin marketplace\n\n> Build and host plugin marketplaces to distribute Claude Code extensions across teams and communities.\n\nA plugin marketplace is a catalog that lets you distribute plugins to others. Marketplaces provide centralized discovery, version tracking, automatic updates, and support for multiple source types (git repositories, local paths, and more). This guide shows you how to create your own marketplace to share plugins with your team or community.\n\nLooking to install plugins from an existing marketplace? See [Discover and install prebuilt plugins](/en/discover-plugins).\n\n## Overview\n\nCreating and distributing a marketplace involves:\n\n1. **Creating plugins**: build one or more plugins with commands, agents, hooks, MCP servers, or LSP servers. This guide assumes you already have plugins to distribute; see [Create plugins](/en/plugins) for details on how to create them.\n2. **Creating a marketplace file**: define a `marketplace.json` that lists your plugins and where to find them (see [Create the marketplace file](#create-the-marketplace-file)).\n3. **Host the marketplace**: push to GitHub, GitLab, or another git host (see [Host and distribute marketplaces](#host-and-distribute-marketplaces)).\n4. **Share with users**: users add your marketplace with `/plugin marketplace add` and install individual plugins (see [Discover and install plugins](/en/discover-plugins)).\n\nOnce your marketplace is live, you can update it by pushing changes to your repository. Users refresh their local copy with `/plugin marketplace update`.",
+            "<Step title=\"Create the directory structure\">\n    ```bash  theme={null}\n    mkdir -p my-marketplace/.claude-plugin\n    mkdir -p my-marketplace/plugins/review-plugin/.claude-plugin\n    mkdir -p my-marketplace/plugins/review-plugin/skills/review\n    ```\n  </Step>\n\n  <Step title=\"Create the skill\">\n    Create a `SKILL.md` file that defines what the `/review` skill does.\n\n    ```markdown my-marketplace/plugins/review-plugin/skills/review/SKILL.md theme={null}\n    -",
+            "description: Review code for bugs, security, and performance\n    disable-model-invocation: true",
+            "<Step title=\"Create the plugin manifest\">\n    Create a `plugin.json` file that describes the plugin. The manifest goes in the `.claude-plugin/` directory.\n\n    ```json my-marketplace/plugins/review-plugin/.claude-plugin/plugin.json theme={null}\n    {\n      \"name\": \"review-plugin\",\n      \"description\": \"Adds a /review skill for quick code reviews\",",
+            "```json my-marketplace/.claude-plugin/marketplace.json theme={null}\n    {\n      \"name\": \"my-plugins\",\n      \"owner\": {\n        \"name\": \"Your Name\"\n      },\n      \"plugins\": [\n        {\n          \"name\": \"review-plugin\",\n          \"source\": \"./plugins/review-plugin\",\n          \"description\": \"Adds a /review skill for quick code reviews\"\n        }\n      ]"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 46,
+          "context_score": 13,
+          "total_score": 598,
+          "snippets": [
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Claude Code settings",
+            "**User scope** is best for:\n\n* Personal preferences you want everywhere (themes, editor settings)\n* Tools and plugins you use across all projects\n* API keys and authentication (stored securely)\n\n**Project scope** is best for:\n\n* Team-shared settings (permissions, hooks, MCP servers)\n* Plugins the whole team should have\n* Standardizing tooling across collaborators\n\n**Local scope** is best for:",
+            "| **Settings**    | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | —                              |\n| **MCP servers** | `~/.claude.json`          | `.mcp.json`                        | `~/.claude.json` (per-project) |\n| **Plugins**     | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | `CLAUDE.local.md`              |\n\n***",
+            "| `disabledMcpjsonServers`     | List of specific MCP servers from `.mcp.json` files to reject                                                                                                                                                                                                                   | `[\"filesystem\"]`                                                        |\n| `allowedMcpServers`          | When set in managed-settings.json, allowlist of MCP servers users can configure. Undefined = no restrictions, empty array = lockdown. Applies to all scopes. Denylist takes precedence. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration)                      | `[{ \"serverName\": \"github\" }]`                                          |\n| `deniedMcpServers`           | When set in managed-settings.json, denylist of MCP servers that are explicitly blocked. Applies to all scopes including managed servers. Denylist takes precedence over allowlist. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration)                           | `[{ \"serverName\": \"filesystem\" }]`                                      |\n| `strictKnownMarketplaces`    | When set in managed-settings.json, allowlist of plugin marketplaces users can add. Undefined = no restrictions, empty array = lockdown. Applies to marketplace additions only. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }]`                 |\n| `awsAuthRefresh`             | Custom script that modifies the `.aws` directory (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration))                                                                                                                                | `aws sso login --profile myprofile`                                     |\n| `awsCredentialExport`        | Custom script that outputs JSON with AWS credentials (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration))                                                                                                                            | `/bin/generate_aws_grant.sh`                                            |\n| `alwaysThinkingEnabled`      | Enable [extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) by default for all sessions. Typically configured via the `/config` command rather than editing directly                                                                                   | `true`                                                                  |",
+            "}\n```\n\nThis replaces the deprecated `ignorePatterns` configuration. Files matching these patterns are excluded from file discovery and search results, and read operations on these files are denied.\n\n## Subagent configuration"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed macOS keyboard shortcuts to display 'opt' instead of 'alt'",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Improved `/context` command visualization with grouped skills and agents by source, slash commands, and sorted token count",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md",
+          "hit_count": 18,
+          "context_score": 29,
+          "total_score": 522,
+          "snippets": [
+            "## The agentic loop\n\nWhen you give Claude a task, it works through three phases: **gather context**, **take action**, and **verify results**. These phases blend together. Claude uses tools throughout, whether searching files to understand your code, editing to make changes, or running tests to check its work.\n\n<img src=\"https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=e30acfc80d6ff01ec877dd19c7af58b2\" alt=\"The agentic loop: Your prompt leads to Claude gathering context, taking action, verifying results, and repeating until task complete. You can interrupt at any point.\" data-og-width=\"720\" width=\"720\" data-og-height=\"280\" height=\"280\" data-path=\"images/agentic-loop.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=280&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=8620f6ebce761a1e8bbf7f0a0255cc15 280w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=560&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=7b46b5ff4454aa4a03725eee625b39a0 560w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=840&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=7fa0397bc37d147e3bf3bb6296c6477f 840w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=1100&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=73b2a7040c4c93821c4d5bbee9f4a2d4 1100w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=1650&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=17703cbeb6f59b40a00ab24f56d5f8f9 1650w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=2500&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=20dedb60b95d45a1bd60a0cccaf3e1ff 2500w\" />\n\nThe loop adapts to what you ask. A question about your codebase might only need context gathering. A bug fix cycles through all three phases repeatedly. A refactor might involve extensive verification. Claude decides what each step requires based on what it learned from the previous step, chaining dozens of actions together and course-correcting along the way.\n\nYou're part of this loop too. You can interrupt at any point to steer Claude in a different direction, provide additional context, or ask it to try a different approach. Claude works autonomously but stays responsive to your input.\n\nThe agentic loop is powered by two components: [models](#models) that reason and [tools](#tools) that act. Claude Code serves as the **agentic harness** around Claude: it provides the tools, context management, and execution environment that turn a language model into a capable coding agent.\n\n### Models",
+            "* **Your project.** Files in your directory and subdirectories, plus files elsewhere with your permission.\n* **Your terminal.** Any command you could run: build tools, git, package managers, system utilities, scripts. If you can do it from the command line, Claude can too.\n* **Your git state.** Current branch, uncommitted changes, and recent commit history.\n* **Your [CLAUDE.md](/en/memory).** A markdown file where you store project-specific instructions, conventions, and context that Claude should know every session.\n* **Extensions you configure.** [MCP servers](/en/mcp) for external services, [skills](/en/skills) for workflows, [subagents](/en/sub-agents) for delegated work, and [Claude in Chrome](/en/chrome) for browser interaction.\n\nBecause Claude sees your whole project, it can work across it. When you ask Claude to \"fix the authentication bug,\" it searches for relevant files, reads multiple files to understand context, makes coordinated edits across them, runs tests to verify the fix, and commits the changes if you ask. This is different from inline code assistants that only see the current file.\n\n## Work with sessions",
+            "**Same session in multiple terminals**: If you resume the same session in multiple terminals, both terminals write to the same session file. Messages from both get interleaved, like two people writing in the same notebook. Nothing corrupts, but the conversation becomes jumbled. Each terminal only sees its own messages during the session, but if you resume that session later, you'll see everything interleaved. For parallel work from the same starting point, use `--fork-session` to give each terminal its own clean session.\n\n### The context window\n\nClaude's context window holds your conversation history, file contents, command outputs, [CLAUDE.md](/en/memory), loaded skills, and system instructions. As you work, context fills up. Claude compacts automatically, but instructions from early in the conversation can get lost. Put persistent rules in CLAUDE.md, and run `/context` to see what's using space.\n\n#### When context fills up\n\nClaude Code manages context automatically as you approach the limit. It clears older tool outputs first, then summarizes the conversation if needed. Your requests and key code snippets are preserved; detailed instructions from early in the conversation may be lost. Put persistent rules in CLAUDE.md rather than relying on conversation history.\n\nTo control what's preserved during compaction, add a \"Compact Instructions\" section to CLAUDE.md or run `/compact` with a focus (like `/compact focus on the API changes`).\n\nRun `/context` to see what's using space. MCP servers add tool definitions to every request, so a few servers can consume significant context before you start working. Run `/mcp` to check per-server costs.\n\n#### Manage context with skills and subagents\n\nBeyond compaction, you can use other features to control what loads into context.\n\n[Skills](/en/skills) load on demand. Claude sees skill descriptions at session start, but the full content only loads when a skill is used. For skills you invoke manually, set `disable-model-invocation: true` to keep descriptions out of context until you need them.\n\n[Subagents](/en/sub-agents) get their own fresh context, completely separate from your main conversation. Their work doesn't bloat your context. When done, they return a summary. This isolation is why subagents help with long sessions.\n\nSee [context costs](/en/features-overview#understand-context-costs) for what each feature costs, and [reduce token usage](/en/costs#reduce-token-usage) for tips on managing context.\n\n## Stay safe with checkpoints and permissions",
+            "### Delegate, don't dictate\n\nThink of delegating to a capable colleague. Give context and direction, then trust Claude to figure out the details:\n\n```\n> The checkout flow is broken for users with expired cards."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 25,
+          "context_score": 18,
+          "total_score": 450,
+          "snippets": [
+            "**Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n</Note>\n\nClaude Code skills follow the [Agent Skills](https://agentskills.io) open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like [invocation control](#control-who-invokes-a-skill), [subagent execution](#run-skills-in-a-subagent), and [dynamic context injection](#inject-dynamic-context).\n\n## Getting started",
+            "Skill files can contain any instructions, but thinking about how you want to invoke them helps guide what to include:\n\n**Reference content** adds knowledge Claude applies to your current work. Conventions, patterns, style guides, domain knowledge. This content runs inline so Claude can use it alongside your conversation context.\n\n```yaml  theme={null}\n-",
+            "-",
+            "name: deploy\ndescription: Deploy the application to production\ncontext: fork\ndisable-model-invocation: true\n-",
+            "| `user-invocable`           | No          | Set to `false` to hide from the `/` menu. Use for background knowledge users shouldn't invoke directly. Default: `true`.                              |\n| `allowed-tools`            | No          | Tools Claude can use without asking permission when this skill is active.                                                                             |\n| `model`                    | No          | Model to use when this skill is active.                                                                                                               |\n| `context`                  | No          | Set to `fork` to run in a forked subagent context.                                                                                                    |\n| `agent`                    | No          | Which subagent type to use when `context: fork` is set.                                                                                               |\n| `hooks`                    | No          | Hooks scoped to this skill's lifecycle. See [Hooks in skills and agents](/en/hooks#hooks-in-skills-and-agents) for configuration format.              |\n\n#### Available string substitutions"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md",
+          "hit_count": 13,
+          "context_score": 33,
+          "total_score": 429,
+          "snippets": [
+            "# Manage costs effectively\n\n> Track token usage, set team spend limits, and reduce Claude Code costs with context management, model selection, extended thinking settings, and preprocessing hooks.\n\nClaude Code consumes tokens for each interaction. Costs vary based on codebase size, query complexity, and conversation length. The average cost is \\$6 per developer per day, with daily costs remaining below \\$12 for 90% of users.",
+            "## Reduce token usage\n\nToken costs scale with context size: the more context Claude processes, the more tokens you use. Claude Code automatically optimizes costs through prompt caching (which reduces costs for repeated content like system prompts) and auto-compaction (which summarizes conversation history when approaching context limits).\n\nThe following strategies help you keep context small and reduce per-message costs.\n\n### Manage context proactively\n\nUse `/cost` to check your current token usage, or [configure your status line](/en/statusline#context-window-usage) to display it continuously.\n\n* **Clear between tasks**: Use `/clear` to start fresh when switching to unrelated work. Stale context wastes tokens on every subsequent message. Use `/rename` before clearing so you can easily find the session later, then `/resume` to return to it.\n* **Add custom compaction instructions**: `/compact Focus on code samples and API usage` tells Claude what to preserve during summarization.\n\nYou can also customize compaction behavior in your CLAUDE.md:",
+            "### Reduce MCP server overhead\n\nEach MCP server adds tool definitions to your context, even when idle. Run `/context` to see what's consuming space.\n\n* **Prefer CLI tools when available**: Tools like `gh`, `aws`, `gcloud`, and `sentry-cli` are more context-efficient than MCP servers because they don't add persistent tool definitions. Claude can run CLI commands directly without the overhead.\n* **Disable unused servers**: Run `/mcp` to see configured servers and disable any you're not actively using.\n* **Tool search is automatic**: When MCP tool descriptions exceed 10% of your context window, Claude Code automatically defers them and loads tools on-demand via [tool search](/en/mcp#scale-with-mcp-tool-search). Since deferred tools only enter context when actually used, a lower threshold means fewer idle tool definitions consuming space. Set a lower threshold with `ENABLE_TOOL_SEARCH=auto:<N>` (for example, `auto:5` triggers when tools exceed 5% of your context window).\n\n### Install code intelligence plugins for typed languages",
+            "### Offload processing to hooks and skills\n\nCustom [hooks](/en/hooks) can preprocess data before Claude sees it. Instead of Claude reading a 10,000-line log file to find errors, a hook can grep for `ERROR` and return only matching lines, reducing context from tens of thousands of tokens to hundreds.\n\nA [skill](/en/skills) can give Claude domain knowledge so it doesn't have to explore. For example, a \"codebase-overview\" skill could describe your project's architecture, key directories, and naming conventions. When Claude invokes the skill, it gets this context immediately instead of spending tokens reading multiple files to understand the structure.\n\nFor example, this PreToolUse hook filters test output to show only failures:",
+            "### Move instructions from CLAUDE.md to skills\n\nYour [CLAUDE.md](/en/memory) file is loaded into context at session start. If it contains detailed instructions for specific workflows (like PR reviews or database migrations), those tokens are present even when you're doing unrelated work. [Skills](/en/skills) load on-demand only when invoked, so moving specialized instructions into skills keeps your base context smaller. Aim to keep CLAUDE.md under \\~500 lines by including only essentials.\n\n### Adjust extended thinking"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- [Windows] Fixed issue with improper rendering",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- [VSCode] Added gift tag pictogram for year-end promotion message",
+      "prefix": "Unknown",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}

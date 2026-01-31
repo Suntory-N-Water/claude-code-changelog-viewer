@@ -1,0 +1,87 @@
+{
+  "version": "1.0.123",
+  "items": [
+    {
+      "content": "- Bash permission rules now support output redirections when matching (e.g., `Bash(python:*)` matches `python script.py > output.txt`)",
+      "prefix": "Bash",
+      "importance_score": 5,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 150,
+          "context_score": 26,
+          "total_score": 3900,
+          "snippets": [
+            "-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "### How a hook resolves\n\nTo see how these pieces fit together, consider this `PreToolUse` hook that blocks destructive shell commands. The hook runs `block-rm.sh` before every Bash tool call:\n\n```json  theme={null}\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"Bash\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",",
+            "}\n```\n\nThe script reads the JSON input from stdin, extracts the command, and blocks it if it contains `rm -rf`:\n\n```bash  theme={null}\n#!/bin/bash\n# .claude/hooks/block-rm.sh\nCOMMAND=$(jq -r '.tool_input.command')",
+            "fi\n```\n\nNow suppose Claude Code decides to run `Bash \"rm -rf /tmp/build\"`. Here's what happens:\n\n<Frame>\n  <img src=\"https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=7c13f51ffcbc37d22a593b27e2f2de72\" alt=\"Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code\" data-og-width=\"780\" width=\"780\" data-og-height=\"290\" height=\"290\" data-path=\"images/hook-resolution.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=280&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=36a39a07e8bc1995dcb4639e09846905 280w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=560&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=6568d90c596c7605bbac2c325b0a0c86 560w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=840&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=255a6f68b9475a0e41dbde7b88002dad 840w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1100&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=dcecf8d5edc88cd2bc49deb006d5760d 1100w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1650&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=04fe51bf69ae375e9fd517f18674e35f 1650w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=2500&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=b1b76e0b77fddb5c7fa7bf302dacd80b 2500w\" />\n</Frame>\n\n<Steps>"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md",
+          "hit_count": 42,
+          "context_score": 30,
+          "total_score": 1260,
+          "snippets": [
+            "-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Run Claude Code programmatically\n\n> Use the Agent SDK to run Claude Code programmatically from the CLI, Python, or TypeScript.\n\nThe [Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) gives you the same tools, agent loop, and context management that power Claude Code. It's available as a CLI for scripts and CI/CD, or as [Python](https://platform.claude.com/docs/en/agent-sdk/python) and [TypeScript](https://platform.claude.com/docs/en/agent-sdk/typescript) packages for full programmatic control.\n\n<Note>\n  The CLI was previously called \"headless mode.\" The `-p` flag and all CLI options work the same way.",
+            "To run Claude Code programmatically from the CLI, pass `-p` with your prompt and any [CLI options](/en/cli-reference):\n\n```bash  theme={null}\nclaude -p \"Find and fix the bug in auth.py\" --allowedTools \"Read,Edit,Bash\"\n```\n\nThis page covers using the Agent SDK via the CLI (`claude -p`). For the Python and TypeScript SDK packages with structured outputs, tool approval callbacks, and native message objects, see the [full Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview).\n\n## Basic usage",
+            "* `--continue` for [continuing conversations](#continue-conversations)\n* `--allowedTools` for [auto-approving tools](#auto-approve-tools)\n* `--output-format` for [structured output](#get-structured-output)\n\nThis example asks Claude a question about your codebase and prints the response:\n\n```bash  theme={null}\nclaude -p \"What does the auth module do?\"\n```",
+            "These examples highlight common CLI patterns.\n\n### Get structured output\n\nUse `--output-format` to control how responses are returned:\n\n* `text` (default): plain text output\n* `json`: structured JSON with result, session ID, and metadata\n* `stream-json`: newline-delimited JSON for real-time streaming\n\nThis example returns a project summary as JSON with session metadata, with the text result in the `result` field:\n\n```bash  theme={null}\nclaude -p \"Summarize this project\" --output-format json\n```\n\nTo get output conforming to a specific schema, use `--output-format json` with `--json-schema` and a [JSON Schema](https://json-schema.org/) definition. The response includes metadata about the request (session ID, usage, etc.) with the structured output in the `structured_output` field.\n\nThis example extracts function names and returns them as an array of strings:\n\n```bash  theme={null}\nclaude -p \"Extract the main function names from auth.py\" \\\n  --output-format json \\\n  --json-schema '{\"type\":\"object\",\"properties\":{\"functions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"functions\"]}'\n```\n\n<Tip>\n  Use a tool like [jq](https://jqlang.github.io/jq/) to parse the response and extract specific fields:\n\n  ```bash  theme={null}\n  # Extract the text result\n  claude -p \"Summarize this project\" --output-format json | jq -r '.result'\n\n  # Extract structured output\n  claude -p \"Extract function names from auth.py\" \\\n    --output-format json \\\n    --json-schema '{\"type\":\"object\",\"properties\":{\"functions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"functions\"]}' \\\n    | jq '.structured_output'\n  ```\n</Tip>\n\n### Stream responses\n\nUse `--output-format stream-json` with `--verbose` and `--include-partial-messages` to receive tokens as they're generated. Each line is a JSON object representing an event:\n\n```bash  theme={null}\nclaude -p \"Explain recursion\" --output-format stream-json --verbose --include-partial-messages\n```\n\nThe following example uses [jq](https://jqlang.github.io/jq/) to filter for text deltas and display just the streaming text. The `-r` flag outputs raw strings (no quotes) and `-j` joins without newlines so tokens stream continuously:\n\n```bash  theme={null}\nclaude -p \"Write a poem\" --output-format stream-json --verbose --include-partial-messages | \\\n  jq -rj 'select(.type == \"stream_event\" and .event.delta.type? == \"text_delta\") | .event.delta.text'\n```\n\nFor programmatic streaming with callbacks and message objects, see [Stream responses in real-time](https://platform.claude.com/docs/en/agent-sdk/streaming-output) in the Agent SDK documentation.\n\n### Auto-approve tools\n\nUse `--allowedTools` to let Claude use certain tools without prompting. This example runs a test suite and fixes failures, allowing Claude to execute Bash commands and read/edit files without asking for permission:\n\n```bash  theme={null}\nclaude -p \"Run the test suite and fix any failures\" \\\n  --allowedTools \"Bash,Read,Edit\"\n```\n\n### Create a commit\n\nThis example reviews staged changes and creates a commit with an appropriate message:\n\n```bash  theme={null}\nclaude -p \"Look at my staged changes and create an appropriate commit\" \\\n  --allowedTools \"Bash(git diff *),Bash(git log *),Bash(git status *),Bash(git commit *)\"\n```\n\nThe `--allowedTools` flag uses [permission rule syntax](/en/settings#permission-rule-syntax). The trailing ` *` enables prefix matching, so `Bash(git diff *)` allows any command starting with `git diff`. The space before `*` is important: without it, `Bash(git diff*)` would also match `git diff-index`.\n\n<Note>\n  User-invoked [skills](/en/skills) like `/commit` and [built-in commands](/en/interactive-mode#built-in-commands) are only available in interactive mode. In `-p` mode, describe the task you want to accomplish instead."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md",
+          "hit_count": 56,
+          "context_score": 15,
+          "total_score": 840,
+          "snippets": [
+            "-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Automate workflows with hooks",
+            "For other ways to extend Claude Code, see [skills](/en/skills) for giving Claude additional instructions and executable commands, [subagents](/en/sub-agents) for running tasks in isolated contexts, and [plugins](/en/plugins) for packaging extensions to share across projects.\n\n<Tip>\n  This guide covers common use cases and how to get started. For full event schemas, JSON input/output formats, and advanced features like async hooks and MCP tool hooks, see the [Hooks reference](/en/hooks).\n</Tip>\n\n## Set up your first hook",
+            "</Step>\n\n  <Step title=\"Add your command\">\n    Select `+ Add new hook…`. The menu prompts you for a shell command to run when the event fires. Hooks run any shell command you provide, so you can use your platform's built-in notification tool. Copy the command for your OS:\n\n    <Tabs>\n      <Tab title=\"macOS\">\n        Uses [`osascript`](https://ss64.com/mac/osascript.html) to trigger a native macOS notification through AppleScript:\n\n        ```\n        osascript -e 'display notification \"Claude Code needs your attention\" with title \"Claude Code\"'\n        ```\n      </Tab>",
+            "\"hooks\": [\n              {\n                \"type\": \"command\",\n                \"command\": \"osascript -e 'display notification \\\"Claude Code needs your attention\\\" with title \\\"Claude Code\\\"'\"\n              }\n            ]\n          }"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed thinking mode triggering on negation phrases like \"don't think\"",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed rendering performance degradation during token streaming",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Added SlashCommand tool, which enables Claude to invoke your slash commands. https://code.claude.com/docs/en/slash-commands#SlashCommand-tool",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": []
+    },
+    {
+      "content": "- Enhanced BashTool environment snapshot logging",
+      "prefix": "Enhanced",
+      "importance_score": 5,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed a bug where resuming a conversation in headless mode would sometimes enable thinking unnecessarily",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Migrated --debug logging to a file, to enable easy tailing & filtering",
+      "prefix": "Migrated",
+      "importance_score": 5,
+      "related_docs": []
+    }
+  ]
+}
