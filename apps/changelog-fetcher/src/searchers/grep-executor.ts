@@ -21,7 +21,9 @@ function toRelativePath(absolutePath: string): string {
  */
 function executeGrep(pattern: string, flags: string): string[] {
   try {
-    const command = `grep ${flags} '${pattern}' ${DOCS_DIR}/*.md`;
+    // シングルクォートをエスケープ: 'pattern' -> 'pat'\''tern'
+    const escapedPattern = pattern.replace(/'/g, "'\\''");
+    const command = `grep ${flags} '${escapedPattern}' ${DOCS_DIR}/*.md`;
     const result = execSync(command, { encoding: 'utf-8' });
     return result
       .split('\n')

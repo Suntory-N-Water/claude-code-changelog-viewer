@@ -34,8 +34,9 @@ function countMatches(file: string, keywords: Keywords): number {
 
   try {
     const pattern = allKeywords.map(escapeRegex).join('|');
+    const escapedPattern = pattern.replace(/'/g, "'\\''");
     const absolutePath = toAbsolutePath(file);
-    const command = `grep -c -iE '(${pattern})' "${absolutePath}"`;
+    const command = `grep -c -iE '(${escapedPattern})' "${absolutePath}"`;
     const result = execSync(command, { encoding: 'utf-8' });
     return Number.parseInt(result.trim(), 10) || 0;
   } catch (error) {
@@ -60,8 +61,9 @@ function extractSnippetsFromFile(file: string, keywords: Keywords): string[] {
 
   try {
     const pattern = allKeywords.map(escapeRegex).join('|');
+    const escapedPattern = pattern.replace(/'/g, "'\\''");
     const absolutePath = toAbsolutePath(file);
-    const command = `grep -iE '(${pattern})' -B 3 -A 3 "${absolutePath}"`;
+    const command = `grep -iE '(${escapedPattern})' -B 3 -A 3 "${absolutePath}"`;
     const result = execSync(command, { encoding: 'utf-8' });
 
     // 区切り線 "--" でスニペットを分割
