@@ -6,13 +6,16 @@ import VersionCard from '../components/changelog/VersionCard.astro';
 // Content Collectionsから全バージョンを取得
 const allChangelogs = await getCollection('changelog');
 
-// バージョン番号で降順ソート
+// バージョン番号で降順ソート(セマンティックバージョニング対応)
 const sortedChangelogs = allChangelogs.sort((a, b) => {
-  const versionA = a.id.replace('v', '').replace('.json', '');
-  const versionB = b.id.replace('v', '').replace('.json', '');
+  // data.versionを使用(例: "2.1.27")
+  const versionA = a.data.version;
+  const versionB = b.data.version;
+
   const aParts = versionA.split('.').map(Number);
   const bParts = versionB.split('.').map(Number);
 
+  // メジャー、マイナー、パッチの順で比較
   for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
     const diff = (bParts[i] || 0) - (aParts[i] || 0);
     if (diff !== 0) return diff;
