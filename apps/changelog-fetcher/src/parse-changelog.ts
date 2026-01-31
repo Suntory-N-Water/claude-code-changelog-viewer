@@ -10,11 +10,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 type Metadata = {
   lastFetchTime: string;
   versions: Record<string, string>;
-  stats: {
-    new: number;
-    updated: number;
-    unchanged: number;
-  };
 };
 
 function parseChangelog(content: string): Record<string, string> {
@@ -72,7 +67,6 @@ function main() {
 
   let newCount = 0;
   let updatedCount = 0;
-  let unchangedCount = 0;
   const newMetadata: Record<string, string> = {};
 
   for (const [version, content] of Object.entries(versions)) {
@@ -85,7 +79,6 @@ function main() {
 
     if (contentHash === existingHash && existsSync(versionFile)) {
       console.log(`  → ${versionKey}: Unchanged`);
-      unchangedCount++;
       newMetadata[versionKey] = contentHash;
       continue;
     }
@@ -106,16 +99,12 @@ function main() {
   const metadata: Metadata = {
     lastFetchTime: new Date().toISOString(),
     versions: newMetadata,
-    stats: { new: newCount, updated: updatedCount, unchanged: unchangedCount },
   };
 
   writeFileSync(metadataFile, JSON.stringify(metadata, null, 2), 'utf-8');
 
   console.log();
   console.log('✓ Fetch completed:');
-  console.log(`  - New: ${newCount}`);
-  console.log(`  - Updated: ${updatedCount}`);
-  console.log(`  - Unchanged: ${unchangedCount}`);
 
   // 更新がない場合は exit 1 を返す
   if (newCount === 0 && updatedCount === 0) {
