@@ -1,0 +1,187 @@
+name: Fetch and Analyze CHANGELOG
+
+on:
+  schedule:
+    # 毎時実行(UTC基準)
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: changelog-auto-inference
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  fetch-and-infer-changelog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    env:
+      TZ: Asia/Tokyo
+
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: ./.github/actions/setup
+
+      - name: Fetch CHANGELOG
+        id: fetch
+        continue-on-error: true
+        run: |
+          pnpm run fetch:changelog
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Handle no updates
+        if: steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code == '1'
+        run: |
+          echo "ℹ️  No changelog updates detected."
+          echo "All versions are up to date."
+          exit 0
+
+      - name: Handle fetch error
+        if: steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code != '1' && steps.fetch.outputs.exit_code != '0'
+        run: |
+          echo "❌ Error occurred while fetching changelog."
+          exit 1
+
+      - name: Detect updated versions
+        id: detect-updates
+        run: |
+          git add -A
+
+          # チェンジログ（*.md）ファイルの変更を検出
+          CHANGED_FILES=$(git diff --staged --name-only -- 'apps/changelog-fetcher/changelogs/*.md')
+
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "has_updates=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ チェンジログに更新なし"
+            exit 0
+          else
+            echo "has_updates=true" >> "$GITHUB_OUTPUT"
+
+            # ファイル名からバージョン抽出 (apps/changelog-fetcher/changelogs/vX.Y.Z.md → vX.Y.Z)
+            NEW_VERSIONS=$(echo "$CHANGED_FILES" | sed 's|apps/changelog-fetcher/changelogs/||' | sed 's|\.md$||' | tr '\n' ' ')
+            echo "new_versions=$NEW_VERSIONS" >> "$GITHUB_OUTPUT"
+
+            echo "✅ チェンジログに更新あり"
+            echo "$CHANGED_FILES"
+            echo ""
+            echo "対象バージョン: $NEW_VERSIONS"
+          fi
+
+      - name: Analyze changelogs
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        env:
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        run: |
+          for version in $NEW_VERSIONS; do
+            echo "🔍 Analyzing $version..."
+            pnpm run analyze "$version"
+          done
+
+      - name: Verify analysis files
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        env:
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        run: |
+          for version in $NEW_VERSIONS; do
+            if [ ! -f "apps/changelog-fetcher/analysis/analysis_${version}.json" ]; then
+              echo "❌ Missing analysis file for $version"
+              exit 1
+            fi
+            echo "✅ analysis_${version}.json created"
+          done
+
+      - name: Infer benefits
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        run: |
+          for version in $NEW_VERSIONS; do
+            echo "🤖 Inferring benefits for $version..."
+            pnpm run infer "$version"
+          done
+
+      - name: Verify inferred files
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        env:
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        run: |
+          for version in $NEW_VERSIONS; do
+            if [ ! -f "apps/changelog-fetcher/inferred/inferred_${version}.json" ]; then
+              echo "❌ Missing inferred file for $version"
+              exit 1
+            fi
+            echo "✅ inferred_${version}.json created"
+          done
+
+      - name: Commit and push
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        env:
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          # 変更ファイル数をカウント
+          CHANGED_FILES=$(git diff --staged --name-only | wc -l)
+
+          if [ "$CHANGED_FILES" -eq 0 ]; then
+            echo "ℹ️ No changes to commit"
+            exit 0
+          fi
+
+          # バージョンリストを整形
+          VERSIONS="$NEW_VERSIONS"
+          VERSION_COUNT=$(echo "$VERSIONS" | wc -w)
+          TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S JST')
+
+          # コミットメッセージ作成
+          if [ "$VERSION_COUNT" -eq 1 ]; then
+            COMMIT_TITLE="🤖 Process CHANGELOG updates - 1 version"
+          else
+            COMMIT_TITLE="🤖 Process CHANGELOG updates - $VERSION_COUNT versions"
+          fi
+
+          COMMIT_BODY="Processed versions: $VERSIONS
+
+          Automated update at $TIMESTAMP"
+
+          git commit -m "$COMMIT_TITLE" -m "$COMMIT_BODY"
+
+          # コミットハッシュを表示
+          COMMIT_HASH=$(git rev-parse HEAD)
+          echo "✓ Created commit: $COMMIT_HASH"
+
+          # リベースしてプッシュ
+          git pull --rebase origin main
+          git push
+
+          echo "✓ Changes pushed successfully"
+
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          JOB_NAME: fetch-and-infer-changelog
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        with:
+          script: |
+            const scriptFunction = require('./.github/scripts/create-changelog-processing-issue.cjs');
+            await scriptFunction({ github, context, core });

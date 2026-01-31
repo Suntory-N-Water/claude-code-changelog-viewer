@@ -7,6 +7,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 ## 特徴
 
 - GitHub Actions で CHANGELOG とドキュメントを定期取得
+- AI による CHANGELOG の自動翻訳・推論(Gemini API 使用)
 - pnpm workspace によるモノレポ構成
 - Astro + Cloudflare Workers による高速な静的サイト
 - TypeScript strict mode による型安全な実装
@@ -36,8 +37,11 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 
 #### `apps/changelog-fetcher`
 - CHANGELOG.md をパースして JSON 化
+- Gemini API による自動翻訳・推論
 - 毎時実行
 - 取得状況: `apps/changelog-fetcher/metadata/last_fetch.json`
+- 解析結果: `apps/changelog-fetcher/analysis/analysis_v*.json`
+- 推論結果: `apps/changelog-fetcher/inferred/inferred_v*.json`
 
 ## 技術スタック
 
