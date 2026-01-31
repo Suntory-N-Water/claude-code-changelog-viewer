@@ -9,6 +9,8 @@ const IMPORTANCE_SCORES: Record<string, number> = {
   Updated: 6,
   Removed: 5,
   Enabled: 6,
+  Deprecated: 7,
+  Breaking: 9,
 };
 
 /**
@@ -39,10 +41,56 @@ function calculateImportance(prefix: string, tags: string[]): number {
 
 /**
  * プリフィックスを抽出(Added, Fixed など)
+ * コンテンツ全体を解析して変更タイプを推論
  */
 function extractPrefix(content: string): string {
-  const match = content.match(/^-\s*(\w+)/);
-  return match ? match[1] : 'Unknown';
+  // 明示的な変更タイプキーワードで開始する場合
+  if (/^-\s*(Added|Adding|Add)\b/i.test(content)) {
+    return 'Added';
+  }
+  if (/^-\s*(Fixed|Fix|Fixes)\b/i.test(content)) {
+    return 'Fixed';
+  }
+  if (/^-\s*(Changed|Change)\b/i.test(content)) {
+    return 'Changed';
+  }
+  if (/^-\s*(Improved|Improve|Improvement)\b/i.test(content)) {
+    return 'Improved';
+  }
+  if (/^-\s*(Updated|Update|Upgrade)\b/i.test(content)) {
+    return 'Updated';
+  }
+  if (/^-\s*(Removed|Remove|Removing)\b/i.test(content)) {
+    return 'Removed';
+  }
+  if (/^-\s*(Enabled|Enable)\b/i.test(content)) {
+    return 'Enabled';
+  }
+  if (/^-\s*(Deprecated|Deprecate)\b/i.test(content)) {
+    return 'Deprecated';
+  }
+  if (/^-\s*(Breaking|Breaking change)/i.test(content)) {
+    return 'Breaking';
+  }
+
+  // 新機能追加を示すパターン
+  if (/^-\s*(New|Introducing|Introduced)\b/i.test(content)) {
+    return 'Added';
+  }
+  if (/(can now|now supports?|now allows?|now includes?)/i.test(content)) {
+    return 'Added';
+  }
+
+  // その他のパターン
+  if (/^-\s*(Made|Make)\b/i.test(content)) {
+    return 'Changed';
+  }
+  if (/^-\s*Moved\b/i.test(content)) {
+    return 'Changed';
+  }
+
+  // デフォルト
+  return 'Changed';
 }
 
 /**
