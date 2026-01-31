@@ -6,7 +6,29 @@ import { buildInferencePrompt } from './ai/prompts/inference-prompt';
 import { buildSummaryPrompt } from './ai/prompts/summary-prompt';
 import { buildTranslationPrompt } from './ai/prompts/translation-prompt';
 
-async function inferBenefits(version: string): Promise<void> {
+type CliArgs = {
+  version: string;
+  skipAI: boolean;
+};
+
+function parseArgs(): CliArgs {
+  const args = process.argv.slice(2);
+  const version = args.find((arg) => !arg.startsWith('--'));
+  const skipAI = args.includes('--no-ai') || args.includes('--skip-ai');
+
+  if (!version) {
+    console.error('Usage: pnpm tsx src/infer-benefits.ts <version> [--no-ai]');
+    console.error('Example: pnpm tsx src/infer-benefits.ts 2.1.19');
+    console.error(
+      'Example (no AI): pnpm tsx src/infer-benefits.ts 2.1.19 --no-ai',
+    );
+    process.exit(1);
+  }
+
+  return { version, skipAI };
+}
+
+async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
   const analysisDir = join(process.cwd(), 'analysis');
   const inferredDir = join(process.cwd(), 'inferred');
   const analysisPath = join(analysisDir, `analysis_${version}.json`);
@@ -16,6 +38,24 @@ async function inferBenefits(version: string): Promise<void> {
   console.log(`Reading ${analysisPath}...`);
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
   const analysis = AnalysisSchema.parse(JSON.parse(rawAnalysis));
+
+  // AI推論スキップモード
+  if (skipAI) {
+    console.log('Running in no-AI mode (copy only)...');
+    console.log(`Total items: ${analysis.items.length}`);
+
+    // analysisをそのままバリデーションして保存
+    const validated = AnalysisSchema.parse(analysis);
+
+    mkdirSync(inferredDir, { recursive: true });
+    writeFileSync(inferredPath, JSON.stringify(validated, null, 2), 'utf-8');
+    console.log(`\nSaved to ${inferredPath} (no AI processing)`);
+
+    console.log(`\n--- Summary ---`);
+    console.log(`Total items: ${validated.items.length}`);
+    console.log(`AI inference: Skipped`);
+    return;
+  }
 
   // 2. Gemini API キー取得
   const apiKey = process.env.GEMINI_API_KEY || '';
@@ -108,14 +148,9 @@ async function inferBenefits(version: string): Promise<void> {
 }
 
 // エントリーポイント
-const version = process.argv[2];
-if (!version) {
-  console.error('Usage: pnpm tsx src/infer-benefits.ts <version>');
-  console.error('Example: pnpm tsx src/infer-benefits.ts 2.1.19');
-  process.exit(1);
-}
+const { version, skipAI } = parseArgs();
 
-inferBenefits(version).catch((error) => {
+inferBenefits(version, skipAI).catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });
