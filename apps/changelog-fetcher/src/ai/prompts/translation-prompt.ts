@@ -1,7 +1,7 @@
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 
 /**
- * 翻訳のみのプロンプトを構築（コグニティブ・デザイン形式）
+ * 翻訳のみのプロンプトを構築(コグニティブ・デザイン形式)
  */
 export function buildTranslationPrompt(item: ChangelogItem): string {
   return `
@@ -24,7 +24,7 @@ export function buildTranslationPrompt(item: ChangelogItem): string {
 機械的な直訳ではなく、文脈を理解した上での意訳も含めて、読みやすく自然な日本語を提供する。
 
 ## 制約 (Constraint)
-- 技術用語（CLI、API、VSCode など）はカタカナ表記またはそのまま英語を使用してよい
+- 技術用語(CLI、API、VSCode など)はカタカナ表記またはそのまま英語を使用してよい
 - 1-2文程度の簡潔な翻訳にする
 - 原文の意味を正確に保つ
 - 開発者にとって分かりやすい自然な日本語表現を心がける

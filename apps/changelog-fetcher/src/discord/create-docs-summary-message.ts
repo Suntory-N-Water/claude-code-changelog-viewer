@@ -10,14 +10,14 @@ type CliArgs = {
 function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
 
-  // コミットSHAの取得（第1引数 or --commit-sha）
+  // コミットSHAの取得(第1引数 or --commit-sha)
   const commitShaIndex = args.indexOf('--commit-sha');
   const commitSha =
     commitShaIndex !== -1
       ? args[commitShaIndex + 1]
       : args.find((arg) => !arg.startsWith('--'));
 
-  // 変更ファイル数の取得（--changed-files）
+  // 変更ファイル数の取得(--changed-files)
   const changedFilesIndex = args.indexOf('--changed-files');
   const changedFilesCount =
     changedFilesIndex !== -1
@@ -38,7 +38,7 @@ function parseArgs(): CliArgs {
 }
 
 /**
- * git diffを取得（HEAD~1との差分、docs/配下のみ）
+ * git diffを取得(HEAD~1との差分、docs/配下のみ)
  */
 function getDocsDiff(commitSha: string): string {
   try {
@@ -89,7 +89,7 @@ function getDocsDiff(commitSha: string): string {
 }
 
 /**
- * git diffから変更ファイル一覧を取得（GitHubリンク付き）
+ * git diffから変更ファイル一覧を取得(GitHubリンク付き)
  */
 function getChangedFilesList(
   commitSha: string,
@@ -159,7 +159,7 @@ async function summarizeDocChanges(
     );
 
     try {
-      // 変更されたファイルの具体的な差分を取得（HTMLメタデータを除外）
+      // 変更されたファイルの具体的な差分を取得(HTMLメタデータを除外)
       const detailedDiff = execSync(
         `git diff ${commitSha}~1 ${commitSha} -- 'apps/docs-tracker/docs/**/*.md' ':(exclude)apps/docs-tracker/docs/**/changelog.md' | grep -A 3 -B 3 '^[+-]' | grep -v '^index\\|^diff\\|^---\\|^+++'`,
         {
@@ -220,7 +220,7 @@ ${enrichedContext}
   } catch (error) {
     console.error('Failed to generate AI summary:', error);
     // フォールバック: 簡易メッセージ
-    return `Claude Code のドキュメントが更新されました（${changedFilesCount}ファイル）。詳細はコミットをご確認ください。`;
+    return `Claude Code のドキュメントが更新されました(${changedFilesCount}ファイル)。詳細はコミットをご確認ください。`;
   }
 }
 
@@ -243,7 +243,7 @@ function createDiscordMessage(
   content += `## 変更ファイル\n\`\`\`\n${fileList}\n\`\`\`\n\n`;
   content += `## 参考\n- [コミット](${commitUrl})\n- [リポジトリ](${repoUrl})`;
 
-  // Discordの文字数制限（2000文字）を考慮
+  // Discordの文字数制限(2000文字)を考慮
   const MAX_CONTENT_LENGTH = 1950;
   if (content.length > MAX_CONTENT_LENGTH) {
     content = `${content.substring(0, MAX_CONTENT_LENGTH)}...\n\n## 参考\n- [コミット](${commitUrl})`;

@@ -69,7 +69,7 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
   console.log('Starting processing with model: gemini-3-flash-preview...');
   console.log(`Total items: ${analysis.items.length}`);
 
-  // 4. 全項目を処理（レート制限を遵守しつつ個別リクエスト）
+  // 4. 全項目を処理(レート制限を遵守しつつ個別リクエスト)
   for (const item of analysis.items) {
     // 既に処理済みの項目はスキップ
     if (item.content_ja && item.inference) {

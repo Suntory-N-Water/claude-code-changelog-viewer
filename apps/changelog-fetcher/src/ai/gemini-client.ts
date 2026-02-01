@@ -79,7 +79,7 @@ export class GeminiClient {
   }
 
   /**
-   * 推論結果と翻訳を一度に取得（フォールバック対応）
+   * 推論結果と翻訳を一度に取得(フォールバック対応)
    *
    * @param prompt - 推論プロンプト
    * @returns JSON形式の推論結果(翻訳含む)
@@ -159,7 +159,7 @@ export class GeminiClient {
   }
 
   /**
-   * 翻訳のみを取得（フォールバック対応）
+   * 翻訳のみを取得(フォールバック対応)
    * related_docs が2件未満の項目用
    * 軽量モデルを優先して貴重なGemini枠を節約
    *
@@ -226,7 +226,7 @@ export class GeminiClient {
   }
 
   /**
-   * バージョン全体のサマリーを生成（フォールバック対応）
+   * バージョン全体のサマリーを生成(フォールバック対応)
    *
    * @param prompt - サマリー生成プロンプト
    * @returns 日本語サマリー
