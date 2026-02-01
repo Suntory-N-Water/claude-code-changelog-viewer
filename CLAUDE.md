@@ -43,7 +43,7 @@ Claude Code の更新履歴を分かりやすく表示する Web アプリケー
 
 **IMPORTANT**: 以下のファイルは GitHub Actions で自動生成されるため手動編集しないこと
 
-- `apps/docs-tracker/metadata/last_update.json` - ドキュメント取得状況(JST 3:00, 9:00, 15:00, 21:00)
+- `apps/docs-tracker/metadata/last_update.json` - ドキュメント取得状況(3時間おき)
 - `apps/changelog-fetcher/metadata/last_fetch.json` - CHANGELOG 取得状況(毎時)
 - `apps/changelog-fetcher/changelogs/v*.md` - 各バージョンの CHANGELOG
 - `apps/changelog-fetcher/analysis/analysis_v*.json` - 各バージョンの解析結果

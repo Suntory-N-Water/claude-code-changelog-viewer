@@ -32,7 +32,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 
 #### `apps/docs-tracker`
 - Claude Code の公式ドキュメントを取得
-- JST 3:00, 9:00, 15:00, 21:00 に定期実行
+- 3時間おきに定期実行
 - 取得状況: `apps/docs-tracker/metadata/last_update.json`
 
 #### `apps/changelog-fetcher`
