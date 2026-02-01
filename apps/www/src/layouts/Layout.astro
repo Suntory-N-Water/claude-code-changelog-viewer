@@ -43,6 +43,30 @@ const ogImage = image || `${siteUrl}/og-image.png`;
     <meta name='twitter:image' content={ogImage} />
 
     <ClientRouter />
+    <script is:inline>
+      let isBackNavigation = false;
+
+      window.addEventListener('popstate', () => {
+        isBackNavigation = true;
+      });
+
+      document.addEventListener('click', (e) => {
+        const link =
+          e.target instanceof Element
+            ? e.target.closest('a[data-direction="back"]')
+            : null;
+        if (link) {
+          isBackNavigation = true;
+        }
+      });
+
+      document.addEventListener('astro:before-preparation', (event) => {
+        if (isBackNavigation) {
+          event.direction = 'back';
+        }
+        isBackNavigation = false;
+      });
+    </script>
   </head>
   <body>
     <slot />

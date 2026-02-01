@@ -10,7 +10,7 @@ export function formatChangelogContent(content: string): string {
   // バッククォートを<code>タグに変換
   formatted = formatted.replace(
     /`([^`]+)`/g,
-    '<code class="px-1.5 py-0.5 rounded bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] text-sm font-mono">$1</code>',
+    '<code class="px-1.5 py-0.5 rounded bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] text-sm font-mono break-all">$1</code>',
   );
 
   return formatted;
