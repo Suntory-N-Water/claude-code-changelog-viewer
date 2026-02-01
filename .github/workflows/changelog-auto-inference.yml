@@ -129,6 +129,12 @@ jobs:
             echo "✅ inferred_${version}.json created"
           done
 
+      - name: Sync symlinks
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        run: |
+          echo "🔗 Syncing symlinks..."
+          pnpm run sync
+
       - name: Commit and push
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
