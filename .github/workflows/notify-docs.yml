@@ -1,0 +1,68 @@
+name: Notify Documentation Changes
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: "Commit SHA to analyze"
+        required: true
+        type: string
+      changed_files_count:
+        description: "Number of changed files"
+        required: true
+        type: number
+    secrets:
+      DISCORD_WEBHOOK_URL:
+        required: true
+      GEMINI_API_KEY:
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Setup pnpm environment
+        uses: ./.github/actions/setup
+
+      - name: Send Discord notification
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CHANGED_FILES_COUNT: ${{ inputs.changed_files_count }}
+        run: |
+          cd apps/changelog-fetcher
+
+          echo "📤 Sending Discord notification for commit ${COMMIT_SHA}..."
+          pnpm run notify:docs-send "${COMMIT_SHA}" --changed-files "${CHANGED_FILES_COUNT}"
+
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "✅ Discord notification sent successfully"
+          else
+            echo "⚠️ Discord notification failed (exit code: $EXIT_CODE)"
+            echo "This is not a critical error, workflow will continue"
+          fi
+
+      - name: Report status
+        if: always()
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          CHANGED_FILES_COUNT: ${{ inputs.changed_files_count }}
+        run: |
+          echo "📊 Notification workflow completed"
+          echo "   Commit SHA: ${COMMIT_SHA}"
+          echo "   Changed files: ${CHANGED_FILES_COUNT}"

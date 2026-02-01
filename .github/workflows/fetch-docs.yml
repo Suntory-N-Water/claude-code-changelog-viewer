@@ -27,6 +27,11 @@ jobs:
       contents: write # Need write permission to commit changes
       issues: write # Need write permission to create issues on failure
 
+    outputs:
+      should_push: ${{ steps.git-check.outputs.should_push }}
+      changed_files: ${{ steps.git-check.outputs.changed_files }}
+      commit_sha: ${{ steps.get-sha.outputs.sha }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -110,6 +115,14 @@ jobs:
           git pull --rebase origin main
           git push
 
+      - name: Get commit SHA
+        id: get-sha
+        if: steps.git-check.outputs.should_push == 'true'
+        run: |
+          COMMIT_SHA=$(git rev-parse HEAD)
+          echo "sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "✓ Commit SHA: $COMMIT_SHA"
+
       - name: Report status
         if: always()
         run: |
@@ -150,3 +163,14 @@ jobs:
               body: body,
               labels: ['bug', 'documentation', 'automated']
             });
+
+  notify:
+    needs: fetch-docs
+    if: needs.fetch-docs.outputs.should_push == 'true'
+    uses: ./.github/workflows/notify-docs.yml
+    with:
+      commit_sha: ${{ needs.fetch-docs.outputs.commit_sha }}
+      changed_files_count: ${{ fromJSON(needs.fetch-docs.outputs.changed_files) }}
+    secrets:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
