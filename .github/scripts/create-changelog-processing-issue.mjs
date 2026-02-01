@@ -1,5 +1,5 @@
 /**
- * @typedef {import("../types/actions").ActionOptions} ActionOptions
+ * @typedef {import("../types/actions.ts").ActionOptions} ActionOptions
  */
 
 /**
@@ -8,7 +8,7 @@
  *
  * @param {ActionOptions} options
  */
-module.exports = async ({ github, context, core }) => {
+export default async ({ github, context, core }) => {
   try {
     const jobName = process.env.JOB_NAME;
     const versions = process.env.NEW_VERSIONS || '';
