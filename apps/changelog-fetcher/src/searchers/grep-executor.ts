@@ -99,7 +99,6 @@ export function searchDocs(keywords: Keywords): SearchResult {
   if (exactFiles.length > 0 && exactFiles.length <= 50) {
     return {
       files: exactFiles,
-      strategy: 'exact',
     };
   }
 
@@ -108,7 +107,6 @@ export function searchDocs(keywords: Keywords): SearchResult {
   if (normalizedFiles.length > 0 && normalizedFiles.length <= 50) {
     return {
       files: normalizedFiles,
-      strategy: 'normalized',
     };
   }
 
@@ -117,14 +115,12 @@ export function searchDocs(keywords: Keywords): SearchResult {
   if (multiFiles.length > 0) {
     return {
       files: multiFiles,
-      strategy: 'multi',
     };
   }
 
   // 0件
   return {
     files: [],
-    strategy: 'multi',
   };
 }
 

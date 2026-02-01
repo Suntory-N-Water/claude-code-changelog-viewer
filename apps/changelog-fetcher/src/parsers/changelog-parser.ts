@@ -1,4 +1,4 @@
-import type { ParsedItem, Pipeline } from '../types';
+import type { ParsedItem } from '../types';
 
 // プリフィックスごとの重要度スコア
 const IMPORTANCE_SCORES: Record<string, number> = {
@@ -12,23 +12,6 @@ const IMPORTANCE_SCORES: Record<string, number> = {
   Deprecated: 7,
   Breaking: 9,
 };
-
-/**
- * タグからパイプラインを判定
- */
-function determinePipeline(tags: string[]): Pipeline {
-  if (tags.includes('SDK') || tags.includes('API')) {
-    return 'developer';
-  }
-  if (
-    tags.includes('VSCode') ||
-    tags.includes('IDE') ||
-    tags.includes('Cursor')
-  ) {
-    return 'extension';
-  }
-  return 'general';
-}
 
 /**
  * プリフィックスとタグから重要度スコアを算出
@@ -146,14 +129,12 @@ export function parseChangelog(changelog: string): ParsedItem[] {
 function parseItem(itemText: string): ParsedItem {
   const prefix = extractPrefix(itemText);
   const tags = extractTags(itemText);
-  const pipeline = determinePipeline(tags);
   const importance_score = calculateImportance(prefix, tags);
 
   return {
     content: itemText,
     prefix,
     tags,
-    pipeline,
     importance_score,
   };
 }
