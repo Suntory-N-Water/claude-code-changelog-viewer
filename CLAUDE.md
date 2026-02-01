@@ -60,3 +60,4 @@ Claude Code の更新履歴を分かりやすく表示する Web アプリケー
 ## その他
 
 - github の情報は `gh` コマンドを使用して取得する
+- github actions のワークフローを更新したときは `/dev:actions-check` スキルを利用し静的解析を実施する

@@ -135,6 +135,14 @@ jobs:
           echo "🔗 Syncing symlinks..."
           pnpm run sync
 
+      - name: Update version and create tag
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        env:
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        run: |
+          chmod +x .github/scripts/update-version-and-tag.sh
+          .github/scripts/update-version-and-tag.sh "$NEW_VERSIONS"
+
       - name: Commit and push
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
@@ -179,7 +187,10 @@ jobs:
           git pull --rebase origin main
           git push
 
-          echo "✓ Changes pushed successfully"
+          # タグもプッシュ
+          git push --tags
+
+          echo "✓ Changes and tags pushed successfully"
 
       - name: Create issue on failure
         if: failure()
