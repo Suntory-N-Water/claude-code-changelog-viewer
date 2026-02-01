@@ -44,20 +44,36 @@ function getDocsDiff(commitSha: string): string {
   try {
     // Check if parent commit exists
     try {
-      execSync(`git rev-parse ${commitSha}~1`, { encoding: 'utf-8' });
+      const parentCheck = execSync(`git rev-parse ${commitSha}~1`, {
+        encoding: 'utf-8',
+      });
+      console.log(`✓ Parent commit exists: ${parentCheck.trim()}`);
     } catch {
       // First commit - return empty diff
+      console.log('ℹ️ No parent commit found - this is the first commit');
       return 'Initial commit - all files are new';
     }
 
-    // Get diff for docs directory only
-    const diff = execSync(
-      `git diff ${commitSha}~1 ${commitSha} -- apps/docs-tracker/docs/`,
-      {
-        encoding: 'utf-8',
-        maxBuffer: 10 * 1024 * 1024, // 10MB
-      },
-    );
+    // Get diff for docs directory only, excluding metadata files like changelog.md
+    // Focus on actual documentation content changes
+    const diffCommand = `git diff ${commitSha}~1 ${commitSha} -- 'apps/docs-tracker/docs/**/*.md' ':(exclude)apps/docs-tracker/docs/**/changelog.md'`;
+    console.log(`🔍 Running diff command: ${diffCommand}`);
+
+    const diff = execSync(diffCommand, {
+      encoding: 'utf-8',
+      maxBuffer: 10 * 1024 * 1024, // 10MB
+    });
+
+    console.log(`✓ Retrieved diff: ${diff.length} characters`);
+
+    // If diff is empty or very small, it might be only metadata changes
+    if (diff.length < 100) {
+      console.log(
+        '⚠️ Diff is very small, might be only metadata changes. Getting file list for context.',
+      );
+      // Fall back to showing changed file names with their full content context
+      return 'Minimal diff detected - changes may be metadata only';
+    }
 
     // Limit diff size to avoid token overflow (first 3000 lines)
     const lines = diff.split('\n');
@@ -73,9 +89,13 @@ function getDocsDiff(commitSha: string): string {
 }
 
 /**
- * git diffから変更ファイル一覧を取得
+ * git diffから変更ファイル一覧を取得（GitHubリンク付き）
  */
-function getChangedFilesList(commitSha: string): string {
+function getChangedFilesList(
+  commitSha: string,
+  repoOwner = 'Suntory-N-Water',
+  repoName = 'claude-code-changelog-viewer',
+): string {
   try {
     // Check if parent commit exists
     try {
@@ -84,26 +104,37 @@ function getChangedFilesList(commitSha: string): string {
       return 'Initial commit';
     }
 
+    // Exclude changelog.md to focus on actual doc changes
     const files = execSync(
-      `git diff ${commitSha}~1 ${commitSha} --name-only -- apps/docs-tracker/docs/`,
+      `git diff ${commitSha}~1 ${commitSha} --name-only -- 'apps/docs-tracker/docs/**/*.md' ':(exclude)apps/docs-tracker/docs/**/changelog.md'`,
       {
         encoding: 'utf-8',
       },
     );
 
-    const fileList = files
+    console.log(`✓ Changed files:\n${files}`);
+
+    const fileArray = files
       .trim()
       .split('\n')
-      .filter((f) => f)
-      .map((f) => `• ${f.replace('apps/docs-tracker/docs/', '')}`)
-      .slice(0, 15);
+      .filter((f) => f);
 
-    if (files.split('\n').length > 15) {
-      const remaining = files.split('\n').length - 15;
+    if (fileArray.length === 0) {
+      return 'No files changed (excluding changelog.md)';
+    }
+
+    const fileList = fileArray.slice(0, 15).map((f) => {
+      const displayPath = f.replace('apps/docs-tracker/docs/', '');
+      const githubUrl = `https://github.com/${repoOwner}/${repoName}/blob/${commitSha}/${f}`;
+      return `• [${displayPath}](${githubUrl})`;
+    });
+
+    if (fileArray.length > 15) {
+      const remaining = fileArray.length - 15;
       fileList.push(`... and ${remaining} more files`);
     }
 
-    return fileList.join('\n') || 'No files changed';
+    return fileList.join('\n');
   } catch (error) {
     console.error('Failed to get changed files:', error);
     return 'Failed to retrieve file list';
@@ -117,7 +148,37 @@ async function summarizeDocChanges(
   client: GeminiClient,
   diff: string,
   changedFilesCount: number,
+  commitSha: string,
 ): Promise<string> {
+  // diffが極端に小さい場合は、変更ファイルの主要な変更箇所を抽出
+  let enrichedContext = diff;
+
+  if (diff.length < 100) {
+    console.log(
+      '⚠️ Diff too small for meaningful summary, extracting file contexts...',
+    );
+
+    try {
+      // 変更されたファイルの具体的な差分を取得（HTMLメタデータを除外）
+      const detailedDiff = execSync(
+        `git diff ${commitSha}~1 ${commitSha} -- 'apps/docs-tracker/docs/**/*.md' ':(exclude)apps/docs-tracker/docs/**/changelog.md' | grep -A 3 -B 3 '^[+-]' | grep -v '^index\\|^diff\\|^---\\|^+++'`,
+        {
+          encoding: 'utf-8',
+          maxBuffer: 5 * 1024 * 1024,
+        },
+      ).trim();
+
+      if (detailedDiff) {
+        enrichedContext = detailedDiff;
+        console.log(
+          `✓ Extracted detailed context: ${enrichedContext.length} characters`,
+        );
+      }
+    } catch {
+      console.log('i Could not extract detailed context, using original diff');
+    }
+  }
+
   const prompt = `
 # 思考のレンズ
 
@@ -128,22 +189,23 @@ async function summarizeDocChanges(
 
 ## 状況 (Situation)
 - 変更ファイル数: ${changedFilesCount}
-- Git diff:
+- 変更内容の差分:
 \`\`\`diff
-${diff}
+${enrichedContext}
 \`\`\`
 
 ## 目的 (Purpose)
 このドキュメント変更の要約を日本語で作成する。
-開発者が「何が変わったか」を一目で理解できる簡潔な要約を提供する。
+開発者が「何が具体的に変わったか」を一目で理解できる要約を提供する。
 
 ## 動機 (Motive)
-技術的な詳細よりも、開発者にとって重要な情報を伝える。
-新機能の追加、既存機能の変更、重要な注意事項などを優先的に言及する。
+抽象的な説明ではなく、具体的な変更内容を伝える。
+例: 「ドキュメントが更新されました」ではなく「hooks.mdでJSONレスポンス形式がdecisionからpermissionDecisionに変更されました」のように具体的に記述する。
+新機能の追加、既存機能の変更、APIの変更、新しい設定オプションなどを優先的に言及する。
 
 ## 制約 (Constraint)
 - 3-5文で簡潔にまとめる
-- 主要な変更点、新機能、重要な修正を優先的に言及
+- 具体的なファイル名や変更内容を含める
 - 技術用語は適切に日本語化
 - 「です・ます」調で統一
 - 要約テキストのみを出力し、説明や追加情報は不要
@@ -171,8 +233,9 @@ function createDiscordMessage(
   fileList: string,
   summary: string,
 ): DiscordWebhookPayload {
-  const commitUrl = `https://github.com/ayasamind/claude-code-changelog-viewer/commit/${commitSha}`;
-  const repoUrl = 'https://github.com/ayasamind/claude-code-changelog-viewer';
+  const commitUrl = `https://github.com/Suntory-N-Water/claude-code-changelog-viewer/commit/${commitSha}`;
+  const repoUrl =
+    'https://github.com/Suntory-N-Water/claude-code-changelog-viewer';
 
   let content = '# 📝 Claude Code ドキュメント更新\n\n';
   content += `## 変更概要\n${changedFilesCount}件のドキュメントが更新されました\n\n`;
@@ -252,7 +315,12 @@ async function main(): Promise<void> {
     // 3. AI要約生成
     console.log('🤖 Generating AI summary with Gemini...');
     const client = new GeminiClient(geminiApiKey);
-    const summary = await summarizeDocChanges(client, diff, changedFilesCount);
+    const summary = await summarizeDocChanges(
+      client,
+      diff,
+      changedFilesCount,
+      commitSha,
+    );
     console.log('✓ AI summary generated');
 
     // 4. Discordメッセージ生成
