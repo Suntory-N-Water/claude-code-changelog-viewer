@@ -192,6 +192,21 @@ jobs:
 
           echo "✓ Changes and tags pushed successfully"
 
+      - name: Send Discord notifications
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+        run: |
+          echo "📤 Sending Discord notifications..."
+
+          for version in $NEW_VERSIONS; do
+            echo "Sending notification for $version..."
+            pnpm run notify:changelog-send "$version"
+          done
+
+          echo "✓ All Discord notifications sent successfully"
+
       - name: Create issue on failure
         if: failure()
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
