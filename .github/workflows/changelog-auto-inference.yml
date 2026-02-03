@@ -73,7 +73,7 @@ jobs:
             echo "has_updates=true" >> "$GITHUB_OUTPUT"
 
             # ファイル名からバージョン抽出 (apps/changelog-fetcher/changelogs/vX.Y.Z.md → vX.Y.Z)
-            NEW_VERSIONS=$(echo "$CHANGED_FILES" | sed 's|apps/changelog-fetcher/changelogs/||' | sed 's|\.md$||' | tr '\n' ' ')
+            NEW_VERSIONS=$(echo "$CHANGED_FILES" | sed 's|apps/changelog-fetcher/changelogs/||' | sed 's|\.md$||' | tr '\n' ' ' | xargs)
             echo "new_versions=$NEW_VERSIONS" >> "$GITHUB_OUTPUT"
 
             echo "✅ チェンジログに更新あり"
@@ -215,5 +215,5 @@ jobs:
           NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
         with:
           script: |
-            const { default: scriptFunction } = await import('./.github/scripts/create-changelog-processing-issue.mjs');
-            await scriptFunction({ github, context, core });
+            const scriptModule = await import('${{ github.workspace }}/.github/scripts/create-changelog-processing-issue.mjs');
+            await scriptModule.default({ github, context, core });
