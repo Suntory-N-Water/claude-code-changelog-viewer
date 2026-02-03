@@ -54,14 +54,21 @@ function getDocsDiff(commitSha: string): string {
       return 'Initial commit - all files are new';
     }
 
+    // Get repository root to ensure correct path resolution
+    const repoRoot = execSync('git rev-parse --show-toplevel', {
+      encoding: 'utf-8',
+    }).trim();
+
     // Get diff for docs directory only, excluding metadata files like changelog.md
     // Focus on actual documentation content changes
-    const diffCommand = `git diff ${commitSha}~1 ${commitSha} -- 'apps/docs-tracker/docs/**/*.md' ':(exclude)apps/docs-tracker/docs/**/changelog.md'`;
+    // Use absolute path from repo root to avoid path resolution issues
+    const diffCommand = `git diff ${commitSha}~1 ${commitSha} -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md'`;
     console.log(`🔍 Running diff command: ${diffCommand}`);
 
     const diff = execSync(diffCommand, {
       encoding: 'utf-8',
       maxBuffer: 10 * 1024 * 1024, // 10MB
+      cwd: repoRoot, // Execute from repo root for consistent behavior
     });
 
     console.log(`✓ Retrieved diff: ${diff.length} characters`);
@@ -104,11 +111,18 @@ function getChangedFilesList(
       return 'Initial commit';
     }
 
+    // Get repository root to ensure correct path resolution
+    const repoRoot = execSync('git rev-parse --show-toplevel', {
+      encoding: 'utf-8',
+    }).trim();
+
     // Exclude changelog.md to focus on actual doc changes
+    // Use absolute path from repo root to avoid path resolution issues
     const files = execSync(
-      `git diff ${commitSha}~1 ${commitSha} --name-only -- 'apps/docs-tracker/docs/**/*.md' ':(exclude)apps/docs-tracker/docs/**/changelog.md'`,
+      `git diff ${commitSha}~1 ${commitSha} --name-only -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md'`,
       {
         encoding: 'utf-8',
+        cwd: repoRoot, // Execute from repo root for consistent behavior
       },
     );
 
@@ -159,12 +173,18 @@ async function summarizeDocChanges(
     );
 
     try {
+      // Get repository root to ensure correct path resolution
+      const repoRoot = execSync('git rev-parse --show-toplevel', {
+        encoding: 'utf-8',
+      }).trim();
+
       // 変更されたファイルの具体的な差分を取得(HTMLメタデータを除外)
       const detailedDiff = execSync(
-        `git diff ${commitSha}~1 ${commitSha} -- 'apps/docs-tracker/docs/**/*.md' ':(exclude)apps/docs-tracker/docs/**/changelog.md' | grep -A 3 -B 3 '^[+-]' | grep -v '^index\\|^diff\\|^---\\|^+++'`,
+        `git diff ${commitSha}~1 ${commitSha} -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md' | grep -A 3 -B 3 '^[+-]' | grep -v '^index\\|^diff\\|^---\\|^+++'`,
         {
           encoding: 'utf-8',
           maxBuffer: 5 * 1024 * 1024,
+          cwd: repoRoot, // Execute from repo root for consistent behavior
         },
       ).trim();
 

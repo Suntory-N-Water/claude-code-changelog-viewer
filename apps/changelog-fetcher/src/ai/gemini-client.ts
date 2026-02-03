@@ -75,7 +75,7 @@ export class GeminiClient {
    * 429エラーかどうかを判定
    */
   private is429Error(error: Error): boolean {
-    return 'status' in error && error.status === 429;
+    return error.message.includes('429');
   }
 
   /**
@@ -152,10 +152,16 @@ export class GeminiClient {
       }
     }
 
-    // 全モデルで失敗
-    throw new Error(
-      `All inference models failed. Last error: ${lastError?.message}`,
+    // 全モデルで失敗した場合はフォールバックメッセージを返す
+    console.warn(
+      `[inferWithTranslation] All models failed. Last error: ${lastError?.message}`,
     );
+    return {
+      content_ja: '(AI要約の生成に失敗しました)',
+      before: '',
+      after: '',
+      benefit: '',
+    };
   }
 
   /**
@@ -219,10 +225,11 @@ export class GeminiClient {
       }
     }
 
-    // 全モデルで失敗
-    throw new Error(
-      `All translation models failed. Last error: ${lastError?.message}`,
+    // 全モデルで失敗した場合はフォールバックメッセージを返す
+    console.warn(
+      `[translateOnly] All models failed. Last error: ${lastError?.message}`,
     );
+    return '(翻訳の生成に失敗しました)';
   }
 
   /**
@@ -271,9 +278,10 @@ export class GeminiClient {
       }
     }
 
-    // 全モデルで失敗
-    throw new Error(
-      `All summary models failed. Last error: ${lastError?.message}`,
+    // 全モデルで失敗した場合はフォールバックメッセージを返す
+    console.warn(
+      `[generateVersionSummary] All models failed. Last error: ${lastError?.message}`,
     );
+    return 'ドキュメントが更新されましたが、AI要約の生成に失敗しました。詳細はコミットをご確認ください。';
   }
 }
