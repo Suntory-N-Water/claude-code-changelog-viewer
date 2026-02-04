@@ -8,10 +8,9 @@ import { GoogleGenAI, Type } from '@google/genai';
  * モデルごとのレート制限設定
  */
 const MODEL_RATE_LIMITS: Record<string, number> = {
-  'gemini-3-flash-preview': 12 * 1000, // 5 RPM
-  'gemini-2.5-flash': 12 * 1000, // 5 RPM
-  'gemini-2.5-flash-lite': 6 * 1000, // 10 RPM
-  'gemma-3-12b': 2 * 1000, // 30 RPM
+  'gemini-3-flash-preview': 15 * 1000, // 4 RPM
+  'gemini-2.5-flash': 15 * 1000, // 4 RPM
+  'gemini-2.5-flash-lite': 10 * 1000, // 6 RPM
 };
 
 /**
@@ -157,9 +156,7 @@ export class GeminiClient {
    * @param prompt - サマリー生成プロンプト
    * @returns 日本語サマリー
    */
-  async generateVersionSummary(prompt: string): Promise<string> {
-    let lastError: Error | null = null;
-
+  async generateVersionSummary(prompt: string) {
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
         console.log(`[generateVersionSummary] Trying model: ${model}`);
@@ -183,7 +180,6 @@ export class GeminiClient {
         return response.text.trim();
       } catch (error) {
         if (error instanceof Error) {
-          lastError = error;
           if (this.is429Error(error)) {
             console.log(
               `[generateVersionSummary] 429 error with ${model}, trying next model...`,
@@ -196,11 +192,6 @@ export class GeminiClient {
         throw error;
       }
     }
-
-    // 全モデルで失敗した場合はフォールバックメッセージを返す
-    console.warn(
-      `[generateVersionSummary] All models failed. Last error: ${lastError?.message}`,
-    );
-    return 'ドキュメントが更新されましたが、AI要約の生成に失敗しました。詳細はコミットをご確認ください。';
+    return '';
   }
 }

@@ -1,6 +1,6 @@
 {
   "version": "2.1.31",
-  "summary": "ドキュメントが更新されましたが、AI要約の生成に失敗しました。詳細はコミットをご確認ください。",
+  "summary": "",
   "items": [
     {
       "content": "- Added session resume hint on exit, showing how to continue your conversation later",
@@ -11,7 +11,7 @@
     },
     {
       "content": "- Added support for full-width (zenkaku) space input from Japanese IME in checkbox selection",
-      "content_ja": "- チェックボックス選択時に日本語IMEからの全角スペース入力をサポートしました。",
+      "content_ja": "チェックボックス選択時における日本語IMEの全角スペース入力に対応",
       "prefix": "Added",
       "importance_score": 8,
       "related_docs": [
@@ -54,11 +54,16 @@
             "### Set up hooks\n\n<Tip>\n  Use hooks for actions that must happen every time with zero exceptions.\n</Tip>\n\n[Hooks](/en/hooks-guide) run scripts automatically at specific points in Claude's workflow. Unlike CLAUDE.md instructions which are advisory, hooks are deterministic and guarantee the action happens."
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "チェックボックス形式の選択メニューにおいて、日本語入力（IME）を使用している際に全角スペースを入力しても、項目を選択したりトグルしたりすることができませんでした。",
+        "after": "全角スペースが半角スペースと同様の入力操作として認識されるようになり、日本語入力モードのままでもチェックボックスの操作が可能になりました。",
+        "benefit": "日本語入力環境のユーザーが、入力モードを切り替える手間なくスムーズに操作を進められるようになり、インタラクティブなコマンド実行時のストレスが軽減されます。"
+      }
     },
     {
       "content": "- Fixed PDF too large errors permanently locking up sessions, requiring users to start a new conversation",
-      "content_ja": "- PDF が大きすぎるエラーが永続的にセッションをロックし、ユーザーが新しい会話を開始する必要がある問題を修正しました",
+      "content_ja": "PDFファイルが大きすぎるエラーによってセッションが完全にロックされ、新しい会話を開始する必要があった問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -90,18 +95,23 @@
             "| Pattern            | Meaning                                | Example                          | Matches                            |\n| ------------------ | -------------------------------------- | -------------------------------- | ---------------------------------- |\n| `//path`           | **Absolute** path from filesystem root | `Read(//Users/alice/secrets/**)` | `/Users/alice/secrets/**`          |\n| `~/path`           | Path from **home** directory           | `Read(~/Documents/*.pdf)`        | `/Users/alice/Documents/*.pdf`     |\n| `/path`            | Path **relative to settings file**     | `Edit(/src/**/*.ts)`             | `<settings file path>/src/**/*.ts` |\n| `path` or `./path` | Path **relative to current directory** | `Read(*.env)`                    | `<cwd>/*.env`                      |"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "以前は、特にサイズの大きいPDFファイルを処理しようとすると、Claude Codeのセッションが突然完全に停止することがありました。この状態になると、現在の会話を続けられなくなり、ユーザーは一から新しい会話を始める必要がありました。",
+        "after": "PDFファイルが大きすぎることが原因でセッションがロックされる問題が解決されました。これにより、サイズの大きいPDFファイルを取り扱っても、Claude Codeのセッションが予期せず停止することはなくなりました。",
+        "benefit": "これにより、PDF関連の作業中に予期せぬ中断がなくなり、よりスムーズにClaude Codeを利用できるようになります。大切な作業中にセッションが強制的に終了するストレスから解放され、効率的に作業を継続できます。"
+      }
     },
     {
       "content": "- Fixed bash commands incorrectly reporting failure with \"Read-only file system\" errors when sandbox mode was enabled",
-      "content_ja": "- サンドボックス モードが有効になっているときに、bash コマンドが「読み取り専用ファイル システム」エラーで失敗を誤って報告する問題を修正しました",
+      "content_ja": "- サンドボックス モードが有効な場合に、bash コマンドが「読み取り専用ファイル システム」エラーで失敗を誤って報告する問題を修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed a crash that made sessions unusable after entering plan mode when project config in `~/.claude.json` was missing default fields",
-      "content_ja": "- `~/.claude.json` のプロジェクト設定にデフォルトのフィールドがなかった場合、プラン モードに入った後にセッションが使用できなくなるクラッシュを修正しました",
+      "content_ja": "デフォルトフィールドが欠落したプロジェクト設定でプランモードに入るとセッションが使用不能になるクラッシュを修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -144,11 +154,16 @@
             "const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];\n          const httpRemote = remotes.find(r => r.type === 'streamable-http');"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "プロジェクトの設定ファイル（`~/.claude.json`）にデフォルトフィールドが含まれていない場合、プランモードに入るとClaude Codeがクラッシュし、セッションが使用不能になる問題がありました。",
+        "after": "デフォルトフィールドが欠落したプロジェクト設定ファイルによるクラッシュが修正され、プランモードへの移行が安定しました。",
+        "benefit": "プランモードへの移行時に予期せずアプリケーションがクラッシュする問題が解消され、開発者は中断されることなくスムーズに作業を継続できるようになりました。"
+      }
     },
     {
       "content": "- Fixed `temperatureOverride` being silently ignored in the streaming API path, causing all streaming requests to use the default temperature (1) regardless of the configured override",
-      "content_ja": "- ストリーミング API パスで「tempertureOverride」が黙って無視される問題を修正しました。これにより、設定されたオーバーライドに関係なく、すべてのストリーミング リクエストでデフォルトの温度 (1) が使用されます。",
+      "content_ja": "ストリーミングAPI経由の際、temperatureOverride の設定が無視され、常にデフォルト値（1）が使用されるバグを修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -191,11 +206,16 @@
             "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "ストリーミング形式で回答を生成する際、ユーザーが設定したtemperature（回答の多様性・ランダム性）のカスタマイズが反映されず、暗黙的にデフォルト値の「1」が適用されていました。",
+        "after": "ストリーミングAPIパスにおいて設定値が正しく処理されるようになり、ユーザーが指定した通りの温度設定（temperatureOverride）でAIが応答を生成します。",
+        "benefit": "AIの回答の柔軟性や一貫性をより細かく制御できるようになり、特定のタスクに合わせて調整した「クリエイティブさ」や「正確性」の設定がストリーミング中も正しく反映されます。"
+      }
     },
     {
       "content": "- Fixed LSP shutdown/exit compatibility with strict language servers that reject null params",
-      "content_ja": "- NULL パラメータを拒否する厳密な言語サーバーとの LSP シャットダウン/終了の互換性を修正しました",
+      "content_ja": "nullパラメータを拒否する厳格な言語サーバーとのLSPシャットダウン/終了の互換性を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -233,11 +253,16 @@
             "### Code intelligence\n\nCode intelligence plugins enable Claude Code's built-in LSP tool, giving Claude the ability to jump to definitions, find references, and see type errors immediately after edits. These plugins configure [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) connections, the same technology that powers VS Code's code intelligence.\n\nThese plugins require the language server binary to be installed on your system. If you already have a language server installed, Claude may prompt you to install the corresponding plugin when you open a project.\n\n| Language   | Plugin              | Binary required              |\n| :--------- | :------------------ | :--------------------------- |\n| C/C++      | `clangd-lsp`        | `clangd`                     |\n| C#         | `csharp-lsp`        | `csharp-ls`                  |\n| Go         | `gopls-lsp`         | `gopls`                      |\n| Java       | `jdtls-lsp`         | `jdtls`                      |\n| Kotlin     | `kotlin-lsp`        | `kotlin-language-server`     |\n| Lua        | `lua-lsp`           | `lua-language-server`        |\n| PHP        | `php-lsp`           | `intelephense`               |\n| Python     | `pyright-lsp`       | `pyright-langserver`         |\n| Rust       | `rust-analyzer-lsp` | `rust-analyzer`              |\n| Swift      | `swift-lsp`         | `sourcekit-lsp`              |\n| TypeScript | `typescript-lsp`    | `typescript-language-server` |\n\nYou can also [create your own LSP plugin](/en/plugins-reference#lsp-servers) for other languages.\n\n<Note>\n  If you see `Executable not found in $PATH` in the `/plugin` Errors tab after installing a plugin, install the required binary from the table above."
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "これまでは、Claude CodeがLanguage Server Protocol (LSP) サーバーとの接続を終了しようとした際に、特定の厳格なLSPサーバーがnullパラメータを拒否するため、サーバーが適切にシャットダウンまたは終了しないことがありました。その結果、LSPが提供するコード補完やエラー検出などの機能が不安定になったり、予期せぬ挙動を示したりする可能性がありました。",
+        "after": "今回の修正により、Claude CodeはLSPサーバーとのシャットダウンおよび終了プロセスを、nullパラメータを拒否する厳格なLSPサーバーとも互換性があるように改善しました。これにより、LSPサーバーがスムーズかつ確実に終了するようになり、関連するコードインテリジェンス機能の安定性が向上しました。",
+        "benefit": "この改善により、厳格なLSPサーバーを使用している場合でも、Claude CodeのLSP機能（リアルタイム診断、コードナビゲーション、言語認識など）がより安定して動作するようになります。予期せぬLSP関連のエラーや機能停止が減り、ストレスなくコード開発に集中できるようになります。"
+      }
     },
     {
       "content": "- Improved system prompts to more clearly guide the model toward using dedicated tools (Read, Edit, Glob, Grep) instead of bash equivalents (`cat`, `sed`, `grep`, `find`), reducing unnecessary bash command usage",
-      "content_ja": "- システム プロンプトを改善し、bash 相当物 (`cat`、`sed`、`grep`、`find`) の代わりに専用ツール (Read、Edit、Glob、Grep) を使用するようにモデルをより明確にガイドし、不必要な bash コマンドの使用を削減しました。",
+      "content_ja": "- システム プロンプトを改善し、bash 相当物 (`cat`、`sed`、`grep`、`find`) の代わりに専用ツール (Read、Edit、Glob、Grep) を使用するようモデルをより明確にガイドし、不必要な bash コマンドの使用を削減しました。",
       "prefix": "Improved",
       "importance_score": 6,
       "related_docs": [
@@ -327,7 +352,7 @@
     },
     {
       "content": "- Removed misleading Anthropic API pricing from model selector for third-party provider (Bedrock, Vertex, Foundry) users",
-      "content_ja": "- サードパーティ プロバイダー (Bedrock、Vertex、Foundry) ユーザー向けのモデル セレクターから誤解を招く Anthropic API 価格設定を削除しました",
+      "content_ja": "サードパーティプロバイダー（Bedrock、Vertex、Foundry）ユーザー向けに、モデルセレクターから誤解を招くAnthropic APIの価格表示を削除しました",
       "prefix": "Removed",
       "importance_score": 5,
       "related_docs": [
@@ -370,7 +395,12 @@
             "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "Bedrock、Vertex、Foundryなどのサードパーティプロバイダーを利用しているユーザーは、Claude CodeのモデルセレクターでAnthropic APIの価格情報が表示されていました。これは、これらのプロバイダーではAnthropic APIの価格が適用されないため、混乱を招く可能性がありました。",
+        "after": "サードパーティプロバイダー（Bedrock、Vertex、Foundry）を利用しているユーザーに対して、モデルセレクターからAnthropic APIの価格表示が削除されました。",
+        "benefit": "これにより、サードパーティプロバイダーを利用する開発者は、不要で誤解を招く価格情報を目にすることがなくなり、モデル選択がより直感的で分かりやすくなりました。プロバイダーごとの課金体系を正しく理解しやすくなります。"
+      }
     }
   ]
 }
