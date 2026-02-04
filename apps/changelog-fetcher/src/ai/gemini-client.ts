@@ -3,7 +3,6 @@ import {
   InferenceWithTranslationSchema,
 } from '@claude-code-changelog-viewer/types';
 import { GoogleGenAI, Type } from '@google/genai';
-import { z } from 'zod';
 
 /**
  * モデルごとのレート制限設定
@@ -25,22 +24,13 @@ const INFERENCE_FALLBACK_MODELS = [
 ];
 
 /**
- * 翻訳タスク用のフォールバックモデル順序
- * 軽量モデルを優先して貴重なGemini枠を節約
- */
-const TRANSLATION_FALLBACK_MODELS = [
-  'gemini-2.5-flash-lite',
-  'gemma-3-12b',
-  'gemini-2.5-flash',
-];
-
-/**
  * Gemini API クライアント
  *
  * フォールバック戦略:
  * - 429エラー時に別モデルで自動リトライ
  * - 推論タスク: 高品質モデル優先
- * - 翻訳タスク: 軽量モデル優先でGemini枠を節約
+ *
+ * 注: 翻訳処理はPlaywright + Google翻訳に委譲
  */
 export class GeminiClient {
   private ai: GoogleGenAI;
@@ -159,74 +149,6 @@ export class GeminiClient {
     throw new Error(
       `All models failed for inference task. Last error: ${lastError?.message}`,
     );
-  }
-
-  /**
-   * 翻訳のみを取得(フォールバック対応)
-   * related_docs が2件未満の項目用
-   * 軽量モデルを優先して貴重なGemini枠を節約
-   *
-   * @param prompt - 翻訳プロンプト
-   * @returns 日本語翻訳
-   */
-  async translateOnly(prompt: string): Promise<string> {
-    let lastError: Error | null = null;
-
-    for (const model of TRANSLATION_FALLBACK_MODELS) {
-      try {
-        console.log(`[translateOnly] Trying model: ${model}`);
-        await this.waitForRateLimit(model);
-
-        const response = await this.ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                content_ja: {
-                  type: Type.STRING,
-                  description: 'CHANGELOG項目の日本語翻訳',
-                },
-              },
-              required: ['content_ja'],
-            },
-            thinkingConfig: {
-              thinkingBudget: 0,
-            },
-          },
-        });
-
-        if (!response.text) {
-          throw new Error('Gemini APIからの応答が空です');
-        }
-
-        const parsed = JSON.parse(response.text);
-        const result = z.string().parse(parsed.content_ja);
-        console.log(`[translateOnly] Success with model: ${model}`);
-        return result;
-      } catch (error) {
-        if (error instanceof Error) {
-          lastError = error;
-          if (this.is429Error(error)) {
-            console.log(
-              `[translateOnly] 429 error with ${model}, trying next model...`,
-            );
-            continue;
-          }
-          // 429以外のエラーは即座にthrow
-          throw error;
-        }
-        throw error;
-      }
-    }
-
-    // 全モデルで失敗した場合はフォールバックメッセージを返す
-    console.warn(
-      `[translateOnly] All models failed. Last error: ${lastError?.message}`,
-    );
-    return '(翻訳の生成に失敗しました)';
   }
 
   /**

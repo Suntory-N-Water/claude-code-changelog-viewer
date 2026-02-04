@@ -4,7 +4,7 @@ import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { GeminiClient } from './ai/gemini-client';
 import { buildInferencePrompt } from './ai/prompts/inference-prompt';
 import { buildSummaryPrompt } from './ai/prompts/summary-prompt';
-import { buildTranslationPrompt } from './ai/prompts/translation-prompt';
+import { translateToJapanese } from './translate/translator';
 
 type CliArgs = {
   version: string;
@@ -82,21 +82,33 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
     try {
       // related_docs が2件以上: 翻訳 + 推論
       if (item.related_docs.length >= 2) {
-        const prompt = buildInferencePrompt(item);
-        const result = await client.inferWithTranslation(prompt);
-        item.content_ja = result.content_ja;
-        item.inference = {
-          before: result.before,
-          after: result.after,
-          benefit: result.benefit,
-        };
-        console.log(
-          `✓ Translation + Inference: ${item.content.substring(0, 50)}...`,
-        );
+        try {
+          const prompt = buildInferencePrompt(item);
+          const result = await client.inferWithTranslation(prompt);
+          item.content_ja = result.content_ja;
+          item.inference = {
+            before: result.before,
+            after: result.after,
+            benefit: result.benefit,
+          };
+          console.log(
+            `✓ Translation + Inference: ${item.content.substring(0, 50)}...`,
+          );
+        } catch (inferenceError) {
+          // 推論失敗時は翻訳のみフォールバック
+          console.warn(
+            `⚠ Inference failed, falling back to translation only: ${item.content.substring(0, 50)}...`,
+          );
+          console.warn(inferenceError);
+          const contentJa = await translateToJapanese(item.content);
+          item.content_ja = contentJa;
+          console.log(
+            `✓ Translation only (fallback): ${item.content.substring(0, 50)}...`,
+          );
+        }
       } else {
-        // related_docs が2件未満: 翻訳のみ
-        const prompt = buildTranslationPrompt(item);
-        const contentJa = await client.translateOnly(prompt);
+        // related_docs が2件未満: Playwright翻訳のみ
+        const contentJa = await translateToJapanese(item.content);
         item.content_ja = contentJa;
         console.log(`✓ Translation only: ${item.content.substring(0, 50)}...`);
       }
