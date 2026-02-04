@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Git設定(冪等性を保証)
+git config user.name "github-actions[bot]" || true
+git config user.email "github-actions[bot]@users.noreply.github.com" || true
+
 # 引数チェック
 if [ $# -eq 0 ]; then
   echo "❌ Error: No versions provided"
