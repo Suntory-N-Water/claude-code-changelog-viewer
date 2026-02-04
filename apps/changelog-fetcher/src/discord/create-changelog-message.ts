@@ -41,7 +41,7 @@ function createChangelogMessage(version: string): DiscordWebhookPayload {
 
     for (const item of data.items) {
       const translatedContent = item.content_ja || item.content;
-      content += `- **${translatedContent}**\n`;
+      content += `**${translatedContent}**\n`;
 
       // 推論情報がある場合は追加
       if (item.inference) {
