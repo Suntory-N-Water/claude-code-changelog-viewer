@@ -254,14 +254,12 @@ function createDiscordMessage(
   summary: string,
 ): DiscordWebhookPayload {
   const commitUrl = `https://github.com/Suntory-N-Water/claude-code-changelog-viewer/commit/${commitSha}`;
-  const repoUrl =
-    'https://github.com/Suntory-N-Water/claude-code-changelog-viewer';
 
   let content = '# 📝 Claude Code ドキュメント更新\n\n';
   content += `## 変更概要\n${changedFilesCount}件のドキュメントが更新されました\n\n`;
   content += `## AI要約\n${summary}\n\n`;
-  content += `## 変更ファイル\n\`\`\`\n${fileList}\n\`\`\`\n\n`;
-  content += `## 参考\n- [コミット](${commitUrl})\n- [リポジトリ](${repoUrl})`;
+  content += `## 変更ファイル\n\n${fileList}\n\n\n`;
+  content += `## 参考\n- [コミット](${commitUrl})`;
 
   // Discordの文字数制限(2000文字)を考慮
   const MAX_CONTENT_LENGTH = 1950;

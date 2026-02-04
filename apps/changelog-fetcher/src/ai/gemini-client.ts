@@ -152,16 +152,13 @@ export class GeminiClient {
       }
     }
 
-    // 全モデルで失敗した場合はフォールバックメッセージを返す
-    console.warn(
+    // 全モデルで失敗した場合はエラーをthrow
+    console.error(
       `[inferWithTranslation] All models failed. Last error: ${lastError?.message}`,
     );
-    return {
-      content_ja: '(AI要約の生成に失敗しました)',
-      before: '',
-      after: '',
-      benefit: '',
-    };
+    throw new Error(
+      `All models failed for inference task. Last error: ${lastError?.message}`,
+    );
   }
 
   /**
