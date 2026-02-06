@@ -1,0 +1,417 @@
+{
+  "version": "2.1.33",
+  "items": [
+    {
+      "content": "- Fixed agent teammate sessions in tmux to send and receive messages",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed warnings about agent teams not being available on your current plan",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Added `TeammateIdle` and `TaskCompleted` hook events for multi-agent workflows",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": []
+    },
+    {
+      "content": "- Added support for restricting which sub-agents can be spawned via `Task(agent_type)` syntax in agent \"tools\" frontmatter",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md",
+          "hit_count": 184,
+          "context_score": 22,
+          "total_score": 4048,
+          "snippets": [
+            "-",
+            "title: sub-agents\nsource: https://code.claude.com/docs/en/sub-agents.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Create custom subagents\n\n> Create and use specialized AI subagents in Claude Code for task-specific workflows and improved context management.\n\nSubagents are specialized AI assistants that handle specific types of tasks. Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions. When Claude encounters a task that matches a subagent's description, it delegates to that subagent, which works independently and returns results.\n\n<Note>\n  If you need multiple agents working in parallel and communicating with each other, see [agent teams](/en/agent-teams) instead. Subagents work within a single session; agent teams coordinate across separate sessions.\n</Note>\n\nSubagents help you:\n\n* **Preserve context** by keeping exploration and implementation out of your main conversation\n* **Enforce constraints** by limiting which tools a subagent can use\n* **Reuse configurations** across projects with user-level subagents\n* **Specialize behavior** with focused system prompts for specific domains\n* **Control costs** by routing tasks to faster, cheaper models like Haiku\n\nClaude uses each subagent's description to decide when to delegate tasks. When you create a subagent, write a clear description so Claude knows when to use it.\n\nClaude Code includes several built-in subagents like **Explore**, **Plan**, and **general-purpose**. You can also create custom subagents to handle specific tasks. This page covers the [built-in subagents](#built-in-subagents), [how to create your own](#quickstart-create-your-first-subagent), [full configuration options](#configure-subagents), [patterns for working with subagents](#work-with-subagents), and [example subagents](#example-subagents).\n\n## Built-in subagents\n\nClaude Code includes built-in subagents that Claude automatically uses when appropriate. Each inherits the parent conversation's permissions with additional tool restrictions.\n\n<Tabs>\n  <Tab title=\"Explore\">\n    A fast, read-only agent optimized for searching and analyzing codebases.\n\n    * **Model**: Haiku (fast, low-latency)\n    * **Tools**: Read-only tools (denied access to Write and Edit tools)",
+            "</Tab>\n\n  <Tab title=\"Plan\">\n    A research agent used during [plan mode](/en/common-workflows#use-plan-mode-for-safe-code-analysis) to gather context before presenting a plan.\n\n    * **Model**: Inherits from main conversation\n    * **Tools**: Read-only tools (denied access to Write and Edit tools)\n    * **Purpose**: Codebase research for planning\n\n    When you're in plan mode and Claude needs to understand your codebase, it delegates research to the Plan subagent. This prevents infinite nesting (subagents cannot spawn other subagents) while still gathering necessary context.\n  </Tab>\n\n  <Tab title=\"General-purpose\">\n    A capable agent for complex, multi-step tasks that require both exploration and action.\n\n    * **Model**: Inherits from main conversation\n    * **Tools**: All tools\n    * **Purpose**: Complex research, multi-step operations, code modifications\n\n    Claude delegates to general-purpose when the task requires both exploration and modification, complex reasoning to interpret results, or multiple dependent steps.\n  </Tab>\n\n  <Tab title=\"Other\">\n    Claude Code includes additional helper agents for specific tasks. These are typically invoked automatically, so you don't need to use them directly.\n\n    | Agent             | Model    | When Claude uses it                                      |\n    | :---------------- | :------- | :------------------------------------------------------- |\n    | Bash              | Inherits | Running terminal commands in a separate context          |\n    | statusline-setup  | Sonnet   | When you run `/statusline` to configure your status line |",
+            "</Tab>\n</Tabs>\n\nBeyond these built-in subagents, you can create your own with custom prompts, tool restrictions, permission modes, hooks, and skills. The following sections show how to get started and customize subagents.\n\n## Quickstart: create your first subagent\n\nSubagents are defined in Markdown files with YAML frontmatter. You can [create them manually](#write-subagent-files) or use the `/agents` command.\n\nThis walkthrough guides you through creating a user-level subagent with the `/agent` command. The subagent reviews code and suggests improvements for the codebase.\n\n<Steps>\n  <Step title=\"Open the subagents interface\">\n    In Claude Code, run:\n\n    ```\n    /agents\n    ```\n  </Step>\n\n  <Step title=\"Create a new user-level agent\">\n    Select **Create new agent**, then choose **User-level**. This saves the subagent to `~/.claude/agents/` so it's available in all your projects.\n  </Step>\n\n  <Step title=\"Generate with Claude\">\n    Select **Generate with Claude**. When prompted, describe the subagent:\n\n    ```\n    A code improvement agent that scans files and suggests improvements\n    for readability, performance, and best practices. It should explain\n    each issue, show the current code, and provide an improved version.\n    ```"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 114,
+          "context_score": 24,
+          "total_score": 2736,
+          "snippets": [
+            "## Hook lifecycle\n\nHooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, this arrives on stdin. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:\n\n<div style={{maxWidth: \"500px\", margin: \"0 auto\"}}>\n  <Frame>\n    <img src=\"https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=5c25fedbc3db6f8882af50c3cc478c32\" alt=\"Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd\" data-og-width=\"8876\" width=\"8876\" data-og-height=\"12492\" height=\"12492\" data-path=\"images/hooks-lifecycle.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=280&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=62406fcd5d4a189cc8842ee1bd946b84 280w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=560&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=fa3049022a6973c5f974e0f95b28169d 560w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=840&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=bd2890897db61a03160b93d4f972ff8e 840w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=1100&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=7ae8e098340479347135e39df4a13454 1100w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=1650&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=848a8606aab22c2ccaa16b6a18431e32 1650w, https://mintcdn.com/claude-code/z2YM37Ycg6eMbID3/images/hooks-lifecycle.png?w=2500&fit=max&auto=format&n=z2YM37Ycg6eMbID3&q=85&s=f3a9ef7feb61fa8fe362005aa185efbc 2500w\" />\n  </Frame>\n</div>",
+            "| `PostToolUse`        | After a tool call succeeds                           |\n| `PostToolUseFailure` | After a tool call fails                              |\n| `Notification`       | When Claude Code sends a notification                |\n| `SubagentStart`      | When a subagent is spawned                           |\n| `SubagentStop`       | When a subagent finishes                             |\n| `Stop`               | When Claude finishes responding                      |\n| `PreCompact`         | Before context compaction                            |\n| `SessionEnd`         | When a session terminates                            |",
+            "\"matcher\": \"Bash\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \".claude/hooks/block-rm.sh\"\n          }\n        ]",
+            "See [How a hook resolves](#how-a-hook-resolves) above for a complete walkthrough with an annotated example.\n\n<Note>\n  This page uses specific terms for each level: **hook event** for the lifecycle point, **matcher group** for the filter, and **hook handler** for the shell command, prompt, or agent that runs. \"Hook\" on its own refers to the general feature.\n</Note>\n\n### Hook locations",
+            "| `.claude/settings.local.json`                              | Single project                | No, gitignored                     |\n| Managed policy settings                                    | Organization-wide             | Yes, admin-controlled              |\n| [Plugin](/en/plugins) `hooks/hooks.json`                   | When plugin is enabled        | Yes, bundled with the plugin       |\n| [Skill](/en/skills) or [agent](/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file |\n\nFor details on settings file resolution, see [settings](/en/settings). Enterprise administrators can use `allowManagedHooksOnly` to block user, project, and plugin hooks. See [Hook configuration](/en/settings#hook-configuration).\n\n### Matcher patterns\n\nThe `matcher` field is a regex string that filters when hooks fire. Use `\"*\"`, `\"\"`, or omit `matcher` entirely to match all occurrences. Each event type matches on a different field:\n\n| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |\n| `SubagentStart`                                                        | agent type                | `Bash`, `Explore`, `Plan`, or custom agent names                               |\n| `PreCompact`                                                           | what triggered compaction | `manual`, `auto`                                                               |\n| `SubagentStop`                                                         | agent type                | same values as `SubagentStart`                                                 |\n| `UserPromptSubmit`, `Stop`                                             | no matcher support        | always fires on every occurrence                                               |\n\nThe matcher is a regex, so `Edit|Write` matches either tool and `Notebook.*` matches any tool starting with Notebook. The matcher runs against a field from the [JSON input](#hook-input-and-output) that Claude Code sends to your hook on stdin. For tool events, that field is `tool_name`. Each [hook event](#hook-events) section lists the full set of matcher values and the input schema for that event."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md",
+          "hit_count": 74,
+          "context_score": 23,
+          "total_score": 1702,
+          "snippets": [
+            "-",
+            "title: agent-teams\nsource: https://code.claude.com/docs/en/agent-teams.md\n-",
+            "> ## Documentation Index",
+            "# Orchestrate teams of Claude Code sessions\n\n> Coordinate multiple Claude Code instances working together as a team, with shared tasks, inter-agent messaging, and centralized management.\n\n<Warning>\n  Agent teams are experimental and disabled by default. Enable them by adding `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to your [settings.json](/en/settings) or environment. Agent teams have [known limitations](#limitations) around session resumption, task coordination, and shutdown behavior.\n</Warning>\n\nAgent teams let you coordinate multiple Claude Code instances working together. One session acts as the team lead, coordinating work, assigning tasks, and synthesizing results. Teammates work independently, each in its own context window, and communicate directly with each other.\n\nUnlike [subagents](/en/sub-agents), which run within a single session and can only report back to the main agent, you can also interact with individual teammates directly without going through the lead.\n\nThis page covers:\n\n* [When to use agent teams](#when-to-use-agent-teams), including best use cases and how they compare with subagents\n* [Starting a team](#start-your-first-agent-team)\n* [Controlling teammates](#control-your-agent-team), including display modes, task assignment, and delegation\n* [Best practices for parallel work](#best-practices)\n\n## When to use agent teams\n\nAgent teams are most effective for tasks where parallel exploration adds real value. See [use case examples](#use-case-examples) for full scenarios. The strongest use cases are:\n\n* **Research and review**: multiple teammates can investigate different aspects of a problem simultaneously, then share and challenge each other's findings\n* **New modules or features**: teammates can each own a separate piece without stepping on each other\n* **Debugging with competing hypotheses**: teammates test different theories in parallel and converge on the answer faster\n* **Cross-layer coordination**: changes that span frontend, backend, and tests, each owned by a different teammate\n\nAgent teams add coordination overhead and use significantly more tokens than a single session. They work best when teammates can operate independently. For sequential tasks, same-file edits, or work with many dependencies, a single session or [subagents](/en/sub-agents) are more effective.\n\n### Compare with subagents\n\nBoth agent teams and [subagents](/en/sub-agents) let you parallelize work, but they operate differently. Choose based on whether your workers need to communicate with each other:\n\n|                   | Subagents                                        | Agent teams                                         |\n| :---------------- | :----------------------------------------------- | :-------------------------------------------------- |\n| **Context**       | Own context window; results return to the caller | Own context window; fully independent               |\n| **Communication** | Report results back to the main agent only       | Teammates message each other directly               |\n| **Coordination**  | Main agent manages all work                      | Shared task list with self-coordination             |\n| **Best for**      | Focused tasks where only the result matters      | Complex work requiring discussion and collaboration |\n| **Token cost**    | Lower: results summarized back to main context   | Higher: each teammate is a separate Claude instance |\n\nUse subagents when you need quick, focused workers that report back. Use agent teams when teammates need to share findings, challenge each other, and coordinate on their own.\n\n## Enable agent teams\n\nAgent teams are disabled by default. Enable them by setting the `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` environment variable to `1`, either in your shell environment or through [settings.json](/en/settings):\n\n```json settings.json theme={null}\n{\n  \"env\": {\n    \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"\n  }\n}\n```\n\n## Start your first agent team\n\nAfter enabling agent teams, tell Claude to create an agent team and describe the task and the team structure you want in natural language. Claude creates the team, spawns teammates, and coordinates work based on your prompt.\n\nThis example works well because the three roles are independent and can explore the problem without waiting on each other:\n\n```\nI'm designing a CLI tool that helps developers track TODO comments across\ntheir codebase. Create an agent team to explore this from different angles: one\nteammate on UX, one on technical architecture, one playing devil's advocate.\n```\n\nFrom there, Claude creates a team with a [shared task list](/en/interactive-mode#task-list), spawns teammates for each perspective, has them explore the problem, synthesizes findings, and attempts to [clean up the team](#clean-up-the-team) when finished.\n\nThe lead's terminal lists all teammates and what they're working on. Use Shift+Up/Down to select a teammate and message them directly.\n\nIf you want each teammate in its own split pane, see [Choose a display mode](#choose-a-display-mode).\n\n## Control your agent team\n\nTell the lead what you want in natural language. It handles team coordination, task assignment, and delegation based on your instructions.\n\n### Choose a display mode\n\nAgent teams support two display modes:\n\n* **In-process**: all teammates run inside your main terminal. Use Shift+Up/Down to select a teammate and type to message them directly. Works in any terminal, no extra setup required.\n* **Split panes**: each teammate gets its own pane. You can see everyone's output at once and click into a pane to interact directly. Requires tmux, or iTerm2.\n\n<Note>",
+            "### Specify teammates and models\n\nClaude decides the number of teammates to spawn based on your task, or you can specify exactly what you want:\n\n```\nCreate a team with 4 teammates to refactor these modules in parallel."
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added `memory` frontmatter field support for agents, enabling persistent memory with `user`, `project`, or `local` scope",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 95,
+          "context_score": 25,
+          "total_score": 2375,
+          "snippets": [
+            "For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "| Event                | When it fires                                        |\n| :------------------- | :--------------------------------------------------- |\n| `SessionStart`       | When a session begins or resumes                     |\n| `UserPromptSubmit`   | When you submit a prompt, before Claude processes it |\n| `PreToolUse`         | Before a tool call executes. Can block it            |\n| `PermissionRequest`  | When a permission dialog appears                     |\n| `PostToolUse`        | After a tool call succeeds                           |",
+            "| Location                                                   | Scope                         | Shareable                          |\n| :--------------------------------------------------------- | :---------------------------- | :--------------------------------- |\n| `~/.claude/settings.json`                                  | All your projects             | No, local to your machine          |\n| `.claude/settings.json`                                    | Single project                | Yes, can be committed to the repo  |\n| `.claude/settings.local.json`                              | Single project                | No, gitignored                     |\n| Managed policy settings                                    | Organization-wide             | Yes, admin-controlled              |\n| [Plugin](/en/plugins) `hooks/hooks.json`                   | When plugin is enabled        | Yes, bundled with the plugin       |\n| [Skill](/en/skills) or [agent](/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file |\n\nFor details on settings file resolution, see [settings](/en/settings). Enterprise administrators can use `allowManagedHooksOnly` to block user, project, and plugin hooks. See [Hook configuration](/en/settings#hook-configuration).\n\n### Matcher patterns",
+            "| `SubagentStart`                                                        | agent type                | `Bash`, `Explore`, `Plan`, or custom agent names                               |\n| `PreCompact`                                                           | what triggered compaction | `manual`, `auto`                                                               |\n| `SubagentStop`                                                         | agent type                | same values as `SubagentStart`                                                 |\n| `UserPromptSubmit`, `Stop`                                             | no matcher support        | always fires on every occurrence                                               |\n\nThe matcher is a regex, so `Edit|Write` matches either tool and `Notebook.*` matches any tool starting with Notebook. The matcher runs against a field from the [JSON input](#hook-input-and-output) that Claude Code sends to your hook on stdin. For tool events, that field is `tool_name`. Each [hook event](#hook-events) section lists the full set of matcher values and the input schema for that event.",
+            "}\n```\n\n`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 55,
+          "context_score": 25,
+          "total_score": 1375,
+          "snippets": [
+            "fontStyle: 'italic',\n      opacity: 0.7\n    }}>\n                  Requires user-specific URL.{' '}\n                  <a href={server.setupUrl} style={{\n      textDecoration: 'underline'\n    }}>",
+            "* **Implement features from issue trackers**: \"Add the feature described in JIRA issue ENG-4521 and create a PR on GitHub.\"\n* **Analyze monitoring data**: \"Check Sentry and Statsig to check the usage of the feature described in ENG-4521.\"\n* **Query databases**: \"Find emails of 10 random users who used feature ENG-4521, based on our PostgreSQL database.\"\n* **Integrate designs**: \"Update our standard email template based on the new Figma designs that were posted in Slack\"\n* **Automate workflows**: \"Create Gmail drafts inviting these 10 users to a feedback session about the new feature.\"\n\n## Popular MCP servers",
+            "--header \"X-API-Key: your-key-here\"\n```\n\n### Option 3: Add a local stdio server\n\nStdio servers run as local processes on your machine. They're ideal for tools that need direct system access or custom scripts.\n\n```bash  theme={null}\n# Basic syntax",
+            "Tips:\n\n  * Use the `--scope` flag to specify where the configuration is stored:\n    * `local` (default): Available only to you in the current project (was called `project` in older versions)\n    * `project`: Shared with everyone in the project via `.mcp.json` file\n    * `user`: Available to you across all projects (was called `global` in older versions)\n  * Set environment variables with `--env` flags (for example, `--env KEY=value`)\n  * Configure MCP server startup timeout using the MCP\\_TIMEOUT environment variable (for example, `MCP_TIMEOUT=10000 claude` sets a 10-second timeout)\n  * Claude Code will display a warning when MCP tool output exceeds 10,000 tokens. To increase this limit, set the `MAX_MCP_OUTPUT_TOKENS` environment variable (for example, `MAX_MCP_OUTPUT_TOKENS=50000`)",
+            "</Tip>\n\n<Warning>\n  **Windows Users**: On native Windows (not WSL), local MCP servers that use `npx` require the `cmd /c` wrapper to ensure proper execution.\n\n  ```bash  theme={null}\n  # This creates command=\"cmd\" which Windows can execute"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md",
+          "hit_count": 36,
+          "context_score": 11,
+          "total_score": 396,
+          "snippets": [
+            "* **Preserve context** by keeping exploration and implementation out of your main conversation\n* **Enforce constraints** by limiting which tools a subagent can use\n* **Reuse configurations** across projects with user-level subagents\n* **Specialize behavior** with focused system prompts for specific domains\n* **Control costs** by routing tasks to faster, cheaper models like Haiku",
+            "Subagents are defined in Markdown files with YAML frontmatter. You can [create them manually](#write-subagent-files) or use the `/agents` command.\n\nThis walkthrough guides you through creating a user-level subagent with the `/agent` command. The subagent reviews code and suggests improvements for the codebase.\n\n<Steps>\n  <Step title=\"Open the subagents interface\">",
+            "```\n  </Step>\n\n  <Step title=\"Create a new user-level agent\">\n    Select **Create new agent**, then choose **User-level**. This saves the subagent to `~/.claude/agents/` so it's available in all your projects.\n  </Step>\n\n  <Step title=\"Generate with Claude\">",
+            "Save the subagent. It's available immediately (no restart needed). Try it:\n\n    ```\n    Use the code-improver agent to suggest improvements in this project\n    ```\n\n    Claude delegates to your new subagent, which scans the codebase and returns improvement suggestions.\n  </Step>\n</Steps>\n\nYou now have a subagent you can use in any project on your machine to analyze codebases and suggest improvements.\n\nYou can also create subagents manually as Markdown files, define them via CLI flags, or distribute them through plugins. The following sections cover all configuration options.",
+            "The `/agents` command provides an interactive interface for managing subagents. Run `/agents` to:\n\n* View all available subagents (built-in, user, project, and plugin)\n* Create new subagents with guided setup or Claude generation\n* Edit existing subagent configuration and tool access\n* Delete custom subagents"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Added plugin name to skill descriptions and `/skills` menu for better discoverability",
+      "prefix": "Added",
+      "importance_score": 8,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md",
+          "hit_count": 51,
+          "context_score": 20,
+          "total_score": 1020,
+          "snippets": [
+            "-",
+            "title: skills\nsource: https://code.claude.com/docs/en/skills.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Extend Claude with skills\n\n> Create, manage, and share skills to extend Claude's capabilities in Claude Code. Includes custom slash commands.\n\nSkills extend what Claude can do. Create a `SKILL.md` file with instructions, and Claude adds it to its toolkit. Claude uses skills when relevant, or you can invoke one directly with `/skill-name`.\n\n<Note>\n  For built-in commands like `/help` and `/compact`, see [interactive mode](/en/interactive-mode#built-in-commands).\n\n  **Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n</Note>\n\nClaude Code skills follow the [Agent Skills](https://agentskills.io) open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like [invocation control](#control-who-invokes-a-skill), [subagent execution](#run-skills-in-a-subagent), and [dynamic context injection](#inject-dynamic-context).\n\n## Getting started",
+            "<Steps>\n  <Step title=\"Create the skill directory\">\n    Create a directory for the skill in your personal skills folder. Personal skills are available across all your projects.\n\n    ```bash  theme={null}\n    mkdir -p ~/.claude/skills/explain-code\n    ```\n  </Step>\n\n  <Step title=\"Write SKILL.md\">\n    Every skill needs a `SKILL.md` file with two parts: YAML frontmatter (between `---` markers) that tells Claude when to use the skill, and markdown content with instructions Claude follows when the skill is invoked. The `name` field becomes the `/slash-command`, and the `description` helps Claude decide when to load it automatically.\n\n    Create `~/.claude/skills/explain-code/SKILL.md`:\n\n    ```yaml  theme={null}\n    -",
+            "</Step>\n</Steps>\n\n### Where skills live\n\nWhere you store a skill determines who can use it:\n\n| Location   | Path                                                     | Applies to                     |\n| :--------- | :------------------------------------------------------- | :----------------------------- |\n| Enterprise | See [managed settings](/en/permissions#managed-settings) | All users in your organization |\n| Personal   | `~/.claude/skills/<skill-name>/SKILL.md`                 | All your projects              |\n| Project    | `.claude/skills/<skill-name>/SKILL.md`                   | This project only              |\n| Plugin     | `<plugin>/skills/<skill-name>/SKILL.md`                  | Where plugin is enabled        |\n\nWhen skills share the same name across levels, higher-priority locations win: enterprise > personal > project. Plugin skills use a `plugin-name:skill-name` namespace, so they cannot conflict with other levels. If you have files in `.claude/commands/`, those work the same way, but if a skill and a command share the same name, the skill takes precedence.\n\n#### Automatic discovery from nested directories\n\nWhen you work with files in subdirectories, Claude Code automatically discovers skills from nested `.claude/skills/` directories. For example, if you're editing a file in `packages/frontend/`, Claude Code also looks for skills in `packages/frontend/.claude/skills/`. This supports monorepo setups where packages have their own skills.\n\nEach skill is a directory with `SKILL.md` as the entrypoint:"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/features-overview.md",
+          "hit_count": 33,
+          "context_score": 15,
+          "total_score": 495,
+          "snippets": [
+            "# Extend Claude Code\n\n> Understand when to use CLAUDE.md, Skills, subagents, hooks, MCP, and plugins.\n\nClaude Code combines a model that reasons about your code with [built-in tools](/en/how-claude-code-works#tools) for file operations, search, execution, and web access. The built-in tools cover most coding tasks. This guide covers the extension layer: features you add to customize what Claude knows, connect it to external services, and automate workflows.",
+            "Extensions plug into different parts of the agentic loop:\n\n* **[CLAUDE.md](/en/memory)** adds persistent context Claude sees every session\n* **[Skills](/en/skills)** add reusable knowledge and invocable workflows\n* **[MCP](/en/mcp)** connects Claude to external services and tools\n* **[Subagents](/en/sub-agents)** run their own loops in isolated context, returning summaries\n* **[Agent teams](/en/agent-teams)** coordinate multiple independent sessions with shared tasks and peer-to-peer messaging\n* **[Hooks](/en/hooks)** run outside the loop entirely as deterministic scripts\n* **[Plugins](/en/plugins)** and **[marketplaces](/en/plugin-marketplaces)** package and distribute these features\n\n[Skills](/en/skills) are the most flexible extension. A skill is a markdown file containing knowledge, workflows, or instructions. You can invoke skills with a slash command like `/deploy`, or Claude can load them automatically when relevant. Skills can run in your current conversation or in an isolated context via subagents.\n\n## Match features to your goal",
+            "| **MCP**                            | Connect to external services                               | External data or actions                                                        | Query your database, post to Slack, control a browser                            |\n| **Hook**                           | Deterministic script that runs on events                   | Predictable automation, no LLM involved                                         | Run ESLint after every file edit                                                 |\n\n**[Plugins](/en/plugins)** are the packaging layer. A plugin bundles skills, hooks, subagents, and MCP servers into a single installable unit. Plugin skills are namespaced (like `/my-plugin:review`) so multiple plugins can coexist. Use plugins when you want to reuse the same setup across multiple repositories or distribute to others via a **[marketplace](/en/plugin-marketplaces)**.\n\n### Compare similar features",
+            "<Tabs>\n  <Tab title=\"Skill vs Subagent\">\n    Skills and subagents solve different problems:\n\n    * **Skills** are reusable content you can load into any context\n    * **Subagents** are isolated workers that run separately from your main conversation\n\n    | Aspect          | Skill                                          | Subagent                                                         |",
+            "| **Key benefit** | Share content across contexts                  | Context isolation. Work happens separately, only summary returns |\n    | **Best for**    | Reference material, invocable workflows        | Tasks that read many files, parallel work, specialized workers   |\n\n    **Skills can be reference or action.** Reference skills provide knowledge Claude uses throughout your session (like your API style guide). Action skills tell Claude to do something specific (like `/deploy` that runs your deployment workflow).\n\n    **Use a subagent** when you need context isolation or when your context window is getting full. The subagent might read dozens of files or run extensive searches, but your main conversation only receives a summary. Since subagent work doesn't consume your main context, this is also useful when you don't need the intermediate work to remain visible. Custom subagents can have their own instructions and can preload skills.\n\n    **They can combine.** A subagent can preload specific skills (`skills:` field). A skill can run in isolated context using `context: fork`. See [Skills](/en/skills) for details.\n  </Tab>\n\n  <Tab title=\"CLAUDE.md vs Skill\">"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md",
+          "hit_count": 27,
+          "context_score": 16,
+          "total_score": 432,
+          "snippets": [
+            "# Create plugins\n\n> Create custom plugins to extend Claude Code with skills, agents, hooks, and MCP servers.\n\nPlugins let you extend Claude Code with custom functionality that can be shared across projects and teams. This guide covers creating your own plugins with skills, agents, hooks, and MCP servers.\n\nLooking to install existing plugins? See [Discover and install plugins](/en/discover-plugins). For complete technical specifications, see [Plugins reference](/en/plugins-reference).\n\n## When to use plugins vs standalone configuration\n\nClaude Code supports two ways to add custom skills, agents, and hooks:\n\n| Approach                                                    | Skill names          | Best for                                                                                        |\n| :---------------------------------------------------------- | :------------------- | :---------------------------------------------------------------------------------------------- |",
+            "* You're customizing Claude Code for a single project\n* The configuration is personal and doesn't need to be shared\n* You're experimenting with skills or hooks before packaging them\n* You want short skill names like `/hello` or `/review`\n\n**Use plugins when**:\n\n* You want to share functionality with your team or community\n* You need the same skills/agents across multiple projects\n* You want version control and easy updates for your extensions\n* You're distributing through a marketplace\n* You're okay with namespaced skills like `/my-plugin:hello` (namespacing prevents conflicts between plugins)\n\n<Tip>\n  Start with standalone configuration in `.claude/` for quick iteration, then [convert to a plugin](#convert-existing-configurations-to-plugins) when you're ready to share.",
+            "<Steps>\n  <Step title=\"Create the plugin directory\">\n    Every plugin lives in its own directory containing a manifest and your skills, agents, or hooks. Create one now:\n\n    ```bash  theme={null}\n    mkdir my-first-plugin",
+            "| Field         | Purpose                                                                                                |\n    | :------------ | :----------------------------------------------------------------------------------------------------- |\n    | `name`        | Unique identifier and skill namespace. Skills are prefixed with this (e.g., `/my-first-plugin:hello`). |\n    | `description` | Shown in the plugin manager when browsing or installing plugins.                                       |\n    | `version`     | Track releases using [semantic versioning](/en/plugins-reference#version-management).                  |\n    | `author`      | Optional. Helpful for attribution.                                                                     |",
+            "</Step>\n\n  <Step title=\"Add a skill\">\n    Skills live in the `skills/` directory. Each skill is a folder containing a `SKILL.md` file. The folder name becomes the skill name, prefixed with the plugin's namespace (`hello/` in a plugin named `my-first-plugin` creates `/my-first-plugin:hello`).\n\n    Create a skill directory in your plugin folder:\n\n    ```bash  theme={null}\n    mkdir -p my-first-plugin/skills/hello\n    ```\n\n    Then create `my-first-plugin/skills/hello/SKILL.md` with this content:\n\n    ```markdown my-first-plugin/skills/hello/SKILL.md theme={null}\n    -"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed an issue where submitting a new message while the model was in extended thinking would interrupt the thinking phase",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed an API error that could occur when aborting mid-stream, where whitespace text combined with a thinking block would bypass normalization and produce an invalid request",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 14,
+          "context_score": 39,
+          "total_score": 546,
+          "snippets": [
+            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
+            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "* For MCP tools (when `OTEL_LOG_TOOL_DETAILS=1`): includes `mcp_server_name`, `mcp_tool_name`\n  * For Skill tool (when `OTEL_LOG_TOOL_DETAILS=1`): includes `skill_name`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")",
+            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
+          "hit_count": 28,
+          "context_score": 17,
+          "total_score": 476,
+          "snippets": [
+            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
+            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)",
+            "### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   * Go to **Settings** → **CI/CD** → **Variables**\n   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**",
+            "# Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+            "script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 26,
+          "context_score": 17,
+          "total_score": 442,
+          "snippets": [
+            "> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');",
+            "} while (cursor);\n        const transformedServers = allServers.map(item => {\n          const server = item.server;\n          const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];",
+            "</>;\n};\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP",
+            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed API proxy compatibility issue where 404 errors on streaming endpoints no longer triggered non-streaming fallback",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 14,
+          "context_score": 39,
+          "total_score": 546,
+          "snippets": [
+            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
+            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "* For MCP tools (when `OTEL_LOG_TOOL_DETAILS=1`): includes `mcp_server_name`, `mcp_tool_name`\n  * For Skill tool (when `OTEL_LOG_TOOL_DETAILS=1`): includes `skill_name`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")",
+            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
+          "hit_count": 28,
+          "context_score": 17,
+          "total_score": 476,
+          "snippets": [
+            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
+            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)",
+            "### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   * Go to **Settings** → **CI/CD** → **Variables**\n   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**",
+            "# Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+            "script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 26,
+          "context_score": 17,
+          "total_score": 442,
+          "snippets": [
+            "> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');",
+            "} while (cursor);\n        const transformedServers = allServers.map(item => {\n          const server = item.server;\n          const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];",
+            "</>;\n};\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP",
+            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed an issue where proxy settings configured via `settings.json` environment variables were not applied to WebFetch and other HTTP requests on the Node.js build",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 131,
+          "context_score": 10,
+          "total_score": 1310,
+          "snippets": [
+            "-",
+            "title: settings\nsource: https://code.claude.com/docs/en/settings.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Claude Code settings\n\n> Configure Claude Code with global and project-level settings, and environment variables.\n\nClaude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command when using the interactive REPL, which opens a tabbed Settings interface where you can view status information and modify configuration options.\n\n## Configuration scopes",
+            "| Scope       | Location                             | Who it affects                       | Shared with team?      |\n| :---------- | :----------------------------------- | :----------------------------------- | :--------------------- |\n| **Managed** | System-level `managed-settings.json` | All users on the machine             | Yes (deployed by IT)   |\n| **User**    | `~/.claude/` directory               | You, across all projects             | No                     |\n| **Project** | `.claude/` in repository             | All collaborators on this repository | Yes (committed to git) |\n| **Local**   | `.claude/*.local.*` files            | You, in this repository only         | No (gitignored)        |",
+            "**User scope** is best for:\n\n* Personal preferences you want everywhere (themes, editor settings)\n* Tools and plugins you use across all projects\n* API keys and authentication (stored securely)\n\n**Project scope** is best for:\n\n* Team-shared settings (permissions, hooks, MCP servers)\n* Plugins the whole team should have\n* Standardizing tooling across collaborators"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md",
+          "hit_count": 19,
+          "context_score": 15,
+          "total_score": 285,
+          "snippets": [
+            "-",
+            "title: sandboxing\nsource: https://code.claude.com/docs/en/sandboxing.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Sandboxing",
+            "4. **Enabling autonomy**: Claude Code can run more independently within defined limits\n\n<Warning>\n  Effective sandboxing requires **both** filesystem and network isolation. Without network isolation, a compromised agent could exfiltrate sensitive files like SSH keys. Without filesystem isolation, a compromised agent could backdoor system resources to gain network access. When configuring sandboxing it is important to ensure that your configured settings do not create bypasses in these systems.\n</Warning>\n\n## How it works",
+            "* **Default writes behavior**: Read and write access to the current working directory and its subdirectories\n* **Default read behavior**: Read access to the entire computer, except certain denied directories\n* **Blocked access**: Cannot modify files outside the current working directory without explicit permission\n* **Configurable**: Define custom allowed and denied paths through settings\n\n### Network isolation"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/data-usage.md",
+          "hit_count": 13,
+          "context_score": 16,
+          "total_score": 208,
+          "snippets": [
+            "-",
+            "title: data-usage\nsource: https://code.claude.com/docs/en/data-usage.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Data usage",
+            "**Consumer users (Free, Pro, and Max plans)**:\nWe give you the choice to allow your data to be used to improve future Claude models. We will train new models using data from Free, Pro, and Max accounts when this setting is on (including when you use Claude Code from these accounts).\n\n**Commercial users**: (Team and Enterprise plans, API, 3rd-party platforms, and Claude Gov) maintain existing policies: Anthropic does not train generative models using code or prompts sent to Claude Code under commercial terms, unless the customer has chosen to provide their data to us for model improvement (for example, the [Developer Partner Program](https://support.claude.com/en/articles/11174108-about-the-development-partner-program)).\n\n### Development Partner Program\n\nIf you explicitly opt in to methods to provide us with materials to train on, such as via the [Development Partner Program](https://support.claude.com/en/articles/11174108-about-the-development-partner-program), we may use those materials provided to train our models. An organization admin can expressly opt-in to the Development Partner Program for their organization. Note that this program is available only for Anthropic first-party API, and not for Bedrock or Vertex users.\n\n### Feedback using the `/bug` command",
+            "* Users who allow data use for model improvement: 5-year retention period to support model development and safety improvements\n* Users who don't allow data use for model improvement: 30-day retention period\n* Privacy settings can be changed at any time at [claude.ai/settings/data-privacy-controls](https://claude.ai/settings/data-privacy-controls).\n\n**Commercial users (Team, Enterprise, and API)**:"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `/resume` session picker showing raw XML markup instead of clean titles for sessions started with slash commands",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md",
+          "hit_count": 18,
+          "context_score": 20,
+          "total_score": 360,
+          "snippets": [
+            "</Step>\n</Steps>\n\nWhen you create a PR using `gh pr create`, the session is automatically linked to that PR. You can resume it later with `claude --from-pr <number>`.\n\n<Tip>\n  Review Claude's generated PR before submitting and ask Claude to highlight potential risks or considerations.",
+            "***\n\n## Resume previous conversations\n\nWhen starting Claude Code, you can resume a previous session:\n\n* `claude --continue` continues the most recent conversation in the current directory\n* `claude --resume` opens a conversation picker or resumes by name\n* `claude --from-pr 123` resumes sessions linked to a specific pull request\n\nFrom inside an active session, use `/resume` to switch to a different conversation.\n\nSessions are stored per project directory. The `/resume` picker shows sessions from the same git repository, including worktrees.\n\n### Name your sessions",
+            "> /rename auth-refactor\n    ```\n\n    You can also rename any session from the picker: run `/resume`, navigate to a session, and press `R`.\n  </Step>\n\n  <Step title=\"Resume by name later\">\n    From the command line:\n\n    ```bash  theme={null}\n    claude --resume auth-refactor\n    ```\n\n    Or from inside an active session:\n\n    ```\n    > /resume auth-refactor\n    ```\n  </Step>\n</Steps>\n\n### Use the session picker\n\nThe `/resume` command (or `claude --resume` without arguments) opens an interactive session picker with these features:\n\n**Keyboard shortcuts in the picker:**",
+            "| :-------- | :------------------------------------------------ |\n| `↑` / `↓` | Navigate between sessions                         |\n| `→` / `←` | Expand or collapse grouped sessions               |\n| `Enter`   | Select and resume the highlighted session         |\n| `P`       | Preview the session content                       |\n| `R`       | Rename the highlighted session                    |\n| `/`       | Search to filter sessions                         |",
+            "* **Name sessions early**: Use `/rename` when starting work on a distinct task—it's much easier to find \"payment-integration\" than \"explain this function\" later\n  * Use `--continue` for quick access to your most recent conversation in the current directory\n  * Use `--resume session-name` when you know which session you need\n  * Use `--resume` (without a name) when you need to browse and select\n  * For scripts, use `claude --continue --print \"prompt\"` to resume in non-interactive mode\n  * Press `P` in the picker to preview a session before resuming it\n  * The resumed conversation starts with the same model and configuration as the original\n\n  How it works:\n\n  1. **Conversation Storage**: All conversations are automatically saved locally with their full message history\n  2. **Message Deserialization**: When resuming, the entire message history is restored to maintain context\n  3. **Tool State**: Tool usage and results from the previous conversation are preserved\n  4. **Context Restoration**: The conversation resumes with all previous context intact\n</Tip>\n\n***"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 5,
+          "context_score": 19,
+          "total_score": 95,
+          "snippets": [
+            "| Event                | When it fires                                        |\n| :------------------- | :--------------------------------------------------- |\n| `SessionStart`       | When a session begins or resumes                     |\n| `UserPromptSubmit`   | When you submit a prompt, before Claude processes it |\n| `PreToolUse`         | Before a tool call executes. Can block it            |\n| `PermissionRequest`  | When a permission dialog appears                     |",
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |\n| `SubagentStart`                                                        | agent type                | `Bash`, `Explore`, `Plan`, or custom agent names                               |",
+            "### SessionStart\n\nRuns when Claude Code starts a new session or resumes an existing session. Useful for loading development context like existing issues or recent changes to your codebase, or setting up environment variables. For static context that does not require a script, use [CLAUDE.md](/en/memory) instead.\n\nSessionStart runs on every session, so keep these hooks fast.",
+            "| Matcher   | When it fires                          |\n| :-------- | :------------------------------------- |\n| `startup` | New session                            |\n| `resume`  | `--resume`, `--continue`, or `/resume` |\n| `clear`   | `/clear`                               |\n| `compact` | Auto or manual compaction              |\n\n#### SessionStart input\n\nIn addition to the [common input fields](#common-input-fields), SessionStart hooks receive `source`, `model`, and optionally `agent_type`. The `source` field indicates how the session started: `\"startup\"` for new sessions, `\"resume\"` for resumed sessions, `\"clear\"` after `/clear`, or `\"compact\"` after compaction. The `model` field contains the model identifier. If you start Claude Code with `claude --agent <name>`, an `agent_type` field contains the agent name.\n\n```json  theme={null}\n{"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/quickstart.md",
+          "hit_count": 2,
+          "context_score": 5,
+          "total_score": 10,
+          "snippets": [
+            "claude\n```\n\nYou'll see the Claude Code welcome screen with your session information, recent conversations, and latest updates. Type `/help` for available commands or `/resume` to continue a previous conversation.\n\n<Tip>\n  After logging in (Step 2), your credentials are stored on your system. Learn more in [Credential Management](/en/authentication#credential-management).",
+            "| `claude \"task\"`     | Run a one-time task                                    | `claude \"fix the build error\"`      |\n| `claude -p \"query\"` | Run one-off query, then exit                           | `claude -p \"explain this function\"` |\n| `claude -c`         | Continue most recent conversation in current directory | `claude -c`                         |\n| `claude -r`         | Resume a previous conversation                         | `claude -r`                         |\n| `claude commit`     | Create a Git commit                                    | `claude commit`                     |\n| `/clear`            | Clear conversation history                             | `/clear`                            |\n| `/help`             | Show available commands                                | `/help`                             |"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Improved error messages for API connection failures — now shows specific cause (e.g., ECONNREFUSED, SSL errors) instead of generic \"Connection error\"",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 14,
+          "context_score": 39,
+          "total_score": 546,
+          "snippets": [
+            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
+            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "* For MCP tools (when `OTEL_LOG_TOOL_DETAILS=1`): includes `mcp_server_name`, `mcp_tool_name`\n  * For Skill tool (when `OTEL_LOG_TOOL_DETAILS=1`): includes `skill_name`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")",
+            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
+          "hit_count": 32,
+          "context_score": 17,
+          "total_score": 544,
+          "snippets": [
+            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
+            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)",
+            "### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   * Go to **Settings** → **CI/CD** → **Variables**\n   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**",
+            "# Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+            "before_script:\n    - apk update\n    - apk add --no-cache git curl bash\n    - curl -fsSL https://claude.ai/install.sh | bash\n  script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 26,
+          "context_score": 17,
+          "total_score": 442,
+          "snippets": [
+            "> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');",
+            "} while (cursor);\n        const transformedServers = allServers.map(item => {\n          const server = item.server;\n          const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];",
+            "</>;\n};\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP",
+            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
+          ]
+        }
+      ]
+    },
+    {
+      "content": "- Errors from invalid managed settings are now surfaced",
+      "prefix": "Changed",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- VSCode: Added support for remote sessions, allowing OAuth users to browse and resume sessions from claude.ai",
+      "prefix": "Changed",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- VSCode: Added git branch and message count to the session picker, with support for searching by branch name",
+      "prefix": "Changed",
+      "importance_score": 6,
+      "related_docs": []
+    },
+    {
+      "content": "- VSCode: Fixed scroll-to-bottom under-scrolling on initial session load and session switch",
+      "prefix": "Changed",
+      "importance_score": 6,
+      "related_docs": []
+    }
+  ]
+}
