@@ -1,10 +1,10 @@
 {
   "version": "2.1.32",
-  "summary": "最新モデル Claude 3.5 Sonnet (v2) への対応に加え、複数エージェントによる共同作業（試験実装）や、作業内容の自動記憶機能が導入され、より高度で自律的な開発支援が可能になりました。コンテキスト量に応じたスキルの読み込み最適化や、サブディレクトリ実行時のパス補完、特定のBash実行エラーの修正により、大規模プロジェクトにおける利便性と安定性が大きく向上しています。さらに、会話の途中からの要約機能やエディタ連携の改善により、日々の開発ワークフローがよりスムーズになります。",
+  "summary": "最新モデル Claude Opus 4.6 への対応に加え、複数エージェントによる共同作業（試験実装）や、作業内容の自動記憶機能が導入され、より高度で自律的な開発支援が可能になりました。コンテキスト量に応じたスキルの読み込み最適化や、サブディレクトリ実行時のパス補完、特定のBash実行エラーの修正により、大規模プロジェクトにおける利便性と安定性が大きく向上しています。さらに、会話の途中からの要約機能やエディタ連携の改善により、日々の開発ワークフローがよりスムーズになります。",
   "items": [
     {
       "content": "- Claude Opus 4.6 is now available!",
-      "content_ja": "- クロード作品 4.6 が利用可能になりました!",
+      "content_ja": "- Claude Opus 4.6 が利用可能になりました!",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": []
@@ -32,7 +32,7 @@
     },
     {
       "content": "- Skills defined in `.claude/skills/` within additional directories (`--add-dir`) are now loaded automatically.",
-      "content_ja": "追加ディレクトリ（`--add-dir`）内の`.claude/skills/`で定義されたスキルが自動的に読み込まれるようになりました。",
+      "content_ja": "--add-dir で追加されたディレクトリ内の .claude/skills/ に定義されているスキルが、自動的に読み込まれるようになりました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": [
@@ -77,14 +77,14 @@
         }
       ],
       "inference": {
-        "before": "これまでは、プロジェクトのルートディレクトリやユーザーのホームディレクトリにあるスキルのみが自動読み込みの対象でした。モノレポ構成などで外部ディレクトリを `--add-dir` で追加して作業していても、その中のカスタムスキルを即座に利用することはできませんでした。",
-        "after": "コマンドライン引数 `--add-dir` で指定した任意のディレクトリ内にある `.claude/skills/` フォルダもスキャン対象に含まれるようになりました。",
-        "benefit": "モノレポ内の特定のパッケージや、共有ライブラリとして管理している別ディレクトリのスキルを、特別な設定なしでそのまま活用できます。プロジェクトの構造に合わせて柔軟にAIの機能を拡張でき、開発効率が向上します。"
+        "before": "追加ディレクトリ (--add-dir) を指定して作業している場合、そのディレクトリ内にあるカスタムスキルは自動で認識されませんでした。そのため、サブプロジェクト固有のスキルを呼び出したり、Claude に自動適用させたりすることが困難でした。",
+        "after": "メインのプロジェクトディレクトリだけでなく、--add-dir で追加されたすべてのディレクトリの .claude/skills/ 配下にあるスキルが自動的にスキャン・ロードされるようになりました。",
+        "benefit": "モノレポ構成や複数のリポジトリを同時に扱う際に、各ディレクトリに閉じた固有のスキル（カスタムコマンドや手順書）を意識せずにそのまま利用できるようになり、開発効率が向上します。"
       }
     },
     {
       "content": "- Fixed `@` file completion showing incorrect relative paths when running from a subdirectory",
-      "content_ja": "サブディレクトリから実行した際、@ メンションによるファイル補完で誤った相対パスが表示される問題を修正しました。",
+      "content_ja": "サブディレクトリから実行した際に、@ によるファイル補完で誤った相対パスが表示される問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -129,9 +129,9 @@
         }
       ],
       "inference": {
-        "before": "プロジェクトのサブディレクトリから Claude Code を実行している場合、@ を入力した際に出現するファイル候補のパスが、現在の作業ディレクトリからの相対パスとして正しく計算されていませんでした。",
-        "after": "実行場所がルートディレクトリであってもサブディレクトリであっても、常に現在地に基づいた正確なファイルパスが補完候補に表示されるようになりました。",
-        "benefit": "ファイルの指定ミスが防げるようになり、大規模なモノレポや階層の深いプロジェクト内を移動しながら作業する際でも、直感的に正しいファイルを選択して Claude に指示を出せます。"
+        "before": "プロジェクトのサブディレクトリ内で Claude Code を使用している際、@ を入力してファイルを指定しようとすると、現在の場所からの正しくない相対パスが表示されていました。",
+        "after": "実行場所がどこであっても、ディレクトリ階層を正確に認識し、適切なファイルパスが補完候補として表示されるようになりました。",
+        "benefit": "大規模なリポジトリの深い階層で作業していても、迷うことなく直感的にファイルを指定できるようになり、コンテキストの追加作業がスムーズになります。"
       }
     },
     {
@@ -143,7 +143,7 @@
     },
     {
       "content": "- Fixed: Bash tool no longer throws \"Bad substitution\" errors when heredocs contain JavaScript template literals like `${index + 1}`, which previously interrupted tool execution",
-      "content_ja": "- 修正: 以前はツールの実行を中断していた、ヒアドキュメントに `${index + 1}` のような JavaScript テンプレート リテラルが含まれている場合、Bash ツールは「不正な置換」エラーをスローしなくなりました",
+      "content_ja": "Bashツールにおいて、ヒアドキュメント内に `${index + 1}` のようなJavaScriptのテンプレートリテラルが含まれている場合に「Bad substitution」エラーが発生し、実行が中断される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -186,18 +186,23 @@
             "You can see which model you're currently using in several ways:\n\n1. In [status line](/en/statusline) (if configured)\n2. In `/status`, which also displays your account information.\n\n## Environment variables"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "AIがJavaScriptコードをファイルに書き出す際、Bashのヒアドキュメント機能を使用していました。その際、`${...}` という形式の変数がBash自身の変数展開として誤認され、構文エラーによって処理が停止することがありました。",
+        "after": "Bashツールがヒアドキュメント内のテンプレートリテラルを正しく処理できるようになり、複雑なJavaScriptやTypeScriptのコード生成中であってもエラーで中断されることがなくなりました。",
+        "benefit": "Node.jsやReactなどの開発において、テンプレートリテラルを含むコードの作成や修正をAIに依頼した際、ツールの実行エラーに煩わされることなく、スムーズに開発を継続できます。"
+      }
     },
     {
       "content": "- Skill character budget now scales with context window (2% of context), so users with larger context windows can see more skill descriptions without truncation",
-      "content_ja": "- スキルのキャラクターの予算がコンテキスト ウィンドウ (コンテキストの 2%) に応じて拡大されるようになったため、より大きなコンテキスト ウィンドウを持つユーザーは、切り捨てられることなくより多くのスキルの説明を表示できるようになりました。",
+      "content_ja": "- スキルのキャラクターの予算がコンテキスト ウィンドウ (コンテキストの 2%) に応じて拡大されるようになったため、より大きなコンテキスト ウィンドウを持つユーザーは、切り詰められることなくより多くのスキルの説明を表示できるようになりました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Fixed Thai/Lao spacing vowels (สระ า, ำ) not rendering correctly in the input field",
-      "content_ja": "- タイ語/ラオ語の間隔母音 (สระ า、ำ) が入力フィールドで正しくレンダリングされない問題を修正",
+      "content_ja": "- タイ語/ラオス語の間隔母音 (สระ า、ำ) が入力フィールドで正しくレンダリングされない問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
