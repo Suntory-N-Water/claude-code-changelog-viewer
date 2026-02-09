@@ -29,6 +29,27 @@ export type InferenceWithTranslation = z.infer<
   typeof InferenceWithTranslationSchema
 >;
 
+// InferenceBatchResult (一括推論の Gemini API レスポンス)
+export const InferenceBatchResultSchema = z.object({
+  inferred_items: z.array(
+    z.object({
+      id: z.number(),
+      content_ja: z.string(),
+      before: z.string(),
+      after: z.string(),
+      benefit: z.string(),
+    }),
+  ),
+  translated_items: z.array(
+    z.object({
+      id: z.number(),
+      content_ja: z.string(),
+    }),
+  ),
+  summary: z.string(),
+});
+export type InferenceBatchResult = z.infer<typeof InferenceBatchResultSchema>;
+
 // ChangelogItem
 export const ChangelogItemSchema = z.object({
   content: z.string(), // 英語原文

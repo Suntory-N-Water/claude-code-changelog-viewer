@@ -1,6 +1,6 @@
 import {
-  type InferenceWithTranslation,
-  InferenceWithTranslationSchema,
+  type InferenceBatchResult,
+  InferenceBatchResultSchema,
 } from '@claude-code-changelog-viewer/types';
 import { GoogleGenAI, Type } from '@google/genai';
 
@@ -27,9 +27,8 @@ const INFERENCE_FALLBACK_MODELS = [
  *
  * フォールバック戦略:
  * - 429エラー時に別モデルで自動リトライ
- * - 推論タスク: 高品質モデル優先
  *
- * 注: 翻訳処理はPlaywright + Google翻訳に委譲
+ * 注: 全項目の推論・翻訳・サマリーを1回のリクエストで処理
  */
 export class GeminiClient {
   private ai: GoogleGenAI;
@@ -68,19 +67,17 @@ export class GeminiClient {
   }
 
   /**
-   * 推論結果と翻訳を一度に取得(フォールバック対応)
+   * 全項目の推論・翻訳・サマリーを1回のリクエストで取得(フォールバック対応)
    *
-   * @param prompt - 推論プロンプト
-   * @returns JSON形式の推論結果(翻訳含む)
+   * @param prompt - 一括推論プロンプト
+   * @returns 推論結果・翻訳結果・サマリーを含むオブジェクト
    */
-  async inferWithTranslation(
-    prompt: string,
-  ): Promise<InferenceWithTranslation> {
+  async inferAll(prompt: string): Promise<InferenceBatchResult> {
     let lastError: Error | null = null;
 
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
-        console.log(`[inferWithTranslation] Trying model: ${model}`);
+        console.log(`[inferAll] Trying model: ${model}`);
         await this.waitForRateLimit(model);
 
         const response = await this.ai.models.generateContent({
@@ -91,25 +88,79 @@ export class GeminiClient {
             responseSchema: {
               type: Type.OBJECT,
               properties: {
-                content_ja: {
-                  type: Type.STRING,
-                  description: 'CHANGELOG項目の日本語翻訳',
+                inferred_items: {
+                  type: Type.ARRAY,
+                  description: '関連ドキュメントがある項目の推論+翻訳結果',
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: {
+                        type: Type.NUMBER,
+                        description: '元のitems配列のインデックス',
+                      },
+                      content_ja: {
+                        type: Type.STRING,
+                        description: 'CHANGELOG項目の日本語翻訳',
+                      },
+                      before: {
+                        type: Type.STRING,
+                        description: '変更前の状況(何が不便だったか)',
+                      },
+                      after: {
+                        type: Type.STRING,
+                        description: '変更後の状況(何が改善されたか)',
+                      },
+                      benefit: {
+                        type: Type.STRING,
+                        description: 'ユーザーへの恩恵(なぜこれが嬉しいのか)',
+                      },
+                    },
+                    propertyOrdering: [
+                      'id',
+                      'content_ja',
+                      'before',
+                      'after',
+                      'benefit',
+                    ],
+                    required: [
+                      'id',
+                      'content_ja',
+                      'before',
+                      'after',
+                      'benefit',
+                    ],
+                  },
                 },
-                before: {
-                  type: Type.STRING,
-                  description: '変更前の状況(何が不便だったか)',
+                translated_items: {
+                  type: Type.ARRAY,
+                  description: '関連ドキュメントがない項目の翻訳結果',
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: {
+                        type: Type.NUMBER,
+                        description: '元のitems配列のインデックス',
+                      },
+                      content_ja: {
+                        type: Type.STRING,
+                        description: 'CHANGELOG項目の日本語翻訳',
+                      },
+                    },
+                    propertyOrdering: ['id', 'content_ja'],
+                    required: ['id', 'content_ja'],
+                  },
                 },
-                after: {
+                summary: {
                   type: Type.STRING,
-                  description: '変更後の状況(何が改善されたか)',
-                },
-                benefit: {
-                  type: Type.STRING,
-                  description: 'ユーザーへの恩恵(なぜこれが嬉しいのか)',
+                  description: 'バージョン全体のサマリー(日本語、2-3文)',
                 },
               },
-              propertyOrdering: ['content_ja', 'before', 'after', 'benefit'],
-              required: ['content_ja', 'before', 'after', 'benefit'],
+              propertyOrdering: [
+                'inferred_items',
+                'translated_items',
+                'summary',
+              ],
+              required: ['inferred_items', 'translated_items', 'summary'],
             },
             thinkingConfig: {
               thinkingBudget: 0,
@@ -122,28 +173,26 @@ export class GeminiClient {
         }
 
         const parsed = JSON.parse(response.text);
-        const result = InferenceWithTranslationSchema.parse(parsed);
-        console.log(`[inferWithTranslation] Success with model: ${model}`);
+        const result = InferenceBatchResultSchema.parse(parsed);
+        console.log(`[inferAll] Success with model: ${model}`);
         return result;
       } catch (error) {
         if (error instanceof Error) {
           lastError = error;
           if (this.is429Error(error)) {
             console.log(
-              `[inferWithTranslation] 429 error with ${model}, trying next model...`,
+              `[inferAll] 429 error with ${model}, trying next model...`,
             );
             continue;
           }
-          // 429以外のエラーは即座にthrow
           throw error;
         }
         throw error;
       }
     }
 
-    // 全モデルで失敗した場合はエラーをthrow
     console.error(
-      `[inferWithTranslation] All models failed. Last error: ${lastError?.message}`,
+      `[inferAll] All models failed. Last error: ${lastError?.message}`,
     );
     throw new Error(
       `All models failed for inference task. Last error: ${lastError?.message}`,
@@ -151,15 +200,17 @@ export class GeminiClient {
   }
 
   /**
-   * バージョン全体のサマリーを生成(フォールバック対応)
+   * テキスト生成(フォールバック対応)
    *
-   * @param prompt - サマリー生成プロンプト
-   * @returns 日本語サマリー
+   * ドキュメント要約など、プレーンテキストを返すタスクに使用。
+   *
+   * @param prompt - プロンプト
+   * @returns 生成されたテキスト
    */
-  async generateVersionSummary(prompt: string) {
+  async generateText(prompt: string): Promise<string> {
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
-        console.log(`[generateVersionSummary] Trying model: ${model}`);
+        console.log(`[generateText] Trying model: ${model}`);
         await this.waitForRateLimit(model);
 
         const response = await this.ai.models.generateContent({
@@ -176,17 +227,16 @@ export class GeminiClient {
           throw new Error('Gemini APIからの応答が空です');
         }
 
-        console.log(`[generateVersionSummary] Success with model: ${model}`);
+        console.log(`[generateText] Success with model: ${model}`);
         return response.text.trim();
       } catch (error) {
         if (error instanceof Error) {
           if (this.is429Error(error)) {
             console.log(
-              `[generateVersionSummary] 429 error with ${model}, trying next model...`,
+              `[generateText] 429 error with ${model}, trying next model...`,
             );
             continue;
           }
-          // 429以外のエラーは即座にthrow
           throw error;
         }
         throw error;

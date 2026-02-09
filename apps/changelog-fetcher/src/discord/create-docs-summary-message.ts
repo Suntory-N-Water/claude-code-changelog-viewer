@@ -235,7 +235,7 @@ ${enrichedContext}
 `;
 
   try {
-    const summary = await client.generateVersionSummary(prompt);
+    const summary = await client.generateText(prompt);
     return summary;
   } catch (error) {
     console.error('Failed to generate AI summary:', error);

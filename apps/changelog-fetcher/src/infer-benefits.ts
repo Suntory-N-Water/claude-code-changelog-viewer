@@ -2,9 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { GeminiClient } from './ai/gemini-client';
-import { buildInferencePrompt } from './ai/prompts/inference-prompt';
-import { buildSummaryPrompt } from './ai/prompts/summary-prompt';
-import { translateToJapanese } from './translate/translator';
+import { buildBatchInferencePrompt } from './ai/prompts/inference-prompt';
 
 type CliArgs = {
   version: string;
@@ -69,76 +67,38 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
   console.log('Starting processing with model: gemini-3-flash-preview...');
   console.log(`Total items: ${analysis.items.length}`);
 
-  // 4. 全項目を処理(レート制限を遵守しつつ個別リクエスト)
-  for (const item of analysis.items) {
-    // 既に処理済みの項目はスキップ
-    if (item.content_ja && item.inference) {
+  // 4. 全項目を1回のリクエストで処理
+  const prompt = buildBatchInferencePrompt(analysis.items, version);
+  const result = await client.inferAll(prompt);
+
+  // 推論+翻訳結果をマッピング
+  for (const inferred of result.inferred_items) {
+    const item = analysis.items[inferred.id];
+    if (item) {
+      item.content_ja = inferred.content_ja;
+      item.inference = {
+        before: inferred.before,
+        after: inferred.after,
+        benefit: inferred.benefit,
+      };
       console.log(
-        `⊘ Skipped (already processed): ${item.content.substring(0, 50)}...`,
+        `✓ Translation + Inference: ${item.content.substring(0, 50)}...`,
       );
-      continue;
-    }
-
-    try {
-      // related_docs が2件以上: 翻訳 + 推論
-      if (item.related_docs.length >= 2) {
-        try {
-          const prompt = buildInferencePrompt(item);
-          const result = await client.inferWithTranslation(prompt);
-          item.content_ja = result.content_ja;
-          item.inference = {
-            before: result.before,
-            after: result.after,
-            benefit: result.benefit,
-          };
-          console.log(
-            `✓ Translation + Inference: ${item.content.substring(0, 50)}...`,
-          );
-        } catch (inferenceError) {
-          // 推論失敗時は翻訳のみフォールバック
-          console.warn(
-            `⚠ Inference failed, falling back to translation only: ${item.content.substring(0, 50)}...`,
-          );
-          console.warn(inferenceError);
-          const contentJa = await translateToJapanese(item.content);
-          item.content_ja = contentJa;
-          console.log(
-            `✓ Translation only (fallback): ${item.content.substring(0, 50)}...`,
-          );
-        }
-      } else {
-        // related_docs が2件未満: Playwright翻訳のみ
-        const contentJa = await translateToJapanese(item.content);
-        item.content_ja = contentJa;
-        console.log(`✓ Translation only: ${item.content.substring(0, 50)}...`);
-      }
-    } catch (error) {
-      console.error(
-        `✗ Processing failed for: ${item.content.substring(0, 50)}...`,
-      );
-      console.error(error);
     }
   }
 
-  // 4-2. バージョンサマリー生成
-  if (!analysis.summary) {
-    console.log('\nGenerating version summary...');
-    try {
-      const summaryPrompt = buildSummaryPrompt(
-        analysis.items.map((item) => ({
-          content: item.content,
-          prefix: item.prefix,
-        })),
-        version,
-      );
-      const summary = await client.generateVersionSummary(summaryPrompt);
-      analysis.summary = summary;
-      console.log('✓ Version summary generated');
-    } catch (error) {
-      console.error('✗ Version summary generation failed');
-      console.error(error);
+  // 翻訳のみ結果をマッピング
+  for (const translated of result.translated_items) {
+    const item = analysis.items[translated.id];
+    if (item) {
+      item.content_ja = translated.content_ja;
+      console.log(`✓ Translation only: ${item.content.substring(0, 50)}...`);
     }
   }
+
+  // サマリーを設定
+  analysis.summary = result.summary;
+  console.log('✓ Version summary generated');
 
   // 5. inferred_{version}.json に保存
   // Zod で最終検証

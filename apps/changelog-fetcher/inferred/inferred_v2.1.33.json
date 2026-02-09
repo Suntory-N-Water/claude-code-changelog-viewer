@@ -1,31 +1,31 @@
 {
   "version": "2.1.33",
-  "summary": "本バージョンでは、エージェント間連携（マルチエージェント）の制御機能や永続的なメモリー機能が追加され、複雑な開発タスクにおける自動化の精度と柔軟性が大幅に向上しました。また、VSCodeでのリモートセッション対応や接続エラー表示の具体化、tmux環境での動作改善など、開発環境の安定性と利便性を高める多くの修正が行われています。思考プロセスの遮断防止やプロキシ設定の最適化も含まれており、よりストレスのないスムーズな開発体験を提供します。",
+  "summary": "本バージョンでは、エージェントの永続メモリ機能やサブエージェントの起動制限などの新機能が追加され、より高度なワークフローの制御が可能になりました。また、API接続エラーの詳細化やプロキシ設定の適用範囲修正、VSCode拡張機能でのリモートセッション対応など、開発環境の利便性と安定性が大きく向上しています。特にマルチエージェントに関連するバグ修正やフックイベントの追加により、チームでの並行作業がよりスムーズになります。",
   "items": [
     {
       "content": "- Fixed agent teammate sessions in tmux to send and receive messages",
-      "content_ja": "- メッセージを送受信するための tmux でのエージェント チームメイト セッションを修正しました",
+      "content_ja": "tmux環境下でのエージェントのチームメイトセッションにおいて、メッセージの送受信ができない問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed warnings about agent teams not being available on your current plan",
-      "content_ja": "- 現在のプランではエージェント チームを利用できないことに関する警告を修正しました",
+      "content_ja": "現在のプランでエージェントチーム機能が利用できない旨の警告が誤って表示される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Added `TeammateIdle` and `TaskCompleted` hook events for multi-agent workflows",
-      "content_ja": "- マルチエージェント ワークフロー用の `TeammateIdle` および `TaskCompleted` フック イベントを追加しました",
+      "content_ja": "マルチエージェントのワークフロー向けに、`TeammateIdle`（待機状態）と`TaskCompleted`（タスク完了）のフックイベントを追加しました。",
       "prefix": "Added",
       "importance_score": 8,
       "related_docs": []
     },
     {
       "content": "- Added support for restricting which sub-agents can be spawned via `Task(agent_type)` syntax in agent \"tools\" frontmatter",
-      "content_ja": "エージェント・ツールのfrontmatterにおける `Task(agent_type)` 構文によるサブエージェント生成の制限機能を追加",
+      "content_ja": "エージェントの「tools」フロントマターにおいて、`Task(agent_type)`構文で起動できるサブエージェントの制限に対応しました",
       "prefix": "Added",
       "importance_score": 8,
       "related_docs": [
@@ -70,14 +70,14 @@
         }
       ],
       "inference": {
-        "before": "カスタムサブエージェントがツールを使用して別のサブエージェントを呼び出す際、どの子エージェントを起動できるかを明示的に制限する仕組みがありませんでした。これにより、意図しないエージェントが実行されるリスクや、不必要なリソース消費の可能性がありました。",
-        "after": "エージェント定義のfrontmatter内で `Task(agent_type)` 構文を使用し、そのエージェントが生成できるサブエージェントの種類を特定のものだけに制限できるようになりました。",
-        "benefit": "特定のタスクに特化したエージェントの動作をより厳密に制御でき、セキュリティの向上や、目的外のエージェント起動によるコストの無駄遣いを防ぐことができます。"
+        "before": "これまでは、エージェントがどのサブエージェントを起動できるかをフロントマターで細かく制限する仕組みがありませんでした。",
+        "after": "サブエージェント定義のYAMLフロントマター内で、特定のエージェントタイプのみを許可するように制限をかけられるようになりました。",
+        "benefit": "特定のタスクに特化させたいカスタムエージェントにおいて、意図しないエージェントへの委任を防ぎ、ワークフローの信頼性とセキュリティを向上させることができます。"
       }
     },
     {
       "content": "- Added `memory` frontmatter field support for agents, enabling persistent memory with `user`, `project`, or `local` scope",
-      "content_ja": "エージェントのフロントマターにおける `memory` フィールドのサポートを追加し、ユーザー、プロジェクト、ローカルの各スコープで永続的なメモリを保持できるようになりました。",
+      "content_ja": "エージェントに`memory`フロントマター項目のサポートを追加し、ユーザー、プロジェクト、ローカルの各スコープでの永続メモリが利用可能になりました",
       "prefix": "Added",
       "importance_score": 8,
       "related_docs": [
@@ -122,14 +122,14 @@
         }
       ],
       "inference": {
-        "before": "サブエージェントは実行ごとにコンテキストがリセットされるか、メインセッションの履歴に依存しており、特定のタスクに関する長期的な記憶や学習内容を独自に保持・蓄積する仕組みが限定的でした。",
-        "after": "サブエージェントの設定ファイル（Markdown）のフロントマターに `memory` フィールドを指定できるようになり、プロジェクトを跨いだり（user）、リポジトリ内で共有したり（project）して、実行間で情報を保持できるようになります。",
-        "benefit": "エージェントが過去の実行結果やユーザーの好みを「記憶」できるようになるため、使うほどに賢くなり、同じ指示を繰り返す手間が省けるなど、よりパーソナライズされた高度な自動化が可能になります。"
+        "before": "エージェントのコンテキストや過去の知見を、複数のプロジェクトやセッションにわたって体系的に引き継ぐ標準的なフロントマター設定が不足していました。",
+        "after": "エージェント設定に`memory`フィールドを指定することで、`user`（全プロジェクト共有）、`project`（チーム共有）、`local`（現在のリポジトリのみ）といった範囲で記憶を保持できるようになりました。",
+        "benefit": "一度学習したコーディングルールやプロジェクト固有の背景知識をエージェントが記憶し続けるため、再説明の手間が省け、作業の継続性が高まります。"
       }
     },
     {
       "content": "- Added plugin name to skill descriptions and `/skills` menu for better discoverability",
-      "content_ja": "スキルの説明文および `/skills` メニューにプラグイン名を表示し、発見性を向上",
+      "content_ja": "スキルの説明文および`/skills`メニューにプラグイン名を表示するようにし、発見性を向上させました",
       "prefix": "Added",
       "importance_score": 8,
       "related_docs": [
@@ -174,68 +174,21 @@
         }
       ],
       "inference": {
-        "before": "プラグインによって提供されるスキルは `プラグイン名:スキル名` という形式で管理されていましたが、スキルの詳細説明や `/skills` 一覧画面ではその所属が明示されておらず、どのプラグイン由来の機能か判断しにくい状態でした。",
-        "after": "スキルの説明フィールドと `/skills` メニュー内に、そのスキルを提供しているプラグイン名が表示されるようになりました。これにより、複数のプラグインを導入している環境でも、各スキルのソースが明確になります。",
-        "benefit": "特定のコマンドがどのプラグインに関連付けられているかを即座に特定できるため、スキルの管理や不要なプラグインの特定が容易になり、開発環境のカスタマイズ効率が向上します。"
+        "before": "複数のプラグインを導入している場合、どのスキルがどのプラグインに由来するものかがメニュー上で一目で分かりにくい状態でした。",
+        "after": "スキルの一覧や説明にプラグイン名が明示されるようになり、名前空間に基づいたスキルの識別が容易になりました。",
+        "benefit": "多くの拡張機能を導入している環境でも、利用したいスキルをすぐに見つけ出し、混乱なく使い分けることができます。"
       }
     },
     {
       "content": "- Fixed an issue where submitting a new message while the model was in extended thinking would interrupt the thinking phase",
-      "content_ja": "- モデルが拡張思考中に新しいメッセージを送信すると、思考フェーズが中断される問題を修正しました",
+      "content_ja": "モデルが思考（Extended Thinking）を行っている最中に新しいメッセージを送信すると、思考フェーズが中断されてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed an API error that could occur when aborting mid-stream, where whitespace text combined with a thinking block would bypass normalization and produce an invalid request",
-      "content_ja": "- ストリームの途中で中止するときに発生する可能性のある API エラーを修正しました。空白テキストと思考ブロックが組み合わされると正規化がバイパスされ、無効なリクエストが生成されます。",
-      "prefix": "Fixed",
-      "importance_score": 4,
-      "related_docs": [
-        {
-          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
-          "hit_count": 14,
-          "context_score": 39,
-          "total_score": 546,
-          "snippets": [
-            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
-            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
-            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
-            "* For MCP tools (when `OTEL_LOG_TOOL_DETAILS=1`): includes `mcp_server_name`, `mcp_tool_name`\n  * For Skill tool (when `OTEL_LOG_TOOL_DETAILS=1`): includes `skill_name`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")",
-            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")"
-          ]
-        },
-        {
-          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
-          "hit_count": 28,
-          "context_score": 17,
-          "total_score": 476,
-          "snippets": [
-            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
-            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)",
-            "### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   * Go to **Settings** → **CI/CD** → **Variables**\n   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**",
-            "# Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
-            "script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
-          ]
-        },
-        {
-          "file": "apps/docs-tracker/docs/en/mcp.md",
-          "hit_count": 26,
-          "context_score": 17,
-          "total_score": 442,
-          "snippets": [
-            "> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
-            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');",
-            "} while (cursor);\n        const transformedServers = allServers.map(item => {\n          const server = item.server;\n          const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];",
-            "</>;\n};\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP",
-            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
-          ]
-        }
-      ]
-    },
-    {
-      "content": "- Fixed API proxy compatibility issue where 404 errors on streaming endpoints no longer triggered non-streaming fallback",
-      "content_ja": "APIプロキシ互換性の問題を修正し、ストリーミングエンドポイントでの404エラー時に非ストリーミングへのフォールバックが機能しなくなっていた不具合を解消しました。",
+      "content_ja": "ストリーミング中の停止時に、思考ブロックと空白テキストが組み合わさることで不正なリクエストが生成されるAPIエラーを修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -280,14 +233,66 @@
         }
       ],
       "inference": {
-        "before": "AWS BedrockやGoogle Vertex AI、あるいは独自のAPIプロキシ環境を利用している際、ストリーミング機能が未対応で404エラーが発生しても、自動的に非ストリーミング接続へ切り替わらない問題がありました。",
-        "after": "ストリーミングエンドポイントで404エラーを検知した場合に、正しく非ストリーミング方式へフォールバックされるようになり、API接続の堅牢性が向上しました。",
-        "benefit": "エンタープライズ向けのプロキシ環境や異なるクラウドプロバイダーを介してClaude Codeを利用しているユーザーが、接続エラーに悩まされることなく安定して対話を行えるようになります。"
+        "before": "Claudeが思考プロセス（Thinking）を出力している最中にユーザーが処理を中断すると、正規化処理をバイパスした不正なデータが送信され、APIエラーが発生することがありました。",
+        "after": "ストリームの中断時でも内部データが適切に処理・正規化されるようになり、エラーでセッションが不安定になる問題が解消されました。",
+        "benefit": "思考機能を使用している際でも、安心して途中で処理を中断し、次のアクションに移ることができます。"
+      }
+    },
+    {
+      "content": "- Fixed API proxy compatibility issue where 404 errors on streaming endpoints no longer triggered non-streaming fallback",
+      "content_ja": "APIプロキシとの互換性の問題を修正し、ストリーミングエンドポイントでの404エラー時に非ストリーミングへのフォールバックが機能しない問題を解消しました",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
+          "hit_count": 14,
+          "context_score": 39,
+          "total_score": 546,
+          "snippets": [
+            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
+            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
+            "* For MCP tools (when `OTEL_LOG_TOOL_DETAILS=1`): includes `mcp_server_name`, `mcp_tool_name`\n  * For Skill tool (when `OTEL_LOG_TOOL_DETAILS=1`): includes `skill_name`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")",
+            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `event.sequence`: monotonically increasing counter for ordering events within a session\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
+          "hit_count": 28,
+          "context_score": 17,
+          "total_score": 476,
+          "snippets": [
+            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
+            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)",
+            "### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   * Go to **Settings** → **CI/CD** → **Variables**\n   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**",
+            "# Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+            "script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 26,
+          "context_score": 17,
+          "total_score": 442,
+          "snippets": [
+            "> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');",
+            "} while (cursor);\n        const transformedServers = allServers.map(item => {\n          const server = item.server;\n          const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];",
+            "</>;\n};\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP",
+            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "APIプロキシ経由で利用している際、ストリーミングが利用不可（404）になっても、自動的に通常のAPIリクエストに切り替わらない不具合がありました。",
+        "after": "接続エラーの検知が改善され、ストリーミングが失敗した場合には正しく従来の通信方式へフォールバックするようになりました。",
+        "benefit": "特定のネットワーク環境やカスタムプロキシを利用している場合でも、接続の安定性が保たれます。"
       }
     },
     {
       "content": "- Fixed an issue where proxy settings configured via `settings.json` environment variables were not applied to WebFetch and other HTTP requests on the Node.js build",
-      "content_ja": "settings.jsonの環境変数で設定されたプロキシ設定が、Node.jsビルドにおけるWebFetchなどのHTTPリクエストに適用されない問題を修正しました。",
+      "content_ja": "Node.jsビルドにおいて、`settings.json`の環境変数で設定されたプロキシ設定がWebFetch等のHTTPリクエストに適用されない問題を修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -332,14 +337,14 @@
         }
       ],
       "inference": {
-        "before": "企業内の制限されたネットワーク環境などでsettings.jsonを通じてプロキシ設定（HTTP_PROXYなど）を行っていても、WebFetchなどの特定のネットワーク通信においてその設定が無視されていました。",
-        "after": "Node.jsビルドにおけるすべてのHTTPリクエストが、設定された環境変数のプロキシ設定を正しく参照して通信を行うようになります。",
-        "benefit": "プロキシ経由の通信が必須な開発環境においても、Claude Codeが外部リソースの取得やWebドキュメントの参照を正常に行えるようになり、ネットワーク接続の制限によるエラーが解消されます。"
+        "before": "設定ファイルでプロキシを指定していても、一部の内部的なHTTP通信（WebFetchなど）でその設定が無視されていました。",
+        "after": "Node.js環境におけるすべてのネットワークリクエストにおいて、一貫してプロキシ設定が適用されるようになりました。",
+        "benefit": "社内プロキシ環境下などで、インターネットへの直接接続が制限されている開発者も、すべての機能を正常に利用できるようになります。"
       }
     },
     {
       "content": "- Fixed `/resume` session picker showing raw XML markup instead of clean titles for sessions started with slash commands",
-      "content_ja": "スラッシュコマンドで開始されたセッションにおいて、`/resume` のセッション選択画面に生のXMLマークアップではなく、適切なタイトルが表示されるよう修正",
+      "content_ja": "`/resume`のセッション選択画面において、スラッシュコマンドで開始されたセッションが生のXMLマークアップではなく綺麗なタイトルで表示されるよう修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": [
@@ -380,14 +385,14 @@
         }
       ],
       "inference": {
-        "before": "スラッシュコマンドを使用して開始されたセッションを再開しようとすると、セッション選択画面（ピッカー）にセッション名ではなく、内部的な生のXMLマークアップが表示されていました。",
-        "after": "セッション選択画面の表示が改善され、XMLタグが取り除かれたクリーンで読みやすいセッションタイトルが表示されるようになりました。",
-        "benefit": "過去の会話履歴を一覧から探す際、各セッションの内容を一目で判別できるようになり、目的の作業に素早く復帰できます。"
+        "before": "過去のセッションを再開しようとした際、タイトルの表示にXMLタグが混じってしまい、内容を判別しにくいことがありました。",
+        "after": "セッション履歴のパース処理が改善され、不要なマークアップが除去された人間が読みやすい形式で表示されるようになりました。",
+        "benefit": "セッション履歴から目的の会話を素早く、正確に見つけ出して再開できるようになります。"
       }
     },
     {
       "content": "- Improved error messages for API connection failures — now shows specific cause (e.g., ECONNREFUSED, SSL errors) instead of generic \"Connection error\"",
-      "content_ja": "API接続失敗時のエラーメッセージの改善 — 「Connection error」という汎用的な表示ではなく、ECONNREFUSEDやSSLエラーなどの具体的な原因を表示するように変更",
+      "content_ja": "API接続失敗時のエラーメッセージを改善し、「接続エラー」という汎用的な表現から「ECONNREFUSED」や「SSLエラー」などの具体的な原因を表示するようにしました",
       "prefix": "Improved",
       "importance_score": 6,
       "related_docs": [
@@ -432,35 +437,35 @@
         }
       ],
       "inference": {
-        "before": "Claude APIやMCPサーバーへの接続に失敗した際、単に「Connection error（接続エラー）」としか表示されませんでした。そのため、ネットワークの遮断、SSL証明書の不備、あるいはサーバーの停止など、具体的に何が起きているのかが分からず、切り分けが困難でした。",
-        "after": "「ECONNREFUSED（接続拒否）」や「SSL errors（SSL証明書エラー）」など、OSやライブラリが返す詳細なエラー原因がメッセージに含まれるようになります。API error eventログなどの診断情報も、より具体的なコンテキストを伴って記録されます。",
-        "benefit": "トラブルシューティングの時間が大幅に短縮されます。例えば、企業プロキシの設定ミスなのか、単純なネット未接続なのかが即座に判別できるため、開発者は迷うことなく正しいネットワーク設定の修正に取り掛かれます。"
+        "before": "通信に失敗した際、原因がネットワーク遮断なのかSSL証明書の問題なのかがメッセージからは判断できませんでした。",
+        "after": "エラーの根本原因（OSレベルのエラーコードなど）がメッセージに含まれるようになりました。",
+        "benefit": "トラブルシューティングが容易になり、ネットワーク環境の修正や設定の変更を迅速に行えるようになります。"
       }
     },
     {
       "content": "- Errors from invalid managed settings are now surfaced",
-      "content_ja": "- 無効な管理設定によるエラーが明らかになりました",
+      "content_ja": "管理設定（Managed Settings）が無効な場合に、そのエラー内容が表面化して表示されるようになりました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- VSCode: Added support for remote sessions, allowing OAuth users to browse and resume sessions from claude.ai",
-      "content_ja": "- VSCode: リモート セッションのサポートが追加され、OAuth ユーザーが claude.ai からセッションを参照して再開できるようになりました。",
+      "content_ja": "VSCode: リモートセッションに対応し、OAuthユーザーが claude.ai 上のセッションを閲覧・再開できるようになりました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- VSCode: Added git branch and message count to the session picker, with support for searching by branch name",
-      "content_ja": "- VSCode: git ブランチとメッセージ数をセッション ピッカーに追加し、ブランチ名による検索をサポートしました。",
+      "content_ja": "VSCode: セッション選択画面にGitブランチ名とメッセージ数を表示し、ブランチ名での検索も可能になりました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- VSCode: Fixed scroll-to-bottom under-scrolling on initial session load and session switch",
-      "content_ja": "- VSCode: 初期セッション読み込み時とセッション切り替え時の下から下へのスクロールのアンダースクロールを修正しました。",
+      "content_ja": "VSCode: セッションの初回読み込み時や切り替え時に、最下部へのスクロールが不足する問題を修正しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "related_docs": []
