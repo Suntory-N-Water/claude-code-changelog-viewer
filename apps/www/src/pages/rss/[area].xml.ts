@@ -1,8 +1,8 @@
-import rss from '@astrojs/rss';
-import type { APIContext, GetStaticPaths } from 'astro';
 import { getCollection } from 'astro:content';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import rss from '@astrojs/rss';
+import type { APIContext, GetStaticPaths } from 'astro';
 import { getAllAreas, labelFor } from '../../lib/feature-areas';
 
 function loadLastFetchTime(): Date {

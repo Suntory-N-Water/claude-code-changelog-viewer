@@ -1,8 +1,8 @@
-import rss from '@astrojs/rss';
-import type { APIContext } from 'astro';
 import { getCollection } from 'astro:content';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import rss from '@astrojs/rss';
+import type { APIContext } from 'astro';
 
 function loadLastFetchTime(): Date {
   try {
