@@ -96,6 +96,19 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
     }
   }
 
+  // 機能領域タグの AI 補正をマージ
+  if (result.feature_area_corrections) {
+    for (const correction of result.feature_area_corrections) {
+      const item = analysis.items[correction.id];
+      if (item) {
+        item.feature_areas = correction.feature_areas;
+        console.log(
+          `✓ Feature area correction: ${item.content.substring(0, 50)}... → [${correction.feature_areas.join(', ')}]`,
+        );
+      }
+    }
+  }
+
   // サマリーを設定
   analysis.summary = result.summary;
   console.log('✓ Version summary generated');

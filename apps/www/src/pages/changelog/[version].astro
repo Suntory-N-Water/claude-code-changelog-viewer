@@ -22,10 +22,10 @@ const description = summary ?? `Claude Code v${version}の変更内容と恩恵�
 // summaryのバッククォートをHTMLコードタグに変換
 const formattedSummary = summary ? formatChangelogContent(summary) : undefined;
 
-// 重要度降順でソート
-const sortedItems = [...items].sort(
-  (a, b) => b.importance_score - a.importance_score,
-);
+// 元のインデックスを保持しつつ重要度降順でソート
+const sortedItems = items
+  .map((item, index) => ({ item, originalIndex: index }))
+  .sort((a, b) => b.item.importance_score - a.item.importance_score);
 ---
 
 <Layout
@@ -82,7 +82,11 @@ const sortedItems = [...items].sort(
       }
 
       <div class='space-y-6'>
-        {sortedItems.map((item) => <ChangelogItemCard item={item} />)}
+        {
+          sortedItems.map(({ item, originalIndex }) => (
+            <ChangelogItemCard item={item} anchorId={`item-${originalIndex}`} />
+          ))
+        }
       </div>
     </div>
   </div>

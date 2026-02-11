@@ -1,12 +1,13 @@
 {
   "version": "2.1.38",
-  "summary": "本バージョンでは、VS Code拡張機能におけるスクロール不具合やセッション重複などの利便性を損なうバグが重点的に修正されました。また、ヒアドキュメントのパース改善やサンドボックスモードの制限強化により、セキュリティ面での堅牢性も向上しています。操作感の安定と安全性の両面が強化されたアップデートとなっています。",
+  "summary": "本バージョンでは、VS Code拡張機能におけるスクロールの問題やセッションの重複など、IDE連携時の利便性を損なうバグが修正されました。また、サンドボックス環境でのセキュリティ強化や、コマンド実行時の権限チェック、入力補完の挙動改善など、CLIコア機能の安定性と安全性が向上しています。",
   "items": [
     {
       "content": "- Fixed VS Code terminal scroll-to-top regression introduced in 2.1.37",
-      "content_ja": "v2.1.37で発生していた、VS Code統合ターミナルが勝手に最上部までスクロールされる不具合を修正",
+      "content_ja": "2.1.37で発生していた、VS Code統合ターミナルの最上部へ強制スクロールされる問題を修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["IDE/VSCode"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/vs-code.md",
@@ -45,37 +46,40 @@
         }
       ],
       "inference": {
-        "before": "前バージョンの2.1.37において、VS Codeの統合ターミナルで動作させた際、画面が意図せず最上部まで戻ってしまうデグレード(先祖返り)が発生していました。",
-        "after": "スクロールの挙動が修正され、通常のターミナル操作と同様に最新の出力箇所を安定して表示できるようになりました。",
-        "benefit": "ログの確認や対話中に画面が飛ぶストレスがなくなり、VS Code内での開発作業に集中できます。"
+        "before": "前バージョンの2.1.37において、VS Codeの統合ターミナルで操作中に画面が勝手に最上部まで戻ってしまうデグレードが発生していました。",
+        "after": "スクロールの挙動が修正され、開発者がターミナルで出力を確認する際に意図せず表示位置が飛ぶことがなくなりました。",
+        "benefit": "ターミナルのログ確認やインタラクティブな操作中に集中が途切れることがなくなり、VS Code内での作業効率が回復します。"
       }
     },
     {
       "content": "- Fixed Tab key queueing slash commands instead of autocompleting",
-      "content_ja": "Tabキーを押した際に、オートコンプリートではなくスラッシュコマンドが入力待ちになってしまう問題を修正しました。",
+      "content_ja": "Tabキーを押した際に補完ではなく、スラッシュコマンドが入力待ちになってしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["CLI Core"],
       "related_docs": []
     },
     {
       "content": "- Fixed bash permission matching for commands using environment variable wrappers",
-      "content_ja": "環境変数を使用したコマンドにおいて、Bashの実行権限が正しく照合されない不具合を修正しました。",
+      "content_ja": "環境変数のラッパーを使用するコマンドにおいて、Bashの実行権限の判定が正しく行われない問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["Permissions"],
       "related_docs": []
     },
     {
       "content": "- Fixed text between tool uses disappearing when not using streaming",
-      "content_ja": "非ストリーミング利用時に、ツール実行の間に挟まれたテキストが消失する問題を修正しました。",
+      "content_ja": "ストリーミング非使用時に、ツール実行の合間にあるテキストが消失してしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Fixed duplicate sessions when resuming in VS Code extension",
-      "content_ja": "VS Code拡張機能でセッションを再開した際に、セッションが重複して作成される問題を修正",
+      "content_ja": "VS Code拡張機能でセッションを再開する際に、セッションが重複して表示される問題を修正しました",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["IDE/VSCode"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/vs-code.md",
@@ -114,23 +118,24 @@
         }
       ],
       "inference": {
-        "before": "過去の対話履歴からセッションを再開しようとすると、同じセッションが二重に作成されたり、管理が煩雑になる現象が起きていました。",
-        "after": "セッションの復元ロジックが改善され、一つの既存セッションに対して正確に接続・再開できるようになりました。",
-        "benefit": "対話履歴の管理がクリーンになり、過去のコンテキストを引き継いだ作業がスムーズに行えます。"
+        "before": "VS Code拡張機能の会話履歴から過去のセッションを再開しようとすると、同じセッションが二重に作成・表示されることがありました。",
+        "after": "セッション管理のロジックが修正され、履歴から復元した際も正しく単一のセッションとして継続できるようになりました。",
+        "benefit": "会話履歴が整理され、複数のプロジェクトやタスクを並行して進める際に、どのセッションが最新かを迷うことなくスムーズに再開できます。"
       }
     },
     {
       "content": "- Improved heredoc delimiter parsing to prevent command smuggling",
-      "content_ja": "ヒアドキュメントの区切り文字のパース処理を改善し、コマンドインジェクション(command smuggling)を防止しました。",
+      "content_ja": "ヒアドキュメントの区切り文字の解析を改善し、不正なコマンドの埋め込みを防止するようにしました。",
       "prefix": "Improved",
       "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Blocked writes to `.claude/skills` directory in sandbox mode",
-      "content_ja": "サンドボックスモードにおいて `.claude/skills` ディレクトリへの書き込みを禁止",
+      "content_ja": "サンドボックスモードにおいて `.claude/skills` ディレクトリへの書き込みを制限しました",
       "prefix": "Changed",
       "importance_score": 6,
+      "feature_areas": ["Permissions", "Skills"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -173,9 +178,9 @@
         }
       ],
       "inference": {
-        "before": "これまでは、セキュリティ制限のあるサンドボックスモード実行時でも、スキル定義を格納する特定のディレクトリへの書き込み制限が明確ではありませんでした。",
-        "after": "`.claude/skills` ディレクトリへの書き込みがブロックされるようになり、意図しないスキルの変更や追加が制限されます。",
-        "benefit": "セキュリティ上のガードレールが強化され、制限された環境でより安全に Claude Code を試用・運用できます。"
+        "before": "以前はサンドボックス(隔離環境)内での実行中であっても、カスタムスキルを格納する特定のディレクトリへの制限が明示的ではありませんでした。",
+        "after": "サンドボックスモード有効時は、システムの動作を定義する重要なディレクトリである `.claude/skills` への書き込みがブロックされるようになります。",
+        "benefit": "AIエージェントが意図せず、あるいは不正にツールの動作を書き換えることを防ぎ、安全な環境でコードのテストや実行を行うことができます。"
       }
     }
   ]

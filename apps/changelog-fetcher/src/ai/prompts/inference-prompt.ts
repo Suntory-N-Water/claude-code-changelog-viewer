@@ -47,6 +47,13 @@ ${snippetsText}`;
     .map((item) => `- [${item.prefix}] ${item.content}`)
     .join('\n');
 
+  const featureAreaItemsText = items
+    .map(
+      (item, index) =>
+        `- id=${index}, tags=[${(item.feature_areas ?? []).join(', ')}], content: ${item.content}`,
+    )
+    .join('\n');
+
   return `
 # 思考のレンズ
 
@@ -116,5 +123,34 @@ ${allItemsText}
 - 主要な新機能、重要な改善点、注目すべきバグ修正を優先的に言及
 - 技術用語は適切に日本語化
 - 「です・ます」調で統一
+
+---
+
+# タスク4: 機能領域タグの補正 (feature_area_corrections)
+
+各項目にはルールベースで仮タグが付与されている。内容を精査し、明らかに誤っているタグのみ補正する。
+
+## 定義済みタグ一覧
+- IDE/VSCode: VSCode 拡張・IDE 連携
+- Hooks: フック機能
+- MCP: Model Context Protocol
+- Skills: スキル機能
+- Agent Teams: エージェントチーム・チームメイト
+- Sub-agents: サブエージェント
+- Plan: プランモード
+- Plugins: プラグイン
+- Settings: 設定
+- Memory: メモリ・CLAUDE.md
+- Permissions: パーミッション
+- CLI Core: 上記に該当しないコア機能
+
+## 制約
+- 補正が必要な項目のみ返す(全項目を返す必要はない)
+- 1項目に複数タグを付与してよい
+- 補正不要であれば空配列を返す
+
+## 対象項目
+
+${featureAreaItemsText}
 `;
 }

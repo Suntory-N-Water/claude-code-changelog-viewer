@@ -1,33 +1,37 @@
 {
   "version": "2.1.33",
-  "summary": "本バージョンでは、エージェントの永続メモリ機能やサブエージェントの起動制限などの新機能が追加され、より高度なワークフローの制御が可能になりました。また、API接続エラーの詳細化やプロキシ設定の適用範囲修正、VSCode拡張機能でのリモートセッション対応など、開発環境の利便性と安定性が大きく向上しています。特にマルチエージェントに関連するバグ修正やフックイベントの追加により、チームでの並行作業がよりスムーズになります。",
+  "summary": "本バージョンでは、エージェントの永続メモリ(memory)対応やサブエージェントの生成制限機能が追加され、ワークフローの柔軟性と制御性が大きく向上しました。また、VSCode 拡張機能において claude.ai との連携強化やセッションピッカーの改善が行われたほか、ネットワーク接続周りのエラーメッセージが詳細化され、トラブルシューティングが容易になっています。全体として、エージェント機能の強化と、開発環境における安定性の向上が図られたアップデートです。",
   "items": [
     {
       "content": "- Fixed agent teammate sessions in tmux to send and receive messages",
-      "content_ja": "tmux環境下でのエージェントのチームメイトセッションにおいて、メッセージの送受信ができない問題を修正しました。",
+      "content_ja": "tmux 環境において、エージェントのチームメイトセッション間でメッセージの送受信ができない問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["Agent Teams"],
       "related_docs": []
     },
     {
       "content": "- Fixed warnings about agent teams not being available on your current plan",
-      "content_ja": "現在のプランでエージェントチーム機能が利用できない旨の警告が誤って表示される問題を修正しました。",
+      "content_ja": "現在のプランでエージェントチームが利用できないという誤った警告が表示される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["Agent Teams"],
       "related_docs": []
     },
     {
       "content": "- Added `TeammateIdle` and `TaskCompleted` hook events for multi-agent workflows",
-      "content_ja": "マルチエージェントのワークフロー向けに、`TeammateIdle`（待機状態）と`TaskCompleted`（タスク完了）のフックイベントを追加しました。",
+      "content_ja": "マルチエージェントのワークフロー用に、チームメイトが待機状態になった際の `TeammateIdle` と、タスク完了時の `TaskCompleted` フックイベントを追加しました。",
       "prefix": "Added",
       "importance_score": 8,
+      "feature_areas": ["Agent Teams", "Hooks"],
       "related_docs": []
     },
     {
       "content": "- Added support for restricting which sub-agents can be spawned via `Task(agent_type)` syntax in agent \"tools\" frontmatter",
-      "content_ja": "エージェントの「tools」フロントマターにおいて、`Task(agent_type)`構文で起動できるサブエージェントの制限に対応しました",
+      "content_ja": "エージェントの tools フロントマターにおいて、`Task(agent_type)` 構文で生成可能なサブエージェントを制限する機能を追加",
       "prefix": "Added",
       "importance_score": 8,
+      "feature_areas": ["Sub-agents"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/sub-agents.md",
@@ -70,16 +74,17 @@
         }
       ],
       "inference": {
-        "before": "これまでは、エージェントがどのサブエージェントを起動できるかをフロントマターで細かく制限する仕組みがありませんでした。",
-        "after": "サブエージェント定義のYAMLフロントマター内で、特定のエージェントタイプのみを許可するように制限をかけられるようになりました。",
-        "benefit": "特定のタスクに特化させたいカスタムエージェントにおいて、意図しないエージェントへの委任を防ぎ、ワークフローの信頼性とセキュリティを向上させることができます。"
+        "before": "特定のサブエージェントが、親エージェントの意図に反して、あるいは権限を超えて任意の種類のサブエージェントを自由に生成できてしまうリスクがありました。",
+        "after": "エージェントの設定ファイル(フロントマター)で、そのエージェントが呼び出せるサブエージェントの種類を明示的に指定できるようになりました。",
+        "benefit": "特定のタスクに特化したワークフローの制御が容易になり、不必要なサブエージェントの生成を抑えることで、トークンコストの節約やセキュリティの向上が期待できます。"
       }
     },
     {
       "content": "- Added `memory` frontmatter field support for agents, enabling persistent memory with `user`, `project`, or `local` scope",
-      "content_ja": "エージェントに`memory`フロントマター項目のサポートを追加し、ユーザー、プロジェクト、ローカルの各スコープでの永続メモリが利用可能になりました",
+      "content_ja": "エージェントに `memory` フロントマターフィールドのサポートを追加し、user、project、local スコープでの永続的なメモリ保持を可能に",
       "prefix": "Added",
       "importance_score": 8,
+      "feature_areas": ["Memory", "Sub-agents"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md",
@@ -122,16 +127,17 @@
         }
       ],
       "inference": {
-        "before": "エージェントのコンテキストや過去の知見を、複数のプロジェクトやセッションにわたって体系的に引き継ぐ標準的なフロントマター設定が不足していました。",
-        "after": "エージェント設定に`memory`フィールドを指定することで、`user`（全プロジェクト共有）、`project`（チーム共有）、`local`（現在のリポジトリのみ）といった範囲で記憶を保持できるようになりました。",
-        "benefit": "一度学習したコーディングルールやプロジェクト固有の背景知識をエージェントが記憶し続けるため、再説明の手間が省け、作業の継続性が高まります。"
+        "before": "エージェントが保持する情報はセッションごとにリセットされやすく、プロジェクトを横断した知識や特定のプロジェクト固有の前提条件を永続的に記憶させることが困難でした。",
+        "after": "エージェントの定義に `memory` フィールドを指定することで、ユーザー単位、プロジェクト単位、あるいはローカル単位で情報を保存し、次回以降のセッションでもその文脈を引き継げるようになりました。",
+        "benefit": "使うほどにエージェントがあなたの環境や好みを学習し、指示を細かく繰り返さなくても、過去のコンテキストに基づいた的確な回答が得られるようになります。"
       }
     },
     {
       "content": "- Added plugin name to skill descriptions and `/skills` menu for better discoverability",
-      "content_ja": "スキルの説明文および`/skills`メニューにプラグイン名を表示するようにし、発見性を向上させました",
+      "content_ja": "スキルの説明文および `/skills` メニューにプラグイン名を表示し、発見性を向上",
       "prefix": "Added",
       "importance_score": 8,
+      "feature_areas": ["Skills", "Plugins"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/skills.md",
@@ -174,23 +180,25 @@
         }
       ],
       "inference": {
-        "before": "複数のプラグインを導入している場合、どのスキルがどのプラグインに由来するものかがメニュー上で一目で分かりにくい状態でした。",
-        "after": "スキルの一覧や説明にプラグイン名が明示されるようになり、名前空間に基づいたスキルの識別が容易になりました。",
-        "benefit": "多くの拡張機能を導入している環境でも、利用したいスキルをすぐに見つけ出し、混乱なく使い分けることができます。"
+        "before": "複数のプラグインを導入している場合、どのスキルがどのプラグインによって提供されているのかが判別しづらく、スキルの管理や利用が煩雑でした。",
+        "after": "スキルのリストや説明にプラグイン名が併記されるようになり、スキルの出自が一目で分かるようになりました。",
+        "benefit": "名前が似ているスキルの混同を防ぎ、自分が必要な機能を素早く見つけて実行できるようになります。"
       }
     },
     {
       "content": "- Fixed an issue where submitting a new message while the model was in extended thinking would interrupt the thinking phase",
-      "content_ja": "モデルが思考（Extended Thinking）を行っている最中に新しいメッセージを送信すると、思考フェーズが中断されてしまう問題を修正しました。",
+      "content_ja": "モデルが思考を継続している最中に新しいメッセージを送信すると、思考フェーズが中断されてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["CLI Core"],
       "related_docs": []
     },
     {
       "content": "- Fixed an API error that could occur when aborting mid-stream, where whitespace text combined with a thinking block would bypass normalization and produce an invalid request",
-      "content_ja": "ストリーミング中の停止時に、思考ブロックと空白テキストが組み合わさることで不正なリクエストが生成されるAPIエラーを修正しました",
+      "content_ja": "ストリームの途中で中断した際に、空白文字と思考ブロックが組み合わさることで正規化を回避し、不正なリクエストが発生する API エラーを修正",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["CLI Core"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
@@ -233,16 +241,17 @@
         }
       ],
       "inference": {
-        "before": "Claudeが思考プロセス（Thinking）を出力している最中にユーザーが処理を中断すると、正規化処理をバイパスした不正なデータが送信され、APIエラーが発生することがありました。",
-        "after": "ストリームの中断時でも内部データが適切に処理・正規化されるようになり、エラーでセッションが不安定になる問題が解消されました。",
-        "benefit": "思考機能を使用している際でも、安心して途中で処理を中断し、次のアクションに移ることができます。"
+        "before": "Claude が考えを巡らせている最中にリクエストを中断すると、内部的なデータ処理の不整合によって、意図しない API エラーが発生することがありました。",
+        "after": "ストリーム中断時のデータ処理プロセスが改善され、思考ブロック(thinking block)を含むレスポンスも正しく正規化されるようになりました。",
+        "benefit": "長時間考え込んでいる最中に中断してもエラーでセッションが不安定になることがなくなり、よりスムーズに次の指示へ移行できます。"
       }
     },
     {
       "content": "- Fixed API proxy compatibility issue where 404 errors on streaming endpoints no longer triggered non-streaming fallback",
-      "content_ja": "APIプロキシとの互換性の問題を修正し、ストリーミングエンドポイントでの404エラー時に非ストリーミングへのフォールバックが機能しない問題を解消しました",
+      "content_ja": "ストリーミングエンドポイントでの 404 エラーが、非ストリーミングへのフォールバックをトリガーしなくなる API プロキシの互換性問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["CLI Core"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
@@ -285,16 +294,17 @@
         }
       ],
       "inference": {
-        "before": "APIプロキシ経由で利用している際、ストリーミングが利用不可（404）になっても、自動的に通常のAPIリクエストに切り替わらない不具合がありました。",
-        "after": "接続エラーの検知が改善され、ストリーミングが失敗した場合には正しく従来の通信方式へフォールバックするようになりました。",
-        "benefit": "特定のネットワーク環境やカスタムプロキシを利用している場合でも、接続の安定性が保たれます。"
+        "before": "API プロキシ経由で利用している際、特定のエンドポイントが見つからない場合に適切な代替手段への切り替えが正常に行われない場合がありました。",
+        "after": "プロキシ環境下でのエラーハンドリングが修正され、ストリーミング通信の失敗時でも適切な挙動が保証されるようになりました。",
+        "benefit": "独自の API プロキシやエンタープライズ環境のネットワークを経由して利用しているユーザーの、接続の安定性が向上します。"
       }
     },
     {
       "content": "- Fixed an issue where proxy settings configured via `settings.json` environment variables were not applied to WebFetch and other HTTP requests on the Node.js build",
-      "content_ja": "Node.jsビルドにおいて、`settings.json`の環境変数で設定されたプロキシ設定がWebFetch等のHTTPリクエストに適用されない問題を修正しました",
+      "content_ja": "Node.js ビルドにおいて、`settings.json` の環境変数で設定されたプロキシ設定が WebFetch やその他の HTTP リクエストに適用されない問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -337,16 +347,17 @@
         }
       ],
       "inference": {
-        "before": "設定ファイルでプロキシを指定していても、一部の内部的なHTTP通信（WebFetchなど）でその設定が無視されていました。",
-        "after": "Node.js環境におけるすべてのネットワークリクエストにおいて、一貫してプロキシ設定が適用されるようになりました。",
-        "benefit": "社内プロキシ環境下などで、インターネットへの直接接続が制限されている開発者も、すべての機能を正常に利用できるようになります。"
+        "before": "設定ファイルでプロキシを指定していても、一部のネットワーク通信(Web検索など)においてその設定が無視され、制限のある環境で通信エラーが発生することがありました。",
+        "after": "すべての HTTP リクエストにおいて `settings.json` で定義されたプロキシ設定が正しく参照・適用されるようになりました。",
+        "benefit": "社内プロキシが必要な開発環境でも、Claude Code の全機能を一貫して安定して利用できるようになります。"
       }
     },
     {
       "content": "- Fixed `/resume` session picker showing raw XML markup instead of clean titles for sessions started with slash commands",
-      "content_ja": "`/resume`のセッション選択画面において、スラッシュコマンドで開始されたセッションが生のXMLマークアップではなく綺麗なタイトルで表示されるよう修正しました",
+      "content_ja": "スラッシュコマンドで開始されたセッションにおいて、`/resume` セッションピッカーに生のデザイン用 XML マークアップが表示される問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
+      "feature_areas": ["CLI Core"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/common-workflows.md",
@@ -385,16 +396,17 @@
         }
       ],
       "inference": {
-        "before": "過去のセッションを再開しようとした際、タイトルの表示にXMLタグが混じってしまい、内容を判別しにくいことがありました。",
-        "after": "セッション履歴のパース処理が改善され、不要なマークアップが除去された人間が読みやすい形式で表示されるようになりました。",
-        "benefit": "セッション履歴から目的の会話を素早く、正確に見つけ出して再開できるようになります。"
+        "before": "過去のセッションを再開しようと一覧を開くと、タイトル部分に `<title>` などの XML タグが混じって表示され、内容の判別が困難なことがありました。",
+        "after": "ピッカーの表示ロジックがクリーンアップされ、タグのない純粋なタイトルテキストのみが表示されるようになりました。",
+        "benefit": "以前の作業を再開する際に、どのセッションが何に関するものだったかを視覚的に素早く判断できるようになります。"
       }
     },
     {
       "content": "- Improved error messages for API connection failures — now shows specific cause (e.g., ECONNREFUSED, SSL errors) instead of generic \"Connection error\"",
-      "content_ja": "API接続失敗時のエラーメッセージを改善し、「接続エラー」という汎用的な表現から「ECONNREFUSED」や「SSLエラー」などの具体的な原因を表示するようにしました",
+      "content_ja": "API 接続失敗時のエラーメッセージを改善し、一律の「接続エラー」ではなく具体的な原因(ECONNREFUSED、SSLエラーなど)を表示するように変更",
       "prefix": "Improved",
       "importance_score": 6,
+      "feature_areas": ["CLI Core"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
@@ -437,37 +449,41 @@
         }
       ],
       "inference": {
-        "before": "通信に失敗した際、原因がネットワーク遮断なのかSSL証明書の問題なのかがメッセージからは判断できませんでした。",
-        "after": "エラーの根本原因（OSレベルのエラーコードなど）がメッセージに含まれるようになりました。",
-        "benefit": "トラブルシューティングが容易になり、ネットワーク環境の修正や設定の変更を迅速に行えるようになります。"
+        "before": "ネットワーク接続に失敗した際、原因がサーバーのダウンなのか、自分の PC の SSL 設定の問題なのかが分からず、トラブルシューティングに時間がかかっていました。",
+        "after": "エラーの根本的な原因(拒否されたのか、認証エラーなのか等)が直接メッセージに表示されるようになりました。",
+        "benefit": "問題が発生した際に、自分のネットワーク設定を見直すべきか、サーバーの復旧を待つべきかが即座に判断でき、無駄な時間を減らせます。"
       }
     },
     {
       "content": "- Errors from invalid managed settings are now surfaced",
-      "content_ja": "管理設定（Managed Settings）が無効な場合に、そのエラー内容が表面化して表示されるようになりました。",
+      "content_ja": "管理者によって設定された managed settings が無効な場合に、そのエラー内容を表示するように変更しました。",
       "prefix": "Changed",
       "importance_score": 6,
+      "feature_areas": ["Settings", "Permissions"],
       "related_docs": []
     },
     {
       "content": "- VSCode: Added support for remote sessions, allowing OAuth users to browse and resume sessions from claude.ai",
-      "content_ja": "VSCode: リモートセッションに対応し、OAuthユーザーが claude.ai 上のセッションを閲覧・再開できるようになりました。",
+      "content_ja": "VSCode: リモートセッションのサポートを追加し、OAuth ユーザーが claude.ai 上のセッションをブラウズおよび再開できるようになりました。",
       "prefix": "Changed",
       "importance_score": 6,
+      "feature_areas": ["IDE/VSCode"],
       "related_docs": []
     },
     {
       "content": "- VSCode: Added git branch and message count to the session picker, with support for searching by branch name",
-      "content_ja": "VSCode: セッション選択画面にGitブランチ名とメッセージ数を表示し、ブランチ名での検索も可能になりました。",
+      "content_ja": "VSCode: セッションピッカーに git ブランチ名とメッセージ数を表示し、ブランチ名での検索も可能にしました。",
       "prefix": "Changed",
       "importance_score": 6,
+      "feature_areas": ["IDE/VSCode"],
       "related_docs": []
     },
     {
       "content": "- VSCode: Fixed scroll-to-bottom under-scrolling on initial session load and session switch",
-      "content_ja": "VSCode: セッションの初回読み込み時や切り替え時に、最下部へのスクロールが不足する問題を修正しました。",
+      "content_ja": "VSCode: セッションの初回読み込み時や切り替え時に、スクロールが一番下まで到達しない問題を修正しました。",
       "prefix": "Changed",
       "importance_score": 6,
+      "feature_areas": ["IDE/VSCode"],
       "related_docs": []
     }
   ]

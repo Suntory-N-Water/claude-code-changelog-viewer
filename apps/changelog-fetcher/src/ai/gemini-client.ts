@@ -150,6 +150,26 @@ export class GeminiClient {
                     required: ['id', 'content_ja'],
                   },
                 },
+                feature_area_corrections: {
+                  type: Type.ARRAY,
+                  description: '機能領域タグの補正(補正が必要な項目のみ)',
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      id: {
+                        type: Type.NUMBER,
+                        description: '元のitems配列のインデックス',
+                      },
+                      feature_areas: {
+                        type: Type.ARRAY,
+                        description: '補正後の機能領域タグ',
+                        items: { type: Type.STRING },
+                      },
+                    },
+                    propertyOrdering: ['id', 'feature_areas'],
+                    required: ['id', 'feature_areas'],
+                  },
+                },
                 summary: {
                   type: Type.STRING,
                   description: 'バージョン全体のサマリー(日本語、2-3文)',
@@ -158,6 +178,7 @@ export class GeminiClient {
               propertyOrdering: [
                 'inferred_items',
                 'translated_items',
+                'feature_area_corrections',
                 'summary',
               ],
               required: ['inferred_items', 'translated_items', 'summary'],

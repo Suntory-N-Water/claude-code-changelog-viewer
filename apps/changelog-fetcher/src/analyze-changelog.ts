@@ -5,6 +5,7 @@ import {
   AnalysisSchema,
 } from '@claude-code-changelog-viewer/types';
 import { parseChangelog } from './parsers/changelog-parser';
+import { tagFeatureAreas } from './parsers/feature-area-tagger';
 import { extractKeywords } from './parsers/keyword-extractor';
 import { getTopDocs } from './scorers/context-scorer';
 import { searchDocs, shouldSkipSearch } from './searchers/grep-executor';
@@ -44,6 +45,7 @@ async function main() {
           content: item.content,
           prefix: item.prefix,
           importance_score: item.importance_score,
+          feature_areas: tagFeatureAreas(item.content),
           related_docs: [],
         };
       }
@@ -61,6 +63,7 @@ async function main() {
         content: item.content,
         prefix: item.prefix,
         importance_score: item.importance_score,
+        feature_areas: tagFeatureAreas(item.content),
         related_docs: topDocs,
       };
     }),

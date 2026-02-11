@@ -46,6 +46,14 @@ export const InferenceBatchResultSchema = z.object({
       content_ja: z.string(),
     }),
   ),
+  feature_area_corrections: z
+    .array(
+      z.object({
+        id: z.number(),
+        feature_areas: z.array(z.string()),
+      }),
+    )
+    .optional(),
   summary: z.string(),
 });
 export type InferenceBatchResult = z.infer<typeof InferenceBatchResultSchema>;
@@ -56,6 +64,7 @@ export const ChangelogItemSchema = z.object({
   content_ja: z.string().optional(), // 日本語翻訳
   prefix: z.string(),
   importance_score: z.number(),
+  feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),
   inference: InferenceResultSchema.optional(),
 });

@@ -12,6 +12,7 @@ const changelogCollection = defineCollection({
         content_ja: z.string().optional(), // 日本語翻訳
         prefix: z.string(),
         importance_score: z.number(),
+        feature_areas: z.array(z.string()).optional(),
         related_docs: z.array(
           z.object({
             file: z.string(),
