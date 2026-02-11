@@ -1,10 +1,10 @@
 {
   "version": "2.1.39",
-  "summary": "本バージョンでは、ターミナルの表示速度向上や文字消失の修正など、パフォーマンスと表示品質の改善が行われました。また、Bedrock等のプラットフォームにおけるAgent Teamsのモデル識別子の修正や、致命的なエラーの可視化といった安定性に関わる重要なバグも修正されています。",
+  "summary": "このバージョンでは、MCPツールの画像処理や各クラウドプラットフォームのモデル識別に関連する安定性が向上しました。また、ターミナルの描画性能やエラー表示、セッション管理といったCLIの基礎機能が細かく修正されています。全体として、より堅牢でストレスのない開発環境が提供されています。",
   "items": [
     {
       "content": "- Added guard against launching Claude Code inside another Claude Code session",
-      "content_ja": "Claude Codeセッション内で別のClaude Codeを起動することを防ぐガードレール機能を追加しました。",
+      "content_ja": "Claude Codeセッション内で別のClaude Codeを起動して無限ループに陥るのを防ぐガード機能を追加しました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [
@@ -14,7 +14,7 @@
     },
     {
       "content": "- Fixed Agent Teams using wrong model identifier for Bedrock, Vertex, and Foundry customers",
-      "content_ja": "Bedrock、Vertex、Foundryを利用している場合に、Agent Teamsが誤ったモデル識別子を使用する問題を修正しました。",
+      "content_ja": "Bedrock、Vertex、Foundryを利用している場合に、Agent Teamsが誤ったモデル識別子を使用してしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -23,8 +23,63 @@
       "related_docs": []
     },
     {
+      "content": "- Fixed a crash when MCP tools return image content during streaming",
+      "content_ja": "MCPツールがストリーミング中に画像コンテンツを返した際のクラッシュを修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "MCP"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 215,
+          "context_score": 7,
+          "total_score": 1505,
+          "snippets": [
+            "-",
+            "title: mcp\nsource: https://code.claude.com/docs/en/mcp.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Connect Claude Code to tools via MCP\n\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');",
+            "}\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }\n          const data = await response.json();\n          allServers.push(...data.servers);"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 19,
+          "context_score": 32,
+          "total_score": 608,
+          "snippets": [
+            "# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |",
+            "`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools\n\n[MCP](/en/mcp) server tools appear as regular tools in tool events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`), so you can match them the same way you match any other tool name.\n\nMCP tools follow the naming pattern `mcp__<server>__<tool>`, for example:\n\n* `mcp__memory__create_entities`: Memory server's create entities tool\n* `mcp__filesystem__read_file`: Filesystem server's read file tool\n* `mcp__github__search_repositories`: GitHub server's search tool\n\nUse regex patterns to target specific MCP tools or groups of tools:\n\n* `mcp__memory__.*` matches all tools from the `memory` server\n* `mcp__.*__write.*` matches any tool containing \"write\" from any server\n\nThis example logs all memory server operations and validates write operations from any MCP server:\n\n```json  theme={null}\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"mcp__memory__.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'Memory operation initiated' >> ~/mcp-operations.log\"\n          }\n        ]\n      },\n      {\n        \"matcher\": \"mcp__.*__write.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/user/scripts/validate-mcp-write.py\"\n          }\n        ]\n      }",
+            "### PreToolUse\n\nRuns after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Task`, `WebFetch`, `WebSearch`, and any [MCP tool names](#match-mcp-tools).\n\nUse [PreToolUse decision control](#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.",
+            "| `decision`             | `\"block\"` prompts Claude with the `reason`. Omit to allow the action to proceed            |\n| `reason`               | Explanation shown to Claude when `decision` is `\"block\"`                                   |\n| `additionalContext`    | Additional context for Claude to consider                                                  |\n| `updatedMCPToolOutput` | For [MCP tools](#match-mcp-tools) only: replaces the tool's output with the provided value |\n\n```json  theme={null}\n{"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
+          "hit_count": 22,
+          "context_score": 18,
+          "total_score": 396,
+          "snippets": [
+            "* `prompt`: Evaluate a prompt with an LLM (uses `$ARGUMENTS` placeholder for context)\n* `agent`: Run an agentic verifier with tools for complex verification tasks\n\n### MCP servers\n\nPlugins can bundle Model Context Protocol (MCP) servers to connect Claude Code with external tools and services.\n\n**Location**: `.mcp.json` in plugin root, or inline in plugin.json\n\n**Format**: Standard MCP server configuration\n\n**MCP server configuration**:\n\n```json  theme={null}\n{\n  \"mcpServers\": {\n    \"plugin-database\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\",\n      \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"],",
+            "},\n    \"plugin-api-client\": {\n      \"command\": \"npx\",\n      \"args\": [\"@company/mcp-server\", \"--plugin-mode\"],\n      \"cwd\": \"${CLAUDE_PLUGIN_ROOT}\"\n    }\n  }",
+            "**Integration behavior**:\n\n* Plugin MCP servers start automatically when the plugin is enabled\n* Servers appear as standard MCP tools in Claude's toolkit\n* Server capabilities integrate seamlessly with Claude's existing tools\n* Plugin servers can be configured independently of user MCP servers\n\n### LSP servers",
+            "\"agents\": \"./custom/agents/\",\n  \"skills\": \"./custom/skills/\",\n  \"hooks\": \"./config/hooks.json\",\n  \"mcpServers\": \"./mcp-config.json\",\n  \"outputStyles\": \"./styles/\",\n  \"lspServers\": \"./.lsp.json\"\n}",
+            "| `agents`       | string\\|array         | Additional agent files                                                                                                                                    | `\"./custom/agents/reviewer.md\"`        |\n| `skills`       | string\\|array         | Additional skill directories                                                                                                                              | `\"./custom/skills/\"`                   |\n| `hooks`        | string\\|array\\|object | Hook config paths or inline config                                                                                                                        | `\"./my-extra-hooks.json\"`              |\n| `mcpServers`   | string\\|array\\|object | MCP config paths or inline config                                                                                                                         | `\"./my-extra-mcp-config.json\"`         |\n| `outputStyles` | string\\|array         | Additional output style files/directories                                                                                                                 | `\"./styles/\"`                          |\n| `lspServers`   | string\\|array\\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) configs for code intelligence (go to definition, find references, etc.) | `\"./.lsp.json\"`                        |"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "Model Context Protocol（MCP）を介して連携した外部ツールが、ストリーミングレスポンスとして画像データを返すと、ツールが適切に処理できず、プログラム全体が予期せず終了してしまうことがありました。",
+        "after": "画像コンテンツを含むストリーミングデータも安定して処理できるようになり、MCPサーバーからの多様な形式の出力を安全に受け取れるようになりました。",
+        "benefit": "画像生成や図解を行うツールとの連携時でも、作業が中断される心配がなくなり、より高度でマルチモーダルな拡張機能を安心して利用できます。"
+      }
+    },
+    {
       "content": "- Fixed /resume session previews showing raw XML tags instead of readable command names",
-      "content_ja": "/resumeコマンドのセッションプレビューで、コマンド名の代わりに生のXMLタグが表示されていた問題を修正しました。",
+      "content_ja": "「/resume」コマンドのセッションプレビューで、コマンド名の代わりに生のXMLタグが表示されていた問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -33,8 +88,18 @@
       "related_docs": []
     },
     {
+      "content": "- Improved model error messages for Bedrock/Vertex/Foundry users with fallback suggestions",
+      "content_ja": "Bedrock、Vertex、Foundryユーザー向けに、エラーメッセージを分かりやすくし、代替案を提示するように改善しました。",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": []
+    },
+    {
       "content": "- Improved terminal rendering performance",
-      "content_ja": "ターミナルのレンダリングパフォーマンスを向上させました。",
+      "content_ja": "ターミナルの描画パフォーマンスを向上させ、よりスムーズな表示を実現しました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -44,7 +109,7 @@
     },
     {
       "content": "- Fixed fatal errors being swallowed instead of displayed",
-      "content_ja": "致命的なエラーが発生した際に、内容が表示されずに無視されてしまう問題を修正しました。",
+      "content_ja": "致命的なエラーが表示されずに無視されてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -54,7 +119,7 @@
     },
     {
       "content": "- Fixed process hanging after session close",
-      "content_ja": "セッション終了後にプロセスがハングアップし続けてしまう問題を修正しました。",
+      "content_ja": "セッション終了後にプロセスが残ってしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -64,7 +129,7 @@
     },
     {
       "content": "- Fixed character loss at terminal screen boundary",
-      "content_ja": "ターミナル画面の境界で文字が消失してしまう問題を修正しました。",
+      "content_ja": "ターミナル画面の境界部分で文字が欠けてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -74,7 +139,7 @@
     },
     {
       "content": "- Fixed blank lines in verbose transcript view",
-      "content_ja": "詳細なトランスクリプト表示において、不要な空行が表示される問題を修正しました。",
+      "content_ja": "詳細なトランスクリプト表示で不要な空行が含まれていた問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
