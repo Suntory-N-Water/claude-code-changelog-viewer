@@ -2,6 +2,7 @@ import { exec } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
+import type { AppLogger } from '@claude-code-changelog-viewer/common';
 
 const execAsync = promisify(exec);
 
@@ -26,10 +27,12 @@ export class ClaudeDocsFetcher {
   private readonly metadataDir: string;
   private readonly maxRetries = 3;
   private readonly retryDelay = 1000; // 1 second
+  private readonly log: AppLogger;
 
-  constructor(rootDir: string = '.') {
+  constructor(rootDir: string = '.', logger: AppLogger) {
     this.docsDir = path.join(rootDir, 'docs', 'en');
     this.metadataDir = path.join(rootDir, 'metadata');
+    this.log = logger.child({ component: 'ClaudeDocsFetcher' });
   }
 
   /**
@@ -38,14 +41,14 @@ export class ClaudeDocsFetcher {
   async init(): Promise<void> {
     await fs.mkdir(this.docsDir, { recursive: true });
     await fs.mkdir(this.metadataDir, { recursive: true });
-    console.log('✅ Directories initialized');
+    this.log.msg('APLG0004', { params: ['ディレクトリ'] });
   }
 
   /**
    * Fetch docs map to get list of all documentation pages
    */
   async fetchDocsMap(): Promise<DocInfo[]> {
-    console.log('📥 Fetching documentation map...');
+    this.log.msg('APLG0003', { params: ['ドキュメントマップ'] });
 
     try {
       const response = await this.fetchWithRetry(this.docsMapUrl);
@@ -60,11 +63,16 @@ export class ClaudeDocsFetcher {
 
       // Parse the markdown to extract document URLs
       const docs = this.parseDocsMap(content);
-      console.log(`✅ Found ${docs.length} documentation pages`);
+      this.log.msg('APLG0010', {
+        params: ['ドキュメントページ'],
+        attrs: { 'doc.count': docs.length },
+      });
 
       return docs;
     } catch (error) {
-      console.error('❌ Failed to fetch docs map:', error);
+      if (error instanceof Error) {
+        this.log.msg('APLG0015', { params: ['ドキュメントマップ'], error });
+      }
       throw error;
     }
   }
@@ -100,7 +108,7 @@ export class ClaudeDocsFetcher {
    * Fetch llms.txt to get list of all documentation URLs
    */
   async fetchLlmsTxt(): Promise<DocInfo[]> {
-    console.log('📥 Fetching llms.txt...');
+    this.log.msg('APLG0003', { params: ['llms.txt'] });
 
     try {
       const response = await this.fetchWithRetry(this.llmsUrl);
@@ -115,11 +123,16 @@ export class ClaudeDocsFetcher {
 
       // Parse to extract document URLs
       const docs = this.parseLlmsTxt(content);
-      console.log(`✅ Found ${docs.length} pages in llms.txt`);
+      this.log.msg('APLG0010', {
+        params: ['llms.txt ページ'],
+        attrs: { 'doc.count': docs.length },
+      });
 
       return docs;
     } catch (error) {
-      console.warn('⚠️  Failed to fetch llms.txt:', error);
+      if (error instanceof Error) {
+        this.log.msg('APLG0011', { params: ['llms.txt'], error });
+      }
       // Return empty array on failure (fallback to docs_map only)
       return [];
     }
@@ -209,7 +222,10 @@ export class ClaudeDocsFetcher {
     const filename = this.getFilenameFromUrl(docInfo.url);
     const filePath = path.join(this.docsDir, filename);
 
-    console.log(`📄 Fetching: ${docInfo.title} (${filename})`);
+    this.log.debug('ドキュメントを取得しています', {
+      'doc.title': docInfo.title,
+      'doc.filename': filename,
+    });
 
     try {
       // Create subdirectory if needed (e.g., for sdk/migration-guide.md)
@@ -234,7 +250,13 @@ export class ClaudeDocsFetcher {
         content: fullContent,
       };
     } catch (error) {
-      console.error(`❌ Failed to fetch ${docInfo.title}:`, error);
+      if (error instanceof Error) {
+        this.log.msg('APLG0015', {
+          params: ['ドキュメント'],
+          attrs: { 'doc.title': docInfo.title },
+          error,
+        });
+      }
       return {
         success: false,
         filename,
@@ -301,7 +323,13 @@ source: ${docInfo.url}
       return response;
     } catch (error) {
       if (retries < this.maxRetries) {
-        console.log(`⚠️  Retry ${retries + 1}/${this.maxRetries} for ${url}`);
+        this.log.msg('APLG0014', {
+          attrs: {
+            'retry.attempt': retries + 1,
+            'retry.max': this.maxRetries,
+            'request.url': url,
+          },
+        });
         await this.sleep(this.retryDelay * 2 ** retries); // Exponential backoff
         return this.fetchWithRetry(url, retries + 1);
       }
@@ -327,7 +355,7 @@ source: ${docInfo.url}
       return stdout.trim() === 'changed';
     } catch (_error) {
       // If git command fails (e.g., not a git repo), assume there are changes
-      console.warn('⚠️  Could not check git diff, assuming changes exist');
+      this.log.msg('APLG0013', { params: ['git diff'] });
       return true;
     }
   }
@@ -358,7 +386,9 @@ source: ${docInfo.url}
         'utf-8',
       );
     } catch (error) {
-      console.error('Failed to save metadata:', error);
+      if (error instanceof Error) {
+        this.log.msg('APLG0017', { params: ['メタデータ'], error });
+      }
     }
   }
 
@@ -417,15 +447,27 @@ source: ${docInfo.url}
       const filePath = path.join(this.docsDir, file);
       try {
         await fs.unlink(filePath);
-        console.log(`🗑️  Removed orphaned file: ${file}`);
+        this.log.msg('APLG0005', {
+          params: ['不要なファイル'],
+          attrs: { 'file.name': file },
+        });
         deletedCount++;
       } catch (error) {
-        console.error(`❌ Failed to delete ${file}:`, error);
+        if (error instanceof Error) {
+          this.log.msg('APLG0016', {
+            params: ['ファイル'],
+            attrs: { 'file.name': file },
+            error,
+          });
+        }
       }
     }
 
     if (deletedCount > 0) {
-      console.log(`🧹 Cleaned up ${deletedCount} orphaned file(s)`);
+      this.log.msg('APLG0006', {
+        params: ['不要なファイル'],
+        attrs: { 'cleanup.count': deletedCount },
+      });
     }
 
     return deletedCount;
@@ -436,13 +478,13 @@ source: ${docInfo.url}
    * Fetches both docs_map and llms.txt in parallel for comprehensive coverage
    */
   async fetchAllDocs(): Promise<void> {
-    console.log('🚀 Starting documentation fetch...');
+    this.log.msg('APLG0001', { params: ['ドキュメントの取得'] });
 
     // Initialize directories
     await this.init();
 
     // Fetch both docs_map and llms.txt in parallel
-    console.log('📥 Fetching documentation sources in parallel...');
+    this.log.msg('APLG0003', { params: ['ドキュメントソース'] });
     const [docsMapDocs, llmsDocs] = await Promise.all([
       this.fetchDocsMap(),
       this.fetchLlmsTxt(),
@@ -450,10 +492,13 @@ source: ${docInfo.url}
 
     // Merge document lists (docs_map has better titles, llms.txt may have newer docs)
     const docs = this.mergeDocLists(docsMapDocs, llmsDocs);
-    console.log(`📋 Total unique documents after merge: ${docs.length}`);
+    this.log.msg('APLG0010', {
+      params: ['マージ後のユニークドキュメント'],
+      attrs: { 'doc.total': docs.length },
+    });
 
     if (docs.length === 0) {
-      console.warn('⚠️  No documentation pages found');
+      this.log.msg('APLG0012', { params: ['ドキュメントページ'] });
       return;
     }
 
@@ -480,20 +525,31 @@ source: ${docInfo.url}
     const successful = results.filter((r) => r.success).length;
     const failed = results.filter((r) => !r.success);
 
-    console.log('\n📊 Fetch Summary:');
-    console.log(
-      `✅ Successfully fetched: ${successful}/${docs.length} documents`,
-    );
+    this.log.msg('APLG0009', {
+      attrs: {
+        'fetch.successful': successful,
+        'fetch.total': docs.length,
+        'fetch.failed': failed.length,
+      },
+    });
 
     if (failed.length > 0) {
-      console.log(`❌ Failed documents:`);
-      failed.forEach((f) => {
-        console.log(`  - ${f.filename}: ${f.error}`);
-      });
+      for (const f of failed) {
+        this.log.msg('APLG0015', {
+          params: ['ドキュメント'],
+          attrs: {
+            'doc.filename': f.filename,
+            'exception.message': f.error,
+          },
+        });
+      }
     }
 
     if (deletedCount > 0) {
-      console.log(`🗑️  Removed ${deletedCount} orphaned document(s)`);
+      this.log.msg('APLG0006', {
+        params: ['不要なドキュメント'],
+        attrs: { 'cleanup.count': deletedCount },
+      });
     }
 
     // Check if there are changes in docs directory
@@ -511,13 +567,13 @@ source: ${docInfo.url}
     if (hasChanges) {
       const now = `${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC`;
       metadata.lastMapUpdate = now;
-      console.log('📝 Documentation changes detected, updating timestamp');
+      this.log.msg('APLG0007', { params: ['ドキュメント'] });
     } else {
-      console.log('ℹ️  No documentation changes detected');
+      this.log.msg('APLG0008', { params: ['ドキュメント'] });
     }
 
     await this.saveMetadata(metadata);
 
-    console.log('\n✨ Documentation fetch complete!');
+    this.log.msg('APLG0002', { params: ['ドキュメントの取得'] });
   }
 }
