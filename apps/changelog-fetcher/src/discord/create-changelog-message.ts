@@ -1,7 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import type { DiscordWebhookPayload } from './types';
+
+const log = getLogger({ name: 'discord-changelog' });
 
 type CliArgs = {
   version: string;
@@ -12,11 +15,8 @@ function parseArgs(): CliArgs {
   const version = args.find((arg) => !arg.startsWith('--'));
 
   if (!version) {
-    console.error(
+    log.error(
       'Usage: pnpm tsx src/discord/create-changelog-message.ts <version>',
-    );
-    console.error(
-      'Example: pnpm tsx src/discord/create-changelog-message.ts v2.1.29',
     );
     process.exit(1);
   }
@@ -106,28 +106,28 @@ async function main(): Promise<void> {
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL || '';
 
   if (!webhookUrl) {
-    console.error(
-      '❌ Error: DISCORD_WEBHOOK_URL environment variable is required',
-    );
+    log.error('DISCORD_WEBHOOK_URL 環境変数が未設定です');
     process.exit(1);
   }
 
   try {
-    console.log(
-      `📤 Creating and sending Discord notification for ${version}...`,
-    );
+    log.msg('APLG0001', { params: [`Discord通知 (${version})`] });
 
     const payload = createChangelogMessage(version);
     await sendToDiscord(webhookUrl, payload);
 
-    console.log('✅ Discord notification sent successfully');
+    log.msg('APLG0023', { params: ['Discord通知'] });
   } catch (error) {
-    console.error('❌ Error:', error);
+    log.msg('APLG0018', {
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     process.exit(1);
   }
 }
 
 main().catch((error) => {
-  console.error('Fatal error:', error);
+  log.msg('APLG0019', {
+    error: error instanceof Error ? error : new Error(String(error)),
+  });
   process.exit(1);
 });

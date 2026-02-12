@@ -1,5 +1,6 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import {
   type Analysis,
   AnalysisSchema,
@@ -11,15 +12,17 @@ import { getTopDocs } from './scorers/context-scorer';
 import { searchDocs, shouldSkipSearch } from './searchers/grep-executor';
 import { extractSnippets } from './searchers/snippet-extractor';
 
+const log = getLogger({ name: 'changelog-analyzer' });
+
 async function main() {
   const version = process.argv[2]; // v2.1.19
 
   if (!version) {
-    console.error('Usage: tsx scripts/analyze-changelog.ts <version>');
+    log.error('Usage: tsx scripts/analyze-changelog.ts <version>');
     process.exit(1);
   }
 
-  console.log(`Analyzing CHANGELOG for ${version}...`);
+  log.msg('APLG0001', { params: [`CHANGELOG 解析 (${version})`] });
 
   // 1. CHANGELOGを読み込み
   const changelogPath = path.join(process.cwd(), 'changelogs', `${version}.md`);
@@ -27,13 +30,13 @@ async function main() {
 
   // 2. パース
   const items = parseChangelog(changelog);
-  console.log(`Found ${items.length} items`);
+  log.msg('APLG0010', { params: [`${items.length} 件の項目`] });
 
   // 3. 各項目を処理
   const analyzedItems = await Promise.all(
     items.map(async (item, index) => {
-      console.log(
-        `[${index + 1}/${items.length}] Processing: ${item.content.slice(0, 60)}...`,
+      log.info(
+        `[${index + 1}/${items.length}] ${item.content.slice(0, 60)}...`,
       );
 
       // キーワード抽出
@@ -77,9 +80,11 @@ async function main() {
       items: analyzedItems,
     });
   } catch (error) {
-    console.error('❌ Validation failed:');
-    console.error(error);
-    console.error('Data:', JSON.stringify(analyzedItems, null, 2));
+    log.msg('APLG0022', {
+      params: ['解析結果'],
+      error: error instanceof Error ? error : new Error(String(error)),
+      attrs: { data: JSON.stringify(analyzedItems, null, 2) },
+    });
     process.exit(1);
   }
 
@@ -91,12 +96,15 @@ async function main() {
   );
   await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
 
-  console.log(`✅ Analysis complete: ${outputPath}`);
-  console.log('📊 Stats:');
-  console.log(`  - Total items: ${result.items.length}`);
+  log.msg('APLG0002', {
+    params: ['解析'],
+    attrs: { outputPath, totalItems: result.items.length },
+  });
 }
 
 main().catch((error) => {
-  console.error('Error:', error);
+  log.msg('APLG0018', {
+    error: error instanceof Error ? error : new Error(String(error)),
+  });
   process.exit(1);
 });

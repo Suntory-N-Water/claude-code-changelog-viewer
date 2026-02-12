@@ -1,6 +1,9 @@
 import { execSync } from 'node:child_process';
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import { GeminiClient } from '../ai/gemini-client';
 import type { DiscordWebhookPayload } from './types';
+
+const log = getLogger({ name: 'discord-docs' });
 
 type CliArgs = {
   commitSha: string;
@@ -25,11 +28,8 @@ function parseArgs(): CliArgs {
       : 0;
 
   if (!commitSha) {
-    console.error(
+    log.error(
       'Usage: pnpm tsx src/discord/create-docs-summary-message.ts <commit-sha> --changed-files <count>',
-    );
-    console.error(
-      'Example: pnpm tsx src/discord/create-docs-summary-message.ts abc123 --changed-files 5',
     );
     process.exit(1);
   }
@@ -47,10 +47,10 @@ function getDocsDiff(commitSha: string): string {
       const parentCheck = execSync(`git rev-parse ${commitSha}~1`, {
         encoding: 'utf-8',
       });
-      console.log(`✓ Parent commit exists: ${parentCheck.trim()}`);
+      log.info(`親コミットを確認: ${parentCheck.trim()}`);
     } catch {
       // First commit - return empty diff
-      console.log('ℹ️ No parent commit found - this is the first commit');
+      log.info('親コミットなし - 初回コミット');
       return 'Initial commit - all files are new';
     }
 
@@ -63,7 +63,7 @@ function getDocsDiff(commitSha: string): string {
     // Focus on actual documentation content changes
     // Use absolute path from repo root to avoid path resolution issues
     const diffCommand = `git diff ${commitSha}~1 ${commitSha} -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md'`;
-    console.log(`🔍 Running diff command: ${diffCommand}`);
+    log.debug(`diff コマンド実行: ${diffCommand}`);
 
     const diff = execSync(diffCommand, {
       encoding: 'utf-8',
@@ -71,12 +71,12 @@ function getDocsDiff(commitSha: string): string {
       cwd: repoRoot, // Execute from repo root for consistent behavior
     });
 
-    console.log(`✓ Retrieved diff: ${diff.length} characters`);
+    log.info(`diff 取得完了: ${diff.length} 文字`);
 
     // If diff is empty or very small, it might be only metadata changes
     if (diff.length < 100) {
-      console.log(
-        '⚠️ Diff is very small, might be only metadata changes. Getting file list for context.',
+      log.warn(
+        'diff が非常に小さいため、メタデータのみの変更の可能性があります',
       );
       // Fall back to showing changed file names with their full content context
       return 'Minimal diff detected - changes may be metadata only';
@@ -90,7 +90,9 @@ function getDocsDiff(commitSha: string): string {
 
     return diff || 'No changes in docs directory';
   } catch (error) {
-    console.error('Failed to get git diff:', error);
+    if (error instanceof Error) {
+      log.error('git diff の取得に失敗', error);
+    }
     return 'Failed to retrieve git diff';
   }
 }
@@ -126,7 +128,7 @@ function getChangedFilesList(
       },
     );
 
-    console.log(`✓ Changed files:\n${files}`);
+    log.info(`変更ファイル一覧:\n${files}`);
 
     const fileArray = files
       .trim()
@@ -150,7 +152,11 @@ function getChangedFilesList(
 
     return fileList.join('\n');
   } catch (error) {
-    console.error('Failed to get changed files:', error);
+    if (error instanceof Error) {
+      log.error('変更ファイル一覧の取得に失敗', error);
+    } else {
+      log.error('変更ファイル一覧の取得に失敗');
+    }
     return 'Failed to retrieve file list';
   }
 }
@@ -168,9 +174,7 @@ async function summarizeDocChanges(
   let enrichedContext = diff;
 
   if (diff.length < 100) {
-    console.log(
-      '⚠️ Diff too small for meaningful summary, extracting file contexts...',
-    );
+    log.warn('diff が小さいため、ファイルコンテキストを抽出します');
 
     try {
       // Get repository root to ensure correct path resolution
@@ -190,12 +194,10 @@ async function summarizeDocChanges(
 
       if (detailedDiff) {
         enrichedContext = detailedDiff;
-        console.log(
-          `✓ Extracted detailed context: ${enrichedContext.length} characters`,
-        );
+        log.info(`詳細コンテキスト抽出完了: ${enrichedContext.length} 文字`);
       }
     } catch {
-      console.log('i Could not extract detailed context, using original diff');
+      log.info('詳細コンテキストの抽出に失敗、元の diff を使用');
     }
   }
 
@@ -238,7 +240,11 @@ ${enrichedContext}
     const summary = await client.generateText(prompt);
     return summary;
   } catch (error) {
-    console.error('Failed to generate AI summary:', error);
+    if (error instanceof Error) {
+      log.error('AI要約の生成に失敗', error);
+    } else {
+      log.error('AI要約の生成に失敗');
+    }
     // フォールバック: 簡易メッセージ
     return `Claude Code のドキュメントが更新されました(${changedFilesCount}ファイル)。詳細はコミットをご確認ください。`;
   }
@@ -297,7 +303,7 @@ async function sendToDiscord(
     );
   }
 
-  console.log('✅ Discord notification sent successfully');
+  log.msg('APLG0023', { params: ['Discord通知'] });
 }
 
 async function main(): Promise<void> {
@@ -307,39 +313,42 @@ async function main(): Promise<void> {
   const geminiApiKey = process.env.GEMINI_API_KEY || '';
 
   if (!webhookUrl) {
-    console.error(
-      '❌ Error: DISCORD_WEBHOOK_URL environment variable is required',
-    );
+    log.error('DISCORD_WEBHOOK_URL 環境変数が未設定です');
     process.exit(1);
   }
 
   if (!geminiApiKey) {
-    console.error('❌ Error: GEMINI_API_KEY environment variable is required');
+    log.error('GEMINI_API_KEY 環境変数が未設定です');
     process.exit(1);
   }
 
   try {
-    console.log(`📤 Creating Discord notification for commit ${commitSha}...`);
-    console.log(`   Changed files: ${changedFilesCount}`);
+    log.msg('APLG0001', {
+      params: ['Discord ドキュメント通知'],
+      attrs: { commitSha, changedFilesCount },
+    });
 
     // 1. git diff取得
     const diff = getDocsDiff(commitSha);
-    console.log(`✓ Retrieved git diff (${diff.length} chars)`);
+    log.info(`git diff 取得完了 (${diff.length} 文字)`);
 
     // 2. 変更ファイル一覧取得
     const fileList = getChangedFilesList(commitSha);
-    console.log('✓ Retrieved changed files list');
+    log.info('変更ファイル一覧を取得');
 
     // 3. AI要約生成
-    console.log('🤖 Generating AI summary with Gemini...');
-    const client = new GeminiClient(geminiApiKey);
+    log.msg('APLG0020', { params: ['AI要約'] });
+    const client = new GeminiClient(
+      geminiApiKey,
+      log.child({ component: 'gemini' }),
+    );
     const summary = await summarizeDocChanges(
       client,
       diff,
       changedFilesCount,
       commitSha,
     );
-    console.log('✓ AI summary generated');
+    log.msg('APLG0002', { params: ['AI要約'] });
 
     // 4. Discordメッセージ生成
     const payload = createDiscordMessage(
@@ -348,17 +357,21 @@ async function main(): Promise<void> {
       fileList,
       summary,
     );
-    console.log(`✓ Discord message created (${payload.content.length} chars)`);
+    log.info(`Discord メッセージ作成完了 (${payload.content.length} 文字)`);
 
     // 5. Discord送信
     await sendToDiscord(webhookUrl, payload);
   } catch (error) {
-    console.error('❌ Error:', error);
+    log.msg('APLG0018', {
+      error: error instanceof Error ? error : new Error(String(error)),
+    });
     process.exit(1);
   }
 }
 
 main().catch((error) => {
-  console.error('Fatal error:', error);
+  log.msg('APLG0019', {
+    error: error instanceof Error ? error : new Error(String(error)),
+  });
   process.exit(1);
 });

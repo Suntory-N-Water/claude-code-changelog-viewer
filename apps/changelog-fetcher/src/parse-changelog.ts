@@ -4,8 +4,11 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { getLogger } from '@claude-code-changelog-viewer/common';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const log = getLogger({ name: 'changelog-fetcher' });
 
 type Metadata = {
   lastFetchTime: string;
@@ -49,7 +52,7 @@ function main() {
   mkdirSync(outputDir, { recursive: true });
   mkdirSync(dirname(metadataFile), { recursive: true });
 
-  console.log('Fetching CHANGELOG.md from anthropics/claude-code...');
+  log.msg('APLG0003', { params: ['CHANGELOG.md'] });
   const downloadUrl = execSync(
     'gh api repos/anthropics/claude-code/contents/CHANGELOG.md --jq .download_url',
     { encoding: 'utf-8' },
@@ -58,7 +61,7 @@ function main() {
     encoding: 'utf-8',
   });
 
-  console.log('Processing changelog entries...');
+  log.msg('APLG0020', { params: ['CHANGELOG エントリー'] });
   const versions = parseChangelog(changelogContent);
 
   const existingMetadata = existsSync(metadataFile)
@@ -78,7 +81,7 @@ function main() {
     const existingHash = existingMetadata[versionKey] ?? '';
 
     if (contentHash === existingHash && existsSync(versionFile)) {
-      console.log(`  → ${versionKey}: Unchanged`);
+      log.debug(`${versionKey}: 変更なし`);
       newMetadata[versionKey] = contentHash;
       continue;
     }
@@ -86,10 +89,10 @@ function main() {
     writeFileSync(versionFile, `## ${version}\n\n${content}\n`, 'utf-8');
 
     if (existingHash) {
-      console.log(`  ✓ ${versionKey}: Updated`);
+      log.info(`${versionKey}: 更新あり`);
       updatedCount++;
     } else {
-      console.log(`  ✓ ${versionKey}: New`);
+      log.info(`${versionKey}: 新規`);
       newCount++;
     }
 
@@ -103,12 +106,11 @@ function main() {
 
   writeFileSync(metadataFile, JSON.stringify(metadata, null, 2), 'utf-8');
 
-  console.log();
-  console.log('✓ Fetch completed:');
+  log.msg('APLG0002', { params: ['CHANGELOG の取得'] });
 
   // 更新がない場合は exit 1 を返す
   if (newCount === 0 && updatedCount === 0) {
-    console.log('\nℹ️  No changes detected.');
+    log.msg('APLG0008', { params: ['CHANGELOG'] });
     process.exit(1);
   }
 }
@@ -116,7 +118,8 @@ function main() {
 try {
   main();
 } catch (error) {
-  console.error('\n❌ Error occurred:');
-  console.error(error);
+  log.msg('APLG0018', {
+    error: error instanceof Error ? error : new Error(String(error)),
+  });
   process.exit(2);
 }

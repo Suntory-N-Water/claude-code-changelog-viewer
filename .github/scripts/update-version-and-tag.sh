@@ -72,12 +72,13 @@ fi
 # 変更をステージング
 git add "$PACKAGE_JSON"
 
-# Gitタグの作成
+# Gitタグの作成(既存タグがある場合は上書き)
 if git rev-parse "$LATEST_VERSION" >/dev/null 2>&1; then
-  echo "⚠️  Tag $LATEST_VERSION already exists, skipping tag creation"
-else
-  git tag -a "$LATEST_VERSION" -m "Release $LATEST_VERSION
+  echo "⚠️  Tag $LATEST_VERSION already exists, overwriting..."
+  git tag -d "$LATEST_VERSION"
+fi
+
+git tag -a "$LATEST_VERSION" -m "Release $LATEST_VERSION
 
 Synced with Claude Code $LATEST_VERSION"
-  echo "✅ Created tag: $LATEST_VERSION"
-fi
+echo "✅ Created tag: $LATEST_VERSION"

@@ -31,6 +31,12 @@ const LOG_CATALOG = {
   APLG0009: { level: 'INFO', template: '取得結果サマリー' },
   /** $0 を検出しました */
   APLG0010: { level: 'INFO', template: '$0 を検出しました' },
+  /** $0 を処理しています */
+  APLG0020: { level: 'INFO', template: '$0 を処理しています' },
+  /** $0 を保存しました */
+  APLG0021: { level: 'INFO', template: '$0 を保存しました' },
+  /** $0 を送信しました */
+  APLG0023: { level: 'INFO', template: '$0 を送信しました' },
 
   // --- WARN ---
   /** $0 の取得に失敗しました */
@@ -41,6 +47,8 @@ const LOG_CATALOG = {
   APLG0013: { level: 'WARN', template: '$0 の確認に失敗しました' },
   /** リトライを実行します */
   APLG0014: { level: 'WARN', template: 'リトライを実行します' },
+  /** $0 にフォールバックします */
+  APLG0024: { level: 'WARN', template: '$0 にフォールバックします' },
 
   // --- ERROR ---
   /** $0 の取得に失敗しました */
@@ -49,6 +57,8 @@ const LOG_CATALOG = {
   APLG0016: { level: 'ERROR', template: '$0 の削除に失敗しました' },
   /** $0 の保存に失敗しました */
   APLG0017: { level: 'ERROR', template: '$0 の保存に失敗しました' },
+  /** $0 の検証に失敗しました */
+  APLG0022: { level: 'ERROR', template: '$0 の検証に失敗しました' },
 
   // --- FATAL ---
   /** 致命的なエラーが発生しました */

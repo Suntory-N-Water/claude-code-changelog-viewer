@@ -1,3 +1,4 @@
+import type { AppLogger } from '@claude-code-changelog-viewer/common';
 import {
   type InferenceBatchResult,
   InferenceBatchResultSchema,
@@ -32,14 +33,16 @@ const INFERENCE_FALLBACK_MODELS = [
  */
 export class GeminiClient {
   private ai: GoogleGenAI;
+  private log: AppLogger;
   private lastRequestTimes: Map<string, number> = new Map();
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, logger: AppLogger) {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY environment variable is required');
     }
 
     this.ai = new GoogleGenAI({ apiKey });
+    this.log = logger;
   }
 
   /**
@@ -77,7 +80,7 @@ export class GeminiClient {
 
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
-        console.log(`[inferAll] Trying model: ${model}`);
+        this.log.info(`モデルを試行: ${model}`, { method: 'inferAll' });
         await this.waitForRateLimit(model);
 
         const response = await this.ai.models.generateContent({
@@ -195,15 +198,13 @@ export class GeminiClient {
 
         const parsed = JSON.parse(response.text);
         const result = InferenceBatchResultSchema.parse(parsed);
-        console.log(`[inferAll] Success with model: ${model}`);
+        this.log.info(`モデル成功: ${model}`, { method: 'inferAll' });
         return result;
       } catch (error) {
         if (error instanceof Error) {
           lastError = error;
           if (this.is429Error(error)) {
-            console.log(
-              `[inferAll] 429 error with ${model}, trying next model...`,
-            );
+            this.log.msg('APLG0024', { params: [model] });
             continue;
           }
           throw error;
@@ -212,9 +213,9 @@ export class GeminiClient {
       }
     }
 
-    console.error(
-      `[inferAll] All models failed. Last error: ${lastError?.message}`,
-    );
+    this.log.error(`全モデルが失敗: ${lastError?.message}`, {
+      method: 'inferAll',
+    });
     throw new Error(
       `All models failed for inference task. Last error: ${lastError?.message}`,
     );
@@ -231,7 +232,7 @@ export class GeminiClient {
   async generateText(prompt: string): Promise<string> {
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
-        console.log(`[generateText] Trying model: ${model}`);
+        this.log.info(`モデルを試行: ${model}`, { method: 'generateText' });
         await this.waitForRateLimit(model);
 
         const response = await this.ai.models.generateContent({
@@ -248,14 +249,12 @@ export class GeminiClient {
           throw new Error('Gemini APIからの応答が空です');
         }
 
-        console.log(`[generateText] Success with model: ${model}`);
+        this.log.info(`モデル成功: ${model}`, { method: 'generateText' });
         return response.text.trim();
       } catch (error) {
         if (error instanceof Error) {
           if (this.is429Error(error)) {
-            console.log(
-              `[generateText] 429 error with ${model}, trying next model...`,
-            );
+            this.log.msg('APLG0024', { params: [model] });
             continue;
           }
           throw error;
