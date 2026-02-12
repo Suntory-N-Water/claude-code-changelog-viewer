@@ -1,10 +1,10 @@
 {
   "version": "2.1.39",
-  "summary": "本バージョンでは、MCPツールの画像処理やセッション復旧時の表示不具合など、多くの安定性に関わるバグが修正されました。また、BedrockやVertex等のエンタープライズプラットフォーム利用時のモデル識別子やエラーメッセージの改善、ターミナルの描画高速化が行われています。加えて、パフォーマンス追跡用のデータ属性が追加され、ファストモードの効果をより正確に測定できるようになりました。",
+  "summary": "本バージョンでは、MCPツールを通じた画像処理の安定性向上やターミナルのレンダリング高速化など、基盤となるパフォーマンスと信頼性が強化されました。特にBedrockやVertex AIなどの外部プラットフォーム利用時の不具合が多数修正され、エンタープライズ環境での使い勝手が向上しています。また、セッションの再開（/resume）画面の視認性向上など、細かなUIの使いやすさも改善されました。",
   "items": [
     {
       "content": "- Added guard against launching Claude Code inside another Claude Code session",
-      "content_ja": "Claude Codeのセッション内で別のClaude Codeセッションを起動できないように保護機能を追加しました。",
+      "content_ja": "Claude Codeセッション内で別のClaude Codeを起動できないようにする保護機能を追加",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [
@@ -14,7 +14,7 @@
     },
     {
       "content": "- Fixed Agent Teams using wrong model identifier for Bedrock, Vertex, and Foundry customers",
-      "content_ja": "Bedrock、Vertex、Foundryを利用している場合に、Agent Teamsが誤ったモデル識別子を使用する問題を修正しました。",
+      "content_ja": "Bedrock、Vertex、Foundry環境においてAgent Teamsが誤ったモデル識別子を使用していた問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -24,7 +24,7 @@
     },
     {
       "content": "- Fixed a crash when MCP tools return image content during streaming",
-      "content_ja": "MCPツールがストリーミング中に画像コンテンツを返した際にクラッシュする問題を修正",
+      "content_ja": "MCPツールがストリーミング中に画像コンテンツを返した際のクラッシュを修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -72,14 +72,14 @@
         }
       ],
       "inference": {
-        "before": "MCPツールを使用して画像データなどのマルチメディアコンテンツをストリーミング形式で受け取ろうとすると、アプリケーションが予期せず終了する場合がありました。",
-        "after": "画像を含むMCPツールの出力がストリーミング中でも適切に処理されるようになり、クラッシュすることなく動作が継続します。",
-        "benefit": "画像生成や解析を行う外部ツールをMCP経由で利用する際の安定性が向上し、中断されることなくスムーズな対話が可能になります。"
+        "before": "MCPツール経由で画像を含むレスポンスをストリーミング形式で受け取ると、Claude Codeが適切に処理できず強制終了してしまうことがありました。",
+        "after": "画像データを含むストリーミング出力が正しくハンドリングされるようになり、マルチメディアを扱うMCPサーバーとの連携が安定しました。",
+        "benefit": "画像生成や解析を行うツールを安心して利用できるようになり、対話の流れを止めることなく高度なツール連携が可能になります。"
       }
     },
     {
       "content": "- Fixed /resume session previews showing raw XML tags instead of readable command names",
-      "content_ja": "`/resume` コマンドのセッションプレビューにて、コマンド名ではなく生のXMLタグが表示される問題を修正しました。",
+      "content_ja": "/resumeでのセッションプレビューにおいて、コマンド名の代わりに生XMLタグが表示される問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -89,7 +89,7 @@
     },
     {
       "content": "- Improved model error messages for Bedrock/Vertex/Foundry users with fallback suggestions",
-      "content_ja": "Bedrock/Vertex/Foundryユーザー向けに、フォールバックの提案を含むモデルエラーメッセージの改善を行いました。",
+      "content_ja": "Bedrock、Vertex、Foundryユーザー向けに、代替案を提示する改善されたモデルエラーメッセージを導入",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -99,7 +99,7 @@
     },
     {
       "content": "- Fixed plugin browse showing misleading \"Space to Toggle\" hint for already-installed plugins",
-      "content_ja": "プラグイン閲覧画面にて、既にインストール済みのプラグインに対して紛らわしい「Space to Toggle」のヒントが表示される問題を修正しました。",
+      "content_ja": "プラグイン閲覧画面にて、インストール済みのプラグインに対し誤った操作ヒントが表示される問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -109,7 +109,7 @@
     },
     {
       "content": "- Fixed hook blocking errors (exit code 2) not showing stderr to the user",
-      "content_ja": "フックのブロッキングエラー（終了コード2）が発生した際、標準エラー出力（stderr）がユーザーに表示されない問題を修正しました。",
+      "content_ja": "フックのブロッキングエラー発生時に、標準エラー出力（stderr）がユーザーに表示されない問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -119,7 +119,7 @@
     },
     {
       "content": "- Added `speed` attribute to OTel events and trace spans for fast mode visibility",
-      "content_ja": "OTelイベントとトレーススパンに、ファストモードの可視性を高める「speed」属性を追加",
+      "content_ja": "ファストモードの可視化のため、OTelイベントとトレーススパンに「speed」属性を追加",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [
@@ -158,14 +158,24 @@
         }
       ],
       "inference": {
-        "before": "OpenTelemetryを使用したトレーシングにおいて、リクエストがファストモード（高速応答）で実行されたのか、標準モードで実行されたのかを判別する直接的な属性がありませんでした。",
-        "after": "トレースデータに「speed」属性が含まれるようになり、各操作の速度設定をパフォーマンスモニタリングツール上で明確に確認できるようになります。",
-        "benefit": "開発者がコストとパフォーマンスのバランスを分析しやすくなり、ファストモードの有効性がどれだけ応答速度に寄与しているかを定量的に把握できます。"
+        "before": "OpenTelemetry（OTel）を使用したパフォーマンス監視において、そのリクエストがファストモード（高速応答設定）によるものかどうかが記録されていませんでした。",
+        "after": "トレース情報に速度属性が含まれるようになり、標準モードとファストモードのレイテンシやコストの差を正確に分析できるようになりました。",
+        "benefit": "開発チームや管理者がファストモードの投資対効果を定量的に把握できるようになり、プロジェクトの運用最適化に役立ちます。"
       }
     },
     {
       "content": "- Fixed /resume showing interrupt messages as session titles",
-      "content_ja": "`/resume` で中断メッセージがセッションタイトルとして表示される問題を修正しました。",
+      "content_ja": "/resumeでセッションタイトルとして中断メッセージが表示される問題を修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed Opus 4.6 launch announcement showing for Bedrock/Vertex/Foundry users",
+      "content_ja": "Bedrock、Vertex、FoundryユーザーにOpus 4.6のリリース告知が表示される問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -175,7 +185,7 @@
     },
     {
       "content": "- Improved terminal rendering performance",
-      "content_ja": "ターミナルの描画パフォーマンスを向上させました。",
+      "content_ja": "ターミナルのレンダリングパフォーマンスを向上",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -185,7 +195,7 @@
     },
     {
       "content": "- Fixed fatal errors being swallowed instead of displayed",
-      "content_ja": "致命的なエラーが表示されずに隠蔽されてしまう問題を修正しました。",
+      "content_ja": "致命的なエラーが隠蔽されず正しく表示されるよう修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -195,7 +205,7 @@
     },
     {
       "content": "- Fixed process hanging after session close",
-      "content_ja": "セッション終了後にプロセスがハングアップする問題を修正しました。",
+      "content_ja": "セッション終了後にプロセスがハングアップする問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -205,7 +215,7 @@
     },
     {
       "content": "- Fixed character loss at terminal screen boundary",
-      "content_ja": "ターミナル画面の境界で文字が消失する問題を修正しました。",
+      "content_ja": "ターミナル画面の境界で文字が欠損する問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -215,7 +225,7 @@
     },
     {
       "content": "- Fixed blank lines in verbose transcript view",
-      "content_ja": "詳細なトランスクリプト表示において、不要な空行が表示される問題を修正しました。",
+      "content_ja": "詳細な文字起こしビューにおける不要な空行を削除",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
