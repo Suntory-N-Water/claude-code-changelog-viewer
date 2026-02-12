@@ -1,10 +1,10 @@
 {
   "version": "2.1.39",
-  "summary": "本バージョンでは、ターミナルの描画性能向上やプロセス管理の安定化など、CLIコア機能の堅牢性が大幅に強化されました。また、BedrockやVertex等のエンタープライズプラットフォーム利用時のモデル識別子やエラーハンドリングが改善されています。全体として、MCPツールの画像処理やフック機能のデバッグが容易になり、よりスムーズな開発体験を提供します。",
+  "summary": "本バージョンでは、ターミナルの描画性能向上やプロセス管理の改善など、CLIとしての基礎的な安定性が大幅に強化されました。特にBedrockやVertex等のエンタープライズプラットフォーム利用時のモデル識別やエラーメッセージが最適化され、より快適な開発体験を提供します。また、MCP経由の画像処理におけるクラッシュ修正や、ファストモードの可視化対応など、高度な機能の信頼性も向上しています。",
   "items": [
     {
       "content": "- Added guard against launching Claude Code inside another Claude Code session",
-      "content_ja": "Claude Codeのセッション内で別のClaude Codeを二重に起動しないようガード機能を追加しました。",
+      "content_ja": "Claude Codeのセッション内から別のClaude Codeを多重起動できないようにガードを追加しました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [
@@ -14,7 +14,7 @@
     },
     {
       "content": "- Fixed Agent Teams using wrong model identifier for Bedrock, Vertex, and Foundry customers",
-      "content_ja": "Bedrock、Vertex、Foundry環境において、Agent Teamsが誤ったモデル識別子を使用する問題を修正しました。",
+      "content_ja": "Bedrock、Vertex、Foundryを利用している場合に、Agent Teamsが誤ったモデル識別子を使用する問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -72,14 +72,14 @@
         }
       ],
       "inference": {
-        "before": "外部ツール(MCP)が実行中に画像を生成して結果を返そうとすると、処理が追いつかずツールが強制終了することがありました。",
-        "after": "ストリーミングレスポンス内で画像データが含まれる場合でも、クラッシュせずに正しく処理を継続できるようになりました。",
-        "benefit": "画像生成やブラウジングを伴うMCPサーバーをより安定して利用でき、対話の中断を防げます。"
+        "before": "MCP（Model Context Protocol）サーバーを通じて画像データをやり取りする際、ストリーミング処理の過程で予期せぬクラッシュが発生することがありました。",
+        "after": "画像コンテンツを含むストリーミングレスポンスが正しく処理されるようになり、マルチメディアを扱う外部ツールとの連携が安定しました。",
+        "benefit": "画像生成や解析を行うMCPツールを、セッションの中断を心配することなくスムーズに利用できるようになります。"
       }
     },
     {
       "content": "- Fixed /resume session previews showing raw XML tags instead of readable command names",
-      "content_ja": "/resumeコマンドでのセッションプレビュー時に、コマンド名ではなく生のXMLタグが表示される問題を修正しました。",
+      "content_ja": "`/resume`でのセッションプレビューにて、コマンド名がXMLタグのまま表示される問題を修正し、読みやすい表示に改善しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -89,7 +89,7 @@
     },
     {
       "content": "- Improved model error messages for Bedrock/Vertex/Foundry users with fallback suggestions",
-      "content_ja": "Bedrock/Vertex/Foundryユーザー向けに、モデルエラー時のメッセージを改善し、代替案の提案を表示するようにしました。",
+      "content_ja": "Bedrock/Vertex/Foundryユーザー向けに、モデルエラーメッセージの内容を改善し、代替案の提案を表示するようにしました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -99,7 +99,7 @@
     },
     {
       "content": "- Fixed plugin browse showing misleading \"Space to Toggle\" hint for already-installed plugins",
-      "content_ja": "インストール済みプラグインの閲覧画面で、不適切な「Spaceキーで切り替え」というヒントが表示される問題を修正しました。",
+      "content_ja": "インストール済みのプラグインをブラウズする際、紛らわしい「Space to Toggle」というヒントが表示される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -119,7 +119,7 @@
     },
     {
       "content": "- Added `speed` attribute to OTel events and trace spans for fast mode visibility",
-      "content_ja": "OTelイベントとトレースにfast modeの可視性を高める「speed」属性を追加",
+      "content_ja": "OTelイベントとトレーススパンに、ファストモードの状態を識別するための`speed`属性を追加",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [
@@ -158,14 +158,14 @@
         }
       ],
       "inference": {
-        "before": "ファストモード(fast mode)利用時のパフォーマンスデータがログやトレース上で区別しにくく、最適化の判断が困難でした。",
-        "after": "OpenTelemetryのトレースデータに「speed」属性が含まれるようになり、標準モードとファストモードのどちらで実行されたか容易に識別可能になりました。",
-        "benefit": "実行速度の統計やコストパフォーマンスの分析が正確に行えるようになり、開発ワークフローのボトルネック把握が容易になります。"
+        "before": "OpenTelemetry（OTel）を使用したパフォーマンス監視において、レスポンスが「ファストモード」によるものか「標準モード」によるものかを区別する属性がありませんでした。",
+        "after": "トレースデータに速度属性が含まれるようになり、標準の2.5倍速で動作するファストモードの利用状況やパフォーマンスへの影響を可視化できるようになりました。",
+        "benefit": "開発者が自身のワークフローにおけるファストモードのコスト対効果や、応答時間の変化を正確に分析・最適化できるようになります。"
       }
     },
     {
       "content": "- Fixed /resume showing interrupt messages as session titles",
-      "content_ja": "/resumeのセッション一覧で、割り込みメッセージがタイトルとして表示される問題を修正しました。",
+      "content_ja": "`/resume`でのセッション一覧において、中断メッセージがセッションタイトルとして表示される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -185,7 +185,7 @@
     },
     {
       "content": "- Improved error message for many-image dimension limit errors with /compact suggestion",
-      "content_ja": "多数の画像によるサイズ制限エラーのメッセージを改善し、/compactコマンドの利用を促すようにしました。",
+      "content_ja": "多数の画像による寸法制限エラーが発生した際、`/compact`コマンドの使用を促すようにメッセージを改善しました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -195,13 +195,69 @@
     },
     {
       "content": "- Fixed structured-outputs beta header being sent unconditionally on Vertex/Bedrock",
-      "content_ja": "Vertex/Bedrock環境で、構造化出力(structured-outputs)のベータヘッダーが無条件に送信されていた問題を修正しました。",
+      "content_ja": "Vertex/Bedrock環境で、Structured Outputsのベータヘッダーが常に送信されてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
         "CLI Core"
       ],
       "related_docs": []
+    },
+    {
+      "content": "- Fixed spurious warnings for non-agent markdown files in `.claude/agents/` directory",
+      "content_ja": "`.claude/agents/`ディレクトリ内のエージェント用ではないMarkdownファイルに対する誤った警告を修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "Sub-agents",
+        "Settings"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 145,
+          "context_score": 22,
+          "total_score": 3190,
+          "snippets": [
+            "-",
+            "title: settings\nsource: https://code.claude.com/docs/en/settings.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Claude Code settings\n\n> Configure Claude Code with global and project-level settings, and environment variables.\n\nClaude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command when using the interactive REPL, which opens a tabbed Settings interface where you can view status information and modify configuration options.\n\n## Configuration scopes\n\nClaude Code uses a **scope system** to determine where configurations apply and who they're shared with. Understanding scopes helps you decide how to configure Claude Code for personal use, team collaboration, or enterprise deployment.\n\n### Available scopes\n\n| Scope       | Location                             | Who it affects                       | Shared with team?      |\n| :---------- | :----------------------------------- | :----------------------------------- | :--------------------- |\n| **Managed** | System-level `managed-settings.json` | All users on the machine             | Yes (deployed by IT)   |\n| **User**    | `~/.claude/` directory               | You, across all projects             | No                     |\n| **Project** | `.claude/` in repository             | All collaborators on this repository | Yes (committed to git) |\n| **Local**   | `.claude/*.local.*` files            | You, in this repository only         | No (gitignored)        |\n\n### When to use each scope",
+            "### What uses scopes\n\nScopes apply to many Claude Code features:\n\n| Feature         | User location             | Project location                   | Local location                 |\n| :-------------- | :------------------------ | :--------------------------------- | :----------------------------- |\n| **Settings**    | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | —                              |\n| **MCP servers** | `~/.claude.json`          | `.mcp.json`                        | `~/.claude.json` (per-project) |\n| **Plugins**     | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | `CLAUDE.local.md`              |\n\n***\n\n## Settings files\n\nThe `settings.json` file is our official mechanism for configuring Claude\nCode through hierarchical settings:\n\n* **User settings** are defined in `~/.claude/settings.json` and apply to all\n  projects.\n* **Project settings** are saved in your project directory:\n  * `.claude/settings.json` for settings that are checked into source control and shared with your team\n  * `.claude/settings.local.json` for settings that are not checked in, useful for personal preferences and experimentation. Claude Code will configure git to ignore `.claude/settings.local.json` when it is created.\n* **Managed settings**: For organizations that need centralized control, Claude Code supports `managed-settings.json` and `managed-mcp.json` files that can be deployed to system directories:\n\n  * macOS: `/Library/Application Support/ClaudeCode/`\n  * Linux and WSL: `/etc/claude-code/`\n  * Windows: `C:\\Program Files\\ClaudeCode\\`\n\n  <Note>\n    These are system-wide paths (not user home directories like `~/Library/...`) that require administrator privileges. They are designed to be deployed by IT administrators.",
+            "Managed deployments can also restrict **plugin marketplace additions** using\n    `strictKnownMarketplaces`. For more information, see [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions).\n  </Note>\n* **Other configuration** is stored in `~/.claude.json`. This file contains your preferences (theme, notification settings, editor mode), OAuth session, [MCP server](/en/mcp) configurations for user and local scopes, per-project state (allowed tools, trust settings), and various caches. Project-scoped MCP servers are stored separately in `.mcp.json`.\n\n<Note>\n  Claude Code automatically creates timestamped backups of configuration files and retains the five most recent backups to prevent data loss.\n</Note>\n\n```JSON Example settings.json theme={null}\n{\n  \"$schema\": \"https://json.schemastore.org/claude-code-settings.json\",\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(npm run lint)\","
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 139,
+          "context_score": 15,
+          "total_score": 2085,
+          "snippets": [
+            "-",
+            "title: best-practices\nsource: https://code.claude.com/docs/en/best-practices.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Best Practices for Claude Code\n\n> Tips and patterns for getting the most out of Claude Code, from configuring your environment to scaling across parallel sessions.\n\nClaude Code is an agentic coding environment. Unlike a chatbot that answers questions and waits, Claude Code can read your files, run commands, make changes, and autonomously work through problems while you watch, redirect, or step away entirely.\n\nThis changes how you work. Instead of writing code yourself and asking Claude to review it, you describe what you want and Claude figures out how to build it. Claude explores, plans, and implements.\n\nBut this autonomy still comes with a learning curve. Claude works within certain constraints you need to understand.\n\nThis guide covers patterns that have proven effective across Anthropic's internal teams and for engineers using Claude Code across various codebases, languages, and environments. For how the agentic loop works under the hood, see [How Claude Code works](/en/how-claude-code-works).\n\n***\n\nMost best practices are based on one constraint: Claude's context window fills up fast, and performance degrades as it fills.\n\nClaude's context window holds your entire conversation, including every message, every file Claude reads, and every command output. However, this can fill up fast. A single debugging session or codebase exploration might generate and consume tens of thousands of tokens.\n\nThis matters since LLM performance degrades as context fills. When the context window is getting full, Claude may start \"forgetting\" earlier instructions or making more mistakes. The context window is the most important resource to manage. Track context usage continuously with a [custom status line](/en/statusline), and see [Reduce token usage](/en/costs#reduce-token-usage) for strategies on reducing token usage.\n\n***\n\n## Give Claude a way to verify its work\n\n<Tip>\n  Include tests, screenshots, or expected outputs so Claude can check itself. This is the single highest-leverage thing you can do.\n</Tip>\n\nClaude performs dramatically better when it can verify its own work, like run tests, compare screenshots, and validate outputs.\n\nWithout clear success criteria, it might produce something that looks right but actually doesn't work. You become the only feedback loop, and every mistake requires your attention.",
+            "| **Verify UI changes visually**        | *\"make the dashboard look better\"*                      | *\"\\[paste screenshot] implement this design. take a screenshot of the result and compare it to the original. list differences and fix them\"*                                                            |\n| **Address root causes, not symptoms** | *\"the build is failing\"*                                | *\"the build fails with this error: \\[paste error]. fix it and verify the build succeeds. address the root cause, don't suppress the error\"*                                                             |\n\nUI changes can be verified using the [Claude in Chrome extension](/en/chrome). It opens new tabs in your browser, tests the UI, and iterates until the code works.\n\nYour verification can also be a test suite, a linter, or a Bash command that checks output. Invest in making your verification rock-solid.",
+            "Separate research and planning from implementation to avoid solving the wrong problem.\n</Tip>\n\nLetting Claude jump straight to coding can produce code that solves the wrong problem. Use [Plan Mode](/en/common-workflows#use-plan-mode-for-safe-code-analysis) to separate exploration from execution.\n\nThe recommended workflow has four phases:\n\n<Steps>\n  <Step title=\"Explore\">\n    Enter Plan Mode. Claude reads files and answers questions without making changes.\n\n    ```txt claude (Plan Mode) theme={null}\n    read /src/auth and understand how we handle sessions and login.\n    also look at how we manage environment variables for secrets.\n    ```\n  </Step>\n\n  <Step title=\"Plan\">\n    Ask Claude to create a detailed implementation plan.\n\n    ```txt claude (Plan Mode) theme={null}\n    I want to add Google OAuth. What files need to change?\n    What's the session flow? Create a plan.\n    ```\n\n    Press `Ctrl+G` to open the plan in your text editor for direct editing before Claude proceeds.\n  </Step>\n\n  <Step title=\"Implement\">\n    Switch back to Normal Mode and let Claude code, verifying against its plan.\n\n    ```txt claude (Normal Mode) theme={null}\n    implement the OAuth flow from your plan. write tests for the\n    callback handler, run the test suite and fix any failures.\n    ```\n  </Step>\n\n  <Step title=\"Commit\">\n    Ask Claude to commit with a descriptive message and create a PR.\n\n    ```txt claude (Normal Mode) theme={null}\n    commit with a descriptive message and open a PR\n    ```\n  </Step>"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 156,
+          "context_score": 12,
+          "total_score": 1872,
+          "snippets": [
+            "-",
+            "title: hooks\nsource: https://code.claude.com/docs/en/hooks.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle\n\nHooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, this arrives on stdin. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:\n\n<div style={{maxWidth: \"500px\", margin: \"0 auto\"}}>\n  <Frame>\n    <img src=\"https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=7a351ea1cc3d5da7a2176bf51196bc1a\" alt=\"Hook lifecycle diagram showing the sequence of hooks from SessionStart through the agentic loop to SessionEnd\" data-og-width=\"520\" width=\"520\" data-og-height=\"960\" height=\"960\" data-path=\"images/hooks-lifecycle.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?w=280&fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=8f32c67d025f0a318d5ed10a4f8ff2e6 280w, https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?w=560&fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=896fc424e39ff8d590720331a77e3d80 560w, https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?w=840&fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=a1c1c9739cde965e1eade843cee567c5 840w, https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?w=1100&fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=5bb083988de020e7d568e8dd8f1422fc 1100w, https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?w=1650&fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=343e9883c1e3172f08096c352aa46f12 1650w, https://mintcdn.com/claude-code/tpQvD9DKENFo4zX_/images/hooks-lifecycle.svg?w=2500&fit=max&auto=format&n=tpQvD9DKENFo4zX_&q=85&s=4de37b29de0f6df8b0c3e937a76c3bc6 2500w\" />\n  </Frame>\n</div>",
+            "| Event                | When it fires                                                      |\n| :------------------- | :----------------------------------------------------------------- |\n| `SessionStart`       | When a session begins or resumes                                   |\n| `UserPromptSubmit`   | When you submit a prompt, before Claude processes it               |\n| `PreToolUse`         | Before a tool call executes. Can block it                          |\n| `PermissionRequest`  | When a permission dialog appears                                   |\n| `PostToolUse`        | After a tool call succeeds                                         |\n| `PostToolUseFailure` | After a tool call fails                                            |\n| `Notification`       | When Claude Code sends a notification                              |\n| `SubagentStart`      | When a subagent is spawned                                         |\n| `SubagentStop`       | When a subagent finishes                                           |\n| `Stop`               | When Claude finishes responding                                    |\n| `TeammateIdle`       | When an [agent team](/en/agent-teams) teammate is about to go idle |\n| `TaskCompleted`      | When a task is being marked as completed                           |\n| `PreCompact`         | Before context compaction                                          |",
+            "\"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \".claude/hooks/block-rm.sh\"\n          }\n        ]\n      }"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "サブエージェントの設定ファイル用ディレクトリに、ドキュメントなどの通常ファイルを置くと、エージェント定義として正しくないという警告が表示されていました。",
+        "after": "エージェント定義以外のMarkdownファイルを適切に無視するようになり、関連ドキュメントを同じディレクトリで管理しても不要な警告が出なくなりました。",
+        "benefit": "プロジェクトの構成管理において、関連するメモや仕様書をエージェント設定と同じ場所に自由に配置できるようになり、管理の柔軟性が向上します。"
+      }
     },
     {
       "content": "- Improved terminal rendering performance",
@@ -215,7 +271,7 @@
     },
     {
       "content": "- Fixed fatal errors being swallowed instead of displayed",
-      "content_ja": "致命的なエラーが発生した際に、内容が表示されずに無視されてしまう問題を修正しました。",
+      "content_ja": "致命的なエラーが表示されずに無視されてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -225,7 +281,7 @@
     },
     {
       "content": "- Fixed process hanging after session close",
-      "content_ja": "セッション終了後にプロセスがハングアップし続ける問題を修正しました。",
+      "content_ja": "セッション終了後にプロセスがハングアップする問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -235,7 +291,7 @@
     },
     {
       "content": "- Fixed character loss at terminal screen boundary",
-      "content_ja": "ターミナル画面の境界で文字が欠落する問題を修正しました。",
+      "content_ja": "ターミナル画面の端で文字が欠けてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -245,7 +301,7 @@
     },
     {
       "content": "- Fixed blank lines in verbose transcript view",
-      "content_ja": "詳細な書き出し(transcript)ビューにおいて、不要な空行が表示される問題を修正しました。",
+      "content_ja": "詳細なトランスクリプト表示において、不要な空行が表示される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
