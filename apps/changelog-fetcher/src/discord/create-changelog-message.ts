@@ -65,9 +65,10 @@ function createChangelogMessage(version: string): DiscordWebhookPayload {
   content += `## 参考\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
 
   // Discordの文字数制限(2000文字)を考慮
-  const MAX_CONTENT_LENGTH = 1950;
-  if (content.length > MAX_CONTENT_LENGTH) {
-    content = `${content.substring(0, MAX_CONTENT_LENGTH)}...\n\n## 参考\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
+  const DISCORD_MAX_LENGTH = 2000;
+  if (content.length > DISCORD_MAX_LENGTH) {
+    const suffix = `...\n\n## 参考\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
+    content = `${content.substring(0, DISCORD_MAX_LENGTH - suffix.length)}${suffix}`;
   }
 
   return {
