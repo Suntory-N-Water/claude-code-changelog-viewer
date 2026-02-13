@@ -1,0 +1,506 @@
+{
+  "version": "2.1.41",
+  "summary": "本バージョンでは、認証管理を容易にする `claude auth` コマンドの追加や、Windows ARM64 へのネイティブ対応など、環境整備が進みました。また、`/rename` の自動命名機能や、特殊なファイル参照によるハングアップの解消など、使い勝手と安定性の両面で重要な改善が行われています。全体として、エージェントとしての動作精度と信頼性が高められたアップデートとなっています。",
+  "items": [
+    {
+      "content": "- Fixed AWS auth refresh hanging indefinitely by adding a 3-minute timeout",
+      "content_ja": "AWS認証の自動更新がタイムアウトせず停止し続ける問題を修正(3分間の制限を追加)",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md",
+          "hit_count": 47,
+          "context_score": 30,
+          "total_score": 1410,
+          "snippets": [
+            "Before configuring Claude Code with Bedrock, ensure you have:\n\n* An AWS account with Bedrock access enabled\n* Access to desired Claude models (for example, Claude Sonnet 4.5) in Bedrock\n* AWS CLI installed and configured (optional - only needed if you don't have another mechanism for getting credentials)\n* Appropriate IAM permissions\n\n## Setup",
+            "First-time users of Anthropic models are required to submit use case details before invoking a model. This is done once per account.\n\n1. Ensure you have the right IAM permissions (see more on that below)\n2. Navigate to the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/)\n3. Select **Chat/Text playground**\n4. Choose any Anthropic model and you will be prompted to fill out the use case form\n\n### 2. Configure AWS credentials\n\nClaude Code uses the default AWS SDK credential chain. Set up your credentials using one of these methods:\n\n**Option A: AWS CLI configuration**\n\n```bash  theme={null}\naws configure\n```\n\n**Option B: Environment variables (access key)**\n\n```bash  theme={null}\nexport AWS_ACCESS_KEY_ID=your-access-key-id\nexport AWS_SECRET_ACCESS_KEY=your-secret-access-key\nexport AWS_SESSION_TOKEN=your-session-token\n```\n\n**Option C: Environment variables (SSO profile)**\n\n```bash  theme={null}\naws sso login --profile=<your-profile-name>\n\nexport AWS_PROFILE=your-profile-name\n```\n\n**Option D: AWS Management Console credentials**\n\n```bash  theme={null}\naws login\n```\n\n[Learn more](https://docs.aws.amazon.com/signin/latest/userguide/command-line-sign-in.html) about `aws login`.\n\n**Option E: Bedrock API keys**\n\n```bash  theme={null}\nexport AWS_BEARER_TOKEN_BEDROCK=your-bedrock-api-key\n```\n\nBedrock API keys provide a simpler authentication method without needing full AWS credentials. [Learn more about Bedrock API keys](https://aws.amazon.com/blogs/machine-learning/accelerate-ai-development-with-amazon-bedrock-api-keys/).\n\n#### Advanced credential configuration\n\nClaude Code supports automatic credential refresh for AWS SSO and corporate identity providers. Add these settings to your Claude Code settings file (see [Settings](/en/settings) for file locations).\n\nWhen Claude Code detects that your AWS credentials are expired (either locally based on their timestamp or when Bedrock returns a credential error), it will automatically run your configured `awsAuthRefresh` and/or `awsCredentialExport` commands to obtain new credentials before retrying the request.\n\n##### Example configuration\n\n```json  theme={null}\n{\n  \"awsAuthRefresh\": \"aws sso login --profile myprofile\",\n  \"env\": {\n    \"AWS_PROFILE\": \"myprofile\"\n  }\n}\n```\n\n##### Configuration settings explained\n\n**`awsAuthRefresh`**: Use this for commands that modify the `.aws` directory, such as updating credentials, SSO cache, or config files. The command's output is displayed to the user, but interactive input isn't supported. This works well for browser-based SSO flows where the CLI displays a URL or code and you complete authentication in the browser.\n\n**`awsCredentialExport`**: Only use this if you can't modify `.aws` and must directly return credentials. Output is captured silently and not shown to the user. The command must output JSON in this format:\n\n```json  theme={null}\n{",
+            "```bash  theme={null}\n# Enable Bedrock integration\nexport CLAUDE_CODE_USE_BEDROCK=1\nexport AWS_REGION=us-east-1  # or your preferred region\n\n# Optional: Override the region for the small/fast model (Haiku)\nexport ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION=us-west-2\n```\n\nWhen enabling Bedrock for Claude Code, keep the following in mind:\n\n* `AWS_REGION` is a required environment variable. Claude Code does not read from the `.aws` config file for this setting.\n* When using Bedrock, the `/login` and `/logout` commands are disabled since authentication is handled through AWS credentials.\n* You can use settings files for environment variables like `AWS_PROFILE` that you don't want to leak to other processes. See [Settings](/en/settings) for more information.\n\n### 4. Model configuration",
+            "export ANTHROPIC_SMALL_FAST_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:0'\n\n# Using application inference profile ARN\nexport ANTHROPIC_MODEL='arn:aws:bedrock:us-east-2:your-account-id:application-inference-profile/your-model-id'\n\n# Optional: Disable prompt caching if needed\nexport DISABLE_PROMPT_CACHING=1",
+            "\"bedrock:ListInferenceProfiles\"\n      ],\n      \"Resource\": [\n        \"arn:aws:bedrock:*:*:inference-profile/*\",\n        \"arn:aws:bedrock:*:*:application-inference-profile/*\",\n        \"arn:aws:bedrock:*:*:foundation-model/*\"\n      ]\n    },\n    {\n      \"Sid\": \"AllowMarketplaceSubscription\",\n      \"Effect\": \"Allow\",\n      \"Action\": [\n        \"aws-marketplace:ViewSubscriptions\",\n        \"aws-marketplace:Subscribe\"\n      ],\n      \"Resource\": \"*\",\n      \"Condition\": {\n        \"StringEquals\": {\n          \"aws:CalledViaLast\": \"bedrock.amazonaws.com\"\n        }\n      }\n    }"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
+          "hit_count": 35,
+          "context_score": 20,
+          "total_score": 700,
+          "snippets": [
+            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
+            "2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)\n\n3. **Sandboxed execution**: Each interaction runs in a container with strict network and filesystem rules. Claude Code enforces workspace-scoped permissions to constrain writes. Every change flows through an MR so reviewers see the diff and approvals still apply.",
+            "After adding the job and your `ANTHROPIC_API_KEY` variable, test by running the job manually from **CI/CD** → **Pipelines**, or trigger it from an MR to let Claude propose updates in a branch and open an MR if needed.\n\n<Note>\n  To run on AWS Bedrock or Google Vertex AI instead of the Claude API, see the [Using with AWS Bedrock & Google Vertex AI](#using-with-aws-bedrock--google-vertex-ai) section below for authentication and environment setup.\n</Note>\n\n### Manual setup (recommended for production)",
+            "1. **Configure provider access**:\n   * **Claude API**: Create and store `ANTHROPIC_API_KEY` as a masked CI/CD variable\n   * **AWS Bedrock**: **Configure GitLab** → **AWS OIDC** and create an IAM role for Bedrock\n   * **Google Vertex AI**: **Configure Workload Identity Federation for GitLab** → **GCP**\n\n2. **Add project credentials for GitLab API operations**:",
+            "Claude locates the bug, implements a fix, and updates the branch or opens a new MR.\n\n## Using with AWS Bedrock & Google Vertex AI\n\nFor enterprise environments, you can run Claude Code entirely on your cloud infrastructure with the same developer experience.\n\n<Tabs>\n  <Tab title=\"AWS Bedrock\">\n    ### Prerequisites\n\n    Before setting up Claude Code with AWS Bedrock, you need:\n\n    1. An AWS account with Amazon Bedrock access to the desired Claude models\n    2. GitLab configured as an OIDC identity provider in AWS IAM\n    3. An IAM role with Bedrock permissions and a trust policy restricted to your GitLab project/refs\n    4. GitLab CI/CD variables for role assumption:\n       * `AWS_ROLE_TO_ASSUME` (role ARN)\n       * `AWS_REGION` (Bedrock region)\n\n    ### Setup instructions\n\n    Configure AWS to allow GitLab CI jobs to assume an IAM role via OIDC (no static keys).\n\n    **Required setup:**"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md",
+          "hit_count": 26,
+          "context_score": 15,
+          "total_score": 390,
+          "snippets": [
+            "* You must be a repository admin to install the GitHub app and add secrets\n  * The GitHub app will request read & write permissions for Contents, Issues, and Pull requests\n  * This quickstart method is only available for direct Claude API users. If\n    you're using AWS Bedrock or Google Vertex AI, please see the [Using with AWS\n    Bedrock & Google Vertex AI](#using-with-aws-bedrock-%26-google-vertex-ai)\n    section.\n</Note>",
+            "When responding to issue or PR comments, Claude automatically responds to @claude mentions. For other events, use the `prompt` parameter to provide instructions.\n</Tip>\n\n## Using with AWS Bedrock & Google Vertex AI\n\nFor enterprise environments, you can use Claude Code GitHub Actions with your own cloud infrastructure. This approach gives you control over data residency and billing while maintaining the same functionality.",
+            "3. A service account with the required permissions\n4. A GitHub App (recommended) or use the default GITHUB\\_TOKEN\n\n#### For AWS Bedrock:\n\n1. An AWS account with Amazon Bedrock enabled\n2. GitHub OIDC Identity Provider configured in AWS\n3. An IAM role with Bedrock permissions\n4. A GitHub App (recommended) or use the default GITHUB\\_TOKEN",
+            "Choose your cloud provider and set up secure authentication:\n\n    <AccordionGroup>\n      <Accordion title=\"AWS Bedrock\">\n        **Configure AWS to allow GitHub Actions to authenticate securely without storing credentials.**\n\n        > **Security Note**: Use repository-specific configurations and grant only the minimum required permissions.",
+            "2. **Set up GitHub OIDC Identity Provider**:\n           * Provider URL: `https://token.actions.githubusercontent.com`\n           * Audience: `sts.amazonaws.com`\n\n        3. **Create IAM Role for GitHub Actions**:\n           * Trusted entity type: Web identity"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "AWS Bedrock利用時、認証情報(SSOなど)の期限が切れて自動更新処理が入った際、処理が終わらずにツール全体がハングしてしまうことがありました。",
+        "after": "認証更新処理に3分間のタイムアウトが設定され、無限に待機し続けることがなくなりました。",
+        "benefit": "認証エラー時でもCLIが動かなくなる心配がなくなり、スムーズに再ログインや作業の続行が可能になります。"
+      }
+    },
+    {
+      "content": "- Added `claude auth login`, `claude auth status`, and `claude auth logout` CLI subcommands",
+      "content_ja": "認証管理用の新コマンド `claude auth login/status/logout` を追加",
+      "prefix": "Added",
+      "importance_score": 8,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md",
+          "hit_count": 137,
+          "context_score": 22,
+          "total_score": 3014,
+          "snippets": [
+            "-",
+            "title: github-actions\nsource: https://code.claude.com/docs/en/github-actions.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Claude Code GitHub Actions\n\n> Learn about integrating Claude Code into your development workflow with Claude Code GitHub Actions\n\nClaude Code GitHub Actions brings AI-powered automation to your GitHub workflow. With a simple `@claude` mention in any PR or issue, Claude can analyze your code, create pull requests, implement features, and fix bugs - all while following your project's standards.\n\n<Note>\n  Claude Code GitHub Actions is built on top of the [Claude\n  Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview), which enables programmatic integration of\n  Claude Code into your applications. You can use the SDK to build custom\n  automation workflows beyond GitHub Actions.\n</Note>\n\n<Info>\n  **Claude Opus 4.6 is now available.** Claude Code GitHub Actions default to Sonnet. To use Opus 4.6, configure the [model parameter](#breaking-changes-reference) to use `claude-opus-4-6`.\n</Info>\n\n## Why use Claude Code GitHub Actions?\n\n* **Instant PR creation**: Describe what you need, and Claude creates a complete PR with all necessary changes\n* **Automated code implementation**: Turn issues into working code with a single command\n* **Follows your standards**: Claude respects your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Get started in minutes with our installer and API key\n* **Secure by default**: Your code stays on Github's runners\n\n## What can Claude do?\n\nClaude Code provides a powerful GitHub Action that transforms how you work with code:\n\n### Claude Code Action\n\nThis GitHub Action allows you to run Claude Code within your GitHub Actions workflows. You can use this to build any custom workflow on top of Claude Code.\n\n[View repository →](https://github.com/anthropics/claude-code-action)\n\n## Setup\n\n## Quick setup\n\nThe easiest way to set up this action is through Claude Code in the terminal. Just open claude and run `/install-github-app`.\n\nThis command will guide you through setting up the GitHub app and required secrets.\n\n<Note>\n  * You must be a repository admin to install the GitHub app and add secrets\n  * The GitHub app will request read & write permissions for Contents, Issues, and Pull requests\n  * This quickstart method is only available for direct Claude API users. If\n    you're using AWS Bedrock or Google Vertex AI, please see the [Using with AWS\n    Bedrock & Google Vertex AI](#using-with-aws-bedrock-%26-google-vertex-ai)\n    section.",
+            "If the `/install-github-app` command fails or you prefer manual setup, please follow these manual setup instructions:\n\n1. **Install the Claude GitHub app** to your repository: [https://github.com/apps/claude](https://github.com/apps/claude)\n\n   The Claude GitHub app requires the following repository permissions:\n\n   * **Contents**: Read & write (to modify repository files)\n   * **Issues**: Read & write (to respond to issues)\n   * **Pull requests**: Read & write (to create PRs and push changes)\n\n   For more details on security and permissions, see the [security documentation](https://github.com/anthropics/claude-code-action/blob/main/docs/security.md).\n2. **Add ANTHROPIC\\_API\\_KEY** to your repository secrets ([Learn how to use secrets in GitHub Actions](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions))\n3. **Copy the workflow file** from [examples/claude.yml](https://github.com/anthropics/claude-code-action/blob/main/examples/claude.yml) into your repository's `.github/workflows/`\n\n<Tip>\n  After completing either the quickstart or manual setup, test the action by tagging `@claude` in an issue or PR comment.\n</Tip>\n\n## Upgrading from Beta\n\n<Warning>\n  Claude Code GitHub Actions v1.0 introduces breaking changes that require updating your workflow files in order to upgrade to v1.0 from the beta version.\n</Warning>\n\nIf you're currently using the beta version of Claude Code GitHub Actions, we recommend that you update your workflows to use the GA version. The new version simplifies configuration while adding powerful new features like automatic mode detection.\n\n### Essential changes",
+            "1. **Update the action version**: Change `@beta` to `@v1`\n2. **Remove mode configuration**: Delete `mode: \"tag\"` or `mode: \"agent\"` (now auto-detected)\n3. **Update prompt inputs**: Replace `direct_prompt` with `prompt`\n4. **Move CLI options**: Convert `max_turns`, `model`, `custom_instructions`, etc. to `claude_args`\n\n### Breaking Changes Reference"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 159,
+          "context_score": 17,
+          "total_score": 2703,
+          "snippets": [
+            "-",
+            "title: settings\nsource: https://code.claude.com/docs/en/settings.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Claude Code settings\n\n> Configure Claude Code with global and project-level settings, and environment variables.\n\nClaude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command when using the interactive REPL, which opens a tabbed Settings interface where you can view status information and modify configuration options.\n\n## Configuration scopes\n\nClaude Code uses a **scope system** to determine where configurations apply and who they're shared with. Understanding scopes helps you decide how to configure Claude Code for personal use, team collaboration, or enterprise deployment.\n\n### Available scopes\n\n| Scope       | Location                             | Who it affects                       | Shared with team?      |\n| :---------- | :----------------------------------- | :----------------------------------- | :--------------------- |\n| **Managed** | System-level `managed-settings.json` | All users on the machine             | Yes (deployed by IT)   |\n| **User**    | `~/.claude/` directory               | You, across all projects             | No                     |\n| **Project** | `.claude/` in repository             | All collaborators on this repository | Yes (committed to git) |\n| **Local**   | `.claude/*.local.*` files            | You, in this repository only         | No (gitignored)        |\n\n### When to use each scope",
+            "* Personal preferences you want everywhere (themes, editor settings)\n* Tools and plugins you use across all projects\n* API keys and authentication (stored securely)\n\n**Project scope** is best for:",
+            "### What uses scopes\n\nScopes apply to many Claude Code features:\n\n| Feature         | User location             | Project location                   | Local location                 |\n| :-------------- | :------------------------ | :--------------------------------- | :----------------------------- |\n| **Settings**    | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **Subagents**   | `~/.claude/agents/`       | `.claude/agents/`                  | —                              |\n| **MCP servers** | `~/.claude.json`          | `.mcp.json`                        | `~/.claude.json` (per-project) |\n| **Plugins**     | `~/.claude/settings.json` | `.claude/settings.json`            | `.claude/settings.local.json`  |\n| **CLAUDE.md**   | `~/.claude/CLAUDE.md`     | `CLAUDE.md` or `.claude/CLAUDE.md` | `CLAUDE.local.md`              |\n\n***\n\n## Settings files\n\nThe `settings.json` file is our official mechanism for configuring Claude\nCode through hierarchical settings:\n\n* **User settings** are defined in `~/.claude/settings.json` and apply to all\n  projects.\n* **Project settings** are saved in your project directory:\n  * `.claude/settings.json` for settings that are checked into source control and shared with your team\n  * `.claude/settings.local.json` for settings that are not checked in, useful for personal preferences and experimentation. Claude Code will configure git to ignore `.claude/settings.local.json` when it is created.\n* **Managed settings**: For organizations that need centralized control, Claude Code supports `managed-settings.json` and `managed-mcp.json` files that can be deployed to system directories:\n\n  * macOS: `/Library/Application Support/ClaudeCode/`\n  * Linux and WSL: `/etc/claude-code/`\n  * Windows: `C:\\Program Files\\ClaudeCode\\`\n\n  <Note>\n    These are system-wide paths (not user home directories like `~/Library/...`) that require administrator privileges. They are designed to be deployed by IT administrators."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md",
+          "hit_count": 93,
+          "context_score": 28,
+          "total_score": 2604,
+          "snippets": [
+            "-",
+            "title: statusline\nsource: https://code.claude.com/docs/en/statusline.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Customize your status line\n\n> Configure a custom status bar to monitor context window usage, costs, and git status in Claude Code\n\nThe status line is a customizable bar at the bottom of Claude Code that runs any shell script you configure. It receives JSON session data on stdin and displays whatever your script prints, giving you a persistent, at-a-glance view of context usage, costs, git status, or anything else you want to track.\n\nStatus lines are useful when you:\n\n* Want to monitor context window usage as you work\n* Need to track session costs\n* Work across multiple sessions and need to distinguish them\n* Want git branch and status always visible\n\nHere's an example of a [multi-line status line](#display-multiple-lines) that displays git info on the first line and a color-coded context bar on the second.\n\n<Frame>\n  <img src=\"https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-multiline.png?fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=60f11387658acc9ff75158ae85f2ac87\" alt=\"A multi-line status line showing model name, directory, git branch on the first line, and a context usage progress bar with cost and duration on the second line\" data-og-width=\"776\" width=\"776\" data-og-height=\"212\" height=\"212\" data-path=\"images/statusline-multiline.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-multiline.png?w=280&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=2e448b44c332620e6c9c2be4ded992e5 280w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-multiline.png?w=560&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=f796af2db9c68ab2ddbc5136840b9551 560w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-multiline.png?w=840&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=d29c13d6164773198a0b2c47b31f6c09 840w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-multiline.png?w=1100&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=d7720e5f51310185c0c02152f6c10d8b 1100w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-multiline.png?w=1650&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=b4e008cde27990a8d5783e41e5b93246 1650w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-multiline.png?w=2500&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=40ab24813303dc2e4c09f2675f3faf6e 2500w\" />\n</Frame>\n\nThis page walks through [setting up a basic status line](#set-up-a-status-line), explains [how the data flows](#how-status-lines-work) from Claude Code to your script, lists [all the fields you can display](#available-data), and provides [ready-to-use examples](#examples) for common patterns like git status, cost tracking, and progress bars.\n\n## Set up a status line\n\nUse the [`/statusline` command](#use-the-statusline-command) to have Claude Code generate a script for you, or [manually create a script](#manually-configure-a-status-line) and add it to your settings.\n\n### Use the /statusline command\n\nThe `/statusline` command accepts natural language instructions describing what you want displayed. Claude Code generates a script file in `~/.claude/` and updates your settings automatically:\n\n```\n/statusline show model name and context percentage with a progress bar\n```\n\n### Manually configure a status line\n\nAdd a `statusLine` field to your user settings (`~/.claude/settings.json`, where `~` is your home directory) or [project settings](/en/settings#settings-files). Set `type` to `\"command\"` and point `command` to a script path or an inline shell command. For a full walkthrough of creating a script, see [Build a status line step by step](#build-a-status-line-step-by-step).\n\n```json  theme={null}\n{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"~/.claude/statusline.sh\",\n    \"padding\": 2\n  }\n}",
+            "```json  theme={null}\n{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"jq -r '\\\"[\\\\(.model.display_name)] \\\\(.context_window.used_percentage // 0)% context\\\"'\"\n  }\n}\n```\n\nThe optional `padding` field adds extra horizontal spacing (in characters) to the status line content. Defaults to `0`. This padding is in addition to the interface's built-in spacing, so it controls relative indentation rather than absolute distance from the terminal edge.\n\n### Disable the status line\n\nRun `/statusline` and ask it to remove or clear your status line (e.g., `/statusline delete`, `/statusline clear`, `/statusline remove it`). You can also manually delete the `statusLine` field from your settings.json.\n\n## Build a status line step by step\n\nThis walkthrough shows what's happening under the hood by manually creating a status line that displays the current model, working directory, and context window usage percentage.\n\n<Note>Running [`/statusline`](#use-the-statusline-command) with a description of what you want configures all of this for you automatically.</Note>\n\nThese examples use Bash scripts, which work on macOS and Linux. On Windows, you can run Bash scripts through [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install) or rewrite them in PowerShell.\n\n<Frame>\n  <img src=\"https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=696445e59ca0059213250651ad23db6b\" alt=\"A status line showing model name, directory, and context percentage\" data-og-width=\"726\" width=\"726\" data-og-height=\"164\" height=\"164\" data-path=\"images/statusline-quickstart.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=280&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=728c4bd06c8559cb46ddffffad983373 280w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=560&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=f9d28e0f8f48f695167dd1d632a6cf4f 560w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=840&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=57a2803a18cafe8cf1aa05619444f20c 840w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=1100&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=52cdd52865842f0cda24489dd5310d3b 1100w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=1650&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=f8876ea1f72bf40bd0aeec483ee20164 1650w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=2500&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=6b1524305c7c71122cde65d0c3822374 2500w\" />\n</Frame>\n\n<Steps>\n  <Step title=\"Create a script that reads JSON and prints output\">\n    Claude Code sends JSON data to your script via stdin. This script uses [`jq`](https://jqlang.github.io/jq/), a command-line JSON parser you may need to install, to extract the model name, directory, and context percentage, then prints a formatted line.\n\n    Save this to `~/.claude/statusline.sh` (where `~` is your home directory, such as `/Users/username` on macOS or `/home/username` on Linux):\n\n    ```bash  theme={null}\n    #!/bin/bash\n    # Read JSON data that Claude Code sends to stdin\n    input=$(cat)\n\n    # Extract fields using jq",
+            "# The \"// 0\" provides a fallback if the field is null\n    PCT=$(echo \"$input\" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)\n\n    # Output the status line - ${DIR##*/} extracts just the folder name\n    echo \"[$MODEL] 📁 ${DIR##*/} | ${PCT}% context\"\n    ```\n  </Step>"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "これまではブラウザ経由のログインやログアウトなど、認証状態の管理を行う専用のサブコマンドが存在しませんでした。",
+        "after": "CLIから直接ログイン状態の確認やサインイン・サインアウトができる専用の管理コマンドが整備されました。",
+        "benefit": "アカウントの切り替えや認証トラブルの切り分けが、他のCLIツールと同じような感覚で簡単に行えるようになります。"
+      }
+    },
+    {
+      "content": "- Added Windows ARM64 (win32-arm64) native binary support",
+      "content_ja": "Windows ARM64 (win32-arm64) 用のネイティブバイナリをサポートしました。",
+      "prefix": "Added",
+      "importance_score": 8,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Improved `/rename` to auto-generate session name from conversation context when called without arguments",
+      "content_ja": "`/rename`コマンドが引数なしでも会話内容からセッション名を自動生成するように改善",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md",
+          "hit_count": 5,
+          "context_score": 6,
+          "total_score": 30,
+          "snippets": [
+            "<Steps>\n  <Step title=\"Name the current session\">\n    Use `/rename` during a session to give it a memorable name:\n\n    ```\n    > /rename auth-refactor\n    ```\n\n    You can also rename any session from the picker: run `/resume`, navigate to a session, and press `R`.\n  </Step>\n\n  <Step title=\"Resume by name later\">",
+            "| `→` / `←` | Expand or collapse grouped sessions               |\n| `Enter`   | Select and resume the highlighted session         |\n| `P`       | Preview the session content                       |\n| `R`       | Rename the highlighted session                    |\n| `/`       | Search to filter sessions                         |\n| `A`       | Toggle between current directory and all projects |\n| `B`       | Filter to sessions from your current git branch   |",
+            "<Tip>\n  Tips:\n\n  * **Name sessions early**: Use `/rename` when starting work on a distinct task—it's much easier to find \"payment-integration\" than \"explain this function\" later\n  * Use `--continue` for quick access to your most recent conversation in the current directory\n  * Use `--resume session-name` when you know which session you need\n  * Use `--resume` (without a name) when you need to browse and select"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 1,
+          "context_score": 4,
+          "total_score": 4,
+          "snippets": [
+            "claude --resume      # Select from recent conversations\n```\n\nUse `/rename` to give sessions descriptive names (`\"oauth-migration\"`, `\"debugging-memory-leak\"`) so you can find them later. Treat sessions like branches. Different workstreams can have separate, persistent contexts.\n\n***"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md",
+          "hit_count": 1,
+          "context_score": 3,
+          "total_score": 3,
+          "snippets": [
+            "Use `/cost` to check your current token usage, or [configure your status line](/en/statusline#context-window-usage) to display it continuously.\n\n* **Clear between tasks**: Use `/clear` to start fresh when switching to unrelated work. Stale context wastes tokens on every subsequent message. Use `/rename` before clearing so you can easily find the session later, then `/resume` to return to it.\n* **Add custom compaction instructions**: `/compact Focus on code samples and API usage` tells Claude what to preserve during summarization.\n\nYou can also customize compaction behavior in your CLAUDE.md:"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "過去のセッションを識別しやすくするためには、ユーザーが手動で`/rename`の後に名前を入力する必要がありました。",
+        "after": "引数を省略して`/rename`を実行するだけで、AIが文脈を読み取って適切なセッション名を自動的に付与してくれます。",
+        "benefit": "手間をかけずにセッション一覧を整理できるため、後から特定の作業内容を「名前」で探し出すのが非常に楽になります。"
+      }
+    },
+    {
+      "content": "- Improved narrow terminal layout for prompt footer",
+      "content_ja": "幅の狭いターミナルにおけるプロンプト下部のレイアウトを改善しました。",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed file resolution failing for @-mentions with anchor fragments (e.g., `@README.md#installation`)",
+      "content_ja": "@メンションでアンカー付きファイルパス(例: @README.md#installation)を正しく解決できるよう修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core",
+        "Memory"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md",
+          "hit_count": 52,
+          "context_score": 12,
+          "total_score": 624,
+          "snippets": [
+            "-",
+            "title: memory\nsource: https://code.claude.com/docs/en/memory.md\n-",
+            "> ## Documentation Index",
+            "Claude Code has two kinds of memory that persist across sessions:\n\n* **Auto memory**: Claude automatically saves useful context like project patterns, key commands, and your preferences. This persists across sessions.\n* **CLAUDE.md files**: Markdown files you write and maintain with instructions, rules, and preferences for Claude to follow.\n\nBoth are loaded into Claude's context at the start of every session, though auto memory loads only the first 200 lines of its main file.",
+            "| Memory Type                | Location                                                                                                                                                        | Purpose                                             | Use Case Examples                                                    | Shared With                     |\n| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------- |\n| **Managed policy**         | • macOS: `/Library/Application Support/ClaudeCode/CLAUDE.md`<br />• Linux: `/etc/claude-code/CLAUDE.md`<br />• Windows: `C:\\Program Files\\ClaudeCode\\CLAUDE.md` | Organization-wide instructions managed by IT/DevOps | Company coding standards, security policies, compliance requirements | All users in organization       |\n| **Project memory**         | `./CLAUDE.md` or `./.claude/CLAUDE.md`                                                                                                                          | Team-shared instructions for the project            | Project architecture, coding standards, common workflows             | Team members via source control |\n| **Project rules**          | `./.claude/rules/*.md`                                                                                                                                          | Modular, topic-specific project instructions        | Language-specific guidelines, testing conventions, API standards     | Team members via source control |\n| **User memory**            | `~/.claude/CLAUDE.md`                                                                                                                                           | Personal preferences for all projects               | Code styling preferences, personal tooling shortcuts                 | Just you (all projects)         |\n| **Project memory (local)** | `./CLAUDE.local.md`                                                                                                                                             | Personal project-specific preferences               | Your sandbox URLs, preferred test data                               | Just you (current project)      |\n| **Auto memory**            | `~/.claude/projects/<project>/memory/`                                                                                                                          | Claude's automatic notes and learnings              | Project patterns, debugging insights, architecture notes             | Just you (per project)          |\n\nCLAUDE.md files in the directory hierarchy above the working directory are loaded in full at launch. CLAUDE.md files in child directories load on demand when Claude reads files in those directories. Auto memory loads only the first 200 lines of `MEMORY.md`. More specific instructions take precedence over broader ones.\n\n<Note>\n  CLAUDE.local.md files are automatically added to .gitignore, making them ideal for private project-specific preferences that shouldn't be checked into version control.\n</Note>\n\n## Auto memory\n\nAuto memory is a persistent directory where Claude records learnings, patterns, and insights as it works. Unlike CLAUDE.md files that contain instructions you write for Claude, auto memory contains notes Claude writes for itself based on what it discovers during sessions.\n\n<Note>\n  Auto memory is being rolled out gradually. If you aren't seeing auto memory, you can opt in by setting `CLAUDE_CODE_DISABLE_AUTO_MEMORY=0` in your environment."
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md",
+          "hit_count": 30,
+          "context_score": 18,
+          "total_score": 540,
+          "snippets": [
+            "-",
+            "title: best-practices\nsource: https://code.claude.com/docs/en/best-practices.md\n-",
+            "> ## Documentation Index",
+            "A few setup steps make Claude Code significantly more effective across all your sessions. For a full overview of extension features and when to use each one, see [Extend Claude Code](/en/features-overview).\n\n### Write an effective CLAUDE.md\n\n<Tip>\n  Run `/init` to generate a starter CLAUDE.md file based on your current project structure, then refine over time.\n</Tip>\n\nCLAUDE.md is a special file that Claude reads at the start of every conversation. Include Bash commands, code style, and workflow rules. This gives Claude persistent context **it can't infer from code alone**.\n\nThe `/init` command analyzes your codebase to detect build systems, test frameworks, and code patterns, giving you a solid foundation to refine.\n\nThere's no required format for CLAUDE.md files, but keep it short and human-readable. For example:\n\n```markdown CLAUDE.md theme={null}\n# Code style\n- Use ES modules (import/export) syntax, not CommonJS (require)\n- Destructure imports when possible (eg. import { foo } from 'bar')",
+            "- Prefer running single tests, and not the whole test suite, for performance\n```\n\nCLAUDE.md is loaded every session, so only include things that apply broadly. For domain knowledge or workflows that are only relevant sometimes, use [skills](/en/skills) instead. Claude loads them on demand without bloating every conversation.\n\nKeep it concise. For each line, ask: *\"Would removing this cause Claude to make mistakes?\"* If not, cut it. Bloated CLAUDE.md files cause Claude to ignore your actual instructions!\n\n| ✅ Include                                            | ❌ Exclude                                          |\n| ---------------------------------------------------- | -------------------------------------------------- |"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md",
+          "hit_count": 32,
+          "context_score": 13,
+          "total_score": 416,
+          "snippets": [
+            "-",
+            "title: setup\nsource: https://code.claude.com/docs/en/setup.md\n-",
+            "> ## Documentation Index",
+            "### Additional dependencies\n\n* **ripgrep**: Usually included with Claude Code. If search fails, see [search troubleshooting](/en/troubleshooting#search-and-discovery-issues).\n* **[Node.js 18+](https://nodejs.org/en/download)**: Only required for [deprecated npm installation](#npm-installation-deprecated)\n\n## Installation\n\nTo install Claude Code, use one of the following methods:",
+            "irm https://claude.ai/install.ps1 | iex\n    ```\n\n    **Windows CMD:**\n\n    ```batch  theme={null}\n    curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd\n    ```\n\n    <Info>\n      Native installations automatically update in the background to keep you on the latest version.\n    </Info>\n  </Tab>"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "READMEなどの特定の見出しを指定してコンテキストに含めようとしても、アンカーフラグメントがあるとファイルの読み込みに失敗していました。",
+        "after": "アンカーを含むパスでもファイル自体を正しく認識し、その内容を読み取れるようになりました。",
+        "benefit": "長大なドキュメントの特定セクションを狙ってClaudeに参照させることができ、より精度の高い議論が可能になります。"
+      }
+    },
+    {
+      "content": "- Fixed FileReadTool blocking the process on FIFOs, `/dev/stdin`, and large files",
+      "content_ja": "FileReadToolがFIFO、標準入力、巨大なファイルによって処理をブロックする問題を修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md",
+          "hit_count": 43,
+          "context_score": 23,
+          "total_score": 989,
+          "snippets": [
+            "> Configure a custom status bar to monitor context window usage, costs, and git status in Claude Code\n\nThe status line is a customizable bar at the bottom of Claude Code that runs any shell script you configure. It receives JSON session data on stdin and displays whatever your script prints, giving you a persistent, at-a-glance view of context usage, costs, git status, or anything else you want to track.\n\nStatus lines are useful when you:",
+            "<Steps>\n  <Step title=\"Create a script that reads JSON and prints output\">\n    Claude Code sends JSON data to your script via stdin. This script uses [`jq`](https://jqlang.github.io/jq/), a command-line JSON parser you may need to install, to extract the model name, directory, and context percentage, then prints a formatted line.\n\n    Save this to `~/.claude/statusline.sh` (where `~` is your home directory, such as `/Users/username` on macOS or `/home/username` on Linux):\n\n    ```bash  theme={null}\n    #!/bin/bash\n    # Read JSON data that Claude Code sends to stdin\n    input=$(cat)\n\n    # Extract fields using jq",
+            "## How status lines work\n\nClaude Code runs your script and pipes [JSON session data](#available-data) to it via stdin. Your script reads the JSON, extracts what it needs, and prints text to stdout. Claude Code displays whatever your script prints.\n\n**When it updates**",
+            "## Available data\n\nClaude Code sends the following JSON fields to your script via stdin:\n\n| Field                                                                     | Description                                                                                                                                                                                  |\n| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |",
+            "| `agent.name`                                                              | Agent name when running with the `--agent` flag or agent settings configured                                                                                                                 |\n\n<Accordion title=\"Full JSON schema\">\n  Your status line command receives this JSON structure via stdin:\n\n  ```json  theme={null}\n  {"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/devcontainer.md",
+          "hit_count": 23,
+          "context_score": 16,
+          "total_score": 368,
+          "snippets": [
+            "-",
+            "title: devcontainer\nsource: https://code.claude.com/docs/en/devcontainer.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Development containers\n\n> Learn about the Claude Code development container for teams that need consistent, secure environments.\n\nThe reference [devcontainer setup](https://github.com/anthropics/claude-code/tree/main/.devcontainer) and associated [Dockerfile](https://github.com/anthropics/claude-code/blob/main/.devcontainer/Dockerfile) offer a preconfigured development container that you can use as is, or customize for your needs. This devcontainer works with the Visual Studio Code [Dev Containers extension](https://code.visualstudio.com/docs/devcontainers/containers) and similar tools.\n\nThe container's enhanced security measures (isolation and firewall rules) allow you to run `claude --dangerously-skip-permissions` to bypass permission prompts for unattended operation.\n\n<Warning>\n  While the devcontainer provides substantial protections, no system is completely immune to all attacks.\n  When executed with `--dangerously-skip-permissions`, devcontainers don't prevent a malicious project from exfiltrating anything accessible in the devcontainer including Claude Code credentials.\n  We recommend only using devcontainers when developing with trusted repositories.\n  Always maintain good security practices and monitor Claude's activities.\n</Warning>\n\n## Key features\n\n* **Production-ready Node.js**: Built on Node.js 20 with essential development dependencies\n* **Security by design**: Custom firewall restricting network access to only necessary services\n* **Developer-friendly tools**: Includes git, ZSH with productivity enhancements, fzf, and more\n* **Seamless VS Code integration**: Pre-configured extensions and optimized settings\n* **Session persistence**: Preserves command history and configurations between container restarts\n* **Works everywhere**: Compatible with macOS, Windows, and Linux development environments\n\n## Getting started in 4 steps\n\n1. Install VS Code and the Remote - Containers extension\n2. Clone the [Claude Code reference implementation](https://github.com/anthropics/claude-code/tree/main/.devcontainer) repository\n3. Open the repository in VS Code\n4. When prompted, click \"Reopen in Container\" (or use Command Palette: Cmd+Shift+P → \"Remote-Containers: Reopen in Container\")\n\n## Configuration breakdown\n\nThe devcontainer setup consists of three primary components:\n\n* [**devcontainer.json**](https://github.com/anthropics/claude-code/blob/main/.devcontainer/devcontainer.json): Controls container settings, extensions, and volume mounts\n* [**Dockerfile**](https://github.com/anthropics/claude-code/blob/main/.devcontainer/Dockerfile): Defines the container image and installed tools\n* [**init-firewall.sh**](https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh): Establishes network security rules\n\n## Security features",
+            "* **Allowed outbound connections**: The firewall permits outbound DNS and SSH connections\n* **Default-deny policy**: Blocks all other external network access\n* **Startup verification**: Validates firewall rules when the container initializes\n* **Isolation**: Creates a secure development environment separated from your main system\n\n## Customization options\n\nThe devcontainer configuration is designed to be adaptable to your needs:\n\n* Add or remove VS Code extensions based on your workflow\n* Modify resource allocations for different hardware environments\n* Adjust network access permissions\n* Customize shell configurations and developer tooling\n\n## Example use cases\n\n### Secure client work\n\nUse devcontainers to isolate different client projects, ensuring code and credentials never mix between environments.\n\n### Team onboarding\n\nNew team members can get a fully configured development environment in minutes, with all necessary tools and settings pre-installed.\n\n### Consistent CI/CD environments\n\nMirror your devcontainer configuration in CI/CD pipelines to ensure development and production environments match.\n\n## Related resources\n\n* [VS Code devcontainers documentation](https://code.visualstudio.com/docs/devcontainers/containers)\n* [Claude Code security best practices](/en/security)\n* [Enterprise network configuration](/en/network-config)"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md",
+          "hit_count": 8,
+          "context_score": 31,
+          "total_score": 248,
+          "snippets": [
+            "* **Skill arguments** (`$ARGUMENTS`): captures user input for dynamic behavior\n\n<Tip>\n  The `--plugin-dir` flag is useful for development and testing. When you're ready to share your plugin with others, see [Create and distribute a plugin marketplace](/en/plugin-marketplaces).\n</Tip>\n\n## Plugin structure overview",
+            "| `.lsp.json`       | Plugin root | LSP server configurations for code intelligence                                |\n\n<Note>\n  **Next steps**: Ready to add more features? Jump to [Develop more complex plugins](#develop-more-complex-plugins) to add agents, hooks, MCP servers, and LSP servers. For complete technical specifications of all plugin components, see [Plugins reference](/en/plugins-reference).\n</Note>\n\n## Develop more complex plugins\n\nOnce you're comfortable with basic plugins, you can create more sophisticated extensions.",
+            "### Test your plugins locally\n\nUse the `--plugin-dir` flag to test plugins during development. This loads your plugin directly without requiring installation.\n\n```bash  theme={null}\nclaude --plugin-dir ./my-plugin",
+            "1. **Check the structure**: Ensure your directories are at the plugin root, not inside `.claude-plugin/`\n2. **Test components individually**: Check each command, agent, and hook separately\n3. **Use validation and debugging tools**: See [Debugging and development tools](/en/plugins-reference#debugging-and-development-tools) for CLI commands and troubleshooting techniques\n\n### Share your plugins",
+            "mkdir my-plugin/hooks\n    ```\n\n    Create `my-plugin/hooks/hooks.json` with your hooks configuration. Copy the `hooks` object from your `.claude/settings.json` or `settings.local.json`, since the format is the same. The command receives hook input as JSON on stdin, so use `jq` to extract the file path:\n\n    ```json my-plugin/hooks/hooks.json theme={null}\n    {"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "`/dev/stdin`や名前付きパイプ(FIFO)、または極端にサイズの大きいファイルを読み込もうとすると、プロセス全体が停止してしまうリスクがありました。",
+        "after": "特殊なファイル形式やサイズに対しても安全な読み込み処理が行われるようガードが強化されました。",
+        "benefit": "意図しないファイル参照によるフリーズを防ぎ、エージェントがファイル操作を行う際の安定性が向上しました。"
+      }
+    },
+    {
+      "content": "- Fixed background task notifications not being delivered in streaming Agent SDK mode",
+      "content_ja": "Agent SDKのストリーミングモードでバックグラウンドタスクの通知が届かない問題を修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md",
+          "hit_count": 7,
+          "context_score": 28,
+          "total_score": 196,
+          "snippets": [
+            "# Run Claude Code programmatically\n\n> Use the Agent SDK to run Claude Code programmatically from the CLI, Python, or TypeScript.\n\nThe [Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) gives you the same tools, agent loop, and context management that power Claude Code. It's available as a CLI for scripts and CI/CD, or as [Python](https://platform.claude.com/docs/en/agent-sdk/python) and [TypeScript](https://platform.claude.com/docs/en/agent-sdk/typescript) packages for full programmatic control.\n\n<Note>\n  The CLI was previously called \"headless mode.\" The `-p` flag and all CLI options work the same way.",
+            "claude -p \"Find and fix the bug in auth.py\" --allowedTools \"Read,Edit,Bash\"\n```\n\nThis page covers using the Agent SDK via the CLI (`claude -p`). For the Python and TypeScript SDK packages with structured outputs, tool approval callbacks, and native message objects, see the [full Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview).\n\n## Basic usage",
+            "jq -rj 'select(.type == \"stream_event\" and .event.delta.type? == \"text_delta\") | .event.delta.text'\n```\n\nFor programmatic streaming with callbacks and message objects, see [Stream responses in real-time](https://platform.claude.com/docs/en/agent-sdk/streaming-output) in the Agent SDK documentation.\n\n### Auto-approve tools",
+            "## Next steps\n\n<CardGroup cols={2}>\n  <Card title=\"Agent SDK quickstart\" icon=\"play\" href=\"https://platform.claude.com/docs/en/agent-sdk/quickstart\">\n    Build your first agent with Python or TypeScript\n  </Card>",
+            "</Card>\n\n  <Card title=\"GitHub Actions\" icon=\"github\" href=\"/en/github-actions\">\n    Use the Agent SDK in GitHub workflows\n  </Card>\n\n  <Card title=\"GitLab CI/CD\" icon=\"gitlab\" href=\"/en/gitlab-ci-cd\">\n    Use the Agent SDK in GitLab pipelines\n  </Card>\n</CardGroup>"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md",
+          "hit_count": 5,
+          "context_score": 8,
+          "total_score": 40,
+          "snippets": [
+            "| :------------------------------ | :----------------------------------------------------- | :------------------------------------------------ |\n| `claude`                        | Start interactive REPL                                 | `claude`                                          |\n| `claude \"query\"`                | Start REPL with initial prompt                         | `claude \"explain this project\"`                   |\n| `claude -p \"query\"`             | Query via SDK, then exit                               | `claude -p \"explain this function\"`               |\n| `cat file \\| claude -p \"query\"` | Process piped content                                  | `cat logs.txt \\| claude -p \"explain\"`             |\n| `claude -c`                     | Continue most recent conversation in current directory | `claude -c`                                       |\n| `claude -c -p \"query\"`          | Continue via SDK                                       | `claude -c -p \"Check for type errors\"`            |\n| `claude -r \"<session>\" \"query\"` | Resume session by ID or name                           | `claude -r \"auth-refactor\" \"Finish this PR\"`      |\n| `claude update`                 | Update to latest version                               | `claude update`                                   |\n| `claude mcp`                    | Configure Model Context Protocol (MCP) servers         | See the [Claude Code MCP documentation](/en/mcp). |",
+            "| `--init-only`                          | Run initialization hooks and exit (no interactive session)                                                                                                                                                | `claude --init-only`                                                                               |\n| `--include-partial-messages`           | Include partial streaming events in output (requires `--print` and `--output-format=stream-json`)                                                                                                         | `claude -p --output-format stream-json --include-partial-messages \"query\"`                         |\n| `--input-format`                       | Specify input format for print mode (options: `text`, `stream-json`)                                                                                                                                      | `claude -p --output-format json --input-format stream-json`                                        |\n| `--json-schema`                        | Get validated JSON output matching a JSON Schema after agent completes its workflow (print mode only, see [structured outputs](https://platform.claude.com/docs/en/agent-sdk/structured-outputs))         | `claude -p --json-schema '{\"type\":\"object\",\"properties\":{...}}' \"query\"`                           |\n| `--maintenance`                        | Run maintenance hooks and exit                                                                                                                                                                            | `claude --maintenance`                                                                             |\n| `--max-budget-usd`                     | Maximum dollar amount to spend on API calls before stopping (print mode only)                                                                                                                             | `claude -p --max-budget-usd 5.00 \"query\"`                                                          |\n| `--max-turns`                          | Limit the number of agentic turns (print mode only). Exits with an error when the limit is reached. No limit by default                                                                                   | `claude -p --max-turns 3 \"query\"`                                                                  |",
+            "| `--permission-mode`                    | Begin in a specified [permission mode](/en/permissions#permission-modes)                                                                                                                                  | `claude --permission-mode plan`                                                                    |\n| `--permission-prompt-tool`             | Specify an MCP tool to handle permission prompts in non-interactive mode                                                                                                                                  | `claude -p --permission-prompt-tool mcp_auth_tool \"query\"`                                         |\n| `--plugin-dir`                         | Load plugins from directories for this session only (repeatable)                                                                                                                                          | `claude --plugin-dir ./my-plugins`                                                                 |\n| `--print`, `-p`                        | Print response without interactive mode (see [Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview) for programmatic usage details)                                            | `claude -p \"query\"`                                                                                |\n| `--remote`                             | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description                                                                                                    | `claude --remote \"Fix the login bug\"`                                                              |\n| `--resume`, `-r`                       | Resume a specific session by ID or name, or show an interactive picker to choose a session                                                                                                                | `claude --resume auth-refactor`                                                                    |\n| `--session-id`                         | Use a specific session ID for the conversation (must be a valid UUID)                                                                                                                                     | `claude --session-id \"550e8400-e29b-41d4-a716-446655440000\"`                                       |",
+            "* [Quickstart guide](/en/quickstart) - Getting started with Claude Code\n* [Common workflows](/en/common-workflows) - Advanced workflows and patterns\n* [Settings](/en/settings) - Configuration options\n* [Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview) - Programmatic usage and integrations"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 4,
+          "context_score": 10,
+          "total_score": 40,
+          "snippets": [
+            "| `permissions`                     | See table below for structure of permissions.                                                                                                                                                                                                                                   |                                                                         |\n| `hooks`                           | Configure custom commands to run at lifecycle events. See [hooks documentation](/en/hooks) for format                                                                                                                                                                           | See [hooks](/en/hooks)                                                  |\n| `disableAllHooks`                 | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline)                                                                                                                                                                                                     | `true`                                                                  |\n| `allowManagedHooksOnly`           | (Managed settings only) Prevent loading of user, project, and plugin hooks. Only allows managed hooks and SDK hooks. See [Hook configuration](#hook-configuration)                                                                                                              | `true`                                                                  |\n| `allowManagedPermissionRulesOnly` | (Managed settings only) Prevent user and project settings from defining `allow`, `ask`, or `deny` permission rules. Only rules in managed settings apply. See [Managed-only settings](/en/permissions#managed-only-settings)                                                    | `true`                                                                  |\n| `model`                           | Override the default model to use for Claude Code                                                                                                                                                                                                                               | `\"claude-sonnet-4-5-20250929\"`                                          |\n| `otelHeadersHelper`               | Script to generate dynamic OpenTelemetry headers. Runs at startup and periodically (see [Dynamic headers](/en/monitoring-usage#dynamic-headers))                                                                                                                                | `/bin/generate_otel_headers.sh`                                         |",
+            "**Behavior when `allowManagedHooksOnly` is `true`:**\n\n* Managed hooks and SDK hooks are loaded\n* User hooks, project hooks, and plugin hooks are blocked\n\n**Configuration:**",
+            "| Variable                                       | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |     |\n| :--------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- |\n| `ANTHROPIC_API_KEY`                            | API key sent as `X-Api-Key` header, typically for the Claude SDK (for interactive usage, run `/login`)                                                                                                                                                                                                                                                                                                                                                                                                |     |\n| `ANTHROPIC_AUTH_TOKEN`                         | Custom value for the `Authorization` header (the value you set here will be prefixed with `Bearer `)                                                                                                                                                                                                                                                                                                                                                                                                  |     |\n| `ANTHROPIC_CUSTOM_HEADERS`                     | Custom headers to add to requests (`Name: Value` format, newline-separated for multiple headers)                                                                                                                                                                                                                                                                                                                                                                                                      |     |\n| `ANTHROPIC_DEFAULT_HAIKU_MODEL`                | See [Model configuration](/en/model-config#environment-variables)                                                                                                                                                                                                                                                                                                                                                                                                                                     |     |",
+            "| `CLAUDE_CODE_DISABLE_AUTO_MEMORY`              | Set to `1` to disable [auto memory](/en/memory#auto-memory). Set to `0` to force auto memory on during the gradual rollout. When disabled, Claude does not create or load auto memory files                                                                                                                                                                                                                                                                                                           |     |\n| `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS`         | Set to `1` to disable all background task functionality, including the `run_in_background` parameter on Bash and subagent tools, auto-backgrounding, and the Ctrl+B shortcut                                                                                                                                                                                                                                                                                                                          |     |\n| `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`          | Set to `1` to disable the \"How is Claude doing?\" session quality surveys. Also disabled when using third-party providers or when telemetry is disabled. See [Session quality surveys](/en/data-usage#session-quality-surveys)                                                                                                                                                                                                                                                                         |     |\n| `CLAUDE_CODE_EXIT_AFTER_STOP_DELAY`            | Time in milliseconds to wait after the query loop becomes idle before automatically exiting. Useful for automated workflows and scripts using SDK mode                                                                                                                                                                                                                                                                                                                                                |     |\n| `CLAUDE_CODE_PROXY_RESOLVES_HOSTS`             | Set to `true` to allow the proxy to perform DNS resolution instead of the caller. Opt-in for environments where the proxy should handle hostname resolution                                                                                                                                                                                                                                                                                                                                           |     |\n| `CLAUDE_CODE_TASK_LIST_ID`                     | Share a task list across sessions. Set the same ID in multiple Claude Code instances to coordinate on a shared task list. See [Task list](/en/interactive-mode#task-list)                                                                                                                                                                                                                                                                                                                             |     |\n| `CLAUDE_CODE_TEAM_NAME`                        | Name of the agent team this teammate belongs to. Set automatically on [agent team](/en/agent-teams) members                                                                                                                                                                                                                                                                                                                                                                                           |     |"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "SDKを利用してプログラムからClaudeを実行している際、バックグラウンドで実行中のタスクに関する通知イベントがクライアントに正しく配信されていませんでした。",
+        "after": "ストリーミングレスポンスにおいて、バックグラウンドタスクの進行状況も正しくイベントとして受け取れるようになりました。",
+        "benefit": "CI/CDや自作ツールに組み込んでいる場合でも、非同期タスクの状態をリアルタイムで正確に把握・表示できるようになります。"
+      }
+    },
+    {
+      "content": "- Fixed cursor jumping to end on each keystroke in classifier rule input",
+      "content_ja": "分類ルール入力中に、キーを押すたびにカーソルが末尾へ飛んでしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed markdown link display text being dropped for raw URL",
+      "content_ja": "マークダウン形式のリンクを表示する際、表示テキストが消えてURLのみになってしまう問題を修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md",
+          "hit_count": 20,
+          "context_score": 18,
+          "total_score": 360,
+          "snippets": [
+            "| `description` | string  | Brief plugin description                                                                                                                                                                   |\n| `version`     | string  | Plugin version                                                                                                                                                                             |\n| `author`      | object  | Plugin author information (`name` required, `email` optional)                                                                                                                              |\n| `homepage`    | string  | Plugin homepage or documentation URL                                                                                                                                                       |\n| `repository`  | string  | Source code repository URL                                                                                                                                                                 |\n| `license`     | string  | SPDX license identifier (for example, MIT, Apache-2.0)                                                                                                                                     |\n| `keywords`    | array   | Tags for plugin discovery and categorization                                                                                                                                               |\n| `category`    | string  | Plugin category for organization                                                                                                                                                           |",
+            "```\n\n<Note>\n  Relative paths only work when users add your marketplace via Git (GitHub, GitLab, or git URL). If users add your marketplace via a direct URL to the `marketplace.json` file, relative paths will not resolve correctly. For URL-based distribution, use GitHub, npm, or git URL sources instead. See [Troubleshooting](#plugins-with-relative-paths-fail-in-url-based-marketplaces) for details.\n</Note>\n\n### GitHub repositories",
+            "{\n  \"name\": \"git-plugin\",\n  \"source\": {\n    \"source\": \"url\",\n    \"url\": \"https://gitlab.com/team/plugin.git\"\n  }\n}\n```",
+            "{\n  \"name\": \"git-plugin\",\n  \"source\": {\n    \"source\": \"url\",\n    \"url\": \"https://gitlab.com/team/plugin.git\",\n    \"ref\": \"main\",\n    \"sha\": \"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0\"\n  }",
+            "| Field | Type   | Description                                                           |\n| :---- | :----- | :-------------------------------------------------------------------- |\n| `url` | string | Required. Full git repository URL (must end with `.git`)              |\n| `ref` | string | Optional. Git branch or tag (defaults to repository default branch)   |\n| `sha` | string | Optional. Full 40-character git commit SHA to pin to an exact version |"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 66,
+          "context_score": 5,
+          "total_score": 330,
+          "snippets": [
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');\n          if (cursor) {\n            url.searchParams.set('cursor', cursor);\n          }\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }",
+            "const httpRemote = remotes.find(r => r.type === 'streamable-http');\n          const sseRemote = remotes.find(r => r.type === 'sse');\n          const preferredRemote = httpRemote || sseRemote;\n          const remoteUrl = preferredRemote?.url || meta.url;\n          const remoteType = preferredRemote?.type;\n          const isTemplatedUrl = remoteUrl?.includes('{');\n          let setupUrl;\n          if (isTemplatedUrl && meta.requiredFields) {\n            const urlField = meta.requiredFields.find(f => f.field === 'url');\n            setupUrl = urlField?.sourceUrl || meta.documentation;\n          }\n          const urls = {};\n          if (!isTemplatedUrl) {\n            if (remoteType === 'streamable-http') {\n              urls.http = remoteUrl;\n            } else if (remoteType === 'sse') {\n              urls.sse = remoteUrl;\n            }\n          }\n          let envVars = [];\n          if (server.packages && server.packages.length > 0) {\n            const npmPackage = server.packages.find(p => p.registryType === 'npm');\n            if (npmPackage) {\n              urls.stdio = `npx -y ${npmPackage.identifier}`;\n              if (npmPackage.environmentVariables) {\n                envVars = npmPackage.environmentVariables;\n              }",
+            "name: meta.displayName || server.title || server.name,\n            description: meta.oneLiner || server.description,\n            documentation: meta.documentation,\n            urls: urls,\n            envVars: envVars,\n            availability: availability,\n            customCommands: meta.claudeCodeCopyText ? {\n              claudeCode: meta.claudeCodeCopyText\n            } : undefined,\n            setupUrl: setupUrl\n          };\n        });\n        setServers(transformedServers);",
+            "return server.customCommands.claudeCode;\n    }\n    const serverSlug = server.name.toLowerCase().replace(/[^a-z0-9]/g, '-');\n    if (server.urls.http) {\n      return `claude mcp add ${serverSlug} --transport http ${server.urls.http}`;\n    }\n    if (server.urls.sse) {\n      return `claude mcp add ${serverSlug} --transport sse ${server.urls.sse}`;\n    }\n    if (server.urls.stdio) {\n      const envFlags = server.envVars && server.envVars.length > 0 ? server.envVars.map(v => `--env ${v.name}=YOUR_${v.name}`).join(' ') : '';\n      const baseCommand = `claude mcp add ${serverSlug} --transport stdio`;\n      return envFlags ? `${baseCommand} ${envFlags} -- ${server.urls.stdio}` : `${baseCommand} -- ${server.urls.stdio}`;\n    }\n    return null;\n  };",
+            "<div className=\"cards-container\">\n        {filteredServers.map(server => {\n    const claudeCodeCommand = generateClaudeCodeCommand(server);\n    const mcpUrl = server.urls.http || server.urls.sse;\n    const commandToShow = platform === \"claudeCode\" ? claudeCodeCommand : mcpUrl;\n    return <div key={server.name} className=\"server-card\">\n              <div>\n                {server.documentation ? <a href={server.documentation}>"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md",
+          "hit_count": 21,
+          "context_score": 12,
+          "total_score": 252,
+          "snippets": [
+            "\"Read(~/.zshrc)\"\n    ],\n    \"deny\": [\n      \"Bash(curl *)\",\n      \"Read(./.env)\",\n      \"Read(./.env.*)\",\n      \"Read(./secrets/**)\"",
+            "| :----------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- |\n| `allow`                        | Array of permission rules to allow tool use. See [Permission rule syntax](#permission-rule-syntax) below for pattern matching details                                                                                                            | `[ \"Bash(git diff *)\" ]`                                               |\n| `ask`                          | Array of permission rules to ask for confirmation upon tool use. See [Permission rule syntax](#permission-rule-syntax) below                                                                                                                     | `[ \"Bash(git push *)\" ]`                                               |\n| `deny`                         | Array of permission rules to deny tool use. Use this to exclude sensitive files from Claude Code access. See [Permission rule syntax](#permission-rule-syntax) and [Bash permission limitations](/en/permissions#tool-specific-permission-rules) | `[ \"WebFetch\", \"Bash(curl *)\", \"Read(./.env)\", \"Read(./secrets/**)\" ]` |\n| `additionalDirectories`        | Additional [working directories](/en/permissions#working-directories) that Claude has access to                                                                                                                                                  | `[ \"../docs/\" ]`                                                       |\n| `defaultMode`                  | Default [permission mode](/en/permissions#permission-modes) when opening Claude Code                                                                                                                                                             | `\"acceptEdits\"`                                                        |\n| `disableBypassPermissionsMode` | Set to `\"disable\"` to prevent `bypassPermissions` mode from being activated. This disables the `--dangerously-skip-permissions` command-line flag. See [managed settings](/en/permissions#managed-settings)                                      | `\"disable\"`                                                            |",
+            "\"security-plugins\": {\n      \"source\": {\n        \"source\": \"git\",\n        \"url\": \"https://git.example.com/security/plugins.git\"\n      }\n    }\n  }",
+            "**Marketplace source types**:\n\n* `github`: GitHub repository (uses `repo`)\n* `git`: Any git URL (uses `url`)\n* `directory`: Local filesystem path (uses `path`, for development only)\n* `hostPattern`: regex pattern to match marketplace hosts (uses `hostPattern`)",
+            "2. **Git repositories**:\n\n```json  theme={null}\n{ \"source\": \"git\", \"url\": \"https://gitlab.example.com/tools/plugins.git\" }\n{ \"source\": \"git\", \"url\": \"https://bitbucket.org/acme-corp/plugins.git\", \"ref\": \"production\" }\n{ \"source\": \"git\", \"url\": \"ssh://git@git.example.com/plugins.git\", \"ref\": \"v3.1\", \"path\": \"approved\" }\n```\n\nFields: `url` (required), `ref` (optional: branch/tag/SHA), `path` (optional: subdirectory)\n\n3. **URL-based marketplaces**:\n\n```json  theme={null}\n{ \"source\": \"url\", \"url\": \"https://plugins.example.com/marketplace.json\" }\n{ \"source\": \"url\", \"url\": \"https://cdn.example.com/marketplace.json\", \"headers\": { \"Authorization\": \"Bearer ${TOKEN}\" } }\n```\n\nFields: `url` (required), `headers` (optional: HTTP headers for authenticated access)\n\n<Note>\n  URL-based marketplaces only download the `marketplace.json` file. They do not download plugin files from the server. Plugins in URL-based marketplaces must use external sources (GitHub, npm, or git URLs) rather than relative paths. For plugins with relative paths, use a Git-based marketplace instead. See [Troubleshooting](/en/plugin-marketplaces#plugins-with-relative-paths-fail-in-url-based-marketplaces) for details.\n</Note>\n\n4. **NPM packages**:"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "UI上での出力時に、リンクの「タイトル部分」が欠落して生のURLだけが表示されることがありました。",
+        "after": "本来のマークダウンの記述通り、テキストとURLが正しく保持・表示されるよう修正されました。",
+        "benefit": "指示やドキュメント内のリンクが読みやすくなり、何についてのリンクなのかが一目で分かるようになります。"
+      }
+    },
+    {
+      "content": "- Fixed auto-compact failure error notifications being shown to users",
+      "content_ja": "自動要約(auto-compact)失敗時のエラー通知がユーザーに表示されないよう修正しました。",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "CLI Core"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed permission wait time being included in subagent elapsed time display",
+      "content_ja": "サブエージェントの経過時間表示に、パーミッションの待機時間が含まれていた問題を修正しました。",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "Sub-agents",
+        "Permissions"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed proactive ticks firing while in plan mode",
+      "content_ja": "プランモード中に、プロアクティブな定期処理が動作してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "Plan"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed clear stale permission rules when settings change on disk",
+      "content_ja": "ディスク上の設定ファイルが変更された際に、古いパーミッションルールが残ってしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "Settings",
+        "Permissions"
+      ],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed hook blocking errors showing stderr content in UI",
+      "content_ja": "フックの実行がブロックされた際のエラー表示に標準エラー出力(stderr)の内容を含めないよう修正",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": [
+        "Hooks"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 38,
+          "context_score": 21,
+          "total_score": 798,
+          "snippets": [
+            "> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "fi\n```\n\nNow suppose Claude Code decides to run `Bash \"rm -rf /tmp/build\"`. Here's what happens:\n\n<Frame>\n  <img src=\"https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=7c13f51ffcbc37d22a593b27e2f2de72\" alt=\"Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code\" data-og-width=\"780\" width=\"780\" data-og-height=\"290\" height=\"290\" data-path=\"images/hook-resolution.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=280&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=36a39a07e8bc1995dcb4639e09846905 280w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=560&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=6568d90c596c7605bbac2c325b0a0c86 560w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=840&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=255a6f68b9475a0e41dbde7b88002dad 840w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1100&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=dcecf8d5edc88cd2bc49deb006d5760d 1100w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1650&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=04fe51bf69ae375e9fd517f18674e35f 1650w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=2500&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=b1b76e0b77fddb5c7fa7bf302dacd80b 2500w\" />",
+            "The `PreToolUse` event fires. Claude Code sends the tool input as JSON on stdin to the hook:\n\n    ```json  theme={null}\n    { \"tool_name\": \"Bash\", \"tool_input\": { \"command\": \"rm -rf /tmp/build\" }, ... }\n    ```\n  </Step>",
+            "</Step>\n\n  <Step title=\"Hook handler runs\">\n    The script extracts `\"rm -rf /tmp/build\"` from the input and finds `rm -rf`, so it prints a decision to stdout:\n\n    ```json  theme={null}\n    {",
+            "These fields apply to all hook types:\n\n| Field           | Required | Description                                                                                                                                   |\n| :-------------- | :------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |\n| `type`          | yes      | `\"command\"`, `\"prompt\"`, or `\"agent\"`                                                                                                         |\n| `timeout`       | no       | Seconds before canceling. Defaults: 600 for command, 30 for prompt, 60 for agent                                                              |"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md",
+          "hit_count": 36,
+          "context_score": 22,
+          "total_score": 792,
+          "snippets": [
+            "Claude Code GitHub Actions brings AI-powered automation to your GitHub workflow. With a simple `@claude` mention in any PR or issue, Claude can analyze your code, create pull requests, implement features, and fix bugs - all while following your project's standards.\n\n<Note>\n  Claude Code GitHub Actions is built on top of the [Claude\n  Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview), which enables programmatic integration of\n  Claude Code into your applications. You can use the SDK to build custom\n  automation workflows beyond GitHub Actions.\n</Note>",
+            "* **Instant PR creation**: Describe what you need, and Claude creates a complete PR with all necessary changes\n* **Automated code implementation**: Turn issues into working code with a single command\n* **Follows your standards**: Claude respects your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Get started in minutes with our installer and API key\n* **Secure by default**: Your code stays on Github's runners",
+            "### Claude Code Action\n\nThis GitHub Action allows you to run Claude Code within your GitHub Actions workflows. You can use this to build any custom workflow on top of Claude Code.\n\n[View repository →](https://github.com/anthropics/claude-code-action)\n\n## Setup\n\n## Quick setup\n\nThe easiest way to set up this action is through Claude Code in the terminal. Just open claude and run `/install-github-app`.\n\nThis command will guide you through setting up the GitHub app and required secrets.\n\n<Note>\n  * You must be a repository admin to install the GitHub app and add secrets\n  * The GitHub app will request read & write permissions for Contents, Issues, and Pull requests\n  * This quickstart method is only available for direct Claude API users. If\n    you're using AWS Bedrock or Google Vertex AI, please see the [Using with AWS\n    Bedrock & Google Vertex AI](#using-with-aws-bedrock-%26-google-vertex-ai)\n    section.",
+            "1. **Install the Claude GitHub app** to your repository: [https://github.com/apps/claude](https://github.com/apps/claude)\n\n   The Claude GitHub app requires the following repository permissions:\n\n   * **Contents**: Read & write (to modify repository files)\n   * **Issues**: Read & write (to respond to issues)\n   * **Pull requests**: Read & write (to create PRs and push changes)\n\n   For more details on security and permissions, see the [security documentation](https://github.com/anthropics/claude-code-action/blob/main/docs/security.md).\n2. **Add ANTHROPIC\\_API\\_KEY** to your repository secrets ([Learn how to use secrets in GitHub Actions](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions))\n3. **Copy the workflow file** from [examples/claude.yml](https://github.com/anthropics/claude-code-action/blob/main/examples/claude.yml) into your repository's `.github/workflows/`\n\n<Tip>\n  After completing either the quickstart or manual setup, test the action by tagging `@claude` in an issue or PR comment.\n</Tip>\n\n## Upgrading from Beta\n\n<Warning>\n  Claude Code GitHub Actions v1.0 introduces breaking changes that require updating your workflow files in order to upgrade to v1.0 from the beta version.\n</Warning>\n\nIf you're currently using the beta version of Claude Code GitHub Actions, we recommend that you update your workflows to use the GA version. The new version simplifies configuration while adding powerful new features like automatic mode detection.",
+            "### CLAUDE.md configuration\n\nCreate a `CLAUDE.md` file in your repository root to define code style guidelines, review criteria, project-specific rules, and preferred patterns. This file guides Claude's understanding of your project standards.\n\n### Security considerations\n\n<Warning>Never commit API keys directly to your repository.</Warning>\n\nFor comprehensive security guidance including permissions, authentication, and best practices, see the [Claude Code Action security documentation](https://github.com/anthropics/claude-code-action/blob/main/docs/security.md).\n\nAlways use GitHub Secrets for API keys:"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md",
+          "hit_count": 23,
+          "context_score": 34,
+          "total_score": 782,
+          "snippets": [
+            "* Want to monitor context window usage as you work\n* Need to track session costs\n* Work across multiple sessions and need to distinguish them\n* Want git branch and status always visible\n\nHere's an example of a [multi-line status line](#display-multiple-lines) that displays git info on the first line and a color-coded context bar on the second.",
+            "### Manually configure a status line\n\nAdd a `statusLine` field to your user settings (`~/.claude/settings.json`, where `~` is your home directory) or [project settings](/en/settings#settings-files). Set `type` to `\"command\"` and point `command` to a script path or an inline shell command. For a full walkthrough of creating a script, see [Build a status line step by step](#build-a-status-line-step-by-step).\n\n```json  theme={null}\n{",
+            "}\n```\n\nThe optional `padding` field adds extra horizontal spacing (in characters) to the status line content. Defaults to `0`. This padding is in addition to the interface's built-in spacing, so it controls relative indentation rather than absolute distance from the terminal edge.\n\n### Disable the status line\n\nRun `/statusline` and ask it to remove or clear your status line (e.g., `/statusline delete`, `/statusline clear`, `/statusline remove it`). You can also manually delete the `statusLine` field from your settings.json.\n\n## Build a status line step by step\n\nThis walkthrough shows what's happening under the hood by manually creating a status line that displays the current model, working directory, and context window usage percentage.",
+            "These examples use Bash scripts, which work on macOS and Linux. On Windows, you can run Bash scripts through [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install) or rewrite them in PowerShell.\n\n<Frame>\n  <img src=\"https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=696445e59ca0059213250651ad23db6b\" alt=\"A status line showing model name, directory, and context percentage\" data-og-width=\"726\" width=\"726\" data-og-height=\"164\" height=\"164\" data-path=\"images/statusline-quickstart.png\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=280&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=728c4bd06c8559cb46ddffffad983373 280w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=560&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=f9d28e0f8f48f695167dd1d632a6cf4f 560w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=840&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=57a2803a18cafe8cf1aa05619444f20c 840w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=1100&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=52cdd52865842f0cda24489dd5310d3b 1100w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=1650&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=f8876ea1f72bf40bd0aeec483ee20164 1650w, https://mintcdn.com/claude-code/nibzesLaJVh4ydOq/images/statusline-quickstart.png?w=2500&fit=max&auto=format&n=nibzesLaJVh4ydOq&q=85&s=6b1524305c7c71122cde65d0c3822374 2500w\" />\n</Frame>\n\n<Steps>",
+            "* **Multiple lines**: each `echo` or `print` statement displays as a separate row. See the [multi-line example](#display-multiple-lines).\n* **Colors**: use [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors) like `\\033[32m` for green (terminal must support them). See the [git status example](#git-status-with-colors).\n* **Links**: use [OSC 8 escape sequences](https://en.wikipedia.org/wiki/ANSI_escape_code#OSC) to make text clickable (Cmd+click on macOS, Ctrl+click on Windows/Linux). Requires a terminal that supports hyperlinks like iTerm2, Kitty, or WezTerm. See the [clickable links example](#clickable-links).\n\n<Note>The status line runs locally and does not consume API tokens. It temporarily hides during certain UI interactions, including autocomplete suggestions, the help menu, and permission prompts.</Note>\n\n## Available data"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "セキュリティ等の理由でフック実行が拒否された際、システム内部の詳細なエラー情報がUIにそのまま表示されていました。",
+        "after": "ユーザーインターフェース上のエラー表示が整理され、不要な内部情報(stderr)が表示されなくなりました。",
+        "benefit": "エラー時の画面がすっきりと見やすくなり、デバッグ情報の混入による混乱を防ぎます。"
+      }
+    }
+  ]
+}
