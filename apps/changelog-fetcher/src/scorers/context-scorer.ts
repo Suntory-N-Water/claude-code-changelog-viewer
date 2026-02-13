@@ -1,5 +1,10 @@
 import type { RelatedDoc } from '@claude-code-changelog-viewer/types';
-import type { SnippetResult } from '../types';
+import type { Keywords, SnippetResult } from '../types';
+import {
+  type DocCorpus,
+  buildIdfTable,
+  calculateTfidfSimilarity,
+} from './tfidf-scorer';
 
 /**
  * 単一のスニペットのコンテキストスコアを計算
@@ -42,22 +47,28 @@ export function calculateContextScore(snippetResult: SnippetResult): number {
 }
 
 /**
- * 総合スコアを計算(ヒット数 × コンテキストスコア)
+ * 総合スコアを計算（TF-IDF類似度 × コンテキストスコア）
+ *
+ * 旧: hit_count × context_score（全キーワードが同一重み）
+ * 新: tfidf_similarity × context_score（希少キーワードほど高重み）
  */
 export function calculateTotalScore(
-  hit_count: number,
+  tfidfSimilarity: number,
   context_score: number,
 ): number {
-  return hit_count * context_score;
+  return tfidfSimilarity * context_score;
 }
 
 /**
- * スニペット結果をRelatedDocに変換(スコア付き)
+ * スニペット結果をRelatedDocに変換（TF-IDFスコア付き）
  */
-export function scoreSnippetResult(snippetResult: SnippetResult): RelatedDoc {
+export function scoreSnippetResult(
+  snippetResult: SnippetResult,
+  tfidfScore: number,
+): RelatedDoc {
   const { file, snippets, hit_count } = snippetResult;
   const context_score = calculateContextScore(snippetResult);
-  const total_score = calculateTotalScore(hit_count, context_score);
+  const total_score = calculateTotalScore(tfidfScore, context_score);
 
   return {
     file,
@@ -69,14 +80,30 @@ export function scoreSnippetResult(snippetResult: SnippetResult): RelatedDoc {
 }
 
 /**
- * スニペット結果リストをスコアリングして上位N件を取得
+ * スニペット結果リストをTF-IDFスコアリングして上位N件を取得
+ *
+ * 1. キーワードの IDF テーブルを構築（珍しいキーワードほど高重み）
+ * 2. 各ドキュメントの TF-IDF Cosine Similarity を計算
+ * 3. コンテキストスコアと掛け合わせて総合スコアを算出
+ * 4. スコア降順で上位N件を返却
  */
 export function getTopDocs(
   snippetResults: SnippetResult[],
+  keywords: Keywords,
+  corpus: DocCorpus,
   topN = 3,
 ): RelatedDoc[] {
+  const idfTable = buildIdfTable(keywords, corpus);
+
   return snippetResults
-    .map(scoreSnippetResult)
+    .map((result) => {
+      const tfidfScore = calculateTfidfSimilarity(
+        result.file,
+        corpus,
+        idfTable,
+      );
+      return scoreSnippetResult(result, tfidfScore);
+    })
     .sort((a, b) => b.total_score - a.total_score)
     .slice(0, topN);
 }

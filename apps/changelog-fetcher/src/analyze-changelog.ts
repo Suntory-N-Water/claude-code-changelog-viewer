@@ -9,6 +9,7 @@ import { parseChangelog } from './parsers/changelog-parser';
 import { tagFeatureAreas } from './parsers/feature-area-tagger';
 import { extractKeywords } from './parsers/keyword-extractor';
 import { getTopDocs } from './scorers/context-scorer';
+import { loadDocCorpus } from './scorers/tfidf-scorer';
 import { searchDocs, shouldSkipSearch } from './searchers/grep-executor';
 import { extractSnippets } from './searchers/snippet-extractor';
 
@@ -32,7 +33,11 @@ async function main() {
   const items = parseChangelog(changelog);
   log.msg('APLG0010', { params: [`${items.length} 件の項目`] });
 
-  // 3. 各項目を処理
+  // 3. ドキュメントコーパスを読み込み（TF-IDFスコアリング用）
+  const corpus = loadDocCorpus();
+  log.info(`ドキュメントコーパス: ${corpus.size} 件読み込み`);
+
+  // 4. 各項目を処理
   const analyzedItems = await Promise.all(
     items.map(async (item, index) => {
       log.info(
@@ -59,8 +64,8 @@ async function main() {
       // スニペット取得
       const snippetResults = extractSnippets(searchResult.files, keywords);
 
-      // スコアリング & 上位3件取得
-      const topDocs = getTopDocs(snippetResults, 3);
+      // TF-IDFスコアリング & 上位3件取得
+      const topDocs = getTopDocs(snippetResults, keywords, corpus, 3);
 
       return {
         content: item.content,
@@ -72,7 +77,7 @@ async function main() {
     }),
   );
 
-  // 4. Zod検証
+  // 5. Zod検証
   let result: Analysis;
   try {
     result = AnalysisSchema.parse({
@@ -88,7 +93,7 @@ async function main() {
     process.exit(1);
   }
 
-  // 5. JSON出力
+  // 6. JSON出力
   const outputPath = path.join(
     process.cwd(),
     'analysis',
