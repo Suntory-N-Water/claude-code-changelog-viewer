@@ -279,6 +279,7 @@ function createDiscordMessage(
     username: 'Claude Code Docs Bot',
     avatar_url:
       'https://claude-code-changelog-viewer.ayasnppk00.workers.dev/icon.png',
+    flags: 1 << 2, // SUPPRESS_EMBEDS: リンクプレビュー(OGP)を非表示
   };
 }
 

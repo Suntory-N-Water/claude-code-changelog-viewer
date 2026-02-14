@@ -62,12 +62,13 @@ function createChangelogMessage(version: string): DiscordWebhookPayload {
   }
 
   // 参考リンク
-  content += `## 参考\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
+  const viewerUrl = `https://claude-code-changelog-viewer.ayasnppk00.workers.dev/changelog/${version}/`;
+  content += `## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
 
   // Discordの文字数制限(2000文字)を考慮
   const DISCORD_MAX_LENGTH = 2000;
   if (content.length > DISCORD_MAX_LENGTH) {
-    const suffix = `...\n\n## 参考\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
+    const suffix = `...\n\n## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
     content = `${content.substring(0, DISCORD_MAX_LENGTH - suffix.length)}${suffix}`;
   }
 
@@ -76,6 +77,7 @@ function createChangelogMessage(version: string): DiscordWebhookPayload {
     username: 'Claude Code Changelog Bot',
     avatar_url:
       'https://claude-code-changelog-viewer.ayasnppk00.workers.dev/icon.png',
+    flags: 1 << 2, // SUPPRESS_EMBEDS: リンクプレビュー(OGP)を非表示
   };
 }
 
