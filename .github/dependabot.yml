@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # npm 依存関係の更新
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/apps/www"
+      - "/apps/changelog-fetcher"
+      - "/apps/docs-tracker"
+      - "/packages/types"
+      - "/packages/common"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Tokyo"
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # workspace パッケージは Dependabot で更新不要
+      - dependency-name: "@claude-code-changelog-viewer/*"
+      # メジャーバージョンの更新は対象外
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    cooldown:
+      default-days: 7
+      semver-minor-days: 7
+    open-pull-requests-limit: 10
+
+  # GitHub Actions の更新
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
