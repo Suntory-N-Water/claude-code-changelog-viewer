@@ -1,16 +1,15 @@
 ---
-import InferenceDetail from './InferenceDetail.astro';
-import RelatedDocsList from './RelatedDocsList.astro';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import { formatChangelogContent } from '../../lib/changelog';
+import InferenceDetail from './InferenceDetail.astro';
+import RelatedDocsList from './RelatedDocsList.astro';
 
-interface Props {
+type Props = {
   item: ChangelogItem;
   anchorId?: string;
-}
+};
 
 const { item, anchorId } = Astro.props;
-const hasInference = !!item.inference;
 const formattedContent = formatChangelogContent(item.content);
 const hasJaTranslation = !!item.content_ja;
 const formattedContentJa = item.content_ja
@@ -112,7 +111,7 @@ const prefixIcon = prefixIcons[item.prefix];
     }
   </div>
 
-  {hasInference && <InferenceDetail inference={item.inference!} />}
+  {item.inference && <InferenceDetail inference={item.inference} />}
 
   <RelatedDocsList docs={item.related_docs} />
 </article>

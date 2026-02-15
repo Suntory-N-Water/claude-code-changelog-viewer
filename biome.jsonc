@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.0/schema.json",
   "vcs": {
     "enabled": false,
     "clientKind": "git",
@@ -12,6 +12,7 @@
       "**/*.json",
       "**/*.jsonc",
       "**/*.html",
+      "**/*.astro",
       "!node_modules",
       "!**/.astro",
       "!**/dist",
@@ -45,7 +46,10 @@
         // any 関連
         "noExplicitAny": "error",
         "noImplicitAnyLet": "error",
-        "noEvolvingTypes": "error"
+        "noEvolvingTypes": "error",
+        // v2.4 で nursery から昇格
+        "noImportCycles": "error",
+        "noUnusedExpressions": "error"
       },
       "style": {
         // Interface じゃなくて type を使う
@@ -61,8 +65,15 @@
         // if 文でブロックを強制する
         "useBlockStatements": "error"
       },
+      "complexity": {
+        // v2.4 で nursery から昇格
+        "noUselessUndefined": "error"
+      },
       "nursery": {
-        "noUnnecessaryConditions": "error"
+        "noUnnecessaryConditions": "error",
+        // v2.4 types ドメイン: Promise 関連
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error"
       }
     }
   },
@@ -78,11 +89,15 @@
     "enabled": true,
     "actions": {
       "source": {
-        "organizeImports": "on"
+        "organizeImports": "on",
+        // v2.4: 重複 CSS クラスの検出・除去
+        "noDuplicateClasses": "on"
       }
     }
   },
   "html": {
+    // v2.4: Astro/Vue/Svelte の実験的フルサポート
+    "experimentalFullSupportEnabled": true,
     "formatter": {
       "enabled": true,
       "indentStyle": "space",
@@ -98,6 +113,21 @@
       },
       "linter": {
         "enabled": false
+      }
+    },
+    {
+      // Astro ファイルは Prettier でフォーマットするため、Biome はリントのみ
+      "includes": ["**/*.astro"],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "rules": {
+          "correctness": {
+            // Astro は静的レンダリングのため key 不要
+            "useJsxKeyInIterable": "off"
+          }
+        }
       }
     },
     {

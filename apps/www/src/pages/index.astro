@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
-import Layout from '../layouts/Layout.astro';
 import VersionCard from '../components/changelog/VersionCard.astro';
+import Layout from '../layouts/Layout.astro';
 
 // Content Collectionsから全バージョンを取得
 const allChangelogs = await getCollection('changelog');
@@ -18,7 +18,9 @@ const sortedChangelogs = allChangelogs.sort((a, b) => {
   // メジャー、マイナー、パッチの順で比較
   for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
     const diff = (bParts[i] || 0) - (aParts[i] || 0);
-    if (diff !== 0) return diff;
+    if (diff !== 0) {
+      return diff;
+    }
   }
   return 0;
 });
@@ -35,7 +37,9 @@ function isRecentVersion(version: string): boolean {
   const parts = version.split('.').map(Number);
   for (let i = 0; i < 3; i++) {
     const diff = (parts[i] || 0) - (CUTOFF_VERSION[i] || 0);
-    if (diff !== 0) return diff > 0;
+    if (diff !== 0) {
+      return diff > 0;
+    }
   }
   return true; // v2.1.0 自体は「以降」に含める
 }
@@ -82,7 +86,7 @@ const olderVersions = versionData.filter((v) => !isRecentVersion(v.version));
                 type='button'
                 class='inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
               >
-                過去のバージョンを表示（{olderVersions.length}件）
+                過去のバージョンを表示({olderVersions.length}件)
                 <svg
                   class='w-4 h-4'
                   fill='none'
@@ -102,7 +106,7 @@ const olderVersions = versionData.filter((v) => !isRecentVersion(v.version));
 
             <div
               id='older-versions'
-              class='hidden mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
+              class='hidden mt-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
             >
               {olderVersions.map(({ version, itemCount }) => (
                 <VersionCard version={version} itemCount={itemCount} />
@@ -119,7 +123,9 @@ const olderVersions = versionData.filter((v) => !isRecentVersion(v.version));
       const btn = document.getElementById('show-older-btn');
       const wrapper = document.getElementById('show-older-wrapper');
       const older = document.getElementById('older-versions');
-      if (!btn || !wrapper || !older) return;
+      if (!btn || !wrapper || !older) {
+        return;
+      }
 
       btn.addEventListener('click', () => {
         older.classList.remove('hidden');
