@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content';
-import { execSync } from 'node:child_process';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
 import Layout from '../../layouts/Layout.astro';
 import { formatChangelogContent } from '../../lib/changelog';
@@ -8,19 +7,19 @@ import { formatChangelogContent } from '../../lib/changelog';
 export async function getStaticPaths() {
   const allChangelogs = await getCollection('changelog');
 
-  // gh CLI で GitHub Releases のバージョン一覧を取得(1リクエスト固定)
+  // GitHub API で Releases のバージョン一覧を取得(1リクエスト固定)
   let releaseVersions: Set<string>;
   try {
-    const output = execSync(
-      'gh api "repos/anthropics/claude-code/releases?per_page=100" --jq ".[].tag_name"',
-      { encoding: 'utf-8' },
+    const res = await fetch(
+      'https://api.github.com/repos/anthropics/claude-code/releases?per_page=100',
+      { headers: { 'User-Agent': 'claude-code-changelog-viewer' } },
     );
+    if (!res.ok) {
+      throw new Error(`GitHub API: ${res.status}`);
+    }
+    const releases: Array<{ tag_name: string }> = await res.json();
     releaseVersions = new Set(
-      output
-        .trim()
-        .split('\n')
-        .filter(Boolean)
-        .map((v) => v.replace(/^v/, '')),
+      releases.map((r) => r.tag_name.replace(/^v/, '')),
     );
   } catch {
     releaseVersions = new Set();
