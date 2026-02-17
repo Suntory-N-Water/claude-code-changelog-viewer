@@ -16,7 +16,7 @@ const FEATURE_AREAS: { slug: string; label: string }[] = [
   { slug: 'settings', label: 'Settings' },
   { slug: 'memory', label: 'Memory' },
   { slug: 'permissions', label: 'Permissions' },
-  { slug: 'cli-core', label: 'CLI Core' },
+  { slug: 'cli-core', label: '' },
 ];
 
 export function getAllAreas(): { slug: string; label: string }[] {

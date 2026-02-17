@@ -23,12 +23,12 @@ const FEATURE_AREA_RULES: FeatureAreaRule[] = [
 
 /**
  * content に対して全ルールをマッチし、ヒットしたタグの配列を返す。
- * 何もマッチしなければ ["CLI Core"] を返す。
+ * 何もマッチしなければ空配列を返す。
  */
 export function tagFeatureAreas(content: string): string[] {
   const matched = FEATURE_AREA_RULES.filter((rule) =>
     rule.pattern.test(content),
   ).map((rule) => rule.tag);
 
-  return matched.length > 0 ? matched : ['CLI Core'];
+  return matched.length > 0 ? matched : [];
 }

@@ -142,7 +142,6 @@ ${allItemsText}
 - Settings: 設定
 - Memory: メモリ・CLAUDE.md
 - Permissions: パーミッション
-- CLI Core: 上記に該当しないコア機能
 
 ## 制約
 - 補正が必要な項目のみ返す(全項目を返す必要はない)
