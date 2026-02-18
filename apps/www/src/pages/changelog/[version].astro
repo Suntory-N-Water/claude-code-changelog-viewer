@@ -25,20 +25,37 @@ export async function getStaticPaths() {
     releaseVersions = new Set();
   }
 
-  return allChangelogs.map((entry) => ({
+  // バージョン降順ソート
+  const sorted = [...allChangelogs].sort((a, b) => {
+    const ap = a.data.version.split('.').map(Number);
+    const bp = b.data.version.split('.').map(Number);
+    for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
+      const diff = (bp[i] || 0) - (ap[i] || 0);
+      if (diff !== 0) {
+        return diff;
+      }
+    }
+    return 0;
+  });
+
+  return sorted.map((entry, i) => ({
     params: { version: `v${entry.data.version}` },
     props: {
       entry,
       hasGitHubRelease: releaseVersions.has(entry.data.version),
+      prevVersion: sorted[i + 1]?.data.version ?? null,
+      nextVersion: sorted[i - 1]?.data.version ?? null,
     },
   }));
 }
 
-const { entry, hasGitHubRelease } = Astro.props;
+const { entry, hasGitHubRelease, prevVersion, nextVersion } = Astro.props;
 const { version, items, summary } = entry.data;
 
 // メタタグ用 description: summary があれば使用、なければデフォルトテキスト
-const description = summary ?? `Claude Code v${version}の変更内容と恩恵の解説`;
+const description =
+  summary ??
+  `Claude Code v${version}の変更内容をAIが分析し、アップデートの詳細とユーザーへの恩恵を日本語で分かりやすく解説します。`;
 
 // summaryのバッククォートをHTMLコードタグに変換
 const formattedSummary = summary ? formatChangelogContent(summary) : undefined;
@@ -50,9 +67,9 @@ const sortedItems = items
 ---
 
 <Layout
-  title={`Claude Code v${version} 変更履歴`}
+  title={`Claude Code v${version} 変更履歴 - アップデート内容とユーザーへの恩恵`}
   description={description}
-  image={`${import.meta.env.SITE}/changelog/v${version}/og.png`}
+  image={`${import.meta.env.SITE}/changelog/og/v${version}.png`}
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-4xl mx-auto'>
@@ -142,6 +159,64 @@ const sortedItems = items
           ))
         }
       </div>
+
+      <nav
+        class='mt-12 pt-8 border-t border-[hsl(var(--cc-gray))] flex justify-between items-center'
+        aria-label='バージョンナビゲーション'
+      >
+        {
+          prevVersion ? (
+            <a
+              href={`/changelog/v${prevVersion}`}
+              class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+            >
+              <svg
+                class='w-4 h-4'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+                stroke-width='2'
+                aria-hidden='true'
+              >
+                <path
+                  stroke-linecap='round'
+                  stroke-linejoin='round'
+                  d='M15 19l-7-7 7-7'
+                />
+              </svg>
+              v{prevVersion}
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          nextVersion ? (
+            <a
+              href={`/changelog/v${nextVersion}`}
+              class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+            >
+              v{nextVersion}
+              <svg
+                class='w-4 h-4'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+                stroke-width='2'
+                aria-hidden='true'
+              >
+                <path
+                  stroke-linecap='round'
+                  stroke-linejoin='round'
+                  d='M9 5l7 7-7 7'
+                />
+              </svg>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+      </nav>
     </div>
   </div>
 </Layout>

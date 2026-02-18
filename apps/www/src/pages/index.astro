@@ -49,8 +49,8 @@ const olderVersions = versionData.filter((v) => !isRecentVersion(v.version));
 ---
 
 <Layout
-  title='Claude Code Changelog Viewer'
-  description='Claude Codeの変更履歴をAIが分析した結果を表示'
+  title='Claude Code Changelog Viewer - AIによる変更履歴の分析と解説'
+  description='Claude Codeの全バージョンの変更履歴をAIが分析し、各アップデートの内容とユーザーへの恩恵を日本語で分かりやすく解説するWebサイトです。'
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-6xl mx-auto'>
@@ -104,14 +104,11 @@ const olderVersions = versionData.filter((v) => !isRecentVersion(v.version));
               </button>
             </div>
 
-            <div
-              id='older-versions'
-              class='hidden mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
-            >
+            <template id='older-versions-template'>
               {olderVersions.map(({ version, itemCount }) => (
                 <VersionCard version={version} itemCount={itemCount} />
               ))}
-            </div>
+            </template>
           </>
         )
       }
@@ -122,13 +119,23 @@ const olderVersions = versionData.filter((v) => !isRecentVersion(v.version));
     document.addEventListener('astro:page-load', () => {
       const btn = document.getElementById('show-older-btn');
       const wrapper = document.getElementById('show-older-wrapper');
-      const older = document.getElementById('older-versions');
-      if (!btn || !wrapper || !older) {
+      if (!btn || !wrapper) {
         return;
       }
 
       btn.addEventListener('click', () => {
-        older.classList.remove('hidden');
+        const template = document.getElementById(
+          'older-versions-template',
+        ) as HTMLTemplateElement | null;
+        if (!template) {
+          return;
+        }
+
+        const container = document.createElement('div');
+        container.className =
+          'mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6';
+        container.appendChild(template.content.cloneNode(true));
+        wrapper.insertAdjacentElement('afterend', container);
         wrapper.remove();
       });
     });

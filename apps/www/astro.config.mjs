@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 // https://astro.build/config
 export default defineConfig({
+  trailingSlash: 'never',
+  build: { format: 'file' },
   site: 'https://claude-code-changelog-viewer.ayasnppk00.workers.dev',
   cacheDir: './node_modules/.astro',
   vite: {
