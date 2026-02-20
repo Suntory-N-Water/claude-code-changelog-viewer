@@ -1,10 +1,65 @@
 {
   "version": "2.1.49",
-  "summary": "このバージョンでは、Gitワークツリーを利用した作業環境の分離機能が追加され、メインのコードを保護しながら安全にエージェントを動作させることが可能になりました。また、起動時のAPI呼び出しや認証処理の最適化によりパフォーマンスが大幅に向上したほか、長時間の利用で発生していたメモリ肥大化問題も修正されています。組織利用向けの管理設定の強化や最新モデル Sonnet 4.6 への最適化も行われ、より実用的で高速なツールへと進化しています。",
+  "summary": "本バージョンでは、Gitの作業ツリー（worktree）を活用した並行作業の強力なサポートが導入され、メインの作業を汚さずにサブエージェントを隔離して実行できるようになりました。また、起動プロセスやMCPサーバー接続におけるキャッシュの最適化、APIコールの削減により、特に大量のツールを連携させている環境でのパフォーマンスが大幅に向上しています。さらに、設定変更を監視する新しいフックイベントや管理ポリシーの強化など、エンタープライズ向けのセキュリティ機能も拡充されました。",
   "items": [
     {
+      "content": "- Improved MCP OAuth authentication with step-up auth support and discovery caching, reducing redundant network requests during server connections",
+      "content_ja": "MCPのOAuth認証を改善し、追加認証（step-up auth）のサポートとディスカバリ結果のキャッシュ機能を追加することで、サーバー接続時の冗長なネットワークリクエストを削減しました。",
+      "prefix": "Improved",
+      "importance_score": 6,
+      "feature_areas": [
+        "MCP"
+      ],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md",
+          "hit_count": 221,
+          "context_score": 7,
+          "total_score": 1547,
+          "snippets": [
+            "-",
+            "title: mcp\nsource: https://code.claude.com/docs/en/mcp.md\n-",
+            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Connect Claude Code to tools via MCP\n\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
+            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('visibility', 'commercial');\n          url.searchParams.set('limit', '100');",
+            "}\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }\n          const data = await response.json();\n          allServers.push(...data.servers);"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md",
+          "hit_count": 19,
+          "context_score": 32,
+          "total_score": 608,
+          "snippets": [
+            "# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
+            "| Event                                                                  | What the matcher filters  | Example matcher values                                                             |\n| :--------------------------------------------------------------------- | :------------------------ | :--------------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                                   |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                            |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other`     |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`           |",
+            "`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools\n\n[MCP](/en/mcp) server tools appear as regular tools in tool events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`), so you can match them the same way you match any other tool name.\n\nMCP tools follow the naming pattern `mcp__<server>__<tool>`, for example:\n\n* `mcp__memory__create_entities`: Memory server's create entities tool\n* `mcp__filesystem__read_file`: Filesystem server's read file tool\n* `mcp__github__search_repositories`: GitHub server's search tool\n\nUse regex patterns to target specific MCP tools or groups of tools:\n\n* `mcp__memory__.*` matches all tools from the `memory` server\n* `mcp__.*__write.*` matches any tool containing \"write\" from any server\n\nThis example logs all memory server operations and validates write operations from any MCP server:\n\n```json  theme={null}\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"mcp__memory__.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'Memory operation initiated' >> ~/mcp-operations.log\"\n          }\n        ]\n      },\n      {\n        \"matcher\": \"mcp__.*__write.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/user/scripts/validate-mcp-write.py\"\n          }\n        ]\n      }",
+            "### PreToolUse\n\nRuns after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Task`, `WebFetch`, `WebSearch`, and any [MCP tool names](#match-mcp-tools).\n\nUse [PreToolUse decision control](#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.",
+            "| `decision`             | `\"block\"` prompts Claude with the `reason`. Omit to allow the action to proceed            |\n| `reason`               | Explanation shown to Claude when `decision` is `\"block\"`                                   |\n| `additionalContext`    | Additional context for Claude to consider                                                  |\n| `updatedMCPToolOutput` | For [MCP tools](#match-mcp-tools) only: replaces the tool's output with the provided value |\n\n```json  theme={null}\n{"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
+          "hit_count": 23,
+          "context_score": 23,
+          "total_score": 529,
+          "snippets": [
+            "This reference provides complete technical specifications for the Claude Code plugin system, including component schemas, CLI commands, and development tools.\n\nA **plugin** is a self-contained directory of components that extends Claude Code with custom functionality. Plugin components include skills, agents, hooks, MCP servers, and LSP servers.\n\n## Plugin components reference",
+            "* `prompt`: Evaluate a prompt with an LLM (uses `$ARGUMENTS` placeholder for context)\n* `agent`: Run an agentic verifier with tools for complex verification tasks\n\n### MCP servers\n\nPlugins can bundle Model Context Protocol (MCP) servers to connect Claude Code with external tools and services.\n\n**Location**: `.mcp.json` in plugin root, or inline in plugin.json\n\n**Format**: Standard MCP server configuration\n\n**MCP server configuration**:\n\n```json  theme={null}\n{\n  \"mcpServers\": {\n    \"plugin-database\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\",\n      \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"],",
+            "},\n    \"plugin-api-client\": {\n      \"command\": \"npx\",\n      \"args\": [\"@company/mcp-server\", \"--plugin-mode\"],\n      \"cwd\": \"${CLAUDE_PLUGIN_ROOT}\"\n    }\n  }",
+            "**Integration behavior**:\n\n* Plugin MCP servers start automatically when the plugin is enabled\n* Servers appear as standard MCP tools in Claude's toolkit\n* Server capabilities integrate seamlessly with Claude's existing tools\n* Plugin servers can be configured independently of user MCP servers\n\n### LSP servers",
+            "\"agents\": \"./custom/agents/\",\n  \"skills\": \"./custom/skills/\",\n  \"hooks\": \"./config/hooks.json\",\n  \"mcpServers\": \"./mcp-config.json\",\n  \"outputStyles\": \"./styles/\",\n  \"lspServers\": \"./.lsp.json\"\n}"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "MCPサーバーへの接続時に認証情報の確認やディスカバリのためのネットワークリクエストが毎回発生し、接続プロセスに時間がかかる場合がありました。",
+        "after": "OAuthの追加認証に対応するとともにディスカバリ結果をキャッシュするようになり、再接続時などの不要なネットワーク通信が抑制されます。",
+        "benefit": "MCPツールを利用する際の待ち時間が短縮され、よりスムーズに外部ツールと連携できるようになります。"
+      }
+    },
+    {
       "content": "- Added `--worktree` (`-w`) flag to start Claude in an isolated git worktree",
-      "content_ja": "分離されたGitワークツリーでClaudeを起動するための`--worktree` (`-w`) フラグを追加",
+      "content_ja": "Gitの隔離された作業ツリーでClaudeを起動できる `--worktree` (`-w`) フラグを追加しました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [
@@ -52,14 +107,14 @@
         }
       ],
       "inference": {
-        "before": "複数のタスクを同時に進める際、同じディレクトリ内で作業すると未コミットの変更が衝突したり、依存関係が混ざったりするリスクがありました。",
-        "after": "フラグを指定するだけで、既存のリポジトリから分離された専用の作業用ディレクトリ（ワークツリー）を自動生成してセッションを開始できます。",
-        "benefit": "メインの作業ブランチを汚さずに並行して別の修正や実験を行えるため、開発フローがより安全かつスムーズになります。"
+        "before": "複数のタスクを並行して行う際、同一の作業ディレクトリではファイル変更が衝突するため、手動でブランチを切り替えるかディレクトリを分ける必要がありました。",
+        "after": "`--worktree` フラグを使用することで、現在の作業を汚さずに新しいタスク専用の一時的な作業ディレクトリとブランチを自動生成して開始できます。",
+        "benefit": "メインの作業を中断することなく、バグ修正や実験的な実装を安全かつ素早く並行して進められるようになります。"
       }
     },
     {
       "content": "- Subagents support `isolation: \"worktree\"` for working in a temporary git worktree",
-      "content_ja": "サブエージェントが一時的なGitワークツリーで作業するための `isolation: \"worktree\"` をサポート",
+      "content_ja": "サブエージェントが一時的なGit作業ツリーで動作する `isolation: \"worktree\"` モードに対応しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": [
@@ -104,24 +159,22 @@
         }
       ],
       "inference": {
-        "before": "サブエージェントがコードベースを探索したり変更したりする際、メインセッションの作業内容に影響を与えてしまう可能性がありました。",
-        "after": "サブエージェント専用の独立したワークツリーで実行可能になり、環境が完全に分離された状態で安全にタスクを任せられるようになります。",
-        "benefit": "エージェントに大きな変更を依頼する際も、手元の作業を中断したり壊されたりする心配をせずに並行作業が可能です。"
+        "before": "サブエージェントがタスクを実行する際、メインの作業ディレクトリのファイルを直接変更するため、意図しない破壊的変更が発生するリスクがありました。",
+        "after": "サブエージェントを独立した作業ツリー（worktree）に隔離して実行できるため、メイン環境に影響を与えずにタスクを完了させることが可能です。",
+        "benefit": "エージェントにタスクを任せる際の安全性が向上し、メインブランチのコードを保護したまま並行作業を自動化できます。"
       }
     },
     {
       "content": "- Added Ctrl+F keybinding to kill background agents (two-press confirmation)",
-      "content_ja": "バックグラウンドで動作するエージェントを強制終了するための Ctrl+F キーバインドを追加（2回押しで確定）。",
+      "content_ja": "Ctrl+F キーでバックグラウンドエージェントを強制終了する機能を追加しました（2回押しで確定）。",
       "prefix": "Added",
       "importance_score": 8,
-      "feature_areas": [
-        "Sub-agents"
-      ],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Agent definitions support `background: true` to always run as a background task",
-      "content_ja": "エージェント定義において、常にバックグラウンドタスクとして実行する `background: true` をサポート",
+      "content_ja": "エージェント定義において、常にバックグラウンドタスクとして実行する `background: true` 設定をサポートしました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": [
@@ -169,14 +222,14 @@
         }
       ],
       "inference": {
-        "before": "特定のタスクをバックグラウンドで実行させるには、都度指示を出したり手動で設定したりする必要がありました。",
-        "after": "定義レベルでバックグラウンド実行を強制できるため、常時監視や非同期処理を行う専用エージェントの作成が容易になります。",
-        "benefit": "時間のかかるタスクやバックグラウンドでの継続的な処理を、意識することなく効率的に実行させることができます。"
+        "before": "特定のタスクをバックグラウンドで実行させるには、実行のたびに手動でバックグラウンド実行を指定する必要がありました。",
+        "after": "エージェントの定義自体にバックグラウンド設定を含められるようになり、指定したエージェントを常に非同期で稼働させることができます。",
+        "benefit": "監視タスクや時間のかかる処理を担当するエージェントを自動的にバックグラウンドへ回せるため、ユーザーはメインの対話を中断されずに済みます。"
       }
     },
     {
       "content": "- Plugins can ship `settings.json` for default configuration",
-      "content_ja": "プラグインがデフォルト設定用の `settings.json` を同梱可能に改善",
+      "content_ja": "プラグインがデフォルト設定を配布するための `settings.json` を同梱できるようになりました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": [
@@ -225,29 +278,25 @@
         }
       ],
       "inference": {
-        "before": "プラグインを導入した後、そのプラグインを適切に動作させるための初期設定をユーザーが手動で行う必要がありました。",
-        "after": "プラグイン側で標準の設定ファイルを持てるようになり、インストールしてすぐに最適な状態で利用できるようになります。",
-        "benefit": "セットアップの手間が省け、チーム間でのツール共有時も同じ設定環境を即座に再現できます。"
+        "before": "プラグインを導入しても、推奨される設定やフックの構成をユーザーが手動で `settings.json` に記述する必要がありました。",
+        "after": "プラグイン側で用意されたデフォルトの `settings.json` が適用されるため、インストール後すぐに最適な構成でプラグインを使用できます。",
+        "benefit": "複雑なセットアップが不要になり、チーム全体で同じプラグイン構成を簡単に共有・維持できるようになります。"
       }
     },
     {
       "content": "- Fixed file-not-found errors to suggest corrected paths when the model drops the repo folder",
-      "content_ja": "モデルがリポジトリフォルダを見失った際に、正しいファイルパスを推測して提案するように修正。",
+      "content_ja": "ファイルが見つからないエラーが発生した際、リポジトリフォルダのパスが欠落している場合に正しいパスを提案するよう修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": [
-        "Memory"
-      ],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed Ctrl+C and ESC being silently ignored when background agents are running and the main thread is idle. Pressing twice within 3 seconds now kills all background agents.",
-      "content_ja": "バックグラウンドエージェント実行中にメインスレッドがアイドル状態の場合、Ctrl+C や ESC が無視される問題を修正。3秒以内に2回押すと全バックグラウンドエージェントを強制終了可能に",
+      "content_ja": "バックグラウンドエージェントが動作中でメインスレッドがアイドル状態の際、Ctrl+CとESCが無視される問題を修正しました。3秒以内に2回押すことで、すべてのバックグラウンドエージェントを強制終了できます。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": [
-        "Sub-agents"
-      ],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md",
@@ -290,24 +339,22 @@
         }
       ],
       "inference": {
-        "before": "バックグラウンドでエージェントが動いている際、予期せぬ動作をしていてもキー入力で即座に停止させることが難しい場合がありました。",
-        "after": "キー操作のレスポンスが改善され、2回押しという確実な操作で実行中の全バックグラウンドタスクを一斉に停止できるようになりました。",
-        "benefit": "エージェントの暴走を防ぎ、開発者が常に制御の主導権を握れるため、安心して作業を任せられます。"
+        "before": "バックグラウンドで処理が走っている際にキー入力が効かず、プロセスを急ぎで停止させたい場合に操作を受け付けないことがありました。",
+        "after": "キー入力の検知が修正され、2度押しの操作によって進行中の全バックグラウンド処理を確実に停止させることが可能になりました。",
+        "benefit": "意図しない長時間実行や誤った操作を即座に中断できるようになり、CLI操作の制御性が向上します。"
       }
     },
     {
       "content": "- Fixed prompt suggestion cache regression that reduced cache hit rates.",
-      "content_ja": "プロンプト提案のキャッシュヒット率が低下していたデグレードを修正。",
+      "content_ja": "プロンプトの提案キャッシュのヒット率が低下していた問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": [
-        "Memory"
-      ],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed `plugin enable` and `plugin disable` to auto-detect the correct scope when `--scope` is not specified, instead of always defaulting to user scope",
-      "content_ja": "プラグインの有効化・無効化時に `--scope` 指定がない場合、常にユーザー（グローバル）スコープにならず、適切なスコープを自動検知するように修正",
+      "content_ja": "`plugin enable` および `plugin disable` コマンドにおいて、`--scope` 未指定時に常にユーザー（グローバル）スコープが適用される問題を修正し、適切なスコープを自動検知するように改善しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -342,17 +389,19 @@
         }
       ],
       "inference": {
-        "before": "プロジェクト固有のプラグイン設定を変更しようとしても、スコープを明示しないと意図せずユーザー全体の設定が変更されてしまうことがありました。",
-        "after": "現在の文脈を判断して適切なスコープを自動で適用するため、指定漏れによる設定ミスのリスクが低減します。",
-        "benefit": "プロジェクトごとに異なるプラグイン構成を、より直感的に、間違いなく管理できるようになります。"
+        "before": "プロジェクト固有のプラグインを有効化・無効化しようとしても、明示的にスコープを指定しない限り意図せずユーザー設定全体が変更されてしまうことがありました。",
+        "after": "現在の環境に合わせてプロジェクト単位かユーザー単位かを賢く判断するようになり、より直感的にプラグインを管理できるようになりました。",
+        "benefit": "プロジェクトごとに異なるツール構成を管理する際の設定ミスを防ぎ、管理の手間を軽減します。"
       }
     },
     {
       "content": "- Simple mode (`CLAUDE_CODE_SIMPLE`) now includes the file edit tool in addition to the Bash tool, allowing direct file editing in simple mode.",
-      "content_ja": "シンプルモード（CLAUDE_CODE_SIMPLE）において、Bashツールに加えてファイル編集ツールが利用可能になりました。",
+      "content_ja": "簡易モード（CLAUDE_CODE_SIMPLE）にファイル編集ツールを追加し、Bashツールだけでなく直接的なファイル編集が可能になりました。",
       "prefix": "Added",
       "importance_score": 8,
-      "feature_areas": [],
+      "feature_areas": [
+        "Settings"
+      ],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -371,7 +420,7 @@
     },
     {
       "content": "- Permission suggestions are now populated when safety checks trigger an ask response, enabling SDK consumers to display permission options",
-      "content_ja": "安全チェックによる確認（Ask）発生時にパーミッションの提案を表示し、SDK利用者が許可オプションを選択可能に改善",
+      "content_ja": "安全性チェックによる確認応答（ask response）が発生した際にパーミッションの候補が表示されるようになり、SDK利用者が許可オプションを選択・表示できるよう改善しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": [
@@ -417,30 +466,25 @@
         }
       ],
       "inference": {
-        "before": "SDK経由で利用する際、安全上の理由で動作が止まった場合に、具体的にどの権限を許可すればよいかの選択肢が提示されず不便でした。",
-        "after": "許可すべき項目の候補が自動で表示され、ユーザーがその中から選ぶだけでスムーズに処理を続行できるようになります。",
-        "benefit": "プログラムからの呼び出しや自動化環境において、セキュリティを保ちつつ対話的な権限管理が容易になります。"
+        "before": "SDK経由でClaude Codeを利用している際、セキュリティ制限に抵触したときの対応選択肢が不明確で、プログラム側での制御が困難でした。",
+        "after": "制限がかかった際に「何を許可できるか」という具体的な候補が返されるため、UIを持つSDKアプリなどでユーザーに適切な選択肢を提示できます。",
+        "benefit": "自動化ツールや自作のインターフェースにおいて、セキュリティ制御とユーザー操作の連携をより高度に構築できます。"
       }
     },
     {
       "content": "- Sonnet 4.5 with 1M context is being removed from the Max plan in favor of our frontier Sonnet 4.6 model, which now has 1M context. Please switch in /model.",
-      "content_ja": "1Mコンテキスト対応のSonnet 4.5をMaxプランから除外し、同等のコンテキスト容量を持つ最新のSonnet 4.6へ移行しました。/model コマンドで切り替え可能です。",
+      "content_ja": "MaxプランにおけるSonnet 4.5（コンテキスト1M）の提供を終了し、同等のコンテキスト容量を持つ最新のSonnet 4.6へ統合しました。/model から切り替えてください。",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": [
-        "Settings"
-      ],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed verbose mode not updating thinking block display when toggled via `/config` — memo comparators now correctly detect verbose changes",
-      "content_ja": "設定画面（/config）で切り替えた際、思考プロセスの表示（verboseモード）が正しく更新されない問題を修正",
+      "content_ja": "`/config` で設定を変更した際、思考ブロックの表示状態（verboseモード）が即座に更新されない問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": [
-        "Settings",
-        "Plan"
-      ],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -482,14 +526,14 @@
         }
       ],
       "inference": {
-        "before": "設定を変更しても、Claudeが裏で何を考えているかを表示するデバッグログの状態が即座に画面に反映されないことがありました。",
-        "after": "変更内容が内部で正確に検知されるようになり、設定変更がリアルタイムで表示に反映されます。",
-        "benefit": "ツールの動作状態を正しく把握できるようになり、トラブルシューティングや挙動の理解がより確実になります。"
+        "before": "設定メニューから冗長表示（verbose）を切り替えても、再起動や再実行をしない限り、思考プロセスが表示されないといったラグがありました。",
+        "after": "設定の変更が即座にレンダリングエンジンに検知され、Claudeの思考過程の表示・非表示がリアルタイムに反映されます。",
+        "benefit": "動作確認やデバッグのために思考プロセスを確認したいとき、スムーズに表示を切り替えられるようになります。"
       }
     },
     {
       "content": "- Fixed unbounded WASM memory growth during long sessions by periodically resetting the tree-sitter parser",
-      "content_ja": "長時間のセッションで tree-sitter パーサーを定期的にリセットすることで、WASMのメモリ肥大化を修正。",
+      "content_ja": "長時間セッションでのメモリ肥大化を防ぐため、tree-sitterパーサーを定期的にリセットするようにしました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -499,7 +543,7 @@
     },
     {
       "content": "- Fixed potential rendering issues caused by stale yoga layout references",
-      "content_ja": "古い Yoga レイアウト参照によるレンダリングの問題を修正。",
+      "content_ja": "古いレイアウト参照によるレンダリングの不具合を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -507,12 +551,10 @@
     },
     {
       "content": "- Improved performance in non-interactive mode (`-p`) by skipping unnecessary API calls during startup",
-      "content_ja": "非インタラクティブモード（-p）起動時の不要なAPIコールをスキップし、起動パフォーマンスを向上",
+      "content_ja": "非インタラクティブモード（`-p`）において、起動時の不要なAPIコールをスキップすることでパフォーマンスを改善しました。",
       "prefix": "Improved",
       "importance_score": 6,
-      "feature_areas": [
-        "Settings"
-      ],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/common-workflows.md",
@@ -555,14 +597,14 @@
         }
       ],
       "inference": {
-        "before": "ワンショットのコマンド実行でもフル機能の起動処理が行われていたため、実行開始までにわずかな待ち時間が発生していました。",
-        "after": "必要な処理だけを厳選して実行するように最適化され、スクリプトなどからの呼び出しがより高速になります。",
-        "benefit": "CI/CDやコマンドラインツールとしての応答性が向上し、自動化パイプライン全体の短縮に繋がります。"
+        "before": "ワンショットのコマンド実行（`-p`）であっても、通常の対話モードと同じ初期化プロセスが走り、わずかな待ち時間が発生していました。",
+        "after": "実行に必要な最小限の処理のみが行われるよう最適化され、スクリプトからの呼び出しやCI/CDでの実行速度が向上しました。",
+        "benefit": "自動化フローにおける Claude Code の応答開始が速くなり、開発パイプライン全体の効率が向上します。"
       }
     },
     {
       "content": "- Improved performance by caching authentication failures for HTTP and SSE MCP servers, avoiding repeated connection attempts to servers requiring auth",
-      "content_ja": "HTTP/SSE形式のMCPサーバーでの認証失敗をキャッシュし、不要な再接続試行を避けることでパフォーマンスを向上",
+      "content_ja": "HTTPおよびSSE接続のMCPサーバーにおいて、認証失敗の結果をキャッシュすることで、無駄な再接続試行を避けパフォーマンスを向上させました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -610,14 +652,14 @@
         }
       ],
       "inference": {
-        "before": "認証が必要な外部ツールとの連携で一度失敗しても何度も接続を試みてしまい、全体の動作が重くなる原因になっていました。",
-        "after": "失敗した状態を記憶して無駄なリトライを抑制するため、システム全体の負荷が軽減しスムーズに動作します。",
-        "benefit": "複雑な外部連携環境においても、エラー時のレスポンスが悪化せず、ストレスなく開発を続けられます。"
+        "before": "認証が必要なツールにアクセスする際、失敗しても繰り返し接続を試みてしまい、エラーの蓄積やネットワーク資源の浪費が発生していました。",
+        "after": "一度認証に失敗したサーバーへの無駄なリトライを抑制し、無効な接続待ちによる遅延を防ぎます。",
+        "benefit": "設定ミスのあるツールが混在していても、ツール全体の起動や応答が重くなるのを回避できます。"
       }
     },
     {
       "content": "- Fixed unbounded memory growth during long-running sessions caused by Yoga WASM linear memory never shrinking",
-      "content_ja": "Yoga WASM のメモリが解放されないことによる、長時間セッション時のメモリ使用量増大を修正。",
+      "content_ja": "WASMメモリが適切に解放されず、長時間実行時にメモリ使用量が増大し続ける問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -627,7 +669,7 @@
     },
     {
       "content": "- SDK model info now includes `supportsEffort`, `supportedEffortLevels`, and `supportsAdaptiveThinking` fields so consumers can discover model capabilities.",
-      "content_ja": "SDKのモデル情報に思考機能（Effort/Adaptive Thinking）の対応状況を示すフィールドを追加",
+      "content_ja": "SDKのモデル情報に `supportsEffort`（思考負荷設定の可否）や `supportsAdaptiveThinking`（適応的思考の可否）などの能力フィールドを追加しました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [],
@@ -671,14 +713,14 @@
         }
       ],
       "inference": {
-        "before": "利用しているモデルが「思考レベルの調整」や「適応型思考」をサポートしているかどうかを、プログラム側でプログラムで判別する標準的な方法がありませんでした。",
-        "after": "モデルの能力をプログラムから直接参照できるようになり、SDKを利用したアプリケーションで最適なモデル制御が可能になります。",
-        "benefit": "開発者は利用可能な機能を事前に検知し、モデルの性能を最大限に引き出すインテリジェントな実装が可能になります。"
+        "before": "利用しているモデルが「思考（Thinking）」や「推論の深さ調整」に対応しているかどうかを、プログラム側から判断する標準的な方法がありませんでした。",
+        "after": "各モデルの具体的な推論能力がメタデータとして提供されるため、モデルに合わせて最適なパラメーターを自動選択できるようになります。",
+        "benefit": "SDK利用者は、モデルごとの特性を最大限に活かした高度なAIエージェント機能を実装しやすくなります。"
       }
     },
     {
       "content": "- Added `ConfigChange` hook event that fires when configuration files change during a session, enabling enterprise security auditing and optional blocking of settings changes.",
-      "content_ja": "セッション中に設定ファイルが変更された際に発火する `ConfigChange` フックイベントを追加",
+      "content_ja": "セッション中に設定ファイルが変更された際に実行される `ConfigChange` フックイベントを追加しました。これにより、設定変更の監査やブロックが可能になります。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [
@@ -721,14 +763,14 @@
         }
       ],
       "inference": {
-        "before": "外部からの設定書き換えや不適切な設定変更を検知してログを残したり、即座に制限をかけたりする仕組みがありませんでした。",
-        "after": "設定の変更をリアルタイムで監視し、企業ポリシーに反する変更をブロックしたり監査ログを残したりできるようになります。",
-        "benefit": "組織での利用において、セキュリティのガバナンスを強化し、意図しない設定変更による事故を未然に防げます。"
+        "before": "実行中に `.claude/settings.json` などが書き換えられても検知できず、意図しない設定変更によるセキュリティ上の懸念がありました。",
+        "after": "設定変更をリアルタイムで監視し、変更内容をログに記録したり、管理者ポリシーに反する変更を強制的に拒否したりすることができます。",
+        "benefit": "組織内での利用において、セキュリティガイドラインを遵守し、実行時の意図しない環境変化を確実に制御できます。"
       }
     },
     {
       "content": "- Improved startup performance by caching MCP auth failures to avoid redundant connection attempts",
-      "content_ja": "MCPサーバーの認証失敗キャッシュを導入し、起動時のパフォーマンスを改善",
+      "content_ja": "MCP認証の失敗結果をキャッシュすることで、起動時の冗長な接続試行を削減しパフォーマンスを改善しました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -776,14 +818,14 @@
         }
       ],
       "inference": {
-        "before": "起動のたびに接続できない外部サービスへの確認が行われ、ツールが立ち上がるまでの時間が長くなっていました。",
-        "after": "認証エラーを効率的に扱うことで、無駄な待ち時間が解消され、より迅速に作業を開始できます。",
-        "benefit": "日々の起動ストレスが軽減され、使いたい時にすぐに使い始められるようになります。"
+        "before": "起動のたびに全MCPサーバーへ接続を試みるため、一部の認証が必要なサーバーで失敗すると、そのタイムアウト待ちで起動が遅くなることがありました。",
+        "after": "失敗情報を適切に管理することで、不要な接続待ちをスキップし、CLIの立ち上がり速度を高速化しました。",
+        "benefit": "多数のツールを連携させている環境でも、イライラすることなく瞬時にClaude Codeを使い始めることができます。"
       }
     },
     {
       "content": "- Improved startup performance by reducing HTTP calls for analytics token counting",
-      "content_ja": "アナリティクスのトークン計算に伴うHTTPコールを削減し、起動パフォーマンスを向上",
+      "content_ja": "分析用のトークンカウントにおけるHTTP呼び出し回数を削減し、起動パフォーマンスを向上させました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [],
@@ -829,14 +871,14 @@
         }
       ],
       "inference": {
-        "before": "利用状況の集計処理のために発生する通信が、ツールの起動速度に影響を与えていました。",
-        "after": "通信回数を最適化することでオーバーヘッドが減り、コマンドを叩いてから最初の応答までの速度が改善されました。",
-        "benefit": "ネットワーク環境に左右されにくくなり、常に快適な速度でツールを利用できるようになります。"
+        "before": "起動時にテレメトリや統計のための通信が頻繁に発生し、ネットワーク環境によっては起動に数秒の遅延を感じることがありました。",
+        "after": "通信回数が最小限に集約され、内部的なオーバーヘッドが削減されたため、より軽量な動作になりました。",
+        "benefit": "ネットワークの状態に左右されにくく、より機敏なツール体験が得られます。"
       }
     },
     {
       "content": "- Improved startup performance by batching MCP tool token counting into a single API call",
-      "content_ja": "MCPツールのトークン計算処理をバッチ化し、起動時間を短縮",
+      "content_ja": "MCPツールのトークンカウント処理を1回のAPIコールにまとめることで、起動時のパフォーマンスを改善しました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
@@ -884,14 +926,14 @@
         }
       ],
       "inference": {
-        "before": "多数のツールが連携されている場合、個別に計算処理が行われるため、利用準備が整うまでに時間がかかっていました。",
-        "after": "複数の計算を一度の呼び出しでまとめて処理するようになり、起動時のプロセスが大幅に高速化されました。",
-        "benefit": "多くのプラグインやツールを組み込んでいても、重さを感じることなくスムーズに開発を開始できます。"
+        "before": "利用可能な多数のツールを読み込む際、個別にトークン量を計算していたため、ツール数に比例して起動時間が増加していました。",
+        "after": "一括（バッチ）処理によってAPIコールの回数を大幅に減らし、大量のMCPサーバーを登録していても高速に起動できるようになりました。",
+        "benefit": "拡張機能を多数利用しているヘビーユーザーほど、この高速化の恩恵を強く実感できます。"
       }
     },
     {
       "content": "- Fixed `disableAllHooks` setting to respect managed settings hierarchy — non-managed settings can no longer disable managed hooks set by policy (#26637)",
-      "content_ja": "管理設定の階層構造を尊重するように `disableAllHooks` 設定を修正。一般設定からポリシーで定められた管理フックを無効化できないように改善",
+      "content_ja": "`disableAllHooks` 設定が管理ポリシー（Managed settings）の階層を尊重するように修正しました。ユーザー設定で管理者のフックを無効化することはできません。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [
@@ -928,14 +970,14 @@
         }
       ],
       "inference": {
-        "before": "ユーザー側の設定で、管理者によって強制されているはずのセキュリティフックなどを誤って（または意図的に）無効化できてしまう余地がありました。",
-        "after": "管理者設定の優先順位が厳格に適用され、個別のプロジェクトやユーザー設定で重要な制限を上書きできなくなります。",
-        "benefit": "企業導入において、セキュリティポリシーが確実に遵守される環境を維持でき、安全な開発運用が可能になります。"
+        "before": "管理者が強制したセキュリティ用フックなどを、ユーザーが自身の `settings.json` で `disableAllHooks: true` とすることで回避できてしまう恐れがありました。",
+        "after": "管理者によって設定された重要なフックは、ユーザー側の設定によらず確実に実行されるようになり、ガバナンスが強化されました。",
+        "benefit": "企業利用において、セキュリティフックを確実に適用し続けられるため、安全な運用が保証されます。"
       }
     },
     {
       "content": "- Fixed `--resume` session picker showing raw XML tags for sessions that start with commands like `/clear`. Now correctly falls through to the session ID fallback.",
-      "content_ja": "/clear コマンドなどで開始されたセッションにおいて、セッション選択画面に生XMLタグが表示される問題を修正。",
+      "content_ja": "`--resume` のセッション選択画面において、`/clear` コマンドなどで始まるセッションが生のXMLタグで表示される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -979,17 +1021,27 @@
             "Claude can generate tests that follow your project's existing patterns and conventions. When asking for tests, be specific about what behavior you want to verify. Claude examines your existing test files to match the style, frameworks, and assertion patterns already in use.\n\nFor comprehensive coverage, ask Claude to identify edge cases you might have missed. Claude can analyze your code paths and suggest tests for error conditions, boundary values, and unexpected inputs that are easy to overlook.\n\n***"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "セッションを再開しようと一覧を見たとき、履歴の要約が読みづらい技術的なタグで埋め尽くされ、どのセッションか判別しにくいことがありました。",
+        "after": "特殊なコマンドを含むセッションでも適切にフォーマットされるか、セッションIDが表示されるようになり、選択が容易になりました。",
+        "benefit": "過去の作業を中断したところから再開する際の、セッション選びのストレスが解消されます。"
+      }
     },
     {
       "content": "- Improved permission prompts for path safety and working directory blocks to show the reason for the restriction instead of a bare prompt with no context",
-      "content_ja": "パスの安全性や作業ディレクトリの制限に関するパーミッション確認において、理由を表示するように改善。",
+      "content_ja": "パスの安全性チェックやディレクトリ制限によるパーミッション確認において、単なるプロンプトではなく制限の理由を表示するように改善しました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [
         "Permissions"
       ],
-      "related_docs": []
+      "related_docs": [],
+      "inference": {
+        "before": "Claudeが特定のファイルの操作を求めた際、なぜ追加の確認が必要なのかの背景が分からず、許可すべきか判断に迷うことがありました。",
+        "after": "「プロジェクト外の参照」や「書き込み禁止領域」といった具体的な理由が示されるため、安心して承認または拒否を選択できます。",
+        "benefit": "AIがなぜその権限を必要としているのかを透明化し、ユーザーが納得してセキュリティの意思決定を行えるようになります。"
+      }
     }
   ]
 }
