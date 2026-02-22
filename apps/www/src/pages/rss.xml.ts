@@ -67,6 +67,26 @@ function escapeHtml(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * @astrojs/rss は content をエンティティエスケープで出力するが、
+ * content:encoded は CDATA セクションで囲むのが慣例。
+ * エスケープ済みの content:encoded を CDATA 形式に変換する。
+ */
+function convertContentToCdata(xml: string): string {
+  return xml.replace(
+    /<content:encoded>([\s\S]*?)<\/content:encoded>/g,
+    (_match, escaped: string) => {
+      // エンティティをデコードして生 HTML に戻す
+      const html = escaped
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&');
+      return `<content:encoded><![CDATA[${html}]]></content:encoded>`;
+    },
+  );
+}
+
 export async function GET(context: APIContext) {
   const changelogs = await getCollection('changelog');
   const pubDate = loadLastFetchTime();
@@ -92,11 +112,16 @@ export async function GET(context: APIContext) {
     }));
   });
 
-  return rss({
+  const response = await rss({
     title: 'Claude Code Changelog',
     description: 'Claude Code の更新履歴',
     site: context.site ?? '',
     items,
     customData: '<language>ja</language>',
+  });
+
+  const xml = await response.text();
+  return new Response(convertContentToCdata(xml), {
+    headers: response.headers,
   });
 }
