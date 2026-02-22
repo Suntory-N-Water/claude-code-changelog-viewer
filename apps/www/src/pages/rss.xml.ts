@@ -34,6 +34,39 @@ function semverCompare(a: string, b: string): number {
   return 0;
 }
 
+/** inference 情報を含む HTML コンテンツを生成 */
+function buildContentHtml(
+  item: {
+    content: string;
+    content_ja?: string;
+    inference?: { before: string; after: string; benefit: string };
+  },
+  version: string,
+): string {
+  const text = item.content_ja ?? item.content;
+  const parts: string[] = [`<p>${escapeHtml(text)}</p>`];
+
+  if (item.inference) {
+    parts.push(
+      '<hr/>',
+      `<h4>変更前</h4><p>${escapeHtml(item.inference.before)}</p>`,
+      `<h4>変更後</h4><p>${escapeHtml(item.inference.after)}</p>`,
+      `<h4>利点</h4><p>${escapeHtml(item.inference.benefit)}</p>`,
+    );
+  }
+
+  parts.push('<hr/>', `<p><small>v${escapeHtml(version)}</small></p>`);
+  return parts.join('\n');
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 export async function GET(context: APIContext) {
   const changelogs = await getCollection('changelog');
   const pubDate = loadLastFetchTime();
@@ -43,15 +76,21 @@ export async function GET(context: APIContext) {
   );
   const latest = sorted.slice(0, 5);
 
-  const items = latest.flatMap((entry) =>
-    entry.data.items.map((item, itemIndex) => ({
-      title: `[${item.prefix}] ${item.content_ja ?? item.content}`,
-      link: `${context.site}changelog/v${entry.data.version}#item-${itemIndex}`,
+  const items = latest.flatMap((entry) => {
+    const version = entry.data.version;
+    // importance_score 降順でソート
+    const sortedItems = [...entry.data.items].sort(
+      (a, b) => b.importance_score - a.importance_score,
+    );
+
+    return sortedItems.map((item, itemIndex) => ({
+      title: `[v${version}] [${item.prefix}] ${item.content_ja ?? item.content}`,
+      link: `${context.site}changelog/v${version}#item-${itemIndex}`,
       pubDate,
-      description: item.inference?.benefit ?? item.content_ja ?? item.content,
-      categories: item.feature_areas ?? [],
-    })),
-  );
+      description: item.content_ja ?? item.content,
+      content: buildContentHtml(item, version),
+    }));
+  });
 
   return rss({
     title: 'Claude Code Changelog',
