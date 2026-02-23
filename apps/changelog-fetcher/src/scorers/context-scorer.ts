@@ -28,7 +28,7 @@ function calculateSnippetScore(snippet: string): number {
 /**
  * スニペット結果からコンテキストスコアを計算
  */
-export function calculateContextScore(snippetResult: SnippetResult): number {
+function calculateContextScore(snippetResult: SnippetResult): number {
   const { snippets } = snippetResult;
 
   if (snippets.length === 0) {
@@ -44,17 +44,14 @@ export function calculateContextScore(snippetResult: SnippetResult): number {
 /**
  * 総合スコアを計算(ヒット数 × コンテキストスコア)
  */
-export function calculateTotalScore(
-  hit_count: number,
-  context_score: number,
-): number {
+function calculateTotalScore(hit_count: number, context_score: number): number {
   return hit_count * context_score;
 }
 
 /**
  * スニペット結果をRelatedDocに変換(スコア付き)
  */
-export function scoreSnippetResult(snippetResult: SnippetResult): RelatedDoc {
+function scoreSnippetResult(snippetResult: SnippetResult): RelatedDoc {
   const { file, snippets, hit_count } = snippetResult;
   const context_score = calculateContextScore(snippetResult);
   const total_score = calculateTotalScore(hit_count, context_score);

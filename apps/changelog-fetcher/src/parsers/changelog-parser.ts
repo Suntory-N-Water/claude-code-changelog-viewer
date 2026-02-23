@@ -138,11 +138,3 @@ function parseItem(itemText: string): ParsedItem {
     importance_score,
   };
 }
-
-/**
- * バージョン番号を抽出
- */
-export function extractVersion(changelog: string): string | null {
-  const match = changelog.match(/##\s*\[?([0-9.]+)\]?/);
-  return match ? match[1] : null;
-}
