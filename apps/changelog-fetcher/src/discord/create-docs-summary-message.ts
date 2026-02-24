@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
 import { getLogger } from '@claude-code-changelog-viewer/common';
+import { getOfficialDocUrl } from '@claude-code-changelog-viewer/types';
 import { GeminiClient } from '../ai/gemini-client';
 import type { DiscordWebhookPayload } from './types';
 
@@ -98,33 +99,27 @@ function getDocsDiff(commitSha: string): string {
 }
 
 /**
- * git diffから変更ファイル一覧を取得(GitHubリンク付き)
+ * git diffから変更ファイル一覧を取得(公式ドキュメントリンク付き)
  */
-function getChangedFilesList(
-  commitSha: string,
-  repoOwner = 'Suntory-N-Water',
-  repoName = 'claude-code-changelog-viewer',
-): string {
+function getChangedFilesList(commitSha: string): string {
   try {
-    // Check if parent commit exists
+    // 親コミットの存在確認
     try {
       execSync(`git rev-parse ${commitSha}~1`, { encoding: 'utf-8' });
     } catch {
       return 'Initial commit';
     }
 
-    // Get repository root to ensure correct path resolution
     const repoRoot = execSync('git rev-parse --show-toplevel', {
       encoding: 'utf-8',
     }).trim();
 
-    // Exclude changelog.md to focus on actual doc changes
-    // Use absolute path from repo root to avoid path resolution issues
+    // changelog.mdを除外し、実際のドキュメント変更のみ取得
     const files = execSync(
       `git diff ${commitSha}~1 ${commitSha} --name-only -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md'`,
       {
         encoding: 'utf-8',
-        cwd: repoRoot, // Execute from repo root for consistent behavior
+        cwd: repoRoot,
       },
     );
 
@@ -141,8 +136,11 @@ function getChangedFilesList(
 
     const fileList = fileArray.slice(0, 15).map((f) => {
       const displayPath = f.replace('apps/docs-tracker/docs/', '');
-      const githubUrl = `https://github.com/${repoOwner}/${repoName}/blob/${commitSha}/${f}`;
-      return `• [${displayPath}](${githubUrl})`;
+      const officialUrl = getOfficialDocUrl(f);
+      // 公式URLが取得できない場合はファイル名のみ表示
+      return officialUrl
+        ? `• [${displayPath}](${officialUrl})`
+        : `• ${displayPath}`;
     });
 
     if (fileArray.length > 15) {
