@@ -41,6 +41,7 @@ safe-outputs:
     title-prefix: "[CI Fix] "
     labels: [bug, automated, ci-doctor]
     max: 1
+    github-token: ${{ secrets.GH_AW_GITHUB_TOKEN }}
 
 tools:
   github:
