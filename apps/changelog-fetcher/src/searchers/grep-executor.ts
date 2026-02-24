@@ -23,7 +23,7 @@ function executeGrep(pattern: string, flags: string): string[] {
   try {
     // シングルクォートをエスケープ: 'pattern' -> 'pat'\''tern'
     const escapedPattern = pattern.replace(/'/g, "'\\''");
-    const command = `grep ${flags} -- '${escapedPattern}' ${DOCS_DIR}/*.md`;
+    const command = `grep ${flags} '${escapedPattern}' ${DOCS_DIR}/*.md`;
     const result = execSync(command, { encoding: 'utf-8' });
     return result
       .split('\n')
