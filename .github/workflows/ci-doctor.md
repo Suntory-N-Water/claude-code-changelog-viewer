@@ -13,6 +13,7 @@ on:
       - completed
     branches:
       - main
+  skip-if-match: 'is:pr is:open label:ci-doctor'
   status-comment: true
 
 if: ${{ github.event.workflow_run.conclusion == 'failure' }}
@@ -46,6 +47,7 @@ safe-outputs:
 tools:
   github:
     toolsets: [issues, pull_requests, actions]
+  cache-memory: true
 
 engine: copilot
 
@@ -127,30 +129,26 @@ apps/
 | インフラ問題 | ランナー障害、ネットワーク問題                | 不可(Issueのみ) |
 | git競合      | rebase/push 失敗                              | 不可(Issueのみ) |
 
-### フェーズ 3: 重複Issue検索
+### フェーズ 3: 重複チェック
 
-Issue作成や修正PR作成の前に、必ず既存のIssueを検索する。
+> `skip-if-match` により ci-doctor ラベルのオープンPRがある場合はここに到達しない。
 
-1. ラベル `bug,automated` でオープンなIssueを検索する
-2. 以下のタイトルパターンに一致するIssueを探す:
-   - `[CI Doctor]` プレフィックスのIssue
-   - `Documentation fetch failed` を含むIssue
-   - `Changelog processing failed` を含むIssue
-3. 同じ根本原因のIssueが既に存在する場合:
-   - そのIssueにコメントを追加し、今回の失敗情報を記録する
-   - 新規Issueは作成しない
-4. 該当するIssueがない場合のみ、新規Issueを作成する
+1. `/tmp/gh-aw/cache-memory/last-diagnosis.json` を確認し、同一 `root_cause` なら既存Issueにコメント追加のみ行う
+2. ラベル `ci-doctor` または `automated` のオープンIssueを検索し、同じ原因なら新規Issue作成せずコメント追加のみ行う
+3. 該当Issueがなければ新規Issueを作成する
+4. 診断結果を `/tmp/gh-aw/cache-memory/last-diagnosis.json` に保存する
 
-### フェーズ 4: 修正PR作成 (コードバグ・設定ミスの場合のみ)
+### フェーズ 4: 修正PR作成
 
+**以下をすべて満たす場合のみ** 修正PRを作成する:
+- カテゴリが「コードバグ」または「設定ミス」
+- フェーズ3で同じ原因の既存Issue・PRが見つかっていない
+- キャッシュに同一 `root_cause` の記録がない
+
+修正PRを作成する場合:
 1. 根本原因に基づいて修正を実装する
 2. `pnpm run ai-check` を実行して修正を検証する
-3. 修正PRを作成する
-
-修正PRの注意事項:
-- 自動生成ファイル (上記リスト) は **絶対に変更しない**
-- コミットメッセージは日本語で記載する
-- PRの説明には根本原因と修正内容を日本語で記載する
+3. 修正PRを作成する (自動生成ファイルは変更禁止、コミットメッセージ・PR説明は日本語)
 
 ### フェーズ 5: 報告
 
@@ -182,7 +180,7 @@ Issue または PR の本文には以下を含める:
 
 ## 重要な制約
 
-- 外部API障害 (Gemini API レート制限等) の場合はIssue作成のみ行い、修正PRは作成しない
-- git競合による失敗は一時的な問題であることが多いため、Issueには再試行を推奨する旨を記載する
+- **既存のIssue・PRがある場合、新規作成せずコメント追加のみ**
+- 外部API障害・git競合の場合はIssue作成のみ (PR作成不可)
 - Issue・PR・コメントはすべて **日本語** で記載する
 - セキュリティに関わる情報 (APIキー、トークン等) はログやIssueに含めない
