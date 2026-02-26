@@ -8,15 +8,11 @@
 - 明示的に求められない限り、**後方互換性を維持しない**
 - **このファイルは指示行 20-30 行以内に収める**
 
----
-
 ## プロジェクト概要
 
 **種別:** Web アプリケーション(pnpm workspace モノレポ)
 **主要言語:** TypeScript
 **主要依存:** Astro, Tailwind CSS v4, Cloudflare Workers(デプロイ先)
-
----
 
 ## コマンド
 
@@ -25,22 +21,20 @@
 pnpm run ai-check
 ```
 
----
-
 ## コード規約
 
 - GitHub の情報取得には `gh` コマンドを使用する
 - GitHub Actions ワークフロー更新時は `/dev:actions-check` で静的解析を実施する
-
----
+- interface ではなく type を使う
 
 ## アーキテクチャ
 
 ```
 apps/
-  www/                - Astro フロントエンド(Cloudflare Workers にデプロイ)
-  docs-tracker/       - ドキュメント取得(GitHub Actions 定期実行)
-  changelog-fetcher/  - CHANGELOG パーサー(GitHub Actions 定期実行)
+  www/                   - Astro フロントエンド(Cloudflare Workers にデプロイ)
+  docs-tracker/          - ドキュメント取得(GitHub Actions 定期実行)
+  changelog-fetcher/     - CHANGELOG パーサー(GitHub Actions 定期実行)
+  notification-worker/   - Discord 通知配信 API(Cloudflare Workers + D1 + Queues)
 ```
 
 IMPORTANT: 以下は GitHub Actions で自動生成されるため手動編集禁止:
