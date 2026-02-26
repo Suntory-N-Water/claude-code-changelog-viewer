@@ -13,7 +13,7 @@ on:
       - completed
     branches:
       - main
-  skip-if-match: 'is:pr is:open label:ci-doctor'
+  skip-if-match: 'is:open label:ci-doctor'
   status-comment: true
 
 if: ${{ github.event.workflow_run.conclusion == 'failure' }}
