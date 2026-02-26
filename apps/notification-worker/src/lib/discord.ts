@@ -42,12 +42,12 @@ export function createChangelogMessage(
   content += `## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
 
   // 配信停止リンク
-  content += `\n---\n[🔕 通知を停止する](${unsubscribeUrl})`;
+  content += `\n[🔕 通知を停止する](${unsubscribeUrl})`;
 
   // Discordの文字数制限(2000文字)を考慮
   const DISCORD_MAX_LENGTH = 2000;
   if (content.length > DISCORD_MAX_LENGTH) {
-    const suffix = `...\n\n## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})\n---\n[🔕 通知を停止する](${unsubscribeUrl})`;
+    const suffix = `...\n\n## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})\n[🔕 通知を停止する](${unsubscribeUrl})`;
     content = `${content.substring(0, DISCORD_MAX_LENGTH - suffix.length)}${suffix}`;
   }
 
@@ -85,7 +85,7 @@ export function createTestMessage(
     content:
       '✅ **Claude Code Changelog Bot** の通知登録が完了しました！\n\n' +
       '今後、Claude Code の新しいバージョンがリリースされると、このチャンネルに通知が届きます。' +
-      `\n---\n[🔕 通知を停止する](${unsubscribeUrl})`,
+      `\n[🔕 通知を停止する](${unsubscribeUrl})`,
     username: 'Claude Code Changelog Bot',
     avatar_url:
       'https://claude-code-changelog-viewer.ayasnppk00.workers.dev/icon.png',
