@@ -1,10 +1,10 @@
 {
   "version": "2.1.59",
-  "summary": "今回のアップデートでは、コンテキストを自動保存するオートメモリ機能や、コードブロックを個別に選択してコピーできる`/copy`コマンドが追加されました。また、マルチエージェント動作時のメモリ効率向上や、複合コマンドに対する権限管理の最適化など、パフォーマンスと利便性の両面で改善が行われています。",
+  "summary": "本バージョンでは、複数のインスタンスを同時に実行した際の安定性が大幅に向上し、認証情報の消失やトークン更新のエラーが解消されました。また、回答内のコードを簡単に取得できる`/copy`コマンドや、重要な情報を自動で記憶するメモリ機能の拡充により、日々の開発作業がさらに効率化されます。",
   "items": [
     {
       "content": "- Claude automatically saves useful context to auto-memory. Manage with /memory",
-      "content_ja": "Claudeが有用なコンテキストを自動的にメモリに保存するようになりました。`/memory`コマンドで管理可能です。",
+      "content_ja": "Claudeが有用なコンテキストを自動メモリに保存するようになりました。`/memory`コマンドで管理可能です。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": ["Memory"],
@@ -12,7 +12,7 @@
     },
     {
       "content": "- Added `/copy` command to show an interactive picker when code blocks are present, allowing selection of individual code blocks or the full response.",
-      "content_ja": "`/copy`コマンドを追加しました。コードブロックがある場合に、個別のブロックまたは回答全体を選択できるインタラクティブなピッカーを表示します。",
+      "content_ja": "`/copy`コマンドを追加しました。コードブロックが存在する場合、特定のブロックまたは回答全体をインタラクティブに選択してコピーできます。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [],
@@ -31,7 +31,7 @@
     },
     {
       "content": "- Improved \"always allow\" prefix suggestions for compound bash commands (e.g. `cd /tmp && git fetch && git push`) to compute smarter per-subcommand prefixes instead of treating the whole command as one",
-      "content_ja": "複合的なBashコマンドに対する「常に許可」のプレフィックス提案を、各サブコマンドごとにインテリジェントに計算するように改善",
+      "content_ja": "複合的なBashコマンドに対する「常に許可」のプレフィックス提案を改善。コマンド全体を一つとして扱うのではなく、サブコマンドごとにスマートな判定を行うようになりました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": ["Permissions"],
@@ -77,9 +77,9 @@
         }
       ],
       "inference": {
-        "before": "複数のコマンドを連結したBashコマンド（例：cd /tmp && git push）に対し、全体を一塊のコマンドとして認識していました。",
-        "after": "連結された個々のサブコマンドを個別に解析し、それぞれに最適な「常に許可」のプレフィックスを提案できるようになりました。",
-        "benefit": "安全性が担保された特定のコマンドのみを賢く許可リストに追加できるため、過剰な権限付与を防ぎつつ、承認作業の回数を減らして開発効率を高められます。"
+        "before": "これまでは `cd /tmp && git fetch` のような複数のコマンドが連結された実行文を単一のエンティティとして扱っていました。そのため、個別のサブコマンド（git fetchなど）に対して細かい許可設定を適用するのが困難でした。",
+        "after": "コマンド内のサブコマンドを個別に解析し、それぞれに最適な「常に許可」のプレフィックスを計算できるようになりました。",
+        "benefit": "頻繁に使用する一連の操作を、安全性と利便性を両立させた形で効率的に自動実行できるようになります。"
       }
     },
     {
@@ -92,15 +92,15 @@
     },
     {
       "content": "- Improved memory usage in multi-agent sessions by releasing completed subagent task state",
-      "content_ja": "マルチエージェントセッションにおいて、完了したサブエージェントのタスク状態を解放することで、メモリ使用量を改善しました。",
+      "content_ja": "マルチエージェントセッションにおいて、完了したサブエージェントのタスク状態を解放することでメモリ使用量を改善しました。",
       "prefix": "Improved",
       "importance_score": 6,
-      "feature_areas": ["Sub-agents", "Agent Teams"],
+      "feature_areas": ["Sub-agents", "Memory"],
       "related_docs": []
     },
     {
       "content": "- Fixed MCP OAuth token refresh race condition when running multiple Claude Code instances simultaneously",
-      "content_ja": "複数のClaude Codeインスタンスを同時実行した際の、MCP OAuthトークン更新におけるレースコンディションを修正",
+      "content_ja": "複数のClaude Codeインスタンスを同時に実行した際に発生する、MCP OAuthトークン更新のレースコンディションを修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["MCP"],
@@ -146,9 +146,9 @@
         }
       ],
       "inference": {
-        "before": "複数の端末やウィンドウで同時にClaude Codeを使用している場合、MCPツールの認証トークンの更新処理が競合し、認証エラーが発生することがありました。",
-        "after": "トークンの更新処理が適切に同期され、複数のインスタンスが並行して動作していても安全に認証情報を更新できるようになりました。",
-        "benefit": "大規模な開発環境やマルチタスク環境において、認証切れによるツールの切断を気にすることなく、安定してMCP連携機能を利用し続けられます。"
+        "before": "複数のターミナルやウィンドウでClaude Codeを同時に動かしていると、MCPサーバーの認証トークンが更新されるタイミングが重なり、エラーやログアウトが発生することがありました。",
+        "after": "インスタンス間でのトークン更新処理が適切に同期され、複数のセッションを並行して実行しても認証が不安定にならなくなりました。",
+        "benefit": "複数のプロジェクトを同時に開いて作業する場合でも、認証トラブルに煩わされることなくMCPツールを継続して利用できます。"
       }
     },
     {
@@ -157,6 +157,14 @@
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed config file corruption that could wipe authentication when multiple Claude Code instances ran simultaneously",
+      "content_ja": "複数のClaude Codeインスタンスを同時実行した際に、設定ファイルが破損して認証情報が消えてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "importance_score": 4,
+      "feature_areas": ["Settings"],
       "related_docs": []
     }
   ]
