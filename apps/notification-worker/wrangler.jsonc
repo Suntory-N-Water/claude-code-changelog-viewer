@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "notification-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-02-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "WORKER_URL": "https://notification-worker.ayasnppk00.workers.dev"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "notification-db",
+      "database_id": "d4301e1b-c7ae-427d-8017-8735b01e5943"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "NOTIFICATION_QUEUE",
+        "queue": "changelog-notification"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "changelog-notification",
+        "max_batch_size": 1,
+        "max_retries": 3
+      }
+    ]
+  },
+  "observability": {
+    "enabled": true
+  }
+}

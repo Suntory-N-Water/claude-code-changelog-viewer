@@ -1,0 +1,318 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const workerUrl = import.meta.env.DEV
+  ? 'http://localhost:8787'
+  : 'https://notification-worker.ayasnppk00.workers.dev';
+---
+
+<Layout
+  title='Discord通知設定 - Claude Code Changelog Viewer'
+  description='Claude Codeの新バージョンリリース時にDiscordチャンネルへ通知を受け取る設定ページです。'
+>
+  <div class='min-h-dvh py-12 sm:py-20 px-4'>
+    <div class='max-w-xl mx-auto'>
+      <!-- ナビゲーション -->
+      <nav class='mb-10'>
+        <a
+          href='/'
+          data-direction='back'
+          class='text-sm text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-orange))] inline-flex items-center gap-1.5 transition-colors'
+        >
+          <svg
+            class='w-4 h-4'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            stroke-width='2'
+            aria-hidden='true'
+          >
+            <path
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              d='M15 19l-7-7 7-7'></path>
+          </svg>
+          トップに戻る
+        </a>
+      </nav>
+
+      <!-- ヘッダー -->
+      <div class='mb-10'>
+        <h1
+          class='text-2xl sm:text-3xl font-bold text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          Discord通知
+        </h1>
+        <p
+          class='text-base leading-relaxed text-[hsl(var(--cc-main-black)/0.6)]'
+        >
+          Claude
+          Codeの新バージョンがリリースされた際に、Discordチャンネルへ自動通知します。
+        </p>
+      </div>
+
+      <!-- セットアップガイド -->
+      <section
+        class='mb-8 rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))]'
+      >
+        <details class='group'>
+          <summary
+            class='flex items-center justify-between gap-3 px-5 py-4 cursor-pointer select-none'
+          >
+            <span
+              class='text-sm font-medium text-[hsl(var(--cc-main-black)/0.8)]'
+            >
+              Webhook URLの取得方法
+            </span>
+            <svg
+              class='w-4 h-4 text-[hsl(var(--cc-main-black)/0.4)] transition-transform duration-200 group-open:rotate-180'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              stroke-width='2'
+              aria-hidden='true'
+            >
+              <path
+                stroke-linecap='round'
+                stroke-linejoin='round'
+                d='M19 9l-7 7-7-7'></path>
+            </svg>
+          </summary>
+          <div class='px-5 pb-5'>
+            <div class='border-t border-[hsl(var(--cc-gray))] pt-4'>
+              <ol
+                class='ml-5 list-decimal list-outside space-y-2 text-sm text-[hsl(var(--cc-main-black)/0.7)] leading-relaxed'
+              >
+                <li>Discordで通知を受け取りたいサーバーを開く</li>
+                <li>
+                  <strong>サーバー設定</strong> → <strong>連携サービス</strong> →
+                  <strong>ウェブフック</strong>
+                </li>
+                <li>
+                  <strong>新しいウェブフック</strong
+                  >を作成し、通知先のチャンネルを選択
+                </li>
+                <li>
+                  <strong>URLをコピー</strong>して下のフォームに貼り付け
+                </li>
+              </ol>
+            </div>
+          </div>
+        </details>
+      </section>
+
+      <!-- 登録フォーム -->
+      <section
+        class='rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] p-5 sm:p-6'
+      >
+        <form id='notify-form' data-worker-url={workerUrl} class='space-y-5'>
+          <div>
+            <label
+              for='webhook-url'
+              class='block text-sm font-medium text-[hsl(var(--cc-main-black)/0.8)] mb-2'
+            >
+              Webhook URL
+            </label>
+            <input
+              type='url'
+              id='webhook-url'
+              name='webhook_url'
+              required
+              pattern='https://discord\.com/api/webhooks/\d+/[\w-]+'
+              placeholder='https://discord.com/api/webhooks/...'
+              class='w-full px-4 py-3 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-sm text-[hsl(var(--cc-main-black))] placeholder-[hsl(var(--cc-main-black)/0.3)] focus:outline-none focus:border-[hsl(var(--cc-main-orange))] focus:ring-2 focus:ring-[hsl(var(--cc-main-orange)/0.2)] transition-all invalid:[&:not(:placeholder-shown)]:border-[#ff6b6b]'
+            />
+            <p
+              id='webhook-url-error'
+              class='mt-1.5 text-xs text-[#ff6b6b] hidden'
+            >
+              Discord Webhook URLの形式が正しくありません
+            </p>
+          </div>
+
+          <div
+            class='cf-turnstile'
+            data-sitekey='0x4AAAAAACiQA9X81J2ub2Qt'
+            data-callback='onTurnstileSuccess'
+            data-expired-callback='onTurnstileExpired'
+          >
+          </div>
+
+          <button
+            type='submit'
+            id='submit-btn'
+            disabled
+            class='w-full sm:w-auto inline-flex items-center justify-center gap-2 h-11 px-6 rounded-lg bg-[hsl(var(--cc-main-orange))] text-sm font-medium text-[hsl(var(--cc-main-white))] cursor-pointer transition-all hover:bg-[hsl(var(--cc-orange-hover))] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange))] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40'
+          >
+            <span id='submit-text'>登録する</span>
+            <svg
+              id='submit-spinner'
+              class='w-4 h-4 animate-spin hidden'
+              fill='none'
+              viewBox='0 0 24 24'
+              aria-hidden='true'
+            >
+              <circle
+                class='opacity-25'
+                cx='12'
+                cy='12'
+                r='10'
+                stroke='currentColor'
+                stroke-width='4'></circle>
+              <path
+                class='opacity-75'
+                fill='currentColor'
+                d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+              ></path>
+            </svg>
+          </button>
+        </form>
+
+        <div id='result-message' class='mt-5 hidden'></div>
+      </section>
+    </div>
+  </div>
+
+  <script is:inline>
+    window.onTurnstileSuccess = () => {
+      const btn = document.getElementById('submit-btn');
+      if (btn) {
+        btn.disabled = false;
+      }
+    };
+    window.onTurnstileExpired = () => {
+      const btn = document.getElementById('submit-btn');
+      if (btn) {
+        btn.disabled = true;
+      }
+    };
+  </script>
+  <script
+    is:inline
+    src='https://challenges.cloudflare.com/turnstile/v0/api.js'
+    async
+    defer></script>
+
+  <script>
+    declare global {
+      // biome-ignore lint/style/useConsistentTypeDefinitions: declare global には interface が必要
+      interface Window {
+        turnstile?: { reset: () => void };
+        onTurnstileSuccess?: () => void;
+        onTurnstileExpired?: () => void;
+      }
+    }
+
+    const DISCORD_WEBHOOK_REGEX =
+      /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
+
+    function isValidDiscordWebhookUrl(url: string): boolean {
+      return DISCORD_WEBHOOK_REGEX.test(url);
+    }
+
+    document.addEventListener('astro:page-load', () => {
+      const form = document.getElementById('notify-form');
+      const submitBtn = document.getElementById(
+        'submit-btn',
+      ) as HTMLButtonElement | null;
+      const submitText = document.getElementById('submit-text');
+      const submitSpinner = document.getElementById('submit-spinner');
+      const resultMessage = document.getElementById('result-message');
+      const webhookInput = document.getElementById(
+        'webhook-url',
+      ) as HTMLInputElement | null;
+      const webhookError = document.getElementById('webhook-url-error');
+
+      if (
+        !form ||
+        !submitBtn ||
+        !submitText ||
+        !submitSpinner ||
+        !resultMessage ||
+        !webhookInput ||
+        !webhookError
+      ) {
+        return;
+      }
+
+      // 入力時にバリデーションエラーを表示
+      webhookInput.addEventListener('input', () => {
+        const value = webhookInput.value.trim();
+        if (value && !isValidDiscordWebhookUrl(value)) {
+          webhookError.classList.remove('hidden');
+        } else {
+          webhookError.classList.add('hidden');
+        }
+      });
+
+      const successClass =
+        'mt-5 flex items-start gap-3 p-4 rounded-lg bg-[hsl(var(--cc-main-orange)/0.06)] border border-[hsl(var(--cc-main-orange)/0.2)] text-sm text-[hsl(var(--cc-main-black)/0.8)]';
+      const errorClass =
+        'mt-5 flex items-start gap-3 p-4 rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.7)]';
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const webhook_url = webhookInput.value.trim();
+
+        if (!webhook_url) {
+          return;
+        }
+
+        // Discord Webhook URLのフォーマット検証
+        if (!isValidDiscordWebhookUrl(webhook_url)) {
+          webhookError.classList.remove('hidden');
+          return;
+        }
+
+        const turnstileResponse = document.querySelector(
+          '[name="cf-turnstile-response"]',
+        ) as HTMLInputElement | null;
+        const turnstile_token = turnstileResponse?.value || '';
+
+        submitBtn.disabled = true;
+        submitText.textContent = '送信中...';
+        submitSpinner.classList.remove('hidden');
+        resultMessage.classList.add('hidden');
+
+        try {
+          const baseUrl = form.dataset.workerUrl || '';
+          const response = await fetch(`${baseUrl}/api/webhooks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ webhook_url, turnstile_token }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            resultMessage.className = successClass;
+            resultMessage.textContent =
+              '登録が完了しました。テスト通知を送信しました。';
+          } else if (response.status === 409) {
+            resultMessage.className = errorClass;
+            resultMessage.textContent =
+              'このWebhook URLは既に登録されています。';
+          } else {
+            resultMessage.className = errorClass;
+            resultMessage.textContent =
+              data.error || '登録に失敗しました。もう一度お試しください。';
+          }
+        } catch {
+          resultMessage.className = errorClass;
+          resultMessage.textContent =
+            'ネットワークエラーが発生しました。もう一度お試しください。';
+        } finally {
+          resultMessage.classList.remove('hidden');
+          submitText.textContent = '登録する';
+          submitSpinner.classList.add('hidden');
+          // トークンは一度使うと無効になるのでリセット(リセット完了まではボタン無効)
+          submitBtn.disabled = true;
+          if (window.turnstile) {
+            window.turnstile.reset();
+          }
+        }
+      });
+    });
+  </script>
+</Layout>
