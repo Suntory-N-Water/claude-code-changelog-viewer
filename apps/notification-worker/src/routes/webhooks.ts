@@ -45,8 +45,12 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: '既に登録済みです' }, 409);
     }
 
+    // トークンを決定（既存レコードがあればそのまま、なければ新規生成）
+    const token = existing?.token ?? crypto.randomUUID();
+    const unsubscribeUrl = `https://notification-worker.ayasnppk00.workers.dev/api/unsubscribe?token=${token}`;
+
     // テスト通知を送信
-    const testPayload = createTestMessage();
+    const testPayload = createTestMessage(unsubscribeUrl);
     const testResult = await sendToDiscord(webhook_url, testPayload);
     if (!testResult.ok) {
       return c.json({ error: 'Webhook URLが無効です' }, 400);
@@ -65,7 +69,6 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
 
     // 新規登録
     const id = crypto.randomUUID();
-    const token = crypto.randomUUID();
     await c.env.DB.prepare(
       'INSERT INTO webhooks (id, webhook_url, token) VALUES (?, ?, ?)',
     )

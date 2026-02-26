@@ -78,11 +78,14 @@ export async function sendToDiscord(
 /**
  * 登録時のテスト通知メッセージを生成する
  */
-export function createTestMessage(): DiscordWebhookPayload {
+export function createTestMessage(
+  unsubscribeUrl: string,
+): DiscordWebhookPayload {
   return {
     content:
       '✅ **Claude Code Changelog Bot** の通知登録が完了しました！\n\n' +
-      '今後、Claude Code の新しいバージョンがリリースされると、このチャンネルに通知が届きます。',
+      '今後、Claude Code の新しいバージョンがリリースされると、このチャンネルに通知が届きます。' +
+      `\n---\n[🔕 通知を停止する](${unsubscribeUrl})`,
     username: 'Claude Code Changelog Bot',
     avatar_url:
       'https://claude-code-changelog-viewer.ayasnppk00.workers.dev/icon.png',
