@@ -217,14 +217,13 @@ const workerUrl = import.meta.env.DEV
 
     document.addEventListener('astro:page-load', () => {
       // View Transitions経由の遷移時にTurnstileが自動レンダリングされないため手動で実行
-      // iframeが無い = 自動レンダリングされていない場合のみ手動レンダリング
+      // 子要素がある = 自動レンダリング済みならスキップ
       const turnstileContainer = document.querySelector('.cf-turnstile');
       if (
         turnstileContainer &&
-        !turnstileContainer.querySelector('iframe') &&
+        turnstileContainer.children.length === 0 &&
         window.turnstile
       ) {
-        turnstileContainer.innerHTML = '';
         window.turnstile.render(turnstileContainer as HTMLElement, {
           sitekey: turnstileContainer.getAttribute('data-sitekey'),
           callback: window.onTurnstileSuccess,
