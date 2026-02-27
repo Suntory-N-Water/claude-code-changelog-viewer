@@ -9,11 +9,6 @@ export type WebhookRow = {
   updated_at: string;
 };
 
-// Cloudflare Queue に投入するメッセージ
-export type NotificationMessage = {
-  version: string;
-};
-
 // Discord Webhook API に POST するリクエストボディ
 export type DiscordWebhookPayload = {
   content: string;
