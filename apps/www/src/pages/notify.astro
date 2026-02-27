@@ -196,7 +196,13 @@ const workerUrl = import.meta.env.DEV
     declare global {
       // biome-ignore lint/style/useConsistentTypeDefinitions: declare global には interface が必要
       interface Window {
-        turnstile?: { reset: () => void };
+        turnstile?: {
+          reset: () => void;
+          render: (
+            container: string | HTMLElement,
+            options: Record<string, unknown>,
+          ) => string;
+        };
         onTurnstileSuccess?: () => void;
         onTurnstileExpired?: () => void;
       }
@@ -210,6 +216,22 @@ const workerUrl = import.meta.env.DEV
     }
 
     document.addEventListener('astro:page-load', () => {
+      // View Transitions経由の遷移時にTurnstileが自動レンダリングされないため手動で実行
+      // iframeが無い = 自動レンダリングされていない場合のみ手動レンダリング
+      const turnstileContainer = document.querySelector('.cf-turnstile');
+      if (
+        turnstileContainer &&
+        !turnstileContainer.querySelector('iframe') &&
+        window.turnstile
+      ) {
+        turnstileContainer.innerHTML = '';
+        window.turnstile.render(turnstileContainer as HTMLElement, {
+          sitekey: turnstileContainer.getAttribute('data-sitekey'),
+          callback: window.onTurnstileSuccess,
+          'expired-callback': window.onTurnstileExpired,
+        });
+      }
+
       const form = document.getElementById('notify-form');
       const submitBtn = document.getElementById(
         'submit-btn',
