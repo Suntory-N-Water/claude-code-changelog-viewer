@@ -45,9 +45,9 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: '既に登録済みです' }, 409);
     }
 
-    // トークンを決定（既存レコードがあればそのまま、なければ新規生成）
+    // トークンを決定(既存レコードがあればそのまま、なければ新規生成)
     const token = existing?.token ?? crypto.randomUUID();
-    const unsubscribeUrl = `https://notification-worker.ayasnppk00.workers.dev/api/unsubscribe?token=${token}`;
+    const unsubscribeUrl = `${c.env.WORKER_URL}/api/unsubscribe?token=${token}`;
 
     // テスト通知を送信
     const testPayload = createTestMessage(unsubscribeUrl);
