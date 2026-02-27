@@ -188,7 +188,7 @@ const workerUrl = import.meta.env.DEV
   </script>
   <script
     is:inline
-    src='https://challenges.cloudflare.com/turnstile/v0/api.js'
+    src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
     async
     defer></script>
 
@@ -215,20 +215,28 @@ const workerUrl = import.meta.env.DEV
       return DISCORD_WEBHOOK_REGEX.test(url);
     }
 
+    function renderTurnstile() {
+      const container = document.querySelector('.cf-turnstile');
+      if (!container || container.children.length > 0 || !window.turnstile) {
+        return;
+      }
+      window.turnstile.render(container as HTMLElement, {
+        sitekey: container.getAttribute('data-sitekey'),
+        callback: window.onTurnstileSuccess,
+        'expired-callback': window.onTurnstileExpired,
+      });
+    }
+
     document.addEventListener('astro:page-load', () => {
-      // View Transitions経由の遷移時にTurnstileが自動レンダリングされないため手動で実行
-      // 子要素がある = 自動レンダリング済みならスキップ
-      const turnstileContainer = document.querySelector('.cf-turnstile');
-      if (
-        turnstileContainer &&
-        turnstileContainer.children.length === 0 &&
-        window.turnstile
-      ) {
-        window.turnstile.render(turnstileContainer as HTMLElement, {
-          sitekey: turnstileContainer.getAttribute('data-sitekey'),
-          callback: window.onTurnstileSuccess,
-          'expired-callback': window.onTurnstileExpired,
-        });
+      // render=explicit により自動レンダリングは無効化済み。手動で実行する
+      // スクリプトがまだ読み込まれていない場合は onload で実行
+      if (window.turnstile) {
+        renderTurnstile();
+      } else {
+        const script = document.querySelector<HTMLScriptElement>(
+          'script[src*="turnstile"]',
+        );
+        script?.addEventListener('load', renderTurnstile);
       }
 
       const form = document.getElementById('notify-form');
