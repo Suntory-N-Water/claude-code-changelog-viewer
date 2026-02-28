@@ -9,6 +9,7 @@ import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 export function buildBatchInferencePrompt(
   items: ChangelogItem[],
   version: string,
+  modelContext: string,
 ): string {
   const inferenceItems = items
     .map((item, index) => ({ item, index }))
@@ -62,6 +63,9 @@ ${snippetsText}`;
 - ユーザーは技術的な詳細よりも「自分にとって何が良くなるか」を知りたい
 - 変更の背景には必ず具体的な問題や不便があった
 - 技術文書の翻訳では、正確性と自然な日本語表現の両立が求められる
+
+## Claude Code のモデル情報 (重要)
+${modelContext}
 
 ## 状況 (Situation)
 バージョン ${version} の CHANGELOG を処理する。全 ${items.length} 項目。
