@@ -1,5 +1,5 @@
-import * as path from 'node:path';
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import * as path from 'node:path';
 import { extractSnippets } from '../searchers/snippet-extractor';
 
 const mockExecSync = mock();
