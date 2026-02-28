@@ -4,20 +4,16 @@ description: |
   原文との矛盾や的外れな benefit を検出して Issue で報告する。
 
 on:
-  workflow_run:
-    workflows:
-      - "Fetch and Analyze CHANGELOG"
-    types:
-      - completed
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      versions:
+        description: "スペース区切りの対象バージョン一覧 (例: v2.1.63 v2.1.64)"
+        required: true
+        type: string
   skip-if-match: 'is:issue is:open label:inference-review'
-
-if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
 permissions:
   contents: read
-  actions: read
   issues: read
 
 network:
@@ -34,7 +30,7 @@ safe-outputs:
 
 tools:
   github:
-    toolsets: [actions]
+    toolsets: [issues]
   cache-memory: true
 
 engine: copilot
@@ -42,36 +38,23 @@ engine: copilot
 timeout-minutes: 15
 
 steps:
-  - name: 新規推論バージョンの特定とデータ収集
+  - name: 推論結果の収集
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RUN_ID: ${{ github.event.workflow_run.id }}
+      VERSIONS: ${{ inputs.versions }}
     run: |
       mkdir -p /tmp/gh-aw/review-data
 
-      # workflow_run のコミット SHA を取得
-      HEAD_SHA=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --json headSha -q '.headSha')
-
-      # そのコミットで変更された inferred_v*.json を特定
-      CHANGED_INFERRED=$(gh api "repos/${{ github.repository }}/commits/${HEAD_SHA}" \
-        --jq '.files[] | select(.filename | startswith("apps/changelog-fetcher/inferred/inferred_")) | .filename')
-
-      if [ -z "$CHANGED_INFERRED" ]; then
-        echo "推論ファイルの変更なし。スキップ。"
-        echo '{"versions": [], "skip": true}' > /tmp/gh-aw/review-data/manifest.json
-        exit 0
-      fi
-
-      # バージョンリストを生成
-      VERSIONS=""
-      for file in $CHANGED_INFERRED; do
-        version=$(basename "$file" .json | sed 's/inferred_//')
-        VERSIONS="$VERSIONS $version"
-        cp "$file" /tmp/gh-aw/review-data/
+      for version in $VERSIONS; do
+        inferred="apps/changelog-fetcher/inferred/inferred_${version}.json"
+        if [ -f "$inferred" ]; then
+          cp "$inferred" /tmp/gh-aw/review-data/
+          echo "✓ ${version} の推論結果を収集"
+        else
+          echo "⚠️ ${inferred} が見つかりません"
+        fi
       done
 
-      VERSIONS=$(echo "$VERSIONS" | xargs)
-      echo "{\"versions\": \"$VERSIONS\", \"skip\": false}" > /tmp/gh-aw/review-data/manifest.json
+      echo "{\"versions\": \"$VERSIONS\"}" > /tmp/gh-aw/review-data/manifest.json
       echo "対象バージョン: $VERSIONS"
 ---
 
@@ -83,22 +66,17 @@ Gemini API が生成した `before/after/benefit` が原文と矛盾していな
 ## コンテキスト
 
 - **リポジトリ**: ${{ github.repository }}
-- **トリガー元の実行ID**: ${{ github.event.workflow_run.id }}
-- **実行URL**: ${{ github.event.workflow_run.html_url }}
+- **対象バージョン**: ${{ inputs.versions }}
 
 ## データの場所
 
 `/tmp/gh-aw/review-data/` に以下が配置されている:
-- `manifest.json` - 対象バージョン情報。`skip: true` ならチェック不要
+- `manifest.json` - 対象バージョン情報
 - `inferred_v*.json` - 推論結果(各アイテムに `content` として原文を含む)
 
 ## チェック手順
 
-### ステップ 1: スキップ判定
-
-`manifest.json` を読み、`skip: true` なら何もせず終了する。
-
-### ステップ 2: 各バージョンの推論結果を評価
+### ステップ 1: 各バージョンの推論結果を評価
 
 `inferred_v*.json` の各アイテムについて、`inference` フィールドが存在するもののみを対象に以下を評価する:
 
@@ -116,18 +94,18 @@ Gemini API が生成した `before/after/benefit` が原文と矛盾していな
 - `inference` フィールドが存在しないアイテム(`related_docs < 2` の場合は意図的に推論を省略している)
 - `content_ja`(翻訳品質)はチェック対象外
 
-### ステップ 3: 重複チェック
+### ステップ 2: 重複チェック
 
 1. `/tmp/gh-aw/cache-memory/last-review.json` を確認し、同一バージョンのレビュー済み記録があればスキップする
 2. ラベル `inference-review` のオープンIssueを検索し、同一バージョンが既に報告済みならスキップする
 
-### ステップ 4: 結果判定
+### ステップ 3: 結果判定
 
 - 問題のあるアイテムが **1 件もなければ Issue を作成しない**。何もせず終了する
 - 問題のあるアイテムがあれば Issue を作成する
 - レビュー結果を `/tmp/gh-aw/cache-memory/last-review.json` に保存する(対象バージョン、チェック日時、結果)
 
-### ステップ 5: Issue 作成(問題がある場合のみ)
+### ステップ 4: Issue 作成(問題がある場合のみ)
 
 以下のフォーマットで Issue を作成する:
 
@@ -135,7 +113,6 @@ Gemini API が生成した `before/after/benefit` が原文と矛盾していな
 ## 推論品質レビュー結果
 
 **対象バージョン**: [バージョン一覧]
-**トリガー元実行**: [実行URL]
 **チェック日時**: [タイムスタンプ]
 
 ## 要確認アイテム

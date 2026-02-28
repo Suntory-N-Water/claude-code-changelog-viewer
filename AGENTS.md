@@ -19,6 +19,7 @@ Bun workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 ## コード規約
 
 - GitHub の情報取得には `gh` コマンドを使用する
+- ライブラリの仕様は Context7 MCP サーバー を使用する
 - GitHub Actions ワークフロー更新時は `/dev:actions-check` で静的解析を実施する
 - interface ではなく type を使う
 - テスト作成時は t-wada 氏のテスト設計思想に従う

@@ -17,6 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
+    outputs:
+      has_updates: ${{ steps.detect-updates.outputs.has_updates }}
+      new_versions: ${{ steps.detect-updates.outputs.new_versions }}
+
     env:
       TZ: Asia/Tokyo
 
@@ -225,3 +229,13 @@ jobs:
           script: |
             const scriptModule = await import('${{ github.workspace }}/.github/scripts/create-changelog-processing-issue.mjs');
             await scriptModule.default({ github, context, core });
+
+  inference-review:
+    needs: fetch-and-infer-changelog
+    if: needs.fetch-and-infer-changelog.outputs.has_updates == 'true'
+    uses: ./.github/workflows/inference-review.lock.yml
+    with:
+      versions: ${{ needs.fetch-and-infer-changelog.outputs.new_versions }}
+    permissions:
+      contents: read
+      issues: write
