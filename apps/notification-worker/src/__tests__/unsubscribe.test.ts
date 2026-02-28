@@ -1,14 +1,14 @@
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, mock } from 'bun:test';
 import { unsubscribeRoute } from '../routes/unsubscribe';
 import type { WebhookRow } from '../types';
 
 function createMockDB(row: WebhookRow | null = null) {
-  const run = vi.fn().mockResolvedValue({ success: true });
+  const run = mock().mockResolvedValue({ success: true });
   return {
-    prepare: vi.fn().mockReturnValue({
-      bind: vi.fn().mockReturnValue({
-        first: vi.fn().mockResolvedValue(row),
+    prepare: mock().mockReturnValue({
+      bind: mock().mockReturnValue({
+        first: mock().mockResolvedValue(row),
         run,
       }),
     }),

@@ -1,23 +1,20 @@
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { webhooksRoute } from '../routes/webhooks';
 import type { WebhookRow } from '../types';
 
 // 外部依存のモック
-vi.mock('../lib/turnstile', () => ({
-  verifyTurnstileToken: vi.fn(),
+const mockedVerifyTurnstile = mock();
+const mockedSendToDiscord = mock();
+
+mock.module('../lib/turnstile', () => ({
+  verifyTurnstileToken: mockedVerifyTurnstile,
 }));
 
-vi.mock('../lib/discord', () => ({
-  createTestMessage: vi.fn().mockReturnValue({ content: 'テスト通知' }),
-  sendToDiscord: vi.fn(),
+mock.module('../lib/discord', () => ({
+  createTestMessage: mock(() => ({ content: 'テスト通知' })),
+  sendToDiscord: mockedSendToDiscord,
 }));
-
-import { sendToDiscord } from '../lib/discord';
-import { verifyTurnstileToken } from '../lib/turnstile';
-
-const mockedVerifyTurnstile = vi.mocked(verifyTurnstileToken);
-const mockedSendToDiscord = vi.mocked(sendToDiscord);
 
 const validWebhookUrl = 'https://discord.com/api/webhooks/123456/abcdef';
 
@@ -34,11 +31,11 @@ const activeRow: WebhookRow = {
 const inactiveRow: WebhookRow = { ...activeRow, active: 0 };
 
 function createMockDB(row: WebhookRow | null = null) {
-  const run = vi.fn().mockResolvedValue({ success: true });
+  const run = mock().mockResolvedValue({ success: true });
   return {
-    prepare: vi.fn().mockReturnValue({
-      bind: vi.fn().mockReturnValue({
-        first: vi.fn().mockResolvedValue(row),
+    prepare: mock().mockReturnValue({
+      bind: mock().mockReturnValue({
+        first: mock().mockResolvedValue(row),
         run,
       }),
     }),
@@ -79,7 +76,8 @@ describe('POST /api/webhooks', () => {
   const app = createApp();
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockedVerifyTurnstile.mockClear();
+    mockedSendToDiscord.mockClear();
   });
 
   it('新規 Webhook を登録できる', async () => {
@@ -179,7 +177,7 @@ describe('POST /api/webhooks', () => {
     expect(await res.json()).toEqual({ error: 'リクエストが不正です' });
   });
 
-  it('webhook_url が空文字で 400 を返す（バリデーション失敗）', async () => {
+  it('webhook_url が空文字で 400 を返す(バリデーション失敗)', async () => {
     const db = createMockDB();
     mockedVerifyTurnstile.mockResolvedValue(true);
 

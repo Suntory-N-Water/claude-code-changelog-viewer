@@ -1,14 +1,12 @@
 import * as path from 'node:path';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
-
-vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
-}));
-
-import { execSync } from 'node:child_process';
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { searchDocs } from '../searchers/grep-executor';
 
-const mockExecSync = vi.mocked(execSync);
+const mockExecSync = mock();
+
+mock.module('node:child_process', () => ({
+  execSync: mockExecSync,
+}));
 
 // grep-executor.ts と同じパス構築
 const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
@@ -59,12 +57,12 @@ describe('searchDocs', () => {
 
     test('normalizedSearch は -l -iE フラグで | 結合パターンを使う', () => {
       // exactSearch を空にしてフォールバック
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-l -F')) {
           throw grepError();
         }
         return grepOutput('settings.md');
-      }) as typeof execSync);
+      });
 
       searchDocs({
         original: ['foo'],
@@ -80,14 +78,14 @@ describe('searchDocs', () => {
 
     test('multiSearch は original と normalized を結合して検索する', () => {
       // exactSearch, normalizedSearch 両方空にしてフォールバック
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         const cmdStr = cmd as string;
         // exactSearch, normalizedSearch は空
         if (cmdStr.includes('-l -F') || !cmdStr.includes('original_kw')) {
           throw grepError();
         }
         return grepOutput('settings.md');
-      }) as typeof execSync);
+      });
 
       searchDocs({
         original: ['original_kw'],
@@ -125,12 +123,12 @@ describe('searchDocs', () => {
     test('戦略1 が 50件超の場合は戦略2 にフォールバックする', () => {
       const manyFiles = Array.from({ length: 51 }, (_, i) => `doc${i}.md`);
 
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-l -F')) {
           return grepOutput(...manyFiles);
         }
         return grepOutput('best-match.md');
-      }) as typeof execSync);
+      });
 
       const result = searchDocs({
         original: ['common_word'],
@@ -142,14 +140,14 @@ describe('searchDocs', () => {
 
     test('戦略1, 2 ともに空の場合は戦略3 にフォールバックする', () => {
       let callCount = 0;
-      mockExecSync.mockImplementation(((_cmd: string) => {
+      mockExecSync.mockImplementation((_cmd: string) => {
         callCount++;
         // 3回目(multiSearch)のみ結果を返す
         if (callCount >= 3) {
           return grepOutput('fallback.md');
         }
         throw grepError();
-      }) as typeof execSync);
+      });
 
       const result = searchDocs({
         original: ['rare_term'],
@@ -160,9 +158,9 @@ describe('searchDocs', () => {
     });
 
     test('全戦略でヒットなしの場合は空配列を返す', () => {
-      mockExecSync.mockImplementation(((_cmd: string) => {
+      mockExecSync.mockImplementation((_cmd: string) => {
         throw grepError();
-      }) as typeof execSync);
+      });
 
       const result = searchDocs({
         original: ['nonexistent'],
@@ -190,7 +188,7 @@ describe('searchDocs', () => {
 
     test('normalized が空の場合は normalizedSearch をスキップする', () => {
       // exactSearch も空、normalizedSearch もスキップ → multiSearch
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-l -F')) {
           throw grepError();
         }
@@ -199,7 +197,7 @@ describe('searchDocs', () => {
           return grepOutput('result.md');
         }
         throw grepError();
-      }) as typeof execSync);
+      });
 
       const result = searchDocs({
         original: ['keyword'],
@@ -304,7 +302,7 @@ describe('searchDocs', () => {
 
     test('multiSearch (-iE) に original キーワードが渡された場合、正規表現として解釈される(既知の制限)', () => {
       // exactSearch, normalizedSearch を空にしてフォールバック
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         const cmdStr = cmd as string;
         if (cmdStr.includes('-l -F')) {
           throw grepError();
@@ -315,7 +313,7 @@ describe('searchDocs', () => {
         // multiSearch: fn() を含むパターンで -iE
         // fn() は正規表現として解釈され「fn の後に空文字列の0回以上繰り返し」になる
         return grepOutput('api.md');
-      }) as typeof execSync);
+      });
 
       searchDocs({ original: ['fn()'], normalized: ['fn'] });
 
@@ -331,12 +329,12 @@ describe('searchDocs', () => {
     });
 
     test('パイプ | を含む original キーワードは multiSearch で意図しない分割を起こす(既知の制限)', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-l -F')) {
           throw grepError();
         }
         return grepOutput('result.md');
-      }) as typeof execSync);
+      });
 
       searchDocs({
         original: ['stdin|stdout'],
@@ -356,9 +354,9 @@ describe('searchDocs', () => {
 
   describe('grep エラーハンドリング', () => {
     test('exit code 1(マッチなし)は空配列として処理される', () => {
-      mockExecSync.mockImplementation(((_cmd: string) => {
+      mockExecSync.mockImplementation((_cmd: string) => {
         throw grepError(1);
-      }) as typeof execSync);
+      });
 
       const result = searchDocs({
         original: ['nonexistent'],
@@ -369,9 +367,9 @@ describe('searchDocs', () => {
     });
 
     test('exit code 2(エラー)は例外として再スローされる', () => {
-      mockExecSync.mockImplementation(((_cmd: string) => {
+      mockExecSync.mockImplementation((_cmd: string) => {
         throw grepError(2);
-      }) as typeof execSync);
+      });
 
       expect(() =>
         searchDocs({ original: ['keyword'], normalized: ['keyword'] }),

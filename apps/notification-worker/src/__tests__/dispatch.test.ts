@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, mock } from 'bun:test';
 import { dispatchRoute } from '../routes/dispatch';
 
 function createApp() {
@@ -12,7 +12,7 @@ function createMockEnv(secret = 'test-secret') {
   return {
     DISPATCH_SECRET: secret,
     NOTIFICATION_QUEUE: {
-      send: vi.fn().mockResolvedValue(undefined),
+      send: mock(() => Promise.resolve(undefined)),
     },
   };
 }
