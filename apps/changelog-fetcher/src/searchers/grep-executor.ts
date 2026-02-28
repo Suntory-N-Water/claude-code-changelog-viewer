@@ -1,19 +1,10 @@
 import * as path from 'node:path';
 import type { Keywords, SearchResult } from '../types';
-
-// プロジェクトルート
-const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
+import { PROJECT_ROOT, toRelativePath } from './paths';
 
 // ドキュメントディレクトリ(絶対パス)
 const DOCS_DIR = path.join(PROJECT_ROOT, 'apps', 'docs-tracker', 'docs', 'en');
 const EXCLUDED_FILE = 'changelog.md';
-
-/**
- * 絶対パスをプロジェクトルートからの相対パスに変換
- */
-function toRelativePath(absolutePath: string): string {
-  return path.relative(PROJECT_ROOT, absolutePath);
-}
 
 /**
  * ドキュメントディレクトリから .md ファイル一覧を取得
@@ -26,19 +17,28 @@ function getMdFiles(docsDir: string): string[] {
 }
 
 /**
+ * ファイル一覧を並行読み込みしてキャッシュを構築
+ */
+async function loadFileContents(files: string[]): Promise<Map<string, string>> {
+  const entries = await Promise.all(
+    files.map(async (file) => {
+      const content = await Bun.file(file).text();
+      return [file, content] as const;
+    }),
+  );
+  return new Map(entries);
+}
+
+/**
  * 戦略1: バッククォート完全一致検索
  */
-async function exactSearch(
-  keywords: string[],
-  files: string[],
-): Promise<string[]> {
+function exactSearch(keywords: string[], cache: Map<string, string>): string[] {
   if (keywords.length === 0) {
     return [];
   }
 
   const results = new Set<string>();
-  for (const file of files) {
-    const content = await Bun.file(file).text();
+  for (const [file, content] of cache) {
     for (const keyword of keywords) {
       if (content.includes(`\`${keyword}\``)) {
         results.add(toRelativePath(file));
@@ -52,18 +52,14 @@ async function exactSearch(
 /**
  * 正規表現でファイルを検索(戦略2, 3 共通)
  */
-async function regexSearch(
-  keywords: string[],
-  files: string[],
-): Promise<string[]> {
+function regexSearch(keywords: string[], cache: Map<string, string>): string[] {
   if (keywords.length === 0) {
     return [];
   }
 
   const pattern = new RegExp(keywords.join('|'), 'i');
   const matched: string[] = [];
-  for (const file of files) {
-    const content = await Bun.file(file).text();
+  for (const [file, content] of cache) {
     if (pattern.test(content)) {
       matched.push(toRelativePath(file));
     }
@@ -80,20 +76,21 @@ export async function searchDocs(
 ): Promise<SearchResult> {
   const { original, normalized } = keywords;
   const files = getMdFiles(docsDir);
+  const cache = await loadFileContents(files);
 
   // 戦略1: バッククォート完全一致
-  const exactFiles = await exactSearch(original, files);
+  const exactFiles = exactSearch(original, cache);
   if (exactFiles.length > 0 && exactFiles.length <= 50) {
     return { files: exactFiles };
   }
 
   // 戦略2: 正規化キーワード
-  const normalizedFiles = await regexSearch(normalized, files);
+  const normalizedFiles = regexSearch(normalized, cache);
   if (normalizedFiles.length > 0 && normalizedFiles.length <= 50) {
     return { files: normalizedFiles };
   }
 
   // 戦略3: 複数キーワードOR検索
-  const multiFiles = await regexSearch([...original, ...normalized], files);
+  const multiFiles = regexSearch([...original, ...normalized], cache);
   return { files: multiFiles };
 }

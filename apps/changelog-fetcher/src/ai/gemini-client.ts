@@ -201,13 +201,10 @@ export class GeminiClient {
         this.log.info(`モデル成功: ${model}`, { method: 'inferAll' });
         return result;
       } catch (error) {
-        if (error instanceof Error) {
+        if (error instanceof Error && this.is429Error(error)) {
           lastError = error;
-          if (this.is429Error(error)) {
-            this.log.msg('APLG0024', { params: [model] });
-            continue;
-          }
-          throw error;
+          this.log.msg('APLG0024', { params: [model] });
+          continue;
         }
         throw error;
       }
@@ -252,16 +249,13 @@ export class GeminiClient {
         this.log.info(`モデル成功: ${model}`, { method: 'generateText' });
         return response.text.trim();
       } catch (error) {
-        if (error instanceof Error) {
-          if (this.is429Error(error)) {
-            this.log.msg('APLG0024', { params: [model] });
-            continue;
-          }
-          throw error;
+        if (error instanceof Error && this.is429Error(error)) {
+          this.log.msg('APLG0024', { params: [model] });
+          continue;
         }
         throw error;
       }
     }
-    return '';
+    throw new Error('All models failed for text generation task.');
   }
 }

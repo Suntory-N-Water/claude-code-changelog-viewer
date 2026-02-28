@@ -1,21 +1,13 @@
-import * as path from 'node:path';
 import type { Keywords, SnippetResult } from '../types';
+import { toAbsolutePath } from './paths';
 
 const MAX_SNIPPETS_PER_FILE = 5;
-const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
 
 /**
  * 正規表現メタ文字をエスケープ
  */
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * 相対パスを絶対パスに変換
- */
-function toAbsolutePath(relativePath: string): string {
-  return path.join(PROJECT_ROOT, relativePath);
 }
 
 /**
@@ -67,7 +59,9 @@ export async function extractSnippets(
   files: string[],
   keywords: Keywords,
 ): Promise<SnippetResult[]> {
-  const allKeywords = [...keywords.original, ...keywords.normalized];
+  const allKeywords = [
+    ...new Set([...keywords.original, ...keywords.normalized]),
+  ];
   if (allKeywords.length === 0) {
     return files.map((file) => ({ file, snippets: [], hit_count: 0 }));
   }

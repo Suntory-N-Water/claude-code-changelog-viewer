@@ -30,5 +30,5 @@ export function tagFeatureAreas(content: string): string[] {
     rule.pattern.test(content),
   ).map((rule) => rule.tag);
 
-  return matched.length > 0 ? matched : [];
+  return matched;
 }
