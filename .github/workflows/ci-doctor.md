@@ -70,7 +70,7 @@ timeout-minutes: 15
 
 ## プロジェクト構造
 
-このリポジトリは pnpm workspace モノレポで以下の構成:
+このリポジトリは bun workspace モノレポで以下の構成:
 
 ```
 apps/
@@ -81,7 +81,7 @@ apps/
 
 重要な規約:
 - ログ・コメント・Issue本文・コミットメッセージは **日本語** で記載する
-- コード修正後は `pnpm run ai-check` でフォーマット・リント・型チェックを実行する
+- コード修正後は `bun run ai-check` でフォーマット・リント・型チェックを実行する
 - 以下のファイルは **自動生成のため手動編集禁止**:
   - `apps/docs-tracker/metadata/last_update.json`
   - `apps/changelog-fetcher/metadata/last_fetch.json`
@@ -97,7 +97,7 @@ apps/
 - ドキュメント取得スクリプトのエラー (`apps/docs-tracker/`)
 - git rebase/push の競合
 - GitHub API レート制限
-- pnpm セットアップの問題
+- bun セットアップの問題
 
 ### Fetch and Analyze CHANGELOG (`changelog-auto-inference.yml`)
 
@@ -106,7 +106,7 @@ apps/
 - Gemini API 呼び出し失敗 (レート制限、APIキー期限切れ)
 - 分析/推論ファイルの生成失敗
 - git rebase/push の競合
-- pnpm セットアップの問題
+- bun セットアップの問題
 
 ## 診断手順
 
@@ -147,7 +147,7 @@ apps/
 
 修正PRを作成する場合:
 1. 根本原因に基づいて修正を実装する
-2. `pnpm run ai-check` を実行して修正を検証する
+2. `bun run ai-check` を実行して修正を検証する
 3. 修正PRを作成する (自動生成ファイルは変更禁止、コミットメッセージ・PR説明は日本語)
 
 ### フェーズ 5: 報告

@@ -9,7 +9,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 - GitHub Actions で CHANGELOG とドキュメントを定期取得
 - AI による CHANGELOG の自動翻訳・推論(Gemini API 使用)
 - Discord Webhook による新バージョンの自動通知
-- pnpm workspace によるモノレポ構成
+- bun workspace によるモノレポ構成
 - Astro + Cloudflare Workers による高速な静的サイト
 - TypeScript strict mode による型安全な実装
 
@@ -117,7 +117,7 @@ graph TD
 - Tailwind CSS
 - Biome
 - Zod
-- pnpm
+- bun
 - Cloudflare Workers / D1 / Queues
 
 ## ライセンス
