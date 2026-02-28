@@ -54,18 +54,18 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 - API エンドポイント:
   - `POST /api/webhooks` - 通知登録(Turnstile 認証 + テスト通知送信)
   - `POST /api/dispatch` - 配信トリガー(Bearer トークン認証、GitHub Actions から呼び出し)
-  - `GET /api/unsubscribe` - 配信停止
+  - `POST /api/unsubscribe` - 配信停止
 - 連続送信失敗 3 回で自動停止するエラーハンドリング
 
 ## 技術スタック
 
-- Astro ^5.16.15
-- Hono ^4.12.2
+- Astro
+- Hono
 - TypeScript ~5.9.3
 - Tailwind CSS
-- Biome 2.3.8
-- Zod ^3.25.36
-- pnpm ≥10.0.0
+- Biome
+- Zod
+- pnpm
 - Cloudflare Workers / D1 / Queues
 
 ## ライセンス
