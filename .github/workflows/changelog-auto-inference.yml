@@ -37,7 +37,7 @@ jobs:
         id: fetch
         continue-on-error: true
         run: |
-          pnpm run fetch:changelog
+          bun run fetch:changelog
           EXIT_CODE=$?
           echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
           exit $EXIT_CODE
@@ -89,7 +89,7 @@ jobs:
         run: |
           for version in $NEW_VERSIONS; do
             echo "🔍 Analyzing $version..."
-            pnpm run analyze "$version"
+            bun run analyze "$version"
           done
 
       - name: Verify analysis files
@@ -113,7 +113,7 @@ jobs:
         run: |
           for version in $NEW_VERSIONS; do
             echo "🤖 Inferring benefits for $version..."
-            pnpm run infer "$version"
+            bun run infer "$version"
           done
 
       - name: Verify inferred files
@@ -133,7 +133,7 @@ jobs:
         if: steps.detect-updates.outputs.has_updates == 'true'
         run: |
           echo "🔗 Syncing symlinks..."
-          pnpm run sync
+          bun run sync
 
       - name: Configure Git
         if: steps.detect-updates.outputs.has_updates == 'true'
@@ -152,7 +152,7 @@ jobs:
 
       - name: Format code
         if: steps.detect-updates.outputs.has_updates == 'true'
-        run: pnpm run format
+        run: bun run format
 
       - name: Commit and push
         if: steps.detect-updates.outputs.has_updates == 'true'

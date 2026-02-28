@@ -10,7 +10,7 @@
 
 ## プロジェクト概要
 
-**種別:** Web アプリケーション(pnpm workspace モノレポ)
+**種別:** Web アプリケーション(bun workspace モノレポ)
 **主要言語:** TypeScript
 **主要依存:** Astro, Tailwind CSS v4, Cloudflare Workers(デプロイ先)
 
@@ -18,7 +18,7 @@
 
 ```bash
 # 静的解析(コード修正後に必ず実行、ユーザー許可不要)
-pnpm run ai-check
+bun run ai-check
 ```
 
 ## コード規約
