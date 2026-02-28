@@ -1,6 +1,6 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import {
   type Analysis,
   AnalysisSchema,
@@ -74,7 +74,7 @@ async function main() {
   } catch (error) {
     log.msg('APLG0022', {
       params: ['解析結果'],
-      error: error instanceof Error ? error : new Error(String(error)),
+      error: toError(error),
       attrs: { data: JSON.stringify(analyzedItems, null, 2) },
     });
     process.exit(1);
@@ -96,7 +96,7 @@ async function main() {
 
 main().catch((error) => {
   log.msg('APLG0018', {
-    error: error instanceof Error ? error : new Error(String(error)),
+    error: toError(error),
   });
   process.exit(1);
 });

@@ -1,8 +1,9 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { GeminiClient } from './ai/gemini-client';
+import { loadModelContext } from './ai/model-context';
 import { buildBatchInferencePrompt } from './ai/prompts/inference-prompt';
 
 const log = getLogger({ name: 'benefit-inferrer' });
@@ -42,16 +43,13 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
       totalItems: analysis.items.length,
     });
 
-    // analysisをそのままバリデーションして保存
-    const validated = AnalysisSchema.parse(analysis);
-
     mkdirSync(inferredDir, { recursive: true });
-    writeFileSync(inferredPath, JSON.stringify(validated, null, 2), 'utf-8');
+    writeFileSync(inferredPath, JSON.stringify(analysis, null, 2), 'utf-8');
     log.msg('APLG0021', { params: [inferredPath] });
 
     log.msg('APLG0009', {
       attrs: {
-        totalItems: validated.items.length,
+        totalItems: analysis.items.length,
         aiInference: 'Skipped',
       },
     });
@@ -76,7 +74,12 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
   });
 
   // 4. 全項目を1回のリクエストで処理
-  const prompt = buildBatchInferencePrompt(analysis.items, version);
+  const modelContext = loadModelContext();
+  const prompt = buildBatchInferencePrompt(
+    analysis.items,
+    version,
+    modelContext,
+  );
   const result = await client.inferAll(prompt);
 
   // 推論+翻訳結果をマッピング
@@ -145,8 +148,6 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
 const { version, skipAI } = parseArgs();
 
 inferBenefits(version, skipAI).catch((error) => {
-  log.msg('APLG0018', {
-    error: error instanceof Error ? error : new Error(String(error)),
-  });
+  log.msg('APLG0018', { error: toError(error) });
   process.exit(1);
 });

@@ -8,11 +8,3 @@ export type WebhookRow = {
   created_at: string;
   updated_at: string;
 };
-
-// Discord Webhook API に POST するリクエストボディ
-export type DiscordWebhookPayload = {
-  content: string;
-  username?: string;
-  avatar_url?: string;
-  flags?: number;
-};

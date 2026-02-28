@@ -1,8 +1,15 @@
 import { execSync } from 'node:child_process';
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import {
+  DISCORD_BOT_AVATAR_URL,
+  DISCORD_SUPPRESS_EMBEDS,
+  type DiscordWebhookPayload,
+  getLogger,
+  sendToDiscord,
+  toError,
+  truncateForDiscord,
+} from '@claude-code-changelog-viewer/common';
 import { getOfficialDocUrl } from '@claude-code-changelog-viewer/types';
 import { GeminiClient } from '../ai/gemini-client';
-import type { DiscordWebhookPayload } from './types';
 
 const log = getLogger({ name: 'discord-docs' });
 
@@ -39,51 +46,63 @@ function parseArgs(): CliArgs {
 }
 
 /**
- * git diffを取得(HEAD~1との差分、docs/配下のみ)
+ * リポジトリルートを取得
  */
-function getDocsDiff(commitSha: string): string {
-  try {
-    // Check if parent commit exists
-    try {
-      const parentCheck = execSync(`git rev-parse ${commitSha}~1`, {
-        encoding: 'utf-8',
-      });
-      log.info(`親コミットを確認: ${parentCheck.trim()}`);
-    } catch {
-      // First commit - return empty diff
-      log.info('親コミットなし - 初回コミット');
-      return 'Initial commit - all files are new';
-    }
+function getRepoRoot(): string {
+  return execSync('git rev-parse --show-toplevel', {
+    encoding: 'utf-8',
+  }).trim();
+}
 
-    // Get repository root to ensure correct path resolution
-    const repoRoot = execSync('git rev-parse --show-toplevel', {
+/**
+ * 親コミットの存在確認
+ * @returns 親が存在すれば true
+ */
+function hasParentCommit(commitSha: string): boolean {
+  try {
+    const parentSha = execSync(`git rev-parse ${commitSha}~1`, {
       encoding: 'utf-8',
     }).trim();
+    log.info(`親コミットを確認: ${parentSha}`);
+    return true;
+  } catch {
+    log.info('親コミットなし - 初回コミット');
+    return false;
+  }
+}
 
-    // Get diff for docs directory only, excluding metadata files like changelog.md
-    // Focus on actual documentation content changes
-    // Use absolute path from repo root to avoid path resolution issues
-    const diffCommand = `git diff ${commitSha}~1 ${commitSha} -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md'`;
+/**
+ * docs 配下の diff 用 git pathspec を構築
+ */
+function docsPathspec(repoRoot: string): string {
+  return `-- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md'`;
+}
+
+/**
+ * git diffを取得(docs/配下のみ)
+ */
+function getDocsDiff(commitSha: string, repoRoot: string): string {
+  try {
+    const pathspec = docsPathspec(repoRoot);
+    const diffCommand = `git diff ${commitSha}~1 ${commitSha} ${pathspec}`;
     log.debug(`diff コマンド実行: ${diffCommand}`);
 
     const diff = execSync(diffCommand, {
       encoding: 'utf-8',
-      maxBuffer: 10 * 1024 * 1024, // 10MB
-      cwd: repoRoot, // Execute from repo root for consistent behavior
+      maxBuffer: 10 * 1024 * 1024,
+      cwd: repoRoot,
     });
 
     log.info(`diff 取得完了: ${diff.length} 文字`);
 
-    // If diff is empty or very small, it might be only metadata changes
     if (diff.length < 100) {
       log.warn(
         'diff が非常に小さいため、メタデータのみの変更の可能性があります',
       );
-      // Fall back to showing changed file names with their full content context
       return 'Minimal diff detected - changes may be metadata only';
     }
 
-    // Limit diff size to avoid token overflow (first 3000 lines)
+    // トークン溢れ防止(最大3000行)
     const lines = diff.split('\n');
     if (lines.length > 3000) {
       return `${lines.slice(0, 3000).join('\n')}\n\n... (diff truncated, ${lines.length - 3000} lines omitted)`;
@@ -101,22 +120,11 @@ function getDocsDiff(commitSha: string): string {
 /**
  * git diffから変更ファイル一覧を取得(公式ドキュメントリンク付き)
  */
-function getChangedFilesList(commitSha: string): string {
+function getChangedFilesList(commitSha: string, repoRoot: string): string {
   try {
-    // 親コミットの存在確認
-    try {
-      execSync(`git rev-parse ${commitSha}~1`, { encoding: 'utf-8' });
-    } catch {
-      return 'Initial commit';
-    }
-
-    const repoRoot = execSync('git rev-parse --show-toplevel', {
-      encoding: 'utf-8',
-    }).trim();
-
-    // changelog.mdを除外し、実際のドキュメント変更のみ取得
+    const pathspec = docsPathspec(repoRoot);
     const files = execSync(
-      `git diff ${commitSha}~1 ${commitSha} --name-only -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md'`,
+      `git diff ${commitSha}~1 ${commitSha} --name-only ${pathspec}`,
       {
         encoding: 'utf-8',
         cwd: repoRoot,
@@ -137,7 +145,6 @@ function getChangedFilesList(commitSha: string): string {
     const fileList = fileArray.slice(0, 15).map((f) => {
       const displayPath = f.replace('apps/docs-tracker/docs/', '');
       const officialUrl = getOfficialDocUrl(f);
-      // 公式URLが取得できない場合はファイル名のみ表示
       return officialUrl
         ? `• [${displayPath}](${officialUrl})`
         : `• ${displayPath}`;
@@ -152,8 +159,6 @@ function getChangedFilesList(commitSha: string): string {
   } catch (error) {
     if (error instanceof Error) {
       log.error('変更ファイル一覧の取得に失敗', error);
-    } else {
-      log.error('変更ファイル一覧の取得に失敗');
     }
     return 'Failed to retrieve file list';
   }
@@ -167,6 +172,7 @@ async function summarizeDocChanges(
   diff: string,
   changedFilesCount: number,
   commitSha: string,
+  repoRoot: string,
 ): Promise<string> {
   // diffが極端に小さい場合は、変更ファイルの主要な変更箇所を抽出
   let enrichedContext = diff;
@@ -175,18 +181,13 @@ async function summarizeDocChanges(
     log.warn('diff が小さいため、ファイルコンテキストを抽出します');
 
     try {
-      // Get repository root to ensure correct path resolution
-      const repoRoot = execSync('git rev-parse --show-toplevel', {
-        encoding: 'utf-8',
-      }).trim();
-
-      // 変更されたファイルの具体的な差分を取得(HTMLメタデータを除外)
+      const pathspec = docsPathspec(repoRoot);
       const detailedDiff = execSync(
-        `git diff ${commitSha}~1 ${commitSha} -- '${repoRoot}/apps/docs-tracker/docs/**/*.md' ':(exclude)${repoRoot}/apps/docs-tracker/docs/**/changelog.md' | grep -A 3 -B 3 '^[+-]' | grep -v '^index\\|^diff\\|^---\\|^+++'`,
+        `git diff ${commitSha}~1 ${commitSha} ${pathspec} | grep -A 3 -B 3 '^[+-]' | grep -v '^index\\|^diff\\|^---\\|^+++'`,
         {
           encoding: 'utf-8',
           maxBuffer: 5 * 1024 * 1024,
-          cwd: repoRoot, // Execute from repo root for consistent behavior
+          cwd: repoRoot,
         },
       ).trim();
 
@@ -240,8 +241,6 @@ ${enrichedContext}
   } catch (error) {
     if (error instanceof Error) {
       log.error('AI要約の生成に失敗', error);
-    } else {
-      log.error('AI要約の生成に失敗');
     }
     // フォールバック: 簡易メッセージ
     return `Claude Code のドキュメントが更新されました(${changedFilesCount}ファイル)。詳細はコミットをご確認ください。`;
@@ -265,45 +264,15 @@ function createDiscordMessage(
   content += `## 変更ファイル\n\n${fileList}\n\n\n`;
   content += `## 参考\n- [コミット](${commitUrl})`;
 
-  // Discordの文字数制限(2000文字)を考慮
-  const DISCORD_MAX_LENGTH = 2000;
-  if (content.length > DISCORD_MAX_LENGTH) {
-    const suffix = `...\n\n## 参考\n- [コミット](${commitUrl})`;
-    content = `${content.substring(0, DISCORD_MAX_LENGTH - suffix.length)}${suffix}`;
-  }
+  const suffix = `...\n\n## 参考\n- [コミット](${commitUrl})`;
+  content = truncateForDiscord(content, suffix);
 
   return {
     content,
     username: 'Claude Code Docs Bot',
-    avatar_url:
-      'https://claude-code-changelog-viewer.ayasnppk00.workers.dev/icon.png',
-    flags: 1 << 2, // SUPPRESS_EMBEDS: リンクプレビュー(OGP)を非表示
+    avatar_url: DISCORD_BOT_AVATAR_URL,
+    flags: DISCORD_SUPPRESS_EMBEDS,
   };
-}
-
-/**
- * Discord Webhookへ送信
- */
-async function sendToDiscord(
-  webhookUrl: string,
-  payload: DiscordWebhookPayload,
-): Promise<void> {
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Discord Webhook failed: ${response.status} ${response.statusText} - ${errorText}`,
-    );
-  }
-
-  log.msg('APLG0023', { params: ['Discord通知'] });
 }
 
 async function main(): Promise<void> {
@@ -328,12 +297,31 @@ async function main(): Promise<void> {
       attrs: { commitSha, changedFilesCount },
     });
 
+    const repoRoot = getRepoRoot();
+    const isInitialCommit = !hasParentCommit(commitSha);
+
+    if (isInitialCommit) {
+      // 初回コミットは簡易メッセージで通知
+      const payload = createDiscordMessage(
+        commitSha,
+        changedFilesCount,
+        'Initial commit',
+        'Initial commit - all files are new',
+      );
+      const result = await sendToDiscord(webhookUrl, payload);
+      if (!result.ok) {
+        throw new Error(`Discord Webhook failed: ${result.status}`);
+      }
+      log.msg('APLG0023', { params: ['Discord通知'] });
+      return;
+    }
+
     // 1. git diff取得
-    const diff = getDocsDiff(commitSha);
+    const diff = getDocsDiff(commitSha, repoRoot);
     log.info(`git diff 取得完了 (${diff.length} 文字)`);
 
     // 2. 変更ファイル一覧取得
-    const fileList = getChangedFilesList(commitSha);
+    const fileList = getChangedFilesList(commitSha, repoRoot);
     log.info('変更ファイル一覧を取得');
 
     // 3. AI要約生成
@@ -347,6 +335,7 @@ async function main(): Promise<void> {
       diff,
       changedFilesCount,
       commitSha,
+      repoRoot,
     );
     log.msg('APLG0002', { params: ['AI要約'] });
 
@@ -360,18 +349,18 @@ async function main(): Promise<void> {
     log.info(`Discord メッセージ作成完了 (${payload.content.length} 文字)`);
 
     // 5. Discord送信
-    await sendToDiscord(webhookUrl, payload);
+    const result = await sendToDiscord(webhookUrl, payload);
+    if (!result.ok) {
+      throw new Error(`Discord Webhook failed: ${result.status}`);
+    }
+    log.msg('APLG0023', { params: ['Discord通知'] });
   } catch (error) {
-    log.msg('APLG0018', {
-      error: error instanceof Error ? error : new Error(String(error)),
-    });
+    log.msg('APLG0018', { error: toError(error) });
     process.exit(1);
   }
 }
 
 main().catch((error) => {
-  log.msg('APLG0019', {
-    error: error instanceof Error ? error : new Error(String(error)),
-  });
+  log.msg('APLG0019', { error: toError(error) });
   process.exit(1);
 });

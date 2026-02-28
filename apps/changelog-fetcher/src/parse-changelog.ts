@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -118,8 +118,6 @@ function main() {
 try {
   main();
 } catch (error) {
-  log.msg('APLG0018', {
-    error: error instanceof Error ? error : new Error(String(error)),
-  });
+  log.msg('APLG0018', { error: toError(error) });
   process.exit(2);
 }

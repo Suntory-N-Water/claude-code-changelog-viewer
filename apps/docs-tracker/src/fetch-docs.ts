@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { getLogger } from '@claude-code-changelog-viewer/common';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { ClaudeDocsFetcher } from './lib/doc-fetcher';
 
 const logger = getLogger({ name: 'docs-tracker' });
@@ -28,9 +28,7 @@ async function main() {
 
     process.exit(0);
   } catch (error) {
-    if (error instanceof Error) {
-      logger.msg('APLG0018', { error });
-    }
+    logger.msg('APLG0018', { error: toError(error) });
     process.exit(1);
   }
 }
@@ -38,13 +36,7 @@ async function main() {
 // Run if executed directly
 if (require.main === module) {
   main().catch((error) => {
-    if (error instanceof Error) {
-      logger.msg('APLG0019', { error });
-    } else {
-      logger.msg('APLG0019', {
-        attrs: { 'error.value': String(error) },
-      });
-    }
+    logger.msg('APLG0019', { error: toError(error) });
     process.exit(1);
   });
 }
