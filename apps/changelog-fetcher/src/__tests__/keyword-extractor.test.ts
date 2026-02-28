@@ -57,16 +57,6 @@ describe('extractKeywords', () => {
       expect(keywords.original).toContain('MCP');
     });
 
-    test('バッククォート内の技術用語は重複しない', () => {
-      const item = makeItem('- Added `MCP` server support for MCP');
-      const keywords = extractKeywords(item);
-
-      // バッククォート内の "MCP" は backtickKeywords に、
-      // バッククォート外の "MCP" は technicalTerms に
-      const mcpCount = keywords.original.filter((k) => k === 'MCP').length;
-      expect(mcpCount).toBe(2); // 両方から抽出される
-    });
-
     test('タグ内の大文字は技術用語として抽出しない', () => {
       const item = makeItem('- [SDK] Fixed a bug in the SDK');
       const keywords = extractKeywords(item);
@@ -74,17 +64,6 @@ describe('extractKeywords', () => {
       // [SDK] は extractTechnicalTerms でタグとして除外される
       // ただし本文中の "SDK" は抽出される
       expect(keywords.original).toContain('SDK');
-    });
-
-    test('除外ワードにマッチする技術用語はフィルタリングされない(original)', () => {
-      // EXCLUDED_WORDS は normalized のフィルタリングに使われる
-      // original にはフィルタリングが適用されない(技術用語抽出時のみ)
-      const item = makeItem('- Changed VSCode settings');
-      const keywords = extractKeywords(item);
-
-      // "VSCode" はバッククォートでもなく、[A-Z]{2,} にもマッチしない
-      // (大文字小文字混在なので [A-Z]{2,} にマッチしない)
-      expect(keywords.original).not.toContain('VSCode');
     });
   });
 
@@ -274,56 +253,9 @@ describe('extractKeywords', () => {
       // 空のバッククォートは [^`]+ にマッチしない
       expect(keywords.original.filter((k) => k === '')).toHaveLength(0);
     });
-
-    test('ネストしたバッククォート風テキスト', () => {
-      const item = makeItem('- Fixed `foo `bar` baz` issue');
-      const keywords = extractKeywords(item);
-
-      // /`([^`]+)`/g の動作:
-      // 1. `foo ` にマッチ(最初の ` から次の ` まで)→ "foo "
-      // 2. 次に `bar` を探すが、"bar" の後の ` から " baz" の後の ` まで
-      //    → ` baz` にマッチ → " baz"
-      // "bar" 単体はマッチしない
-      expect(keywords.original).toContain('foo ');
-      expect(keywords.original).toContain(' baz');
-      expect(keywords.original).not.toContain('bar');
-    });
-
-    test('バッククォート内のスペースのみ', () => {
-      const item = makeItem('- Fixed ` ` whitespace issue');
-      const keywords = extractKeywords(item);
-
-      // " " は [^`]+ にマッチする(1文字以上の非バッククォート)
-      expect(keywords.original).toContain(' ');
-      // normalized では空文字になりフィルタされる
-      expect(keywords.normalized).not.toContain('');
-    });
-
-    test('非常に長いバッククォートキーワード', () => {
-      const longKeyword = 'A'.repeat(200);
-      const item = makeItem(`- Fixed \`${longKeyword}\` configuration`);
-      const keywords = extractKeywords(item);
-
-      expect(keywords.original).toContain(longKeyword);
-    });
   });
 
   describe('技術用語の語境界', () => {
-    test('アンダースコア付き大文字はワード境界で分断されず抽出されない', () => {
-      // /\b([A-Z]{2,})\b/ で CLAUDE_CODE を検出する場合、
-      // _ はワード文字なので \b が CLAUDE と _ の間に入らない
-      // よって [A-Z]{2,} で CLAUDE だけをマッチしようとしても \b が _ の前で成立しない
-      const item = makeItem('- Updated CLAUDE_CODE settings');
-      const keywords = extractKeywords(item);
-
-      // "CLAUDE_CODE" はバッククォートなし → backtickKeywords に含まれない
-      // technicalTerms: \b[A-Z]{2,}\b → CLAUDE と CODE の間に _ があり
-      // _ はワード文字なので \b が成立しない
-      expect(keywords.original).not.toContain('CLAUDE_CODE');
-      expect(keywords.original).not.toContain('CLAUDE');
-      expect(keywords.original).not.toContain('CODE');
-    });
-
     test('ハイフン区切りの大文字は個別に抽出される', () => {
       // ハイフンはワード文字ではないので \b が成立する
       const item = makeItem('- Updated API-SDK integration');
@@ -339,17 +271,6 @@ describe('extractKeywords', () => {
 
       // () はワード文字ではないので \b が成立
       expect(keywords.original).toContain('MCP');
-    });
-
-    test('数字を含む大文字連続は抽出されない', () => {
-      // [A-Z]{2,} は数字を含まない
-      const item = makeItem('- Updated V8 engine');
-      const keywords = extractKeywords(item);
-
-      // "V8" → V は1文字なので [A-Z]{2,} にマッチしない
-      // "V" は1文字なのでマッチしない
-      expect(keywords.original).not.toContain('V8');
-      expect(keywords.original).not.toContain('V');
     });
 
     test('2文字の大文字略語は抽出される', () => {

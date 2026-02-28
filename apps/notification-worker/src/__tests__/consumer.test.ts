@@ -5,6 +5,7 @@ import {
   expect,
   it,
   mock,
+  spyOn,
   vi,
 } from 'bun:test';
 
@@ -19,9 +20,8 @@ mock.module('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
-// fetch をモック
-const mockFetch = mock();
-globalThis.fetch = mockFetch;
+// fetch をモック(spyOn 経由で型安全にモック)
+const mockFetch = spyOn(globalThis, 'fetch');
 
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 import { queueConsumer } from '../queue/consumer';
@@ -94,10 +94,11 @@ function createMockEnv() {
 }
 
 function setupFetchSuccess() {
-  mockFetch.mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(validAnalysis),
-  });
+  const impl: typeof fetch = Object.assign(
+    () => Promise.resolve(Response.json(validAnalysis)),
+    { preconnect: globalThis.fetch.preconnect },
+  );
+  mockFetch.mockImplementation(impl);
 }
 
 function setupDBWithWebhooks(
@@ -173,7 +174,7 @@ describe('queueConsumer', () => {
     const batch = createMockBatch([message]);
     const { env } = createMockEnv();
 
-    mockFetch.mockResolvedValue({ ok: false, status: 404 });
+    mockFetch.mockResolvedValue(new Response(null, { status: 404 }));
 
     await callConsumer(batch, env);
 
@@ -186,10 +187,7 @@ describe('queueConsumer', () => {
     const batch = createMockBatch([message]);
     const { env } = createMockEnv();
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ invalid: 'data' }),
-    });
+    mockFetch.mockResolvedValue(Response.json({ invalid: 'data' }));
 
     await callConsumer(batch, env);
 

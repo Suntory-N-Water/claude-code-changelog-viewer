@@ -1,5 +1,5 @@
-import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { Hono } from 'hono';
 import { webhooksRoute } from '../routes/webhooks';
 import type { WebhookRow } from '../types';
 
@@ -92,7 +92,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
+    expect(await res.json<unknown>()).toEqual({ success: true });
     // INSERT が呼ばれることを確認
     expect(db.prepare).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO webhooks'),
@@ -111,7 +111,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: '既に登録済みです' });
+    expect(await res.json<unknown>()).toEqual({ error: '既に登録済みです' });
   });
 
   it('非アクティブな既存レコードを再有効化する', async () => {
@@ -126,7 +126,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
+    expect(await res.json<unknown>()).toEqual({ success: true });
     // UPDATE が呼ばれることを確認
     expect(db.prepare).toHaveBeenCalledWith(
       expect.stringContaining('UPDATE webhooks SET active = 1'),
@@ -144,7 +144,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(403);
-    expect(await res.json()).toEqual({
+    expect(await res.json<unknown>()).toEqual({
       error: 'Turnstile検証に失敗しました',
     });
   });
@@ -163,7 +163,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({
+    expect(await res.json<unknown>()).toEqual({
       error: 'Discord Webhook URLの形式が不正です',
     });
   });
@@ -174,7 +174,9 @@ describe('POST /api/webhooks', () => {
     const res = await postJSON(app, { invalid: 'body' }, createEnv(db));
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'リクエストが不正です' });
+    expect(await res.json<unknown>()).toEqual({
+      error: 'リクエストが不正です',
+    });
   });
 
   it('webhook_url が空文字で 400 を返す(バリデーション失敗)', async () => {
@@ -188,7 +190,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({
+    expect(await res.json<unknown>()).toEqual({
       error: 'Discord Webhook URLの形式が不正です',
     });
   });
@@ -205,7 +207,9 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'Webhook URLが無効です' });
+    expect(await res.json<unknown>()).toEqual({
+      error: 'Webhook URLが無効です',
+    });
     // DB への INSERT は行われない
     expect(db._run).not.toHaveBeenCalled();
   });

@@ -1,5 +1,5 @@
-import { Hono } from 'hono';
 import { describe, expect, it, mock } from 'bun:test';
+import { Hono } from 'hono';
 import { unsubscribeRoute } from '../routes/unsubscribe';
 import type { WebhookRow } from '../types';
 
