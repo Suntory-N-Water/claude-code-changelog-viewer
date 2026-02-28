@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process';
 import * as path from 'node:path';
 import type { Keywords, SearchResult } from '../types';
 
@@ -17,116 +16,84 @@ function toRelativePath(absolutePath: string): string {
 }
 
 /**
- * Grepコマンドを実行
+ * ドキュメントディレクトリから .md ファイル一覧を取得
  */
-function executeGrep(pattern: string, flags: string): string[] {
-  try {
-    // シングルクォートをエスケープ: 'pattern' -> 'pat'\''tern'
-    const escapedPattern = pattern.replace(/'/g, "'\\''");
-    const command = `grep ${flags} -- '${escapedPattern}' ${DOCS_DIR}/*.md`;
-    const result = execSync(command, { encoding: 'utf-8' });
-    return result
-      .split('\n')
-      .filter(Boolean)
-      .filter((file) => !file.endsWith(EXCLUDED_FILE))
-      .map(toRelativePath); // 相対パスに変換
-  } catch (error) {
-    // Grepが0件の場合、終了コード1でエラーになる
-    if (error instanceof Error && 'status' in error && error.status === 1) {
-      return [];
-    }
-    throw error; // その他のエラーは再スロー
-  }
+function getMdFiles(docsDir: string): string[] {
+  const glob = new Bun.Glob('*.md');
+  return Array.from(glob.scanSync(docsDir))
+    .filter((file) => file !== EXCLUDED_FILE)
+    .map((file) => path.join(docsDir, file));
 }
 
 /**
  * 戦略1: バッククォート完全一致検索
  */
-function exactSearch(keywords: string[]): string[] {
+async function exactSearch(
+  keywords: string[],
+  files: string[],
+): Promise<string[]> {
   if (keywords.length === 0) {
     return [];
   }
 
   const results = new Set<string>();
-
-  for (const keyword of keywords) {
-    const pattern = `\`${keyword}\``;
-    const files = executeGrep(pattern, '-l -F');
-    for (const file of files) {
-      results.add(file);
+  for (const file of files) {
+    const content = await Bun.file(file).text();
+    for (const keyword of keywords) {
+      if (content.includes(`\`${keyword}\``)) {
+        results.add(toRelativePath(file));
+        break;
+      }
     }
   }
-
   return Array.from(results);
 }
 
 /**
- * 戦略2: 正規化キーワード検索(大文字小文字無視)
+ * 正規表現でファイルを検索(戦略2, 3 共通)
  */
-function normalizedSearch(keywords: string[]): string[] {
+async function regexSearch(
+  keywords: string[],
+  files: string[],
+): Promise<string[]> {
   if (keywords.length === 0) {
     return [];
   }
 
-  const pattern = keywords.join('|');
-  return executeGrep(pattern, '-l -iE');
-}
-
-/**
- * 戦略3: 複数キーワードOR検索
- */
-function multiSearch(
-  originalKeywords: string[],
-  normalizedKeywords: string[],
-): string[] {
-  const allKeywords = [...originalKeywords, ...normalizedKeywords];
-  if (allKeywords.length === 0) {
-    return [];
+  const pattern = new RegExp(keywords.join('|'), 'i');
+  const matched: string[] = [];
+  for (const file of files) {
+    const content = await Bun.file(file).text();
+    if (pattern.test(content)) {
+      matched.push(toRelativePath(file));
+    }
   }
-
-  const pattern = allKeywords.join('|');
-  return executeGrep(pattern, '-l -iE');
+  return matched;
 }
 
 /**
  * キーワードから関連ドキュメントを検索(フォールバック方式)
  */
-export function searchDocs(keywords: Keywords): SearchResult {
+export async function searchDocs(
+  keywords: Keywords,
+  docsDir = DOCS_DIR,
+): Promise<SearchResult> {
   const { original, normalized } = keywords;
+  const files = getMdFiles(docsDir);
 
   // 戦略1: バッククォート完全一致
-  const exactFiles = exactSearch(original);
+  const exactFiles = await exactSearch(original, files);
   if (exactFiles.length > 0 && exactFiles.length <= 50) {
-    return {
-      files: exactFiles,
-    };
+    return { files: exactFiles };
   }
 
   // 戦略2: 正規化キーワード
-  const normalizedFiles = normalizedSearch(normalized);
+  const normalizedFiles = await regexSearch(normalized, files);
   if (normalizedFiles.length > 0 && normalizedFiles.length <= 50) {
-    return {
-      files: normalizedFiles,
-    };
+    return { files: normalizedFiles };
   }
 
   // 戦略3: 複数キーワードOR検索
-  const multiFiles = multiSearch(original, normalized);
-  if (multiFiles.length > 0) {
-    return {
-      files: multiFiles,
-    };
-  }
-
-  // 0件
-  return {
-    files: [],
-  };
-}
-
-/**
- * タグによるスキップ判定
- */
-export function shouldSkipSearch(tags: string[]): boolean {
-  return tags.includes('SDK') || tags.includes('API');
+  const multiFiles = await regexSearch([...original, ...normalized], files);
+  return { files: multiFiles };
 }

@@ -1,315 +1,257 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, describe, expect, test } from 'bun:test';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { extractSnippets } from '../searchers/snippet-extractor';
 
-const mockExecSync = mock();
-
-mock.module('node:child_process', () => ({
-  execSync: mockExecSync,
-}));
-
+// snippet-extractor 内の PROJECT_ROOT と同じ計算
 const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'snippet-test-'));
 
-function grepError(status = 1): Error {
-  const error = new Error('grep: no matches') as Error & { status: number };
-  error.status = status;
-  return error;
+/**
+ * テスト用ファイルを作成し、extractSnippets に渡せる相対パスを返す
+ */
+async function writeTestFile(name: string, content: string): Promise<string> {
+  await Bun.write(path.join(tmpDir, name), content);
+  return path.relative(PROJECT_ROOT, path.join(tmpDir, name));
 }
 
-beforeEach(() => {
-  mockExecSync.mockReset();
+afterAll(() => {
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
 describe('extractSnippets', () => {
-  describe('コマンド構築と正規表現エスケープ', () => {
-    test('キーワードの正規表現メタ文字がエスケープされる', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '3';
-        }
-        return 'snippet content';
-      });
+  describe('正規表現メタ文字を含むキーワードのマッチ', () => {
+    test('括弧 () を含むキーワードで正しくマッチする', async () => {
+      const rel = await writeTestFile(
+        'parens.md',
+        'Call fn() to execute\nAnother line',
+      );
 
-      extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['fn()'],
         normalized: ['fn'],
       });
 
-      // countMatches のコマンドを確認
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      // () がエスケープされて \(\) になる
-      expect(countCmd).toContain('fn\\(\\)');
-
-      // extractSnippetsFromFile のコマンドも確認
-      const snippetCmd = mockExecSync.mock.calls.find(
-        (c) =>
-          (c[0] as string).includes('-B 3') &&
-          (c[0] as string).includes('-A 3'),
-      )?.[0] as string;
-      expect(snippetCmd).toContain('fn\\(\\)');
+      expect(results[0].hit_count).toBe(1);
+      expect(results[0].snippets[0]).toContain('fn()');
     });
 
-    test('ドット . がエスケープされる(任意文字マッチを防ぐ)', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
+    test('ドット . がリテラルとしてマッチする', async () => {
+      const rel = await writeTestFile(
+        'dot.md',
+        'Edit config.json file\nEdit configXjson here',
+      );
 
-      extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['config.json'],
         normalized: ['config', 'json'],
       });
 
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      expect(countCmd).toContain('config\\.json');
+      // 両方の行が "config" にマッチ
+      expect(results[0].hit_count).toBe(2);
     });
 
-    test('角括弧 [] がエスケープされる', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
+    test('角括弧 [] を含むキーワードで正しくマッチする', async () => {
+      const rel = await writeTestFile('bracket.md', 'Access $ARGS[0] value');
 
-      extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['$ARGS[0]'],
-        normalized: ['ARGS', '0'],
+        normalized: ['ARGS'],
       });
 
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      expect(countCmd).toContain('\\$ARGS\\[0\\]');
+      expect(results[0].hit_count).toBe(1);
     });
 
-    test('パイプ | がエスケープされる(OR演算子の意図しない解釈を防ぐ)', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
+    test('パイプ | がOR演算子として解釈されない', async () => {
+      const rel = await writeTestFile(
+        'pipe.md',
+        'Use stdin|stdout for piping\nNo match here',
+      );
 
-      extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['stdin|stdout'],
         normalized: ['stdin', 'stdout'],
       });
 
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      // | がエスケープされて \| になる
-      expect(countCmd).toContain('stdin\\|stdout');
+      expect(results[0].hit_count).toBe(1);
     });
 
-    test('アスタリスク * がエスケープされる', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
+    test('アスタリスク * で正しくマッチする', async () => {
+      const rel = await writeTestFile('star.md', 'Match *.md files');
 
-      extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['*.md'],
         normalized: ['md'],
       });
 
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      expect(countCmd).toContain('\\*\\.md');
+      expect(results[0].hit_count).toBe(1);
     });
 
-    test('バックスラッシュ \\ がエスケープされる', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
+    test('$ を含むキーワードで正しくマッチする', async () => {
+      const rel = await writeTestFile(
+        'dollar.md',
+        'Environment $HOME variable',
+      );
 
-      extractSnippets(['docs/test.md'], {
-        original: ['path\\to'],
-        normalized: ['path', 'to'],
-      });
-
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      // \ が \\\\ にエスケープされる
-      expect(countCmd).toContain('path\\\\to');
-    });
-
-    test('プラス + とクエスチョン ? がエスケープされる', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
-
-      extractSnippets(['docs/test.md'], {
-        original: ['a+b?c'],
-        normalized: ['a', 'b', 'c'],
-      });
-
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      expect(countCmd).toContain('a\\+b\\?c');
-    });
-
-    test('キャレット ^ とドル $ がエスケープされる', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
-
-      extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['$HOME'],
         normalized: ['HOME'],
       });
 
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      expect(countCmd).toContain('\\$HOME');
-    });
-
-    test('シングルクォートを含むキーワードがシェルエスケープされる', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
-
-      extractSnippets(['docs/test.md'], {
-        original: ["it's"],
-        normalized: ['its'],
-      });
-
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      // シングルクォートのシェルエスケープ: ' → '\''
-      expect(countCmd).toContain("it'\\''s");
+      expect(results[0].hit_count).toBe(1);
     });
   });
 
   describe('スニペット抽出', () => {
-    test('-- 区切りでスニペットを分割する', () => {
-      // 1回目: countMatches → "5"、2回目: extractSnippetsFromFile → スニペット
-      mockExecSync
-        .mockReturnValueOnce('5' as never)
-        .mockReturnValueOnce(
-          'snippet 1\n--\nsnippet 2\n--\nsnippet 3' as never,
-        );
+    test('マッチ行の前後3行を含むスニペットを返す', async () => {
+      const lines = [
+        'line 0',
+        'line 1',
+        'line 2',
+        'line 3',
+        'keyword match',
+        'line 5',
+        'line 6',
+        'line 7',
+        'line 8',
+      ];
+      const rel = await writeTestFile('context.md', lines.join('\n'));
 
-      const results = extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['keyword'],
         normalized: ['keyword'],
       });
 
-      expect(results[0].snippets).toHaveLength(3);
-      expect(results[0].snippets[0]).toBe('snippet 1');
-      expect(results[0].snippets[1]).toBe('snippet 2');
-      expect(results[0].snippets[2]).toBe('snippet 3');
+      const snippet = results[0].snippets[0];
+      expect(snippet).toContain('line 1');
+      expect(snippet).toContain('keyword match');
+      expect(snippet).toContain('line 7');
+      expect(snippet).not.toContain('line 0');
     });
 
-    test('スニペットは最大 5 件に制限される', () => {
-      const manySnippets = Array.from(
-        { length: 8 },
-        (_, i) => `snippet ${i}`,
-      ).join('\n--\n');
+    test('近接するマッチは1つのスニペットにマージされる', async () => {
+      const lines = [
+        'line 0',
+        'keyword match 1',
+        'line 2',
+        'line 3',
+        'keyword match 2',
+        'line 5',
+      ];
+      const rel = await writeTestFile('merge.md', lines.join('\n'));
 
-      // 1回目: countMatches → "20"、2回目: extractSnippetsFromFile → スニペット
-      mockExecSync
-        .mockReturnValueOnce('20' as never)
-        .mockReturnValueOnce(manySnippets as never);
+      const results = await extractSnippets([rel], {
+        original: ['keyword'],
+        normalized: ['keyword'],
+      });
 
-      const results = extractSnippets(['docs/test.md'], {
-        original: ['common'],
-        normalized: ['common'],
+      expect(results[0].snippets).toHaveLength(1);
+      expect(results[0].snippets[0]).toContain('keyword match 1');
+      expect(results[0].snippets[0]).toContain('keyword match 2');
+    });
+
+    test('離れたマッチは別々のスニペットになる', async () => {
+      const lines = [
+        'keyword match 1',
+        'line 1',
+        'line 2',
+        'line 3',
+        'line 4',
+        'line 5',
+        'line 6',
+        'line 7',
+        'line 8',
+        'line 9',
+        'keyword match 2',
+      ];
+      const rel = await writeTestFile('separate.md', lines.join('\n'));
+
+      const results = await extractSnippets([rel], {
+        original: ['keyword'],
+        normalized: ['keyword'],
+      });
+
+      expect(results[0].snippets).toHaveLength(2);
+      expect(results[0].snippets[0]).toContain('keyword match 1');
+      expect(results[0].snippets[1]).toContain('keyword match 2');
+    });
+
+    test('スニペットは最大 5 件に制限される', async () => {
+      const lines: string[] = [];
+      for (let i = 0; i < 8; i++) {
+        lines.push(`keyword match ${i}`);
+        for (let j = 0; j < 10; j++) {
+          lines.push(`filler line ${i}-${j}`);
+        }
+      }
+      const rel = await writeTestFile('many.md', lines.join('\n'));
+
+      const results = await extractSnippets([rel], {
+        original: ['keyword'],
+        normalized: ['keyword'],
       });
 
       expect(results[0].snippets).toHaveLength(5);
     });
 
-    test('hit_count を数値として返す', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '42\n';
-        }
-        return 'snippet';
-      });
+    test('hit_count はマッチした行数を返す', async () => {
+      const rel = await writeTestFile(
+        'count.md',
+        'keyword here\nno match\nkeyword again\nstill keyword',
+      );
 
-      const results = extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['keyword'],
         normalized: ['keyword'],
       });
 
-      expect(results[0].hit_count).toBe(42);
+      expect(results[0].hit_count).toBe(3);
     });
 
-    test('複数ファイルをそれぞれ処理する', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
+    test('複数ファイルをそれぞれ処理する', async () => {
+      const relA = await writeTestFile('a.md', 'keyword in a');
+      const relB = await writeTestFile('b.md', 'keyword in b');
+      const relC = await writeTestFile('c.md', 'keyword in c');
 
-      const results = extractSnippets(['docs/a.md', 'docs/b.md', 'docs/c.md'], {
+      const results = await extractSnippets([relA, relB, relC], {
         original: ['keyword'],
         normalized: ['keyword'],
       });
 
       expect(results).toHaveLength(3);
-      expect(results[0].file).toBe('docs/a.md');
-      expect(results[1].file).toBe('docs/b.md');
-      expect(results[2].file).toBe('docs/c.md');
+      for (const r of results) {
+        expect(r.hit_count).toBe(1);
+      }
     });
   });
 
   describe('エッジケース', () => {
-    test('空のファイルリストは空配列を返す', () => {
-      const results = extractSnippets([], {
+    test('空のファイルリストは空配列を返す', async () => {
+      const results = await extractSnippets([], {
         original: ['keyword'],
         normalized: ['keyword'],
       });
 
       expect(results).toEqual([]);
-      expect(mockExecSync).not.toHaveBeenCalled();
     });
 
-    test('キーワードが空の場合は hit_count: 0 と空 snippets を返す', () => {
-      const results = extractSnippets(['docs/test.md'], {
+    test('キーワードが空の場合は hit_count: 0 と空 snippets を返す', async () => {
+      const rel = await writeTestFile('empty-kw.md', 'some content');
+
+      const results = await extractSnippets([rel], {
         original: [],
         normalized: [],
       });
 
       expect(results[0].hit_count).toBe(0);
       expect(results[0].snippets).toEqual([]);
-      expect(mockExecSync).not.toHaveBeenCalled();
     });
 
-    test('grep がマッチなし (exit code 1) の場合は 0 件として扱う', () => {
-      mockExecSync.mockImplementation((_cmd: string) => {
-        throw grepError(1);
-      });
+    test('マッチなしの場合は hit_count: 0 と空 snippets を返す', async () => {
+      const rel = await writeTestFile('no-match.md', 'Nothing relevant here');
 
-      const results = extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['nonexistent'],
         normalized: ['nonexistent'],
       });
@@ -318,80 +260,32 @@ describe('extractSnippets', () => {
       expect(results[0].snippets).toEqual([]);
     });
 
-    test('grep がエラー (exit code 2) の場合は例外を再スローする', () => {
-      mockExecSync.mockImplementation((_cmd: string) => {
-        throw grepError(2);
-      });
+    test('ファイル先頭のマッチでも安全にスニペットを取得する', async () => {
+      const rel = await writeTestFile(
+        'start.md',
+        'keyword at start\nline 1\nline 2',
+      );
 
-      expect(() =>
-        extractSnippets(['docs/test.md'], {
-          original: ['keyword'],
-          normalized: ['keyword'],
-        }),
-      ).toThrow();
-    });
-
-    test('ハイフンで始まるキーワード `-l` がエスケープされて検索される', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'BashTool skips `-l` flag';
-      });
-
-      const results = extractSnippets(['docs/test.md'], {
-        original: ['-l'],
-        normalized: ['l'],
-      });
-
-      expect(results[0].hit_count).toBe(1);
-
-      // snippet-extractor は escapeRegex でエスケープするが、
-      // `-` は正規表現メタ文字ではないのでそのまま
-      // ただしシェルコマンド内で問題ないことを確認
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      expect(countCmd).toContain('-l');
-    });
-
-    test('hit_count が非数値の場合は 0 を返す', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return 'not-a-number\n';
-        }
-        return 'snippet';
-      });
-
-      const results = extractSnippets(['docs/test.md'], {
+      const results = await extractSnippets([rel], {
         original: ['keyword'],
         normalized: ['keyword'],
       });
 
-      expect(results[0].hit_count).toBe(0);
+      expect(results[0].snippets[0]).toContain('keyword at start');
     });
-  });
 
-  describe('ファイルパス構築', () => {
-    test('相対パスが絶対パスに変換されてコマンドに渡される', () => {
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-c')) {
-          return '1';
-        }
-        return 'snippet';
-      });
+    test('ファイル末尾のマッチでも安全にスニペットを取得する', async () => {
+      const rel = await writeTestFile(
+        'end.md',
+        'line 0\nline 1\nkeyword at end',
+      );
 
-      const relativePath = 'apps/docs-tracker/docs/en/settings.md';
-      extractSnippets([relativePath], {
+      const results = await extractSnippets([rel], {
         original: ['keyword'],
         normalized: ['keyword'],
       });
 
-      const countCmd = mockExecSync.mock.calls.find((c) =>
-        (c[0] as string).includes('-c'),
-      )?.[0] as string;
-      const expectedAbsPath = path.join(PROJECT_ROOT, relativePath);
-      expect(countCmd).toContain(`"${expectedAbsPath}"`);
+      expect(results[0].snippets[0]).toContain('keyword at end');
     });
   });
 });

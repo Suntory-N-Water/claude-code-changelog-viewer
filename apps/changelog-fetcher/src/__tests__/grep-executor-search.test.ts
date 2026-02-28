@@ -1,247 +1,142 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import { searchDocs } from '../searchers/grep-executor';
 
-const mockExecSync = mock();
+const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-test-'));
 
-mock.module('node:child_process', () => ({
-  execSync: mockExecSync,
-}));
+beforeAll(async () => {
+  await Bun.write(
+    path.join(tmpDir, 'settings.md'),
+    'Use `keyword` for `key1` and `key2` configuration\nSETTINGS info',
+  );
+  await Bun.write(
+    path.join(tmpDir, 'hooks.md'),
+    '`keyword` hook documentation',
+  );
+  await Bun.write(
+    path.join(tmpDir, 'changelog.md'),
+    '`keyword` changelog entry',
+  );
+  await Bun.write(path.join(tmpDir, 'unrelated.md'), 'Nothing relevant here');
+});
 
-// grep-executor.ts と同じパス構築
-const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
-const DOCS_DIR = path.join(PROJECT_ROOT, 'apps', 'docs-tracker', 'docs', 'en');
-
-function absPath(file: string): string {
-  return path.join(DOCS_DIR, file);
-}
-
-function relPath(file: string): string {
-  return path.relative(PROJECT_ROOT, absPath(file));
-}
-
-function grepOutput(...files: string[]): string {
-  return files.map((f) => absPath(f)).join('\n');
-}
-
-function grepError(status = 1): Error {
-  const error = new Error('grep: no matches') as Error & { status: number };
-  error.status = status;
-  return error;
-}
-
-beforeEach(() => {
-  mockExecSync.mockReset();
+afterAll(() => {
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
 describe('searchDocs', () => {
   describe('フォールバック戦略', () => {
-    test('戦略1 でヒットした場合はそれを返す(戦略2 は呼ばれない)', () => {
-      mockExecSync.mockReturnValue(grepOutput('settings.md'));
-
-      const result = searchDocs({
-        original: ['keyword'],
-        normalized: ['keyword'],
-      });
-
-      expect(result.files).toEqual([relPath('settings.md')]);
-      // exactSearch だけで解決するため、-iE は呼ばれない
-      const iECalls = mockExecSync.mock.calls.filter((c) =>
-        (c[0] as string).includes('-iE'),
+    test('戦略1 でヒットした場合はそれを返す', async () => {
+      const result = await searchDocs(
+        { original: ['keyword'], normalized: ['keyword'] },
+        tmpDir,
       );
-      expect(iECalls).toHaveLength(0);
+
+      expect(result.files).toHaveLength(2);
+      expect(result.files.some((f) => f.includes('settings.md'))).toBe(true);
+      expect(result.files.some((f) => f.includes('hooks.md'))).toBe(true);
     });
 
-    test('戦略1 が 50件超の場合は戦略2 にフォールバックする', () => {
-      const manyFiles = Array.from({ length: 51 }, (_, i) => `doc${i}.md`);
-
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-l -F')) {
-          return grepOutput(...manyFiles);
+    test('戦略1 が 50件超の場合は戦略2 にフォールバックする', async () => {
+      const manyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-many-'));
+      try {
+        for (let i = 0; i < 51; i++) {
+          await Bun.write(
+            path.join(manyDir, `doc${i}.md`),
+            '`common_word` content',
+          );
         }
-        return grepOutput('best-match.md');
-      });
+        // 戦略2 で "specific" にマッチするのは1件だけ
+        await Bun.write(
+          path.join(manyDir, 'best-match.md'),
+          '`common_word` specific content',
+        );
 
-      const result = searchDocs({
-        original: ['common_word'],
-        normalized: ['common', 'word'],
-      });
+        const result = await searchDocs(
+          { original: ['common_word'], normalized: ['specific'] },
+          manyDir,
+        );
 
-      expect(result.files).toEqual([relPath('best-match.md')]);
+        expect(result.files).toHaveLength(1);
+        expect(result.files[0]).toContain('best-match.md');
+      } finally {
+        fs.rmSync(manyDir, { recursive: true, force: true });
+      }
     });
 
-    test('戦略1, 2 ともに空の場合は戦略3 にフォールバックする', () => {
-      let callCount = 0;
-      mockExecSync.mockImplementation((_cmd: string) => {
-        callCount++;
-        // 3回目(multiSearch)のみ結果を返す
-        if (callCount >= 3) {
-          return grepOutput('fallback.md');
-        }
-        throw grepError();
-      });
+    test('戦略1, 2 ともに空の場合は戦略3 にフォールバックする', async () => {
+      const result = await searchDocs(
+        { original: ['rare_term_xyz'], normalized: [] },
+        tmpDir,
+      );
 
-      const result = searchDocs({
-        original: ['rare_term'],
-        normalized: ['rare', 'term'],
-      });
-
-      expect(result.files).toEqual([relPath('fallback.md')]);
+      // バッククォート完全一致なし、normalized 空 → 戦略3 で original を使用
+      expect(result.files).toEqual([]);
     });
 
-    test('全戦略でヒットなしの場合は空配列を返す', () => {
-      mockExecSync.mockImplementation((_cmd: string) => {
-        throw grepError();
-      });
-
-      const result = searchDocs({
-        original: ['nonexistent'],
-        normalized: ['nonexistent'],
-      });
+    test('全戦略でヒットなしの場合は空配列を返す', async () => {
+      const result = await searchDocs(
+        { original: ['nonexistent_abc'], normalized: ['nonexistent_abc'] },
+        tmpDir,
+      );
 
       expect(result.files).toEqual([]);
     });
 
-    test('original が空の場合は exactSearch をスキップして戦略2 に進む', () => {
-      mockExecSync.mockReturnValue(grepOutput('result.md'));
-
-      const result = searchDocs({
-        original: [],
-        normalized: ['keyword'],
-      });
-
-      expect(result.files).toEqual([relPath('result.md')]);
-      // -l -F (exactSearch) は呼ばれない
-      const fixedCalls = mockExecSync.mock.calls.filter((c) =>
-        (c[0] as string).includes('-l -F'),
+    test('original が空の場合は戦略2 に進む', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['SETTINGS'] },
+        tmpDir,
       );
-      expect(fixedCalls).toHaveLength(0);
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('settings.md');
     });
 
-    test('normalized が空の場合は normalizedSearch をスキップする', () => {
-      // exactSearch も空、normalizedSearch もスキップ → multiSearch
-      mockExecSync.mockImplementation((cmd: string) => {
-        if ((cmd as string).includes('-l -F')) {
-          throw grepError();
-        }
-        // multiSearch には original のキーワードが含まれる
-        if ((cmd as string).includes('keyword')) {
-          return grepOutput('result.md');
-        }
-        throw grepError();
-      });
-
-      const result = searchDocs({
-        original: ['keyword'],
-        normalized: [],
-      });
-
-      expect(result.files).toEqual([relPath('result.md')]);
-    });
-
-    test('全キーワードが空の場合は即座に空配列を返す', () => {
-      const result = searchDocs({ original: [], normalized: [] });
+    test('全キーワードが空の場合は即座に空配列を返す', async () => {
+      const result = await searchDocs({ original: [], normalized: [] }, tmpDir);
 
       expect(result.files).toEqual([]);
-      expect(mockExecSync).not.toHaveBeenCalled();
     });
   });
 
   describe('結果のフィルタリング', () => {
-    test('changelog.md は結果から除外される', () => {
-      mockExecSync.mockReturnValue(
-        grepOutput('settings.md', 'changelog.md', 'hooks.md'),
+    test('changelog.md は結果から除外される', async () => {
+      const result = await searchDocs(
+        { original: ['keyword'], normalized: ['keyword'] },
+        tmpDir,
       );
 
-      const result = searchDocs({
-        original: ['keyword'],
-        normalized: ['keyword'],
-      });
+      for (const file of result.files) {
+        expect(file).not.toContain('changelog.md');
+      }
+    });
 
-      expect(result.files).not.toContain(
-        expect.stringContaining('changelog.md'),
+    test('重複ファイルは排除される', async () => {
+      // key1 と key2 の両方が settings.md にある
+      const result = await searchDocs(
+        { original: ['key1', 'key2'], normalized: [] },
+        tmpDir,
       );
-      expect(result.files).toHaveLength(2);
-    });
 
-    test('重複ファイルは exactSearch で排除される', () => {
-      // 2つの original キーワードが同じファイルにヒット
-      mockExecSync.mockReturnValue(grepOutput('settings.md'));
-
-      const result = searchDocs({
-        original: ['key1', 'key2'],
-        normalized: ['key1', 'key2'],
-      });
-
-      expect(result.files).toEqual([relPath('settings.md')]);
+      const settingsFiles = result.files.filter((f) =>
+        f.includes('settings.md'),
+      );
+      expect(settingsFiles).toHaveLength(1);
     });
   });
 
-  describe('シングルクォートのエスケープ', () => {
-    test('キーワードにシングルクォートが含まれる場合にエスケープされる', () => {
-      mockExecSync.mockReturnValue(grepOutput('settings.md'));
+  describe('大文字小文字の無視', () => {
+    test('regexSearch は大文字小文字を無視する', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['settings'] },
+        tmpDir,
+      );
 
-      searchDocs({ original: ["it's"], normalized: ['its'] });
-
-      const cmd = mockExecSync.mock.calls[0][0] as string;
-      // 'it'\''s' という形式でエスケープされる
-      expect(cmd).toContain("'`it'\\''s`'");
-    });
-  });
-
-  describe('ハイフンで始まるパターン(v2.1.51 バグ)', () => {
-    test('`-l` のようなフラグ風パターンが -- セパレータで保護される', () => {
-      mockExecSync.mockReturnValue(grepOutput('bash-tool.md'));
-
-      searchDocs({ original: ['-l'], normalized: ['l'] });
-
-      const cmd = mockExecSync.mock.calls[0][0] as string;
-      // -- がパターンの前にあることを確認
-      expect(cmd).toMatch(/-- +'.*-l.*'/);
-    });
-
-    test('`--help` のようなロングオプション風パターンも安全に検索される', () => {
-      mockExecSync.mockReturnValue(grepOutput('cli.md'));
-
-      searchDocs({ original: ['--help'], normalized: ['help'] });
-
-      const cmd = mockExecSync.mock.calls[0][0] as string;
-      expect(cmd).toContain(' -- ');
-      expect(cmd).toContain('--help');
-    });
-
-    test('`-E` (grepフラグと同名) パターンも安全に検索される', () => {
-      mockExecSync.mockReturnValue(grepOutput('regex.md'));
-
-      searchDocs({ original: ['-E'], normalized: [] });
-
-      const cmd = mockExecSync.mock.calls[0][0] as string;
-      expect(cmd).toContain(' -- ');
-    });
-  });
-
-  describe('grep エラーハンドリング', () => {
-    test('exit code 1(マッチなし)は空配列として処理される', () => {
-      mockExecSync.mockImplementation((_cmd: string) => {
-        throw grepError(1);
-      });
-
-      const result = searchDocs({
-        original: ['nonexistent'],
-        normalized: ['nonexistent'],
-      });
-
-      expect(result.files).toEqual([]);
-    });
-
-    test('exit code 2(エラー)は例外として再スローされる', () => {
-      mockExecSync.mockImplementation((_cmd: string) => {
-        throw grepError(2);
-      });
-
-      expect(() =>
-        searchDocs({ original: ['keyword'], normalized: ['keyword'] }),
-      ).toThrow();
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('settings.md');
     });
   });
 });

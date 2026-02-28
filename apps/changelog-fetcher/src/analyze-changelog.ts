@@ -9,7 +9,7 @@ import { parseChangelog } from './parsers/changelog-parser';
 import { tagFeatureAreas } from './parsers/feature-area-tagger';
 import { extractKeywords } from './parsers/keyword-extractor';
 import { getTopDocs } from './scorers/context-scorer';
-import { searchDocs, shouldSkipSearch } from './searchers/grep-executor';
+import { searchDocs } from './searchers/grep-executor';
 import { extractSnippets } from './searchers/snippet-extractor';
 
 const log = getLogger({ name: 'changelog-analyzer' });
@@ -42,22 +42,14 @@ async function main() {
       // キーワード抽出
       const keywords = extractKeywords(item);
 
-      // タグによる特別処理(SDK/API)
-      if (shouldSkipSearch(item.tags)) {
-        return {
-          content: item.content,
-          prefix: item.prefix,
-          importance_score: item.importance_score,
-          feature_areas: tagFeatureAreas(item.content),
-          related_docs: [],
-        };
-      }
-
-      // Grep実行
-      const searchResult = searchDocs(keywords);
+      // ドキュメント検索
+      const searchResult = await searchDocs(keywords);
 
       // スニペット取得
-      const snippetResults = extractSnippets(searchResult.files, keywords);
+      const snippetResults = await extractSnippets(
+        searchResult.files,
+        keywords,
+      );
 
       // スコアリング & 上位3件取得
       const topDocs = getTopDocs(snippetResults, 3);
