@@ -1,22 +1,30 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+  vi,
+} from 'bun:test';
 
 // 外部依存のモック
-vi.mock('../lib/discord', () => ({
-  createChangelogMessage: vi
-    .fn()
-    .mockReturnValue({ content: 'テスト通知', username: 'Bot' }),
-  sendToDiscord: vi.fn(),
+const mockedSendToDiscord = mock();
+
+mock.module('../lib/discord', () => ({
+  createChangelogMessage: mock(() => ({
+    content: 'テスト通知',
+    username: 'Bot',
+  })),
+  sendToDiscord: mockedSendToDiscord,
 }));
 
-// fetch をモック
-const mockFetch = vi.fn();
-vi.stubGlobal('fetch', mockFetch);
+// fetch をモック(spyOn 経由で型安全にモック)
+const mockFetch = spyOn(globalThis, 'fetch');
 
 import type { Analysis } from '@claude-code-changelog-viewer/types';
-import { sendToDiscord } from '../lib/discord';
 import { queueConsumer } from '../queue/consumer';
-
-const mockedSendToDiscord = vi.mocked(sendToDiscord);
 
 const validAnalysis: Analysis = {
   version: 'v1.0.0',
@@ -33,9 +41,9 @@ const validAnalysis: Analysis = {
 };
 
 type MockDB = {
-  prepare: ReturnType<typeof vi.fn>;
-  _run: ReturnType<typeof vi.fn>;
-  _first: ReturnType<typeof vi.fn>;
+  prepare: ReturnType<typeof mock>;
+  _run: ReturnType<typeof mock>;
+  _first: ReturnType<typeof mock>;
 };
 
 function createMockMessage(body: unknown) {
@@ -44,8 +52,8 @@ function createMockMessage(body: unknown) {
     id: 'msg-1',
     timestamp: new Date(),
     attempts: 1,
-    ack: vi.fn(),
-    retry: vi.fn(),
+    ack: mock(),
+    retry: mock(),
   };
 }
 
@@ -53,22 +61,22 @@ function createMockBatch(messages: ReturnType<typeof createMockMessage>[]) {
   return {
     messages,
     queue: 'test-queue',
-    ackAll: vi.fn(),
-    retryAll: vi.fn(),
+    ackAll: mock(),
+    retryAll: mock(),
   } as unknown as MessageBatch<unknown>;
 }
 
 function createMockEnv() {
-  const run = vi.fn().mockResolvedValue({ success: true });
-  const first = vi.fn();
+  const run = mock().mockResolvedValue({ success: true });
+  const first = mock();
   const db: MockDB = {
-    prepare: vi.fn().mockReturnValue({
-      bind: vi.fn().mockReturnValue({
-        all: vi.fn().mockResolvedValue({ results: [] }),
+    prepare: mock().mockReturnValue({
+      bind: mock().mockReturnValue({
+        all: mock().mockResolvedValue({ results: [] }),
         run,
         first,
       }),
-      all: vi.fn().mockResolvedValue({ results: [] }),
+      all: mock().mockResolvedValue({ results: [] }),
     }),
     _run: run,
     _first: first,
@@ -86,24 +94,25 @@ function createMockEnv() {
 }
 
 function setupFetchSuccess() {
-  mockFetch.mockResolvedValue({
-    ok: true,
-    json: () => Promise.resolve(validAnalysis),
-  });
+  const impl: typeof fetch = Object.assign(
+    () => Promise.resolve(Response.json(validAnalysis)),
+    { preconnect: globalThis.fetch.preconnect },
+  );
+  mockFetch.mockImplementation(impl);
 }
 
 function setupDBWithWebhooks(
   db: MockDB,
   webhooks: { id: string; webhook_url: string; token: string }[],
 ) {
-  db.prepare = vi.fn().mockImplementation((sql: string) => {
+  db.prepare = mock().mockImplementation((sql: string) => {
     if (sql.includes('SELECT')) {
       return {
-        all: vi.fn().mockResolvedValue({ results: webhooks }),
+        all: mock().mockResolvedValue({ results: webhooks }),
       };
     }
     return {
-      bind: vi.fn().mockReturnValue({
+      bind: mock().mockReturnValue({
         run: db._run,
         first: db._first,
       }),
@@ -127,7 +136,8 @@ describe('queueConsumer', () => {
     const result = promise;
     // タイマーを繰り返し進める
     for (let i = 0; i < 50; i++) {
-      await vi.advanceTimersByTimeAsync(1000);
+      vi.advanceTimersByTime(1000);
+      await Promise.resolve();
     }
     return result;
   }
@@ -164,7 +174,7 @@ describe('queueConsumer', () => {
     const batch = createMockBatch([message]);
     const { env } = createMockEnv();
 
-    mockFetch.mockResolvedValue({ ok: false, status: 404 });
+    mockFetch.mockResolvedValue(new Response(null, { status: 404 }));
 
     await callConsumer(batch, env);
 
@@ -177,10 +187,7 @@ describe('queueConsumer', () => {
     const batch = createMockBatch([message]);
     const { env } = createMockEnv();
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ invalid: 'data' }),
-    });
+    mockFetch.mockResolvedValue(Response.json({ invalid: 'data' }));
 
     await callConsumer(batch, env);
 
@@ -317,7 +324,7 @@ describe('queueConsumer', () => {
 
     await runWithTimers(callConsumer(batch, env));
 
-    // 2つとも呼ばれていることを確認（1つ目の例外で止まらない）
+    // 2つとも呼ばれていることを確認(1つ目の例外で止まらない)
     expect(mockedSendToDiscord).toHaveBeenCalledTimes(2);
     expect(message.ack).toHaveBeenCalled();
   });

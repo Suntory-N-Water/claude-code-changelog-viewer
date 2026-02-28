@@ -18,7 +18,7 @@ function parseArgs(): CliArgs {
   const skipAI = args.includes('--no-ai') || args.includes('--skip-ai');
 
   if (!version) {
-    log.error('Usage: pnpm tsx src/infer-benefits.ts <version> [--no-ai]');
+    log.error('Usage: bun src/infer-benefits.ts <version> [--no-ai]');
     process.exit(1);
   }
 

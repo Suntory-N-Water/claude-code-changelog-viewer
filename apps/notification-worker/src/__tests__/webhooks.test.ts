@@ -1,23 +1,20 @@
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { webhooksRoute } from '../routes/webhooks';
 import type { WebhookRow } from '../types';
 
 // 外部依存のモック
-vi.mock('../lib/turnstile', () => ({
-  verifyTurnstileToken: vi.fn(),
+const mockedVerifyTurnstile = mock();
+const mockedSendToDiscord = mock();
+
+mock.module('../lib/turnstile', () => ({
+  verifyTurnstileToken: mockedVerifyTurnstile,
 }));
 
-vi.mock('../lib/discord', () => ({
-  createTestMessage: vi.fn().mockReturnValue({ content: 'テスト通知' }),
-  sendToDiscord: vi.fn(),
+mock.module('../lib/discord', () => ({
+  createTestMessage: mock(() => ({ content: 'テスト通知' })),
+  sendToDiscord: mockedSendToDiscord,
 }));
-
-import { sendToDiscord } from '../lib/discord';
-import { verifyTurnstileToken } from '../lib/turnstile';
-
-const mockedVerifyTurnstile = vi.mocked(verifyTurnstileToken);
-const mockedSendToDiscord = vi.mocked(sendToDiscord);
 
 const validWebhookUrl = 'https://discord.com/api/webhooks/123456/abcdef';
 
@@ -34,11 +31,11 @@ const activeRow: WebhookRow = {
 const inactiveRow: WebhookRow = { ...activeRow, active: 0 };
 
 function createMockDB(row: WebhookRow | null = null) {
-  const run = vi.fn().mockResolvedValue({ success: true });
+  const run = mock().mockResolvedValue({ success: true });
   return {
-    prepare: vi.fn().mockReturnValue({
-      bind: vi.fn().mockReturnValue({
-        first: vi.fn().mockResolvedValue(row),
+    prepare: mock().mockReturnValue({
+      bind: mock().mockReturnValue({
+        first: mock().mockResolvedValue(row),
         run,
       }),
     }),
@@ -79,7 +76,8 @@ describe('POST /api/webhooks', () => {
   const app = createApp();
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    mockedVerifyTurnstile.mockClear();
+    mockedSendToDiscord.mockClear();
   });
 
   it('新規 Webhook を登録できる', async () => {
@@ -94,7 +92,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
+    expect(await res.json<unknown>()).toEqual({ success: true });
     // INSERT が呼ばれることを確認
     expect(db.prepare).toHaveBeenCalledWith(
       expect.stringContaining('INSERT INTO webhooks'),
@@ -113,7 +111,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: '既に登録済みです' });
+    expect(await res.json<unknown>()).toEqual({ error: '既に登録済みです' });
   });
 
   it('非アクティブな既存レコードを再有効化する', async () => {
@@ -128,7 +126,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true });
+    expect(await res.json<unknown>()).toEqual({ success: true });
     // UPDATE が呼ばれることを確認
     expect(db.prepare).toHaveBeenCalledWith(
       expect.stringContaining('UPDATE webhooks SET active = 1'),
@@ -146,7 +144,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(403);
-    expect(await res.json()).toEqual({
+    expect(await res.json<unknown>()).toEqual({
       error: 'Turnstile検証に失敗しました',
     });
   });
@@ -165,7 +163,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({
+    expect(await res.json<unknown>()).toEqual({
       error: 'Discord Webhook URLの形式が不正です',
     });
   });
@@ -176,10 +174,12 @@ describe('POST /api/webhooks', () => {
     const res = await postJSON(app, { invalid: 'body' }, createEnv(db));
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'リクエストが不正です' });
+    expect(await res.json<unknown>()).toEqual({
+      error: 'リクエストが不正です',
+    });
   });
 
-  it('webhook_url が空文字で 400 を返す（バリデーション失敗）', async () => {
+  it('webhook_url が空文字で 400 を返す(バリデーション失敗)', async () => {
     const db = createMockDB();
     mockedVerifyTurnstile.mockResolvedValue(true);
 
@@ -190,7 +190,7 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({
+    expect(await res.json<unknown>()).toEqual({
       error: 'Discord Webhook URLの形式が不正です',
     });
   });
@@ -207,7 +207,9 @@ describe('POST /api/webhooks', () => {
     );
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'Webhook URLが無効です' });
+    expect(await res.json<unknown>()).toEqual({
+      error: 'Webhook URLが無効です',
+    });
     // DB への INSERT は行われない
     expect(db._run).not.toHaveBeenCalled();
   });

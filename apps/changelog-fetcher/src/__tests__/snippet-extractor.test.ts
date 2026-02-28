@@ -1,14 +1,12 @@
+import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import * as path from 'node:path';
-import { beforeEach, describe, expect, test, vi } from 'vitest';
-
-vi.mock('node:child_process', () => ({
-  execSync: vi.fn(),
-}));
-
-import { execSync } from 'node:child_process';
 import { extractSnippets } from '../searchers/snippet-extractor';
 
-const mockExecSync = vi.mocked(execSync);
+const mockExecSync = mock();
+
+mock.module('node:child_process', () => ({
+  execSync: mockExecSync,
+}));
 
 const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
 
@@ -25,12 +23,12 @@ beforeEach(() => {
 describe('extractSnippets', () => {
   describe('コマンド構築と正規表現エスケープ', () => {
     test('キーワードの正規表現メタ文字がエスケープされる', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '3';
         }
         return 'snippet content';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['fn()'],
@@ -54,12 +52,12 @@ describe('extractSnippets', () => {
     });
 
     test('ドット . がエスケープされる(任意文字マッチを防ぐ)', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['config.json'],
@@ -73,12 +71,12 @@ describe('extractSnippets', () => {
     });
 
     test('角括弧 [] がエスケープされる', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['$ARGS[0]'],
@@ -92,12 +90,12 @@ describe('extractSnippets', () => {
     });
 
     test('パイプ | がエスケープされる(OR演算子の意図しない解釈を防ぐ)', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['stdin|stdout'],
@@ -112,12 +110,12 @@ describe('extractSnippets', () => {
     });
 
     test('アスタリスク * がエスケープされる', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['*.md'],
@@ -131,12 +129,12 @@ describe('extractSnippets', () => {
     });
 
     test('バックスラッシュ \\ がエスケープされる', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['path\\to'],
@@ -151,12 +149,12 @@ describe('extractSnippets', () => {
     });
 
     test('プラス + とクエスチョン ? がエスケープされる', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['a+b?c'],
@@ -170,12 +168,12 @@ describe('extractSnippets', () => {
     });
 
     test('キャレット ^ とドル $ がエスケープされる', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ['$HOME'],
@@ -189,12 +187,12 @@ describe('extractSnippets', () => {
     });
 
     test('シングルクォートを含むキーワードがシェルエスケープされる', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       extractSnippets(['docs/test.md'], {
         original: ["it's"],
@@ -249,12 +247,12 @@ describe('extractSnippets', () => {
     });
 
     test('hit_count を数値として返す', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '42\n';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       const results = extractSnippets(['docs/test.md'], {
         original: ['keyword'],
@@ -265,12 +263,12 @@ describe('extractSnippets', () => {
     });
 
     test('複数ファイルをそれぞれ処理する', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       const results = extractSnippets(['docs/a.md', 'docs/b.md', 'docs/c.md'], {
         original: ['keyword'],
@@ -307,9 +305,9 @@ describe('extractSnippets', () => {
     });
 
     test('grep がマッチなし (exit code 1) の場合は 0 件として扱う', () => {
-      mockExecSync.mockImplementation(((_cmd: string) => {
+      mockExecSync.mockImplementation((_cmd: string) => {
         throw grepError(1);
-      }) as typeof execSync);
+      });
 
       const results = extractSnippets(['docs/test.md'], {
         original: ['nonexistent'],
@@ -321,9 +319,9 @@ describe('extractSnippets', () => {
     });
 
     test('grep がエラー (exit code 2) の場合は例外を再スローする', () => {
-      mockExecSync.mockImplementation(((_cmd: string) => {
+      mockExecSync.mockImplementation((_cmd: string) => {
         throw grepError(2);
-      }) as typeof execSync);
+      });
 
       expect(() =>
         extractSnippets(['docs/test.md'], {
@@ -334,12 +332,12 @@ describe('extractSnippets', () => {
     });
 
     test('ハイフンで始まるキーワード `-l` がエスケープされて検索される', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'BashTool skips `-l` flag';
-      }) as typeof execSync);
+      });
 
       const results = extractSnippets(['docs/test.md'], {
         original: ['-l'],
@@ -358,12 +356,12 @@ describe('extractSnippets', () => {
     });
 
     test('hit_count が非数値の場合は 0 を返す', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return 'not-a-number\n';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       const results = extractSnippets(['docs/test.md'], {
         original: ['keyword'],
@@ -376,12 +374,12 @@ describe('extractSnippets', () => {
 
   describe('ファイルパス構築', () => {
     test('相対パスが絶対パスに変換されてコマンドに渡される', () => {
-      mockExecSync.mockImplementation(((cmd: string) => {
+      mockExecSync.mockImplementation((cmd: string) => {
         if ((cmd as string).includes('-c')) {
           return '1';
         }
         return 'snippet';
-      }) as typeof execSync);
+      });
 
       const relativePath = 'apps/docs-tracker/docs/en/settings.md';
       extractSnippets([relativePath], {

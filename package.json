@@ -10,9 +10,15 @@
     "url": "git+https://github.com/Suntory-N-Water/claude-code-changelog-viewer.git"
   },
   "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "trustedDependencies": [
+    "workerd"
+  ],
   "engines": {
-    "node": ">=22.0.0",
-    "pnpm": ">=10.0.0"
+    "node": ">=22.0.0"
   },
   "bugs": {
     "url": "https://github.com/Suntory-N-Water/claude-code-changelog-viewer/issues"
@@ -21,43 +27,45 @@
   "keywords": [
     "typescript",
     "astro",
-    "pnpm",
+    "bun",
     "monorepo",
     "claude-code"
   ],
   "scripts": {
-    "dev": "pnpm --filter www run dev",
-    "build": "pnpm --filter www run build",
-    "preview": "pnpm --filter www run preview",
-    "deploy": "pnpm --filter www run deploy",
-    "upload": "pnpm --filter www run upload",
-    "fetch:docs": "pnpm --filter docs-tracker run build && pnpm --filter docs-tracker run fetch-docs",
-    "fetch:changelog": "pnpm --filter changelog-fetcher run fetch",
-    "analyze": "pnpm --filter changelog-fetcher run analyze",
-    "infer": "pnpm --filter changelog-fetcher run infer",
-    "infer:no-ai": "pnpm --filter changelog-fetcher run infer:no-ai",
-    "notify:dev": "pnpm --filter notification-worker run dev",
-    "notify:deploy": "pnpm --filter notification-worker run deploy",
-    "notify:migrate": "pnpm --filter notification-worker exec wrangler d1 migrations apply notification-db --remote",
-    "notify:migrate:local": "pnpm --filter notification-worker exec wrangler d1 migrations apply notification-db --local",
-    "sync": "pnpm --filter www run sync",
-    "format": "biome format --write ./apps ./packages && pnpm --filter www run format",
+    "dev": "bun run --filter www dev",
+    "build": "bun run --filter www build",
+    "preview": "bun run --filter www preview",
+    "deploy": "bun run --filter www deploy",
+    "upload": "bun run --filter www upload",
+    "fetch:docs": "bun run --filter docs-tracker fetch-docs",
+    "fetch:changelog": "bun run --filter changelog-fetcher fetch",
+    "analyze": "bun run --filter changelog-fetcher analyze",
+    "infer": "bun run --filter changelog-fetcher infer",
+    "infer:no-ai": "bun run --filter changelog-fetcher infer:no-ai",
+    "notify:dev": "bun run --filter notification-worker dev",
+    "notify:deploy": "bun run --filter notification-worker deploy",
+    "notify:migrate": "bun run --filter notification-worker wrangler d1 migrations apply notification-db --remote",
+    "notify:migrate:local": "bun run --filter notification-worker wrangler d1 migrations apply notification-db --local",
+    "sync": "bun run --filter www sync",
+    "format": "biome format --write ./apps ./packages && bun run --filter www format",
     "check": "biome check ./apps ./packages",
     "check:fix": "biome check --write ./apps ./packages",
     "lint": "biome lint ./apps ./packages",
     "lint:unsafe-fix": "biome lint --write --unsafe ./apps ./packages",
     "lint:ai": "biome lint --reporter=github ./apps ./packages 2>&1 | { grep '^::' || true; }",
-    "type-check": "pnpm -r exec tsc --noEmit && pnpm --filter www run check",
-    "type-check:ai": "pnpm -r exec tsc --noEmit --pretty false && pnpm --filter www run check",
-    "test": "pnpm --filter notification-worker exec vitest run && pnpm --filter changelog-fetcher exec vitest run",
-    "test:coverage": "pnpm --filter notification-worker exec vitest run --coverage && pnpm --filter changelog-fetcher exec vitest run --coverage",
-    "test:ui": "pnpm --filter notification-worker exec vitest --ui && pnpm --filter changelog-fetcher exec vitest --ui",
-    "ai-check": "pnpm run format && pnpm run lint:ai && pnpm run type-check:ai"
+    "type-check": "bun run --filter '*' type-check && bun run --filter www check",
+    "type-check:ai": "bun run --filter '*' type-check && bun run --filter www check",
+    "test": "bun run --filter notification-worker test && bun run --filter changelog-fetcher test",
+    "test:coverage": "bun run --filter notification-worker test:coverage && bun run --filter changelog-fetcher test:coverage",
+    "ai-check": "bun run format && bun run lint:ai && bun run type-check:ai",
+    "knip": "knip",
+    "similarity": "similarity-ts --exclude node_modules --exclude dist --exclude .astro --exclude changelogs --exclude analysis --exclude inferred --exclude metadata --exclude '*.d.ts' ."
   },
   "devDependencies": {
     "@actions/core": "^3.0.0",
     "@actions/github": "^9.0.0",
     "@biomejs/biome": "2.4.0",
+    "@types/bun": "^1.3.9",
     "@types/node": "^25.2.3",
     "knip": "^5.85.0",
     "typescript": "~5.9.3"

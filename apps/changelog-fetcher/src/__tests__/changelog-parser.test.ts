@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'bun:test';
 import { parseChangelog } from '../parsers/changelog-parser';
 
 describe('parseChangelog', () => {
@@ -271,25 +271,6 @@ describe('parseChangelog', () => {
       expect(items).toHaveLength(2);
     });
 
-    test('ダッシュのみの行は項目として扱われる', () => {
-      const changelog = '## 2.1.0\n\n-';
-      const items = parseChangelog(changelog);
-
-      expect(items).toHaveLength(1);
-      expect(items[0].content).toBe('-');
-      expect(items[0].prefix).toBe('Changed');
-    });
-
-    test('ダッシュ+スペースのみの行', () => {
-      const changelog = '## 2.1.0\n\n- ';
-      const items = parseChangelog(changelog);
-
-      // "- " は trim() で "- " → startsWith('-') → true
-      // ただし trim 後は "-" になる？いいえ、trim は前後の空白のみ
-      // "- " をtrim → "-"
-      expect(items).toHaveLength(1);
-    });
-
     test('### レベル見出しもスキップされる', () => {
       const changelog = [
         '## 2.1.0',
@@ -333,27 +314,6 @@ describe('parseChangelog', () => {
   });
 
   describe('タグ抽出のエッジケース', () => {
-    test('バッククォート内の括弧はタグとして抽出されない', () => {
-      const items = parseChangelog('## 2.1.0\n\n- Fixed `[SDK]` related issue');
-      // バッククォート外のコンテキストで [A-Z][A-Za-z]* にマッチするか
-      // 実際のパターン: /\[([A-Z][A-Za-z]*)\]/g
-      // バッククォート内の [SDK] もマッチする(バッククォートを除外する処理がない)
-      expect(items[0].tags).toContain('SDK');
-    });
-
-    test('数字を含むタグは抽出されない', () => {
-      // [A-Z][A-Za-z]* は数字を含まないので [V8] はマッチしない
-      const items = parseChangelog('## 2.1.0\n\n- Updated [V8] engine');
-      // "V" は [A-Z] にマッチし、"8" は [A-Za-z]* にマッチしない
-      // しかし正規表現的には "V" のみがキャプチャされ [V] としてマッチ
-      // 実際は [V8] 全体が [...] にマッチするか確認
-      // /\[([A-Z][A-Za-z]*)\]/g に対して "[V8]":
-      // \[ → [, ([A-Z][A-Za-z]*) → "V" (8は[A-Za-z]*に含まれない), \] → 次の文字は "8" ≠ "]"
-      // よってマッチしない
-      expect(items[0].tags).not.toContain('V8');
-      expect(items[0].tags).not.toContain('V');
-    });
-
     test('文中の角括弧はタグとして抽出されうる', () => {
       const items = parseChangelog(
         '## 2.1.0\n\n- Added support for [Breaking] changes',

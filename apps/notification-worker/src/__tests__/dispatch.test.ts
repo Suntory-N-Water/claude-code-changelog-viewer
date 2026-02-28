@@ -1,5 +1,5 @@
+import { describe, expect, it, mock } from 'bun:test';
 import { Hono } from 'hono';
-import { describe, expect, it, vi } from 'vitest';
 import { dispatchRoute } from '../routes/dispatch';
 
 function createApp() {
@@ -12,7 +12,7 @@ function createMockEnv(secret = 'test-secret') {
   return {
     DISPATCH_SECRET: secret,
     NOTIFICATION_QUEUE: {
-      send: vi.fn().mockResolvedValue(undefined),
+      send: mock(() => Promise.resolve(undefined)),
     },
   };
 }
@@ -62,7 +62,7 @@ describe('POST /api/dispatch', () => {
     const res = await postJSON(app, { versions: ['v1.0.0'] }, env);
 
     expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: '認証に失敗しました' });
+    expect(await res.json<unknown>()).toEqual({ error: '認証に失敗しました' });
     expect(env.NOTIFICATION_QUEUE.send).not.toHaveBeenCalled();
   });
 
@@ -74,7 +74,7 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(401);
-    expect(await res.json()).toEqual({ error: '認証に失敗しました' });
+    expect(await res.json<unknown>()).toEqual({ error: '認証に失敗しました' });
   });
 
   it('versions が空配列で 400 を返す', async () => {
@@ -85,7 +85,9 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'リクエストが不正です' });
+    expect(await res.json<unknown>()).toEqual({
+      error: 'リクエストが不正です',
+    });
   });
 
   it('versions が v で始まらない文字列で 400 を返す', async () => {
@@ -96,7 +98,9 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'リクエストが不正です' });
+    expect(await res.json<unknown>()).toEqual({
+      error: 'リクエストが不正です',
+    });
   });
 
   it('リクエストボディが不正な場合 400 を返す', async () => {
@@ -107,7 +111,9 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'リクエストが不正です' });
+    expect(await res.json<unknown>()).toEqual({
+      error: 'リクエストが不正です',
+    });
   });
 
   it('単一バージョンでもキューに投入できる', async () => {

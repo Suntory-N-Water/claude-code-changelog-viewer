@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'bun:test';
 import { getTopDocs } from '../scorers/context-scorer';
 import type { SnippetResult } from '../types';
 

@@ -30,7 +30,7 @@ function parseArgs(): CliArgs {
 
   if (!commitSha) {
     log.error(
-      'Usage: pnpm tsx src/discord/create-docs-summary-message.ts <commit-sha> --changed-files <count>',
+      'Usage: bun src/discord/create-docs-summary-message.ts <commit-sha> --changed-files <count>',
     );
     process.exit(1);
   }
