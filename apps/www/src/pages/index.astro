@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import VersionCard from '../components/changelog/VersionCard.astro';
 import Layout from '../layouts/Layout.astro';
+import { SITE_TITLE } from '../lib/constants';
 import { generateFAQJsonLd } from '../lib/json-ld';
 import { semverCompareDesc } from '../lib/semver';
 
@@ -35,35 +36,34 @@ const faqItems = [
   {
     question: 'このサイトの更新頻度は？',
     answer:
-      'Claude Codeの新バージョンがGitHub Releasesに公開されると、毎時実行のチェックで自動検出し、AIによる分析結果を即座に反映しています。',
+      'Claude Codeの公式changelog.mdの更新を毎時チェックで自動検出し、新バージョンが見つかるとAIによる分析結果を生成・反映しています。',
   },
   {
-    question: '内容の正確性は保証されていますか？',
+    question: '公式との違いは？',
     answer:
-      '当サイトのコンテンツはAIによって生成されており、正確性・完全性を保証するものではありません。正確な情報はAnthropic公式のリリースノートをご確認ください。',
+      '公式のchangelog.mdをAIが日本語で要約・分析した非公式サイトです。AI生成のため内容が不正確な場合があります。正確な情報は公式リリースノートをご確認ください。',
   },
 ];
 const faqJsonLd = JSON.stringify(generateFAQJsonLd(faqItems));
 ---
 
 <Layout
-  title='Claude Code 変更履歴まとめ - 全バージョンのアップデート内容をAIが日本語解説'
+  title={`${SITE_TITLE} - 全バージョンのアップデート内容をAIが日本語解説`}
   description='Claude Code(Anthropic公式CLIコーディングツール)の全バージョンの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。'
   jsonLd={{ type: 'website' }}
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-6xl mx-auto'>
-      <header class='mb-12 sm:mb-16 text-center max-w-2xl mx-auto'>
+      <header class='mb-12 sm:mb-16 text-center max-w-4xl mx-auto'>
         <h1
           class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
         >
-          Claude Codeの変更履歴をAIで日本語解説
+          {SITE_TITLE}
         </h1>
         <p
           class='text-base sm:text-lg text-pretty text-gray-600 leading-relaxed'
         >
-          Anthropic公式CLIツール「Claude
-          Code」の全バージョンのアップデート内容を、AIが分析して日本語で分かりやすくまとめています。新機能・バグ修正・改善点の詳細と、開発者への具体的な恩恵がひと目で分かります。
+          Claude Code の全バージョンのアップデート内容を、AIが分析して日本語で分かりやすく解説。
         </p>
         <a
           href='/notify'

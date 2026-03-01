@@ -1,3 +1,5 @@
+import { SITE_TITLE } from './constants';
+
 type WebSiteParams = {
   siteUrl: string;
   title: string;
@@ -27,7 +29,7 @@ export function generateWebSiteJsonLd(params: WebSiteParams): object {
     inLanguage: 'ja',
     publisher: {
       '@type': 'Organization',
-      name: 'Claude Code Changelog Viewer',
+      name: SITE_TITLE,
       url: params.siteUrl,
     },
   };
@@ -44,12 +46,12 @@ export function generateArticleJsonLd(params: ArticleParams): object {
     image: `${params.siteUrl}/changelog/og/v${params.version}.png`,
     author: {
       '@type': 'Organization',
-      name: 'Claude Code Changelog Viewer',
+      name: SITE_TITLE,
       url: params.siteUrl,
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Claude Code Changelog Viewer',
+      name: SITE_TITLE,
       url: params.siteUrl,
     },
     about: {
