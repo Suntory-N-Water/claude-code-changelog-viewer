@@ -82,7 +82,7 @@ function extractPrefix(content: string): string {
 function extractTags(content: string): string[] {
   const tagPattern = /\[([A-Z][A-Za-z]*)\]/g;
   const matches = [...content.matchAll(tagPattern)];
-  return matches.map((match) => match[1]);
+  return matches.map((match) => match[1]).filter((s): s is string => s != null);
 }
 
 /**

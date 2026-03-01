@@ -21,14 +21,16 @@ const MODEL_CONFIG_PATH = join(
 export function parseModelNames(content: string): string[] {
   const currentlyPattern = /\(currently\s+([^)]+)\)/g;
   const matches = content.matchAll(currentlyPattern);
-  const names = Array.from(matches, (m) => m[1].trim());
+  const names = Array.from(matches, (m) => m[1])
+    .filter((s): s is string => s != null)
+    .map((s) => s.trim());
   return [...new Set(names)];
 }
 
 /**
  * パース済みモデル名リストからプロンプト用テキストブロックを構築
  *
- * コアの制約（ハルシネーション防止）はモデル名取得の成否に依存しない。
+ * コアの制約(ハルシネーション防止)はモデル名取得の成否に依存しない。
  * モデル名が取れた場合のみ、参考情報として補足する。
  */
 export function buildModelContext(models: string[]): string {

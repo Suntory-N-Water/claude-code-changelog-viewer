@@ -32,7 +32,7 @@ function parseArgs(): CliArgs {
   const changedFilesIndex = args.indexOf('--changed-files');
   const changedFilesCount =
     changedFilesIndex !== -1
-      ? Number.parseInt(args[changedFilesIndex + 1], 10)
+      ? Number.parseInt(args[changedFilesIndex + 1] ?? '', 10)
       : 0;
 
   if (!commitSha) {
@@ -278,8 +278,8 @@ function createDiscordMessage(
 async function main(): Promise<void> {
   const { commitSha, changedFilesCount } = parseArgs();
 
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL || '';
-  const geminiApiKey = process.env.GEMINI_API_KEY || '';
+  const webhookUrl = process.env['DISCORD_WEBHOOK_URL'] || '';
+  const geminiApiKey = process.env['GEMINI_API_KEY'] || '';
 
   if (!webhookUrl) {
     log.error('DISCORD_WEBHOOK_URL 環境変数が未設定です');

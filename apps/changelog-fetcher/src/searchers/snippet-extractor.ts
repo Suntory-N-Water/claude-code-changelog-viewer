@@ -23,7 +23,8 @@ async function analyzeFile(
   // マッチ行のインデックスを収集
   const matchIndices: number[] = [];
   for (let i = 0; i < lines.length; i++) {
-    if (pattern.test(lines[i])) {
+    const line = lines[i];
+    if (line && pattern.test(line)) {
       matchIndices.push(i);
     }
   }
@@ -38,8 +39,9 @@ async function analyzeFile(
     const start = Math.max(0, idx - 3);
     const end = Math.min(lines.length - 1, idx + 3);
 
-    if (blocks.length > 0 && start <= blocks[blocks.length - 1].end + 1) {
-      blocks[blocks.length - 1].end = end;
+    const lastBlock = blocks.at(-1);
+    if (lastBlock && start <= lastBlock.end + 1) {
+      lastBlock.end = end;
     } else {
       blocks.push({ start, end });
     }

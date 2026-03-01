@@ -42,11 +42,11 @@ const LOG_LEVEL_MAP: Record<LogLevel, number> = {
 };
 
 function detectFormat(): 'pretty' | 'json' {
-  const envFormat = process.env.LOG_FORMAT;
+  const envFormat = process.env['LOG_FORMAT'];
   if (envFormat === 'pretty' || envFormat === 'json') {
     return envFormat;
   }
-  if (process.env.CI) {
+  if (process.env['CI']) {
     return 'json';
   }
   if (process.stdout.isTTY) {
@@ -56,7 +56,7 @@ function detectFormat(): 'pretty' | 'json' {
 }
 
 function resolveLevel(): LogLevel {
-  const env = process.env.LOG_LEVEL?.toUpperCase();
+  const env = process.env['LOG_LEVEL']?.toUpperCase();
   if (env && env in LOG_LEVEL_MAP) {
     return env as LogLevel;
   }

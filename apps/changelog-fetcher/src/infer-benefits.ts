@@ -57,7 +57,7 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
   }
 
   // 2. Gemini API キー取得
-  const apiKey = process.env.GEMINI_API_KEY || '';
+  const apiKey = process.env['GEMINI_API_KEY'] || '';
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY environment variable is required');
   }

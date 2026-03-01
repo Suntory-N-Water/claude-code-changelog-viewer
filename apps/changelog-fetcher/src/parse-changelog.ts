@@ -34,7 +34,7 @@ function parseChangelog(content: string): Record<string, string> {
       versions[currentVersion] = lines.join('\n').trim();
       lines.length = 0;
     }
-    currentVersion = match[1];
+    currentVersion = match[1] ?? null;
   }
 
   if (currentVersion) {

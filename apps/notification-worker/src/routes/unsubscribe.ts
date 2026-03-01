@@ -130,7 +130,7 @@ export const unsubscribeRoute = new Hono<{
   // POST: 実際に配信停止を実行
   .post('/', async (c) => {
     const body = await c.req.parseBody();
-    const token = typeof body.token === 'string' ? body.token : null;
+    const token = typeof body['token'] === 'string' ? body['token'] : null;
 
     if (!token) {
       return c.html(

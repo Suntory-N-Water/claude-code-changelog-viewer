@@ -51,7 +51,7 @@ function normalizeKeyword(keyword: string): string[] {
 function extractBacktickKeywords(content: string): string[] {
   const backtickPattern = /`([^`]+)`/g;
   const matches = [...content.matchAll(backtickPattern)];
-  return matches.map((match) => match[1]);
+  return matches.map((match) => match[1]).filter((s): s is string => s != null);
 }
 
 /**
@@ -66,7 +66,9 @@ function extractTechnicalTerms(content: string): string[] {
   const matches = [...withoutTags.matchAll(termPattern)];
   return matches
     .map((match) => match[1])
-    .filter((term) => !EXCLUDED_WORDS.has(term));
+    .filter(
+      (term): term is string => term != null && !EXCLUDED_WORDS.has(term),
+    );
 }
 
 /**

@@ -92,10 +92,14 @@ export class ClaudeDocsFetcher {
       let match: RegExpExecArray | null = null;
       match = linkRegex.exec(line);
       while (match !== null) {
-        const [, title, url] = match;
+        const title = match[1];
+        const url = match[2];
+        if (!title || !url) {
+          continue;
+        }
         docs.push({
           title: title.trim(),
-          url: url,
+          url,
         });
         match = linkRegex.exec(line);
       }
@@ -151,10 +155,13 @@ export class ClaudeDocsFetcher {
     match = urlRegex.exec(content);
     while (match !== null) {
       const url = match[0];
-      const pathPart = match[1]; // e.g., "sdk/migration-guide.md" or "chrome.md"
+      const pathPart = match[1];
+      if (!url || !pathPart) {
+        continue;
+      }
 
       // Extract title from path (remove .md and convert to readable format)
-      const title = pathPart.replace(/\.md$/, '').split('/').pop() || pathPart;
+      const title = pathPart.replace(/\.md$/, '').split('/').pop() ?? pathPart;
 
       docs.push({ title, url });
       match = urlRegex.exec(content);
@@ -284,15 +291,15 @@ source: ${docInfo.url}
   private getFilenameFromUrl(url: string): string {
     // Extract path after /docs/en/
     const match = url.match(/\/docs\/en\/(.+\.md)/);
-    if (match) {
+    const captured = match?.[1];
+    if (captured) {
       // Remove query parameters and hash
-      return match[1].split('?')[0].split('#')[0];
+      return captured.split(/[?#]/)[0] ?? captured;
     }
 
     // Fallback: existing logic
-    const urlParts = url.split('/');
-    const lastPart = urlParts[urlParts.length - 1];
-    const filename = lastPart.split('?')[0].split('#')[0];
+    const lastPart = url.split('/').at(-1) ?? '';
+    const filename = lastPart.split(/[?#]/)[0] ?? '';
     return filename.endsWith('.md') ? filename : `${filename}.md`;
   }
 
@@ -566,7 +573,7 @@ source: ${docInfo.url}
 
     if (hasChanges) {
       const now = `${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC`;
-      metadata.lastMapUpdate = now;
+      metadata['lastMapUpdate'] = now;
       this.log.msg('APLG0007', { params: ['ドキュメント'] });
     } else {
       this.log.msg('APLG0008', { params: ['ドキュメント'] });
