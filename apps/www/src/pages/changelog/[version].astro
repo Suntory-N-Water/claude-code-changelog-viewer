@@ -45,10 +45,15 @@ export async function getStaticPaths() {
 const { entry, hasGitHubRelease, prevVersion, nextVersion } = Astro.props;
 const { version, items, summary } = entry.data;
 
-// メタタグ用 description: summary があれば使用、なければデフォルトテキスト
-const description =
+// メタタグ用 description: summary があれば使用、なければ変更項目数を含めた詳細テキスト
+const MIN_DESC_LENGTH = 120;
+const rawDescription =
   summary ??
-  `Claude Code v${version}の変更内容をAIが分析し、アップデートの詳細とユーザーへの恩恵を日本語で分かりやすく解説します。`;
+  `Claude Code v${version}のアップデート内容(${items.length}件の変更項目)をAIが分析。新機能・バグ修正・改善点の詳細とユーザーへの具体的な恩恵を日本語で分かりやすく解説しています。`;
+const description =
+  rawDescription.length < MIN_DESC_LENGTH
+    ? `${rawDescription} Claude Code v${version}の変更点をAIが日本語で分かりやすく解説します。`
+    : rawDescription;
 
 // summaryのバッククォートをHTMLコードタグに変換
 const formattedSummary = summary ? formatChangelogContent(summary) : undefined;
@@ -60,9 +65,17 @@ const sortedItems = items
 ---
 
 <Layout
-  title={`Claude Code v${version} 変更履歴 - アップデート内容とユーザーへの恩恵`}
+  title={`Claude Code v${version} の変更点 - ${items.length}件のアップデート内容を日本語解説`}
   description={description}
   image={`${import.meta.env.SITE}/changelog/og/v${version}.png`}
+  jsonLd={{ type: 'article', version, summary }}
+  breadcrumbs={[
+    { name: 'トップ', url: import.meta.env.SITE },
+    {
+      name: `v${version}`,
+      url: `${import.meta.env.SITE}/changelog/v${version}`,
+    },
+  ]}
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-4xl mx-auto'>
@@ -145,6 +158,9 @@ const sortedItems = items
         )
       }
 
+      <h2 class='text-xl font-bold text-[hsl(var(--cc-main-black))] mb-6'>
+        変更内容一覧
+      </h2>
       <div class='space-y-6'>
         {
           sortedItems.map(({ item, originalIndex }) => (
@@ -153,8 +169,78 @@ const sortedItems = items
         }
       </div>
 
+      <aside
+        class='mt-10 p-5 bg-[hsl(var(--cc-main-orange)/0.04)] border border-[hsl(var(--cc-gray))] rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4'
+      >
+        <p class='text-sm text-gray-600'>
+          Claude Codeの新バージョンを見逃さない
+        </p>
+        <a
+          href='/notify'
+          class='inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--cc-main-orange))] text-sm text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-colors'
+        >
+          <svg
+            class='w-4 h-4'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            stroke-width='2'
+            aria-hidden='true'
+          >
+            <path
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
+            ></path>
+          </svg>
+          Discordで更新通知を受け取る
+        </a>
+      </aside>
+
+      <div class='mt-8 flex items-center gap-3'>
+        <span class='text-sm text-gray-500'>シェア:</span>
+        <a
+          href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${import.meta.env.SITE}/changelog/v${version}`)}&text=${encodeURIComponent(`Claude Code v${version} の変更点`)}`}
+          target='_blank'
+          rel='noopener noreferrer'
+          class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-gray-600 hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+          aria-label='Xでシェア'
+        >
+          <svg
+            class='w-3.5 h-3.5'
+            viewBox='0 0 24 24'
+            fill='currentColor'
+            aria-hidden='true'
+          >
+            <path
+              d='M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z'
+            ></path>
+          </svg>
+          X
+        </a>
+        <a
+          href={`https://b.hatena.ne.jp/entry/s/${new URL(`/changelog/v${version}`, import.meta.env.SITE).host}${new URL(`/changelog/v${version}`, import.meta.env.SITE).pathname}`}
+          target='_blank'
+          rel='noopener noreferrer'
+          class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-gray-600 hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+          aria-label='はてなブックマークに追加'
+        >
+          <svg
+            class='w-3.5 h-3.5'
+            viewBox='0 0 24 24'
+            fill='currentColor'
+            aria-hidden='true'
+          >
+            <path
+              d='M20.47 2H3.53A1.45 1.45 0 002 3.38v17.24A1.45 1.45 0 003.53 22h16.94A1.45 1.45 0 0022 20.62V3.38A1.45 1.45 0 0020.47 2zM8.6 17.05a3.64 3.64 0 01-1.34.62 6.4 6.4 0 01-1.67.21H3.28V6.12h2.39a5.3 5.3 0 011.41.18 3 3 0 011.06.56 2.38 2.38 0 01.66.94 3.44 3.44 0 01.23 1.28 2.68 2.68 0 01-.29 1.29 2.59 2.59 0 01-.85.9 2.84 2.84 0 011.13 1.09 3.42 3.42 0 01.39 1.68 3.68 3.68 0 01-.31 1.52 3.3 3.3 0 01-.9 1.13zm-.66-7.05a1.35 1.35 0 00-.54-.73 1.72 1.72 0 00-.45-.23 2.2 2.2 0 00-.59-.07h-.62v3h.56a2.3 2.3 0 001-.2 1.27 1.27 0 00.58-.54 1.71 1.71 0 00.19-.83 1.73 1.73 0 00-.13-.4zm.25 4a1.67 1.67 0 00-.63-.82 1.89 1.89 0 00-.54-.26 2.87 2.87 0 00-.72-.08h-.72v3.4h.87a2.34 2.34 0 001.15-.28 1.54 1.54 0 00.64-.74 2.38 2.38 0 00.2-1 2.17 2.17 0 00-.25-.22zM15.3 17.88h-2.08v-2.38h2.08zm5.43 0h-2.08v-2.38h2.08z'
+            ></path>
+          </svg>
+          はてブ
+        </a>
+      </div>
+
       <nav
-        class='mt-12 pt-8 border-t border-[hsl(var(--cc-gray))] flex justify-between items-center'
+        class='mt-8 pt-8 border-t border-[hsl(var(--cc-gray))] flex justify-between items-center'
         aria-label='バージョンナビゲーション'
       >
         {
