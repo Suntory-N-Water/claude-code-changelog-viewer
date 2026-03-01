@@ -11,7 +11,7 @@ export type DiscordSendResult = {
 };
 
 export const DISCORD_BOT_AVATAR_URL =
-  'https://claude-code-changelog-viewer.ayasnppk00.workers.dev/icon.png' as const;
+  'https://claude-code-log.com/icon.png' as const;
 
 /** SUPPRESS_EMBEDS: リンクプレビュー(OGP)を非表示 */
 export const DISCORD_SUPPRESS_EMBEDS = 1 << 2;

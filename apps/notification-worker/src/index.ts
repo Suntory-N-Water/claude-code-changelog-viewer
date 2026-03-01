@@ -10,10 +10,7 @@ const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/api');
 app.use(
   '*',
   cors({
-    origin: [
-      'https://claude-code-changelog-viewer.ayasnppk00.workers.dev',
-      'http://localhost:4321',
-    ],
+    origin: ['https://claude-code-log.com', 'http://localhost:4321'],
   }),
 );
 
