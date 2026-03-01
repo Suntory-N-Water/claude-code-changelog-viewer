@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
+import { cleanMarkdown } from './markdown-cleaner';
 
 const execAsync = promisify(exec);
 
@@ -242,7 +243,8 @@ export class ClaudeDocsFetcher {
       }
 
       const response = await this.fetchWithRetry(docInfo.url);
-      const markdown = await response.text();
+      const rawMarkdown = await response.text();
+      const markdown = await cleanMarkdown(rawMarkdown);
 
       // Add front matter with metadata
       const frontMatter = this.createFrontMatter(docInfo);
