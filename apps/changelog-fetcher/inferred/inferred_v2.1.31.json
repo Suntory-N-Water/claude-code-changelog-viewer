@@ -1,10 +1,10 @@
 {
   "version": "2.1.31",
-  "summary": "日本語IMEでの全角スペース入力対応や、終了時のセッション再開ヒントの追加により、操作性が向上しました。また、巨大なPDF送信時のロックやプランモード移行時のクラッシュなど、作業を中断させる重大なバグが修正されています。さらに、リクエスト制限の明示やモデルのツール利用優先順位の最適化により、よりスムーズで正確な開発体験を提供します。",
+  "summary": "日本語IMEからの全角スペース入力に対応し、プランモードでのクラッシュや、大きすぎるPDFによるセッションロックアップなど、安定性に関わる複数のバグを修正しました。また、モデルの温度設定がストリーミングAPIで適用されるようになり、エラーメッセージがより具体的に改善されました。これにより、ユーザーはより快適にClaude Codeを利用できるようになります。",
   "items": [
     {
       "content": "- Added session resume hint on exit, showing how to continue your conversation later",
-      "content_ja": "終了時にセッション再開のヒントを表示し、後で会話を継続する方法を確認できるようになりました。",
+      "content_ja": "終了時にセッション再開のヒントが追加され、後で会話を続ける方法が表示されるようになりました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [],
@@ -12,7 +12,7 @@
     },
     {
       "content": "- Added support for full-width (zenkaku) space input from Japanese IME in checkbox selection",
-      "content_ja": "チェックボックス選択時における日本語IMEの全角スペース入力に対応",
+      "content_ja": "チェックボックス選択時に日本語IMEからの全角スペース入力に対応しました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": [],
@@ -58,14 +58,14 @@
         }
       ],
       "inference": {
-        "before": "これまでは、対話型CLIのチェックボックス選択画面において、日本語IMEから全角スペースを入力しても正しく認識されず、項目の選択操作がスムーズに行えない場合がありました。",
-        "after": "日本語IMEが有効な状態でも、全角スペース入力によってチェックボックスのオン/オフを切り替えられるようになりました。",
-        "benefit": "日本の開発者が入力モードを切り替える手間なく、直感的にCLI上の選択操作を行えるようになります。"
+        "before": "これまでは、日本語IMEで全角スペースを入力しても正しく認識されず、チェックボックスの選択操作が意図通りに機能しないことがありました。",
+        "after": "日本語IMEからの全角スペース入力が適切に処理されるようになり、チェックボックスの選択がスムーズに行えるようになりました。",
+        "benefit": "日本語ユーザーは、全角スペースを使用する際もClaude Codeのチェックボックス機能をストレスなく利用できるようになり、より自然な入力体験が得られます。"
       }
     },
     {
       "content": "- Fixed PDF too large errors permanently locking up sessions, requiring users to start a new conversation",
-      "content_ja": "巨大なPDFによるセッションの永久的なロックを修正",
+      "content_ja": "大きすぎるPDFファイルが原因でセッションが完全にロックされ、新しい会話を開始する必要がある問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -101,14 +101,14 @@
         }
       ],
       "inference": {
-        "before": "容量制限を超えるPDFファイルを添付するとエラーが発生し、そのセッション自体が使用不能になるため、ユーザーは新しい会話を最初からやり直す必要がありました。",
-        "after": "PDFのサイズエラーが発生してもセッションが正常に維持されるようになり、同じ会話を継続できるよう修正されました。",
-        "benefit": "誤って大きなファイルを送ってしまった際のリスクが解消され、これまでの会話履歴を失わずに作業を再開できます。"
+        "before": "以前は、添付したPDFファイルが大きすぎると、セッションがクラッシュして操作不能になり、ユーザーは新しい会話を最初から始めるしかありませんでした。",
+        "after": "PDFファイルが大きすぎることによるセッションのロックアップが恒久的に修正され、セッションが突然使えなくなる問題がなくなりました。",
+        "benefit": "大規模なPDFファイルを扱う際も、セッションが予期せず中断されることなく、安心してClaude Codeを利用できるようになりました。これにより、作業の中断によるフラストレーションが軽減されます。"
       }
     },
     {
       "content": "- Fixed bash commands incorrectly reporting failure with \"Read-only file system\" errors when sandbox mode was enabled",
-      "content_ja": "サンドボックスモード有効時に、bashコマンドが「読み取り専用ファイルシステム」エラーを誤って報告する問題を修正しました。",
+      "content_ja": "サンドボックスモードが有効な場合に、bashコマンドが「Read-only file system」エラーを誤って報告する問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -116,13 +116,10 @@
     },
     {
       "content": "- Fixed a crash that made sessions unusable after entering plan mode when project config in `~/.claude.json` was missing default fields",
-      "content_ja": "設定ファイルの不備によるプランモード突入時のクラッシュを修正",
+      "content_ja": "`~/.claude.json`のプロジェクト設定に必要なデフォルトフィールドが欠けている場合に、プランモードに入るとセッションが使用不能になるクラッシュを修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": [
-        "Plan",
-        "Settings"
-      ],
+      "feature_areas": ["Plan"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -165,14 +162,14 @@
         }
       ],
       "inference": {
-        "before": "`~/.claude.json` にデフォルトフィールドが欠けている状態でプランモード（Plan mode）に移行すると、アプリがクラッシュしてセッションが使えなくなる問題がありました。",
-        "after": "プロジェクト設定が不完全な状態であっても、プランモードへの切り替え時にクラッシュが発生しないよう堅牢性が向上しました。",
-        "benefit": "設定の状態に関わらず、タスクの計画立案機能を安心して利用できるようになります。"
+        "before": "プロジェクト設定ファイル(`~/.claude.json`)に必須フィールドが不足していると、プランモードを開始した際にClaude Codeがクラッシュし、セッションが利用できなくなる問題がありました。",
+        "after": "プロジェクト設定ファイルが不完全な状態でも、プランモードがクラッシュすることなく起動し、セッションが安定して利用できるようになりました。",
+        "benefit": "設定ファイルの不備が原因で作業が中断されることがなくなり、より堅牢な環境でプランモードを活用できるようになりました。これにより、プロジェクトの初期設定や環境変更時の安定性が向上します。"
       }
     },
     {
       "content": "- Fixed `temperatureOverride` being silently ignored in the streaming API path, causing all streaming requests to use the default temperature (1) regardless of the configured override",
-      "content_ja": "ストリーミングAPI利用時にtemperature設定が無視される不具合を修正",
+      "content_ja": "ストリーミングAPIパスで`temperatureOverride`がサイレントに無視され、設定されたオーバーライドに関わらずすべてのストリーミングリクエストがデフォルトの温度(1)を使用する問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -218,19 +215,17 @@
         }
       ],
       "inference": {
-        "before": "ストリーミング応答を有効にしている場合、設定で `temperatureOverride` を指定していても、常にデフォルト値（1）が使用されていました。",
-        "after": "ストリーミング時でも設定された温度（temperature）が正しく反映され、AIの応答の多様性を意図通りに調整できるようになりました。",
-        "benefit": "開発者が期待する創造性や一貫性のレベルで、リアルタイムなAIの応答を得ることができます。"
+        "before": "ストリーミングAPIを使用する際、`temperatureOverride`設定をしても実際には適用されず、常にデフォルトの温度(1)でAIが応答を生成していました。これにより、モデルの創造性や一貫性を意図通りに制御できませんでした。",
+        "after": "ストリーミングAPIリクエストにおいても`temperatureOverride`が正しく適用されるようになり、ユーザーが設定したモデルの温度(創造性)がストリーミング応答に反映されるようになりました。",
+        "benefit": "ストリーミング生成においても、より細かくモデルの振る舞いを制御できるようになり、ユーザーの意図に沿った創造的な応答や、より一貫性のある応答を期待できるようになりました。"
       }
     },
     {
       "content": "- Fixed LSP shutdown/exit compatibility with strict language servers that reject null params",
-      "content_ja": "厳密な言語サーバーとのLSP終了処理における互換性を向上",
+      "content_ja": "厳格な言語サーバーがnullパラメータを拒否する場合のLSPシャットダウン/終了の互換性を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": [
-        "Plugins"
-      ],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/plugins-reference.md",
@@ -268,14 +263,14 @@
         }
       ],
       "inference": {
-        "before": "LSP（Language Server Protocol）の終了時に、nullパラメータを許可しない厳密な仕様の言語サーバーにおいて、通信エラーや不正終了が発生することがありました。",
-        "after": "言語サーバー側の制約に適合した終了シーケンスを送信するように改善され、様々な言語環境での安定性が向上しました。",
-        "benefit": "特定のプログラミング言語を使用している際に、バックグラウンドの診断機能などが不安定になる現象が解消されます。"
+        "before": "一部の厳格なLanguage Server Protocol (LSP) サーバーが、シャットダウンや終了時にClaude Codeが送信するnullパラメータを拒否し、LSP接続が適切に閉じられない問題が発生していました。これにより、言語サーバーが意図せず起動し続けたり、リソースを消費したりする可能性がありました。",
+        "after": "Claude CodeがLSPサーバーとのシャットダウン/終了プロセスで、厳格な言語サーバーでも受け入れられるようにパラメータ処理が改善されました。これにより、LSPサーバーとの連携がより安定し、リソースが適切に解放されるようになります。",
+        "benefit": "LSP連携がより堅牢になり、特に厳格な仕様を持つ言語サーバーを使用している開発者にとって、安定したコードインテリジェンス機能が提供されます。これにより、開発環境の信頼性が向上します。"
       }
     },
     {
       "content": "- Improved system prompts to more clearly guide the model toward using dedicated tools (Read, Edit, Glob, Grep) instead of bash equivalents (`cat`, `sed`, `grep`, `find`), reducing unnecessary bash command usage",
-      "content_ja": "システムプロンプトを改善し、bashコマンドの代わりに専用ツール（Read, Edit, Glob, Grep）を優先して使用するようモデルの挙動を最適化しました。",
+      "content_ja": "専用ツール(Read、Edit、Glob、Grep)を使用するようにモデルをより明確にガイドするようシステムプロンプトを改善し、bashの同等コマンド(`cat`、`sed`、`grep`、`find`)の不必要な使用を削減しました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [],
@@ -297,7 +292,7 @@
     },
     {
       "content": "- Improved PDF and request size error messages to show actual limits (100 pages, 20MB)",
-      "content_ja": "PDFおよびリクエストサイズの制限値に関するエラーメッセージの改善",
+      "content_ja": "PDFおよびリクエストサイズのエラーメッセージを改善し、実際の制限(100ページ、20MB)を表示するようにしました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": [],
@@ -333,14 +328,14 @@
         }
       ],
       "inference": {
-        "before": "ファイル送信やリクエストの制限を超えた際のエラーメッセージに具体的な上限値が含まれておらず、どのように修正すべきか判断が難しい状況でした。",
-        "after": "「最大100ページまで」「20MBまで」といった具体的な制限値がメッセージに表示されるようになりました。",
-        "benefit": "エラーの原因が明確になるため、ファイルを分割するなど、ユーザーが次のアクションを迅速に取れるようになります。"
+        "before": "以前は、PDFファイルやリクエストが大きすぎる場合に表示されるエラーメッセージが不明瞭で、具体的にどの程度のサイズが制限されているのかユーザーには分かりませんでした。このため、適切な対応を取るのが困難でした。",
+        "after": "PDFファイルやリクエストが制限を超えた際のエラーメッセージに、具体的な上限(PDFは100ページ、リクエストは20MB)が明示されるようになりました。",
+        "benefit": "エラーメッセージが具体的になったことで、ユーザーは問題の原因と、次にどのような対応を取ればよいかをすぐに理解できるようになりました。これにより、問題解決にかかる時間と労力が削減されます。"
       }
     },
     {
       "content": "- Reduced layout jitter in the terminal when the spinner appears and disappears during streaming",
-      "content_ja": "ストリーミング中のスピナー表示に伴うターミナルのレイアウトのガタつきを軽減しました。",
+      "content_ja": "ストリーミング中にスピナーが表示・非表示される際のターミナルのレイアウトの揺れを軽減しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": [],
@@ -348,12 +343,10 @@
     },
     {
       "content": "- Removed misleading Anthropic API pricing from model selector for third-party provider (Bedrock, Vertex, Foundry) users",
-      "content_ja": "外部プロバイダー利用時における不適切な価格表示を削除",
+      "content_ja": "サードパーティプロバイダー(Bedrock、Vertex、Foundry)のユーザー向けに、モデルセレクターから誤解を招くAnthropic APIの料金表示を削除しました。",
       "prefix": "Removed",
       "importance_score": 5,
-      "feature_areas": [
-        "Settings"
-      ],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/mcp.md",
@@ -396,9 +389,9 @@
         }
       ],
       "inference": {
-        "before": "AWS BedrockやGoogle Vertex AIなどのサードパーティプロバイダー経由で利用している場合でも、Anthropic API（SaaS版）の価格情報が表示され、混乱を招くことがありました。",
-        "after": "使用しているプロバイダーに応じた適切な表示が行われるよう、誤解を招く価格表示が整理されました。",
-        "benefit": "実際の利用環境に基づいた正しい情報を確認でき、コスト管理上の混乱を防げます。"
+        "before": "サードパーティのLLMプロバイダー(AWS Bedrock, Google Vertex AIなど)経由でClaude Codeを利用しているユーザーも、モデルセレクターにAnthropic APIの料金情報が表示され、実際の利用料金と異なる誤解を招く可能性がありました。",
+        "after": "サードパーティプロバイダーを利用するユーザーのモデルセレクターから、Anthropic APIの料金表示が削除されました。これにより、ユーザーは自身の契約しているプロバイダーの料金体系に基づいた正確な情報を確認できるようになります。",
+        "benefit": "自身の利用環境に応じた正確な情報のみが表示されるようになり、料金に関する混乱がなくなります。これにより、ユーザーは安心してClaude Codeの費用を管理できます。"
       }
     }
   ]

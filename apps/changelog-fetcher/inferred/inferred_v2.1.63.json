@@ -1,10 +1,10 @@
 {
   "version": "2.1.63",
-  "summary": "本バージョンでは、長時間セッションにおける多数のメモリリークとリソースリークが修正され、全体の安定性とパフォーマンスが大幅に向上しました。機能面では、コードをリファクタリングする `/simplify` や大規模な変更を管理する `/batch` コマンドが追加されたほか、外部連携を強化するHTTPフックやMCPの認証フォールバック機能が導入されています。また、VSCode拡張機能でのセッション管理機能の強化や、UI上でのモデル表示の改善など、ユーザービリティの向上が図られています。",
+  "summary": "新機能として、コードのレビューと修正を行う「/simplify」および大規模変更を自動化する「/batch」スラッシュコマンドが追加されました。また、HTTPフックのサポートやMCP関連の機能改善、多数のメモリリーク修正とパフォーマンス改善が行われています。VSCode連携の強化や、ローカルコマンド出力の表示改善なども含まれています。",
   "items": [
     {
       "content": "- Added `/simplify` and `/batch` bundled slash commands",
-      "content_ja": "`/simplify`(コード改善)と `/batch`(大規模変更)の標準スラッシュコマンドを追加",
+      "content_ja": "「/simplify」と「/batch」のバンドル済みスラッシュコマンドが追加されました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": ["Skills"],
@@ -12,20 +12,43 @@
         {
           "file": "apps/docs-tracker/docs/en/skills.md",
           "hit_count": 2,
-          "context_score": 8,
-          "total_score": 16,
+          "context_score": 3,
+          "total_score": 6,
           "snippets": [
-            "\nClaude Code ships with two built-in skills available in every session:\n\n- **`/simplify`**: reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Run it after implementing a feature or bug fix to clean up your work. It spawns three review agents in parallel (code reuse, code quality, efficiency), aggregates their findings, and applies fixes. Pass optional text to focus on specific concerns: `/simplify focus on memory efficiency`.\n\n- **`/batch <instruction>`**: orchestrates large-scale changes across a codebase in parallel. Provide a description of the change and `/batch` researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan for your approval. Once approved, it spawns one background agent per unit, each in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React`.\n\n## Getting started\n"
+            "\nYou invoke bundled skills the same way as any other skill: type `/` followed by the skill name.\n\n- **`/simplify`**: reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Run it after implementing a feature or bug fix to clean up your work. It spawns three review agents in parallel (code reuse, code quality, efficiency), aggregates their findings, and applies fixes. Pass optional text to focus on specific concerns: `/simplify focus on memory efficiency`.\n\n- **`/batch <instruction>`**: orchestrates large-scale changes across a codebase in parallel. Provide a description of the change and `/batch` researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan for your approval. Once approved, it spawns one background agent per unit, each in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React`.\n\n- **`/debug [description]`**: troubleshoots your current Claude Code session by reading the session debug log. Optionally describe the issue to focus the analysis.\n"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md",
+          "hit_count": 1,
+          "context_score": 3,
+          "total_score": 3,
+          "snippets": [
+            "\nType `/` in Claude Code to see all available commands, or type `/` followed by any letters to filter. Not all commands are visible to every user. Some depend on your platform, plan, or environment. For example, `/desktop` only appears on macOS and Windows, `/upgrade` and `/privacy-settings` are only available on Pro and Max plans, and `/terminal-setup` is hidden when your terminal natively supports its keybindings.\n\nClaude Code also ships with [bundled skills](/en/skills#bundled-skills) like `/simplify`, `/batch`, and `/debug` that appear alongside built-in commands when you type `/`. To create your own commands, see [skills](/en/skills).\n\nIn the table below, `<arg>` indicates a required argument and `[arg]` indicates an optional one.\n"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/features-overview.md",
+          "hit_count": 1,
+          "context_score": 1,
+          "total_score": 1,
+          "snippets": [
+            "\nKeep CLAUDE.md under \\~500 lines. Move reference material to skills, which load on-demand.\n\nSkills are extra capabilities in Claude's toolkit. They can be reference material (like an API style guide) or invocable workflows you trigger with `/<name>` (like `/deploy`). Claude Code ships with [bundled skills](/en/skills#bundled-skills) like `/simplify`, `/batch`, and `/debug` that work out of the box. You can also create your own. Claude uses skills when appropriate, or you can invoke one directly.\n\n**When:** Depends on the skill's configuration. By default, descriptions load at session start and full content loads when used. For user-only skills (`disable-model-invocation: true`), nothing loads until you invoke them.\n"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "コードのレビュー、リファクタリング、大規模な変更の自動化を行うための専用スラッシュコマンドがありませんでした。",
+        "after": "「/simplify」コマンドでコードの改善提案と修正を、「/batch」コマンドでコードベース全体にわたる大規模な変更を、それぞれスラッシュコマンドから直接実行できるようになりました。",
+        "benefit": "コードの品質向上と、複数ファイルにまたがる変更の自動化が容易になり、開発者の生産性が向上します。"
+      }
     },
     {
       "content": "- Fixed local slash command output like /cost appearing as user-sent messages instead of system messages in the UI",
-      "content_ja": "UI上での/costなどのローカルスラッシュコマンドの出力が、システムメッセージではなくユーザー送信メッセージとして表示される問題を修正",
+      "content_ja": "ローカルスラッシュコマンドの出力(例：「/cost」)がUI上でユーザー送信メッセージとして表示される不具合が修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/statusline.md",
@@ -59,8 +82,8 @@
           "context_score": 30,
           "total_score": 660,
           "snippets": [
-            "\nSkills extend what Claude can do. Create a `SKILL.md` file with instructions, and Claude adds it to its toolkit. Claude uses skills when relevant, or you can invoke one directly with `/skill-name`.\n\nFor built-in commands like `/help` and `/compact`, see [interactive mode](/en/interactive-mode#built-in-commands).\n\n**Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n",
-            "\n## Bundled skills\n\nClaude Code ships with two built-in skills available in every session:\n\n- **`/simplify`**: reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Run it after implementing a feature or bug fix to clean up your work. It spawns three review agents in parallel (code reuse, code quality, efficiency), aggregates their findings, and applies fixes. Pass optional text to focus on specific concerns: `/simplify focus on memory efficiency`.\n\n- **`/batch <instruction>`**: orchestrates large-scale changes across a codebase in parallel. Provide a description of the change and `/batch` researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan for your approval. Once approved, it spawns one background agent per unit, each in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React`.\n\n## Getting started\n",
+            "\nSkills extend what Claude can do. Create a `SKILL.md` file with instructions, and Claude adds it to its toolkit. Claude uses skills when relevant, or you can invoke one directly with `/skill-name`.\n\nFor built-in commands like `/help` and `/compact`, see [interactive mode](/en/interactive-mode#built-in-commands).\n\n**Custom commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n",
+            "\n## Bundled skills\n\nBundled skills ship with Claude Code and are available in every session. Unlike [built-in commands](/en/interactive-mode#built-in-commands), which execute fixed logic directly, bundled skills are prompt-based: they give Claude a detailed playbook and let it orchestrate the work using its tools. This means bundled skills can spawn parallel agents, read files, and adapt to your codebase.\n\nYou invoke bundled skills the same way as any other skill: type `/` followed by the skill name.\n\n- **`/simplify`**: reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Run it after implementing a feature or bug fix to clean up your work. It spawns three review agents in parallel (code reuse, code quality, efficiency), aggregates their findings, and applies fixes. Pass optional text to focus on specific concerns: `/simplify focus on memory efficiency`.\n\n- **`/batch <instruction>`**: orchestrates large-scale changes across a codebase in parallel. Provide a description of the change and `/batch` researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan for your approval. Once approved, it spawns one background agent per unit, each in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React`.\n\n- **`/debug [description]`**: troubleshoots your current Claude Code session by reading the session debug log. Optionally describe the issue to focus the analysis.\n",
             "\n```text\nmy-skill/\n├── SKILL.md           # Main instructions (required)\n├── template.md        # Template for Claude to fill in\n├── examples/\n│   └── sample.md      # Example output showing expected format",
             "    └── validate.sh    # Script Claude can execute\n```\n\nThe `SKILL.md` contains the main instructions and is required. Other files are optional and let you build more powerful skills: templates for Claude to fill in, example outputs showing the expected format, scripts Claude can execute, or detailed reference documentation. Reference these files from your `SKILL.md` so Claude knows what they contain and when to load them. See [Add supporting files](#add-supporting-files) for more details.\n\nFiles in `.claude/commands/` still work and support the same [frontmatter](#frontmatter-reference). Skills are recommended since they support additional features like supporting files.\n",
             "\n### Types of skill content\n\nSkill files can contain any instructions, but thinking about how you want to invoke them helps guide what to include:\n\n**Reference content** adds knowledge Claude applies to your current work. Conventions, patterns, style guides, domain knowledge. This content runs inline so Claude can use it alongside your conversation context.\n\n```yaml\n---"
@@ -68,22 +91,22 @@
         }
       ],
       "inference": {
-        "before": "/costなどのローカルコマンドを実行した際、UI上でAIやシステムからの通知ではなく、ユーザー自身が入力したチャットメッセージのように表示されていました。",
-        "after": ")],これらのコマンド出力がシステムメッセージとして正しく分類・表示されるようになり、会話の流れとツール出力を明確に区別できるようになりました。",
-        "benefit": "自分の発言とシステムの状態表示が混同されなくなるため、現在のコンテキスト使用量やコスト情報をより直感的に把握できます。"
+        "before": "ローカルスラッシュコマンド(例：「/cost」)の実行結果が、システムメッセージではなくユーザーからのメッセージのように表示され、UI上で混乱を招く可能性がありました。",
+        "after": "ローカルスラッシュコマンドの実行結果が、システムメッセージとして適切に表示されるようになりました。",
+        "benefit": "UI上でのコマンド実行結果の表示が明確になり、ユーザーエクスペリエンスが向上しました。"
       }
     },
     {
       "content": "- Project configs & auto memory now shared across git worktrees of the same repository",
-      "content_ja": "プロジェクト設定とオートメモリを、同一リポジトリ内の異なるgit worktree間で共有するように変更",
+      "content_ja": "プロジェクト設定と自動メモリが、同じリポジトリのgit worktree間で共有されるようになりました。",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": ["Memory"],
+      "feature_areas": ["Memory", "Settings"],
       "related_docs": []
     },
     {
       "content": "- Added `ENABLE_CLAUDEAI_MCP_SERVERS=false` env var to opt out from making claude.ai MCP servers available",
-      "content_ja": "claude.aiのMCPサーバーを無効化するための環境変数 `ENABLE_CLAUDEAI_MCP_SERVERS=false` を追加",
+      "content_ja": "claude.ai MCPサーバーの利用を無効にするための `ENABLE_CLAUDEAI_MCP_SERVERS=false` 環境変数オプションが追加されました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": ["MCP"],
@@ -129,14 +152,14 @@
         }
       ],
       "inference": {
-        "before": "デフォルトではclaude.aiが提供するMCPサーバーが自動的に利用可能になっており、特定のセキュリティポリシーを持つ環境では個別にオプトアウトする手段がありませんでした。",
-        "after": "環境変数を設定することで、特定のMCPサーバーへのアクセスを明示的に制限できるようになりました。",
-        "benefit": "企業のセキュリティ要件や個人の好みに合わせて、利用可能なツールセットをより細かくコントロールできます。"
+        "before": "claude.ai MCPサーバーの利用を明示的に無効にする手段がなく、意図せず接続される可能性がありました。",
+        "after": "`ENABLE_CLAUDEAI_MCP_SERVERS` 環境変数に `false` を設定することで、claude.ai MCPサーバーへの接続を無効化できるようになりました。",
+        "benefit": "不要な外部サービスへの接続を制御でき、セキュリティやプライバシーの管理が容易になります。"
       }
     },
     {
       "content": "- Improved `/model` command to show the currently active model in the slash command menu",
-      "content_ja": "`/model` コマンドのスラッシュコマンドメニューに、現在アクティブなモデル名を表示するように改善",
+      "content_ja": "「/model」コマンドが、スラッシュコマンドメニュー内で現在アクティブなモデルを表示するように改善されました。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": ["Settings"],
@@ -181,14 +204,14 @@
         }
       ],
       "inference": {
-        "before": "現在どのモデル(Sonnet 4.6やOpus 4.6など)を使用しているかを確認するには、コマンドを最後まで入力して実行するか、ステータスラインを確認する必要がありました。",
-        "after": "メニューを開くだけで現在のモデルがひと目で分かるようになり、モデルの切り替えが必要かどうかの判断が容易になりました。",
-        "benefit": "コマンド入力の手間が省け、作業コンテキストに合わせて最適なモデルを素早く選択・確認できます。"
+        "before": "「/model」コマンドを実行しても、現在どのモデルがアクティブになっているかがメニュー上で明確に示されていませんでした。",
+        "after": "「/model」コマンドのメニューに、現在選択されているモデルが表示されるようになりました。",
+        "benefit": "現在アクティブなモデルを簡単に確認できるようになり、モデルの切り替えや管理が容易になります。"
       }
     },
     {
       "content": "- Added HTTP hooks, which can POST JSON to a URL and receive JSON instead of running a shell command",
-      "content_ja": "シェルの代わりに指定したURLへJSONをPOSTし、結果をJSONで受け取るHTTPフック機能を追加",
+      "content_ja": "JSONをURLにPOSTし、JSONを受け取ることができるHTTPフックが追加されました。これにより、シェルコマンドの実行に代わる選択肢が増えました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": ["Hooks"],
@@ -234,14 +257,14 @@
         }
       ],
       "inference": {
-        "before": "ライフサイクルフックはローカルのシェルコマンド実行に限定されており、外部サービスや自作のWeb APIとの連携には中間スクリプトが必要でした。",
-        "after": "URLを指定するだけで直接HTTPリクエストを送信できるため、Webサービスとの統合がよりシンプルかつ堅牢になりました。",
-        "benefit": "ワークフローの自動化において、外部の通知ツールやダッシュボード、分析基盤との連携が非常に簡単になります。"
+        "before": "フックはシェルコマンドとしてしか実行できず、外部APIとの連携に制約がありました。",
+        "after": "HTTPフックにより、指定したURLにJSONデータをPOSTし、JSON形式でレスポンスを受け取ることができるようになりました。",
+        "benefit": "外部APIやWebサービスとの連携が容易になり、より多様な自動化ワークフローを構築できるようになりました。"
       }
     },
     {
       "content": "- Fixed listener leak in bridge polling loop",
-      "content_ja": "ブリッジのポーリングループにおけるリスナーリークを修正",
+      "content_ja": "ブリッジポーリングループにおけるリスナーリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -249,7 +272,7 @@
     },
     {
       "content": "- Fixed listener leak in MCP OAuth flow cleanup",
-      "content_ja": "MCPのOAuth認証クリーンアップ処理におけるリスナーリークを修正",
+      "content_ja": "MCP OAuthフローのクリーンアップ処理におけるリスナーリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["MCP"],
@@ -295,14 +318,14 @@
         }
       ],
       "inference": {
-        "before": "MCPサーバーのOAuth認証を繰り返すと、内部のイベントリスナーが解放されずに残り続け、メモリ消費が増大する可能性がありました。",
-        "after": "認証処理の終了時にリソースが正しく解放されるようになり、長時間使用時の安定性が向上しました。",
-        "benefit": "複雑な認証を必要とする外部ツールとの連携を、安定して長時間使い続けることができます。"
+        "before": "MCPのOAuth認証プロセス中に、リスナーが適切に解放されず、メモリリークが発生する可能性がありました。",
+        "after": "OAuthフロー完了後のリスナーリークが修正され、リソースが適切に解放されるようになりました。",
+        "benefit": "リソースリークが解消され、ツールの安定性とパフォーマンスが向上しました。"
       }
     },
     {
       "content": "- Added manual URL paste fallback during MCP OAuth authentication. If the automatic localhost redirect doesn't work, you can paste the callback URL to complete authentication.",
-      "content_ja": "MCPのOAuth認証時、自動リダイレクトが失敗した場合のフォールバックとして、URLの手動貼り付け機能を追加",
+      "content_ja": "MCP OAuth認証中に、自動localhostリダイレクトが機能しない場合に、コールバックURLを手動で貼り付けて認証を完了できるフォールバック機能が追加されました。",
       "prefix": "Added",
       "importance_score": 8,
       "feature_areas": ["MCP"],
@@ -348,14 +371,14 @@
         }
       ],
       "inference": {
-        "before": "一部のネットワーク環境やブラウザ設定により、認証後のlocalhostへの自動リダイレクトが正常に動作せず、認証を完了できない場合がありました。",
-        "after": "リダイレクトに失敗しても、ブラウザに表示されたコールバックURLをターミナルに手動で貼り付けることで、確実に認証を完了させることが可能です。",
-        "benefit": "制限の厳しいプロキシ環境や特殊なブラウザ設定を使用している開発者でも、確実に外部ツールと連携できるようになります。"
+        "before": "自動リダイレクトが失敗した場合、OAuth認証を完了するための代替手段がありませんでした。",
+        "after": "自動リダイレクトに失敗した場合でも、コールバックURLを手動で貼り付けることで認証を完了できるようになりました。",
+        "benefit": "OAuth認証の成功率が向上し、外部サービスとの連携がより確実になりました。"
       }
     },
     {
       "content": "- Fixed memory leak when navigating hooks configuration menu",
-      "content_ja": "フック設定メニュー操作時のメモリリークを修正",
+      "content_ja": "フック設定メニューの移動中に発生していたメモリリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Hooks", "Memory"],
@@ -363,23 +386,28 @@
     },
     {
       "content": "- Fixed listener leak in interactive permission handler during auto-approvals",
-      "content_ja": "自動承認時のインタラクティブパーミッションハンドラーにおけるリスナーリークを修正",
+      "content_ja": "自動承認中のインタラクティブなパーミッションハンドラーにおけるリスナーリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Permissions"],
-      "related_docs": []
+      "related_docs": [],
+      "inference": {
+        "before": "自動承認が行われるインタラクティブなパーミッション処理中に、リスナーが解放されずメモリリークが発生していました。",
+        "after": "インタラクティブなパーミッションハンドラーでのリスナーリークが修正され、リソースが適切に管理されるようになりました。",
+        "benefit": "パーミッション関連の操作における安定性が向上し、メモリリークによるパフォーマンス低下を防ぎます。"
+      }
     },
     {
       "content": "- Fixed file count cache ignoring glob ignore patterns",
-      "content_ja": "ファイル数キャッシュがglobの無視パターン(ignore patterns)を無視していた問題を修正",
+      "content_ja": "glob無視パターンを無視していたファイル数キャッシュが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed memory leak in bash command prefix cache",
-      "content_ja": "bashコマンドのプレフィックスキャッシュにおけるメモリリークを修正",
+      "content_ja": "bashコマンドプレフィックスキャッシュにおけるメモリリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Memory"],
@@ -387,7 +415,7 @@
     },
     {
       "content": "- Fixed MCP tool/resource cache leak on server reconnect",
-      "content_ja": "サーバー再接続時にMCPツールおよびリソースのキャッシュがリークする問題を修正",
+      "content_ja": "MCPツール/リソースキャッシュのサーバー再接続時のリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["MCP"],
@@ -433,17 +461,17 @@
         }
       ],
       "inference": {
-        "before": "ネットワークの瞬断などでMCPサーバーが再接続されるたびに古いキャッシュが破棄されず蓄積され、プロセスのメモリ使用量が増加していました。",
-        "after": "再接続時に古いデータが適切に破棄されるようになり、メモリ効率が改善されました。",
-        "benefit": "不安定なネットワーク環境下でも、システムのパフォーマンスを維持したまま開発を継続できます。"
+        "before": "MCPサーバーが再接続する際に、ツールのキャッシュが適切にクリアされず、メモリリークが発生する可能性がありました。",
+        "after": "サーバー再接続時のMCPツール/リソースキャッシュリークが修正され、メモリ使用量が安定しました。",
+        "benefit": "頻繁に再接続するサーバー環境でのメモリ使用量が削減され、ツールの安定性が向上しました。"
       }
     },
     {
       "content": "- Fixed IDE host IP detection cache incorrectly sharing results across ports",
-      "content_ja": "IDEホストのIP検出キャッシュが異なるポート間で誤って共有される問題を修正",
+      "content_ja": "IDEホストIP検出キャッシュが、ポート間で誤って結果を共有していた問題が修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["IDE/VSCode"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md",
@@ -473,11 +501,11 @@
         },
         {
           "file": "apps/docs-tracker/docs/en/skills.md",
-          "hit_count": 65,
+          "hit_count": 66,
           "context_score": 31,
-          "total_score": 2015,
+          "total_score": 2046,
           "snippets": [
-            "\n**Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n\nClaude Code skills follow the [Agent Skills](https://agentskills.io) open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like [invocation control](#control-who-invokes-a-skill), [subagent execution](#run-skills-in-a-subagent), and [dynamic context injection](#inject-dynamic-context).\n\n## Bundled skills\n\nClaude Code ships with two built-in skills available in every session:\n\n- **`/simplify`**: reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Run it after implementing a feature or bug fix to clean up your work. It spawns three review agents in parallel (code reuse, code quality, efficiency), aggregates their findings, and applies fixes. Pass optional text to focus on specific concerns: `/simplify focus on memory efficiency`.\n\n- **`/batch <instruction>`**: orchestrates large-scale changes across a codebase in parallel. Provide a description of the change and `/batch` researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan for your approval. Once approved, it spawns one background agent per unit, each in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React`.\n\n## Getting started\n",
+            "\n**Custom commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n\nClaude Code skills follow the [Agent Skills](https://agentskills.io) open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like [invocation control](#control-who-invokes-a-skill), [subagent execution](#run-skills-in-a-subagent), and [dynamic context injection](#inject-dynamic-context).\n\n## Bundled skills\n\nBundled skills ship with Claude Code and are available in every session. Unlike [built-in commands](/en/interactive-mode#built-in-commands), which execute fixed logic directly, bundled skills are prompt-based: they give Claude a detailed playbook and let it orchestrate the work using its tools. This means bundled skills can spawn parallel agents, read files, and adapt to your codebase.\n\nYou invoke bundled skills the same way as any other skill: type `/` followed by the skill name.\n\n- **`/simplify`**: reviews your recently changed files for code reuse, quality, and efficiency issues, then fixes them. Run it after implementing a feature or bug fix to clean up your work. It spawns three review agents in parallel (code reuse, code quality, efficiency), aggregates their findings, and applies fixes. Pass optional text to focus on specific concerns: `/simplify focus on memory efficiency`.\n\n- **`/batch <instruction>`**: orchestrates large-scale changes across a codebase in parallel. Provide a description of the change and `/batch` researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan for your approval. Once approved, it spawns one background agent per unit, each in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React`.\n\n- **`/debug [description]`**: troubleshoots your current Claude Code session by reading the session debug log. Optionally describe the issue to focus the analysis.\n\nClaude Code also includes a bundled developer platform skill that activates automatically when your code imports the Anthropic SDK. You don't need to invoke it manually.\n",
             "mkdir -p ~/.claude/skills/explain-code\n```\n\nEvery skill needs a `SKILL.md` file with two parts: YAML frontmatter (between `---` markers) that tells Claude when to use the skill, and markdown content with instructions Claude follows when the skill is invoked. The `name` field becomes the `/slash-command`, and the `description` helps Claude decide when to load it automatically.\n\nCreate `~/.claude/skills/explain-code/SKILL.md`:\n\n```yaml theme={null}\n---\nname: explain-code\ndescription: Explains code with visual diagrams and analogies. Use when explaining how code works, teaching about a codebase, or when the user asks \"how does this work?\"\n---\n\nWhen explaining code, always include:\n\n1. **Start with an analogy**: Compare the code to something from everyday life\n2. **Draw a diagram**: Use ASCII art to show the flow, structure, or relationships\n3. **Walk through the code**: Explain step-by-step what happens\n4. **Highlight a gotcha**: What's a common mistake or misconception?\n\nKeep explanations conversational. For complex concepts, use multiple analogies.\n```\n\nYou can test it two ways:\n\n**Let Claude invoke it automatically** by asking something that matches the description:\n\n```text theme={null}\nHow does this code work?",
             "├── template.md        # Template for Claude to fill in\n├── examples/\n│   └── sample.md      # Example output showing expected format\n└── scripts/\n    └── validate.sh    # Script Claude can execute\n```\n\nThe `SKILL.md` contains the main instructions and is required. Other files are optional and let you build more powerful skills: templates for Claude to fill in, example outputs showing the expected format, scripts Claude can execute, or detailed reference documentation. Reference these files from your `SKILL.md` so Claude knows what they contain and when to load them. See [Add supporting files](#add-supporting-files) for more details.\n\nFiles in `.claude/commands/` still work and support the same [frontmatter](#frontmatter-reference). Skills are recommended since they support additional features like supporting files.\n",
             "\n### Types of skill content\n\nSkill files can contain any instructions, but thinking about how you want to invoke them helps guide what to include:\n\n**Reference content** adds knowledge Claude applies to your current work. Conventions, patterns, style guides, domain knowledge. This content runs inline so Claude can use it alongside your conversation context.\n\n```yaml\n---\nname: api-conventions\ndescription: API design patterns for this codebase\n---\n\nWhen writing API endpoints:",
@@ -486,14 +514,14 @@
         }
       ],
       "inference": {
-        "before": "複数のIDEインスタンスを異なるポートで起動している際、IP検出結果が混同され、正しいホストへの接続に失敗することがありました。",
-        "after": "ポートごとにキャッシュが独立して管理されるようになり、マルチタスク環境での接続信頼性が向上しました。",
-        "benefit": "複数のプロジェクトを同時に開いて作業する際の、IDE連携のトラブルが解消されます。"
+        "before": "IDEホストIP検出キャッシュが、異なるポート間でIPアドレス情報を誤って共有し、予期しない動作を引き起こす可能性がありました。",
+        "after": "IDEホストIP検出キャッシュが、ポートごとに正しく結果を分離するようになり、IPアドレス情報の共有に関する問題が解消されました。",
+        "benefit": "IDE連携時のIPアドレス検出の正確性が向上し、関連機能の信頼性が高まりました。"
       }
     },
     {
       "content": "- Fixed WebSocket listener leak on transport reconnect",
-      "content_ja": "トランスポート再接続時のWebSocketリスナーリークを修正",
+      "content_ja": "トランスポート再接続時のWebSocketリスナーリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -501,15 +529,20 @@
     },
     {
       "content": "- Fixed memory leak in git root detection cache that could cause unbounded growth in long-running sessions",
-      "content_ja": "長時間セッションでgitルート検出キャッシュが無制限に増大するメモリリークを修正",
+      "content_ja": "gitルート検出キャッシュにおけるメモリリークが修正され、長時間実行セッションでのメモリ増加が抑制されるようになりました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Memory"],
-      "related_docs": []
+      "related_docs": [],
+      "inference": {
+        "before": "gitルート検出キャッシュにメモリリークがあり、長時間セッション中にメモリ使用量が徐々に増加していました。",
+        "after": "gitルート検出キャッシュのメモリリークが修正され、長時間実行時のメモリ消費量が改善されました。",
+        "benefit": "長時間にわたる開発セッションでのメモリ使用量が削減され、パフォーマンスと安定性が向上します。"
+      }
     },
     {
       "content": "- Fixed memory leak in JSON parsing cache that grew unbounded over long sessions",
-      "content_ja": "長時間セッションで際限なく増大していたJSONパース用キャッシュのメモリリークを修正",
+      "content_ja": "JSON解析キャッシュにおけるメモリリークが修正され、長時間セッションでのメモリ増加が解消されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Memory"],
@@ -555,14 +588,14 @@
         }
       ],
       "inference": {
-        "before": "大量のデータを処理する長時間のセッションにおいて、内部のJSONキャッシュが整理されずに蓄積され、動作が重くなる原因となっていました。",
-        "after": "キャッシュサイズが適切に管理されるようになり、セッションの長さを問わず安定した速度で動作します。",
-        "benefit": "数時間から数日にわたるような大規模なリファクタリングや開発作業でも、ツールの再起動を気にせず集中できます。"
+        "before": "JSON解析キャッシュにメモリリークがあり、長時間セッション中にメモリ使用量が無制限に増加していました。",
+        "after": "JSON解析キャッシュのメモリリークが修正され、長時間実行時のメモリ消費量が大幅に改善されました。",
+        "benefit": "長時間セッションでのリソース使用量が削減され、ツールの応答性と安定性が向上します。"
       }
     },
     {
       "content": "- VSCode: Fixed remote sessions not appearing in conversation history",
-      "content_ja": "VSCode: リモートセッションが会話履歴に表示されない問題を修正",
+      "content_ja": "VSCode: リモートセッションが会話履歴に表示されない不具合が修正されました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": ["IDE/VSCode"],
@@ -570,10 +603,10 @@
     },
     {
       "content": "- Fixed a race condition in the REPL bridge where new messages could arrive at the server interleaved with historical messages during the initial connection flush, causing message ordering issues.",
-      "content_ja": "初期接続時のメッセージ処理において、新しいメッセージと履歴メッセージの順序が入れ替わるレースコンディションを修正",
+      "content_ja": "REPLブリッジでの競合状態が修正されました。これにより、接続初期のフラッシュ中に新しいメッセージが履歴メッセージとインターリーブしてサーバーに到着し、メッセージ順序の問題が発生していました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md",
@@ -613,16 +646,11 @@
             "When this skill runs:\n\n1. Each `!`command\\`\\` executes immediately (before Claude sees anything)\n2. The output replaces the placeholder in the skill content\n3. Claude receives the fully-rendered prompt with actual PR data\n\nThis is preprocessing, not something Claude executes. Claude only sees the final result."
           ]
         }
-      ],
-      "inference": {
-        "before": "起動直後の通信タイミングによって、AIからの最新の返答と過去の履歴が前後して表示され、会話の流れが分からなくなることがありました。",
-        "after": "接続時のメッセージキューイングが改善され、常に正しい時系列で会話が表示されるようになりました。",
-        "benefit": "再起動後の会話再開時に、情報の前後関係を読み間違えるリスクがなくなります。"
-      }
+      ]
     },
     {
       "content": "- Fixed memory leak where long-running teammates retained all messages in AppState even after conversation compaction",
-      "content_ja": "長時間稼働するチームメイトが、コンテキスト要約後も全メッセージを保持し続けるメモリリークを修正",
+      "content_ja": "会話のコンパクション後も、長時間実行されるTeammateがAppStateですべてのメッセージを保持していたメモリリークが修正されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Agent Teams", "Memory"],
@@ -630,7 +658,7 @@
     },
     {
       "content": "- Fixed a memory leak where MCP server fetch caches were not cleared on disconnect, causing growing memory usage with servers that reconnect frequently",
-      "content_ja": "切断時にMCPサーバーのフェッチキャッシュがクリアされず、頻繁に再接続するサーバーでメモリ使用量が増大する問題を修正",
+      "content_ja": "MCPサーバーのフェッチキャッシュが切断時にクリアされていなかったメモリリークが修正され、サーバーが頻繁に再接続する場合のメモリ使用量の増加が解消されました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["MCP", "Memory"],
@@ -676,41 +704,51 @@
         }
       ],
       "inference": {
-        "before": "不安定なMCPサーバーを使用している際、再接続のたびにメモリが消費され続け、最終的にツールがクラッシュするリスクがありました。",
-        "after": "サーバーの切断を検知した際に不要なキャッシュを確実に削除する仕組みが導入されました。",
-        "benefit": "外部ツールの接続状況に左右されず、Claude Code自体の動作は常に軽快なまま保たれます。"
+        "before": "MCPサーバーが頻繁に再接続するシナリオで、フェッチキャッシュが適切にクリアされず、メモリリークが発生していました。",
+        "after": "MCPサーバー切断時のフェッチキャッシュクリア処理が修正され、メモリリークの問題が解消されました。",
+        "benefit": "頻繁に再接続が発生する環境でのメモリ使用量が削減され、MCP関連機能の安定性が向上しました。"
       }
     },
     {
       "content": "- Improved memory usage in long sessions with subagents by stripping heavy progress message payloads during context compaction",
-      "content_ja": "サブエージェントを使用する長時間セッションにおいて、要約時に肥大化した進捗メッセージを削除してメモリ使用量を改善",
+      "content_ja": "サブエージェントを使用する長時間セッションでのメモリ使用量が改善されました。コンテキスト圧縮中に重いプログレスメッセージペイロードが除去されます。",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": ["Sub-agents", "Memory"],
-      "related_docs": []
+      "related_docs": [],
+      "inference": {
+        "before": "サブエージェントを使用する長時間セッションで、プログレスメッセージのペイロードがメモリを圧迫し、メモリ使用量が増加していました。",
+        "after": "コンテキスト圧縮時に重いプログレスメッセージペイロードが除去されるようになり、サブエージェント利用時のメモリ効率が向上しました。",
+        "benefit": "長時間にわたるサブエージェントの使用におけるメモリ効率が大幅に改善され、パフォーマンスが向上します。"
+      }
     },
     {
       "content": "- Added \"Always copy full response\" option to the `/copy` picker. When selected, future `/copy` commands will skip the code block picker and copy the full response directly.",
-      "content_ja": "`/copy` コマンドに「常に全文をコピーする」オプションを追加し、コードブロック選択をスキップ可能に改善",
+      "content_ja": "「/copy」ピッカーに「常にフルレスポンスをコピー」オプションが追加されました。選択すると、今後の「/copy」コマンドはコードブロックピッカーをスキップし、フルレスポンスを直接コピーします。",
       "prefix": "Added",
       "importance_score": 8,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/interactive-mode.md",
-          "hit_count": 2,
+          "hit_count": 3,
           "context_score": 4,
-          "total_score": 8,
+          "total_score": 12,
           "snippets": [
-            "| `/stats` | Visualize daily usage, session history, streaks, and model preferences |\n| `/status` | Open the Settings interface (Status tab) showing version, model, account, and connectivity |\n| `/statusline` | Set up Claude Code's status line UI |\n| `/copy` | Copy the last response to clipboard. When code blocks are present, shows an interactive picker to select individual code blocks or the full response. Select **Always copy full response** in the picker to skip it in future sessions; revert by setting `copyFullResponse` to `false` in `/config` |\n| `/tasks` | List and manage background tasks |\n| `/teleport` | Resume a remote session from claude.ai (subscribers only) |\n| `/desktop` | Hand off the current CLI session to the Claude Code Desktop app (macOS and Windows only) |",
+            "| `/compact [instructions]` | Compact conversation with optional focus instructions |\n| `/config` | Open the [Settings](/en/settings) interface (Config tab). Alias: `/settings` |\n| `/context` | Visualize current context usage as a colored grid |\n| `/copy` | Copy the last assistant response to clipboard. When code blocks are present, shows an interactive picker to select individual blocks or the full response |\n| `/cost` | Show token usage statistics. See [cost tracking guide](/en/costs#using-the-cost-command) for subscription-specific details |\n| `/desktop` | Continue the current session in the Claude Code Desktop app. macOS and Windows only. Alias: `/app` |\n| `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files |\n| `/doctor` | Diagnose and verify your Claude Code installation and settings |\n| `/exit` | Exit the CLI. Alias: `/quit` |\n| `/export [filename]` | Export the current conversation as plain text. With a filename, writes directly to that file. Without, opens a dialog to copy to clipboard or save to a file |\n| `/extra-usage` | Configure extra usage to keep working when rate limits are hit |\n| `/fast [on\\|off]` | Toggle [fast mode](/en/fast-mode) on or off |\n| `/feedback [report]` | Submit feedback about Claude Code. Alias: `/bug` |",
             "| `cc` | Change line |\n| `C` | Change to end of line |\n| `cw`/`ce`/`cb` | Change word/to end/back |\n| `yy`/`Y` | Yank (copy) line |\n| `yw`/`ye`/`yb` | Yank word/to end/back |\n| `p` | Paste after cursor |\n| `P` | Paste before cursor |"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "「/copy」コマンドでレスポンス全体をコピーするには、毎回コードブロックピッカーを経由する必要がありました。",
+        "after": "「常にフルレスポンスをコピー」オプションを選択すると、「/copy」コマンドがコードブロックピッカーをスキップし、直接レスポンス全体をコピーするようになります。",
+        "benefit": "レスポンス全体のコピー操作がより迅速かつ効率的になり、作業時間を短縮できます。"
+      }
     },
     {
       "content": "- VSCode: Added session rename and remove actions to the sessions list",
-      "content_ja": "VSCode: セッションリストに名前の変更と削除のアクションを追加",
+      "content_ja": "VSCode: セッション名の変更と削除アクションがセッションリストに追加されました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": ["IDE/VSCode"],
@@ -718,7 +756,7 @@
     },
     {
       "content": "- Fixed `/clear` not resetting cached skills, which could cause stale skill content to persist in the new conversation",
-      "content_ja": "`/clear` 実行時にキャッシュされたスキルがリセットされず、古いスキルの内容が新しい会話に残ってしまう問題を修正",
+      "content_ja": "「/clear」コマンドがキャッシュされたスキルをリセットしていなかった不具合が修正され、これにより古いスキルコンテンツが新しい会話に永続する可能性がありました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Skills"],
@@ -755,16 +793,16 @@
           "snippets": [
             "| `Ctrl+F` | Kill all background agents. Press twice within 3 seconds to confirm | Background agent control |\n| `Ctrl+D` | Exit Claude Code session | EOF signal |\n| `Ctrl+G` | Open in default text editor | Edit your prompt or custom response in your default text editor |\n| `Ctrl+L` | Clear terminal screen | Keeps conversation history |\n| `Ctrl+O` | Toggle verbose output | Shows detailed tool usage and execution |\n| `Ctrl+R` | Reverse search command history | Search through previous commands interactively |\n| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard | Pastes an image or path to an image file |",
             "| `Up/Down arrows` | Navigate command history | Recall previous inputs |\n| `Esc` + `Esc` | Rewind or summarize | Restore code and/or conversation to a previous point, or summarize from a selected message |\n| `Shift+Tab` or `Alt+M` (some configurations) | Toggle permission modes | Switch between Auto-Accept Mode, Plan Mode, and normal mode. |\n| `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |\n| `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. Run `/terminal-setup` first to enable this shortcut |\n\n### Text editing",
-            "\n| Command | Purpose |\n| :- | :- |\n| `/clear` | Clear conversation history |\n| `/compact [instructions]` | Compact conversation with optional focus instructions |\n| `/config` | Open the Settings interface (Config tab) |\n| `/context` | Visualize current context usage as a colored grid |",
+            "| `/add-dir <path>` | Add a new working directory to the current session |\n| `/agents` | Manage [agent](/en/sub-agents) configurations |\n| `/chrome` | Configure [Claude in Chrome](/en/chrome) settings |\n| `/clear` | Clear conversation history and free up context. Aliases: `/reset`, `/new` |\n| `/compact [instructions]` | Compact conversation with optional focus instructions |\n| `/config` | Open the [Settings](/en/settings) interface (Config tab). Alias: `/settings` |\n| `/context` | Visualize current context usage as a colored grid |",
             "Claude Code maintains command history for the current session:\n\n- Input history is stored per working directory\n- Input history resets when you run `/clear` to start a new session. The previous session's conversation is preserved and can be resumed.\n- Use Up/Down arrows to navigate (see keyboard shortcuts above)\n- **Note**: history expansion (`!`) is disabled by default\n",
             "When working on complex, multi-step work, Claude creates a task list to track progress. Tasks appear in the status area of your terminal with indicators showing what's pending, in progress, or complete.\n\n- Press `Ctrl+T` to toggle the task list view. The display shows up to 10 tasks at a time\n- To see all tasks or clear them, ask Claude directly: \"show me all tasks\" or \"clear all tasks\"\n- Tasks persist across context compactions, helping Claude stay organized on larger projects\n- To share a task list across sessions, set `CLAUDE_CODE_TASK_LIST_ID` to use a named directory in `~/.claude/tasks/`: `CLAUDE_CODE_TASK_LIST_ID=my-project claude`\n- To revert to the previous TODO list, set `CLAUDE_CODE_ENABLE_TASKS=false`."
           ]
         }
       ],
       "inference": {
-        "before": "コンテキストをクリアしても内部的にスキル定義が保持されたままになり、更新したはずのスキルの変更内容が反映されないことがありました。",
-        "after": "`/clear` によってスキルのキャッシュも完全にリフレッシュされるようになり、最新の定義が確実に適用されます。",
-        "benefit": "スキルの開発や調整を行う際、確実に最新の指示がClaudeに伝わっていることを保証できます。"
+        "before": "「/clear」コマンドを実行しても、キャッシュされたスキル情報がリセットされず、古い情報が引き継がれてしまうことがありました。",
+        "after": "「/clear」コマンドでスキルキャッシュが適切にリセットされるようになり、常に最新のスキル情報が利用できるようになりました。",
+        "benefit": "会話をリセットする際の意図しない古いスキルの利用を防ぎ、より正確で一貫した動作を保証します。"
       }
     }
   ]
