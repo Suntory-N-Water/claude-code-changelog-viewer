@@ -3,10 +3,6 @@ title: third-party-integrations
 source: https://code.claude.com/docs/en/third-party-integrations.md
 ---
 
-> ## Documentation Index
-> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
-> Use this file to discover all available pages before exploring further.
-
 # Enterprise deployment overview
 
 > Learn how Claude Code can integrate with various third-party services and infrastructure to meet enterprise deployment requirements.
@@ -25,205 +21,161 @@ Learn more about [Team plans](https://support.claude.com/en/articles/9266767-wha
 
 If your organization has specific infrastructure requirements, compare the options below:
 
-<table>
-  <thead>
-    <tr>
-      <th>Feature</th>
-      <th>Claude for Teams/Enterprise</th>
-      <th>Anthropic Console</th>
-      <th>Amazon Bedrock</th>
-      <th>Google Vertex AI</th>
-      <th>Microsoft Foundry</th>
-    </tr>
-  </thead>
+Feature
+Claude for Teams/Enterprise
+Anthropic Console
+Amazon Bedrock
+Google Vertex AI
+Microsoft Foundry
 
-  <tbody>
-    <tr>
-      <td>Best for</td>
-      <td>Most organizations (recommended)</td>
-      <td>Individual developers</td>
-      <td>AWS-native deployments</td>
-      <td>GCP-native deployments</td>
-      <td>Azure-native deployments</td>
-    </tr>
+Best for
+Most organizations (recommended)
+Individual developers
+AWS-native deployments
+GCP-native deployments
+Azure-native deployments
 
-    <tr>
-      <td>Billing</td>
-      <td><strong>Teams:</strong> \$150/seat (Premium) with PAYG available<br /><strong>Enterprise:</strong> <a href="https://claude.com/contact-sales">Contact Sales</a></td>
-      <td>PAYG</td>
-      <td>PAYG through AWS</td>
-      <td>PAYG through GCP</td>
-      <td>PAYG through Azure</td>
-    </tr>
+Billing
+Teams: $150/seat (Premium) with PAYG availableEnterprise: Contact Sales
+PAYG
+PAYG through AWS
+PAYG through GCP
+PAYG through Azure
 
-    <tr>
-      <td>Regions</td>
-      <td>Supported [countries](https://www.anthropic.com/supported-countries)</td>
-      <td>Supported [countries](https://www.anthropic.com/supported-countries)</td>
-      <td>Multiple AWS [regions](https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html)</td>
-      <td>Multiple GCP [regions](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations)</td>
-      <td>Multiple Azure [regions](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/)</td>
-    </tr>
+Regions
+Supported [countries](https://www.anthropic.com/supported-countries)
+Supported [countries](https://www.anthropic.com/supported-countries)
+Multiple AWS [regions](https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html)
+Multiple GCP [regions](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations)
+Multiple Azure [regions](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/)
 
-    <tr>
-      <td>Prompt caching</td>
-      <td>Enabled by default</td>
-      <td>Enabled by default</td>
-      <td>Enabled by default</td>
-      <td>Enabled by default</td>
-      <td>Enabled by default</td>
-    </tr>
+Prompt caching
+Enabled by default
+Enabled by default
+Enabled by default
+Enabled by default
+Enabled by default
 
-    <tr>
-      <td>Authentication</td>
-      <td>Claude.ai SSO or email</td>
-      <td>API key</td>
-      <td>API key or AWS credentials</td>
-      <td>GCP credentials</td>
-      <td>API key or Microsoft Entra ID</td>
-    </tr>
+Authentication
+Claude.ai SSO or email
+API key
+API key or AWS credentials
+GCP credentials
+API key or Microsoft Entra ID
 
-    <tr>
-      <td>Cost tracking</td>
-      <td>Usage dashboard</td>
-      <td>Usage dashboard</td>
-      <td>AWS Cost Explorer</td>
-      <td>GCP Billing</td>
-      <td>Azure Cost Management</td>
-    </tr>
+Cost tracking
+Usage dashboard
+Usage dashboard
+AWS Cost Explorer
+GCP Billing
+Azure Cost Management
 
-    <tr>
-      <td>Includes Claude on web</td>
-      <td>Yes</td>
-      <td>No</td>
-      <td>No</td>
-      <td>No</td>
-      <td>No</td>
-    </tr>
+Includes Claude on web
+Yes
+No
+No
+No
+No
 
-    <tr>
-      <td>Enterprise features</td>
-      <td>Team management, SSO, usage monitoring</td>
-      <td>None</td>
-      <td>IAM policies, CloudTrail</td>
-      <td>IAM roles, Cloud Audit Logs</td>
-      <td>RBAC policies, Azure Monitor</td>
-    </tr>
-  </tbody>
-</table>
+Enterprise features
+Team management, SSO, usage monitoring
+None
+IAM policies, CloudTrail
+IAM roles, Cloud Audit Logs
+RBAC policies, Azure Monitor
 
 Select a deployment option to view setup instructions:
 
-* [Claude for Teams or Enterprise](/en/authentication#claude-for-teams-or-enterprise)
-* [Anthropic Console](/en/authentication#claude-console-authentication)
-* [Amazon Bedrock](/en/amazon-bedrock)
-* [Google Vertex AI](/en/google-vertex-ai)
-* [Microsoft Foundry](/en/microsoft-foundry)
+- [Claude for Teams or Enterprise](/en/authentication#claude-for-teams-or-enterprise)
+- [Anthropic Console](/en/authentication#claude-console-authentication)
+- [Amazon Bedrock](/en/amazon-bedrock)
+- [Google Vertex AI](/en/google-vertex-ai)
+- [Microsoft Foundry](/en/microsoft-foundry)
 
 ## Configure proxies and gateways
 
 Most organizations can use a cloud provider directly without additional configuration. However, you may need to configure a corporate proxy or LLM gateway if your organization has specific network or management requirements. These are different configurations that can be used together:
 
-* **Corporate proxy**: Routes traffic through an HTTP/HTTPS proxy. Use this if your organization requires all outbound traffic to pass through a proxy server for security monitoring, compliance, or network policy enforcement. Configure with the `HTTPS_PROXY` or `HTTP_PROXY` environment variables. Learn more in [Enterprise network configuration](/en/network-config).
-* **LLM Gateway**: A service that sits between Claude Code and the cloud provider to handle authentication and routing. Use this if you need centralized usage tracking across teams, custom rate limiting or budgets, or centralized authentication management. Configure with the `ANTHROPIC_BASE_URL`, `ANTHROPIC_BEDROCK_BASE_URL`, or `ANTHROPIC_VERTEX_BASE_URL` environment variables. Learn more in [LLM gateway configuration](/en/llm-gateway).
+- **Corporate proxy**: Routes traffic through an HTTP/HTTPS proxy. Use this if your organization requires all outbound traffic to pass through a proxy server for security monitoring, compliance, or network policy enforcement. Configure with the `HTTPS_PROXY` or `HTTP_PROXY` environment variables. Learn more in [Enterprise network configuration](/en/network-config).
+- **LLM Gateway**: A service that sits between Claude Code and the cloud provider to handle authentication and routing. Use this if you need centralized usage tracking across teams, custom rate limiting or budgets, or centralized authentication management. Configure with the `ANTHROPIC_BASE_URL`, `ANTHROPIC_BEDROCK_BASE_URL`, or `ANTHROPIC_VERTEX_BASE_URL` environment variables. Learn more in [LLM gateway configuration](/en/llm-gateway).
 
 The following examples show the environment variables to set in your shell or shell profile (`.bashrc`, `.zshrc`). See [Settings](/en/settings) for other configuration methods.
 
 ### Amazon Bedrock
 
-<Tabs>
-  <Tab title="Corporate proxy">
-    Route Bedrock traffic through your corporate proxy by setting the following [environment variables](/en/settings#environment-variables):
+Route Bedrock traffic through your corporate proxy by setting the following [environment variables](/en/settings#environment-variables):
 
-    ```bash  theme={null}
-    # Enable Bedrock
-    export CLAUDE_CODE_USE_BEDROCK=1
-    export AWS_REGION=us-east-1
+```bash theme={null}
+# Enable Bedrock
+export CLAUDE_CODE_USE_BEDROCK=1
+export AWS_REGION=us-east-1
 
-    # Configure corporate proxy
-    export HTTPS_PROXY='https://proxy.example.com:8080'
-    ```
-  </Tab>
+# Configure corporate proxy
+export HTTPS_PROXY='https://proxy.example.com:8080'
+```
 
-  <Tab title="LLM Gateway">
-    Route Bedrock traffic through your LLM gateway by setting the following [environment variables](/en/settings#environment-variables):
+Route Bedrock traffic through your LLM gateway by setting the following [environment variables](/en/settings#environment-variables):
 
-    ```bash  theme={null}
-    # Enable Bedrock
-    export CLAUDE_CODE_USE_BEDROCK=1
+```bash theme={null}
+# Enable Bedrock
+export CLAUDE_CODE_USE_BEDROCK=1
 
-    # Configure LLM gateway
-    export ANTHROPIC_BEDROCK_BASE_URL='https://your-llm-gateway.com/bedrock'
-    export CLAUDE_CODE_SKIP_BEDROCK_AUTH=1  # If gateway handles AWS auth
-    ```
-  </Tab>
-</Tabs>
+# Configure LLM gateway
+export ANTHROPIC_BEDROCK_BASE_URL='https://your-llm-gateway.com/bedrock'
+export CLAUDE_CODE_SKIP_BEDROCK_AUTH=1  # If gateway handles AWS auth
+```
 
 ### Microsoft Foundry
 
-<Tabs>
-  <Tab title="Corporate proxy">
-    Route Foundry traffic through your corporate proxy by setting the following [environment variables](/en/settings#environment-variables):
+Route Foundry traffic through your corporate proxy by setting the following [environment variables](/en/settings#environment-variables):
 
-    ```bash  theme={null}
-    # Enable Microsoft Foundry
-    export CLAUDE_CODE_USE_FOUNDRY=1
-    export ANTHROPIC_FOUNDRY_RESOURCE=your-resource
-    export ANTHROPIC_FOUNDRY_API_KEY=your-api-key  # Or omit for Entra ID auth
+```bash theme={null}
+# Enable Microsoft Foundry
+export CLAUDE_CODE_USE_FOUNDRY=1
+export ANTHROPIC_FOUNDRY_RESOURCE=your-resource
+export ANTHROPIC_FOUNDRY_API_KEY=your-api-key  # Or omit for Entra ID auth
 
-    # Configure corporate proxy
-    export HTTPS_PROXY='https://proxy.example.com:8080'
-    ```
-  </Tab>
+# Configure corporate proxy
+export HTTPS_PROXY='https://proxy.example.com:8080'
+```
 
-  <Tab title="LLM Gateway">
-    Route Foundry traffic through your LLM gateway by setting the following [environment variables](/en/settings#environment-variables):
+Route Foundry traffic through your LLM gateway by setting the following [environment variables](/en/settings#environment-variables):
 
-    ```bash  theme={null}
-    # Enable Microsoft Foundry
-    export CLAUDE_CODE_USE_FOUNDRY=1
+```bash theme={null}
+# Enable Microsoft Foundry
+export CLAUDE_CODE_USE_FOUNDRY=1
 
-    # Configure LLM gateway
-    export ANTHROPIC_FOUNDRY_BASE_URL='https://your-llm-gateway.com'
-    export CLAUDE_CODE_SKIP_FOUNDRY_AUTH=1  # If gateway handles Azure auth
-    ```
-  </Tab>
-</Tabs>
+# Configure LLM gateway
+export ANTHROPIC_FOUNDRY_BASE_URL='https://your-llm-gateway.com'
+export CLAUDE_CODE_SKIP_FOUNDRY_AUTH=1  # If gateway handles Azure auth
+```
 
 ### Google Vertex AI
 
-<Tabs>
-  <Tab title="Corporate proxy">
-    Route Vertex AI traffic through your corporate proxy by setting the following [environment variables](/en/settings#environment-variables):
+Route Vertex AI traffic through your corporate proxy by setting the following [environment variables](/en/settings#environment-variables):
 
-    ```bash  theme={null}
-    # Enable Vertex
-    export CLAUDE_CODE_USE_VERTEX=1
-    export CLOUD_ML_REGION=us-east5
-    export ANTHROPIC_VERTEX_PROJECT_ID=your-project-id
+```bash theme={null}
+# Enable Vertex
+export CLAUDE_CODE_USE_VERTEX=1
+export CLOUD_ML_REGION=us-east5
+export ANTHROPIC_VERTEX_PROJECT_ID=your-project-id
 
-    # Configure corporate proxy
-    export HTTPS_PROXY='https://proxy.example.com:8080'
-    ```
-  </Tab>
+# Configure corporate proxy
+export HTTPS_PROXY='https://proxy.example.com:8080'
+```
 
-  <Tab title="LLM Gateway">
-    Route Vertex AI traffic through your LLM gateway by setting the following [environment variables](/en/settings#environment-variables):
+Route Vertex AI traffic through your LLM gateway by setting the following [environment variables](/en/settings#environment-variables):
 
-    ```bash  theme={null}
-    # Enable Vertex
-    export CLAUDE_CODE_USE_VERTEX=1
+```bash theme={null}
+# Enable Vertex
+export CLAUDE_CODE_USE_VERTEX=1
 
-    # Configure LLM gateway
-    export ANTHROPIC_VERTEX_BASE_URL='https://your-llm-gateway.com/vertex'
-    export CLAUDE_CODE_SKIP_VERTEX_AUTH=1  # If gateway handles GCP auth
-    ```
-  </Tab>
-</Tabs>
+# Configure LLM gateway
+export ANTHROPIC_VERTEX_BASE_URL='https://your-llm-gateway.com/vertex'
+export CLAUDE_CODE_SKIP_VERTEX_AUTH=1  # If gateway handles GCP auth
+```
 
-<Tip>
-  Use `/status` in Claude Code to verify your proxy and gateway configuration is applied correctly.
-</Tip>
+Use `/status` in Claude Code to verify your proxy and gateway configuration is applied correctly.
 
 ## Best practices for organizations
 
@@ -231,8 +183,8 @@ The following examples show the environment variables to set in your shell or sh
 
 We strongly recommend investing in documentation so that Claude Code understands your codebase. Organizations can deploy CLAUDE.md files at multiple levels:
 
-* **Organization-wide**: Deploy to system directories like `/Library/Application Support/ClaudeCode/CLAUDE.md` (macOS) for company-wide standards
-* **Repository-level**: Create `CLAUDE.md` files in repository roots containing project architecture, build commands, and contribution guidelines. Check these into source control so all users benefit
+- **Organization-wide**: Deploy to system directories like `/Library/Application Support/ClaudeCode/CLAUDE.md` (macOS) for company-wide standards
+- **Repository-level**: Create `CLAUDE.md` files in repository roots containing project architecture, build commands, and contribution guidelines. Check these into source control so all users benefit
 
 Learn more in [Memory and CLAUDE.md files](/en/memory).
 

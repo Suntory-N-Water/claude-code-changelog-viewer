@@ -3,10 +3,6 @@ title: model-config
 source: https://code.claude.com/docs/en/model-config.md
 ---
 
-> ## Documentation Index
-> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
-> Use this file to discover all available pages before exploring further.
-
 # Model configuration
 
 > Learn about the Claude Code model configuration, including model aliases like `opusplan`
@@ -15,26 +11,26 @@ source: https://code.claude.com/docs/en/model-config.md
 
 For the `model` setting in Claude Code, you can configure either:
 
-* A **model alias**
-* A **model name**
-  * Anthropic API: A full **[model name](https://platform.claude.com/docs/en/about-claude/models/overview)**
-  * Bedrock: an inference profile ARN
-  * Foundry: a deployment name
-  * Vertex: a version name
+- A **model alias**
+- A **model name**
+  - Anthropic API: A full **[model name](https://platform.claude.com/docs/en/about-claude/models/overview)**
+  - Bedrock: an inference profile ARN
+  - Foundry: a deployment name
+  - Vertex: a version name
 
 ### Model aliases
 
 Model aliases provide a convenient way to select model settings without
 remembering exact version numbers:
 
-| Model alias      | Behavior                                                                                                                                                             |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`default`**    | Recommended model setting, depending on your account type                                                                                                            |
-| **`sonnet`**     | Uses the latest Sonnet model (currently Sonnet 4.6) for daily coding tasks                                                                                           |
-| **`opus`**       | Uses the latest Opus model (currently Opus 4.6) for complex reasoning tasks                                                                                          |
-| **`haiku`**      | Uses the fast and efficient Haiku model for simple tasks                                                                                                             |
+| Model alias | Behavior |
+| - | - |
+| **`default`** | Recommended model setting, depending on your account type |
+| **`sonnet`** | Uses the latest Sonnet model (currently Sonnet 4.6) for daily coding tasks |
+| **`opus`** | Uses the latest Opus model (currently Opus 4.6) for complex reasoning tasks |
+| **`haiku`** | Uses the fast and efficient Haiku model for simple tasks |
 | **`sonnet[1m]`** | Uses Sonnet with a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions |
-| **`opusplan`**   | Special mode that uses `opus` during plan mode, then switches to `sonnet` for execution                                                                              |
+| **`opusplan`** | Special mode that uses `opus` during plan mode, then switches to `sonnet` for execution |
 
 Aliases always point to the latest version. To pin to a specific version, use the full model name (for example, `claude-opus-4-6`) or set the corresponding environment variable like `ANTHROPIC_DEFAULT_OPUS_MODEL`.
 
@@ -50,7 +46,7 @@ You can configure your model in several ways, listed in order of priority:
 
 Example usage:
 
-```bash  theme={null}
+```bash
 # Start with Opus
 claude --model opus
 
@@ -60,7 +56,7 @@ claude --model opus
 
 Example settings file:
 
-```json  theme={null}
+```json
 {
     "permissions": {
         ...
@@ -75,7 +71,7 @@ Enterprise administrators can use `availableModels` in [managed or policy settin
 
 When `availableModels` is set, users cannot switch to models not in the list via `/model`, `--model` flag, Config tool, or `ANTHROPIC_MODEL` environment variable.
 
-```json  theme={null}
+```json
 {
   "availableModels": ["sonnet", "haiku"]
 }
@@ -91,12 +87,12 @@ Even with `availableModels: []`, users can still use Claude Code with the Defaul
 
 To fully control the model experience, use `availableModels` together with the `model` setting:
 
-* **availableModels**: restricts what users can switch to
-* **model**: sets the explicit model override, taking precedence over the Default
+- **availableModels**: restricts what users can switch to
+- **model**: sets the explicit model override, taking precedence over the Default
 
 This example ensures all users run Sonnet 4.6 and can only choose between Sonnet and Haiku:
 
-```json  theme={null}
+```json
 {
   "model": "sonnet",
   "availableModels": ["sonnet", "haiku"]
@@ -113,9 +109,9 @@ When `availableModels` is set at multiple levels, such as user settings and proj
 
 The behavior of `default` depends on your account type:
 
-* **Max and Team Premium**: defaults to Opus 4.6
-* **Pro and Team Standard**: defaults to Sonnet 4.6
-* **Enterprise**: Opus 4.6 is available but not the default
+- **Max and Team Premium**: defaults to Opus 4.6
+- **Pro and Team Standard**: defaults to Sonnet 4.6
+- **Enterprise**: Opus 4.6 is available but not the default
 
 Claude Code may automatically fall back to Sonnet if you hit a usage threshold with Opus.
 
@@ -123,9 +119,9 @@ Claude Code may automatically fall back to Sonnet if you hit a usage threshold w
 
 The `opusplan` model alias provides an automated hybrid approach:
 
-* **In plan mode** - Uses `opus` for complex reasoning and architecture
+- **In plan mode** - Uses `opus` for complex reasoning and architecture
   decisions
-* **In execution mode** - Automatically switches to `sonnet` for code generation
+- **In execution mode** - Automatically switches to `sonnet` for code generation
   and implementation
 
 This gives you the best of both worlds: Opus's superior reasoning for planning,
@@ -139,9 +135,9 @@ Three levels are available: **low**, **medium**, and **high** (default).
 
 **Setting effort:**
 
-* **In `/model`**: use left/right arrow keys to adjust the effort slider when selecting a model
-* **Environment variable**: set `CLAUDE_CODE_EFFORT_LEVEL=low|medium|high`
-* **Settings**: set `effortLevel` in your settings file
+- **In `/model`**: use left/right arrow keys to adjust the effort slider when selecting a model
+- **Environment variable**: set `CLAUDE_CODE_EFFORT_LEVEL=low|medium|high`
+- **Settings**: set `effortLevel` in your settings file
 
 Effort is currently supported on Opus 4.6. The effort slider appears in `/model` when a supported model is selected.
 
@@ -151,14 +147,12 @@ To disable adaptive reasoning on Opus 4.6 and Sonnet 4.6 and revert to the previ
 
 Opus 4.6 and Sonnet 4.6 support a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions with large codebases.
 
-<Note>
-  The 1M context window is currently in beta. Features, pricing, and availability may change.
-</Note>
+The 1M context window is currently in beta. Features, pricing, and availability may change.
 
 Extended context is available for:
 
-* **API and pay-as-you-go users**: full access to 1M context
-* **Pro, Max, Teams, and Enterprise subscribers**: available with [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) enabled
+- **API and pay-as-you-go users**: full access to 1M context
+- **Pro, Max, Teams, and Enterprise subscribers**: available with [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) enabled
 
 To disable 1M context entirely, set `CLAUDE_CODE_DISABLE_1M_CONTEXT=1`. This removes 1M model variants from the model picker. See [environment variables](/en/settings#environment-variables).
 
@@ -168,7 +162,7 @@ If your account supports 1M context, the option appears in the model picker (`/m
 
 You can also use the `[1m]` suffix with model aliases or full model names:
 
-```bash  theme={null}
+```bash
 # Use the sonnet[1m] alias
 /model sonnet[1m]
 
@@ -188,12 +182,12 @@ You can see which model you're currently using in several ways:
 You can use the following environment variables, which must be full **model
 names** (or equivalent for your API provider), to control the model names that the aliases map to.
 
-| Environment variable             | Description                                                                                   |
-| -------------------------------- | --------------------------------------------------------------------------------------------- |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL`   | The model to use for `opus`, or for `opusplan` when Plan Mode is active.                      |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | The model to use for `sonnet`, or for `opusplan` when Plan Mode is not active.                |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL`  | The model to use for `haiku`, or [background functionality](/en/costs#background-token-usage) |
-| `CLAUDE_CODE_SUBAGENT_MODEL`     | The model to use for [subagents](/en/sub-agents)                                              |
+| Environment variable | Description |
+| - | - |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | The model to use for `opus`, or for `opusplan` when Plan Mode is active. |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | The model to use for `sonnet`, or for `opusplan` when Plan Mode is not active. |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | The model to use for `haiku`, or [background functionality](/en/costs#background-token-usage) |
+| `CLAUDE_CODE_SUBAGENT_MODEL` | The model to use for [subagents](/en/sub-agents) |
 
 Note: `ANTHROPIC_SMALL_FAST_MODEL` is deprecated in favor of
 `ANTHROPIC_DEFAULT_HAIKU_MODEL`.
@@ -204,33 +198,29 @@ When deploying Claude Code through [Bedrock](/en/amazon-bedrock), [Vertex AI](/e
 
 Without pinning, Claude Code uses model aliases (`sonnet`, `opus`, `haiku`) that resolve to the latest version. When Anthropic releases a new model, users whose accounts don't have the new version enabled will break silently.
 
-<Warning>
-  Set all three model environment variables to specific version IDs as part of your initial setup. Skipping this step means a Claude Code update can break your users without any action on your part.
-</Warning>
+Set all three model environment variables to specific version IDs as part of your initial setup. Skipping this step means a Claude Code update can break your users without any action on your part.
 
 Use the following environment variables with version-specific model IDs for your provider:
 
-| Provider  | Example                                                                 |
-| :-------- | :---------------------------------------------------------------------- |
-| Bedrock   | `export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-6-v1'` |
-| Vertex AI | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'`                 |
-| Foundry   | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'`                 |
+| Provider | Example |
+| :- | :- |
+| Bedrock | `export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-6-v1'` |
+| Vertex AI | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'` |
+| Foundry | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'` |
 
 Apply the same pattern for `ANTHROPIC_DEFAULT_SONNET_MODEL` and `ANTHROPIC_DEFAULT_HAIKU_MODEL`. For current and legacy model IDs across all providers, see [Models overview](https://platform.claude.com/docs/en/about-claude/models/overview). To upgrade users to a new model version, update these environment variables and redeploy.
 
-<Note>
-  The `settings.availableModels` allowlist still applies when using third-party providers. Filtering matches on the model alias (`opus`, `sonnet`, `haiku`), not the provider-specific model ID.
-</Note>
+The `settings.availableModels` allowlist still applies when using third-party providers. Filtering matches on the model alias (`opus`, `sonnet`, `haiku`), not the provider-specific model ID.
 
 ### Prompt caching configuration
 
 Claude Code automatically uses [prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) to optimize performance and reduce costs. You can disable prompt caching globally or for specific model tiers:
 
-| Environment variable            | Description                                                                                    |
-| ------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `DISABLE_PROMPT_CACHING`        | Set to `1` to disable prompt caching for all models (takes precedence over per-model settings) |
-| `DISABLE_PROMPT_CACHING_HAIKU`  | Set to `1` to disable prompt caching for Haiku models only                                     |
-| `DISABLE_PROMPT_CACHING_SONNET` | Set to `1` to disable prompt caching for Sonnet models only                                    |
-| `DISABLE_PROMPT_CACHING_OPUS`   | Set to `1` to disable prompt caching for Opus models only                                      |
+| Environment variable | Description |
+| - | - |
+| `DISABLE_PROMPT_CACHING` | Set to `1` to disable prompt caching for all models (takes precedence over per-model settings) |
+| `DISABLE_PROMPT_CACHING_HAIKU` | Set to `1` to disable prompt caching for Haiku models only |
+| `DISABLE_PROMPT_CACHING_SONNET` | Set to `1` to disable prompt caching for Sonnet models only |
+| `DISABLE_PROMPT_CACHING_OPUS` | Set to `1` to disable prompt caching for Opus models only |
 
 These environment variables give you fine-grained control over prompt caching behavior. The global `DISABLE_PROMPT_CACHING` setting takes precedence over the model-specific settings, allowing you to quickly disable all caching when needed. The per-model settings are useful for selective control, such as when debugging specific models or working with cloud providers that may have different caching implementations.

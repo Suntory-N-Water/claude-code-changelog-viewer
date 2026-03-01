@@ -1,3 +1,4 @@
+import remarkGfm from 'remark-gfm';
 import remarkMdx from 'remark-mdx';
 import remarkParse from 'remark-parse';
 import remarkStringify from 'remark-stringify';
@@ -11,6 +12,7 @@ export async function cleanMarkdown(raw: string): Promise<string> {
   try {
     const file = await unified()
       .use(remarkParse)
+      .use(remarkGfm, { tablePipeAlign: false })
       .use(remarkMdx)
       .use(remarkStripMdxComponents)
       .use(remarkStringify)

@@ -3,10 +3,6 @@ title: how-claude-code-works
 source: https://code.claude.com/docs/en/how-claude-code-works.md
 ---
 
-> ## Documentation Index
-> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
-> Use this file to discover all available pages before exploring further.
-
 # How Claude Code works
 
 > Understand the agentic loop, built-in tools, and how Claude Code interacts with your project.
@@ -18,8 +14,6 @@ This guide covers the core architecture, built-in capabilities, and [tips for wo
 ## The agentic loop
 
 When you give Claude a task, it works through three phases: **gather context**, **take action**, and **verify results**. These phases blend together. Claude uses tools throughout, whether searching files to understand your code, editing to make changes, or running tests to check its work.
-
-<img src="https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/agentic-loop.svg?fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=9d9cdb2102f397a0f57450ca5ca2a969" alt="The agentic loop: Your prompt leads to Claude gathering context, taking action, verifying results, and repeating until task complete. You can interrupt at any point." data-og-width="720" width="720" data-og-height="280" height="280" data-path="images/agentic-loop.svg" data-optimize="true" data-opv="3" srcset="https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/agentic-loop.svg?w=280&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=9c6a590754c1c1b281d40fc9f10fed0d 280w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/agentic-loop.svg?w=560&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=9fb2f2fc174e285797cad25a9ca2a326 560w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/agentic-loop.svg?w=840&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=3a1b68dd7b861e8ff25391773d8ab60c 840w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/agentic-loop.svg?w=1100&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=e64edf9f5cbc62464617945cf08ef134 1100w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/agentic-loop.svg?w=1650&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=3bf3319e76669f11513c6bcc5bf86feb 1650w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/agentic-loop.svg?w=2500&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=9413880a191409ff3c81bafc8f7ab977 2500w" />
 
 The loop adapts to what you ask. A question about your codebase might only need context gathering. A bug fix cycles through all three phases repeatedly. A refactor might involve extensive verification. Claude decides what each step requires based on what it learned from the previous step, chaining dozens of actions together and course-correcting along the way.
 
@@ -41,12 +35,12 @@ Tools are what make Claude Code agentic. Without tools, Claude can only respond 
 
 The built-in tools generally fall into five categories, each representing a different kind of agency.
 
-| Category              | What Claude can do                                                                                                                                            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **File operations**   | Read files, edit code, create new files, rename and reorganize                                                                                                |
-| **Search**            | Find files by pattern, search content with regex, explore codebases                                                                                           |
-| **Execution**         | Run shell commands, start servers, run tests, use git                                                                                                         |
-| **Web**               | Search the web, fetch documentation, look up error messages                                                                                                   |
+| Category | What Claude can do |
+| - | - |
+| **File operations** | Read files, edit code, create new files, rename and reorganize |
+| **Search** | Find files by pattern, search content with regex, explore codebases |
+| **Execution** | Run shell commands, start servers, run tests, use git |
+| **Web** | Search the web, fetch documentation, look up error messages |
 | **Code intelligence** | See type errors and warnings after edits, jump to definitions, find references (requires [code intelligence plugins](/en/discover-plugins#code-intelligence)) |
 
 These are the primary capabilities. Claude also has tools for spawning subagents, asking you questions, and other orchestration tasks. See [Tools available to Claude](/en/settings#tools-available-to-claude) for the complete list.
@@ -70,12 +64,12 @@ This guide focuses on the terminal. Claude Code also runs in [VS Code](/en/vs-co
 
 When you run `claude` in a directory, Claude Code gains access to:
 
-* **Your project.** Files in your directory and subdirectories, plus files elsewhere with your permission.
-* **Your terminal.** Any command you could run: build tools, git, package managers, system utilities, scripts. If you can do it from the command line, Claude can too.
-* **Your git state.** Current branch, uncommitted changes, and recent commit history.
-* **Your [CLAUDE.md](/en/memory).** A markdown file where you store project-specific instructions, conventions, and context that Claude should know every session.
-* **[Auto memory](/en/memory#auto-memory).** Learnings Claude saves automatically as you work, like project patterns and your preferences. The first 200 lines of MEMORY.md are loaded at the start of each session.
-* **Extensions you configure.** [MCP servers](/en/mcp) for external services, [skills](/en/skills) for workflows, [subagents](/en/sub-agents) for delegated work, and [Claude in Chrome](/en/chrome) for browser interaction.
+- **Your project.** Files in your directory and subdirectories, plus files elsewhere with your permission.
+- **Your terminal.** Any command you could run: build tools, git, package managers, system utilities, scripts. If you can do it from the command line, Claude can too.
+- **Your git state.** Current branch, uncommitted changes, and recent commit history.
+- **Your [CLAUDE.md](/en/memory).** A markdown file where you store project-specific instructions, conventions, and context that Claude should know every session.
+- **[Auto memory](/en/memory#auto-memory).** Learnings Claude saves automatically as you work, like project patterns and your preferences. The first 200 lines of MEMORY.md are loaded at the start of each session.
+- **Extensions you configure.** [MCP servers](/en/mcp) for external services, [skills](/en/skills) for workflows, [subagents](/en/sub-agents) for delegated work, and [Claude in Chrome](/en/chrome) for browser interaction.
 
 Because Claude sees your whole project, it can work across it. When you ask Claude to "fix the authentication bug," it searches for relevant files, reads multiple files to understand context, makes coordinated edits across them, runs tests to verify the fix, and commits the changes if you ask. This is different from inline code assistants that only see the current file.
 
@@ -87,11 +81,11 @@ The agentic loop, tools, and capabilities described above are the same everywher
 
 Claude Code runs in three environments, each with different tradeoffs for where your code executes.
 
-| Environment        | Where code runs                         | Use case                                                   |
-| ------------------ | --------------------------------------- | ---------------------------------------------------------- |
-| **Local**          | Your machine                            | Default. Full access to your files, tools, and environment |
-| **Cloud**          | Anthropic-managed VMs                   | Offload tasks, work on repos you don't have locally        |
-| **Remote Control** | Your machine, controlled from a browser | Use the web UI while keeping everything local              |
+| Environment | Where code runs | Use case |
+| - | - | - |
+| **Local** | Your machine | Default. Full access to your files, tools, and environment |
+| **Cloud** | Anthropic-managed VMs | Offload tasks, work on repos you don't have locally |
+| **Remote Control** | Your machine, controlled from a browser | Use the web UI while keeping everything local |
 
 ### Interfaces
 
@@ -115,11 +109,9 @@ Since sessions are tied to directories, you can run parallel Claude sessions by 
 
 When you resume a session with `claude --continue` or `claude --resume`, you pick up where you left off using the same session ID. New messages append to the existing conversation. Your full conversation history is restored, but session-scoped permissions are not. You'll need to re-approve those.
 
-<img src="https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/session-continuity.svg?fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=808da1b213c731bf98874c75981d688b" alt="Session continuity: resume continues the same session, fork creates a new branch with a new ID." data-og-width="560" width="560" data-og-height="280" height="280" data-path="images/session-continuity.svg" data-optimize="true" data-opv="3" srcset="https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/session-continuity.svg?w=280&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=ba75f64bc571f3ef84a3237ef795bf22 280w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/session-continuity.svg?w=560&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=343ad422a171a2b909c87ed01c768745 560w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/session-continuity.svg?w=840&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=afce54d5e3b08cdb54d506332462b74c 840w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/session-continuity.svg?w=1100&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=28648c0a04cf7aef2de02d1c98491965 1100w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/session-continuity.svg?w=1650&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=a5287882beedaea54af606f682e4818d 1650w, https://mintcdn.com/claude-code/TBPmHzr19mDCuhZi/images/session-continuity.svg?w=2500&fit=max&auto=format&n=TBPmHzr19mDCuhZi&q=85&s=f392dbe67b63eead4a2aae67adfbfdbe 2500w" />
-
 To branch off and try a different approach without affecting the original session, use the `--fork-session` flag:
 
-```bash  theme={null}
+```bash
 claude --continue --fork-session
 ```
 
@@ -163,9 +155,9 @@ Checkpoints are local to your session, separate from git. They only cover file c
 
 Press `Shift+Tab` to cycle through permission modes:
 
-* **Default**: Claude asks before file edits and shell commands
-* **Auto-accept edits**: Claude edits files without asking, still asks for commands
-* **Plan mode**: Claude uses read-only tools only, creating a plan you can approve before execution
+- **Default**: Claude asks before file edits and shell commands
+- **Auto-accept edits**: Claude edits files without asking, still asks for commands
+- **Plan mode**: Claude uses read-only tools only, creating a plan you can approve before execution
 
 You can also allow specific commands in `.claude/settings.json` so Claude doesn't ask each time. This is useful for trusted commands like `npm test` or `git status`. Settings can be scoped from organization-wide policies down to personal preferences. See [Permissions](/en/permissions) for details.
 
@@ -181,9 +173,9 @@ Claude Code can teach you how to use it. Ask questions like "how do I set up hoo
 
 Built-in commands also guide you through setup:
 
-* `/init` walks you through creating a CLAUDE.md for your project
-* `/agents` helps you configure custom subagents
-* `/doctor` diagnoses common issues with your installation
+- `/init` walks you through creating a CLAUDE.md for your project
+- `/agents` helps you configure custom subagents
+- `/doctor` diagnoses common issues with your installation
 
 ### It's a conversation
 
@@ -252,12 +244,6 @@ You don't need to specify which files to read or what commands to run. Claude fi
 
 ## What's next
 
-<CardGroup cols={2}>
-  <Card title="Extend with features" icon="puzzle-piece" href="/en/features-overview">
-    Add Skills, MCP connections, and custom commands
-  </Card>
+Add Skills, MCP connections, and custom commands
 
-  <Card title="Common workflows" icon="graduation-cap" href="/en/common-workflows">
-    Step-by-step guides for typical tasks
-  </Card>
-</CardGroup>
+Step-by-step guides for typical tasks

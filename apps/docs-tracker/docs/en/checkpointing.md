@@ -3,10 +3,6 @@ title: checkpointing
 source: https://code.claude.com/docs/en/checkpointing.md
 ---
 
-> ## Documentation Index
-> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
-> Use this file to discover all available pages before exploring further.
-
 # Checkpointing
 
 > Track, rewind, and summarize Claude's edits and conversation to manage session state.
@@ -21,19 +17,19 @@ As you work with Claude, checkpointing automatically captures the state of your 
 
 Claude Code tracks all changes made by its file editing tools:
 
-* Every user prompt creates a new checkpoint
-* Checkpoints persist across sessions, so you can access them in resumed conversations
-* Automatically cleaned up along with sessions after 30 days (configurable)
+- Every user prompt creates a new checkpoint
+- Checkpoints persist across sessions, so you can access them in resumed conversations
+- Automatically cleaned up along with sessions after 30 days (configurable)
 
 ### Rewind and summarize
 
 Press `Esc` twice (`Esc` + `Esc`) or use the `/rewind` command to open the rewind menu. A scrollable list shows each of your prompts from the session. Select the point you want to act on, then choose an action:
 
-* **Restore code and conversation**: revert both code and conversation to that point
-* **Restore conversation**: rewind to that message while keeping current code
-* **Restore code**: revert file changes while keeping the conversation
-* **Summarize from here**: compress the conversation from this point forward into a summary, freeing context window space
-* **Never mind**: return to the message list without making changes
+- **Restore code and conversation**: revert both code and conversation to that point
+- **Restore conversation**: rewind to that message while keeping current code
+- **Restore code**: revert file changes while keeping the conversation
+- **Summarize from here**: compress the conversation from this point forward into a summary, freeing context window space
+- **Never mind**: return to the message list without making changes
 
 After restoring the conversation or summarizing, the original prompt from the selected message is restored into the input field so you can re-send or edit it.
 
@@ -41,25 +37,23 @@ After restoring the conversation or summarizing, the original prompt from the se
 
 The three restore options revert state: they undo code changes, conversation history, or both. "Summarize from here" works differently:
 
-* Messages before the selected message stay intact
-* The selected message and all subsequent messages get replaced with a compact AI-generated summary
-* No files on disk are changed
-* The original messages are preserved in the session transcript, so Claude can reference the details if needed
+- Messages before the selected message stay intact
+- The selected message and all subsequent messages get replaced with a compact AI-generated summary
+- No files on disk are changed
+- The original messages are preserved in the session transcript, so Claude can reference the details if needed
 
 This is similar to `/compact`, but targeted: instead of summarizing the entire conversation, you keep early context in full detail and only compress the parts that are using up space. You can type optional instructions to guide what the summary focuses on.
 
-<Note>
-  Summarize keeps you in the same session and compresses context. If you want to branch off and try a different approach while preserving the original session intact, use [fork](/en/how-claude-code-works#resume-or-fork-sessions) instead (`claude --continue --fork-session`).
-</Note>
+Summarize keeps you in the same session and compresses context. If you want to branch off and try a different approach while preserving the original session intact, use [fork](/en/how-claude-code-works#resume-or-fork-sessions) instead (`claude --continue --fork-session`).
 
 ## Common use cases
 
 Checkpoints are particularly useful when:
 
-* **Exploring alternatives**: try different implementation approaches without losing your starting point
-* **Recovering from mistakes**: quickly undo changes that introduced bugs or broke functionality
-* **Iterating on features**: experiment with variations knowing you can revert to working states
-* **Freeing context space**: summarize a verbose debugging session from the midpoint forward, keeping your initial instructions intact
+- **Exploring alternatives**: try different implementation approaches without losing your starting point
+- **Recovering from mistakes**: quickly undo changes that introduced bugs or broke functionality
+- **Iterating on features**: experiment with variations knowing you can revert to working states
+- **Freeing context space**: summarize a verbose debugging session from the midpoint forward, keeping your initial instructions intact
 
 ## Limitations
 
@@ -67,7 +61,7 @@ Checkpoints are particularly useful when:
 
 Checkpointing does not track files modified by bash commands. For example, if Claude Code runs:
 
-```bash  theme={null}
+```bash
 rm file.txt
 mv old.txt new.txt
 cp source.txt dest.txt
@@ -83,12 +77,12 @@ Checkpointing only tracks files that have been edited within the current session
 
 Checkpoints are designed for quick, session-level recovery. For permanent version history and collaboration:
 
-* Continue using version control (ex. Git) for commits, branches, and long-term history
-* Checkpoints complement but don't replace proper version control
-* Think of checkpoints as "local undo" and Git as "permanent history"
+- Continue using version control (ex. Git) for commits, branches, and long-term history
+- Checkpoints complement but don't replace proper version control
+- Think of checkpoints as "local undo" and Git as "permanent history"
 
 ## See also
 
-* [Interactive mode](/en/interactive-mode) - Keyboard shortcuts and session controls
-* [Built-in commands](/en/interactive-mode#built-in-commands) - Accessing checkpoints using `/rewind`
-* [CLI reference](/en/cli-reference) - Command-line options
+- [Interactive mode](/en/interactive-mode) - Keyboard shortcuts and session controls
+- [Built-in commands](/en/interactive-mode#built-in-commands) - Accessing checkpoints using `/rewind`
+- [CLI reference](/en/cli-reference) - Command-line options

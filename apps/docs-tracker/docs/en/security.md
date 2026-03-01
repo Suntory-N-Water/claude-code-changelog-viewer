@@ -3,10 +3,6 @@ title: security
 source: https://code.claude.com/docs/en/security.md
 ---
 
-> ## Documentation Index
-> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
-> Use this file to discover all available pages before exploring further.
-
 # Security
 
 > Learn about Claude Code's security safeguards and best practices for safe usage.
@@ -29,10 +25,10 @@ For detailed permission configuration, see [Permissions](/en/permissions).
 
 To mitigate risks in agentic systems:
 
-* **Sandboxed bash tool**: [Sandbox](/en/sandboxing) bash commands with filesystem and network isolation, reducing permission prompts while maintaining security. Enable with `/sandbox` to define boundaries where Claude Code can work autonomously
-* **Write access restriction**: Claude Code can only write to the folder where it was started and its subfolders—it cannot modify files in parent directories without explicit permission. While Claude Code can read files outside the working directory (useful for accessing system libraries and dependencies), write operations are strictly confined to the project scope, creating a clear security boundary
-* **Prompt fatigue mitigation**: Support for allowlisting frequently used safe commands per-user, per-codebase, or per-organization
-* **Accept Edits mode**: Batch accept multiple edits while maintaining permission prompts for commands with side effects
+- **Sandboxed bash tool**: [Sandbox](/en/sandboxing) bash commands with filesystem and network isolation, reducing permission prompts while maintaining security. Enable with `/sandbox` to define boundaries where Claude Code can work autonomously
+- **Write access restriction**: Claude Code can only write to the folder where it was started and its subfolders—it cannot modify files in parent directories without explicit permission. While Claude Code can read files outside the working directory (useful for accessing system libraries and dependencies), write operations are strictly confined to the project scope, creating a clear security boundary
+- **Prompt fatigue mitigation**: Support for allowlisting frequently used safe commands per-user, per-codebase, or per-organization
+- **Accept Edits mode**: Batch accept multiple edits while maintaining permission prompts for commands with side effects
 
 ### User responsibility
 
@@ -44,35 +40,33 @@ Prompt injection is a technique where an attacker attempts to override or manipu
 
 ### Core protections
 
-* **Permission system**: Sensitive operations require explicit approval
-* **Context-aware analysis**: Detects potentially harmful instructions by analyzing the full request
-* **Input sanitization**: Prevents command injection by processing user inputs
-* **Command blocklist**: Blocks risky commands that fetch arbitrary content from the web like `curl` and `wget` by default. When explicitly allowed, be aware of [permission pattern limitations](/en/permissions#tool-specific-permission-rules)
+- **Permission system**: Sensitive operations require explicit approval
+- **Context-aware analysis**: Detects potentially harmful instructions by analyzing the full request
+- **Input sanitization**: Prevents command injection by processing user inputs
+- **Command blocklist**: Blocks risky commands that fetch arbitrary content from the web like `curl` and `wget` by default. When explicitly allowed, be aware of [permission pattern limitations](/en/permissions#tool-specific-permission-rules)
 
 ### Privacy safeguards
 
 We have implemented several safeguards to protect your data, including:
 
-* Limited retention periods for sensitive information (see the [Privacy Center](https://privacy.anthropic.com/en/articles/10023548-how-long-do-you-store-my-data) to learn more)
-* Restricted access to user session data
-* User control over data training preferences. Consumer users can change their [privacy settings](https://claude.ai/settings/privacy) at any time.
+- Limited retention periods for sensitive information (see the [Privacy Center](https://privacy.anthropic.com/en/articles/10023548-how-long-do-you-store-my-data) to learn more)
+- Restricted access to user session data
+- User control over data training preferences. Consumer users can change their [privacy settings](https://claude.ai/settings/privacy) at any time.
 
 For full details, please review our [Commercial Terms of Service](https://www.anthropic.com/legal/commercial-terms) (for Team, Enterprise, and API users) or [Consumer Terms](https://www.anthropic.com/legal/consumer-terms) (for Free, Pro, and Max users) and [Privacy Policy](https://www.anthropic.com/legal/privacy).
 
 ### Additional safeguards
 
-* **Network request approval**: Tools that make network requests require user approval by default
-* **Isolated context windows**: Web fetch uses a separate context window to avoid injecting potentially malicious prompts
-* **Trust verification**: First-time codebase runs and new MCP servers require trust verification
-  * Note: Trust verification is disabled when running non-interactively with the `-p` flag
-* **Command injection detection**: Suspicious bash commands require manual approval even if previously allowlisted
-* **Fail-closed matching**: Unmatched commands default to requiring manual approval
-* **Natural language descriptions**: Complex bash commands include explanations for user understanding
-* **Secure credential storage**: API keys and tokens are encrypted. See [Credential Management](/en/authentication#credential-management)
+- **Network request approval**: Tools that make network requests require user approval by default
+- **Isolated context windows**: Web fetch uses a separate context window to avoid injecting potentially malicious prompts
+- **Trust verification**: First-time codebase runs and new MCP servers require trust verification
+  - Note: Trust verification is disabled when running non-interactively with the `-p` flag
+- **Command injection detection**: Suspicious bash commands require manual approval even if previously allowlisted
+- **Fail-closed matching**: Unmatched commands default to requiring manual approval
+- **Natural language descriptions**: Complex bash commands include explanations for user understanding
+- **Secure credential storage**: API keys and tokens are encrypted. See [Credential Management](/en/authentication#credential-management)
 
-<Warning>
-  **Windows WebDAV security risk**: When running Claude Code on Windows, we recommend against enabling WebDAV or allowing Claude Code to access paths such as `\\*` that may contain WebDAV subdirectories. [WebDAV has been deprecated by Microsoft](https://learn.microsoft.com/en-us/windows/whats-new/deprecated-features#:~:text=The%20Webclient%20\(WebDAV\)%20service%20is%20deprecated) due to security risks. Enabling WebDAV may allow Claude Code to trigger network requests to remote hosts, bypassing the permission system.
-</Warning>
+**Windows WebDAV security risk**: When running Claude Code on Windows, we recommend against enabling WebDAV or allowing Claude Code to access paths such as `\\*` that may contain WebDAV subdirectories. [WebDAV has been deprecated by Microsoft](https://learn.microsoft.com/en-us/windows/whats-new/deprecated-features#:~:text=The%20Webclient%20\(WebDAV\)%20service%20is%20deprecated) due to security risks. Enabling WebDAV may allow Claude Code to trigger network requests to remote hosts, bypassing the permission system.
 
 **Best practices for working with untrusted content**:
 
@@ -82,11 +76,9 @@ For full details, please review our [Commercial Terms of Service](https://www.an
 4. Use virtual machines (VMs) to run scripts and make tool calls, especially when interacting with external web services
 5. Report suspicious behavior with `/bug`
 
-<Warning>
-  While these protections significantly reduce risk, no system is completely
-  immune to all attacks. Always maintain good security practices when working
-  with any AI tool.
-</Warning>
+While these protections significantly reduce risk, no system is completely
+immune to all attacks. Always maintain good security practices when working
+with any AI tool.
 
 ## MCP security
 
@@ -102,12 +94,12 @@ See [VS Code security and privacy](/en/vs-code#security-and-privacy) for more in
 
 When using [Claude Code on the web](/en/claude-code-on-the-web), additional security controls are in place:
 
-* **Isolated virtual machines**: Each cloud session runs in an isolated, Anthropic-managed VM
-* **Network access controls**: Network access is limited by default and can be configured to be disabled or allow only specific domains
-* **Credential protection**: Authentication is handled through a secure proxy that uses a scoped credential inside the sandbox, which is then translated to your actual GitHub authentication token
-* **Branch restrictions**: Git push operations are restricted to the current working branch
-* **Audit logging**: All operations in cloud environments are logged for compliance and audit purposes
-* **Automatic cleanup**: Cloud environments are automatically terminated after session completion
+- **Isolated virtual machines**: Each cloud session runs in an isolated, Anthropic-managed VM
+- **Network access controls**: Network access is limited by default and can be configured to be disabled or allow only specific domains
+- **Credential protection**: Authentication is handled through a secure proxy that uses a scoped credential inside the sandbox, which is then translated to your actual GitHub authentication token
+- **Branch restrictions**: Git push operations are restricted to the current working branch
+- **Audit logging**: All operations in cloud environments are logged for compliance and audit purposes
+- **Automatic cleanup**: Cloud environments are automatically terminated after session completion
 
 For more details on cloud execution, see [Claude Code on the web](/en/claude-code-on-the-web).
 
@@ -117,18 +109,18 @@ For more details on cloud execution, see [Claude Code on the web](/en/claude-cod
 
 ### Working with sensitive code
 
-* Review all suggested changes before approval
-* Use project-specific permission settings for sensitive repositories
-* Consider using [devcontainers](/en/devcontainer) for additional isolation
-* Regularly audit your permission settings with `/permissions`
+- Review all suggested changes before approval
+- Use project-specific permission settings for sensitive repositories
+- Consider using [devcontainers](/en/devcontainer) for additional isolation
+- Regularly audit your permission settings with `/permissions`
 
 ### Team security
 
-* Use [managed settings](/en/settings#settings-files) to enforce organizational standards
-* Share approved permission configurations through version control
-* Train team members on security best practices
-* Monitor Claude Code usage through [OpenTelemetry metrics](/en/monitoring-usage)
-* Audit or block settings changes during sessions with [`ConfigChange` hooks](/en/hooks#configchange)
+- Use [managed settings](/en/settings#settings-files) to enforce organizational standards
+- Share approved permission configurations through version control
+- Train team members on security best practices
+- Monitor Claude Code usage through [OpenTelemetry metrics](/en/monitoring-usage)
+- Audit or block settings changes during sessions with [`ConfigChange` hooks](/en/hooks#configchange)
 
 ### Reporting security issues
 
@@ -141,8 +133,8 @@ If you discover a security vulnerability in Claude Code:
 
 ## Related resources
 
-* [Sandboxing](/en/sandboxing) - Filesystem and network isolation for bash commands
-* [Permissions](/en/permissions) - Configure permissions and access controls
-* [Monitoring usage](/en/monitoring-usage) - Track and audit Claude Code activity
-* [Development containers](/en/devcontainer) - Secure, isolated environments
-* [Anthropic Trust Center](https://trust.anthropic.com) - Security certifications and compliance
+- [Sandboxing](/en/sandboxing) - Filesystem and network isolation for bash commands
+- [Permissions](/en/permissions) - Configure permissions and access controls
+- [Monitoring usage](/en/monitoring-usage) - Track and audit Claude Code activity
+- [Development containers](/en/devcontainer) - Secure, isolated environments
+- [Anthropic Trust Center](https://trust.anthropic.com) - Security certifications and compliance

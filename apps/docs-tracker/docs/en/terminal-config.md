@@ -3,10 +3,6 @@ title: terminal-config
 source: https://code.claude.com/docs/en/terminal-config.md
 ---
 
-> ## Documentation Index
-> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt
-> Use this file to discover all available pages before exploring further.
-
 # Optimize your terminal setup
 
 > Claude Code works best when your terminal is properly configured. Follow these guidelines to optimize your experience.
@@ -21,17 +17,15 @@ For additional customization of the Claude Code interface itself, you can config
 
 You have several options for entering line breaks into Claude Code:
 
-* **Quick escape**: Type `\` followed by Enter to create a newline
-* **Shift+Enter**: Works out of the box in iTerm2, WezTerm, Ghostty, and Kitty
-* **Keyboard shortcut**: Set up a keybinding to insert a newline in other terminals
+- **Quick escape**: Type `\` followed by Enter to create a newline
+- **Shift+Enter**: Works out of the box in iTerm2, WezTerm, Ghostty, and Kitty
+- **Keyboard shortcut**: Set up a keybinding to insert a newline in other terminals
 
 **Set up Shift+Enter for other terminals**
 
 Run `/terminal-setup` within Claude Code to automatically configure Shift+Enter for VS Code, Alacritty, Zed, and Warp.
 
-<Note>
-  The `/terminal-setup` command is only visible in terminals that require manual configuration. If you're using iTerm2, WezTerm, Ghostty, or Kitty, you won't see this command because Shift+Enter already works natively.
-</Note>
+The `/terminal-setup` command is only visible in terminals that require manual configuration. If you're using iTerm2, WezTerm, Ghostty, or Kitty, you won't see this command because Shift+Enter already works natively.
 
 **Set up Option+Enter (VS Code, iTerm2 or macOS Terminal.app)**
 
@@ -69,9 +63,9 @@ To add custom behavior when notifications fire, such as playing a sound or sendi
 
 When working with extensive code or long instructions:
 
-* **Avoid direct pasting**: Claude Code may struggle with very long pasted content
-* **Use file-based workflows**: Write content to a file and ask Claude to read it
-* **Be aware of VS Code limitations**: The VS Code terminal is particularly prone to truncating long pastes
+- **Avoid direct pasting**: Claude Code may struggle with very long pasted content
+- **Use file-based workflows**: Write content to a file and ask Claude to read it
+- **Be aware of VS Code limitations**: The VS Code terminal is particularly prone to truncating long pastes
 
 ### Vim Mode
 
@@ -79,12 +73,12 @@ Claude Code supports a subset of Vim keybindings that can be enabled with `/vim`
 
 The supported subset includes:
 
-* Mode switching: `Esc` (to NORMAL), `i`/`I`, `a`/`A`, `o`/`O` (to INSERT)
-* Navigation: `h`/`j`/`k`/`l`, `w`/`e`/`b`, `0`/`$`/`^`, `gg`/`G`, `f`/`F`/`t`/`T` with `;`/`,` repeat
-* Editing: `x`, `dw`/`de`/`db`/`dd`/`D`, `cw`/`ce`/`cb`/`cc`/`C`, `.` (repeat)
-* Yank/paste: `yy`/`Y`, `yw`/`ye`/`yb`, `p`/`P`
-* Text objects: `iw`/`aw`, `iW`/`aW`, `i"`/`a"`, `i'`/`a'`, `i(`/`a(`, `i[`/`a[`, `i{`/`a{`
-* Indentation: `>>`/`<<`
-* Line operations: `J` (join lines)
+- Mode switching: `Esc` (to NORMAL), `i`/`I`, `a`/`A`, `o`/`O` (to INSERT)
+- Navigation: `h`/`j`/`k`/`l`, `w`/`e`/`b`, `0`/`$`/`^`, `gg`/`G`, `f`/`F`/`t`/`T` with `;`/`,` repeat
+- Editing: `x`, `dw`/`de`/`db`/`dd`/`D`, `cw`/`ce`/`cb`/`cc`/`C`, `.` (repeat)
+- Yank/paste: `yy`/`Y`, `yw`/`ye`/`yb`, `p`/`P`
+- Text objects: `iw`/`aw`, `iW`/`aW`, `i"`/`a"`, `i'`/`a'`, `i(`/`a(`, `i[`/`a[`, `i{`/`a{`
+- Indentation: `>>`/`<<`
+- Line operations: `J` (join lines)
 
 See [Interactive mode](/en/interactive-mode#vim-editor-mode) for the complete reference.
