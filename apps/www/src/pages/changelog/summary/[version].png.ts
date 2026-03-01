@@ -1,7 +1,8 @@
 import { getCollection } from 'astro:content';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import type { APIContext, GetStaticPaths } from 'astro';
-import { generateTwitterChangelogImage } from '@/lib/ogp';
+import { SITE_TITLE } from '@/lib/constants';
+import { createPngResponse, generateTwitterChangelogImage } from '@/lib/ogp';
 
 /**
  * 静的生成用のパスを生成
@@ -16,8 +17,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
       params: { version: `v${entry.data.version}` },
       props: {
         version: entry.data.version,
-        summary: entry.data.summary as string,
-        items: entry.data.items as ChangelogItem[],
+        summary: entry.data.summary ?? '',
+        items: entry.data.items,
       },
     }));
 };
@@ -32,19 +33,12 @@ export async function GET({ props }: APIContext) {
     items: ChangelogItem[];
   };
 
-  const siteTitle = 'Claude Code Changelog Viewer';
-
   const png = await generateTwitterChangelogImage(
-    siteTitle,
+    SITE_TITLE,
     version,
     summary,
     items,
   );
 
-  return new Response(Buffer.from(png), {
-    headers: {
-      'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
-  });
+  return createPngResponse(png);
 }

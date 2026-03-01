@@ -77,32 +77,31 @@ function groupByPrefix(
   return ordered;
 }
 
-// フォントデータをモジュールスコープでキャッシュ
-let cachedFontData: ArrayBuffer | null = null;
+// フォントデータをPromiseでキャッシュ(並行呼び出し時のレースコンディション防止)
+let fontPromise: Promise<ArrayBuffer> | null = null;
 
 /**
  * Google Fontsからフォントデータを取得
  */
-async function loadFont(): Promise<ArrayBuffer> {
-  if (cachedFontData) {
-    return cachedFontData;
+function loadFont(): Promise<ArrayBuffer> {
+  if (!fontPromise) {
+    fontPromise = (async () => {
+      const response = await fetch(
+        'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@600&display=swap',
+      );
+      const css = await response.text();
+
+      // CSSからフォントURLを抽出
+      const fontUrlMatch = css.match(/src: url\(([^)]+)\)/);
+      if (!fontUrlMatch) {
+        throw new Error('フォントURLが見つかりませんでした');
+      }
+
+      const fontResponse = await fetch(fontUrlMatch[1]);
+      return fontResponse.arrayBuffer();
+    })();
   }
-
-  const response = await fetch(
-    'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@600&display=swap',
-  );
-  const css = await response.text();
-
-  // CSSからフォントURLを抽出
-  const fontUrlMatch = css.match(/src: url\(([^)]+)\)/);
-  if (!fontUrlMatch) {
-    throw new Error('フォントURLが見つかりませんでした');
-  }
-
-  const fontResponse = await fetch(fontUrlMatch[1]);
-  cachedFontData = await fontResponse.arrayBuffer();
-
-  return cachedFontData;
+  return fontPromise;
 }
 
 type TopPageOgpProps = {
@@ -440,6 +439,18 @@ function TwitterChangelogImage({
       </div>
     </div>
   );
+}
+
+/**
+ * PNG バイナリから画像レスポンスを生成
+ */
+export function createPngResponse(png: Uint8Array): Response {
+  return new Response(Buffer.from(png), {
+    headers: {
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=31536000, immutable',
+    },
+  });
 }
 
 /**

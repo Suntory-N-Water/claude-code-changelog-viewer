@@ -1,6 +1,7 @@
 import { getCollection } from 'astro:content';
 import type { APIContext, GetStaticPaths } from 'astro';
-import { generateVersionPageOgp } from '@/lib/ogp';
+import { SITE_TITLE } from '@/lib/constants';
+import { createPngResponse, generateVersionPageOgp } from '@/lib/ogp';
 
 /**
  * 静的生成用のパスを生成
@@ -9,15 +10,13 @@ import { generateVersionPageOgp } from '@/lib/ogp';
 export const getStaticPaths: GetStaticPaths = async () => {
   const allChangelogs = await getCollection('changelog');
 
-  return allChangelogs.map(
-    (entry: { data: { version: string; items: unknown[] } }) => ({
-      params: { version: `v${entry.data.version}` },
-      props: {
-        version: entry.data.version,
-        itemCount: entry.data.items.length,
-      },
-    }),
-  );
+  return allChangelogs.map((entry) => ({
+    params: { version: `v${entry.data.version}` },
+    props: {
+      version: entry.data.version,
+      itemCount: entry.data.items.length,
+    },
+  }));
 };
 
 /**
@@ -29,15 +28,10 @@ export async function GET({ props }: APIContext) {
     itemCount: number;
   };
 
-  const siteTitle = 'Claude Code Changelog Viewer';
-  const versionLabel = `v${version}`;
-
-  const png = await generateVersionPageOgp(siteTitle, versionLabel, itemCount);
-
-  return new Response(Buffer.from(png), {
-    headers: {
-      'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
-  });
+  const png = await generateVersionPageOgp(
+    SITE_TITLE,
+    `v${version}`,
+    itemCount,
+  );
+  return createPngResponse(png);
 }

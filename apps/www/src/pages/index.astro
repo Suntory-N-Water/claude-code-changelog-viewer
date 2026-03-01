@@ -2,50 +2,27 @@
 import { getCollection } from 'astro:content';
 import VersionCard from '../components/changelog/VersionCard.astro';
 import Layout from '../layouts/Layout.astro';
+import { semverCompareDesc } from '../lib/semver';
 
-// Content Collectionsから全バージョンを取得
-const allChangelogs = await getCollection('changelog');
-
-// バージョン番号で降順ソート(セマンティックバージョニング対応)
-const sortedChangelogs = allChangelogs.sort((a, b) => {
-  // data.versionを使用(例: "2.1.27")
-  const versionA = a.data.version;
-  const versionB = b.data.version;
-
-  const aParts = versionA.split('.').map(Number);
-  const bParts = versionB.split('.').map(Number);
-
-  // メジャー、マイナー、パッチの順で比較
-  for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
-    const diff = (bParts[i] || 0) - (aParts[i] || 0);
-    if (diff !== 0) {
-      return diff;
-    }
-  }
-  return 0;
-});
+// Content Collectionsから全バージョンを取得し降順ソート
+const sortedChangelogs = await getCollection('changelog');
+sortedChangelogs.sort((a, b) =>
+  semverCompareDesc(a.data.version, b.data.version),
+);
 
 const versionData = sortedChangelogs.map((entry) => ({
   version: entry.data.version,
   itemCount: entry.data.items.length,
 }));
 
-// v2.1.0 以降と以前で分割
-const CUTOFF_VERSION = [2, 1, 0];
-
-function isRecentVersion(version: string): boolean {
-  const parts = version.split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
-    const diff = (parts[i] || 0) - (CUTOFF_VERSION[i] || 0);
-    if (diff !== 0) {
-      return diff > 0;
-    }
-  }
-  return true; // v2.1.0 自体は「以降」に含める
-}
-
-const recentVersions = versionData.filter((v) => isRecentVersion(v.version));
-const olderVersions = versionData.filter((v) => !isRecentVersion(v.version));
+// v2.1.0 以降と以前で分割(降順ソート済みなのでカットオフ位置で slice)
+const CUTOFF_VERSION = '2.1.0';
+const cutoffIndex = versionData.findIndex(
+  (v) => semverCompareDesc(v.version, CUTOFF_VERSION) > 0,
+);
+const recentVersions =
+  cutoffIndex === -1 ? versionData : versionData.slice(0, cutoffIndex);
+const olderVersions = cutoffIndex === -1 ? [] : versionData.slice(cutoffIndex);
 ---
 
 <Layout

@@ -6,6 +6,12 @@ import {
 } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 
+const BOT_USERNAME = 'Claude Code Changelog Bot';
+
+export function buildUnsubscribeUrl(workerUrl: string, token: string): string {
+  return `${workerUrl}/api/unsubscribe?token=${token}`;
+}
+
 /**
  * 変更ログの通知メッセージを生成する
  */
@@ -13,11 +19,13 @@ export function createChangelogMessage(
   data: Analysis,
   version: string,
   unsubscribeUrl: string,
+  siteUrl: string,
 ): DiscordWebhookPayload {
+  const viewerUrl = `${siteUrl}/changelog/${version}/`;
+
   let content = `# Claude Code ${version} 🚀\n\n`;
   content += `## 全体サマリー\n${data.summary || 'Claude Codeの新しいバージョンがリリースされました。'}\n\n`;
 
-  // 更新項目を追加
   if (data.items.length > 0) {
     content += '## 更新内容\n';
 
@@ -25,7 +33,6 @@ export function createChangelogMessage(
       const translatedContent = item.content_ja || item.content;
       content += `**${translatedContent}**\n`;
 
-      // 推論情報がある場合は追加
       if (item.inference) {
         const { before, after, benefit } = item.inference;
         if (before) {
@@ -42,11 +49,7 @@ export function createChangelogMessage(
     content += '\n';
   }
 
-  // 参考リンク
-  const viewerUrl = `https://claude-code-changelog-viewer.ayasnppk00.workers.dev/changelog/${version}/`;
   content += `## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
-
-  // 配信停止リンク
   content += `\n[🔕 通知を停止する](${unsubscribeUrl})`;
 
   const suffix = `...\n\n## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})\n[🔕 通知を停止する](${unsubscribeUrl})`;
@@ -54,7 +57,7 @@ export function createChangelogMessage(
 
   return {
     content,
-    username: 'Claude Code Changelog Bot',
+    username: BOT_USERNAME,
     avatar_url: DISCORD_BOT_AVATAR_URL,
     flags: DISCORD_SUPPRESS_EMBEDS,
   };
@@ -73,7 +76,7 @@ export function createTestMessage(
       '✅ **Claude Code Changelog Bot** の通知登録が完了しました！\n\n' +
       '今後、Claude Code の新しいバージョンがリリースされると、このチャンネルに通知が届きます。' +
       `\n[🔕 通知を停止する](${unsubscribeUrl})`,
-    username: 'Claude Code Changelog Bot',
+    username: BOT_USERNAME,
     avatar_url: DISCORD_BOT_AVATAR_URL,
     flags: DISCORD_SUPPRESS_EMBEDS,
   };

@@ -1,12 +1,15 @@
-import { getCollection } from 'astro:content';
-import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { getCollection } from 'astro:content';
+import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
+import { SITE_TITLE } from '../lib/constants';
+import { semverCompareDesc } from '../lib/semver';
 
-function loadLastFetchTime(): Date {
+async function loadLastFetchTime(): Promise<Date> {
   try {
-    const raw = readFileSync(
+    const raw = await readFile(
       join(
         process.cwd(),
         '..',
@@ -23,24 +26,9 @@ function loadLastFetchTime(): Date {
   }
 }
 
-function semverCompare(a: string, b: string): number {
-  const pa = a.split('.').map(Number);
-  const pb = b.split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
-    if ((pa[i] ?? 0) !== (pb[i] ?? 0)) {
-      return (pb[i] ?? 0) - (pa[i] ?? 0);
-    }
-  }
-  return 0;
-}
-
 /** inference 情報を含む HTML コンテンツを生成 */
 function buildContentHtml(
-  item: {
-    content: string;
-    content_ja?: string;
-    inference?: { before: string; after: string; benefit: string };
-  },
+  item: Pick<ChangelogItem, 'content' | 'content_ja' | 'inference'>,
   version: string,
 ): string {
   const text = item.content_ja ?? item.content;
@@ -89,10 +77,10 @@ function convertContentToCdata(xml: string): string {
 
 export async function GET(context: APIContext) {
   const changelogs = await getCollection('changelog');
-  const pubDate = loadLastFetchTime();
+  const pubDate = await loadLastFetchTime();
 
   const sorted = changelogs.sort((a, b) =>
-    semverCompare(a.data.version, b.data.version),
+    semverCompareDesc(a.data.version, b.data.version),
   );
   const latest = sorted.slice(0, 5);
 
@@ -113,7 +101,7 @@ export async function GET(context: APIContext) {
   });
 
   const response = await rss({
-    title: 'Claude Code Changelog',
+    title: SITE_TITLE,
     description: 'Claude Code の更新履歴',
     site: context.site ?? '',
     items,

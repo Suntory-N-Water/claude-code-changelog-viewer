@@ -1,9 +1,12 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { createTestMessage, sendToDiscord } from '../lib/discord';
+import {
+  buildUnsubscribeUrl,
+  createTestMessage,
+  sendToDiscord,
+} from '../lib/discord';
 import { verifyTurnstileToken } from '../lib/turnstile';
 import { isValidDiscordWebhookUrl } from '../lib/validation';
-import type { WebhookRow } from '../types';
 
 const RequestSchema = z.object({
   webhook_url: z.string(),
@@ -13,14 +16,13 @@ const RequestSchema = z.object({
 export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
   '/',
   async (c) => {
-    // リクエストボディのパース
     const parseResult = RequestSchema.safeParse(await c.req.json());
     if (!parseResult.success) {
       return c.json({ error: 'リクエストが不正です' }, 400);
     }
     const { webhook_url, turnstile_token } = parseResult.data;
 
-    // Turnstileトークン検証
+    // Turnstile トークン検証
     const turnstileValid = await verifyTurnstileToken(
       turnstile_token,
       c.env.TURNSTILE_SECRET_KEY,
@@ -29,17 +31,17 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: 'Turnstile検証に失敗しました' }, 403);
     }
 
-    // Webhook URL検証
+    // Webhook URL 検証
     if (!isValidDiscordWebhookUrl(webhook_url)) {
       return c.json({ error: 'Discord Webhook URLの形式が不正です' }, 400);
     }
 
-    // 既存URLの確認
+    // 既存 URL の確認
     const existing = await c.env.DB.prepare(
-      'SELECT * FROM webhooks WHERE webhook_url = ?',
+      'SELECT id, token, active FROM webhooks WHERE webhook_url = ?',
     )
       .bind(webhook_url)
-      .first<WebhookRow>();
+      .first<{ id: string; token: string; active: number }>();
 
     if (existing?.active === 1) {
       return c.json({ error: '既に登録済みです' }, 409);
@@ -47,7 +49,7 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
 
     // トークンを決定(既存レコードがあればそのまま、なければ新規生成)
     const token = existing?.token ?? crypto.randomUUID();
-    const unsubscribeUrl = `${c.env.WORKER_URL}/api/unsubscribe?token=${token}`;
+    const unsubscribeUrl = buildUnsubscribeUrl(c.env.WORKER_URL, token);
 
     // テスト通知を送信
     const testPayload = createTestMessage(unsubscribeUrl);

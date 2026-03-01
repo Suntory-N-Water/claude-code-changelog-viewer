@@ -12,7 +12,7 @@ function createMockEnv(secret = 'test-secret') {
   return {
     DISPATCH_SECRET: secret,
     NOTIFICATION_QUEUE: {
-      send: mock(() => Promise.resolve(undefined)),
+      sendBatch: mock(() => Promise.resolve(undefined)),
     },
   };
 }
@@ -47,13 +47,11 @@ describe('POST /api/dispatch', () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toEqual({ success: true, queued: ['v1.0.0', 'v1.1.0'] });
-    expect(env.NOTIFICATION_QUEUE.send).toHaveBeenCalledTimes(2);
-    expect(env.NOTIFICATION_QUEUE.send).toHaveBeenCalledWith({
-      version: 'v1.0.0',
-    });
-    expect(env.NOTIFICATION_QUEUE.send).toHaveBeenCalledWith({
-      version: 'v1.1.0',
-    });
+    expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledTimes(1);
+    expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledWith([
+      { body: { version: 'v1.0.0' } },
+      { body: { version: 'v1.1.0' } },
+    ]);
   });
 
   it('Authorization ヘッダーなしで 401 を返す', async () => {
@@ -63,7 +61,7 @@ describe('POST /api/dispatch', () => {
 
     expect(res.status).toBe(401);
     expect(await res.json<unknown>()).toEqual({ error: '認証に失敗しました' });
-    expect(env.NOTIFICATION_QUEUE.send).not.toHaveBeenCalled();
+    expect(env.NOTIFICATION_QUEUE.sendBatch).not.toHaveBeenCalled();
   });
 
   it('不正なシークレットで 401 を返す', async () => {
@@ -124,9 +122,9 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(200);
-    expect(env.NOTIFICATION_QUEUE.send).toHaveBeenCalledTimes(1);
-    expect(env.NOTIFICATION_QUEUE.send).toHaveBeenCalledWith({
-      version: 'v2.0.0',
-    });
+    expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledTimes(1);
+    expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledWith([
+      { body: { version: 'v2.0.0' } },
+    ]);
   });
 });

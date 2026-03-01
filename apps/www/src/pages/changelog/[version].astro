@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
 import Layout from '../../layouts/Layout.astro';
 import { formatChangelogContent } from '../../lib/changelog';
+import { semverCompareDesc } from '../../lib/semver';
 
 export async function getStaticPaths() {
   const allChangelogs = await getCollection('changelog');
@@ -26,17 +27,9 @@ export async function getStaticPaths() {
   }
 
   // バージョン降順ソート
-  const sorted = [...allChangelogs].sort((a, b) => {
-    const ap = a.data.version.split('.').map(Number);
-    const bp = b.data.version.split('.').map(Number);
-    for (let i = 0; i < Math.max(ap.length, bp.length); i++) {
-      const diff = (bp[i] || 0) - (ap[i] || 0);
-      if (diff !== 0) {
-        return diff;
-      }
-    }
-    return 0;
-  });
+  const sorted = [...allChangelogs].sort((a, b) =>
+    semverCompareDesc(a.data.version, b.data.version),
+  );
 
   return sorted.map((entry, i) => ({
     params: { version: `v${entry.data.version}` },
@@ -137,7 +130,7 @@ const sortedItems = items
       </header>
 
       {
-        entry.data.summary && (
+        summary && (
           <div class='mb-10 p-6 bg-linear-to-br from-[hsl(var(--cc-main-orange)/0.05)] to-[hsl(var(--cc-main-orange)/0.02)] border border-[hsl(var(--cc-gray))] rounded-lg'>
             <div class='border-l-4 border-[hsl(var(--cc-main-orange))] pl-4'>
               <h2 class='text-xl font-bold text-[hsl(var(--cc-main-black))] mb-3'>

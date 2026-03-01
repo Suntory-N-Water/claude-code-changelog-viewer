@@ -13,6 +13,10 @@ import {
 const mockedSendToDiscord = mock();
 
 mock.module('../lib/discord', () => ({
+  buildUnsubscribeUrl: mock(
+    (workerUrl: string, token: string) =>
+      `${workerUrl}/api/unsubscribe?token=${token}`,
+  ),
   createChangelogMessage: mock(() => ({
     content: 'テスト通知',
     username: 'Bot',
@@ -85,6 +89,7 @@ function createMockEnv() {
     env: {
       DB: db,
       WORKER_URL: 'https://example.com',
+      SITE_URL: 'https://example.com',
       NOTIFICATION_QUEUE: {},
       TURNSTILE_SECRET_KEY: '',
       DISPATCH_SECRET: '',
@@ -103,7 +108,12 @@ function setupFetchSuccess() {
 
 function setupDBWithWebhooks(
   db: MockDB,
-  webhooks: { id: string; webhook_url: string; token: string }[],
+  webhooks: {
+    id: string;
+    webhook_url: string;
+    token: string;
+    fail_count?: number;
+  }[],
 ) {
   db.prepare = mock().mockImplementation((sql: string) => {
     if (sql.includes('SELECT')) {
@@ -207,7 +217,7 @@ describe('queueConsumer', () => {
     expect(message.ack).toHaveBeenCalled();
   });
 
-  it('送信成功時に fail_count をリセットして ack する', async () => {
+  it('送信成功時に fail_count > 0 ならリセットして ack する', async () => {
     const message = createMockMessage({ version: 'v1.0.0' });
     const batch = createMockBatch([message]);
     const { env, db } = createMockEnv();
@@ -218,6 +228,7 @@ describe('queueConsumer', () => {
         id: 'wh-1',
         webhook_url: 'https://discord.com/api/webhooks/1/abc',
         token: 'tok-1',
+        fail_count: 1,
       },
     ]);
     mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
@@ -290,12 +301,14 @@ describe('queueConsumer', () => {
       },
     ]);
     mockedSendToDiscord.mockResolvedValue({ ok: false, status: 401 });
-    db._first.mockResolvedValue({ fail_count: 3 });
+    // 統合クエリの RETURNING で active=0 が返される
+    db._first.mockResolvedValue({ fail_count: 3, active: 0 });
 
     await runWithTimers(callConsumer(batch, env));
 
+    // fail_count 加算 + active 判定が 1 クエリに統合されている
     expect(db.prepare).toHaveBeenCalledWith(
-      expect.stringContaining('active = 0'),
+      expect.stringContaining('fail_count = fail_count + 1'),
     );
     expect(message.ack).toHaveBeenCalled();
   });

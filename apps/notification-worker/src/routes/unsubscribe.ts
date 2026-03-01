@@ -1,6 +1,6 @@
+import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
-import type { WebhookRow } from '../types';
 
 const baseStyle = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -38,7 +38,7 @@ const baseStyle = `
   a:hover { text-decoration: underline; }
 `;
 
-const renderResult = (title: string, message: string) => html`
+const renderResult = (siteUrl: string, title: string, message: string) => html`
   <!doctype html>
   <html lang="ja">
     <head>
@@ -51,13 +51,13 @@ const renderResult = (title: string, message: string) => html`
       <div class="card">
         <h1>${title}</h1>
         <p>${message}</p>
-        <a href="https://claude-code-changelog-viewer.ayasnppk00.workers.dev/">トップページに戻る</a>
+        <a href="${siteUrl}/">トップページに戻る</a>
       </div>
     </body>
   </html>
 `;
 
-const renderConfirm = (token: string) => html`
+const renderConfirm = (siteUrl: string, token: string) => html`
   <!doctype html>
   <html lang="ja">
     <head>
@@ -89,80 +89,102 @@ const renderConfirm = (token: string) => html`
           <input type="hidden" name="token" value="${token}" />
           <button type="submit">通知を停止する</button>
         </form>
-        <a href="https://claude-code-changelog-viewer.ayasnppk00.workers.dev/">キャンセル</a>
+        <a href="${siteUrl}/">キャンセル</a>
       </div>
     </body>
   </html>
 `;
+
+/**
+ * token で Webhook を検索し、アクティブかどうか検証する。
+ * エラー時は HTML レスポンスを直接返す。
+ */
+async function findActiveWebhook(
+  token: string | null | undefined,
+  c: Context<{ Bindings: CloudflareBindings }>,
+) {
+  if (!token) {
+    return {
+      ok: false as const,
+      response: c.html(
+        renderResult(
+          c.env.SITE_URL,
+          'エラー',
+          'トークンが指定されていません。',
+        ),
+        400,
+      ),
+    };
+  }
+
+  const row = await c.env.DB.prepare(
+    'SELECT active FROM webhooks WHERE token = ?',
+  )
+    .bind(token)
+    .first<{ active: number }>();
+
+  if (!row) {
+    return {
+      ok: false as const,
+      response: c.html(
+        renderResult(
+          c.env.SITE_URL,
+          'エラー',
+          '該当する登録が見つかりません。',
+        ),
+        404,
+      ),
+    };
+  }
+
+  if (row.active === 0) {
+    return {
+      ok: false as const,
+      response: c.html(
+        renderResult(
+          c.env.SITE_URL,
+          '通知停止済み',
+          'この通知は既に停止されています。',
+        ),
+      ),
+    };
+  }
+
+  return { ok: true as const, token };
+}
 
 export const unsubscribeRoute = new Hono<{
   Bindings: CloudflareBindings;
 }>()
   // GET: 確認ページを表示(クローラー対策で実際の停止処理は行わない)
   .get('/', async (c) => {
-    const token = c.req.query('token');
-    if (!token) {
-      return c.html(
-        renderResult('エラー', 'トークンが指定されていません。'),
-        400,
-      );
+    const lookup = await findActiveWebhook(c.req.query('token'), c);
+    if (!lookup.ok) {
+      return lookup.response;
     }
-
-    const row = await c.env.DB.prepare('SELECT * FROM webhooks WHERE token = ?')
-      .bind(token)
-      .first<WebhookRow>();
-
-    if (!row) {
-      return c.html(
-        renderResult('エラー', '該当する登録が見つかりません。'),
-        404,
-      );
-    }
-
-    if (row.active === 0) {
-      return c.html(
-        renderResult('通知停止済み', 'この通知は既に停止されています。'),
-      );
-    }
-
-    return c.html(renderConfirm(token));
+    return c.html(renderConfirm(c.env.SITE_URL, lookup.token));
   })
   // POST: 実際に配信停止を実行
   .post('/', async (c) => {
     const body = await c.req.parseBody();
     const token = typeof body['token'] === 'string' ? body['token'] : null;
 
-    if (!token) {
-      return c.html(
-        renderResult('エラー', 'トークンが指定されていません。'),
-        400,
-      );
-    }
-
-    const row = await c.env.DB.prepare('SELECT * FROM webhooks WHERE token = ?')
-      .bind(token)
-      .first<WebhookRow>();
-
-    if (!row) {
-      return c.html(
-        renderResult('エラー', '該当する登録が見つかりません。'),
-        404,
-      );
-    }
-
-    if (row.active === 0) {
-      return c.html(
-        renderResult('通知停止済み', 'この通知は既に停止されています。'),
-      );
+    const lookup = await findActiveWebhook(token, c);
+    if (!lookup.ok) {
+      return lookup.response;
     }
 
     await c.env.DB.prepare(
       "UPDATE webhooks SET active = 0, updated_at = datetime('now') WHERE token = ?",
     )
-      .bind(token)
+      .bind(lookup.token)
       .run();
 
     return c.html(
-      renderResult('通知を停止しました', '今後、更新通知は送信されません。'),
+      renderResult(
+        c.env.SITE_URL,
+        '通知を停止しました',
+        '今後、更新通知は送信されません。',
+      ),
     );
   });

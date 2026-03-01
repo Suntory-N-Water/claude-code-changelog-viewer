@@ -21,10 +21,10 @@ export const dispatchRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     }
     const { versions } = parseResult.data;
 
-    // 各バージョンをQueueに投入
-    for (const version of versions) {
-      await c.env.NOTIFICATION_QUEUE.send({ version });
-    }
+    // 各バージョンを一括で Queue に投入
+    await c.env.NOTIFICATION_QUEUE.sendBatch(
+      versions.map((version) => ({ body: { version } })),
+    );
 
     return c.json({ success: true, queued: versions });
   },
