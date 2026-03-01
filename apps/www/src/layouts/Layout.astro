@@ -3,20 +3,68 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Footer from '../components/Footer.astro';
 import ScrollToTop from '../components/ScrollToTop.astro';
+import {
+  generateWebSiteJsonLd,
+  generateArticleJsonLd,
+  generateBreadcrumbJsonLd,
+} from '../lib/json-ld';
+
+type JsonLdData =
+  | { type: 'website' }
+  | { type: 'article'; version: string; summary?: string }
+  | { type: 'page' };
+
+type BreadcrumbItem = {
+  name: string;
+  url: string;
+};
 
 type Props = {
   title: string;
   description?: string;
   image?: string;
+  jsonLd?: JsonLdData;
+  breadcrumbs?: BreadcrumbItem[];
 };
 
-const { title, description, image } = Astro.props;
+const { title, description, image, jsonLd, breadcrumbs } = Astro.props;
 const defaultDescription =
-  'Claude Codeの全バージョンの変更履歴をAIが分析し、各アップデートの内容とユーザーへの恩恵を日本語で分かりやすく解説するWebサイトです。';
+  'Claude Code(Anthropic公式CLIコーディングツール)の全バージョンの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。';
 const pageDescription = description || defaultDescription;
 const siteUrl = import.meta.env.SITE;
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 const ogImage = image || `${siteUrl}/og-image.png`;
+
+// JSON-LD 生成
+const jsonLdScripts: string[] = [];
+
+if (jsonLd?.type === 'website') {
+  jsonLdScripts.push(
+    JSON.stringify(
+      generateWebSiteJsonLd({
+        siteUrl,
+        title,
+        description: pageDescription,
+      }),
+    ),
+  );
+} else if (jsonLd?.type === 'article') {
+  jsonLdScripts.push(
+    JSON.stringify(
+      generateArticleJsonLd({
+        siteUrl,
+        title,
+        description: pageDescription,
+        url: canonicalUrl,
+        version: jsonLd.version,
+      }),
+    ),
+  );
+}
+
+if (breadcrumbs && breadcrumbs.length > 0) {
+  jsonLdScripts.push(JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs)));
+}
 ---
 
 <!doctype html>
@@ -34,7 +82,19 @@ const ogImage = image || `${siteUrl}/og-image.png`;
     <link rel='sitemap' href='/sitemap-index.xml' />
     <title>{title}</title>
 
-    <meta property='og:type' content='website' />
+    <meta name='robots' content='index, follow' />
+    <link
+      rel='alternate'
+      type='application/rss+xml'
+      title='Claude Code Changelog Viewer'
+      href='/rss.xml'
+    />
+
+    <meta
+      property='og:type'
+      content={jsonLd?.type === 'article' ? 'article' : 'website'}
+    />
+    <meta property='og:site_name' content='Claude Code Changelog Viewer' />
     <meta property='og:url' content={canonicalUrl} />
     <meta property='og:title' content={title} />
     <meta property='og:description' content={pageDescription} />
@@ -45,6 +105,12 @@ const ogImage = image || `${siteUrl}/og-image.png`;
     <meta name='twitter:title' content={title} />
     <meta name='twitter:description' content={pageDescription} />
     <meta name='twitter:image' content={ogImage} />
+
+    {
+      jsonLdScripts.map((script) => (
+        <script is:inline type='application/ld+json' set:html={script} />
+      ))
+    }
 
     <script
       type='text/partytown'

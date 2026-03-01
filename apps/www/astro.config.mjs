@@ -1,5 +1,6 @@
 // @ts-check
 
+import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
@@ -7,7 +8,7 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   trailingSlash: 'never',
   build: { format: 'file' },
-  site: 'https://claude-code-changelog-viewer.ayasnppk00.workers.dev',
+  site: 'https://claude-code-log.com',
   cacheDir: './node_modules/.astro',
   vite: {
     plugins: [tailwindcss()],
@@ -20,5 +21,12 @@ export default defineConfig({
     },
   },
   output: 'static',
-  integrations: [sitemap()],
+  integrations: [
+    sitemap(),
+    partytown({
+      config: {
+        forward: ['dataLayer.push'],
+      },
+    }),
+  ],
 });
