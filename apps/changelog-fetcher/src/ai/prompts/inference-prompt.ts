@@ -13,11 +13,11 @@ export function buildBatchInferencePrompt(
 ): string {
   const inferenceItems = items
     .map((item, index) => ({ item, index }))
-    .filter(({ item }) => item.related_docs.length >= 2);
+    .filter(({ item }) => item.related_docs.length >= 1);
 
   const translationItems = items
     .map((item, index) => ({ item, index }))
-    .filter(({ item }) => item.related_docs.length < 2);
+    .filter(({ item }) => item.related_docs.length < 1);
 
   const inferenceSection = inferenceItems
     .map(({ item, index }) => {

@@ -1,0 +1,90 @@
+---
+import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
+import {
+  PREFIX_DEFAULT_STYLE,
+  PREFIX_ICONS,
+  PREFIX_STYLES,
+} from '../../lib/prefix';
+
+type PrefixGroup = {
+  prefix: string;
+  label: string;
+  items: { item: ChangelogItem; originalIndex: number }[];
+};
+
+type Props = {
+  groups: PrefixGroup[];
+};
+
+const { groups } = Astro.props;
+
+// 2グループ未満なら表示しない
+const shouldShow = groups.length >= 2;
+---
+
+{
+  shouldShow && (
+    <nav
+      class='mt-5 pt-4 border-t border-[hsl(var(--cc-gray)/0.5)]'
+      aria-label='変更カテゴリ目次'
+    >
+      <h3 class='text-sm font-semibold text-gray-500 mb-3'>カテゴリ</h3>
+      <ul class='space-y-2'>
+        {groups.map((group) => {
+          const style = PREFIX_STYLES[group.prefix] || PREFIX_DEFAULT_STYLE;
+          const iconPath = PREFIX_ICONS[group.prefix];
+          // importance_score が最大のアイテムの content_ja を代表テキストとして使用
+          const representative = group.items.reduce((best, current) =>
+            current.item.importance_score > best.item.importance_score
+              ? current
+              : best,
+          );
+          const repText =
+            representative.item.content_ja || representative.item.content;
+          const truncated =
+            repText.length > 80 ? `${repText.slice(0, 80)}...` : repText;
+
+          return (
+            <li>
+              <a
+                href={`#prefix-${group.prefix.toLowerCase()}`}
+                class='flex items-start gap-3 p-2 -mx-2 rounded-md hover:bg-[hsl(var(--cc-main-orange)/0.05)] transition-colors group'
+              >
+                <span
+                  class={`inline-flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full text-xs font-bold uppercase ${style}`}
+                >
+                  {iconPath && (
+                    <svg
+                      class='w-3 h-3'
+                      fill='none'
+                      viewBox='0 0 24 24'
+                      stroke='currentColor'
+                      stroke-width='2.5'
+                      aria-hidden='true'
+                    >
+                      <path
+                        stroke-linecap='round'
+                        stroke-linejoin='round'
+                        d={iconPath}
+                      />
+                    </svg>
+                  )}
+                  {group.prefix}
+                </span>
+                <span class='text-sm text-gray-600 leading-snug'>
+                  <span class='font-medium text-[hsl(var(--cc-main-black))]'>
+                    {group.items.length}件
+                  </span>
+                  <span class='mx-1 text-gray-400'>-</span>
+                  <span class='group-hover:text-[hsl(var(--cc-main-black))] transition-colors'>
+                    {truncated}
+                  </span>
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  )
+}

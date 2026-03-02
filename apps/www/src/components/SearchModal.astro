@@ -1,0 +1,161 @@
+---
+import Search from 'astro-pagefind/components/Search';
+---
+
+<button
+  id='search-trigger'
+  type='button'
+  class='flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.5)] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer text-sm'
+  aria-label='検索を開く (⌘K)'
+>
+  <svg
+    class='w-4 h-4 shrink-0'
+    fill='none'
+    viewBox='0 0 24 24'
+    stroke='currentColor'
+    stroke-width='2'
+    aria-hidden='true'
+  >
+    <path
+      stroke-linecap='round'
+      stroke-linejoin='round'
+      d='M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z'
+    ></path>
+  </svg>
+  <span class='hidden sm:inline text-sm'>検索</span>
+  <kbd
+    class='hidden sm:inline-flex items-center gap-0.5 rounded border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] px-1.5 py-0.5 text-[11px] font-medium text-[hsl(var(--cc-main-black)/0.4)]'
+  >
+    <span class='text-xs'>⌘</span>K
+  </kbd>
+</button>
+
+<template id='search-modal-template'>
+  <div id='search-modal-overlay' class='search-modal-overlay'>
+    <div class='search-modal-positioner'>
+      <div id='search-modal-content' class='search-modal-content'>
+        <div class='search-modal-header'>
+          <span class='text-sm font-medium text-[hsl(var(--cc-main-black)/0.6)]'
+            >検索</span
+          >
+          <button
+            id='search-modal-close'
+            type='button'
+            class='flex items-center gap-1 text-xs text-[hsl(var(--cc-main-black)/0.4)] hover:text-[hsl(var(--cc-main-black))] transition-colors cursor-pointer'
+            aria-label='検索を閉じる'
+          >
+            <kbd
+              class='rounded border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] px-1.5 py-0.5 text-[10px] font-medium'
+              >ESC</kbd
+            >
+          </button>
+        </div>
+
+        <div id='search-modal-body' class='search-modal-body'>
+          <Search
+            id='search'
+            className='pagefind-ui'
+            uiOptions={{
+              showImages: false,
+              resetStyles: true,
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+  function initSearchModal() {
+    const trigger = document.getElementById('search-trigger');
+    if (!trigger) {
+      return;
+    }
+
+    let overlay = document.getElementById('search-modal-overlay');
+    if (!overlay) {
+      const template = document.getElementById(
+        'search-modal-template',
+      ) as HTMLTemplateElement | null;
+      if (!template) {
+        return;
+      }
+      const clone = template.content.cloneNode(true);
+      document.body.appendChild(clone);
+      overlay = document.getElementById('search-modal-overlay');
+    }
+    if (!overlay) {
+      return;
+    }
+
+    const content = document.getElementById('search-modal-content');
+    const closeBtn = document.getElementById('search-modal-close');
+    if (!content || !closeBtn) {
+      return;
+    }
+
+    const overlayEl = overlay;
+
+    function openModal() {
+      overlayEl.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+
+      // 検索入力にフォーカス
+      requestAnimationFrame(() => {
+        const input = overlayEl.querySelector<HTMLInputElement>(
+          '.pagefind-ui__search-input',
+        );
+        input?.focus();
+      });
+    }
+
+    function closeModal() {
+      overlayEl.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }
+
+    // トリガーボタンクリック
+    trigger.addEventListener('click', openModal);
+
+    overlayEl.addEventListener('click', closeModal);
+    content.addEventListener('click', (e) => e.stopPropagation());
+
+    // 閉じるボタン
+    closeBtn.addEventListener('click', closeModal);
+
+    // Cmd+K / Ctrl+K でトグル
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (!overlayEl.classList.contains('is-open')) {
+          openModal();
+        } else {
+          closeModal();
+        }
+      }
+
+      // Escape で閉じる
+      if (e.key === 'Escape' && overlayEl.classList.contains('is-open')) {
+        e.preventDefault();
+        closeModal();
+      }
+    });
+
+    // 検索結果のリンクをクリック時にモーダルを閉じる
+    const modalBody = document.getElementById('search-modal-body');
+    modalBody?.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+      if (anchor) {
+        closeModal();
+      }
+    });
+  }
+
+  // 初回ロード
+  initSearchModal();
+
+  // Astro View Transitions 後の再初期化
+  document.addEventListener('astro:after-swap', initSearchModal);
+</script>

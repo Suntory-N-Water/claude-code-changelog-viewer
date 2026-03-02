@@ -14,6 +14,16 @@
 }
 
 @layer base {
+  /* Pagefind UI カスタムプロパティ */
+  :root {
+    --pagefind-ui-primary: hsl(var(--cc-main-orange));
+    --pagefind-ui-text: hsl(var(--cc-main-black));
+    --pagefind-ui-background: hsl(var(--cc-main-white));
+    --pagefind-ui-border: hsl(var(--cc-gray));
+    --pagefind-ui-border-radius: 8px;
+    --pagefind-ui-font: inherit;
+  }
+
   body {
     @apply bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black))];
   }
@@ -208,4 +218,167 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/*
+ * 検索モーダル
+ * @layer 外に配置: pagefind が動的生成する DOM に確実に勝つため
+ */
+
+/* モーダル オーバーレイ(body 直下に JS で移動済み)
+ * overlay 自身に背景・ぼかしを直接指定する。
+ * 子要素に別の backdrop div を作ると fixed 内で描画が限定される。
+ */
+.search-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.search-modal-overlay.is-open {
+  display: block;
+}
+
+/* モーダル位置決め */
+.search-modal-positioner {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 10vh 1rem 0;
+}
+
+@media (min-width: 640px) {
+  .search-modal-positioner {
+    padding-top: 15vh;
+  }
+}
+
+/* モーダル本体 */
+.search-modal-content {
+  width: 100%;
+  max-width: 42rem;
+  max-height: 70vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid hsl(var(--cc-gray));
+  background: hsl(var(--cc-main-white));
+  box-shadow:
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* モーダルヘッダー */
+.search-modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--cc-gray));
+  background: hsl(var(--cc-main-white));
+}
+
+/* モーダルボディ */
+.search-modal-body {
+  padding: 1rem;
+}
+
+/* --- Pagefind UI(モーダル内)--- */
+
+/* form を relative にして ::before(虫眼鏡)を絶対配置の基点にする */
+.search-modal-body .pagefind-ui__form {
+  position: relative !important;
+}
+
+/* 虫眼鏡アイコン: 入力欄の左側・垂直中央に固定
+ * top: 50% は使わない — form は結果ドロワーも含むため
+ * 結果表示時に form が伸びると 50% の基準点が下にずれる。
+ * input 高さ 2.75rem の中央 = 1.375rem を直接指定する。
+ */
+.search-modal-body .pagefind-ui__form::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 1.375rem !important;
+  left: 0.75rem !important;
+  transform: translateY(-50%) !important;
+  width: 1.125rem !important;
+  height: 1.125rem !important;
+  z-index: 1 !important;
+  /* pagefind デフォルトの background-image を継承 */
+}
+
+/* 検索入力欄 */
+.search-modal-body .pagefind-ui__search-input {
+  font-size: 1rem !important;
+  height: 2.75rem !important;
+  border-radius: 8px !important;
+  padding-left: 2.5rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: hsl(var(--cc-main-white)) !important;
+  border: 1px solid hsl(var(--cc-gray)) !important;
+  outline: none !important;
+}
+
+.search-modal-body .pagefind-ui__search-input:focus {
+  border-color: hsl(var(--cc-main-orange)) !important;
+  box-shadow: 0 0 0 1px hsl(var(--cc-main-orange) / 0.3) !important;
+}
+
+/* クリアボタンの垂直中央配置
+ * 虫眼鏡と同様に input 高さ基準の固定値を使用
+ */
+.search-modal-body .pagefind-ui__search-clear {
+  top: 1.375rem !important;
+  transform: translateY(-50%) !important;
+  right: 0.75rem !important;
+  background: transparent !important;
+  color: hsl(var(--cc-main-black) / 0.4) !important;
+}
+
+.search-modal-body .pagefind-ui__search-clear:hover {
+  color: hsl(var(--cc-main-black)) !important;
+}
+
+/* 検索結果リンク */
+.search-modal-body .pagefind-ui__result-link {
+  color: hsl(var(--cc-main-black)) !important;
+  font-weight: 600 !important;
+}
+
+.search-modal-body .pagefind-ui__result-link:hover {
+  color: hsl(var(--cc-main-orange)) !important;
+}
+
+/* 検索結果ハイライト */
+.search-modal-body mark {
+  background-color: hsl(var(--cc-main-orange) / 0.2) !important;
+  color: inherit !important;
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+/* 検索結果の各アイテム */
+.search-modal-body .pagefind-ui__result {
+  border-bottom: 1px solid hsl(var(--cc-gray)) !important;
+  padding: 0.75rem 0 !important;
+}
+
+.search-modal-body .pagefind-ui__result:last-child {
+  border-bottom: none !important;
+}
+
+/* pagefind が動的生成する要素の背景色を --cc-main-white に統一
+ * デフォルトの純白 (#fff) がモーダル背景 (#FAF9F5) と差異を生むのを防ぐ
+ */
+.search-modal-body .pagefind-ui__drawer,
+.search-modal-body .pagefind-ui__results-area,
+.search-modal-body .pagefind-ui__filter-panel {
+  background: transparent !important;
 }
