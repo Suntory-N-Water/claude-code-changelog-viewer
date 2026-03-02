@@ -1,0 +1,200 @@
+---
+import { getCollection } from 'astro:content';
+import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import {
+  MIN_ITEMS_FOR_PAGE,
+  aggregateByFeatureArea,
+  getFeatureAreaDescription,
+  getFeatureAreaLabel,
+  groupByVersion,
+  toFeatureAreaSlug,
+  validateSlugUniqueness,
+} from '../../lib/feature-area';
+import { semverCompareDesc } from '../../lib/semver';
+
+export async function getStaticPaths() {
+  const allChangelogs = await getCollection('changelog');
+  const data = allChangelogs.map((e) => ({
+    version: e.data.version,
+    items: e.data.items,
+  }));
+  const areaMap = aggregateByFeatureArea(data);
+
+  // 薄いコンテンツ防止: 閾値未満のエリアはページを生成しない
+  const validAreas = [...areaMap.entries()].filter(
+    ([, items]) => items.length >= MIN_ITEMS_FOR_PAGE,
+  );
+
+  // スラッグ衝突チェック(ビルド時安全ネット)
+  validateSlugUniqueness(validAreas.map(([area]) => area));
+
+  return validAreas.map(([area, areaItems]) => ({
+    params: { area: toFeatureAreaSlug(area) },
+    props: { areaName: area, areaItems },
+  }));
+}
+
+const { areaName, areaItems } = Astro.props;
+const slug = toFeatureAreaSlug(areaName);
+const label = getFeatureAreaLabel(areaName);
+const areaDescription = getFeatureAreaDescription(areaName);
+
+const versionGroups = groupByVersion(areaItems, semverCompareDesc);
+const versionCount = versionGroups.length;
+const itemCount = areaItems.length;
+
+// メタ description: 120文字以上保証
+const MIN_DESC_LENGTH = 120;
+const rawDescription = `${areaDescription}(${itemCount}件の変更 / ${versionCount}バージョン)`;
+const description =
+  rawDescription.length < MIN_DESC_LENGTH
+    ? `${rawDescription} Claude Codeの${label}に関する全バージョンのアップデート内容をAIが分析し日本語で解説しています。`
+    : rawDescription;
+
+const siteUrl = import.meta.env.SITE;
+
+const pageTitle = `Claude Code ${label} の変更履歴 - 全バージョンのアップデート内容`;
+
+// 他エリアへのナビゲーション用
+const allChangelogs = await getCollection('changelog');
+const allData = allChangelogs.map((e) => ({
+  version: e.data.version,
+  items: e.data.items,
+}));
+const allAreaMap = aggregateByFeatureArea(allData);
+const linkedAreas = new Set(
+  [...allAreaMap.entries()]
+    .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
+    .map(([area]) => area),
+);
+const otherAreas = [...allAreaMap.entries()]
+  .filter(
+    ([area, items]) => area !== areaName && items.length >= MIN_ITEMS_FOR_PAGE,
+  )
+  .sort(([, a], [, b]) => b.length - a.length)
+  .slice(0, 4)
+  .map(([area, items]) => ({
+    slug: toFeatureAreaSlug(area),
+    label: getFeatureAreaLabel(area),
+    itemCount: items.length,
+  }));
+---
+
+<Layout
+  title={pageTitle}
+  description={description}
+  image={`${siteUrl}/features/og/${slug}.png`}
+  jsonLd={{
+    type: 'collection',
+    title: pageTitle,
+    description,
+  }}
+  breadcrumbs={[
+    { name: 'トップ', url: siteUrl },
+    { name: '機能エリア別', url: `${siteUrl}/features` },
+    { name: label, url: `${siteUrl}/features/${slug}` },
+  ]}
+>
+  <div class='min-h-dvh py-12 sm:py-16 px-4'>
+    <div class='max-w-4xl mx-auto'>
+      <nav class='mb-8' aria-label='パンくずリスト'>
+        <a
+          href='/features'
+          data-direction='back'
+          class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
+        >
+          <svg
+            class='w-4 h-4'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            stroke-width='2'
+            aria-hidden='true'
+          >
+            <path
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              d='M15 19l-7-7 7-7'></path>
+          </svg>
+          機能エリア一覧に戻る
+        </a>
+      </nav>
+
+      <header class='mb-10'>
+        <h1
+          class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          Claude Code {label}
+        </h1>
+        <div
+          class='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600'
+        >
+          <p>{itemCount}件の変更 / {versionCount}バージョン</p>
+        </div>
+      </header>
+
+      <div data-pagefind-ignore>
+        <div class='space-y-10'>
+          {
+            versionGroups.map((group) => (
+              <section>
+                <div class='sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
+                  <h2 class='flex items-center gap-2 text-lg font-bold text-[hsl(var(--cc-main-black))]'>
+                    <a
+                      href={`/changelog/v${group.version}`}
+                      class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline transition-colors'
+                    >
+                      v{group.version}
+                    </a>
+                    <span class='text-sm font-normal text-gray-500'>
+                      ({group.items.length}件)
+                    </span>
+                  </h2>
+                </div>
+                <div class='space-y-6'>
+                  {group.items.map((item) => (
+                    <ChangelogItemCard item={item} linkedAreas={linkedAreas} />
+                  ))}
+                </div>
+              </section>
+            ))
+          }
+        </div>
+      </div>
+
+      {
+        otherAreas.length > 0 && (
+          <nav class='mt-16 pt-8 border-t border-[hsl(var(--cc-gray))]'>
+            <h2 class='text-lg font-bold text-[hsl(var(--cc-main-black))] mb-4'>
+              他の機能エリア
+            </h2>
+            <div class='flex flex-wrap gap-3'>
+              {otherAreas.map(
+                ({
+                  slug: otherSlug,
+                  label: otherLabel,
+                  itemCount: otherCount,
+                }) => (
+                  <a
+                    href={`/features/${otherSlug}`}
+                    class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-all'
+                  >
+                    {otherLabel}
+                    <span class='text-xs text-gray-400'>{otherCount}</span>
+                  </a>
+                ),
+              )}
+              <a
+                href='/features'
+                class='inline-flex items-center px-4 py-2 text-sm text-gray-500 hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+              >
+                すべて見る &rarr;
+              </a>
+            </div>
+          </nav>
+        )
+      }
+    </div>
+  </div>
+</Layout>

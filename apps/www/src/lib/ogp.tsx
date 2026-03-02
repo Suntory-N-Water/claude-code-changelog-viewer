@@ -441,6 +441,93 @@ function TwitterChangelogImage({
   );
 }
 
+type FeatureAreaPageOgpProps = {
+  siteTitle: string;
+  areaLabel: string;
+  itemCount: number;
+  versionCount: number;
+};
+
+/**
+ * 機能エリアページ用OGP画像コンポーネント
+ */
+function FeatureAreaPageOgp({
+  siteTitle,
+  areaLabel,
+  itemCount,
+  versionCount,
+}: FeatureAreaPageOgpProps): ReactElement {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        padding: 32,
+        background: `linear-gradient(135deg, ${colors.mainOrange} 0%, ${colors.orangeHover} 100%)`,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          width: '100%',
+          height: '100%',
+          backgroundColor: colors.mainWhite,
+          borderRadius: 24,
+          padding: 48,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 36,
+            fontWeight: 600,
+            color: colors.mainBlack,
+            opacity: 0.6,
+          }}
+        >
+          {siteTitle}
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 80,
+              fontWeight: 600,
+              color: colors.mainBlack,
+            }}
+          >
+            {areaLabel}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 32,
+            fontWeight: 600,
+            color: colors.mainBlack,
+            opacity: 0.7,
+          }}
+        >
+          {`${itemCount}件の変更 / ${versionCount}バージョン`}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * PNG バイナリから画像レスポンスを生成
  */
@@ -504,6 +591,49 @@ export async function generateVersionPageOgp(
       siteTitle={siteTitle}
       version={version}
       itemCount={itemCount}
+    />,
+    {
+      width: 1200,
+      height: 630,
+      fonts: [
+        {
+          name: 'Noto Sans JP',
+          data: fontData,
+          weight: 600,
+          style: 'normal',
+        },
+      ],
+    },
+  );
+
+  const resvg = new Resvg(svg, {
+    fitTo: {
+      mode: 'width',
+      value: 1200,
+    },
+  });
+  const image = resvg.render();
+
+  return image.asPng();
+}
+
+/**
+ * 機能エリアページ用OGP画像を生成
+ */
+export async function generateFeatureAreaOgp(
+  siteTitle: string,
+  areaLabel: string,
+  itemCount: number,
+  versionCount: number,
+): Promise<Uint8Array> {
+  const fontData = await loadFont();
+
+  const svg = await satori(
+    <FeatureAreaPageOgp
+      siteTitle={siteTitle}
+      areaLabel={areaLabel}
+      itemCount={itemCount}
+      versionCount={versionCount}
     />,
     {
       width: 1200,
