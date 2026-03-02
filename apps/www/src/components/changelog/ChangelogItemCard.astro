@@ -1,6 +1,7 @@
 ---
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import { formatChangelogContent } from '../../lib/changelog';
+import { getFeatureAreaLabel, toFeatureAreaSlug } from '../../lib/feature-area';
 import {
   PREFIX_DEFAULT_STYLE,
   PREFIX_ICONS,
@@ -12,9 +13,11 @@ import RelatedDocsList from './RelatedDocsList.astro';
 type Props = {
   item: ChangelogItem;
   anchorId?: string;
+  /** ページが存在する feature_area の Set(未指定時はリンクを生成しない) */
+  linkedAreas?: Set<string>;
 };
 
-const { item, anchorId } = Astro.props;
+const { item, anchorId, linkedAreas } = Astro.props;
 const formattedContent = formatChangelogContent(item.content);
 const hasJaTranslation = !!item.content_ja;
 const formattedContentJa = item.content_ja
@@ -30,11 +33,6 @@ const prefixIcon = PREFIX_ICONS[item.prefix];
   class='changelog-card border border-[hsl(var(--cc-gray))] rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-[hsl(var(--cc-main-orange))]'
   data-pagefind-filter={`prefix:${item.prefix}`}
 >
-  {
-    (item.feature_areas ?? []).map((area) => (
-      <span class='hidden' data-pagefind-filter={`feature_area:${area}`} />
-    ))
-  }
   <div class='flex-1 min-w-0'>
     <!-- プレフィックスバッジ -->
     {
@@ -61,6 +59,31 @@ const prefixIcon = PREFIX_ICONS[item.prefix];
             )}
             {item.prefix}
           </span>
+        </div>
+      )
+    }
+
+    {
+      (item.feature_areas ?? []).length > 0 && (
+        <div class='flex flex-wrap gap-1.5 mb-3'>
+          {(item.feature_areas ?? []).map((area) =>
+            linkedAreas?.has(area) ? (
+              <a
+                href={`/features/${toFeatureAreaSlug(area)}`}
+                class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.6)] hover:bg-[hsl(var(--cc-main-orange)/0.1)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+                data-pagefind-filter={`feature_area:${area}`}
+              >
+                {getFeatureAreaLabel(area)}
+              </a>
+            ) : (
+              <span
+                class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.6)]'
+                data-pagefind-filter={`feature_area:${area}`}
+              >
+                {getFeatureAreaLabel(area)}
+              </span>
+            ),
+          )}
         </div>
       )
     }

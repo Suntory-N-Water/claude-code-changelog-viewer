@@ -5,6 +5,10 @@ import PrefixTableOfContents from '../../components/changelog/PrefixTableOfConte
 import Layout from '../../layouts/Layout.astro';
 import { formatChangelogContent } from '../../lib/changelog';
 import {
+  MIN_ITEMS_FOR_PAGE,
+  aggregateByFeatureArea,
+} from '../../lib/feature-area';
+import {
   PREFIX_DEFAULT_STYLE,
   PREFIX_ICONS,
   PREFIX_LABELS,
@@ -34,6 +38,19 @@ export async function getStaticPaths() {
     releaseVersions = new Set();
   }
 
+  // ページが存在する feature_area を算出
+  const areaMap = aggregateByFeatureArea(
+    allChangelogs.map((e) => ({
+      version: e.data.version,
+      items: e.data.items,
+    })),
+  );
+  const linkedAreas = new Set(
+    [...areaMap.entries()]
+      .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
+      .map(([area]) => area),
+  );
+
   // バージョン降順ソート
   const sorted = [...allChangelogs].sort((a, b) =>
     semverCompareDesc(a.data.version, b.data.version),
@@ -46,11 +63,13 @@ export async function getStaticPaths() {
       hasGitHubRelease: releaseVersions.has(entry.data.version),
       prevVersion: sorted[i + 1]?.data.version ?? null,
       nextVersion: sorted[i - 1]?.data.version ?? null,
+      linkedAreas,
     },
   }));
 }
 
-const { entry, hasGitHubRelease, prevVersion, nextVersion } = Astro.props;
+const { entry, hasGitHubRelease, prevVersion, nextVersion, linkedAreas } =
+  Astro.props;
 const { version, items, summary } = entry.data;
 
 // メタタグ用 description: summary があれば使用、なければ変更項目数を含めた詳細テキスト
@@ -236,6 +255,7 @@ const totalItemCount = items.length;
                     <ChangelogItemCard
                       item={item}
                       anchorId={`item-${originalIndex}`}
+                      linkedAreas={linkedAreas}
                     />
                   ))}
                 </div>

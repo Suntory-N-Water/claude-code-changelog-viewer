@@ -1,0 +1,107 @@
+---
+import { getCollection } from 'astro:content';
+import FeatureAreaCard from '../../components/changelog/FeatureAreaCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import {
+  MIN_ITEMS_FOR_PAGE,
+  aggregateByFeatureArea,
+  getFeatureAreaLabel,
+  toFeatureAreaSlug,
+} from '../../lib/feature-area';
+
+const allChangelogs = await getCollection('changelog');
+const data = allChangelogs.map((e) => ({
+  version: e.data.version,
+  items: e.data.items,
+}));
+const areaMap = aggregateByFeatureArea(data);
+
+// アイテム件数降順でソート、閾値未満を除外
+const areas = [...areaMap.entries()]
+  .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
+  .sort(([, a], [, b]) => b.length - a.length)
+  .map(([area, items]) => {
+    const versionSet = new Set(items.map((i) => i.version));
+    return {
+      slug: toFeatureAreaSlug(area),
+      label: getFeatureAreaLabel(area),
+      itemCount: items.length,
+      versionCount: versionSet.size,
+    };
+  });
+
+const siteUrl = import.meta.env.SITE;
+const pageTitle =
+  'Claude Code 機能エリア別 変更履歴 - 機能ごとにアップデートを検索';
+const pageDescription =
+  'Claude Codeの変更履歴を機能エリア別に分類。MCP、Hooks、Settings、IDE/VSCode連携など、特定の機能に関するアップデート内容をバージョンを横断して確認できます。';
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  jsonLd={{
+    type: 'collection',
+    title: pageTitle,
+    description: pageDescription,
+  }}
+  breadcrumbs={[
+    { name: 'トップ', url: siteUrl },
+    { name: '機能エリア別', url: `${siteUrl}/features` },
+  ]}
+>
+  <div class='min-h-dvh py-12 sm:py-16 px-4'>
+    <div class='max-w-6xl mx-auto'>
+      <nav class='mb-8' aria-label='パンくずリスト'>
+        <a
+          href='/'
+          data-direction='back'
+          class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
+        >
+          <svg
+            class='w-4 h-4'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            stroke-width='2'
+            aria-hidden='true'
+          >
+            <path
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              d='M15 19l-7-7 7-7'></path>
+          </svg>
+          トップに戻る
+        </a>
+      </nav>
+
+      <header class='mb-12 sm:mb-16 text-center max-w-4xl mx-auto'>
+        <h1
+          class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          機能エリア別 変更履歴
+        </h1>
+        <p
+          class='text-base sm:text-lg text-pretty text-gray-600 leading-relaxed'
+        >
+          特定の機能に関する変更履歴をバージョンを横断して確認できます。
+        </p>
+      </header>
+
+      <div
+        class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
+      >
+        {
+          areas.map(({ slug, label, itemCount, versionCount }) => (
+            <FeatureAreaCard
+              slug={slug}
+              label={label}
+              itemCount={itemCount}
+              versionCount={versionCount}
+            />
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</Layout>

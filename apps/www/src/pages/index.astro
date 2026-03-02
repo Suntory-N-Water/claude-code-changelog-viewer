@@ -3,6 +3,12 @@ import { getCollection } from 'astro:content';
 import VersionCard from '../components/changelog/VersionCard.astro';
 import Layout from '../layouts/Layout.astro';
 import { SITE_TITLE } from '../lib/constants';
+import {
+  MIN_ITEMS_FOR_PAGE,
+  aggregateByFeatureArea,
+  getFeatureAreaLabel,
+  toFeatureAreaSlug,
+} from '../lib/feature-area';
 import { generateFAQJsonLd } from '../lib/json-ld';
 import { semverCompareDesc } from '../lib/semver';
 
@@ -45,6 +51,22 @@ const faqItems = [
   },
 ];
 const faqJsonLd = JSON.stringify(generateFAQJsonLd(faqItems));
+
+// 機能エリアセクション用データ
+const allData = sortedChangelogs.map((e) => ({
+  version: e.data.version,
+  items: e.data.items,
+}));
+const areaMap = aggregateByFeatureArea(allData);
+const topAreas = [...areaMap.entries()]
+  .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
+  .sort(([, a], [, b]) => b.length - a.length)
+  .slice(0, 8)
+  .map(([area, items]) => ({
+    slug: toFeatureAreaSlug(area),
+    label: getFeatureAreaLabel(area),
+    itemCount: items.length,
+  }));
 ---
 
 <Layout
@@ -141,6 +163,34 @@ const faqJsonLd = JSON.stringify(generateFAQJsonLd(faqItems));
           </>
         )
       }
+      <section class='mt-16 max-w-3xl mx-auto'>
+        <h2 class='text-2xl font-bold text-[hsl(var(--cc-main-black))] mb-4'>
+          機能エリア別に探す
+        </h2>
+        <p class='text-sm text-gray-600 mb-6'>
+          特定の機能に関する変更履歴をバージョンを横断して確認できます。
+        </p>
+        <div class='flex flex-wrap gap-3'>
+          {
+            topAreas.map(({ slug, label, itemCount }) => (
+              <a
+                href={`/features/${slug}`}
+                class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-all'
+              >
+                {label}
+                <span class='text-xs text-gray-400'>{itemCount}</span>
+              </a>
+            ))
+          }
+          <a
+            href='/features'
+            class='inline-flex items-center px-4 py-2 text-sm text-gray-500 hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+          >
+            すべて見る &rarr;
+          </a>
+        </div>
+      </section>
+
       <section class='mt-16 max-w-3xl mx-auto'>
         <h2 class='text-2xl font-bold text-[hsl(var(--cc-main-black))] mb-8'>
           よくある質問

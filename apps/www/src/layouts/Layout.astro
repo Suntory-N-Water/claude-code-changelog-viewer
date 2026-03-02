@@ -8,13 +8,15 @@ import { SITE_TITLE } from '../lib/constants';
 import {
   generateWebSiteJsonLd,
   generateArticleJsonLd,
+  generateCollectionPageJsonLd,
   generateBreadcrumbJsonLd,
 } from '../lib/json-ld';
 
 type JsonLdData =
   | { type: 'website' }
   | { type: 'article'; version: string; summary?: string }
-  | { type: 'page' };
+  | { type: 'page' }
+  | { type: 'collection'; title: string; description: string };
 
 type BreadcrumbItem = {
   name: string;
@@ -59,6 +61,17 @@ if (jsonLd?.type === 'website') {
         description: pageDescription,
         url: canonicalUrl,
         version: jsonLd.version,
+      }),
+    ),
+  );
+} else if (jsonLd?.type === 'collection') {
+  jsonLdScripts.push(
+    JSON.stringify(
+      generateCollectionPageJsonLd({
+        siteUrl,
+        title: jsonLd.title,
+        description: jsonLd.description,
+        url: canonicalUrl,
       }),
     ),
   );

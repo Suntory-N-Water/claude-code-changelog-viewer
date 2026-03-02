@@ -83,6 +83,37 @@ export function generateFAQJsonLd(items: FAQItem[]): object {
   };
 }
 
+type CollectionPageParams = {
+  siteUrl: string;
+  title: string;
+  description: string;
+  url: string;
+};
+
+export function generateCollectionPageJsonLd(
+  params: CollectionPageParams,
+): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: params.title,
+    description: params.description,
+    url: params.url,
+    inLanguage: 'ja',
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_TITLE,
+      url: params.siteUrl,
+    },
+    about: {
+      '@type': 'SoftwareApplication',
+      name: 'Claude Code',
+      applicationCategory: 'DeveloperApplication',
+      operatingSystem: 'macOS, Linux, Windows',
+    },
+  };
+}
+
 export function generateBreadcrumbJsonLd(items: BreadcrumbItem[]): object {
   return {
     '@context': 'https://schema.org',
