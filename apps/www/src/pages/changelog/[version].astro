@@ -1,8 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
+import PrefixTableOfContents from '../../components/changelog/PrefixTableOfContents.astro';
 import Layout from '../../layouts/Layout.astro';
 import { formatChangelogContent } from '../../lib/changelog';
+import {
+  PREFIX_DEFAULT_STYLE,
+  PREFIX_ICONS,
+  PREFIX_LABELS,
+  PREFIX_STYLES,
+  getPrefixSortOrder,
+} from '../../lib/prefix';
 import { semverCompareDesc } from '../../lib/semver';
 
 export async function getStaticPaths() {
@@ -58,10 +66,37 @@ const description =
 // summaryのバッククォートをHTMLコードタグに変換
 const formattedSummary = summary ? formatChangelogContent(summary) : undefined;
 
-// 元のインデックスを保持しつつ重要度降順でソート
-const sortedItems = items
-  .map((item, index) => ({ item, originalIndex: index }))
-  .sort((a, b) => b.item.importance_score - a.item.importance_score);
+// prefix でグルーピング + グループ内 importance_score 降順
+const itemsWithIndex = items.map((item, index) => ({
+  item,
+  originalIndex: index,
+}));
+
+const groupMap = new Map<string, typeof itemsWithIndex>();
+for (const entry of itemsWithIndex) {
+  const key = entry.item.prefix;
+  if (!groupMap.has(key)) {
+    groupMap.set(key, []);
+  }
+  const group = groupMap.get(key);
+  if (group) {
+    group.push(entry);
+  }
+}
+for (const group of groupMap.values()) {
+  group.sort((a, b) => b.item.importance_score - a.item.importance_score);
+}
+
+const prefixGroups = [...groupMap.entries()]
+  .sort(([a], [b]) => getPrefixSortOrder(a) - getPrefixSortOrder(b))
+  .map(([prefix, groupItems]) => ({
+    prefix,
+    label: PREFIX_LABELS[prefix] ?? prefix,
+    items: groupItems,
+  }));
+
+// フラットリスト(件数表示用)
+const totalItemCount = items.length;
 ---
 
 <Layout
@@ -77,9 +112,9 @@ const sortedItems = items
     },
   ]}
 >
-  <div class='min-h-dvh py-12 sm:py-16 px-4'>
+  <div class='min-h-dvh py-12 sm:py-16 px-4' data-pagefind-body>
     <div class='max-w-4xl mx-auto'>
-      <nav class='mb-8' aria-label='パンくずリスト'>
+      <nav class='mb-8' aria-label='パンくずリスト' data-pagefind-ignore>
         <a
           href='/'
           data-direction='back'
@@ -106,13 +141,14 @@ const sortedItems = items
         <h1
           class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
           transition:name={`version-title-${version}`}
+          data-pagefind-meta='title'
         >
           Claude Code v{version}
         </h1>
         <div
           class='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600'
         >
-          <p>変更項目: {sortedItems.length}件</p>
+          <p>変更項目: {totalItemCount}件</p>
           {
             hasGitHubRelease && (
               <a
@@ -154,18 +190,58 @@ const sortedItems = items
                 set:html={formattedSummary}
               />
             </div>
+            <PrefixTableOfContents groups={prefixGroups} />
           </div>
         )
       }
 
-      <h2 class='text-xl font-bold text-[hsl(var(--cc-main-black))] mb-6'>
-        変更内容一覧
-      </h2>
-      <div class='space-y-6'>
+      <div class='space-y-10'>
         {
-          sortedItems.map(({ item, originalIndex }) => (
-            <ChangelogItemCard item={item} anchorId={`item-${originalIndex}`} />
-          ))
+          prefixGroups.map((group) => {
+            const style = PREFIX_STYLES[group.prefix] || PREFIX_DEFAULT_STYLE;
+            const iconPath = PREFIX_ICONS[group.prefix];
+            return (
+              <section id={`prefix-${group.prefix.toLowerCase()}`}>
+                <div class='sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
+                  <h3 class='flex items-center gap-2 text-lg font-bold text-[hsl(var(--cc-main-black))]'>
+                    <span
+                      class={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${style}`}
+                    >
+                      {iconPath && (
+                        <svg
+                          class='w-3.5 h-3.5'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                          stroke-width='2.5'
+                          aria-hidden='true'
+                        >
+                          <path
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            d={iconPath}
+                          />
+                        </svg>
+                      )}
+                      {group.prefix}
+                    </span>
+                    <span>{group.label}</span>
+                    <span class='text-sm font-normal text-gray-500'>
+                      ({group.items.length}件)
+                    </span>
+                  </h3>
+                </div>
+                <div class='space-y-6'>
+                  {group.items.map(({ item, originalIndex }) => (
+                    <ChangelogItemCard
+                      item={item}
+                      anchorId={`item-${originalIndex}`}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          })
         }
       </div>
 
