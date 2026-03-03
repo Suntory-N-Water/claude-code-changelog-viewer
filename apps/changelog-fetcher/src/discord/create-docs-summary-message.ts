@@ -4,11 +4,11 @@ import {
   DISCORD_SUPPRESS_EMBEDS,
   type DiscordWebhookPayload,
   getLogger,
+  getOfficialDocUrl,
   sendToDiscord,
   toError,
   truncateForDiscord,
 } from '@claude-code-changelog-viewer/common';
-import { getOfficialDocUrl } from '@claude-code-changelog-viewer/types';
 import { GeminiClient } from '../ai/gemini-client';
 
 const log = getLogger({ name: 'discord-docs' });
