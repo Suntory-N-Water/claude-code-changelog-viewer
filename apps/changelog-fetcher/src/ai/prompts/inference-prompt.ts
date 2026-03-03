@@ -11,13 +11,14 @@ export function buildBatchInferencePrompt(
   version: string,
   modelContext: string,
 ): string {
-  const inferenceItems = items
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => item.related_docs.length >= 1);
-
-  const translationItems = items
-    .map((item, index) => ({ item, index }))
-    .filter(({ item }) => item.related_docs.length < 1);
+  const inferenceItems: { item: ChangelogItem; index: number }[] = [];
+  const translationItems: { item: ChangelogItem; index: number }[] = [];
+  for (const [index, item] of items.entries()) {
+    (item.related_docs.length >= 1 ? inferenceItems : translationItems).push({
+      item,
+      index,
+    });
+  }
 
   const inferenceSection = inferenceItems
     .map(({ item, index }) => {
