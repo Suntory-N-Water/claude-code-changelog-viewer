@@ -23,22 +23,9 @@ export function findAreaBySlug(
   return allAreas.find((area) => toFeatureAreaSlug(area) === slug);
 }
 
-/** 表示ラベル(公式名称をそのまま使用) */
-export const FEATURE_AREA_LABELS: Record<string, string> = {
-  Settings: 'Settings',
+/** 表示ラベル(エリア名と異なる場合のみ定義。一致するものは getFeatureAreaLabel で fallback) */
+const FEATURE_AREA_LABELS: Record<string, string> = {
   'IDE/VSCode': 'IDE / VSCode',
-  Memory: 'Memory',
-  Skills: 'Skills',
-  Permissions: 'Permissions',
-  MCP: 'MCP',
-  Hooks: 'Hooks',
-  Plugins: 'Plugins',
-  'Sub-agents': 'Sub-agents',
-  'Agent Teams': 'Agent Teams',
-  Plan: 'Plan',
-  SDK: 'SDK',
-  Tasks: 'Tasks',
-  CLI: 'CLI',
 };
 
 /** SEO description */
@@ -80,6 +67,25 @@ export function getFeatureAreaDescription(area: string): string {
 
 export type FeatureAreaItem = { version: string; item: ChangelogItem };
 export type VersionGroup = { version: string; items: ChangelogItem[] };
+
+/** Astro content collection エントリから aggregateByFeatureArea が受け取る形式に変換 */
+export function extractChangelogData(
+  entries: { data: { version: string; items: ChangelogItem[] } }[],
+): { version: string; items: ChangelogItem[] }[] {
+  return entries.map((e) => ({ version: e.data.version, items: e.data.items }));
+}
+
+/** ページが存在する feature_area の Set を返す(MIN_ITEMS_FOR_PAGE 以上のエリア) */
+export function getLinkedAreas(
+  changelogs: { version: string; items: ChangelogItem[] }[],
+): Set<string> {
+  const areaMap = aggregateByFeatureArea(changelogs);
+  return new Set(
+    [...areaMap.entries()]
+      .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
+      .map(([area]) => area),
+  );
+}
 
 /** 全 changelog から feature_area 別にアイテムを集約 */
 export function aggregateByFeatureArea(

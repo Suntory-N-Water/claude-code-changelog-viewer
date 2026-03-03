@@ -5,16 +5,13 @@ import Layout from '../../layouts/Layout.astro';
 import {
   MIN_ITEMS_FOR_PAGE,
   aggregateByFeatureArea,
+  extractChangelogData,
   getFeatureAreaLabel,
   toFeatureAreaSlug,
 } from '../../lib/feature-area';
 
 const allChangelogs = await getCollection('changelog');
-const data = allChangelogs.map((e) => ({
-  version: e.data.version,
-  items: e.data.items,
-}));
-const areaMap = aggregateByFeatureArea(data);
+const areaMap = aggregateByFeatureArea(extractChangelogData(allChangelogs));
 
 // アイテム件数降順でソート、閾値未満を除外
 const areas = [...areaMap.entries()]

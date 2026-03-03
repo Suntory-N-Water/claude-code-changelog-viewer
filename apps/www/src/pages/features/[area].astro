@@ -5,6 +5,7 @@ import Layout from '../../layouts/Layout.astro';
 import {
   MIN_ITEMS_FOR_PAGE,
   aggregateByFeatureArea,
+  extractChangelogData,
   getFeatureAreaDescription,
   getFeatureAreaLabel,
   groupByVersion,
@@ -15,27 +16,37 @@ import { semverCompareDesc } from '../../lib/semver';
 
 export async function getStaticPaths() {
   const allChangelogs = await getCollection('changelog');
-  const data = allChangelogs.map((e) => ({
-    version: e.data.version,
-    items: e.data.items,
-  }));
+  const data = extractChangelogData(allChangelogs);
   const areaMap = aggregateByFeatureArea(data);
 
-  // 薄いコンテンツ防止: 閾値未満のエリアはページを生成しない
   const validAreas = [...areaMap.entries()].filter(
     ([, items]) => items.length >= MIN_ITEMS_FOR_PAGE,
   );
 
-  // スラッグ衝突チェック(ビルド時安全ネット)
   validateSlugUniqueness(validAreas.map(([area]) => area));
 
-  return validAreas.map(([area, areaItems]) => ({
-    params: { area: toFeatureAreaSlug(area) },
-    props: { areaName: area, areaItems },
-  }));
+  // linkedAreas / otherAreas をここで計算して props に渡す
+  const linkedAreas = new Set(validAreas.map(([area]) => area));
+
+  return validAreas.map(([area, areaItems]) => {
+    const otherAreas = validAreas
+      .filter(([a]) => a !== area)
+      .sort(([, a], [, b]) => b.length - a.length)
+      .slice(0, 4)
+      .map(([a, items]) => ({
+        slug: toFeatureAreaSlug(a),
+        label: getFeatureAreaLabel(a),
+        itemCount: items.length,
+      }));
+
+    return {
+      params: { area: toFeatureAreaSlug(area) },
+      props: { areaName: area, areaItems, linkedAreas, otherAreas },
+    };
+  });
 }
 
-const { areaName, areaItems } = Astro.props;
+const { areaName, areaItems, linkedAreas, otherAreas } = Astro.props;
 const slug = toFeatureAreaSlug(areaName);
 const label = getFeatureAreaLabel(areaName);
 const areaDescription = getFeatureAreaDescription(areaName);
@@ -44,7 +55,6 @@ const versionGroups = groupByVersion(areaItems, semverCompareDesc);
 const versionCount = versionGroups.length;
 const itemCount = areaItems.length;
 
-// メタ description: 120文字以上保証
 const MIN_DESC_LENGTH = 120;
 const rawDescription = `${areaDescription}(${itemCount}件の変更 / ${versionCount}バージョン)`;
 const description =
@@ -53,32 +63,7 @@ const description =
     : rawDescription;
 
 const siteUrl = import.meta.env.SITE;
-
 const pageTitle = `Claude Code ${label} の変更履歴 - 全バージョンのアップデート内容`;
-
-// 他エリアへのナビゲーション用
-const allChangelogs = await getCollection('changelog');
-const allData = allChangelogs.map((e) => ({
-  version: e.data.version,
-  items: e.data.items,
-}));
-const allAreaMap = aggregateByFeatureArea(allData);
-const linkedAreas = new Set(
-  [...allAreaMap.entries()]
-    .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
-    .map(([area]) => area),
-);
-const otherAreas = [...allAreaMap.entries()]
-  .filter(
-    ([area, items]) => area !== areaName && items.length >= MIN_ITEMS_FOR_PAGE,
-  )
-  .sort(([, a], [, b]) => b.length - a.length)
-  .slice(0, 4)
-  .map(([area, items]) => ({
-    slug: toFeatureAreaSlug(area),
-    label: getFeatureAreaLabel(area),
-    itemCount: items.length,
-  }));
 ---
 
 <Layout
@@ -139,7 +124,7 @@ const otherAreas = [...allAreaMap.entries()]
           {
             versionGroups.map((group) => (
               <section>
-                <div class='sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
+                <div class='sticky top-12 z-10 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
                   <h2 class='flex items-center gap-2 text-lg font-bold text-[hsl(var(--cc-main-black))]'>
                     <a
                       href={`/changelog/v${group.version}`}

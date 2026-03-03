@@ -3,6 +3,7 @@ import type { APIContext, GetStaticPaths } from 'astro';
 import {
   MIN_ITEMS_FOR_PAGE,
   aggregateByFeatureArea,
+  extractChangelogData,
   getFeatureAreaLabel,
   toFeatureAreaSlug,
 } from '@/lib/feature-area';
@@ -11,25 +12,18 @@ import { createPngResponse, generateFeatureAreaOgp } from '@/lib/ogp';
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const allChangelogs = await getCollection('changelog');
-  const data = allChangelogs.map((e) => ({
-    version: e.data.version,
-    items: e.data.items,
-  }));
-  const areaMap = aggregateByFeatureArea(data);
+  const areaMap = aggregateByFeatureArea(extractChangelogData(allChangelogs));
 
   return [...areaMap.entries()]
     .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
-    .map(([area, items]) => {
-      const versionSet = new Set(items.map((i) => i.version));
-      return {
-        params: { area: toFeatureAreaSlug(area) },
-        props: {
-          areaLabel: getFeatureAreaLabel(area),
-          itemCount: items.length,
-          versionCount: versionSet.size,
-        },
-      };
-    });
+    .map(([area, items]) => ({
+      params: { area: toFeatureAreaSlug(area) },
+      props: {
+        areaLabel: getFeatureAreaLabel(area),
+        itemCount: items.length,
+        versionCount: new Set(items.map((i) => i.version)).size,
+      },
+    }));
 };
 
 export async function GET({ props }: APIContext) {

@@ -6,6 +6,7 @@ import { SITE_TITLE } from '../lib/constants';
 import {
   MIN_ITEMS_FOR_PAGE,
   aggregateByFeatureArea,
+  extractChangelogData,
   getFeatureAreaLabel,
   toFeatureAreaSlug,
 } from '../lib/feature-area';
@@ -53,11 +54,7 @@ const faqItems = [
 const faqJsonLd = JSON.stringify(generateFAQJsonLd(faqItems));
 
 // 機能エリアセクション用データ
-const allData = sortedChangelogs.map((e) => ({
-  version: e.data.version,
-  items: e.data.items,
-}));
-const areaMap = aggregateByFeatureArea(allData);
+const areaMap = aggregateByFeatureArea(extractChangelogData(sortedChangelogs));
 const topAreas = [...areaMap.entries()]
   .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
   .sort(([, a], [, b]) => b.length - a.length)

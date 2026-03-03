@@ -3,11 +3,8 @@ import { getCollection } from 'astro:content';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
 import PrefixTableOfContents from '../../components/changelog/PrefixTableOfContents.astro';
 import Layout from '../../layouts/Layout.astro';
-import { formatChangelogContent } from '../../lib/changelog';
-import {
-  MIN_ITEMS_FOR_PAGE,
-  aggregateByFeatureArea,
-} from '../../lib/feature-area';
+import { formatChangelogContent } from '../../lib/format-changelog-content';
+import { extractChangelogData, getLinkedAreas } from '../../lib/feature-area';
 import {
   PREFIX_DEFAULT_STYLE,
   PREFIX_ICONS,
@@ -39,17 +36,7 @@ export async function getStaticPaths() {
   }
 
   // ページが存在する feature_area を算出
-  const areaMap = aggregateByFeatureArea(
-    allChangelogs.map((e) => ({
-      version: e.data.version,
-      items: e.data.items,
-    })),
-  );
-  const linkedAreas = new Set(
-    [...areaMap.entries()]
-      .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
-      .map(([area]) => area),
-  );
+  const linkedAreas = getLinkedAreas(extractChangelogData(allChangelogs));
 
   // バージョン降順ソート
   const sorted = [...allChangelogs].sort((a, b) =>
@@ -221,7 +208,7 @@ const totalItemCount = items.length;
             const iconPath = PREFIX_ICONS[group.prefix];
             return (
               <section id={`prefix-${group.prefix.toLowerCase()}`}>
-                <div class='sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
+                <div class='sticky top-12 z-10 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm py-3 -mx-4 px-4 mb-4 border-b border-[hsl(var(--cc-gray)/0.3)]'>
                   <h3 class='flex items-center gap-2 text-lg font-bold text-[hsl(var(--cc-main-black))]'>
                     <span
                       class={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${style}`}

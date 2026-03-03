@@ -2,6 +2,7 @@ import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import { Resvg } from '@resvg/resvg-js';
 import type { ReactElement } from 'react';
 import satori from 'satori';
+import { PREFIX_ORDER } from './prefix';
 
 // CC-Vault カラーテーマ
 const colors = {
@@ -12,29 +13,28 @@ const colors = {
   orangeHover: '#D97757',
 };
 
-const PREFIX_ORDER = [
-  'Added',
-  'Changed',
-  'Updated',
-  'Improved',
-  'Fixed',
-  'Removed',
-];
-
+/** OGP画像用のプレフィックスバッジスタイル(satoriはTailwind不可のためインラインCSS) */
 const prefixBadgeStyles: Record<
   string,
   { bg: string; color: string; border?: string }
 > = {
+  Breaking: { bg: '#DC2626', color: '#FFFFFF' },
   Added: { bg: colors.mainOrange, color: colors.mainWhite },
-  Fixed: { bg: colors.gray, color: colors.mainBlack },
-  Updated: { bg: colors.mainBlack, color: colors.mainWhite },
+  Deprecated: {
+    bg: '#FEFCE8',
+    color: '#A16207',
+    border: '2px solid #EAB308',
+  },
   Changed: { bg: colors.mainBlack, color: colors.mainWhite },
   Improved: { bg: colors.mainBlack, color: colors.mainWhite },
+  Updated: { bg: colors.mainBlack, color: colors.mainWhite },
   Removed: {
     bg: 'transparent',
     color: colors.mainBlack,
     border: `2px solid ${colors.mainBlack}`,
   },
+  Fixed: { bg: colors.gray, color: colors.mainBlack },
+  Enabled: { bg: '#16A34A', color: '#FFFFFF' },
 };
 
 const defaultBadgeStyle = {
@@ -64,7 +64,7 @@ function groupByPrefix(
     group.sort((a, b) => b.importance_score - a.importance_score);
   }
   const ordered: { prefix: string; items: ChangelogItem[] }[] = [];
-  for (const prefix of PREFIX_ORDER) {
+  for (const prefix of PREFIX_ORDER as readonly string[]) {
     const group = groups.get(prefix);
     if (group) {
       ordered.push({ prefix, items: group });
@@ -81,7 +81,7 @@ function groupByPrefix(
 let fontPromise: Promise<ArrayBuffer> | null = null;
 
 /**
- * Google Fontsからフォントデータを取得
+ * Google Fontsからフォントデータを取得(失敗時はキャッシュをリセットしてリトライ可能に)
  */
 function loadFont(): Promise<ArrayBuffer> {
   if (!fontPromise) {
@@ -91,7 +91,6 @@ function loadFont(): Promise<ArrayBuffer> {
       );
       const css = await response.text();
 
-      // CSSからフォントURLを抽出
       const fontUrlMatch = css.match(/src: url\(([^)]+)\)/);
       if (!fontUrlMatch) {
         throw new Error('フォントURLが見つかりませんでした');
@@ -99,7 +98,10 @@ function loadFont(): Promise<ArrayBuffer> {
 
       const fontResponse = await fetch(fontUrlMatch[1]);
       return fontResponse.arrayBuffer();
-    })();
+    })().catch((err) => {
+      fontPromise = null;
+      throw err;
+    });
   }
   return fontPromise;
 }
@@ -162,20 +164,22 @@ function TopPageOgp({ title, description }: TopPageOgpProps): ReactElement {
   );
 }
 
-type VersionPageOgpProps = {
+type InfoPageOgpProps = {
   siteTitle: string;
-  version: string;
-  itemCount: number;
+  headline: string;
+  subtitle: string;
+  headlineFontSize?: number;
 };
 
 /**
- * バージョンページ用OGP画像コンポーネント
+ * 情報ページ共通OGP画像コンポーネント(バージョンページ/機能エリアページ兼用)
  */
-function VersionPageOgp({
+function InfoPageOgp({
   siteTitle,
-  version,
-  itemCount,
-}: VersionPageOgpProps): ReactElement {
+  headline,
+  subtitle,
+  headlineFontSize = 96,
+}: InfoPageOgpProps): ReactElement {
   return (
     <div
       style={{
@@ -220,12 +224,12 @@ function VersionPageOgp({
         >
           <div
             style={{
-              fontSize: 96,
+              fontSize: headlineFontSize,
               fontWeight: 600,
               color: colors.mainBlack,
             }}
           >
-            {version}
+            {headline}
           </div>
         </div>
 
@@ -240,7 +244,7 @@ function VersionPageOgp({
             opacity: 0.7,
           }}
         >
-          {`変更項目: ${itemCount}件`}
+          {subtitle}
         </div>
       </div>
     </div>
@@ -441,93 +445,6 @@ function TwitterChangelogImage({
   );
 }
 
-type FeatureAreaPageOgpProps = {
-  siteTitle: string;
-  areaLabel: string;
-  itemCount: number;
-  versionCount: number;
-};
-
-/**
- * 機能エリアページ用OGP画像コンポーネント
- */
-function FeatureAreaPageOgp({
-  siteTitle,
-  areaLabel,
-  itemCount,
-  versionCount,
-}: FeatureAreaPageOgpProps): ReactElement {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        width: '100%',
-        height: '100%',
-        padding: 32,
-        background: `linear-gradient(135deg, ${colors.mainOrange} 0%, ${colors.orangeHover} 100%)`,
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          width: '100%',
-          height: '100%',
-          backgroundColor: colors.mainWhite,
-          borderRadius: 24,
-          padding: 48,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 36,
-            fontWeight: 600,
-            color: colors.mainBlack,
-            opacity: 0.6,
-          }}
-        >
-          {siteTitle}
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flex: 1,
-          }}
-        >
-          <div
-            style={{
-              fontSize: 80,
-              fontWeight: 600,
-              color: colors.mainBlack,
-            }}
-          >
-            {areaLabel}
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 32,
-            fontWeight: 600,
-            color: colors.mainBlack,
-            opacity: 0.7,
-          }}
-        >
-          {`${itemCount}件の変更 / ${versionCount}バージョン`}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /**
  * PNG バイナリから画像レスポンスを生成
  */
@@ -540,124 +457,85 @@ export function createPngResponse(png: Uint8Array): Response {
   });
 }
 
+/** satori SVG 生成(probeパス等で使用) */
+async function renderSvg(
+  element: ReactElement,
+  options: { width: number; height: number },
+): Promise<string> {
+  const fontData = await loadFont();
+  return satori(element, {
+    ...options,
+    fonts: [
+      { name: 'Noto Sans JP', data: fontData, weight: 600, style: 'normal' },
+    ],
+  });
+}
+
+/** satori + resvg の共通レンダリング処理 */
+async function renderOgpImage(
+  element: ReactElement,
+  options?: { width?: number; height?: number },
+): Promise<Uint8Array> {
+  const width = options?.width ?? 1200;
+  const height = options?.height ?? 630;
+  const fontData = await loadFont();
+
+  const svg = await satori(element, {
+    width,
+    height,
+    fonts: [
+      { name: 'Noto Sans JP', data: fontData, weight: 600, style: 'normal' },
+    ],
+  });
+
+  const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: width } });
+  return resvg.render().asPng();
+}
+
 /**
  * トップページ用OGP画像を生成
  */
-export async function generateTopPageOgp(
+export function generateTopPageOgp(
   title: string,
   description: string,
 ): Promise<Uint8Array> {
-  const fontData = await loadFont();
-
-  const svg = await satori(
-    <TopPageOgp title={title} description={description} />,
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        {
-          name: 'Noto Sans JP',
-          data: fontData,
-          weight: 600,
-          style: 'normal',
-        },
-      ],
-    },
-  );
-
-  const resvg = new Resvg(svg, {
-    fitTo: {
-      mode: 'width',
-      value: 1200,
-    },
-  });
-  const image = resvg.render();
-
-  return image.asPng();
+  return renderOgpImage(<TopPageOgp title={title} description={description} />);
 }
 
 /**
  * バージョンページ用OGP画像を生成
  */
-export async function generateVersionPageOgp(
+export function generateVersionPageOgp(
   siteTitle: string,
   version: string,
   itemCount: number,
 ): Promise<Uint8Array> {
-  const fontData = await loadFont();
-
-  const svg = await satori(
-    <VersionPageOgp
+  return renderOgpImage(
+    <InfoPageOgp
       siteTitle={siteTitle}
-      version={version}
-      itemCount={itemCount}
+      headline={version}
+      subtitle={`変更項目: ${itemCount}件`}
     />,
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        {
-          name: 'Noto Sans JP',
-          data: fontData,
-          weight: 600,
-          style: 'normal',
-        },
-      ],
-    },
   );
-
-  const resvg = new Resvg(svg, {
-    fitTo: {
-      mode: 'width',
-      value: 1200,
-    },
-  });
-  const image = resvg.render();
-
-  return image.asPng();
 }
 
 /**
  * 機能エリアページ用OGP画像を生成
  */
-export async function generateFeatureAreaOgp(
+export function generateFeatureAreaOgp(
   siteTitle: string,
   areaLabel: string,
   itemCount: number,
   versionCount: number,
 ): Promise<Uint8Array> {
-  const fontData = await loadFont();
-
-  const svg = await satori(
-    <FeatureAreaPageOgp
+  return renderOgpImage(
+    <InfoPageOgp
       siteTitle={siteTitle}
-      areaLabel={areaLabel}
-      itemCount={itemCount}
-      versionCount={versionCount}
+      headline={areaLabel}
+      subtitle={`${itemCount}件の変更 / ${versionCount}バージョン`}
+      headlineFontSize={80}
     />,
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        {
-          name: 'Noto Sans JP',
-          data: fontData,
-          weight: 600,
-          style: 'normal',
-        },
-      ],
-    },
   );
-
-  const resvg = new Resvg(svg, {
-    fitTo: {
-      mode: 'width',
-      value: 1200,
-    },
-  });
-  const image = resvg.render();
-
-  return image.asPng();
 }
 
 /**
@@ -694,20 +572,10 @@ export async function generateTwitterChangelogImage(
   summary: string,
   items: ChangelogItem[],
 ): Promise<Uint8Array> {
-  const fontData = await loadFont();
   const IMAGE_WIDTH = 1200;
-  const PROBE_HEIGHT = 20000;
-  const fonts = [
-    {
-      name: 'Noto Sans JP',
-      data: fontData,
-      weight: 600 as const,
-      style: 'normal' as const,
-    },
-  ];
 
   // 1パス目: probeモードでコンテンツの自然な高さを測定
-  const probeSvg = await satori(
+  const probeSvg = await renderSvg(
     <TwitterChangelogImage
       siteTitle={siteTitle}
       version={version}
@@ -715,30 +583,19 @@ export async function generateTwitterChangelogImage(
       items={items}
       probeMode={true}
     />,
-    { width: IMAGE_WIDTH, height: PROBE_HEIGHT, fonts },
+    { width: IMAGE_WIDTH, height: 20000 },
   );
 
-  const contentHeight = measureSvgContentHeight(probeSvg);
-  const height = Math.max(contentHeight, 630);
+  const height = Math.max(measureSvgContentHeight(probeSvg), 630);
 
   // 2パス目: 測定した高さで本描画
-  const svg = await satori(
+  return renderOgpImage(
     <TwitterChangelogImage
       siteTitle={siteTitle}
       version={version}
       summary={summary}
       items={items}
     />,
-    { width: IMAGE_WIDTH, height, fonts },
+    { width: IMAGE_WIDTH, height },
   );
-
-  const resvg = new Resvg(svg, {
-    fitTo: {
-      mode: 'width',
-      value: IMAGE_WIDTH,
-    },
-  });
-  const image = resvg.render();
-
-  return image.asPng();
 }

@@ -19,6 +19,17 @@ type BreadcrumbItem = {
   url: string;
 };
 
+function createPublisher(siteUrl: string) {
+  return { '@type': 'Organization', name: SITE_TITLE, url: siteUrl } as const;
+}
+
+const ABOUT_SOFTWARE = {
+  '@type': 'SoftwareApplication',
+  name: 'Claude Code',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'macOS, Linux, Windows',
+} as const;
+
 export function generateWebSiteJsonLd(params: WebSiteParams): object {
   return {
     '@context': 'https://schema.org',
@@ -27,15 +38,12 @@ export function generateWebSiteJsonLd(params: WebSiteParams): object {
     url: params.siteUrl,
     description: params.description,
     inLanguage: 'ja',
-    publisher: {
-      '@type': 'Organization',
-      name: SITE_TITLE,
-      url: params.siteUrl,
-    },
+    publisher: createPublisher(params.siteUrl),
   };
 }
 
 export function generateArticleJsonLd(params: ArticleParams): object {
+  const publisher = createPublisher(params.siteUrl);
   return {
     '@context': 'https://schema.org',
     '@type': 'TechArticle',
@@ -44,22 +52,9 @@ export function generateArticleJsonLd(params: ArticleParams): object {
     url: params.url,
     inLanguage: 'ja',
     image: `${params.siteUrl}/changelog/og/v${params.version}.png`,
-    author: {
-      '@type': 'Organization',
-      name: SITE_TITLE,
-      url: params.siteUrl,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: SITE_TITLE,
-      url: params.siteUrl,
-    },
-    about: {
-      '@type': 'SoftwareApplication',
-      name: 'Claude Code',
-      applicationCategory: 'DeveloperApplication',
-      operatingSystem: 'macOS, Linux, Windows',
-    },
+    author: publisher,
+    publisher,
+    about: ABOUT_SOFTWARE,
   };
 }
 
@@ -100,17 +95,8 @@ export function generateCollectionPageJsonLd(
     description: params.description,
     url: params.url,
     inLanguage: 'ja',
-    publisher: {
-      '@type': 'Organization',
-      name: SITE_TITLE,
-      url: params.siteUrl,
-    },
-    about: {
-      '@type': 'SoftwareApplication',
-      name: 'Claude Code',
-      applicationCategory: 'DeveloperApplication',
-      operatingSystem: 'macOS, Linux, Windows',
-    },
+    publisher: createPublisher(params.siteUrl),
+    about: ABOUT_SOFTWARE,
   };
 }
 
