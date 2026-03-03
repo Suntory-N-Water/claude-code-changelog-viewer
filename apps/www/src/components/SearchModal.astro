@@ -67,6 +67,9 @@ import Search from 'astro-pagefind/components/Search';
 </template>
 
 <script>
+  // View Transitions で蓄積しないよう前回のリスナーを追跡
+  let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
   function initSearchModal() {
     const trigger = document.getElementById('search-trigger');
     if (!trigger) {
@@ -100,14 +103,10 @@ import Search from 'astro-pagefind/components/Search';
     function openModal() {
       overlayEl.classList.add('is-open');
       document.body.style.overflow = 'hidden';
-
-      // 検索入力にフォーカス
-      requestAnimationFrame(() => {
-        const input = overlayEl.querySelector<HTMLInputElement>(
-          '.pagefind-ui__search-input',
-        );
-        input?.focus();
-      });
+      const input = overlayEl.querySelector<HTMLInputElement>(
+        '.pagefind-ui__search-input',
+      );
+      input?.focus();
     }
 
     function closeModal() {
@@ -115,47 +114,41 @@ import Search from 'astro-pagefind/components/Search';
       document.body.style.overflow = '';
     }
 
-    // トリガーボタンクリック
     trigger.addEventListener('click', openModal);
-
     overlayEl.addEventListener('click', closeModal);
     content.addEventListener('click', (e) => e.stopPropagation());
-
-    // 閉じるボタン
     closeBtn.addEventListener('click', closeModal);
 
-    // Cmd+K / Ctrl+K でトグル
-    document.addEventListener('keydown', (e) => {
+    // 前回のリスナーを除去してから登録
+    if (currentKeydownHandler) {
+      document.removeEventListener('keydown', currentKeydownHandler);
+    }
+    currentKeydownHandler = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        if (!overlayEl.classList.contains('is-open')) {
-          openModal();
-        } else {
+        if (overlayEl.classList.contains('is-open')) {
           closeModal();
+        } else {
+          openModal();
         }
       }
-
-      // Escape で閉じる
       if (e.key === 'Escape' && overlayEl.classList.contains('is-open')) {
         e.preventDefault();
         closeModal();
       }
-    });
+    };
+    document.addEventListener('keydown', currentKeydownHandler);
 
     // 検索結果のリンクをクリック時にモーダルを閉じる
     const modalBody = document.getElementById('search-modal-body');
     modalBody?.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const anchor = target.closest('a');
+      const anchor = (e.target as HTMLElement).closest('a');
       if (anchor) {
         closeModal();
       }
     });
   }
 
-  // 初回ロード
   initSearchModal();
-
-  // Astro View Transitions 後の再初期化
   document.addEventListener('astro:after-swap', initSearchModal);
 </script>

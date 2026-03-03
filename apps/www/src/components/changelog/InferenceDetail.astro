@@ -1,11 +1,16 @@
 ---
 import type { InferenceResult } from '@claude-code-changelog-viewer/types';
+import { formatChangelogContent } from '../../lib/format-changelog-content';
 
 type Props = {
   inference: InferenceResult;
 };
 
 const { inference } = Astro.props;
+
+const formattedBefore = formatChangelogContent(inference.before);
+const formattedAfter = formatChangelogContent(inference.after);
+const formattedBenefit = formatChangelogContent(inference.benefit);
 ---
 
 <div class='mt-4 space-y-3 border-l-4 border-[hsl(var(--cc-main-orange))] pl-4'>
@@ -23,9 +28,12 @@ const { inference } = Astro.props;
         stroke-linejoin='round'
         d='M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z'></path>
     </svg>
-    <div>
+    <div class='min-w-0'>
       <p class='font-semibold text-sm text-gray-600'>変更前</p>
-      <p class='mt-1 text-sm text-pretty'>{inference.before}</p>
+      <p
+        class='mt-1 text-sm text-pretty wrap-break-word'
+        set:html={formattedBefore}
+      />
     </div>
   </div>
 
@@ -43,9 +51,12 @@ const { inference } = Astro.props;
         stroke-linejoin='round'
         d='M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z'></path>
     </svg>
-    <div>
+    <div class='min-w-0'>
       <p class='font-semibold text-sm text-gray-600'>変更後</p>
-      <p class='mt-1 text-sm text-pretty'>{inference.after}</p>
+      <p
+        class='mt-1 text-sm text-pretty wrap-break-word'
+        set:html={formattedAfter}
+      />
     </div>
   </div>
 
@@ -63,11 +74,14 @@ const { inference } = Astro.props;
         stroke-linejoin='round'
         d='M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'></path>
     </svg>
-    <div>
+    <div class='min-w-0'>
       <p class='font-semibold text-sm text-[hsl(var(--cc-main-orange))]'>
         ユーザーへの恩恵
       </p>
-      <p class='mt-1 text-sm text-pretty font-medium'>{inference.benefit}</p>
+      <p
+        class='mt-1 text-sm text-pretty wrap-break-word font-medium'
+        set:html={formattedBenefit}
+      />
     </div>
   </div>
 </div>

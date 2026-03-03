@@ -5,6 +5,7 @@ import {
   PREFIX_ICONS,
   PREFIX_STYLES,
 } from '../../lib/prefix';
+import { formatChangelogContent } from '../../lib/format-changelog-content';
 
 type PrefixGroup = {
   prefix: string;
@@ -41,8 +42,9 @@ const shouldShow = groups.length >= 2;
           );
           const repText =
             representative.item.content_ja || representative.item.content;
-          const truncated =
-            repText.length > 80 ? `${repText.slice(0, 80)}...` : repText;
+          const truncated = formatChangelogContent(
+            repText.length > 80 ? `${repText.slice(0, 80)}...` : repText,
+          );
 
           return (
             <li>
@@ -76,9 +78,10 @@ const shouldShow = groups.length >= 2;
                     {group.items.length}件
                   </span>
                   <span class='mx-1 text-gray-400'>-</span>
-                  <span class='group-hover:text-[hsl(var(--cc-main-black))] transition-colors'>
-                    {truncated}
-                  </span>
+                  <span
+                    class='group-hover:text-[hsl(var(--cc-main-black))] transition-colors'
+                    set:html={truncated}
+                  />
                 </span>
               </a>
             </li>
