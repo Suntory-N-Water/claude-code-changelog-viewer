@@ -4,16 +4,14 @@ description: |
   原文との矛盾や的外れな benefit を検出して Issue で報告する。
 
 on:
-  workflow_run:
-    workflows:
-      - "Fetch and Analyze CHANGELOG"
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    branches: [main]
+    paths:
+      - 'apps/changelog-fetcher/inferred/inferred_v*.json'
+  bots: ["github-actions[bot]"]
   skip-if-match: 'is:issue is:open label:inference-review'
 
-if: ${{ github.event.workflow_run.conclusion == 'success' }}
+if: ${{ github.actor == 'github-actions[bot]' }}
 
 permissions:
   contents: read
@@ -43,11 +41,11 @@ timeout-minutes: 15
 steps:
   - name: 推論結果の収集
     env:
-      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+      HEAD_SHA: ${{ github.event.after }}
     run: |
       mkdir -p /tmp/gh-aw/review-data
 
-      # workflow_run のコミットで変更された inferred ファイルを検出
+      # push されたコミットで変更された inferred ファイルを検出
       CHANGED_FILES=$(git diff --name-only "${HEAD_SHA}^" "${HEAD_SHA}" -- 'apps/changelog-fetcher/inferred/inferred_v*.json' 2>/dev/null || true)
 
       if [ -z "$CHANGED_FILES" ]; then
@@ -79,8 +77,7 @@ Gemini API が生成した `before/after/benefit` が原文と矛盾していな
 ## コンテキスト
 
 - **リポジトリ**: ${{ github.repository }}
-- **トリガーワークフロー実行ID**: ${{ github.event.workflow_run.id }}
-- **コミットSHA**: ${{ github.event.workflow_run.head_sha }}
+- **コミットSHA**: ${{ github.event.after }}
 
 ## データの場所
 
