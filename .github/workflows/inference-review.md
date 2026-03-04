@@ -11,8 +11,6 @@ on:
   bots: ["github-actions[bot]"]
   skip-if-match: 'is:issue is:open label:inference-review'
 
-if: ${{ github.actor == 'github-actions[bot]' }}
-
 permissions:
   contents: read
   issues: read
