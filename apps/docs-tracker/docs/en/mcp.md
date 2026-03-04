@@ -419,6 +419,28 @@ Tips:
 - These flags only apply to HTTP and SSE transports. They have no effect on stdio servers
 - Use `claude mcp get <name>` to verify that OAuth credentials are configured for a server
 
+### Override OAuth metadata discovery
+
+If your MCP server returns errors on the standard OAuth metadata endpoint (`/.well-known/oauth-authorization-server`) but exposes a working OIDC endpoint, you can tell Claude Code to fetch OAuth metadata directly from a URL you specify, bypassing the standard discovery chain.
+
+Set `authServerMetadataUrl` in the `oauth` object of your server's config in `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "my-server": {
+      "type": "http",
+      "url": "https://mcp.example.com/mcp",
+      "oauth": {
+        "authServerMetadataUrl": "https://auth.example.com/.well-known/openid-configuration"
+      }
+    }
+  }
+}
+```
+
+The URL must use `https://`. This option requires Claude Code v2.1.64 or later.
+
 ## Add MCP servers from JSON configuration
 
 If you have a JSON configuration for an MCP server, you can add it directly:
