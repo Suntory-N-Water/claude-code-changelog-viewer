@@ -4,13 +4,16 @@ description: |
   原文との矛盾や的外れな benefit を検出して Issue で報告する。
 
 on:
-  workflow_call:
-    inputs:
-      versions:
-        description: "スペース区切りの対象バージョン一覧 (例: v2.1.63 v2.1.64)"
-        required: true
-        type: string
+  workflow_run:
+    workflows:
+      - "Fetch and Analyze CHANGELOG"
+    types:
+      - completed
+    branches:
+      - main
   skip-if-match: 'is:issue is:open label:inference-review'
+
+if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
 permissions:
   contents: read
@@ -40,19 +43,29 @@ timeout-minutes: 15
 steps:
   - name: 推論結果の収集
     env:
-      VERSIONS: ${{ inputs.versions }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
     run: |
       mkdir -p /tmp/gh-aw/review-data
 
-      for version in $VERSIONS; do
-        inferred="apps/changelog-fetcher/inferred/inferred_${version}.json"
-        if [ -f "$inferred" ]; then
-          cp "$inferred" /tmp/gh-aw/review-data/
+      # workflow_run のコミットで変更された inferred ファイルを検出
+      CHANGED_FILES=$(git diff --name-only "${HEAD_SHA}^" "${HEAD_SHA}" -- 'apps/changelog-fetcher/inferred/inferred_v*.json' 2>/dev/null || true)
+
+      if [ -z "$CHANGED_FILES" ]; then
+        echo "⚠️ 推論結果の変更なし。スキップします。"
+        echo '{"versions": "", "skip": true}' > /tmp/gh-aw/review-data/manifest.json
+        exit 0
+      fi
+
+      VERSIONS=""
+      for file in $CHANGED_FILES; do
+        version=$(basename "$file" | sed 's/^inferred_//' | sed 's/\.json$//')
+        if [ -f "$file" ]; then
+          cp "$file" /tmp/gh-aw/review-data/
           echo "✓ ${version} の推論結果を収集"
-        else
-          echo "⚠️ ${inferred} が見つかりません"
+          VERSIONS="${VERSIONS} ${version}"
         fi
       done
+      VERSIONS=$(echo "$VERSIONS" | xargs)
 
       echo "{\"versions\": \"$VERSIONS\"}" > /tmp/gh-aw/review-data/manifest.json
       echo "対象バージョン: $VERSIONS"
@@ -66,12 +79,13 @@ Gemini API が生成した `before/after/benefit` が原文と矛盾していな
 ## コンテキスト
 
 - **リポジトリ**: ${{ github.repository }}
-- **対象バージョン**: ${{ inputs.versions }}
+- **トリガーワークフロー実行ID**: ${{ github.event.workflow_run.id }}
+- **コミットSHA**: ${{ github.event.workflow_run.head_sha }}
 
 ## データの場所
 
 `/tmp/gh-aw/review-data/` に以下が配置されている:
-- `manifest.json` - 対象バージョン情報
+- `manifest.json` - 対象バージョン情報。`skip: true` の場合は推論結果の変更がないため何もせず終了する
 - `inferred_v*.json` - 推論結果(各アイテムに `content` として原文を含む)
 
 ## チェック手順

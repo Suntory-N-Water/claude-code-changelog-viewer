@@ -24,17 +24,19 @@
 # CHANGELOG 推論結果の品質をチェックし、
 # 原文との矛盾や的外れな benefit を検出して Issue で報告する。
 #
-# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"4a55f9d04b02a047ff61378d1181110e4f00502c6e570c0ad9b18b1414dbc62d","compiler_version":"v0.50.7"}
+# gh-aw-metadata: {"schema_version":"v1","frontmatter_hash":"755e241f63cf701cfe4d83f3d9e7123689604c7c78d2856610c25e77814269e2","compiler_version":"v0.50.7"}
 
 name: "推論品質チェックエージェント"
 "on":
   # skip-if-match: is:issue is:open label:inference-review # Skip-if-match processed as search check in pre-activation job
-  workflow_call:
-    inputs:
-      versions:
-        description: "スペース区切りの対象バージョン一覧 (例: v2.1.63 v2.1.64)"
-        required: true
-        type: string
+  workflow_run:
+    # zizmor: ignore[dangerous-triggers] - workflow_run trigger is secured with role and fork validation
+    branches:
+      - main
+    types:
+      - completed
+    workflows:
+      - Fetch and Analyze CHANGELOG
 
 permissions: {}
 
@@ -46,7 +48,11 @@ run-name: "推論品質チェックエージェント"
 jobs:
   activation:
     needs: pre_activation
-    if: needs.pre_activation.outputs.activated == 'true'
+    # zizmor: ignore[dangerous-triggers] - workflow_run trigger is secured with role and fork validation
+    if: >
+      ((needs.pre_activation.outputs.activated == 'true') && (github.event.workflow_run.conclusion == 'success')) &&
+      ((github.event_name != 'workflow_run') || ((github.event.workflow_run.repository.id == github.repository_id) &&
+      (!(github.event.workflow_run.repository.fork))))
     runs-on: ubuntu-slim
     permissions:
       contents: read
@@ -99,10 +105,11 @@ jobs:
           GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
           GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
           GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          GH_AW_GITHUB_EVENT_WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_AW_GITHUB_EVENT_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
-          GH_AW_INPUTS_VERSIONS: ${{ inputs.versions }}
         run: |
           bash /opt/gh-aw/actions/create_prompt_first.sh
           {
@@ -158,8 +165,9 @@ jobs:
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         env:
           GH_AW_PROMPT: /tmp/gh-aw/aw-prompts/prompt.txt
+          GH_AW_GITHUB_EVENT_WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_AW_GITHUB_EVENT_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
-          GH_AW_INPUTS_VERSIONS: ${{ inputs.versions }}
         with:
           script: |
             const { setupGlobals } = require('/opt/gh-aw/actions/setup_globals.cjs');
@@ -178,10 +186,11 @@ jobs:
           GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
           GH_AW_GITHUB_EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
           GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          GH_AW_GITHUB_EVENT_WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_AW_GITHUB_EVENT_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
           GH_AW_GITHUB_REPOSITORY: ${{ github.repository }}
           GH_AW_GITHUB_RUN_ID: ${{ github.run_id }}
           GH_AW_GITHUB_WORKSPACE: ${{ github.workspace }}
-          GH_AW_INPUTS_VERSIONS: ${{ inputs.versions }}
           GH_AW_NEEDS_PRE_ACTIVATION_OUTPUTS_ACTIVATED: ${{ needs.pre_activation.outputs.activated }}
         with:
           script: |
@@ -202,10 +211,11 @@ jobs:
                 GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER: process.env.GH_AW_GITHUB_EVENT_DISCUSSION_NUMBER,
                 GH_AW_GITHUB_EVENT_ISSUE_NUMBER: process.env.GH_AW_GITHUB_EVENT_ISSUE_NUMBER,
                 GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER: process.env.GH_AW_GITHUB_EVENT_PULL_REQUEST_NUMBER,
+                GH_AW_GITHUB_EVENT_WORKFLOW_RUN_HEAD_SHA: process.env.GH_AW_GITHUB_EVENT_WORKFLOW_RUN_HEAD_SHA,
+                GH_AW_GITHUB_EVENT_WORKFLOW_RUN_ID: process.env.GH_AW_GITHUB_EVENT_WORKFLOW_RUN_ID,
                 GH_AW_GITHUB_REPOSITORY: process.env.GH_AW_GITHUB_REPOSITORY,
                 GH_AW_GITHUB_RUN_ID: process.env.GH_AW_GITHUB_RUN_ID,
                 GH_AW_GITHUB_WORKSPACE: process.env.GH_AW_GITHUB_WORKSPACE,
-                GH_AW_INPUTS_VERSIONS: process.env.GH_AW_INPUTS_VERSIONS,
                 GH_AW_NEEDS_PRE_ACTIVATION_OUTPUTS_ACTIVATED: process.env.GH_AW_NEEDS_PRE_ACTIVATION_OUTPUTS_ACTIVATED
               }
             });
@@ -263,9 +273,9 @@ jobs:
       - name: Create gh-aw temp directory
         run: bash /opt/gh-aw/actions/create_gh_aw_tmp_dir.sh
       - env:
-          VERSIONS: ${{ inputs.versions }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         name: 推論結果の収集
-        run: "mkdir -p /tmp/gh-aw/review-data\n\nfor version in $VERSIONS; do\n  inferred=\"apps/changelog-fetcher/inferred/inferred_${version}.json\"\n  if [ -f \"$inferred\" ]; then\n    cp \"$inferred\" /tmp/gh-aw/review-data/\n    echo \"✓ ${version} の推論結果を収集\"\n  else\n    echo \"⚠️ ${inferred} が見つかりません\"\n  fi\ndone\n\necho \"{\\\"versions\\\": \\\"$VERSIONS\\\"}\" > /tmp/gh-aw/review-data/manifest.json\necho \"対象バージョン: $VERSIONS\""
+        run: "mkdir -p /tmp/gh-aw/review-data\n\n# workflow_run のコミットで変更された inferred ファイルを検出\nCHANGED_FILES=$(git diff --name-only \"${HEAD_SHA}^\" \"${HEAD_SHA}\" -- 'apps/changelog-fetcher/inferred/inferred_v*.json' 2>/dev/null || true)\n\nif [ -z \"$CHANGED_FILES\" ]; then\n  echo \"⚠️ 推論結果の変更なし。スキップします。\"\n  echo '{\"versions\": \"\", \"skip\": true}' > /tmp/gh-aw/review-data/manifest.json\n  exit 0\nfi\n\nVERSIONS=\"\"\nfor file in $CHANGED_FILES; do\n  version=$(basename \"$file\" | sed 's/^inferred_//' | sed 's/\\.json$//')\n  if [ -f \"$file\" ]; then\n    cp \"$file\" /tmp/gh-aw/review-data/\n    echo \"✓ ${version} の推論結果を収集\"\n    VERSIONS=\"${VERSIONS} ${version}\"\n  fi\ndone\nVERSIONS=$(echo \"$VERSIONS\" | xargs)\n\necho \"{\\\"versions\\\": \\\"$VERSIONS\\\"}\" > /tmp/gh-aw/review-data/manifest.json\necho \"対象バージョン: $VERSIONS\""
 
       # Cache memory file share configuration from frontmatter processed below
       - name: Create cache-memory directory
@@ -1067,6 +1077,7 @@ jobs:
             await main();
 
   pre_activation:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-slim
     outputs:
       activated: ${{ (steps.check_membership.outputs.is_team_member == 'true') && (steps.check_skip_if_match.outputs.skip_check_ok == 'true') }}
