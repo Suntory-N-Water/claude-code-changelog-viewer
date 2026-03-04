@@ -1,8 +1,11 @@
 import { mkdir, readdir, readlink, symlink, unlink } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 
-const INFERRED_DIR = join(process.cwd(), '..', 'changelog-fetcher', 'inferred');
+const FETCHER_DIR = join(process.cwd(), '..', 'changelog-fetcher');
+const INFERRED_DIR = join(FETCHER_DIR, 'inferred');
 const CONTENT_DIR = join(process.cwd(), 'src', 'content', 'changelog');
+const DIFF_SOURCE = join(FETCHER_DIR, 'diff', 'changelog_diff.json');
+const DIFF_DIR = join(process.cwd(), 'src', 'content', 'diff');
 
 // ディレクトリ作成
 try {
@@ -42,3 +45,25 @@ for (const file of files) {
 }
 
 console.log(`\nTotal: ${count} versions synced`);
+
+// diff/changelog_diff.json のシンボリックリンク
+try {
+  await mkdir(DIFF_DIR, { recursive: true });
+} catch {}
+
+const diffLinkPath = join(DIFF_DIR, 'changelog_diff.json');
+
+// 既存リンクがあれば削除
+try {
+  await readlink(diffLinkPath);
+  await unlink(diffLinkPath);
+} catch {}
+
+// シンボリックリンク作成(ソースが存在しない場合は symlink が失敗する)
+try {
+  const diffRelativePath = relative(DIFF_DIR, DIFF_SOURCE);
+  await symlink(diffRelativePath, diffLinkPath);
+  console.log(`✓ Linked: changelog_diff.json -> ${diffRelativePath}`);
+} catch {
+  console.log('⊘ diff/changelog_diff.json not found, skipping');
+}

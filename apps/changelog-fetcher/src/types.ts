@@ -16,3 +16,17 @@ export type SnippetResult = {
   snippets: string[];
   hit_count: number;
 };
+
+export type DiffEventType = 'items_changed' | 'version_removed';
+
+export type DiffEvent = {
+  detected_at: string;
+  version: string;
+  type: DiffEventType;
+  items_added: string[];
+  items_removed: string[];
+};
+
+export type ChangelogDiff = {
+  events: DiffEvent[];
+};

@@ -32,6 +32,7 @@ Bun workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 - `apps/changelog-fetcher/changelogs/v*.md`
 - `apps/changelog-fetcher/analysis/analysis_v*.json`
 - `apps/changelog-fetcher/inferred/inferred_v*.json`
+- `apps/changelog-fetcher/diff/changelog_diff.json`
 
 ---
 

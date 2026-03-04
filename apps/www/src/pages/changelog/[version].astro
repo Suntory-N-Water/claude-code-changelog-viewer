@@ -12,6 +12,11 @@ import {
   PREFIX_STYLES,
   getPrefixSortOrder,
 } from '../../lib/prefix';
+import {
+  type DiffEvent,
+  formatDiffDateTime,
+  loadChangelogDiff,
+} from '../../lib/changelog-diff';
 import { semverCompareDesc } from '../../lib/semver';
 
 export async function getStaticPaths() {
@@ -38,6 +43,9 @@ export async function getStaticPaths() {
   // ページが存在する feature_area を算出
   const linkedAreas = getLinkedAreas(extractChangelogData(allChangelogs));
 
+  // 差分データ読み込み
+  const diffMap = loadChangelogDiff();
+
   // バージョン降順ソート
   const sorted = [...allChangelogs].sort((a, b) =>
     semverCompareDesc(a.data.version, b.data.version),
@@ -51,13 +59,33 @@ export async function getStaticPaths() {
       prevVersion: sorted[i + 1]?.data.version ?? null,
       nextVersion: sorted[i - 1]?.data.version ?? null,
       linkedAreas,
+      diffEvents: diffMap.get(`v${entry.data.version}`) ?? [],
     },
   }));
 }
 
-const { entry, hasGitHubRelease, prevVersion, nextVersion, linkedAreas } =
-  Astro.props;
+const {
+  entry,
+  hasGitHubRelease,
+  prevVersion,
+  nextVersion,
+  linkedAreas,
+  diffEvents,
+} = Astro.props;
 const { version, items, summary } = entry.data;
+
+// 差分ステータス算出
+const removedEvent = diffEvents.find(
+  (e: DiffEvent) => e.type === 'version_removed',
+);
+const isRemoved = !!removedEvent;
+const removedDate = removedEvent
+  ? formatDiffDateTime(removedEvent.detected_at)
+  : '';
+const itemChangeEvents = diffEvents.filter(
+  (e: DiffEvent) => e.type === 'items_changed',
+);
+const hasItemChanges = itemChangeEvents.length > 0;
 
 // メタタグ用 description: summary があれば使用、なければ変更項目数を含めた詳細テキスト
 const MIN_DESC_LENGTH = 120;
@@ -144,13 +172,29 @@ const totalItemCount = items.length;
       </nav>
 
       <header class='mb-10'>
-        <h1
-          class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
-          transition:name={`version-title-${version}`}
-          data-pagefind-meta='title'
-        >
-          Claude Code v{version}
-        </h1>
+        <div class='flex flex-wrap items-center gap-3 mb-3'>
+          <h1
+            class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))]'
+            transition:name={`version-title-${version}`}
+            data-pagefind-meta='title'
+          >
+            Claude Code v{version}
+          </h1>
+          {
+            isRemoved && (
+              <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
+                取得元で削除済み
+              </span>
+            )
+          }
+          {
+            !isRemoved && hasItemChanges && (
+              <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
+                取得元で更新あり
+              </span>
+            )
+          }
+        </div>
         <div
           class='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600'
         >
@@ -182,6 +226,56 @@ const totalItemCount = items.length;
             )
           }
         </div>
+        {
+          isRemoved && (
+            <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] mt-1'>
+              この内容は取得元で削除される前に取得したものです ({removedDate}{' '}
+              更新)
+            </p>
+          )
+        }
+        {
+          itemChangeEvents.length > 0 && (
+            <details class='text-sm text-gray-600 mt-2'>
+              <summary class='cursor-pointer hover:text-[hsl(var(--cc-main-orange))]'>
+                取得元での変更履歴
+              </summary>
+              <div class='mt-2 space-y-2 pl-4 border-l-2 border-[hsl(var(--cc-gray))]'>
+                {itemChangeEvents.map((event: DiffEvent) => (
+                  <div>
+                    <p class='font-medium text-gray-700'>
+                      {formatDiffDateTime(event.detected_at)}
+                      {event.items_added.length > 0 && (
+                        <span class='text-green-700 ml-2'>
+                          +{event.items_added.length}件追加
+                        </span>
+                      )}
+                      {event.items_removed.length > 0 && (
+                        <span class='text-red-700 ml-2'>
+                          -{event.items_removed.length}件削除
+                        </span>
+                      )}
+                    </p>
+                    {event.items_added.length > 0 && (
+                      <ul class='mt-1 space-y-0.5'>
+                        {event.items_added.map((item: string) => (
+                          <li class='text-green-700 text-xs'>+ {item}</li>
+                        ))}
+                      </ul>
+                    )}
+                    {event.items_removed.length > 0 && (
+                      <ul class='mt-1 space-y-0.5'>
+                        {event.items_removed.map((item: string) => (
+                          <li class='text-red-700 text-xs'>- {item}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </details>
+          )
+        }
       </header>
 
       {

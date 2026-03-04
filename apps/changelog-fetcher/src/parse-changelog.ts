@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import type { ChangelogDiff, DiffEvent } from './types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -44,10 +45,50 @@ function parseChangelog(content: string): Record<string, string> {
   return versions;
 }
 
+export function extractItems(content: string): string[] {
+  return content
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith('- '));
+}
+
+export function loadDiffFile(filePath: string): ChangelogDiff {
+  if (!existsSync(filePath)) {
+    return { events: [] };
+  }
+  return JSON.parse(readFileSync(filePath, 'utf-8')) as ChangelogDiff;
+}
+
+export function saveDiffFile(filePath: string, data: ChangelogDiff): void {
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+export function isDuplicateEvent(
+  events: DiffEvent[],
+  candidate: Pick<
+    DiffEvent,
+    'version' | 'type' | 'items_added' | 'items_removed'
+  >,
+): boolean {
+  const candidateAddedSet = new Set(candidate.items_added);
+  const candidateRemovedSet = new Set(candidate.items_removed);
+  return events.some(
+    (e) =>
+      e.version === candidate.version &&
+      e.type === candidate.type &&
+      e.items_added.length === candidate.items_added.length &&
+      e.items_removed.length === candidate.items_removed.length &&
+      e.items_added.every((item) => candidateAddedSet.has(item)) &&
+      e.items_removed.every((item) => candidateRemovedSet.has(item)),
+  );
+}
+
 function main() {
   const appDir = join(__dirname, '..');
   const outputDir = join(appDir, 'changelogs');
   const metadataFile = join(appDir, 'metadata', 'last_fetch.json');
+  const diffFile = join(appDir, 'diff', 'changelog_diff.json');
 
   mkdirSync(outputDir, { recursive: true });
   mkdirSync(dirname(metadataFile), { recursive: true });
@@ -68,6 +109,8 @@ function main() {
     ? (JSON.parse(readFileSync(metadataFile, 'utf-8')) as Metadata).versions
     : {};
 
+  const diffData = loadDiffFile(diffFile);
+
   let newCount = 0;
   let updatedCount = 0;
   const newMetadata: Record<string, string> = {};
@@ -79,6 +122,34 @@ function main() {
       .digest('hex');
     const versionFile = join(outputDir, `${versionKey}.md`);
     const existingHash = existingMetadata[versionKey] ?? '';
+
+    // 項目差分の検知(ハッシュ不一致かつローカルファイルが存在する場合)
+    if (contentHash !== existingHash && existsSync(versionFile)) {
+      const remoteItems = extractItems(content);
+      const localContent = readFileSync(versionFile, 'utf-8');
+      const localItems = extractItems(localContent);
+
+      const remoteSet = new Set(remoteItems);
+      const localSet = new Set(localItems);
+      const added = remoteItems.filter((item) => !localSet.has(item));
+      const removed = localItems.filter((item) => !remoteSet.has(item));
+
+      if (added.length > 0 || removed.length > 0) {
+        const event = {
+          version: versionKey,
+          type: 'items_changed' as const,
+          items_added: added,
+          items_removed: removed,
+        };
+        if (!isDuplicateEvent(diffData.events, event)) {
+          diffData.events.push({
+            detected_at: new Date().toISOString(),
+            ...event,
+          });
+          log.msg('APLG0007', { params: [`${versionKey} の項目差分`] });
+        }
+      }
+    }
 
     if (contentHash === existingHash && existsSync(versionFile)) {
       log.debug(`${versionKey}: 変更なし`);
@@ -99,6 +170,28 @@ function main() {
     newMetadata[versionKey] = contentHash;
   }
 
+  // バージョン削除検知
+  for (const metadataVersionKey of Object.keys(existingMetadata)) {
+    const versionNumber = metadataVersionKey.replace(/^v/, '');
+    if (!(versionNumber in versions)) {
+      const event = {
+        version: metadataVersionKey,
+        type: 'version_removed' as const,
+        items_added: [] as string[],
+        items_removed: [] as string[],
+      };
+      if (!isDuplicateEvent(diffData.events, event)) {
+        diffData.events.push({
+          detected_at: new Date().toISOString(),
+          ...event,
+        });
+        log.msg('APLG0010', { params: [`${metadataVersionKey} の削除`] });
+      }
+    }
+  }
+
+  saveDiffFile(diffFile, diffData);
+
   const metadata: Metadata = {
     lastFetchTime: new Date().toISOString(),
     versions: newMetadata,
@@ -115,9 +208,11 @@ function main() {
   }
 }
 
-try {
-  main();
-} catch (error) {
-  log.msg('APLG0018', { error: toError(error) });
-  process.exit(2);
+if (import.meta.main) {
+  try {
+    main();
+  } catch (error) {
+    log.msg('APLG0018', { error: toError(error) });
+    process.exit(2);
+  }
 }

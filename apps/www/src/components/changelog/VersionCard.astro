@@ -3,9 +3,10 @@ type Props = {
   version: string;
   itemCount: number;
   summary?: string;
+  diffStatus?: 'removed' | 'changed';
 };
 
-const { version, itemCount, summary } = Astro.props;
+const { version, itemCount, summary, diffStatus } = Astro.props;
 ---
 
 <a
@@ -14,12 +15,28 @@ const { version, itemCount, summary } = Astro.props;
 >
   <div class='p-6 flex items-center justify-between'>
     <div>
-      <h2
-        class='text-2xl font-bold text-[hsl(var(--cc-main-orange))] mb-1 group-hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
-        style={`view-transition-name: version-title-${version}`}
-      >
-        v{version}
-      </h2>
+      <div class='flex flex-wrap items-center gap-2 mb-1'>
+        <h2
+          class='text-2xl font-bold text-[hsl(var(--cc-main-orange))] group-hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+          style={`view-transition-name: version-title-${version}`}
+        >
+          v{version}
+        </h2>
+        {
+          diffStatus === 'removed' && (
+            <span class='text-[10px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
+              削除済み
+            </span>
+          )
+        }
+        {
+          diffStatus === 'changed' && (
+            <span class='text-[10px] px-1.5 py-0.5 rounded-full bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
+              更新あり
+            </span>
+          )
+        }
+      </div>
       <p class='text-sm text-muted-foreground'>
         変更項目: {itemCount}件
       </p>
