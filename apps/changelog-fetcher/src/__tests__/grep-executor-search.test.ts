@@ -139,4 +139,178 @@ describe('searchDocs', () => {
       expect(result.files[0]).toContain('settings.md');
     });
   });
+
+  describe('正規表現特殊文字のエスケープ', () => {
+    let specialCharsDir: string;
+
+    beforeAll(async () => {
+      specialCharsDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'grep-special-chars-'),
+      );
+      // イシュー #72 で報告された実際の特殊文字列
+      await Bun.write(
+        path.join(specialCharsDir, 'terminal-codes.md'),
+        'ANSI escape code: [27;2;13~ is used for terminal control',
+      );
+      // その他の正規表現特殊文字
+      await Bun.write(
+        path.join(specialCharsDir, 'brackets.md'),
+        'Array syntax [1, 2, 3] and object {key: value}',
+      );
+      await Bun.write(
+        path.join(specialCharsDir, 'regex-chars.md'),
+        'Special chars: (test) $var *wildcard +plus ?optional .dot ^start',
+      );
+      await Bun.write(
+        path.join(specialCharsDir, 'pipe.md'),
+        'Pipe operator: a|b is used in regex',
+      );
+      await Bun.write(
+        path.join(specialCharsDir, 'backslash.md'),
+        'Backslash: \\n and \\t are escape sequences',
+      );
+      await Bun.write(
+        path.join(specialCharsDir, 'no-match.md'),
+        'This file has no special chars content',
+      );
+    });
+
+    afterAll(() => {
+      fs.rmSync(specialCharsDir, { recursive: true, force: true });
+    });
+
+    test('角括弧を含むキーワードで検索できる（イシュー #72）', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['[27;2;13~'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('terminal-codes.md');
+    });
+
+    test('配列記法 [1, 2, 3] で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['[1, 2, 3]'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('brackets.md');
+    });
+
+    test('波括弧 {key: value} で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['{key: value}'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('brackets.md');
+    });
+
+    test('丸括弧 (test) で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['(test)'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('regex-chars.md');
+    });
+
+    test('ドル記号 $var で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['$var'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('regex-chars.md');
+    });
+
+    test('アスタリスク *wildcard で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['*wildcard'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('regex-chars.md');
+    });
+
+    test('プラス記号 +plus で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['+plus'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('regex-chars.md');
+    });
+
+    test('疑問符 ?optional で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['?optional'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('regex-chars.md');
+    });
+
+    test('ドット .dot で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['.dot'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('regex-chars.md');
+    });
+
+    test('キャレット ^start で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['^start'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('regex-chars.md');
+    });
+
+    test('パイプ記号 a|b で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['a|b'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('pipe.md');
+    });
+
+    test('バックスラッシュ \\n で検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['\\n'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0]).toContain('backslash.md');
+    });
+
+    test('複数の特殊文字を含むキーワードで同時に検索できる', async () => {
+      const result = await searchDocs(
+        { original: [], normalized: ['[27;2;13~', '$var', 'a|b'] },
+        specialCharsDir,
+      );
+
+      expect(result.files).toHaveLength(3);
+      expect(result.files.some((f) => f.includes('terminal-codes.md'))).toBe(
+        true,
+      );
+      expect(result.files.some((f) => f.includes('regex-chars.md'))).toBe(true);
+      expect(result.files.some((f) => f.includes('pipe.md'))).toBe(true);
+    });
+  });
 });
