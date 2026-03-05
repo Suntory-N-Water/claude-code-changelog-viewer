@@ -65,10 +65,13 @@ export class GeminiClient {
   }
 
   /**
-   * 429エラーかどうかを判定
+   * リトライ可能なエラーかどうかを判定
+   * - 429: レート制限エラー
+   * - 503: サービス一時利用不可(高負荷時など)
    */
-  private is429Error(error: Error): boolean {
-    return error.message.includes('429');
+  private isRetryableError(error: Error): boolean {
+    const message = error.message;
+    return message.includes('429') || message.includes('503') || message.includes('UNAVAILABLE');
   }
 
   /**
@@ -203,7 +206,7 @@ export class GeminiClient {
         this.log.info(`モデル成功: ${model}`, { method: 'inferAll' });
         return result;
       } catch (error) {
-        if (error instanceof Error && this.is429Error(error)) {
+        if (error instanceof Error && this.isRetryableError(error)) {
           lastError = error;
           this.log.msg('APLG0024', { params: [model] });
           continue;
@@ -251,7 +254,7 @@ export class GeminiClient {
         this.log.info(`モデル成功: ${model}`, { method: 'generateText' });
         return response.text.trim();
       } catch (error) {
-        if (error instanceof Error && this.is429Error(error)) {
+        if (error instanceof Error && this.isRetryableError(error)) {
           this.log.msg('APLG0024', { params: [model] });
           continue;
         }
