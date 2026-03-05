@@ -13,7 +13,7 @@ on:
       - completed
     branches:
       - main
-  skip-if-match: 'is:open label:ci-doctor'
+  skip-if-match: 'is:pr is:open label:ci-doctor'
   status-comment: true
 
 if: ${{ github.event.workflow_run.conclusion == 'failure' }}
@@ -129,26 +129,42 @@ apps/
 | インフラ問題 | ランナー障害、ネットワーク問題                | 不可(Issueのみ) |
 | git競合      | rebase/push 失敗                              | 不可(Issueのみ) |
 
-### フェーズ 3: 重複チェック
+### フェーズ 3: Issue への報告
 
-> `skip-if-match` により ci-doctor ラベルのオープンPRがある場合はここに到達しない。
+#### 3-1. 報告先 Issue を決定する
 
-1. `/tmp/gh-aw/cache-memory/last-diagnosis.json` を確認し、同一 `root_cause` なら既存Issueにコメント追加のみ行う
-2. ラベル `ci-doctor` または `automated` のオープンIssueを検索し、同じ原因なら新規Issue作成せずコメント追加のみ行う
-3. 該当Issueがなければ新規Issueを作成する
-4. 診断結果を `/tmp/gh-aw/cache-memory/last-diagnosis.json` に保存する
+1. ラベル `ci-doctor` または `automated` のオープン Issue を検索する
+2. 失敗したワークフロー名が Issue タイトルまたは本文に含まれるものを探す
+3. **見つかった** → その Issue を報告先とする。ステップ 3-2 へ
+4. **見つからない** → 新規 Issue を作成する。フェーズ 4 へ(新規作成時はコメント不要)
 
-### フェーズ 4: 修正PR作成
+#### 3-2. 同一 root_cause のコメントが既にあるか確認する
 
-**以下をすべて満たす場合のみ** 修正PRを作成する:
-- カテゴリが「コードバグ」または「設定ミス」
-- フェーズ3で同じ原因の既存Issue・PRが見つかっていない
-- キャッシュに同一 `root_cause` の記録がない
+1. 報告先 Issue の全コメントを取得する
+2. 各コメント本文から `root_cause` の値(例: `regex_escape_missing_in_grep_executor_regexSearch`)を探す
+3. **今回と同一の `root_cause` が既にコメントされている** → コメントを追加しない。フェーズ 4 へ
+4. **同一の `root_cause` がない**(初回報告 or エラー内容が変化した)→ コメントを追加する。フェーズ 4 へ
 
-修正PRを作成する場合:
+#### 3-3. キャッシュ更新
+
+診断結果を `/tmp/gh-aw/cache-memory/last-diagnosis.json` に保存する。
+
+### フェーズ 4: 修正 PR 作成
+
+#### 4-1. PR を作成するか判定する(すべて満たす場合のみ作成)
+
+1. フェーズ 2 のカテゴリが「コードバグ」または「設定ミス」である
+2. `is:pr is:open label:ci-doctor` で GitHub を検索し、オープンな修正 PR が **0 件** である
+3. `/tmp/gh-aw/cache-memory/last-diagnosis.json` に同一 `root_cause` で `pr_created: true` の記録がない
+
+→ いずれかを満たさない場合、フェーズ 5 へスキップする
+
+#### 4-2. 修正を実装する
+
 1. 根本原因に基づいて修正を実装する
 2. `bun run ai-check` を実行して修正を検証する
-3. 修正PRを作成する (自動生成ファイルは変更禁止、コミットメッセージ・PR説明は日本語)
+3. 修正 PR を作成する(自動生成ファイルは変更禁止、コミットメッセージ・PR 説明は日本語)
+4. キャッシュに `pr_created: true` を記録する
 
 ### フェーズ 5: 報告
 
@@ -180,7 +196,8 @@ Issue または PR の本文には以下を含める:
 
 ## 重要な制約
 
-- **既存のIssue・PRがある場合、新規作成せずコメント追加のみ**
+- **既存 Issue がある場合、新規 Issue を作成せずコメント追加のみ(ただし同一 root_cause のコメントが既にある場合はコメントも追加しない)**
+- **既存の修正 PR がある場合、新規 PR を作成しない(Issue の存在は PR 作成を妨げない)**
 - 外部API障害・git競合の場合はIssue作成のみ (PR作成不可)
 - Issue・PR・コメントはすべて **日本語** で記載する
 - セキュリティに関わる情報 (APIキー、トークン等) はログやIssueに含めない
