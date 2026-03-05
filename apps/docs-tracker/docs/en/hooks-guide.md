@@ -268,6 +268,7 @@ Hook events fire at specific lifecycle points in Claude Code. When an event fire
 | `Stop` | When Claude finishes responding |
 | `TeammateIdle` | When an [agent team](/en/agent-teams) teammate is about to go idle |
 | `TaskCompleted` | When a task is being marked as completed |
+| `InstructionsLoaded` | When a CLAUDE.md or `.claude/rules/*.md` file is loaded into context. Fires at session start and when files are lazily loaded during a session |
 | `ConfigChange` | When a configuration file changes during a session |
 | `WorktreeCreate` | When a worktree is being created via `--worktree` or `isolation: "worktree"`. Replaces default git behavior |
 | `WorktreeRemove` | When a worktree is being removed, either at session exit or when a subagent finishes |

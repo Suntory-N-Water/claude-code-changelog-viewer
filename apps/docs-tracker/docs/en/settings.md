@@ -146,6 +146,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | `env` | Environment variables that will be applied to every session | `{"FOO": "bar"}` |
 | `attribution` | Customize attribution for git commits and pull requests. See [Attribution settings](#attribution-settings) | `{"commit": "🤖 Generated with Claude Code", "pr": ""}` |
 | `includeCoAuthoredBy` | **Deprecated**: Use `attribution` instead. Whether to include the `co-authored-by Claude` byline in git commits and pull requests (default: `true`) | `false` |
+| `includeGitInstructions` | Include built-in commit and PR workflow instructions in Claude's system prompt (default: `true`). Set to `false` to remove these instructions, for example when using your own git workflow skills. The `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` environment variable takes precedence over this setting when set | `false` |
 | `permissions` | See table below for structure of permissions. | |
 | `hooks` | Configure custom commands to run at lifecycle events. See [hooks documentation](/en/hooks) for format | See [hooks](/en/hooks) |
 | `disableAllHooks` | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline) | `true` |
@@ -170,6 +171,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | `deniedMcpServers` | When set in managed-settings.json, denylist of MCP servers that are explicitly blocked. Applies to all scopes including managed servers. Denylist takes precedence over allowlist. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration) | `[{ "serverName": "filesystem" }]` |
 | `strictKnownMarketplaces` | When set in managed-settings.json, allowlist of plugin marketplaces users can add. Undefined = no restrictions, empty array = lockdown. Applies to marketplace additions only. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
 | `blockedMarketplaces` | (Managed settings only) Blocklist of marketplace sources. Blocked sources are checked before downloading, so they never touch the filesystem. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ "source": "github", "repo": "untrusted/plugins" }]` |
+| `pluginTrustMessage` | (Managed settings only) Custom message appended to the plugin trust warning shown before installation. Use this to add organization-specific context, for example to confirm that plugins from your internal marketplace are vetted. | `"All plugins from our marketplace are approved by IT"` |
 | `awsAuthRefresh` | Custom script that modifies the `.aws` directory (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration)) | `aws sso login --profile myprofile` |
 | `awsCredentialExport` | Custom script that outputs JSON with AWS credentials (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration)) | `/bin/generate_aws_grant.sh` |
 | `alwaysThinkingEnabled` | Enable [extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) by default for all sessions. Typically configured via the `/config` command rather than editing directly | `true` |
@@ -232,6 +234,7 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y
 | `network.httpProxyPort` | HTTP proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8080` |
 | `network.socksProxyPort` | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8081` |
 | `enableWeakerNestedSandbox` | Enable weaker sandbox for unprivileged Docker environments (Linux and WSL2 only). **Reduces security.** Default: false | `true` |
+| `enableWeakerNetworkIsolation` | (macOS only) Allow access to the system TLS trust service (`com.apple.trustd.agent`) in the sandbox. Required for Go-based tools like `gh`, `gcloud`, and `terraform` to verify TLS certificates when using `httpProxyPort` with a MITM proxy and custom CA. **Reduces security** by opening a potential data exfiltration path. Default: false | `true` |
 
 #### Sandbox path prefixes
 
@@ -381,7 +384,7 @@ Settings apply in order of precedence. From highest to lowest:
 
 1. **Managed settings** ([server-managed](/en/server-managed-settings), [MDM/OS-level policies](#configuration-scopes), or [managed settings](/en/settings#settings-files))
    - Policies deployed by IT through server delivery, MDM configuration profiles, registry policies, or managed settings files
-   - Cannot be overridden by user or project settings
+   - Cannot be overridden by any other level, including command line arguments
    - Within the managed tier, precedence is: server-managed > MDM/OS-level policies > `managed-settings.json` > HKCU registry (Windows only). Only one managed source is used; sources do not merge.
 
 2. **Command line arguments**
@@ -797,6 +800,7 @@ All environment variables can also be configured in [`settings.json`](#available
 | `CLAUDE_CODE_DISABLE_1M_CONTEXT` | Set to `1` to disable [1M context window](/en/model-config#extended-context) support. When set, 1M model variants are unavailable in the model picker. Useful for enterprise environments with compliance requirements | |
 | `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Set to `1` to disable [adaptive reasoning](/en/model-config#adjust-effort-level) for Opus 4.6 and Sonnet 4.6. When disabled, these models fall back to the fixed thinking budget controlled by `MAX_THINKING_TOKENS` | |
 | `CLAUDE_CODE_DISABLE_AUTO_MEMORY` | Set to `1` to disable [auto memory](/en/memory#auto-memory). Set to `0` to force auto memory on during the gradual rollout. When disabled, Claude does not create or load auto memory files | |
+| `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` | Set to `1` to remove built-in commit and PR workflow instructions from Claude's system prompt. Useful when using your own git workflow skills. Takes precedence over the [`includeGitInstructions`](#available-settings) setting when set | |
 | `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` | Set to `1` to disable all background task functionality, including the `run_in_background` parameter on Bash and subagent tools, auto-backgrounding, and the Ctrl+B shortcut | |
 | `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Set to `1` to disable Anthropic API-specific `anthropic-beta` headers. Use this if experiencing issues like "Unexpected value(s) for the `anthropic-beta` header" when using an LLM gateway with third-party providers | |
 | `CLAUDE_CODE_DISABLE_FAST_MODE` | Set to `1` to disable [fast mode](/en/fast-mode) | |

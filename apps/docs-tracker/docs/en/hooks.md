@@ -31,6 +31,7 @@ The table below summarizes when each event fires. The [Hook events](#hook-events
 | `Stop` | When Claude finishes responding |
 | `TeammateIdle` | When an [agent team](/en/agent-teams) teammate is about to go idle |
 | `TaskCompleted` | When a task is being marked as completed |
+| `InstructionsLoaded` | When a CLAUDE.md or `.claude/rules/*.md` file is loaded into context. Fires at session start and when files are lazily loaded during a session |
 | `ConfigChange` | When a configuration file changes during a session |
 | `WorktreeCreate` | When a worktree is being created via `--worktree` or `isolation: "worktree"`. Replaces default git behavior |
 | `WorktreeRemove` | When a worktree is being removed, either at session exit or when a subagent finishes |
@@ -148,7 +149,7 @@ The `matcher` field is a regex string that filters when hooks fire. Use `"*"`, `
 | `PreCompact` | what triggered compaction | `manual`, `auto` |
 | `SubagentStop` | agent type | same values as `SubagentStart` |
 | `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |
-| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove` | no matcher support | always fires on every occurrence |
+| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `InstructionsLoaded` | no matcher support | always fires on every occurrence |
 
 The matcher is a regex, so `Edit|Write` matches either tool and `Notebook.*` matches any tool starting with Notebook. The matcher runs against a field from the [JSON input](#hook-input-and-output) that Claude Code sends to your hook on stdin. For tool events, that field is `tool_name`. Each [hook event](#hook-events) section lists the full set of matcher values and the input schema for that event.
 
@@ -172,7 +173,7 @@ This example runs a linting script only when Claude writes or edits a file:
 }
 ```
 
-`UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, and `WorktreeRemove` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
+`UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, and `InstructionsLoaded` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
 
 #### Match MCP tools
 
@@ -414,6 +415,13 @@ All hook events receive these fields as JSON, in addition to event-specific fiel
 | `permission_mode` | Current [permission mode](/en/permissions#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"dontAsk"`, or `"bypassPermissions"` |
 | `hook_event_name` | Name of the event that fired |
 
+When running with `--agent` or inside a subagent, two additional fields are included:
+
+| Field | Description |
+| :- | :- |
+| `agent_id` | Unique identifier for the subagent. Present only when the hook fires inside a subagent call. Use this to distinguish subagent hook calls from main-thread calls. |
+| `agent_type` | Agent name (for example, `"Explore"` or `"security-reviewer"`). Present when the session uses `--agent` or the hook fires inside a subagent. For subagents, the subagent's type takes precedence over the session's `--agent` value. |
+
 For example, a `PreToolUse` hook for a Bash command receives this on stdin:
 
 ```json
@@ -480,6 +488,7 @@ Exit code 2 is the way a hook signals "stop, don't do this." The effect depends 
 | `PreCompact` | No | Shows stderr to user only |
 | `WorktreeCreate` | Yes | Any non-zero exit code causes worktree creation to fail |
 | `WorktreeRemove` | No | Failures are logged in debug mode only |
+| `InstructionsLoaded` | No | Exit code is ignored |
 
 ### HTTP response handling
 
@@ -527,11 +536,11 @@ Not every event supports blocking or controlling behavior through JSON. The even
 | Events | Decision pattern | Key fields |
 | :- | :- | :- |
 | UserPromptSubmit, PostToolUse, PostToolUseFailure, Stop, SubagentStop, ConfigChange | Top-level `decision` | `decision: "block"`, `reason` |
-| TeammateIdle, TaskCompleted | Exit code only | Exit code 2 blocks the action, stderr is fed back as feedback |
+| TeammateIdle, TaskCompleted | Exit code or `continue: false` | Exit code 2 blocks the action with stderr feedback. JSON `{"continue": false, "stopReason": "..."}` also stops the teammate entirely, matching `Stop` hook behavior |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision` (allow/deny/ask), `permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior` (allow/deny) |
 | WorktreeCreate | stdout path | Hook prints absolute path to created worktree. Non-zero exit fails creation |
-| WorktreeRemove, Notification, SessionEnd, PreCompact | None | No decision control. Used for side effects like logging or cleanup |
+| WorktreeRemove, Notification, SessionEnd, PreCompact, InstructionsLoaded | None | No decision control. Used for side effects like logging or cleanup |
 
 Here are examples of each pattern in action:
 
@@ -666,6 +675,42 @@ exit 0
 Any variables written to this file will be available in all subsequent Bash commands that Claude Code executes during the session.
 
 `CLAUDE_ENV_FILE` is available for SessionStart hooks. Other hook types do not have access to this variable.
+
+### InstructionsLoaded
+
+Fires when a `CLAUDE.md` or `.claude/rules/*.md` file is loaded into context. This event fires at session start for eagerly-loaded files and again later when files are lazily loaded, for example when Claude accesses a subdirectory that contains a nested `CLAUDE.md` or when conditional rules with `paths:` frontmatter match. The hook does not support blocking or decision control. It runs asynchronously for observability purposes.
+
+InstructionsLoaded does not support matchers and fires on every load occurrence.
+
+#### InstructionsLoaded input
+
+In addition to the [common input fields](#common-input-fields), InstructionsLoaded hooks receive these fields:
+
+| Field | Description |
+| :- | :- |
+| `file_path` | Absolute path to the instruction file that was loaded |
+| `memory_type` | Scope of the file: `"User"`, `"Project"`, `"Local"`, or `"Managed"` |
+| `load_reason` | Why the file was loaded: `"session_start"`, `"nested_traversal"`, `"path_glob_match"`, or `"include"` |
+| `globs` | Path glob patterns from the file's `paths:` frontmatter, if any. Present only for `path_glob_match` loads |
+| `trigger_file_path` | Path to the file whose access triggered this load, for lazy loads |
+| `parent_file_path` | Path to the parent instruction file that included this one, for `include` loads |
+
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../transcript.jsonl",
+  "cwd": "/Users/my-project",
+  "permission_mode": "default",
+  "hook_event_name": "InstructionsLoaded",
+  "file_path": "/Users/my-project/CLAUDE.md",
+  "memory_type": "Project",
+  "load_reason": "session_start"
+}
+```
+
+#### InstructionsLoaded decision control
+
+InstructionsLoaded hooks have no decision control. They cannot block or modify instruction loading. Use this event for audit logging, compliance tracking, or observability.
 
 ### UserPromptSubmit
 
@@ -1165,7 +1210,7 @@ In addition to the [common input fields](#common-input-fields), Stop hooks recei
 
 Runs when an [agent team](/en/agent-teams) teammate is about to go idle after finishing its turn. Use this to enforce quality gates before a teammate stops working, such as requiring passing lint checks or verifying that output files exist.
 
-When a `TeammateIdle` hook exits with code 2, the teammate receives the stderr message as feedback and continues working instead of going idle. TeammateIdle hooks do not support matchers and fire on every occurrence.
+When a `TeammateIdle` hook exits with code 2, the teammate receives the stderr message as feedback and continues working instead of going idle. To stop the teammate entirely instead of re-running it, return JSON with `{"continue": false, "stopReason": "..."}`. TeammateIdle hooks do not support matchers and fire on every occurrence.
 
 #### TeammateIdle input
 
@@ -1190,7 +1235,12 @@ In addition to the [common input fields](#common-input-fields), TeammateIdle hoo
 
 #### TeammateIdle decision control
 
-TeammateIdle hooks use exit codes only, not JSON decision control. This example checks that a build artifact exists before allowing a teammate to go idle:
+TeammateIdle hooks support two ways to control teammate behavior:
+
+- **Exit code 2**: the teammate receives the stderr message as feedback and continues working instead of going idle.
+- **JSON `{"continue": false, "stopReason": "..."}`**: stops the teammate entirely, matching `Stop` hook behavior. The `stopReason` is shown to the user.
+
+This example checks that a build artifact exists before allowing a teammate to go idle:
 
 ```bash
 #!/bin/bash
@@ -1207,7 +1257,7 @@ exit 0
 
 Runs when a task is being marked as completed. This fires in two situations: when any agent explicitly marks a task as completed through the TaskUpdate tool, or when an [agent team](/en/agent-teams) teammate finishes its turn with in-progress tasks. Use this to enforce completion criteria like passing tests or lint checks before a task can close.
 
-When a `TaskCompleted` hook exits with code 2, the task is not marked as completed and the stderr message is fed back to the model as feedback. TaskCompleted hooks do not support matchers and fire on every occurrence.
+When a `TaskCompleted` hook exits with code 2, the task is not marked as completed and the stderr message is fed back to the model as feedback. To stop the teammate entirely instead of re-running it, return JSON with `{"continue": false, "stopReason": "..."}`. TaskCompleted hooks do not support matchers and fire on every occurrence.
 
 #### TaskCompleted input
 
@@ -1238,7 +1288,12 @@ In addition to the [common input fields](#common-input-fields), TaskCompleted ho
 
 #### TaskCompleted decision control
 
-TaskCompleted hooks use exit codes only, not JSON decision control. This example runs tests and blocks task completion if they fail:
+TaskCompleted hooks support two ways to control task completion:
+
+- **Exit code 2**: the task is not marked as completed and the stderr message is fed back to the model as feedback.
+- **JSON `{"continue": false, "stopReason": "..."}`**: stops the teammate entirely, matching `Stop` hook behavior. The `stopReason` is shown to the user.
+
+This example runs tests and blocks task completion if they fail:
 
 ```bash
 #!/bin/bash
@@ -1486,6 +1541,7 @@ Events that support all four hook types (`command`, `http`, `prompt`, and `agent
 Events that only support `type: "command"` hooks:
 
 - `ConfigChange`
+- `InstructionsLoaded`
 - `Notification`
 - `PreCompact`
 - `SessionEnd`

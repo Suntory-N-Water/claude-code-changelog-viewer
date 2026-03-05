@@ -376,6 +376,19 @@ Tips:
 - If the browser redirect fails with a connection error after authenticating, paste the full callback URL from your browser's address bar into the URL prompt that appears in Claude Code
 - OAuth authentication works with HTTP servers
 
+### Use a fixed OAuth callback port
+
+Some MCP servers require a specific redirect URI registered in advance. By default, Claude Code picks a random available port for the OAuth callback. Use `--callback-port` to fix the port so it matches a pre-registered redirect URI of the form `http://localhost:PORT/callback`.
+
+You can use `--callback-port` on its own (with dynamic client registration) or together with `--client-id` (with pre-configured credentials).
+
+```bash
+# Fixed callback port with dynamic client registration
+claude mcp add --transport http \
+  --callback-port 8080 \
+  my-server https://mcp.example.com/mcp
+```
+
 ### Use pre-configured OAuth credentials
 
 Some MCP servers don't support automatic OAuth setup. If you see an error like "Incompatible auth server: does not support dynamic client registration," the server requires pre-configured credentials. Register an OAuth app through the server's developer portal first, then provide the credentials when adding the server.
@@ -402,6 +415,13 @@ claude mcp add-json my-server \
   --client-secret
 ```
 
+Use `--callback-port` without a client ID to fix the port while using dynamic client registration:
+
+```bash theme={null}
+claude mcp add-json my-server \
+  '{"type":"http","url":"https://mcp.example.com/mcp","oauth":{"callbackPort":8080}}'
+```
+
 Set the secret via environment variable to skip the interactive prompt:
 
 ```bash theme={null}
@@ -416,6 +436,7 @@ Tips:
 
 - The client secret is stored securely in your system keychain (macOS) or a credentials file, not in your config
 - If the server uses a public OAuth client with no secret, use only `--client-id` without `--client-secret`
+- `--callback-port` can be used with or without `--client-id`
 - These flags only apply to HTTP and SSE transports. They have no effect on stdio servers
 - Use `claude mcp get <name>` to verify that OAuth credentials are configured for a server
 
