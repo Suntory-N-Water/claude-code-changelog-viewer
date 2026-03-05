@@ -71,7 +71,11 @@ export class GeminiClient {
    */
   private isRetryableError(error: Error): boolean {
     const message = error.message;
-    return message.includes('429') || message.includes('503') || message.includes('UNAVAILABLE');
+    return (
+      message.includes('429') ||
+      message.includes('503') ||
+      message.includes('UNAVAILABLE')
+    );
   }
 
   /**
