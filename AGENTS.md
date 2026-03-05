@@ -21,18 +21,7 @@ Bun workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 - GitHub の情報取得には `gh` コマンドを使用する
 - ライブラリの仕様は Context7 MCP サーバー を使用する
 - GitHub Actions ワークフロー更新時は `/dev:actions-check` で静的解析を実施する
-- interface ではなく type を使う
-- テスト作成時は t-wada 氏のテスト設計思想に従う
-
-## 制約
-
-以下は GitHub Actions で自動生成されるため手動編集禁止:
-- `apps/docs-tracker/metadata/last_update.json`
-- `apps/changelog-fetcher/metadata/last_fetch.json`
-- `apps/changelog-fetcher/changelogs/v*.md`
-- `apps/changelog-fetcher/analysis/analysis_v*.json`
-- `apps/changelog-fetcher/inferred/inferred_v*.json`
-- `apps/changelog-fetcher/diff/changelog_diff.json`
+- TypeScript / アプリ固有の規約は `.claude/rules/` を参照
 
 ---
 
