@@ -34,6 +34,22 @@ const changelogCollection = defineCollection({
   }),
 });
 
+const diffCollection = defineCollection({
+  loader: glob({ pattern: '**/*.json', base: './src/content/diff' }),
+  schema: z.object({
+    events: z.array(
+      z.object({
+        detected_at: z.string().datetime(),
+        version: z.string(),
+        type: z.enum(['items_changed', 'version_removed']),
+        items_added: z.array(z.string()),
+        items_removed: z.array(z.string()),
+      }),
+    ),
+  }),
+});
+
 export const collections = {
   changelog: changelogCollection,
+  diff: diffCollection,
 };

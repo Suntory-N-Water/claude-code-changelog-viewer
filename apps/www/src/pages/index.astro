@@ -11,7 +11,7 @@ import {
   toFeatureAreaSlug,
 } from '../lib/feature-area';
 import { generateFAQJsonLd } from '../lib/json-ld';
-import { loadChangelogDiff } from '../lib/changelog-diff';
+import { buildDiffMap } from '../lib/changelog-diff';
 import { semverCompareDesc } from '../lib/semver';
 
 // Content Collectionsから全バージョンを取得し降順ソート
@@ -21,7 +21,8 @@ sortedChangelogs.sort((a, b) =>
 );
 
 // 差分データ読み込み
-const diffMap = loadChangelogDiff();
+const diffEntries = await getCollection('diff');
+const diffMap = buildDiffMap(diffEntries);
 
 const versionData = sortedChangelogs.map((entry) => {
   const events = diffMap.get(`v${entry.data.version}`);

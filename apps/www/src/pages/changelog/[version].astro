@@ -14,8 +14,8 @@ import {
 } from '../../lib/prefix';
 import {
   type DiffEvent,
+  buildDiffMap,
   formatDiffDateTime,
-  loadChangelogDiff,
 } from '../../lib/changelog-diff';
 import { semverCompareDesc } from '../../lib/semver';
 
@@ -44,7 +44,8 @@ export async function getStaticPaths() {
   const linkedAreas = getLinkedAreas(extractChangelogData(allChangelogs));
 
   // 差分データ読み込み
-  const diffMap = loadChangelogDiff();
+  const diffEntries = await getCollection('diff');
+  const diffMap = buildDiffMap(diffEntries);
 
   // バージョン降順ソート
   const sorted = [...allChangelogs].sort((a, b) =>
@@ -183,14 +184,14 @@ const totalItemCount = items.length;
           {
             isRemoved && (
               <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-                取得元で削除済み
+                公式のCHANGELOG.mdから削除済み
               </span>
             )
           }
           {
             !isRemoved && hasItemChanges && (
               <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))]'>
-                取得元で更新あり
+                公式のCHANGELOG.mdで更新あり
               </span>
             )
           }
@@ -229,8 +230,9 @@ const totalItemCount = items.length;
         {
           isRemoved && (
             <p class='text-sm text-[hsl(var(--cc-main-black)/0.6)] mt-1'>
-              この内容は取得元で削除される前に取得したものです ({removedDate}{' '}
-              更新)
+              この内容は公式のCHANGELOG.mdから削除される前に取得したものです(
+              {removedDate}
+              検出)
             </p>
           )
         }
@@ -238,7 +240,7 @@ const totalItemCount = items.length;
           itemChangeEvents.length > 0 && (
             <details class='text-sm text-gray-600 mt-2'>
               <summary class='cursor-pointer hover:text-[hsl(var(--cc-main-orange))]'>
-                取得元での変更履歴
+                公式のCHANGELOG.mdでの変更履歴
               </summary>
               <div class='mt-2 space-y-2 pl-4 border-l-2 border-[hsl(var(--cc-gray))]'>
                 {itemChangeEvents.map((event: DiffEvent) => (
