@@ -1,13 +1,13 @@
 {
   "version": "2.1.70",
-  "summary": "VS Code 拡張機能が大幅に強化され、アクティビティバーでのセッション一覧表示や、プランの詳細な Markdown 表示、さらにチャットパネル内でのネイティブな MCP サーバー管理に対応しました。また、Windows/WSL 環境での日本語文字化けの修正や、起動時のメモリ消費および通信負荷の削減など、基盤部分の安定性とパフォーマンスも向上しています。プロンプトキャッシュの最適化や再開時のトークン節約により、より高速で経済的な開発体験を提供します。",
+  "summary": "VS Code 拡張機能が大幅に強化され、アクティビティバーでのセッション管理や、プランのコメント付き Markdown 表示、ネイティブな MCP 管理ダイアログが追加されました。また、日本語の文字化け修正や、レジューム時のトークン節約、低速な SSH 接続時の入力改善など、開発環境の実用性を高める多くの修正が含まれています。全体として、UI の応答性向上とリソース消費の最適化が進み、よりスムーズなコーディング体験を提供します。",
   "items": [
     {
       "content": "- Fixed API 400 errors when using `ANTHROPIC_BASE_URL` with a third-party gateway — tool search now correctly detects proxy endpoints and disables `tool_reference` blocks",
-      "content_ja": "サードパーティ製ゲートウェイ使用時に ANTHROPIC_BASE_URL を設定すると API 400 エラーが発生する問題を修正しました。ツール検索時にプロキシエンドポイントを正しく検出し、tool_reference ブロックを無効化するようになりました。",
+      "content_ja": "サードパーティ製ゲートウェイを介して `ANTHROPIC_BASE_URL` を使用した際の API 400 エラーを修正しました。ツール検索機能がプロキシエンドポイントを正しく検出し、`tool_reference` ブロックを無効化するようになりました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/mcp.md",
@@ -50,17 +50,17 @@
         }
       ],
       "inference": {
-        "before": "ANTHROPIC_BASE_URL を使用してサードパーティのゲートウェイ経由で接続している場合、ツール検索の仕組みがプロキシを正しく認識できず、API 400 エラーが発生してツール呼び出しに失敗することがありました。",
-        "after": "ツール検索ロジックが改善され、プロキシエンドポイントを正確に検出できるようになりました。これにより、互換性のない tool_reference ブロックが適切に制御され、正常に通信が行われます。",
-        "benefit": "自社運用のプロキシや代替 API エンドポイントを利用している環境でも、エラーで作業が中断されることなくスムーズにツールを利用できるようになります。"
+        "before": "サードパーティのプロキシやゲートウェイを経由して API を利用する際、ツール検索機能がエンドポイントの性質を正しく認識できず、互換性のない形式でリクエストを送信して API 400 エラーが発生する場合がありました。",
+        "after": "ツール検索機能がプロキシエンドポイントをインテリジェントに検出し、必要に応じて `tool_reference` ブロックを適切に無効化するように改善されました。",
+        "benefit": "特定のネットワーク環境やカスタムゲートウェイを利用している開発者でも、接続エラーに悩まされることなく安定してツール機能を利用できるようになります。"
       }
     },
     {
       "content": "- Fixed `API Error: 400 This model does not support the effort parameter` when using custom Bedrock inference profiles or other model identifiers not matching standard Claude naming patterns",
-      "content_ja": "Bedrock のカスタム推論プロファイルや非標準的なモデル識別子を使用する際に、「effort パラメータをサポートしていない」という API 400 エラーが発生する問題を修正しました。",
+      "content_ja": "カスタムの Bedrock 推論プロファイルや標準の Claude 命名規則に一致しないモデル識別子を使用した場合に、`effort` パラメータが原因で発生していた API 400 エラーを修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/statusline.md",
@@ -103,22 +103,22 @@
         }
       ],
       "inference": {
-        "before": "Amazon Bedrock のカスタムプロファイルなど、標準的な Claude の命名パターンに一致しないモデル識別子を使用すると、モデルが思考プロセスの負荷を制御する effort パラメータに対応していないと誤認され、リクエストが拒否されることがありました。",
-        "after": "モデル識別子の判定アルゴリズムが改善され、標準外の名称であっても適切にパラメータが処理されるようになりました。",
-        "benefit": "Bedrock などのクラウドプロバイダーを通じて独自のモデル構成を利用している場合でも、エラーを気にせず常に最適なモデル性能を引き出すことができます。"
+        "before": "Amazon Bedrock のカスタム推論プロファイルなど、標準的な命名パターンから外れるモデル識別子を使用すると、モデルが対応していない `effort` (推論の試行回数) パラメータが送信され、API エラーが発生していました。",
+        "after": "モデル識別子が標準的な Claude の命名規則に一致しない場合は、互換性のないパラメータの送信を避けるようロジックが修正されました。",
+        "benefit": "Bedrock などのクラウドプロバイダー経由で Claude を利用する際、カスタム設定や特定のプロファイルを使用しても、予期せぬパラメータエラーで作業が中断されることがなくなります。"
       }
     },
     {
       "content": "- Fixed empty model responses immediately after `ToolSearch` — the server renders tool schemas with system-prompt-style tags at the prompt tail, which could confuse models into stopping early",
-      "content_ja": "ToolSearch 直後にモデルの応答が空になる問題を修正しました。ツールスキーマのレンダリング方式を変更し、モデルが早期終了する混乱を回避します。",
+      "content_ja": "`ToolSearch` 直後にモデルの応答が空になる問題を修正しました。プロンプト末尾のツールスキーマがモデルを混乱させ、早期終了を招くケースに対処しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Plan"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed prompt-cache bust when an MCP server with `instructions` connects after the first turn",
-      "content_ja": "初回のターンの後に instructions を持つ MCP サーバーが接続された際、プロンプトキャッシュが破棄されてしまう問題を修正しました。",
+      "content_ja": "最初のターンの後に `instructions` を持つ MCP サーバーが接続された際に、プロンプトキャッシュが破棄されてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["MCP"],
@@ -164,17 +164,17 @@
         }
       ],
       "inference": {
-        "before": "セッションの途中で追加の指示（instructions）を持つ MCP サーバーが有効化されると、既存のプロンプトキャッシュが無効化され、再計算が発生していました。",
-        "after": "MCP サーバーからの動的な指示の追加が最適化され、不必要なキャッシュの破棄を回避できるようになりました。",
-        "benefit": "セッションが長くなってもプロンプトキャッシュが有効に維持されるため、レスポンスの待機時間が短縮され、API コストの節約にも繋がります。"
+        "before": "対話の途中で特定の指示（instructions）を含む MCP サーバーが動的に読み込まれると、それまで蓄積されていたプロンプトキャッシュが無効化され、再計算が発生していました。",
+        "after": "MCP サーバーの接続タイミングに関わらず、プロンプトキャッシュが効率的に維持されるよう最適化されました。",
+        "benefit": "会話の途中で新しいツールを追加してもレスポンス速度が低下せず、API 料金の節約にもつながります。"
       }
     },
     {
       "content": "- Fixed Enter inserting a newline instead of submitting when typing over a slow SSH connection",
-      "content_ja": "低速な SSH 接続下での入力時に、Enter キーを押すと送信されず改行が挿入されてしまう問題を修正しました。",
+      "content_ja": "低速な SSH 接続下でタイピングした際、Enter キーが送信ではなく改行として入力されてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/desktop.md",
@@ -215,17 +215,17 @@
         }
       ],
       "inference": {
-        "before": "ネットワーク遅延の大きい SSH 経由で操作している際、Enter キーの入力が正しく送信コマンドとして認識されず、意図せず改行が入力されてしまうストレスがありました。",
-        "after": "入力の制御ロジックが改善され、通信ラグがある環境下でも Enter キーによるプロンプトの送信が安定して動作するようになりました。",
-        "benefit": "リモートサーバーでの開発中も、接続品質に左右されずローカル環境と同様の快適なタイピングと送信操作が可能になります。"
+        "before": "ネットワーク遅延の大きい SSH 環境で操作していると、プロンプトを送信しようと Enter を押しても、送信コマンドとして認識されず単なる改行が挿入されることがありました。",
+        "after": "入力判定のロジックが改善され、低速な接続環境でも Enter キーによる送信が確実に行われるようになりました。",
+        "benefit": "リモートサーバーでの作業中など、不安定なネットワーク環境下でもストレスなく会話を進められるようになります。"
       }
     },
     {
       "content": "- Fixed clipboard corrupting non-ASCII text (CJK, emoji) on Windows/WSL by using PowerShell `Set-Clipboard`",
-      "content_ja": "Windows/WSL 環境において、クリップボード経由で CJK 文字（日本語など）や絵文字などの非 ASCII 文字が文字化けする問題を修正しました。PowerShell の Set-Clipboard を使用するように変更されています。",
+      "content_ja": "Windows/WSL 環境において、クリップボード経由で日本語や絵文字などの非 ASCII 文字が文字化けする問題を、PowerShell の `Set-Clipboard` を使用するように変更することで修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -268,17 +268,17 @@
         }
       ],
       "inference": {
-        "before": "Windows や WSL での結果のコピー時に、日本語や絵文字を含むテキストが適切に処理されず、貼り付けた際に文字化けが発生することがありました。",
-        "after": "クリップボードへの書き込みに PowerShell のネイティブ機能を利用するように刷新され、多言語テキストも正確に保持されるようになりました。",
-        "benefit": "生成された日本語のコード解説やドキュメントを、文字化けを気にすることなく他のアプリケーションへ確実にコピー＆ペーストできます。"
+        "before": "Windows や WSL 上で Claude Code を使用する際、クリップボードにコピーした日本語（CJK 文字）や絵文字が、エンコーディングの問題で正しく貼り付けられない場合がありました。",
+        "after": "クリップボード操作に PowerShell の `Set-Clipboard` コマンドをネイティブに使用するよう変更され、マルチバイト文字も正しく保持されるようになりました。",
+        "benefit": "日本の開発者がコメントやログに含まれる日本語をコピー＆ペーストする際、文字化けを気にせず正確に情報をやり取りできるようになります。"
       }
     },
     {
       "content": "- Fixed extra VS Code windows opening at startup on Windows when running from the VS Code integrated terminal",
-      "content_ja": "Windows 環境で VS Code の統合ターミナルから起動した際、起動時に余分な VS Code ウィンドウが開いてしまう問題を修正しました。",
+      "content_ja": "Windows 上で VS Code の統合ターミナルから起動した際、起動時に余計な VS Code ウィンドウが開いてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["IDE/VSCode"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/vs-code.md",
@@ -319,22 +319,22 @@
         }
       ],
       "inference": {
-        "before": "VS Code 内のターミナルで claude コマンドを実行してセッションを開始するたびに、意図しない新しいウィンドウが立ち上がり、作業スペースを乱していました。",
-        "after": "VS Code との連携プロセスが最適化され、現在のコンテキストを維持したまま余計なウィンドウを開かずに起動するようになりました。",
-        "benefit": "開発環境のウィンドウ管理が煩雑にならず、コーディング作業に集中したままスムーズに AI アシスタントを使い始めることができます。"
+        "before": "VS Code 内のターミナルから `claude` を起動すると、意図せず新しい VS Code インスタンスがバックグラウンドで立ち上がり、システムリソースを浪費したりワークスペースを混乱させたりすることがありました。",
+        "after": "VS Code 環境からの起動検知が正確になり、不要なウィンドウを開かずに既存の環境内で正しく動作するようになりました。",
+        "benefit": "エディタ環境がすっきり保たれ、マシンのリソース消費も抑えられるため、開発作業に集中できます。"
       }
     },
     {
       "content": "- Fixed voice mode failing on Windows native binary with \"native audio module could not be loaded\"",
-      "content_ja": "Windows ネイティブバイナリで「オーディオモジュールをロードできない」というエラーにより音声モードが失敗する問題を修正しました。",
+      "content_ja": "Windows のネイティブバイナリで「オーディオモジュールがロードできない」というエラーにより音声モードが失敗する問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed push-to-talk not activating on session start when `voiceEnabled: true` was set in settings",
-      "content_ja": "設定で voiceEnabled: true にしていても、セッション開始時にプッシュ・トゥ・トーク（PTT）が有効にならない問題を修正しました。",
+      "content_ja": "設定で `voiceEnabled: true` にしているにもかかわらず、セッション開始時にプッシュ・トゥ・トーク（PTT）が有効にならない問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Settings"],
@@ -380,17 +380,17 @@
         }
       ],
       "inference": {
-        "before": "音声入力機能を有効に設定していても、アプリケーションの起動直後にショートカットキーによる音声入力が反応せず、手動で再設定が必要になる場合がありました。",
-        "after": "セッション開始時の初期化プロセスが修正され、設定通りに即座に音声入力の待機状態に入るようになりました。",
-        "benefit": "ツールを立ち上げてすぐに、キーボードに触れることなく声で指示を出し始めることができるようになります。"
+        "before": "設定ファイルで音声機能を有効に指定していても、新しいセッションを開始した直後は音声入力用のショートカットが機能せず、手動で再設定が必要になる場合がありました。",
+        "after": "セッション開始時に音声設定が正しく読み込まれ、即座にプッシュ・トゥ・トークによる音声入力が利用可能になりました。",
+        "benefit": "キーボードから手を離して音声で指示を出したい時に、起動直後からスムーズに操作を開始できます。"
       }
     },
     {
       "content": "- Fixed markdown links containing `#NNN` references incorrectly pointing to the current repository instead of the linked URL",
-      "content_ja": "Markdown リンク内の #NNN（プルリクエスト番号など）の参照が、リンク先の URL ではなく現在のリポジトリを誤って指してしまう問題を修正しました。",
+      "content_ja": "Markdown リンク内に `#NNN`（GitHub の Issue 番号など）の参照が含まれている場合、リンク先の URL ではなく現在のリポジトリを誤って参照してしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/mcp.md",
@@ -433,14 +433,14 @@
         }
       ],
       "inference": {
-        "before": "外部ドキュメントや他リポジトリへのリンクに #123 のような番号が含まれていると、リンク先ではなくローカルプロジェクト内の PR へのリンクとして誤認されることがありました。",
-        "after": "リンク内のアンカー参照の解析が改善され、常に意図した通りの外部 URL へ遷移できるようになりました。",
-        "benefit": "ドキュメント内の参考リンクや MCP サーバーから提供されるリンクを、迷うことなく正しく辿れるようになります。"
+        "before": "ドキュメント内の URL リンクに Issue 番号が含まれていると、Claude がそれをリンク先ではなく「現在のプロジェクト内の Issue」への言及と誤認し、正しく外部ページを開けないことがありました。",
+        "after": "リンクの解析処理が修正され、アンカーや番号参照を含む外部 URL も正しく解釈されるようになりました。",
+        "benefit": "参考資料や Issue へのリンクを Claude が正しく辿れるようになり、情報の正確性が向上します。"
       }
     },
     {
       "content": "- Fixed repeated \"Model updated to Opus 4.6\" notification when a project's `.claude/settings.json` has a legacy Opus model string pinned",
-      "content_ja": "プロジェクトの .claude/settings.json に古い形式の Opus モデル文字列が固定されている場合に、「Model updated to Opus 4.6」という通知が繰り返し表示される問題を修正しました。",
+      "content_ja": "プロジェクトの `.claude/settings.json` に古い形式の Opus モデル文字列が固定されている場合に、繰り返し表示されていた「モデルが Opus 4.6 に更新されました」という通知を抑制しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Settings"],
@@ -486,14 +486,14 @@
         }
       ],
       "inference": {
-        "before": "設定ファイルに旧形式のモデル名が記載されていると、起動のたびに最新モデルへの自動更新通知が発生し、ノイズになっていました。",
-        "after": "モデル名の正規化処理が改善され、最新の Opus 4.6 への適用が一度で静かに行われるようになりました。",
-        "benefit": "不要な通知に邪魔されることなく、常に最新かつ最強のモデルである Opus 4.6 を快適に利用できます。"
+        "before": "設定ファイルに旧バージョンのモデル名が記載されていると、起動するたびに「最新モデルへの更新」通知が表示され、ユーザーにとってノイズになっていました。",
+        "after": "モデルの自動アップグレード処理と通知ロジックが整理され、不必要な繰り返し通知が表示されないようになりました。",
+        "benefit": "起動時の不要な通知に邪魔されることなく、常に最新モデル（Opus 4.6）を最適な状態で利用できます。"
       }
     },
     {
       "content": "- Fixed plugins showing as inaccurately installed in `/plugin`",
-      "content_ja": "/plugin コマンドの画面で、プラグインのインストール状態が不正確に表示される問題を修正しました。",
+      "content_ja": "`/plugin` コマンドにおいて、プラグインが誤ってインストール済みとして表示される不具合を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Plugins"],
@@ -539,14 +539,14 @@
         }
       ],
       "inference": {
-        "before": "実際にはインストールされている、あるいは削除されているプラグインの状態が画面に正しく反映されず、管理に混乱が生じることがありました。",
-        "after": "プラグインマネージャーのステータス同期が強化され、現在のインストール状況が正確にリアルタイムで表示されるようになりました。",
-        "benefit": "拡張機能の管理が確実になり、使いたいプラグインが今どのような状態にあるかを一目で把握できるようになります。"
+        "before": "プラグインマネージャーの画面で、実際にはインストールされていないプラグインがインストール済みとして表示され、混乱を招いていました。",
+        "after": "プラグインのインストール状態が正確に反映され、正しい状態が確認できるようになりました。",
+        "benefit": "インストール済みのプラグインを正しく把握し、無駄な再インストールや管理ミスを防ぐことができます。"
       }
     },
     {
       "content": "- Fixed plugins showing \"not found in marketplace\" errors on fresh startup by auto-refreshing after marketplace installation",
-      "content_ja": "プラグインのマーケットプレイスをインストールした直後に、自動リフレッシュを行うことで「マーケットプレイスに見つからない」というエラーが出る問題を修正しました。",
+      "content_ja": "新規起動時にプラグインが「マーケットプレイスに見つからない」と誤表示される問題を修正し、インストール後に自動リフレッシュされるようにしました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Plugins"],
@@ -554,10 +554,10 @@
     },
     {
       "content": "- Fixed `/security-review` command failing with `unknown option merge-base` on older git versions",
-      "content_ja": "古いバージョンの Git 環境において、/security-review コマンドが unknown option merge-base エラーで失敗する問題を修正しました。",
+      "content_ja": "古いバージョンの git を使用している環境で、`/security-review` コマンドが `unknown option merge-base` エラーで失敗する問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Skills"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/interactive-mode.md",
@@ -574,17 +574,17 @@
         }
       ],
       "inference": {
-        "before": "開発環境の Git が古い場合、セキュリティレビュー実行時の内部コマンドが対応していないオプションを使用しており、機能が動作しないことがありました。",
-        "after": "Git のバージョン互換性が向上し、merge-base オプションに依存しない方法で変更箇所の特定が行われるようになりました。",
-        "benefit": "古い開発サーバーや保守環境など、最新の Git が導入されていない現場でも AI によるセキュリティチェックを活用できます。"
+        "before": "一部の古い OS 環境で利用されている古い git バージョンでは、`merge-base` 関連のオプションがサポートされておらず、セキュリティレビュー機能が動作しない制限がありました。",
+        "after": "古い git 環境でも動作する代替のコマンド発行方法、あるいはチェック処理が実装されました。",
+        "benefit": "利用している開発環境の git バージョンを問わず、安全にセキュリティレビュー機能を利用できるようになります。"
       }
     },
     {
       "content": "- Fixed `/color` command having no way to reset back to the default color — `/color default`, `/color gray`, `/color reset`, and `/color none` now restore the default",
-      "content_ja": "/color コマンドにデフォルトの色に戻す方法がなかった問題を修正しました。/color default, gray, reset, none のいずれかでデフォルトに戻せるようになりました。",
+      "content_ja": "`/color` コマンドでデフォルトの色に戻す方法がなかった問題を修正しました。`/color default`、`gray`、`reset`、`none` のいずれかでデフォルト設定を復元できます。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -627,17 +627,17 @@
         }
       ],
       "inference": {
-        "before": "一度 UI の色を変更すると、初期設定の配色にリセットする明確なコマンドがなく、元の見た目に戻すのが困難でした。",
-        "after": "配色設定を初期化するための複数のエイリアスが追加され、簡単に標準のグレー基調に戻せるようになりました。",
-        "benefit": "視認性の調整を気軽に試せるようになり、必要に応じていつでも慣れ親しんだデフォルトの画面構成に戻せます。"
+        "before": "一度テーマカラーを変更すると、UI 上から元の標準カラー（グレー系）にリセットする直感的なコマンドが存在しませんでした。",
+        "after": "リセット用のキーワード（default/reset 等）が追加され、簡単に初期状態の配色に戻せるようになりました。",
+        "benefit": "視認性の確認や気分の変化に合わせて、いつでも標準のデザインに復帰できる安心感があります。"
       }
     },
     {
       "content": "- Fixed a performance regression in the `AskUserQuestion` preview dialog that re-ran markdown rendering on every keystroke in the notes input",
-      "content_ja": "AskUserQuestion のプレビューダイアログにおいて、ノート入力欄でタイピングするたびに Markdown レンダリングが再実行され、パフォーマンスが低下していた問題を修正しました。",
+      "content_ja": "`AskUserQuestion` のプレビューダイアログにおいて、ノート入力欄で 1 文字入力するごとに Markdown レンダリングが再実行されていたパフォーマンスの問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings", "Plan"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/best-practices.md",
@@ -668,22 +668,22 @@
         }
       ],
       "inference": {
-        "before": "AI からの質問に回答を入力する際、1文字打つごとに画面全体の再描画が発生し、入力にラグが感じられることがありました。",
-        "after": "レンダリングのタイミングが最適化され、入力中のパフォーマンスが大幅に向上しました。",
-        "benefit": "AI との対話や詳細な指示の入力が非常にスムーズになり、思考を妨げられることなくタイピングに集中できます。"
+        "before": "Claude への補足情報を入力する際、入力のたびに画面全体の再描画が発生していたため、長文を入力すると動作が非常に重くなっていました。",
+        "after": "レンダリングの実行タイミングが最適化され、入力中のレスポンスが劇的に高速化されました。",
+        "benefit": "Claude との詳細な要件定義や指示の入力が、ひっかかりのないスムーズなタイピングで進められます。"
       }
     },
     {
       "content": "- Fixed feature flags read during early startup never refreshing their disk cache, causing stale values to persist across sessions",
-      "content_ja": "起動時に読み込まれる機能フラグのディスクキャッシュが更新されず、古い値が残り続ける問題を修正しました。",
+      "content_ja": "起動初期に読み込まれる機能フラグがキャッシュを更新せず、古い値が残り続けてしまう問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed `permissions.defaultMode` settings values other than `acceptEdits` or `plan` being applied in Claude Code Remote environments — they are now ignored",
-      "content_ja": "Claude Code Remote 環境において、permissions.defaultMode に acceptEdits または plan 以外の値が設定されている場合に、それらを無視して適切に処理するように修正しました。",
+      "content_ja": "Claude Code Remote 環境において、`permissions.defaultMode` に `acceptEdits` または `plan` 以外が設定されている場合に、それらが無視されるよう修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Settings", "Permissions"],
@@ -729,14 +729,14 @@
         }
       ],
       "inference": {
-        "before": "リモート環境ではサポートされていない特殊なパーミッションモードが設定ファイルから読み込まれると、挙動が不安定になる可能性がありました。",
-        "after": "リモート環境の制約に合わせて、不正な設定値を安全に無視し、標準的な動作を維持するガードレールが強化されました。",
-        "benefit": "ローカルとリモートで同じ設定ファイルを共有している場合でも、環境に合わせて自動的に最適な権限設定が適用されるため、設定を使い分ける手間が省けます。"
+        "before": "Web 上のリモート環境は本来自動で編集を承認する仕組みですが、ローカル用の設定ファイルにある不適切なモードが適用されてしまい、予期せぬ挙動を招く可能性がありました。",
+        "after": "リモート環境の制約に合わせ、許可されていないパーミッションモードは安全に無視されるようになりました。",
+        "benefit": "ローカルとリモートで設定を共有している場合でも、各環境に最適なセキュリティ設定が自動で適用されます。"
       }
     },
     {
       "content": "- Fixed skill listing being re-injected on every `--resume` (~600 tokens saved per resume)",
-      "content_ja": "--resume によるセッション再開時に、スキルのリストが毎回再注入されていた問題を修正しました。これにより、再開ごとに約 600 トークンが節約されます。",
+      "content_ja": "セッションを再開（`--resume`）するたびに、利用可能なスキルのリストが再注入されてトークンを浪費していた問題を修正しました（1 回あたり約 600 トークンの節約）。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Skills"],
@@ -780,14 +780,14 @@
         }
       ],
       "inference": {
-        "before": "中断した会話を再開するたびに、既に把握しているはずのスキル情報がプロンプトに重複して含まれており、無駄なトークン消費が発生していました。",
-        "after": "スキルの注入ロジックが最適化され、再開時の重複したコンテキスト送信が排除されました。",
-        "benefit": "セッションを頻繁に再開してもトークン消費が抑えられるため、コストを低減しつつ、より長い会話履歴をコンテキスト内に保持できるようになります。"
+        "before": "過去の会話をレジュームする際、すでに把握しているはずのスキル情報が何度も送信され、無駄にコンテキストウィンドウと API コストを消費していました。",
+        "after": "スキルの注入ロジックが見直され、重複した情報の送信が回避されるようになりました。",
+        "benefit": "レジューム時の読み込みが速くなるだけでなく、1 回の再開につき約 600 トークンが節約され、コスト効率が向上します。"
       }
     },
     {
       "content": "- Fixed teleport marker not rendering in VS Code teleported sessions",
-      "content_ja": "VS Code のテレポートセッションにおいて、テレポートマーカーが表示されない問題を修正しました。",
+      "content_ja": "VS Code でのリモートセッション（テレポート）中に、テレポートマーカーが表示されない不具合を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["IDE/VSCode"],
@@ -831,33 +831,33 @@
         }
       ],
       "inference": {
-        "before": "ターミナルから VS Code へセッションをテレポートさせた際、現在の状態を示す視覚的なガイド（マーカー）が表示されず、連携状況が分かりにくい状態でした。",
-        "after": "VS Code 拡張側でマーカーが正しくレンダリングされるようになり、テレポート中のセッションであることが一目で分かるようになりました。",
-        "benefit": "複数のインターフェースを行き来する際も、現在の作業コンテキストを迷わず把握できるようになります。"
+        "before": "リモートセッションを行っている際、本来表示されるはずの現在位置を示すテレポートマーカーが表示されていませんでした。",
+        "after": "セッション中に正しくマーカーが描画されるようになり、視覚的な位置関係が把握できるようになりました。",
+        "benefit": "リモートセッション中も自分の作業位置や状況を直感的に把握でき、スムーズに開発を継続できます。"
       }
     },
     {
       "content": "- Improved error message when microphone captures silence to distinguish from \"no speech detected\"",
-      "content_ja": "マイクが無音を拾った際のエラーメッセージを改善し、発話が検出されなかった場合と明確に区別できるようにしました。",
+      "content_ja": "マイクが無音を拾った際のエラーメッセージを改善し、「音声が検出されない」状態と区別できるようにしました。",
       "prefix": "Improved",
       "importance_score": 6,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Improved compaction to preserve images in the summarizer request, allowing prompt cache reuse for faster and cheaper compaction",
-      "content_ja": "コンパクション（要約）処理を改善し、画像を含めた状態でプロンプトキャッシュを再利用できるようにしました。これにより、より高速で安価な要約が可能になります。",
+      "content_ja": "要約プロセス（Compaction）において画像を保持するように改善し、プロンプトキャッシュの再利用を可能にすることで高速化と低コスト化を実現しました。",
       "prefix": "Improved",
       "importance_score": 6,
-      "feature_areas": ["Memory"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Improved `/rename` to work while Claude is processing, instead of being silently queued",
-      "content_ja": "/rename コマンドを改善し、Claude が処理を実行している最中であっても、予約されずに即座に名前変更が適用されるようになりました。",
+      "content_ja": "`/rename` コマンドを、Claude が応答処理中であってもキューに溜まることなく即座に実行できるように改善しました。",
       "prefix": "Improved",
       "importance_score": 6,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/common-workflows.md",
@@ -890,24 +890,25 @@
         }
       ],
       "inference": {
-        "before": "AI が回答を生成している間は名前変更コマンドがキューに溜まり、処理が終わるまで反映を待つ必要がありました。",
-        "after": "セッション名の変更が非同期で処理されるようになり、AI の動作状況に関わらずいつでも実行できるようになりました。",
-        "benefit": "長い処理を待っている間に「このタスクに名前を付けて整理しておこう」といった操作が即座にでき、作業のテンポが向上します。"
+        "before": "Claude が考えたりコードを書いたりしている間はセッション名の変更ができず、処理が終わるまで待機する必要がありました。",
+        "after": "セッションのリネーム処理が非同期化され、作業の進行を妨げずにいつでも実行できるようになりました。",
+        "benefit": "長時間の処理を待っている間に「このタスクは〇〇の修正」と名前を付けておくことができ、作業管理がより効率的になります。"
       }
     },
     {
       "content": "- Reduced prompt input re-renders during turns by ~74%",
-      "content_ja": "ターン中のプロンプト入力の再レンダリング回数を約 74% 削減し、動作を軽量化しました。",
+      "content_ja": "処理中のプロンプト入力欄の再レンダリング回数を約 74% 削減しました。",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Reduced startup memory by ~426KB for users without custom CA certificates",
+      "content_ja": "カスタム CA 証明書を使用していないユーザー向けに、起動時のメモリ使用量を約 426KB 削減しました。",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": ["Memory"],
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/mcp.md",
@@ -948,13 +949,19 @@
             "```bash theme={null}\n#!/bin/bash\n# Read JSON data that Claude Code sends to stdin\ninput=$(cat)\n\n# Extract fields using jq\nMODEL=$(echo \"$input\" | jq -r '.model.display_name')"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "CA 証明書設定に依存しない環境でも、起動時にメモリが余分に消費されていました。",
+        "after": "不要な処理が最適化され、起動時のフットプリントが小さくなりました。",
+        "benefit": "ツール全体の軽量化により、特に低スペックな環境や起動頻度が高い開発者の作業効率が向上します。"
+      }
     },
     {
       "content": "- Reduced Remote Control `/poll` rate to once per 10 minutes while connected (was 1–2s), cutting server load ~300×. Reconnection is unaffected — transport loss immediately wakes fast polling.",
+      "content_ja": "接続中のリモートコントロールにおける `/poll`（ポーリング）頻度を 1～2 秒間隔から 10 分間隔に見直しました。",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": [],
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/server-managed-settings.md",
@@ -984,10 +991,16 @@
             "\n### Monitor pull request status\n\nAfter you open a pull request, a CI status bar appears in the session. Claude Code uses the GitHub CLI to poll check results and surface failures.\n\n- **Auto-fix**: when enabled, Claude automatically attempts to fix failing CI checks by reading the failure output and iterating.\n- **Auto-merge**: when enabled, Claude merges the PR once all checks pass. The merge method is squash. Auto-merge must be [enabled in your GitHub repository settings](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-auto-merge-for-pull-requests-in-your-repository) for this to work."
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "接続中、サーバーへのポーリングが非常に高い頻度で行われており、サーバーに過度な負荷がかかっていました。",
+        "after": "通信間隔を大幅に広げ、サーバー負荷を約 300 倍削減しました。なお、切断が発生した場合は即座に高速ポーリングへ復帰します。",
+        "benefit": "サーバーへの負荷が軽減されることで接続の安定性が高まり、スムーズなリモート操作が維持されます。"
+      }
     },
     {
       "content": "- [VSCode] Added spark icon in VS Code activity bar that lists all Claude Code sessions, with sessions opening as full editors",
+      "content_ja": "VS Code のアクティビティバーに Spark アイコンを追加しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": ["IDE/VSCode"],
@@ -1029,10 +1042,16 @@
             "\n## See also\n\n- [Use Claude Code in VS Code](/en/vs-code#automate-browser-tasks-with-chrome): browser automation in the VS Code extension\n- [CLI reference](/en/cli-reference): command-line flags including `--chrome`\n- [Common workflows](/en/common-workflows): more ways to use Claude Code\n- [Data and privacy](/en/data-usage): how Claude Code handles your data"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "各セッションを確認するためにコマンドやメニューを辿る必要がありました。",
+        "after": "アイコンをクリックするだけで全セッションを一覧表示し、個別のセッションを全画面エディターとして開けるようになりました。",
+        "benefit": "複数のセッションを簡単に切り替えられ、作業スペースを効率的に管理できるようになります。"
+      }
     },
     {
       "content": "- [VSCode] Added full markdown document view for plans in VS Code, with support for adding comments to provide feedback",
+      "content_ja": "VS Code 上でプランのフルマークダウンビュー表示に対応し、コメントによるフィードバックが可能になりました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": ["IDE/VSCode"],
@@ -1074,10 +1093,16 @@
             "\n## See also\n\n- [Use Claude Code in VS Code](/en/vs-code#automate-browser-tasks-with-chrome): browser automation in the VS Code extension\n- [CLI reference](/en/cli-reference): command-line flags including `--chrome`\n- [Common workflows](/en/common-workflows): more ways to use Claude Code\n- [Data and privacy](/en/data-usage): how Claude Code handles your data"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "VS Code 上でのプラン確認時に、詳細な形式での閲覧や修正指示が困難でした。",
+        "after": "プランをマークダウンとして構造的に表示できるようになり、直接コメントを残すことで Claude へのフィードバックが容易になりました。",
+        "benefit": "プランの修正や改善を直感的に行えるようになり、AI との共同作業がより明確かつ効率的になります。"
+      }
     },
     {
       "content": "- [VSCode] Added native MCP server management dialog — use `/mcp` in the chat panel to enable/disable servers, reconnect, and manage OAuth authentication without switching to the terminal",
+      "content_ja": "VS Code 上に MCP サーバー管理ダイアログを新たに追加しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": ["IDE/VSCode", "MCP"],
@@ -1121,7 +1146,12 @@
             "Now that you have Claude Code set up in VS Code:\n\n- [Explore common workflows](/en/common-workflows) to get the most out of Claude Code\n- [Set up MCP servers](/en/mcp) to extend Claude's capabilities with external tools. Configure servers using the CLI, then use them in the extension.\n- [Configure Claude Code settings](/en/settings) to customize allowed commands, hooks, and more. These settings are shared between the extension and CLI.\n"
           ]
         }
-      ]
+      ],
+      "inference": {
+        "before": "MCP サーバーの有効化や認証管理を行うには、ターミナルへ切り替えてコマンドを実行する必要がありました。",
+        "after": "チャットパネル内から `/mcp` を実行することで、サーバーの管理や OAuth 認証などを直接操作できるようになりました。",
+        "benefit": "ターミナルへの移動が不要となり、エディター内での作業フローを中断することなくツール連携を柔軟に行えます。"
+      }
     }
   ]
 }

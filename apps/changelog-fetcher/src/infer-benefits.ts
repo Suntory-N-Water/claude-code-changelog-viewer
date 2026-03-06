@@ -1,10 +1,18 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
+import {
+  type Analysis,
+  AnalysisSchema,
+  type InferenceBatchResult,
+} from '@claude-code-changelog-viewer/types';
+import pRetry, { AbortError } from 'p-retry';
 import { GeminiClient } from './ai/gemini-client';
 import { loadModelContext } from './ai/model-context';
-import { buildBatchInferencePrompt } from './ai/prompts/inference-prompt';
+import {
+  type IndexedItem,
+  buildBatchInferencePrompt,
+} from './ai/prompts/inference-prompt';
 
 const log = getLogger({ name: 'benefit-inferrer' });
 
@@ -24,6 +32,56 @@ function parseArgs(): CliArgs {
   }
 
   return { version, skipAI };
+}
+
+function applyResult(analysis: Analysis, result: InferenceBatchResult): void {
+  for (const inferred of result.inferred_items) {
+    const item = analysis.items[inferred.id];
+    if (item) {
+      item.content_ja = inferred.content_ja;
+      item.inference = {
+        before: inferred.before,
+        after: inferred.after,
+        benefit: inferred.benefit,
+      };
+      log.info(`翻訳+推論完了: ${item.content.substring(0, 50)}...`);
+    }
+  }
+
+  for (const translated of result.translated_items) {
+    const item = analysis.items[translated.id];
+    if (item) {
+      item.content_ja = translated.content_ja;
+      log.info(`翻訳完了: ${item.content.substring(0, 50)}...`);
+    }
+  }
+
+  if (result.feature_area_corrections) {
+    for (const correction of result.feature_area_corrections) {
+      const item = analysis.items[correction.id];
+      if (item) {
+        item.feature_areas = correction.feature_areas;
+        log.info(
+          `機能領域補正: ${item.content.substring(0, 50)}... → [${correction.feature_areas.join(', ')}]`,
+        );
+      }
+    }
+  }
+}
+
+function findMissingItems(analysis: Analysis): IndexedItem[] {
+  return analysis.items
+    .map((item, i) => ({ item, originalIndex: i }))
+    .filter(({ item }) => item.content_ja === undefined);
+}
+
+function isRetryableGeminiError(error: Error): boolean {
+  const message = error.message;
+  return (
+    message.includes('429') ||
+    message.includes('503') ||
+    message.includes('UNAVAILABLE')
+  );
 }
 
 async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
@@ -73,54 +131,75 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
     },
   });
 
-  // 4. 全項目を1回のリクエストで処理
+  // 4. 全項目を1回のリクエストで処理(未処理分は p-retry でリトライ)
   const modelContext = loadModelContext();
-  const prompt = buildBatchInferencePrompt(
-    analysis.items,
+  const allIndexedItems = analysis.items.map((item, i) => ({
+    item,
+    originalIndex: i,
+  }));
+
+  const initialPrompt = buildBatchInferencePrompt(
+    allIndexedItems,
     version,
     modelContext,
   );
-  const result = await client.inferAll(prompt);
-
-  // 推論+翻訳結果をマッピング
-  for (const inferred of result.inferred_items) {
-    const item = analysis.items[inferred.id];
-    if (item) {
-      item.content_ja = inferred.content_ja;
-      item.inference = {
-        before: inferred.before,
-        after: inferred.after,
-        benefit: inferred.benefit,
-      };
-      log.info(`翻訳+推論完了: ${item.content.substring(0, 50)}...`);
-    }
-  }
-
-  // 翻訳のみ結果をマッピング
-  for (const translated of result.translated_items) {
-    const item = analysis.items[translated.id];
-    if (item) {
-      item.content_ja = translated.content_ja;
-      log.info(`翻訳完了: ${item.content.substring(0, 50)}...`);
-    }
-  }
-
-  // 機能領域タグの AI 補正をマージ
-  if (result.feature_area_corrections) {
-    for (const correction of result.feature_area_corrections) {
-      const item = analysis.items[correction.id];
-      if (item) {
-        item.feature_areas = correction.feature_areas;
-        log.info(
-          `機能領域補正: ${item.content.substring(0, 50)}... → [${correction.feature_areas.join(', ')}]`,
-        );
-      }
-    }
-  }
-
-  // サマリーを設定
-  analysis.summary = result.summary;
+  const initialResult = await client.inferAll(initialPrompt);
+  applyResult(analysis, initialResult);
+  analysis.summary = initialResult.summary;
   log.msg('APLG0002', { params: ['バージョンサマリー生成'] });
+
+  // 未処理項目のリトライ
+  const missingAfterInitial = findMissingItems(analysis);
+  if (missingAfterInitial.length > 0) {
+    log.info(`未処理項目あり: ${missingAfterInitial.length}件、リトライ開始`, {
+      missingIds: missingAfterInitial.map((m) => m.originalIndex),
+    });
+
+    await pRetry(
+      async () => {
+        const missing = findMissingItems(analysis);
+        if (missing.length === 0) {
+          return;
+        }
+
+        const retryPrompt = buildBatchInferencePrompt(
+          missing,
+          version,
+          modelContext,
+        );
+        try {
+          const retryResult = await client.inferAll(retryPrompt);
+          applyResult(analysis, retryResult);
+        } catch (error) {
+          if (error instanceof Error && !isRetryableGeminiError(error)) {
+            throw new AbortError(error.message);
+          }
+          throw error;
+        }
+
+        const stillMissing = findMissingItems(analysis);
+        if (stillMissing.length > 0) {
+          throw new Error(
+            `未処理項目が残存: ${stillMissing.length}件 (ids: ${stillMissing.map((m) => m.originalIndex).join(', ')})`,
+          );
+        }
+      },
+      {
+        retries: 3,
+        onFailedAttempt: (context) => {
+          log.info(
+            `リトライ ${context.attemptNumber}/3 失敗: ${context.error.message}`,
+            { retriesLeft: context.retriesLeft },
+          );
+        },
+      },
+    ).catch(() => {
+      const stillMissing = findMissingItems(analysis);
+      log.info(`リトライ上限到達、未処理項目が残存: ${stillMissing.length}件`, {
+        missingIds: stillMissing.map((m) => m.originalIndex),
+      });
+    });
+  }
 
   // 5. inferred_{version}.json に保存
   // Zod で最終検証

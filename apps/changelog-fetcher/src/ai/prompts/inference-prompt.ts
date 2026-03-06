@@ -1,5 +1,10 @@
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 
+export type IndexedItem = {
+  item: ChangelogItem;
+  originalIndex: number;
+};
+
 /**
  * 一括推論・翻訳・サマリー生成プロンプトを構築
  *
@@ -7,16 +12,16 @@ import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
  * 出力: inferred_items(推論+翻訳)/ translated_items(翻訳のみ)/ summary
  */
 export function buildBatchInferencePrompt(
-  items: ChangelogItem[],
+  indexedItems: IndexedItem[],
   version: string,
   modelContext: string,
 ): string {
   const inferenceItems: { item: ChangelogItem; index: number }[] = [];
   const translationItems: { item: ChangelogItem; index: number }[] = [];
-  for (const [index, item] of items.entries()) {
+  for (const { item, originalIndex } of indexedItems) {
     (item.related_docs.length >= 1 ? inferenceItems : translationItems).push({
       item,
-      index,
+      index: originalIndex,
     });
   }
 
@@ -45,14 +50,14 @@ ${snippetsText}`;
     })
     .join('\n\n');
 
-  const allItemsText = items
-    .map((item) => `- [${item.prefix}] ${item.content}`)
+  const allItemsText = indexedItems
+    .map(({ item }) => `- [${item.prefix}] ${item.content}`)
     .join('\n');
 
-  const featureAreaItemsText = items
+  const featureAreaItemsText = indexedItems
     .map(
-      (item, index) =>
-        `- id=${index}, tags=[${(item.feature_areas ?? []).join(', ')}], content: ${item.content}`,
+      ({ item, originalIndex }) =>
+        `- id=${originalIndex}, tags=[${(item.feature_areas ?? []).join(', ')}], content: ${item.content}`,
     )
     .join('\n');
 
@@ -69,7 +74,7 @@ ${snippetsText}`;
 ${modelContext}
 
 ## 状況 (Situation)
-バージョン ${version} の CHANGELOG を処理する。全 ${items.length} 項目。
+バージョン ${version} の CHANGELOG を処理する。全 ${indexedItems.length} 項目。
 
 ## 目的 (Purpose)
 以下の3つのタスクを一度に実行する:

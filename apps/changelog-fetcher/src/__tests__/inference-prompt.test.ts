@@ -1,6 +1,13 @@
 import { describe, expect, test } from 'bun:test';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
-import { buildBatchInferencePrompt } from '../ai/prompts/inference-prompt';
+import {
+  type IndexedItem,
+  buildBatchInferencePrompt,
+} from '../ai/prompts/inference-prompt';
+
+function toIndexed(items: ChangelogItem[]): IndexedItem[] {
+  return items.map((item, i) => ({ item, originalIndex: i }));
+}
 
 /**
  * テスト用の ChangelogItem を生成するヘルパー
@@ -34,7 +41,7 @@ describe('buildBatchInferencePrompt', () => {
     test('related_docs が 1件以上の項目は推論セクションに含まれる', () => {
       const items = [makeItem({ docsCount: 1, content: 'Added MCP support' })];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       expect(prompt).toContain('#### 項目 id=0');
       expect(prompt).toContain('- content: Added MCP support');
@@ -48,7 +55,7 @@ describe('buildBatchInferencePrompt', () => {
         makeItem({ docsCount: 0, content: 'Fixed typo in README' }),
       ];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       // 翻訳セクションに含まれる
       expect(prompt).toContain('# タスク2: 翻訳のみ');
@@ -70,7 +77,7 @@ describe('buildBatchInferencePrompt', () => {
         }),
       ];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       // 推論セクションに id=0 と id=2 が含まれる(related_docs >= 1)
       expect(prompt).toContain('#### 項目 id=0');
@@ -93,7 +100,7 @@ describe('buildBatchInferencePrompt', () => {
         makeItem({ docsCount: 2, content: '項目3' }),
       ];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       // 推論セクション: id=1, id=3(related_docs >= 1)
       expect(prompt).toContain('#### 項目 id=1\n- prefix:');
@@ -127,7 +134,7 @@ describe('buildBatchInferencePrompt', () => {
         makeItem({ prefix: 'Fixed', content: 'Fixed a bug' }),
       ];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       expect(prompt).toContain('- [Added] Added new feature');
       expect(prompt).toContain('- [Fixed] Fixed a bug');
@@ -136,7 +143,7 @@ describe('buildBatchInferencePrompt', () => {
     test('項目数がプロンプトに含まれる', () => {
       const items = [makeItem(), makeItem(), makeItem()];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       expect(prompt).toContain('全 3 項目');
     });
@@ -170,7 +177,7 @@ describe('buildBatchInferencePrompt', () => {
         }),
       ];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       expect(prompt).toContain('### docs/en/mcp.md');
       expect(prompt).toContain('MCP はモデルコンテキストプロトコルです');
@@ -189,7 +196,7 @@ describe('buildBatchInferencePrompt', () => {
         }),
       ];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       expect(prompt).toContain(
         'id=0, tags=[MCP, Settings], content: Added MCP support',
@@ -199,7 +206,7 @@ describe('buildBatchInferencePrompt', () => {
     test('feature_areas が undefined の項目は空タグとして出力される', () => {
       const items = [makeItem({ content: 'Some change' })];
 
-      const prompt = buildBatchInferencePrompt(items, 'v2.1.30', '');
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       expect(prompt).toContain('id=0, tags=[], content: Some change');
     });

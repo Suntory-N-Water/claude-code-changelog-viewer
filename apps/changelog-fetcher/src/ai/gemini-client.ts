@@ -205,6 +205,12 @@ export class GeminiClient {
           throw new Error('Gemini APIからの応答が空です');
         }
 
+        const usage = response.usageMetadata;
+        this.log.info(
+          `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0} (thinking: ${usage?.thoughtsTokenCount ?? 0})`,
+          { method: 'inferAll', model },
+        );
+
         const parsed = JSON.parse(response.text);
         const result = InferenceBatchResultSchema.parse(parsed);
         this.log.info(`モデル成功: ${model}`, { method: 'inferAll' });
@@ -254,6 +260,12 @@ export class GeminiClient {
         if (!response.text) {
           throw new Error('Gemini APIからの応答が空です');
         }
+
+        const usage = response.usageMetadata;
+        this.log.info(
+          `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0} (thinking: ${usage?.thoughtsTokenCount ?? 0})`,
+          { method: 'generateText', model },
+        );
 
         this.log.info(`モデル成功: ${model}`, { method: 'generateText' });
         return response.text.trim();
