@@ -50,7 +50,10 @@ Use the `/ide` command in any external terminal to connect Claude Code to your J
 
 ```bash
 claude
-> /ide
+```
+
+```text
+/ide
 ```
 
 If you want Claude to have access to the same files as your IDE, start Claude Code from the same directory as your IDE project root.

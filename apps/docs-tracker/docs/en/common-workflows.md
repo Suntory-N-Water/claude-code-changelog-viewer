@@ -23,20 +23,20 @@ cd /path/to/project
 claude 
 ```
 
-```
-> give me an overview of this codebase 
-```
-
-```
-> explain the main architecture patterns used here 
+```text theme={null}
+give me an overview of this codebase
 ```
 
-```
-> what are the key data models?
+```text theme={null}
+explain the main architecture patterns used here
 ```
 
+```text theme={null}
+what are the key data models?
 ```
-> how is authentication handled?
+
+```text theme={null}
+how is authentication handled?
 ```
 
 Tips:
@@ -49,16 +49,16 @@ Tips:
 
 Suppose you need to locate code related to a specific feature or functionality.
 
-```
-> find the files that handle user authentication 
-```
-
-```
-> how do these authentication files work together? 
+```text theme={null}
+find the files that handle user authentication
 ```
 
+```text theme={null}
+how do these authentication files work together?
 ```
-> trace the login process from front-end to database 
+
+```text theme={null}
+trace the login process from front-end to database
 ```
 
 Tips:
@@ -73,16 +73,16 @@ Tips:
 
 Suppose you've encountered an error message and need to find and fix its source.
 
-```
-> I'm seeing an error when I run npm test 
-```
-
-```
-> suggest a few ways to fix the @ts-ignore in user.ts 
+```text theme={null}
+I'm seeing an error when I run npm test
 ```
 
+```text theme={null}
+suggest a few ways to fix the @ts-ignore in user.ts
 ```
-> update user.ts to add the null check you suggested 
+
+```text theme={null}
+update user.ts to add the null check you suggested
 ```
 
 Tips:
@@ -97,20 +97,20 @@ Tips:
 
 Suppose you need to update old code to use modern patterns and practices.
 
-```
-> find deprecated API usage in our codebase 
-```
-
-```
-> suggest how to refactor utils.js to use modern JavaScript features 
+```text theme={null}
+find deprecated API usage in our codebase
 ```
 
-```
-> refactor utils.js to use ES2024 features while maintaining the same behavior 
+```text theme={null}
+suggest how to refactor utils.js to use modern JavaScript features
 ```
 
+```text theme={null}
+refactor utils.js to use ES2024 features while maintaining the same behavior
 ```
-> run tests for the refactored code 
+
+```text theme={null}
+run tests for the refactored code
 ```
 
 Tips:
@@ -125,32 +125,32 @@ Tips:
 
 Suppose you want to use specialized AI subagents to handle specific tasks more effectively.
 
-```
-> /agents
+```text theme={null}
+/agents
 ```
 
 This shows all available subagents and lets you create new ones.
 
 Claude Code automatically delegates appropriate tasks to specialized subagents:
 
-```
-> review my recent code changes for security issues
-```
-
-```
-> run all tests and fix any failures
+```text theme={null}
+review my recent code changes for security issues
 ```
 
-```
-> use the code-reviewer subagent to check the auth module
-```
-
-```
-> have the debugger subagent investigate why users can't log in
+```text theme={null}
+run all tests and fix any failures
 ```
 
+```text theme={null}
+use the code-reviewer subagent to check the auth module
 ```
-> /agents
+
+```text theme={null}
+have the debugger subagent investigate why users can't log in
+```
+
+```text theme={null}
+/agents
 ```
 
 Then select "Create New subagent" and follow the prompts to define:
@@ -209,15 +209,18 @@ claude --permission-mode plan -p "Analyze the authentication system and suggest 
 claude --permission-mode plan
 ```
 
-```
-> I need to refactor our authentication system to use OAuth2. Create a detailed migration plan.
+```text
+I need to refactor our authentication system to use OAuth2. Create a detailed migration plan.
 ```
 
 Claude analyzes the current implementation and create a comprehensive plan. Refine with follow-ups:
 
+```text
+What about backward compatibility?
 ```
-> What about backward compatibility?
-> How should we handle database migration?
+
+```text
+How should we handle database migration?
 ```
 
 Press `Ctrl+G` to open the plan in your default text editor, where you can edit it directly before Claude proceeds.
@@ -241,20 +244,20 @@ See [settings documentation](/en/settings#available-settings) for more configura
 
 Suppose you need to add tests for uncovered code.
 
-```
-> find functions in NotificationsService.swift that are not covered by tests 
-```
-
-```
-> add tests for the notification service 
+```text theme={null}
+find functions in NotificationsService.swift that are not covered by tests
 ```
 
-```
-> add test cases for edge conditions in the notification service 
+```text theme={null}
+add tests for the notification service
 ```
 
+```text theme={null}
+add test cases for edge conditions in the notification service
 ```
-> run the new tests and fix any failures 
+
+```text theme={null}
+run the new tests and fix any failures
 ```
 
 Claude can generate tests that follow your project's existing patterns and conventions. When asking for tests, be specific about what behavior you want to verify. Claude examines your existing test files to match the style, frameworks, and assertion patterns already in use.
@@ -267,16 +270,16 @@ For comprehensive coverage, ask Claude to identify edge cases you might have mis
 
 You can create pull requests by asking Claude directly ("create a pr for my changes"), or guide Claude through it step-by-step:
 
-```
-> summarize the changes I've made to the authentication module
-```
-
-```
-> create a pr
+```text theme={null}
+summarize the changes I've made to the authentication module
 ```
 
+```text theme={null}
+create a pr
 ```
-> enhance the PR description with more context about the security improvements
+
+```text theme={null}
+enhance the PR description with more context about the security improvements
 ```
 
 When you create a PR using `gh pr create`, the session is automatically linked to that PR. You can resume it later with `claude --from-pr <number>`.
@@ -287,20 +290,20 @@ Review Claude's generated PR before submitting and ask Claude to highlight poten
 
 Suppose you need to add or update documentation for your code.
 
-```
-> find functions without proper JSDoc comments in the auth module 
-```
-
-```
-> add JSDoc comments to the undocumented functions in auth.js 
+```text theme={null}
+find functions without proper JSDoc comments in the auth module
 ```
 
-```
-> improve the generated documentation with more context and examples 
+```text theme={null}
+add JSDoc comments to the undocumented functions in auth.js
 ```
 
+```text theme={null}
+improve the generated documentation with more context and examples
 ```
-> check if the documentation follows our project standards 
+
+```text theme={null}
+check if the documentation follows our project standards
 ```
 
 Tips:
@@ -321,32 +324,32 @@ You can use any of these methods:
 2. Copy an image and paste it into the CLI with ctrl+v (Do not use cmd+v)
 3. Provide an image path to Claude. E.g., "Analyze this image: /path/to/your/image.png"
 
-```
-> What does this image show?
-```
-
-```
-> Describe the UI elements in this screenshot
+```text theme={null}
+What does this image show?
 ```
 
-```
-> Are there any problematic elements in this diagram?
-```
-
-```
-> Here's a screenshot of the error. What's causing it?
+```text theme={null}
+Describe the UI elements in this screenshot
 ```
 
-```
-> This is our current database schema. How should we modify it for the new feature?
-```
-
-```
-> Generate CSS to match this design mockup
+```text theme={null}
+Are there any problematic elements in this diagram?
 ```
 
+```text theme={null}
+Here's a screenshot of the error. What's causing it?
 ```
-> What HTML structure would recreate this component?
+
+```text theme={null}
+This is our current database schema. How should we modify it for the new feature?
+```
+
+```text theme={null}
+Generate CSS to match this design mockup
+```
+
+```text theme={null}
+What HTML structure would recreate this component?
 ```
 
 Tips:
@@ -363,20 +366,20 @@ Tips:
 
 Use @ to quickly include files or directories without waiting for Claude to read them.
 
-```
-> Explain the logic in @src/utils/auth.js
+```text theme={null}
+Explain the logic in @src/utils/auth.js
 ```
 
 This includes the full content of the file in the conversation.
 
-```
-> What's the structure of @src/components?
+```text theme={null}
+What's the structure of @src/components?
 ```
 
 This provides a directory listing with file information.
 
-```
-> Show me the data from @github:repos/owner/repo/issues
+```text theme={null}
+Show me the data from @github:repos/owner/repo/issues
 ```
 
 This fetches data from connected MCP servers using the format @server:resource. See [MCP resources](/en/mcp#use-mcp-resources) for details.
@@ -446,8 +449,8 @@ Give sessions descriptive names to find them later. This is a best practice when
 
 Use `/rename` during a session to give it a memorable name:
 
-```
-> /rename auth-refactor
+```text theme={null}
+/rename auth-refactor
 ```
 
 You can also rename any session from the picker: run `/resume`, navigate to a session, and press `R`.
@@ -460,8 +463,8 @@ claude --resume auth-refactor
 
 Or from inside an active session:
 
-```
-> /resume auth-refactor
+```text theme={null}
+/resume auth-refactor
 ```
 
 ### Use the session picker
@@ -702,28 +705,28 @@ Claude has built-in access to its documentation and can answer questions about i
 
 ### Example questions
 
-```
-> can Claude Code create pull requests?
-```
-
-```
-> how does Claude Code handle permissions?
+```text
+can Claude Code create pull requests?
 ```
 
-```
-> what skills are available?
-```
-
-```
-> how do I use MCP with Claude Code?
+```text
+how does Claude Code handle permissions?
 ```
 
-```
-> how do I configure Claude Code for Amazon Bedrock?
+```text
+what skills are available?
 ```
 
+```text
+how do I use MCP with Claude Code?
 ```
-> what are the limitations of Claude Code?
+
+```text
+how do I configure Claude Code for Amazon Bedrock?
+```
+
+```text
+what are the limitations of Claude Code?
 ```
 
 Claude provides documentation-based answers to these questions. For executable examples and hands-on demonstrations, refer to the specific workflow sections above.

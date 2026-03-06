@@ -85,7 +85,7 @@ sudo dnf install bubblewrap socat
 You can enable sandboxing by running the `/sandbox` command:
 
 ```text
-> /sandbox
+/sandbox
 ```
 
 This opens a menu where you can choose between sandbox modes. If required dependencies are missing (such as `bubblewrap` or `socat` on Linux), the menu displays installation instructions for your platform.
