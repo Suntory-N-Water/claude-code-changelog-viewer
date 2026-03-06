@@ -188,5 +188,18 @@ if (breadcrumbs && breadcrumbs.length > 0) {
     </main>
     <Footer />
     <ScrollToTop />
+    <script is:inline>
+      function initHighlight() {
+        const params = new URLSearchParams(window.location.search);
+        if (!params.has('highlight')) {
+          return;
+        }
+        import('/pagefind/pagefind-highlight.js').then(() => {
+          new PagefindHighlight({ highlightParam: 'highlight' });
+        });
+      }
+      initHighlight();
+      document.addEventListener('astro:after-swap', initHighlight);
+    </script>
   </body>
 </html>
