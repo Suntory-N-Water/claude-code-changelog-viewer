@@ -41,6 +41,7 @@ The quickest way to open Claude is to click the Spark icon in the **Editor Toolb
 
 Other ways to open Claude Code:
 
+- **Activity Bar**: click the Spark icon in the left sidebar to open the sessions list. Click any session to open it as a full editor tab, or start a new one. This icon is always visible in the Activity Bar.
 - **Command Palette**: `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux), type "Claude Code", and select an option like "Open in New Tab"
 - **Status Bar**: click **✱ Claude Code** in the bottom-right corner of the window. This works even when no file is open.
 
@@ -64,7 +65,7 @@ Run "Claude Code: Open Walkthrough" from the Command Palette for a guided tour o
 
 The prompt box supports several features:
 
-- **Permission modes**: click the mode indicator at the bottom of the prompt box to switch modes. In normal mode, Claude asks permission before each action. In Plan mode, Claude describes what it will do and waits for approval before making changes. In auto-accept mode, Claude makes edits without asking. Set the default in VS Code settings under `claudeCode.initialPermissionMode`.
+- **Permission modes**: click the mode indicator at the bottom of the prompt box to switch modes. In normal mode, Claude asks permission before each action. In Plan mode, Claude describes what it will do and waits for approval before making changes. VS Code automatically opens the plan as a full markdown document where you can add inline comments to give feedback before Claude begins. In auto-accept mode, Claude makes edits without asking. Set the default in VS Code settings under `claudeCode.initialPermissionMode`.
 - **Command menu**: click `/` or type `/` to open the command menu. Options include attaching files, switching models, toggling extended thinking, and viewing plan usage (`/usage`). The Customize section provides access to MCP servers, hooks, memory, permissions, and plugins. Items with a terminal icon open in the integrated terminal.
 - **Context indicator**: the prompt box shows how much of Claude's context window you're using. Claude automatically compacts when needed, or you can run `/compact` manually.
 - **Extended thinking**: lets Claude spend more time reasoning through complex problems. Toggle it on via the command menu (`/`). See [Extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) for details.
@@ -113,7 +114,7 @@ You can drag the Claude panel to reposition it anywhere in VS Code. Grab the pan
 - **Primary sidebar**: the left sidebar with icons for Explorer, Search, etc.
 - **Editor area**: opens Claude as a tab alongside your files. Useful for side tasks.
 
-Use the sidebar for your main Claude session and open additional tabs for side tasks. Claude remembers your preferred location. Note that the Spark icon only appears in the Activity Bar when the Claude panel is docked to the left. Since Claude defaults to the right side, use the Editor Toolbar icon to open Claude.
+Use the sidebar for your main Claude session and open additional tabs for side tasks. Claude remembers your preferred location. The Activity Bar sessions list icon is separate from the Claude panel: the sessions list is always visible in the Activity Bar, while the Claude panel icon only appears there when the panel is docked to the left sidebar.
 
 ### Run multiple conversations
 
@@ -232,7 +233,7 @@ Claude Code is available as both a VS Code extension (graphical panel) and a CLI
 | Feature | CLI | VS Code Extension |
 | - | - | - |
 | Commands and skills | [All](/en/interactive-mode#built-in-commands) | Subset (type `/` to see available) |
-| MCP server config | Yes | No (configure via CLI, use in extension) |
+| MCP server config | Yes | Partial (add servers via CLI; manage existing servers with `/mcp` in the chat panel) |
 | Checkpoints | Yes | Yes |
 | `!` bash shortcut | Yes | No |
 | Tab completion | Yes | No |
@@ -267,7 +268,7 @@ When Claude runs long-running commands, the extension shows progress in the stat
 
 ### Connect to external tools with MCP
 
-MCP (Model Context Protocol) servers give Claude access to external tools, databases, and APIs. Configure them via CLI, then use them in both extension and CLI.
+MCP (Model Context Protocol) servers give Claude access to external tools, databases, and APIs.
 
 To add an MCP server, open the integrated terminal (`` Ctrl+` `` or `` Cmd+` ``) and run:
 
@@ -275,7 +276,9 @@ To add an MCP server, open the integrated terminal (`` Ctrl+` `` or `` Cmd+` ``)
 claude mcp add --transport http github https://api.githubcopilot.com/mcp/
 ```
 
-Once configured, ask Claude to use the tools (e.g., "Review PR #456"). Some servers require authentication: run `claude` in the terminal, then type `/mcp` to authenticate. See the [MCP documentation](/en/mcp) for available servers.
+Once configured, ask Claude to use the tools (e.g., "Review PR #456").
+
+To manage MCP servers without leaving VS Code, type `/mcp` in the chat panel. The MCP management dialog lets you enable or disable servers, reconnect to a server, and manage OAuth authentication. See the [MCP documentation](/en/mcp) for available servers.
 
 ## Work with git
 
@@ -380,5 +383,5 @@ For additional help, see the [troubleshooting guide](/en/troubleshooting).
 Now that you have Claude Code set up in VS Code:
 
 - [Explore common workflows](/en/common-workflows) to get the most out of Claude Code
-- [Set up MCP servers](/en/mcp) to extend Claude's capabilities with external tools. Configure servers using the CLI, then use them in the extension.
+- [Set up MCP servers](/en/mcp) to extend Claude's capabilities with external tools. Add servers using the CLI, then manage them with `/mcp` in the chat panel.
 - [Configure Claude Code settings](/en/settings) to customize allowed commands, hooks, and more. These settings are shared between the extension and CLI.
