@@ -21,88 +21,6 @@ afterAll(() => {
 });
 
 describe('extractSnippets', () => {
-  describe('正規表現メタ文字を含むキーワードのマッチ', () => {
-    test('括弧 () を含むキーワードで正しくマッチする', async () => {
-      const rel = await writeTestFile(
-        'parens.md',
-        'Call fn() to execute\nAnother line',
-      );
-
-      const results = await extractSnippets([rel], {
-        original: ['fn()'],
-        normalized: ['fn'],
-      });
-
-      expect(results[0].hit_count).toBe(1);
-      expect(results[0].snippets[0]).toContain('fn()');
-    });
-
-    test('ドット . がリテラルとしてマッチする', async () => {
-      const rel = await writeTestFile(
-        'dot.md',
-        'Edit config.json file\nEdit configXjson here',
-      );
-
-      const results = await extractSnippets([rel], {
-        original: ['config.json'],
-        normalized: ['config', 'json'],
-      });
-
-      // 両方の行が "config" にマッチ
-      expect(results[0].hit_count).toBe(2);
-    });
-
-    test('角括弧 [] を含むキーワードで正しくマッチする', async () => {
-      const rel = await writeTestFile('bracket.md', 'Access $ARGS[0] value');
-
-      const results = await extractSnippets([rel], {
-        original: ['$ARGS[0]'],
-        normalized: ['ARGS'],
-      });
-
-      expect(results[0].hit_count).toBe(1);
-    });
-
-    test('パイプ | がOR演算子として解釈されない', async () => {
-      const rel = await writeTestFile(
-        'pipe.md',
-        'Use stdin|stdout for piping\nNo match here',
-      );
-
-      const results = await extractSnippets([rel], {
-        original: ['stdin|stdout'],
-        normalized: ['stdin', 'stdout'],
-      });
-
-      expect(results[0].hit_count).toBe(1);
-    });
-
-    test('アスタリスク * で正しくマッチする', async () => {
-      const rel = await writeTestFile('star.md', 'Match *.md files');
-
-      const results = await extractSnippets([rel], {
-        original: ['*.md'],
-        normalized: ['md'],
-      });
-
-      expect(results[0].hit_count).toBe(1);
-    });
-
-    test('$ を含むキーワードで正しくマッチする', async () => {
-      const rel = await writeTestFile(
-        'dollar.md',
-        'Environment $HOME variable',
-      );
-
-      const results = await extractSnippets([rel], {
-        original: ['$HOME'],
-        normalized: ['HOME'],
-      });
-
-      expect(results[0].hit_count).toBe(1);
-    });
-  });
-
   describe('スニペット抽出', () => {
     test('マッチ行の前後3行を含むスニペットを返す', async () => {
       const lines = [
@@ -286,6 +204,20 @@ describe('extractSnippets', () => {
       });
 
       expect(results[0].snippets[0]).toContain('keyword at end');
+    });
+
+    test('存在しないファイルパスを渡した場合に例外がスローされる', async () => {
+      const nonExistent = path.relative(
+        PROJECT_ROOT,
+        path.join(tmpDir, 'does-not-exist.md'),
+      );
+
+      await expect(
+        extractSnippets([nonExistent], {
+          original: ['keyword'],
+          normalized: ['keyword'],
+        }),
+      ).rejects.toThrow();
     });
   });
 });

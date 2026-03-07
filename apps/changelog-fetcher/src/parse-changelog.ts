@@ -16,7 +16,7 @@ type Metadata = {
   versions: Record<string, string>;
 };
 
-function parseChangelog(content: string): Record<string, string> {
+export function parseChangelog(content: string): Record<string, string> {
   const versions: Record<string, string> = {};
   let currentVersion: string | null = null;
   const lines: string[] = [];

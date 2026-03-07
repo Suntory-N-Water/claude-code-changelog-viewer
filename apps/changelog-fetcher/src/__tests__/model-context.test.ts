@@ -45,6 +45,15 @@ describe('parseModelNames', () => {
     expect(result).toEqual([]);
   });
 
+  test('閉じ括弧がない壊れた形式の場合は空配列を返す', () => {
+    const content = `
+| **\`sonnet\`** | Uses the latest Sonnet model (currently Sonnet 4.6 for tasks |
+`;
+    const result = parseModelNames(content);
+
+    expect(result).toEqual([]);
+  });
+
   test('将来モデル名が変わっても正しく抽出できる', () => {
     const content = `
 | **\`sonnet\`** | Uses the latest Sonnet model (currently Sonnet 5.0) for tasks |

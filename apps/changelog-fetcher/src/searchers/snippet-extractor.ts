@@ -1,14 +1,8 @@
 import type { Keywords, SnippetResult } from '../types';
+import { escapeRegex } from './escape-regex';
 import { toAbsolutePath } from './paths';
 
 const MAX_SNIPPETS_PER_FILE = 5;
-
-/**
- * 正規表現メタ文字をエスケープ
- */
-function escapeRegex(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
 
 /**
  * ファイルを解析してマッチ行数とスニペットを返す

@@ -9,23 +9,8 @@
  * この実データを使って extractItems / items_changed / version_removed の
  * 検知が正しく動作することを検証する。
  */
-import { afterAll, describe, expect, test } from 'bun:test';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import type { ChangelogDiff } from '../types';
-import {
-  extractItems,
-  isDuplicateEvent,
-  loadDiffFile,
-  saveDiffFile,
-} from '../parse-changelog';
-
-const tmpDir = mkdtempSync(join(tmpdir(), 'changelog-diff-real-'));
-
-afterAll(() => {
-  rmSync(tmpDir, { recursive: true, force: true });
-});
+import { describe, expect, test } from 'bun:test';
+import { extractItems } from '../parse-changelog';
 
 // コミット1 (9c63e98) 時点の v2.1.64 の内容(実データ)
 const V2_1_64_COMMIT1 = `## 2.1.64
@@ -48,91 +33,6 @@ describe('実データ検証: v2.1.64 の変遷', () => {
     expect(items).toHaveLength(9);
     expect(items[0]).toStartWith('- Added persistent session support');
     expect(items[8]).toStartWith('- Fixed terminal flicker');
-  });
-
-  test('v2.1.64 がコミット2で消えた場合 version_removed を検知する', () => {
-    // コミット1 時点の metadata
-    const metadataVersions = ['v2.1.64', 'v2.1.63', 'v2.1.62'];
-
-    // コミット2 時点の取得元バージョン(v2.1.64 が消えている)
-    const remoteVersions: Record<string, string> = {
-      '2.1.66': '- New feature',
-      '2.1.63': '- Some content',
-      '2.1.62': '- Some content',
-    };
-
-    const removed = metadataVersions.filter((key) => {
-      const versionNumber = key.replace(/^v/, '');
-      return !(versionNumber in remoteVersions);
-    });
-
-    expect(removed).toEqual(['v2.1.64']);
-  });
-
-  test('version_removed イベントが diff.json に正しく記録される', () => {
-    const filePath = join(tmpDir, 'version-removed', 'diff.json');
-    const diffData = loadDiffFile(filePath);
-
-    // コミット2 時点での検知: v2.1.64 が消えた
-    const event = {
-      version: 'v2.1.64',
-      type: 'version_removed' as const,
-      items_added: [] as string[],
-      items_removed: [] as string[],
-    };
-
-    if (!isDuplicateEvent(diffData.events, event)) {
-      diffData.events.push({
-        detected_at: '2026-03-04T00:00:00.000Z',
-        ...event,
-      });
-    }
-
-    saveDiffFile(filePath, diffData);
-
-    const result = loadDiffFile(filePath);
-    expect(result.events).toHaveLength(1);
-    expect(result.events[0]?.version).toBe('v2.1.64');
-    expect(result.events[0]?.type).toBe('version_removed');
-    expect(result.events[0]?.items_added).toEqual([]);
-    expect(result.events[0]?.items_removed).toEqual([]);
-  });
-
-  test('コミット3 で再度検知しても重複イベントは追加されない', () => {
-    const filePath = join(tmpDir, 'no-duplicate', 'diff.json');
-
-    // コミット2 で検知済み
-    const initial: ChangelogDiff = {
-      events: [
-        {
-          detected_at: '2026-03-04T00:00:00.000Z',
-          version: 'v2.1.64',
-          type: 'version_removed',
-          items_added: [],
-          items_removed: [],
-        },
-      ],
-    };
-    saveDiffFile(filePath, initial);
-
-    // コミット3 で再度検知を試みる
-    const diffData = loadDiffFile(filePath);
-    const event = {
-      version: 'v2.1.64',
-      type: 'version_removed' as const,
-      items_added: [] as string[],
-      items_removed: [] as string[],
-    };
-
-    if (!isDuplicateEvent(diffData.events, event)) {
-      diffData.events.push({
-        detected_at: '2026-03-04T01:00:00.000Z',
-        ...event,
-      });
-    }
-
-    // 重複なので追加されない
-    expect(diffData.events).toHaveLength(1);
   });
 });
 

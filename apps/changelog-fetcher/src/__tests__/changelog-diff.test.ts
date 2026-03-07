@@ -175,32 +175,6 @@ describe('items_changed 検知', () => {
   });
 });
 
-describe('version_removed 検知', () => {
-  test('取得元にないバージョンを検出する', () => {
-    const metadataVersions = ['v1.0.0', 'v1.0.1'];
-    const remoteVersions: Record<string, string> = { '1.0.0': 'content' };
-
-    const removed = metadataVersions.filter((key) => {
-      const versionNumber = key.replace(/^v/, '');
-      return !(versionNumber in remoteVersions);
-    });
-
-    expect(removed).toEqual(['v1.0.1']);
-  });
-
-  test('全バージョン存在する場合 検出なし', () => {
-    const metadataVersions = ['v1.0.0'];
-    const remoteVersions: Record<string, string> = { '1.0.0': 'content' };
-
-    const removed = metadataVersions.filter((key) => {
-      const versionNumber = key.replace(/^v/, '');
-      return !(versionNumber in remoteVersions);
-    });
-
-    expect(removed).toEqual([]);
-  });
-});
-
 describe('diff ファイルへの追記', () => {
   test('イベントを追記して保存できる', () => {
     const filePath = join(tmpDir, 'append-test', 'diff.json');

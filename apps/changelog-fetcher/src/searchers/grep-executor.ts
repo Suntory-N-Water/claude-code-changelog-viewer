@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import type { Keywords, SearchResult } from '../types';
+import { escapeRegex } from './escape-regex';
 import { PROJECT_ROOT, toRelativePath } from './paths';
 
 // ドキュメントディレクトリ(絶対パス)
@@ -50,13 +51,6 @@ function exactSearch(keywords: string[], cache: Map<string, string>): string[] {
 }
 
 /**
- * 正規表現の特殊文字をエスケープ
- */
-function escapeRegExp(str: string): string {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
  * 正規表現でファイルを検索(戦略2, 3 共通)
  */
 function regexSearch(keywords: string[], cache: Map<string, string>): string[] {
@@ -64,7 +58,7 @@ function regexSearch(keywords: string[], cache: Map<string, string>): string[] {
     return [];
   }
 
-  const escapedKeywords = keywords.map(escapeRegExp);
+  const escapedKeywords = keywords.map(escapeRegex);
   const pattern = new RegExp(escapedKeywords.join('|'), 'i');
   const matched: string[] = [];
   for (const [file, content] of cache) {
