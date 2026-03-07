@@ -19,19 +19,19 @@ To install Claude Code, use one of the following methods:
 
 **macOS, Linux, WSL:**
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 irm https://claude.ai/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
-```batch theme={null}
+```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
@@ -39,13 +39,13 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 
 Native installations automatically update in the background to keep you on the latest version.
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 brew install --cask claude-code
 ```
 
 Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes.
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 winget install Anthropic.ClaudeCode
 ```
 
@@ -71,7 +71,7 @@ Or search for "Claude Code" in the Extensions view (`Cmd+Shift+X` on Mac, `Ctrl+
 
 [Get started with VS Code →](/en/vs-code#get-started)
 
-A standalone app for running Claude Code outside your IDE or terminal. Review diffs visually, run multiple sessions side by side, and kick off cloud sessions.
+A standalone app for running Claude Code outside your IDE or terminal. Review diffs visually, run multiple sessions side by side, schedule recurring tasks, and kick off cloud sessions.
 
 Download and install:
 
