@@ -1,6 +1,5 @@
 // @ts-check
 
-import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import pagefind from 'astro-pagefind';
@@ -22,13 +21,5 @@ export default defineConfig({
     },
   },
   output: 'static',
-  integrations: [
-    sitemap(),
-    partytown({
-      config: {
-        forward: ['dataLayer.push'],
-      },
-    }),
-    pagefind(),
-  ],
+  integrations: [sitemap(), pagefind()],
 });
