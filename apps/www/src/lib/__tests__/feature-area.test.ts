@@ -2,7 +2,6 @@ import { describe, expect, test } from 'bun:test';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import {
   aggregateByFeatureArea,
-  findAreaBySlug,
   groupByVersion,
   toFeatureAreaSlug,
   validateSlugUniqueness,
@@ -57,19 +56,6 @@ describe('toFeatureAreaSlug', () => {
   test('全14エリアで一意なスラッグが生成される', () => {
     const slugs = ALL_AREAS.map(toFeatureAreaSlug);
     expect(new Set(slugs).size).toBe(ALL_AREAS.length);
-  });
-});
-
-describe('findAreaBySlug', () => {
-  test('全14エリアについて往復整合性が成立する', () => {
-    for (const area of ALL_AREAS) {
-      const slug = toFeatureAreaSlug(area);
-      expect(findAreaBySlug(slug, ALL_AREAS)).toBe(area);
-    }
-  });
-
-  test('存在しないスラッグは undefined を返す', () => {
-    expect(findAreaBySlug('unknown', ALL_AREAS)).toBeUndefined();
   });
 });
 

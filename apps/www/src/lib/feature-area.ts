@@ -16,13 +16,6 @@ export function toFeatureAreaSlug(area: string): string {
 }
 
 /** スラッグから元の feature_area 名を逆引き */
-export function findAreaBySlug(
-  slug: string,
-  allAreas: string[],
-): string | undefined {
-  return allAreas.find((area) => toFeatureAreaSlug(area) === slug);
-}
-
 /** 表示ラベル(エリア名と異なる場合のみ定義。一致するものは getFeatureAreaLabel で fallback) */
 const FEATURE_AREA_LABELS: Record<string, string> = {
   'IDE/VSCode': 'IDE / VSCode',
