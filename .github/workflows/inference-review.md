@@ -40,11 +40,14 @@ steps:
   - name: 推論結果の収集
     env:
       HEAD_SHA: ${{ github.event.after }}
+      BEFORE_SHA: ${{ github.event.before }}
+      GH_TOKEN: ${{ github.token }}
     run: |
       mkdir -p /tmp/gh-aw/review-data
 
-      # push されたコミットで変更された inferred ファイルを検出
-      CHANGED_FILES=$(git diff --name-only "${HEAD_SHA}^" "${HEAD_SHA}" -- 'apps/changelog-fetcher/inferred/inferred_v*.json' 2>/dev/null || true)
+      # GitHub API で push コミットの変更ファイルを取得(shallow clone でも動作する)
+      CHANGED_FILES=$(gh api "repos/${{ github.repository }}/compare/${BEFORE_SHA}...${HEAD_SHA}" \
+        --jq '.files[] | select(.filename | test("^apps/changelog-fetcher/inferred/inferred_v.*\\.json$")) | .filename' 2>/dev/null || true)
 
       if [ -z "$CHANGED_FILES" ]; then
         echo "⚠️ 推論結果の変更なし。スキップします。"
