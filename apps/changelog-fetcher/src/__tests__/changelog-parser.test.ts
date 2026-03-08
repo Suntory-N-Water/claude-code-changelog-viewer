@@ -69,6 +69,11 @@ describe('parseChangelog', () => {
   });
 
   describe('prefix 分類', () => {
+    test('タグが先頭にある項目でも Added に分類される', () => {
+      const items = parseChangelog('## 2.1.0\n\n- [SDK] Added new SDK feature');
+      expect(items[0].prefix).toBe('Added');
+    });
+
     test.each([
       ['- Added new feature', 'Added'],
       ['- Adding support for X', 'Added'],
@@ -207,6 +212,45 @@ describe('parseChangelog', () => {
   });
 
   describe('パースのエッジケース', () => {
+    test('複数行項目の2行目以降にあるタグも抽出する', () => {
+      const changelog = [
+        '## 2.1.0',
+        '',
+        '- Added multi-line feature description',
+        '  with follow-up details for [SDK] support',
+      ].join('\n');
+      const items = parseChangelog(changelog);
+
+      expect(items).toHaveLength(1);
+      expect(items[0].tags).toEqual(['SDK']);
+    });
+
+    test('行頭がアスタリスクや番号付きリストの行は項目として扱わない', () => {
+      const changelog = [
+        '## 2.1.0',
+        '',
+        '* Bullet item',
+        '1. Numbered item',
+        '- Actual changelog item',
+      ].join('\n');
+      const items = parseChangelog(changelog);
+
+      expect(items).toHaveLength(1);
+      expect(items[0].content).toBe('- Actual changelog item');
+    });
+
+    test('近似語は既知の prefix に誤分類しない', () => {
+      const enablementItems = parseChangelog(
+        '## 2.1.0\n\n- Enablement guidance for enterprise rollout',
+      );
+      const fixingItems = parseChangelog(
+        '## 2.1.0\n\n- Fixing build output formatting for docs preview',
+      );
+
+      expect(enablementItems[0].prefix).toBe('Changed');
+      expect(fixingItems[0].prefix).toBe('Changed');
+    });
+
     test('インデントされたサブアイテムは新しい項目として扱われる', () => {
       // trim() されるので `  - Sub` は `- Sub` になり新項目として検出される
       const changelog = [

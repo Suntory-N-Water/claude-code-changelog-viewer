@@ -47,6 +47,14 @@ describe('extractKeywords', () => {
 
       expect(keywords.original).toContain('-l');
     });
+
+    test('バッククォート内の複数語は normalized で分解される', () => {
+      const item = makeItem('- Added `plan mode` support');
+      const keywords = extractKeywords(item);
+
+      expect(keywords.normalized).toContain('plan');
+      expect(keywords.normalized).toContain('mode');
+    });
   });
 
   describe('技術用語抽出', () => {
@@ -64,6 +72,21 @@ describe('extractKeywords', () => {
       // [SDK] は extractTechnicalTerms でタグとして除外される
       // ただし本文中の "SDK" は抽出される
       expect(keywords.original).toContain('SDK');
+    });
+
+    test('小文字の技術語は抽出されず大文字の技術語は抽出される', () => {
+      const item = makeItem('- Updated json parser for JSON payloads');
+      const keywords = extractKeywords(item);
+
+      expect(keywords.original).toContain('JSON');
+      expect(keywords.original).not.toContain('json');
+    });
+
+    test('タグだけ存在して本文に技術語がない場合はタグ語を original に含めない', () => {
+      const item = makeItem('- [SDK] Added support for local development');
+      const keywords = extractKeywords(item);
+
+      expect(keywords.original).not.toContain('SDK');
     });
   });
 
@@ -101,6 +124,13 @@ describe('extractKeywords', () => {
 
       // "error" は EXCLUDED_WORDS に含まれる
       expect(keywords.normalized).not.toContain('error');
+    });
+
+    test('除外ワードが大文字小文字違いの場合の扱いを固定する', () => {
+      const item = makeItem('- Updated `ADDED` marker handling');
+      const keywords = extractKeywords(item);
+
+      expect(keywords.normalized).toContain('ADDED');
     });
 
     test('接続詞が除外される', () => {
@@ -159,6 +189,15 @@ describe('extractKeywords', () => {
       // 空のバッククォートは [^`]+ にマッチしない
       expect(keywords.original.filter((k) => k === '')).toHaveLength(0);
     });
+
+    test('同じキーワードがバッククォートと本文の両方にある場合は重複を保持する', () => {
+      const item = makeItem('- Updated `JSON` parsing for JSON responses');
+      const keywords = extractKeywords(item);
+
+      expect(
+        keywords.original.filter((keyword) => keyword === 'JSON'),
+      ).toHaveLength(2);
+    });
   });
 
   describe('技術用語の語境界', () => {
@@ -184,6 +223,13 @@ describe('extractKeywords', () => {
       const keywords = extractKeywords(item);
 
       expect(keywords.original).toContain('AI');
+    });
+
+    test('数字だけのキーワードが normalized に残る', () => {
+      const item = makeItem('- Fixed handling of `$ARGUMENTS[0]`');
+      const keywords = extractKeywords(item);
+
+      expect(keywords.normalized).toContain('0');
     });
   });
 });

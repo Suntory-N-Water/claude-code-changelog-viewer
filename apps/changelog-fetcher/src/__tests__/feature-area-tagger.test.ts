@@ -6,6 +6,8 @@ describe('tagFeatureAreas', () => {
     test.each([
       ['VSCode extension updated', ['IDE/VSCode']],
       ['MCP server integration', ['MCP']],
+      ['Model Context Protocol integration', ['MCP']],
+      ['claude.md memory loading updated', ['Memory']],
     ])('"%s" → %j', (content, expectedTags) => {
       expect(tagFeatureAreas(content)).toEqual(expectedTags);
     });

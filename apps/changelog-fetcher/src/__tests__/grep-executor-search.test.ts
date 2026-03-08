@@ -85,6 +85,30 @@ describe('searchDocs', () => {
       expect(result.files).toEqual([]);
     });
 
+    test('戦略2 が 50件超の場合は戦略3 にフォールバックする', async () => {
+      const manyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-many-2-'));
+
+      try {
+        for (let i = 0; i < 51; i++) {
+          await Bun.write(path.join(manyDir, `common-${i}.md`), 'common-token');
+        }
+
+        await Bun.write(path.join(manyDir, 'unique.md'), 'unique-token');
+
+        const result = await searchDocs(
+          { original: ['unique-token'], normalized: ['common-token'] },
+          manyDir,
+        );
+
+        expect(result.files).toHaveLength(52);
+        expect(result.files.some((file) => file.includes('unique.md'))).toBe(
+          true,
+        );
+      } finally {
+        fs.rmSync(manyDir, { recursive: true, force: true });
+      }
+    });
+
     test('original が空の場合は戦略2 に進む', async () => {
       const result = await searchDocs(
         { original: [], normalized: ['SETTINGS'] },
@@ -126,6 +150,26 @@ describe('searchDocs', () => {
       );
       expect(settingsFiles).toHaveLength(1);
     });
+
+    test('戦略3 でも同じファイルは重複しない', async () => {
+      const manyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-dup-'));
+
+      try {
+        for (let i = 0; i < 51; i++) {
+          await Bun.write(path.join(manyDir, `common-${i}.md`), 'shared-token');
+        }
+
+        const result = await searchDocs(
+          { original: ['shared-token'], normalized: ['shared-token'] },
+          manyDir,
+        );
+
+        const uniqueFiles = new Set(result.files);
+        expect(uniqueFiles.size).toBe(result.files.length);
+      } finally {
+        fs.rmSync(manyDir, { recursive: true, force: true });
+      }
+    });
   });
 
   describe('大文字小文字の無視', () => {
@@ -141,6 +185,48 @@ describe('searchDocs', () => {
   });
 
   describe('異常系', () => {
+    test('正規表現メタ文字を含むキーワードもリテラル一致として検索できる', async () => {
+      const specialDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'grep-special-'),
+      );
+
+      try {
+        await Bun.write(
+          path.join(specialDir, 'special.md'),
+          'Use `$ARGUMENTS[0]` in configuration',
+        );
+
+        const result = await searchDocs(
+          { original: ['$ARGUMENTS[0]'], normalized: ['ARGUMENTS'] },
+          specialDir,
+        );
+
+        expect(result.files).toHaveLength(1);
+        expect(result.files[0]).toContain('special.md');
+      } finally {
+        fs.rmSync(specialDir, { recursive: true, force: true });
+      }
+    });
+
+    test('サブディレクトリ配下の .md は検索対象にならない', async () => {
+      const nestedDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-nested-'));
+      const childDir = path.join(nestedDir, 'nested');
+      fs.mkdirSync(childDir);
+
+      try {
+        await Bun.write(path.join(childDir, 'nested.md'), 'nested-keyword');
+
+        const result = await searchDocs(
+          { original: [], normalized: ['nested-keyword'] },
+          nestedDir,
+        );
+
+        expect(result.files).toEqual([]);
+      } finally {
+        fs.rmSync(nestedDir, { recursive: true, force: true });
+      }
+    });
+
     test('.md ファイルが1件もないディレクトリでは空配列を返す', async () => {
       const emptyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-empty-'));
       try {

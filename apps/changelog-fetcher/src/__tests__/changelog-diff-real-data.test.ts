@@ -26,6 +26,18 @@ const V2_1_64_COMMIT1 = `## 2.1.64
 - Fixed terminal flicker caused by animated elements at the scrollback boundary
 `;
 
+function computeDiff(localContent: string, remoteContent: string) {
+  const localItems = extractItems(localContent);
+  const remoteItems = extractItems(remoteContent);
+  const localSet = new Set(localItems);
+  const remoteSet = new Set(remoteItems);
+
+  return {
+    added: remoteItems.filter((item) => !localSet.has(item)),
+    removed: localItems.filter((item) => !remoteSet.has(item)),
+  };
+}
+
 describe('実データ検証: v2.1.64 の変遷', () => {
   test('コミット1 の v2.1.64 から項目を正しく抽出できる', () => {
     const items = extractItems(V2_1_64_COMMIT1);
@@ -64,5 +76,49 @@ describe('実データ検証: items_changed のシミュレーション', () => 
     expect(removed).not.toContainEqual(
       expect.stringContaining('terminal flicker'),
     );
+  });
+
+  test('項目の順序だけが変わった場合は差分なしになる', () => {
+    const remoteContent = `## 2.1.64
+
+- Fixed terminal flicker caused by animated elements at the scrollback boundary
+- Added agent name display in terminal title when using \`claude --agent\`
+- Added effort level display (e.g., "with low effort") to the logo and spinner, making it easier to see which effort setting is active
+- Added Voice STT support for 10 new languages (20 total) — Russian, Polish, Turkish, Dutch, Ukrainian, Greek, Czech, Danish, Swedish, Norwegian
+- Added optional name argument to \`/remote-control\` and \`claude remote-control\` (\`/remote-control My Project\` or \`--name "My Project"\`) to set a custom session title visible in claude.ai/code
+- Added \`claude remote-control server\` for hosting multiple concurrent sessions with worktree or same-dir isolation
+- Added persistent session support to \`claude server\`: connections with a \`session_key\` survive WebSocket disconnects and can be resumed across server restarts. New flags: \`--workspace\`, \`--idle-timeout\`, \`--max-sessions\`.
+- Fixed symlink bypass where writing new files through a symlinked parent directory could escape the working directory in \`acceptEdits\` mode
+- Fixed multi-GB memory spike when committing with large untracked binary files in the working tree
+`;
+
+    const { added, removed } = computeDiff(V2_1_64_COMMIT1, remoteContent);
+
+    expect(added).toEqual([]);
+    expect(removed).toEqual([]);
+  });
+
+  test('新規項目と削除項目が同時にある場合は両方を検知する', () => {
+    const remoteContent = `## 2.1.64
+
+- Added persistent session support to \`claude server\`: connections with a \`session_key\` survive WebSocket disconnects and can be resumed across server restarts. New flags: \`--workspace\`, \`--idle-timeout\`, \`--max-sessions\`.
+- Added \`claude remote-control server\` for hosting multiple concurrent sessions with worktree or same-dir isolation
+- Added agent name display in terminal title when using \`claude --agent\`
+- Fixed symlink bypass where writing new files through a symlinked parent directory could escape the working directory in \`acceptEdits\` mode
+- Fixed terminal flicker caused by animated elements at the scrollback boundary
+- Added remote MCP debugging support for session inspection
+`;
+
+    const { added, removed } = computeDiff(V2_1_64_COMMIT1, remoteContent);
+
+    expect(added).toEqual([
+      '- Added remote MCP debugging support for session inspection',
+    ]);
+    expect(removed).toEqual([
+      '- Added optional name argument to `/remote-control` and `claude remote-control` (`/remote-control My Project` or `--name "My Project"`) to set a custom session title visible in claude.ai/code',
+      '- Added Voice STT support for 10 new languages (20 total) — Russian, Polish, Turkish, Dutch, Ukrainian, Greek, Czech, Danish, Swedish, Norwegian',
+      '- Added effort level display (e.g., "with low effort") to the logo and spinner, making it easier to see which effort setting is active',
+      '- Fixed multi-GB memory spike when committing with large untracked binary files in the working tree',
+    ]);
   });
 });

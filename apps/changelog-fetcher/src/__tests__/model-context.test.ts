@@ -63,6 +63,16 @@ describe('parseModelNames', () => {
 
     expect(result).toEqual(['Sonnet 5.0', 'Opus 5.0']);
   });
+
+  test('大文字小文字だけが異なるモデル名は別要素として保持する', () => {
+    const content = `
+| **\`sonnet\`** | Uses the latest Sonnet model (currently Sonnet 4.6) for tasks |
+| **\`sonnet-alt\`** | Uses the latest Sonnet model (currently sonnet 4.6) for tasks |
+`;
+    const result = parseModelNames(content);
+
+    expect(result).toEqual(['Sonnet 4.6', 'sonnet 4.6']);
+  });
 });
 
 describe('buildModelContext', () => {

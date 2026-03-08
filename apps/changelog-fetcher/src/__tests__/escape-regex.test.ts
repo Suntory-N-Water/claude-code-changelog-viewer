@@ -43,4 +43,8 @@ describe('escapeRegex', () => {
     expect(pattern.test('$ARGS[0]')).toBe(true);
     expect(pattern.test('xARGSx0x')).toBe(false);
   });
+
+  test('連続するバックスラッシュを含む文字列も正しくエスケープする', () => {
+    expect(escapeRegex('path\\to\\file')).toBe('path\\\\to\\\\file');
+  });
 });

@@ -31,6 +31,11 @@ describe('extractItems', () => {
     expect(extractItems(content)).toEqual([]);
   });
 
+  test('「- 」で始まらない行は項目として扱わない', () => {
+    const content = '-Item A\n- Item B\n';
+    expect(extractItems(content)).toEqual(['- Item B']);
+  });
+
   test('前後の空白を trim してから判定する', () => {
     const content = '  - Indented item\n';
     expect(extractItems(content)).toEqual(['- Indented item']);
@@ -72,6 +77,36 @@ describe('isDuplicateEvent', () => {
         items_added: ['- Different item'],
       }),
     ).toBe(false);
+  });
+
+  test('items_removed が異なれば false を返す', () => {
+    expect(
+      isDuplicateEvent(existingEvents, {
+        ...baseEvent,
+        items_removed: ['- Different item'],
+      }),
+    ).toBe(false);
+  });
+
+  test('items の順序だけが異なる場合も重複とみなす', () => {
+    const reorderedExistingEvents: DiffEvent[] = [
+      {
+        detected_at: '2026-03-04T00:00:00.000Z',
+        version: 'v1.0.0',
+        type: 'items_changed',
+        items_added: ['- New item B', '- New item A'],
+        items_removed: ['- Old item B', '- Old item A'],
+      },
+    ];
+
+    expect(
+      isDuplicateEvent(reorderedExistingEvents, {
+        version: 'v1.0.0',
+        type: 'items_changed',
+        items_added: ['- New item A', '- New item B'],
+        items_removed: ['- Old item A', '- Old item B'],
+      }),
+    ).toBe(true);
   });
 
   test('空の events 配列には false を返す', () => {

@@ -185,6 +185,29 @@ describe('buildBatchInferencePrompt', () => {
       expect(prompt).toContain('### docs/en/config.md');
       expect(prompt).toContain('設定ファイルの書き方');
     });
+
+    test('snippets が空でも推論対象の項目ブロックは出力される', () => {
+      const items = [
+        makeItem({
+          docsCount: 0,
+          content: 'Added empty snippet docs',
+          related_docs: [
+            {
+              file: 'docs/en/empty.md',
+              hit_count: 1,
+              context_score: 1,
+              total_score: 1,
+              snippets: [],
+            },
+          ],
+        }),
+      ];
+
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
+
+      expect(prompt).toContain('#### 項目 id=0');
+      expect(prompt).toContain('### docs/en/empty.md');
+    });
   });
 
   describe('機能領域タグセクション', () => {
@@ -209,6 +232,48 @@ describe('buildBatchInferencePrompt', () => {
       const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
 
       expect(prompt).toContain('id=0, tags=[], content: Some change');
+    });
+
+    test('空配列と複数タグが混在しても一覧整形が安定する', () => {
+      const items = [
+        makeItem({ content: 'Some change', feature_areas: [] }),
+        makeItem({
+          content: 'Added MCP settings',
+          feature_areas: ['MCP', 'Settings'],
+        }),
+      ];
+
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
+
+      expect(prompt).toContain('id=0, tags=[], content: Some change');
+      expect(prompt).toContain(
+        'id=1, tags=[MCP, Settings], content: Added MCP settings',
+      );
+    });
+  });
+
+  describe('文字列境界ケース', () => {
+    test('modelContext が空文字でもモデル情報セクションが壊れない', () => {
+      const prompt = buildBatchInferencePrompt([], 'v2.1.30', '');
+
+      expect(prompt).toContain('## Claude Code のモデル情報 (重要)');
+      expect(prompt).toContain('## 状況 (Situation)');
+    });
+
+    test('content に改行や Markdown 記号が含まれても項目ブロックの区切りが崩れない', () => {
+      const items = [
+        makeItem({
+          docsCount: 1,
+          content: 'Added support for `plan` mode\nwith follow-up details',
+        }),
+      ];
+
+      const prompt = buildBatchInferencePrompt(toIndexed(items), 'v2.1.30', '');
+
+      expect(prompt).toContain(
+        '- content: Added support for `plan` mode\nwith follow-up details',
+      );
+      expect(prompt).toContain('# タスク2: 翻訳のみ');
     });
   });
 

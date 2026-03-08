@@ -127,6 +127,48 @@ describe('extractSnippets', () => {
       expect(results[0].hit_count).toBe(3);
     });
 
+    test('キーワードに正規表現メタ文字が含まれてもマッチ件数を正しく数える', async () => {
+      const rel = await writeTestFile(
+        'regex-meta.md',
+        '$ARGUMENTS[0] here\nno match\n$ARGUMENTS[0] again',
+      );
+
+      const results = await extractSnippets([rel], {
+        original: ['$ARGUMENTS[0]'],
+        normalized: ['ARGUMENTS'],
+      });
+
+      expect(results[0].hit_count).toBe(2);
+    });
+
+    test('同一行に複数キーワードがあっても hit_count は1件として数える', async () => {
+      const rel = await writeTestFile(
+        'single-line-multi.md',
+        'foo keyword bar',
+      );
+
+      const results = await extractSnippets([rel], {
+        original: ['foo', 'keyword'],
+        normalized: [],
+      });
+
+      expect(results[0].hit_count).toBe(1);
+    });
+
+    test('original と normalized の重複語があっても過剰マッチしない', async () => {
+      const rel = await writeTestFile(
+        'duplicate-keywords.md',
+        'keyword only once',
+      );
+
+      const results = await extractSnippets([rel], {
+        original: ['keyword'],
+        normalized: ['keyword'],
+      });
+
+      expect(results[0].hit_count).toBe(1);
+    });
+
     test('複数ファイルをそれぞれ処理する', async () => {
       const relA = await writeTestFile('a.md', 'keyword in a');
       const relB = await writeTestFile('b.md', 'keyword in b');
@@ -204,6 +246,26 @@ describe('extractSnippets', () => {
       });
 
       expect(results[0].snippets[0]).toContain('keyword at end');
+    });
+
+    test('スニペット候補が5件を超えても hit_count は全件数を保持する', async () => {
+      const lines: string[] = [];
+      for (let i = 0; i < 8; i++) {
+        lines.push(`keyword line ${i}`);
+        for (let j = 0; j < 10; j++) {
+          lines.push(`filler ${i}-${j}`);
+        }
+      }
+
+      const rel = await writeTestFile('hit-count-many.md', lines.join('\n'));
+
+      const results = await extractSnippets([rel], {
+        original: ['keyword'],
+        normalized: ['keyword'],
+      });
+
+      expect(results[0].snippets).toHaveLength(5);
+      expect(results[0].hit_count).toBe(8);
     });
 
     test('存在しないファイルパスを渡した場合に例外がスローされる', async () => {
