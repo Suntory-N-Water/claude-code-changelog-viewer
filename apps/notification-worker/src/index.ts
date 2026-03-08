@@ -5,7 +5,9 @@ import { dispatchRoute } from './routes/dispatch';
 import { unsubscribeRoute } from './routes/unsubscribe';
 import { webhooksRoute } from './routes/webhooks';
 
-const app = new Hono<{ Bindings: CloudflareBindings }>().basePath('/api');
+export const app = new Hono<{ Bindings: CloudflareBindings }>().basePath(
+  '/api',
+);
 
 app.use(
   '*',
