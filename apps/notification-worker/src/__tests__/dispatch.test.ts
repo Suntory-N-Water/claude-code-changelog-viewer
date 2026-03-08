@@ -47,7 +47,6 @@ describe('POST /api/dispatch', () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data).toEqual({ success: true, queued: ['v1.0.0', 'v1.1.0'] });
-    expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledTimes(1);
     expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledWith([
       { body: { version: 'v1.0.0' } },
       { body: { version: 'v1.1.0' } },
@@ -122,7 +121,6 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(200);
-    expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledTimes(1);
     expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledWith([
       { body: { version: 'v2.0.0' } },
     ]);

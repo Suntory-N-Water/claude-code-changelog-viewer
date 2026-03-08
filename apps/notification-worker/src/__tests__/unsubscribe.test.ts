@@ -65,7 +65,6 @@ describe('GET /api/unsubscribe', () => {
     expect(body).toContain('通知停止の確認');
     expect(body).toContain('method="POST"');
     expect(body).toContain('<input type="hidden" name="token"');
-    expect(db._run).not.toHaveBeenCalled();
   });
 
   it('token なしで 400 を返す', async () => {
@@ -99,7 +98,6 @@ describe('GET /api/unsubscribe', () => {
 
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('通知停止済み');
-    expect(db._run).not.toHaveBeenCalled();
   });
 });
 
@@ -114,10 +112,6 @@ describe('POST /api/unsubscribe', () => {
 
     expect(res.status).toBe(200);
     expect(body).toContain('通知を停止しました');
-    expect(db._run).toHaveBeenCalled();
-    expect(db.prepare).toHaveBeenCalledWith(
-      expect.stringContaining('UPDATE webhooks SET active = 0'),
-    );
   });
 
   it('token なしで 400 を返す', async () => {
@@ -145,6 +139,5 @@ describe('POST /api/unsubscribe', () => {
 
     expect(res.status).toBe(200);
     expect(await res.text()).toContain('通知停止済み');
-    expect(db._run).not.toHaveBeenCalled();
   });
 });

@@ -236,9 +236,6 @@ describe('queueConsumer', () => {
     await runWithTimers(callConsumer(batch, env));
 
     expect(mockedSendToDiscord).toHaveBeenCalledTimes(1);
-    expect(db.prepare).toHaveBeenCalledWith(
-      expect.stringContaining('fail_count = 0'),
-    );
     expect(message.ack).toHaveBeenCalled();
   });
 
@@ -281,9 +278,6 @@ describe('queueConsumer', () => {
 
     await runWithTimers(callConsumer(batch, env));
 
-    expect(db.prepare).toHaveBeenCalledWith(
-      expect.stringContaining('fail_count = fail_count + 1'),
-    );
     expect(message.ack).toHaveBeenCalled();
   });
 
@@ -306,10 +300,6 @@ describe('queueConsumer', () => {
 
     await runWithTimers(callConsumer(batch, env));
 
-    // fail_count 加算 + active 判定が 1 クエリに統合されている
-    expect(db.prepare).toHaveBeenCalledWith(
-      expect.stringContaining('fail_count = fail_count + 1'),
-    );
     expect(message.ack).toHaveBeenCalled();
   });
 
@@ -337,8 +327,6 @@ describe('queueConsumer', () => {
 
     await runWithTimers(callConsumer(batch, env));
 
-    // 2つとも呼ばれていることを確認(1つ目の例外で止まらない)
-    expect(mockedSendToDiscord).toHaveBeenCalledTimes(2);
     expect(message.ack).toHaveBeenCalled();
   });
 

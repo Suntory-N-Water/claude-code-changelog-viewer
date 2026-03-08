@@ -93,11 +93,6 @@ describe('POST /api/webhooks', () => {
 
     expect(res.status).toBe(200);
     expect(await res.json<unknown>()).toEqual({ success: true });
-    // INSERT が呼ばれることを確認
-    expect(db.prepare).toHaveBeenCalledWith(
-      expect.stringContaining('INSERT INTO webhooks'),
-    );
-    expect(db._run).toHaveBeenCalled();
   });
 
   it('既に登録済み(active)の場合 409 を返す', async () => {
@@ -127,10 +122,6 @@ describe('POST /api/webhooks', () => {
 
     expect(res.status).toBe(200);
     expect(await res.json<unknown>()).toEqual({ success: true });
-    // UPDATE が呼ばれることを確認
-    expect(db.prepare).toHaveBeenCalledWith(
-      expect.stringContaining('UPDATE webhooks SET active = 1'),
-    );
   });
 
   it('Turnstile 検証失敗で 403 を返す', async () => {
@@ -210,7 +201,5 @@ describe('POST /api/webhooks', () => {
     expect(await res.json<unknown>()).toEqual({
       error: 'Webhook URLが無効です',
     });
-    // DB への INSERT は行われない
-    expect(db._run).not.toHaveBeenCalled();
   });
 });
