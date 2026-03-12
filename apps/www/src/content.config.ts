@@ -1,5 +1,6 @@
-import { defineCollection, z } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
+import { defineCollection } from 'astro:content';
 
 const changelogCollection = defineCollection({
   loader: glob({ pattern: '**/*.json', base: './src/content/changelog' }),
@@ -39,7 +40,7 @@ const diffCollection = defineCollection({
   schema: z.object({
     events: z.array(
       z.object({
-        detected_at: z.string().datetime(),
+        detected_at: z.iso.datetime(),
         version: z.string(),
         type: z.enum(['items_changed', 'version_removed']),
         items_added: z.array(z.string()),
