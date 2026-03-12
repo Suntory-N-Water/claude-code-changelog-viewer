@@ -142,7 +142,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | :- | :- | :- |
 | `apiKeyHelper` | Custom script, to be executed in `/bin/sh`, to generate an auth value. This value will be sent as `X-Api-Key` and `Authorization: Bearer` headers for model requests | `/bin/generate_temp_api_key.sh` |
 | `autoMemoryDirectory` | Custom directory for [auto memory](/en/memory#storage-location) storage. Accepts `~/`-expanded paths. Not accepted in project settings (`.claude/settings.json`) to prevent shared repos from redirecting memory writes to sensitive locations. Accepted from policy, local, and user settings | `"~/my-memory-dir"` |
-| `cleanupPeriodDays` | Sessions inactive for longer than this period are deleted at startup. Setting to `0` immediately deletes all sessions. (default: 30 days) | `20` |
+| `cleanupPeriodDays` | Sessions inactive for longer than this period are deleted at startup (default: 30 days).Setting to `0` deletes all existing transcripts at startup and disables session persistence entirely. No new `.jsonl` files are written, `/resume` shows no conversations, and hooks receive an empty `transcript_path`. | `20` |
 | `companyAnnouncements` | Announcement to display to users at startup. If multiple announcements are provided, they will be cycled through at random. | `["Welcome to Acme Corp! Review our code guidelines at docs.acme.com"]` |
 | `env` | Environment variables that will be applied to every session | `{"FOO": "bar"}` |
 | `attribution` | Customize attribution for git commits and pull requests. See [Attribution settings](#attribution-settings) | `{"commit": "🤖 Generated with Claude Code", "pr": ""}` |

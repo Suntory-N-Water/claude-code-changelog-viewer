@@ -13,6 +13,8 @@ Fast mode is a high-speed configuration for Claude Opus 4.6, making the model 2.
 
 Fast mode is not a different model. It uses the same Opus 4.6 with a different API configuration that prioritizes speed over cost efficiency. You get identical quality and capabilities, just faster responses.
 
+Fast mode requires Claude Code v2.1.36 or later. Check your version with `claude --version`.
+
 What to know:
 
 - Use `/fast` to toggle on fast mode in Claude Code CLI. Also available via `/fast` in Claude Code VS Code Extension.

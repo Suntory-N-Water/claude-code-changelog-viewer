@@ -7,6 +7,8 @@ source: https://code.claude.com/docs/en/keybindings.md
 
 > Customize keyboard shortcuts in Claude Code with a keybindings configuration file.
 
+Customizable keyboard shortcuts require Claude Code v2.1.18 or later. Check your version with `claude --version`.
+
 Claude Code supports customizable keyboard shortcuts. Run `/keybindings` to create or open your configuration file at `~/.claude/keybindings.json`.
 
 ## Configuration file
