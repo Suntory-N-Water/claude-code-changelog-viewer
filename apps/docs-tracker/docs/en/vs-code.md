@@ -232,7 +232,7 @@ Claude Code is available as both a VS Code extension (graphical panel) and a CLI
 
 | Feature | CLI | VS Code Extension |
 | - | - | - |
-| Commands and skills | [All](/en/interactive-mode#built-in-commands) | Subset (type `/` to see available) |
+| Commands and skills | [All](/en/commands) | Subset (type `/` to see available) |
 | MCP server config | Yes | Partial (add servers via CLI; manage existing servers with `/mcp` in the chat panel) |
 | Checkpoints | Yes | Yes |
 | `!` bash shortcut | Yes | No |
