@@ -26,7 +26,7 @@ You can start sessions, pipe content, resume conversations, and manage updates w
 | `claude auth status` | Show authentication status as JSON. Use `--text` for human-readable output. Exits with code 0 if logged in, 1 if not | `claude auth status` |
 | `claude agents` | List all configured [subagents](/en/sub-agents), grouped by source | `claude agents` |
 | `claude mcp` | Configure Model Context Protocol (MCP) servers | See the [Claude Code MCP documentation](/en/mcp). |
-| `claude remote-control` | Start a [Remote Control session](/en/remote-control) to control Claude Code from Claude.ai or the Claude app while running locally. See [Remote Control](/en/remote-control) for flags | `claude remote-control` |
+| `claude remote-control` | Start a [Remote Control](/en/remote-control) server to control Claude Code from Claude.ai or the Claude app. Runs in server mode (no local interactive session). See [Server mode flags](/en/remote-control#server-mode) | `claude remote-control --name "My Project"` |
 
 ## CLI flags
 
@@ -70,6 +70,7 @@ Customize Claude Code's behavior with these command-line flags:
 | `--plugin-dir` | Load plugins from directories for this session only (repeatable) | `claude --plugin-dir ./my-plugins` |
 | `--print`, `-p` | Print response without interactive mode (see [Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview) for programmatic usage details) | `claude -p "query"` |
 | `--remote` | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description | `claude --remote "Fix the login bug"` |
+| `--remote-control`, `--rc` | Start an interactive session with [Remote Control](/en/remote-control#interactive-session) enabled so you can also control it from claude.ai or the Claude app. Optionally pass a name for the session | `claude --remote-control "My Project"` |
 | `--resume`, `-r` | Resume a specific session by ID or name, or show an interactive picker to choose a session | `claude --resume auth-refactor` |
 | `--session-id` | Use a specific session ID for the conversation (must be a valid UUID) | `claude --session-id "550e8400-e29b-41d4-a716-446655440000"` |
 | `--setting-sources` | Comma-separated list of setting sources to load (`user`, `project`, `local`) | `claude --setting-sources user,project` |
