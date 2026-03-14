@@ -48,6 +48,7 @@ Customize Claude Code's behavior with these command-line flags:
 | `--debug` | Enable debug mode with optional category filtering (for example, `"api,hooks"` or `"!statsig,!file"`) | `claude --debug "api,mcp"` |
 | `--disable-slash-commands` | Disable all skills and commands for this session | `claude --disable-slash-commands` |
 | `--disallowedTools` | Tools that are removed from the model's context and cannot be used | `"Bash(git log *)" "Bash(git diff *)" "Edit"` |
+| `--effort` | Set the [effort level](/en/model-config#adjust-effort-level) for the current session. Options: `low`, `medium`, `high`, `max` (Opus 4.6 only). Session-scoped and does not persist to settings | `claude --effort high` |
 | `--fallback-model` | Enable automatic fallback to specified model when default model is overloaded (print mode only) | `claude -p --fallback-model sonnet "query"` |
 | `--fork-session` | When resuming, create a new session ID instead of reusing the original (use with `--resume` or `--continue`) | `claude --resume abc123 --fork-session` |
 | `--from-pr` | Resume sessions linked to a specific GitHub PR. Accepts a PR number or URL. Sessions are automatically linked when created via `gh pr create` | `claude --from-pr 123` |
@@ -62,12 +63,13 @@ Customize Claude Code's behavior with these command-line flags:
 | `--max-turns` | Limit the number of agentic turns (print mode only). Exits with an error when the limit is reached. No limit by default | `claude -p --max-turns 3 "query"` |
 | `--mcp-config` | Load MCP servers from JSON files or strings (space-separated) | `claude --mcp-config ./mcp.json` |
 | `--model` | Sets the model for the current session with an alias for the latest model (`sonnet` or `opus`) or a model's full name | `claude --model claude-sonnet-4-6` |
+| `--name`, `-n` | Set a display name for the session, shown in `/resume` and the terminal title. You can resume a named session with `claude --resume <name>`. [`/rename`](/en/commands) changes the name mid-session and also shows it on the prompt bar | `claude -n "my-feature-work"` |
 | `--no-chrome` | Disable [Chrome browser integration](/en/chrome) for this session | `claude --no-chrome` |
 | `--no-session-persistence` | Disable session persistence so sessions are not saved to disk and cannot be resumed (print mode only) | `claude -p --no-session-persistence "query"` |
 | `--output-format` | Specify output format for print mode (options: `text`, `json`, `stream-json`) | `claude -p "query" --output-format json` |
 | `--permission-mode` | Begin in a specified [permission mode](/en/permissions#permission-modes) | `claude --permission-mode plan` |
 | `--permission-prompt-tool` | Specify an MCP tool to handle permission prompts in non-interactive mode | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
-| `--plugin-dir` | Load plugins from directories for this session only (repeatable) | `claude --plugin-dir ./my-plugins` |
+| `--plugin-dir` | Load plugins from a directory for this session only. Each flag takes one path. Repeat the flag for multiple directories: `--plugin-dir A --plugin-dir B` | `claude --plugin-dir ./my-plugins` |
 | `--print`, `-p` | Print response without interactive mode (see [Agent SDK documentation](https://platform.claude.com/docs/en/agent-sdk/overview) for programmatic usage details) | `claude -p "query"` |
 | `--remote` | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description | `claude --remote "Fix the login bug"` |
 | `--remote-control`, `--rc` | Start an interactive session with [Remote Control](/en/remote-control#interactive-session) enabled so you can also control it from claude.ai or the Claude app. Optionally pass a name for the session | `claude --remote-control "My Project"` |

@@ -29,6 +29,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/desktop` | Continue the current session in the Claude Code Desktop app. macOS and Windows only. Alias: `/app` |
 | `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files |
 | `/doctor` | Diagnose and verify your Claude Code installation and settings |
+| `/effort [low\|medium\|high\|max\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). `low`, `medium`, and `high` persist across sessions. `max` applies to the current session only and requires Opus 4.6. `auto` resets to the model default. Without an argument, shows the current level. Takes effect immediately without waiting for the current response to finish |
 | `/exit` | Exit the CLI. Alias: `/quit` |
 | `/export [filename]` | Export the current conversation as plain text. With a filename, writes directly to that file. Without, opens a dialog to copy to clipboard or save to a file |
 | `/extra-usage` | Configure extra usage to keep working when rate limits are hit |
@@ -36,7 +37,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/feedback [report]` | Submit feedback about Claude Code. Alias: `/bug` |
 | `/fork [name]` | Create a fork of the current conversation at this point |
 | `/help` | Show help and available commands |
-| `/hooks` | Manage [hook](/en/hooks) configurations for tool events |
+| `/hooks` | View [hook](/en/hooks) configurations for tool events |
 | `/ide` | Manage IDE integrations and show status |
 | `/init` | Initialize project with `CLAUDE.md` guide |
 | `/insights` | Generate a report analyzing your Claude Code sessions, including project areas, interaction patterns, and friction points |
@@ -59,7 +60,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/reload-plugins` | Reload all active [plugins](/en/plugins) to apply pending changes without restarting. Reports what was loaded and notes any changes that require a restart |
 | `/remote-control` | Make this session available for [remote control](/en/remote-control) from claude.ai. Alias: `/rc` |
 | `/remote-env` | Configure the default remote environment for [web sessions started with `--remote`](/en/claude-code-on-the-web#environment-configuration) |
-| `/rename [name]` | Rename the current session. Without a name, auto-generates one from conversation history |
+| `/rename [name]` | Rename the current session and show the name on the prompt bar. Without a name, auto-generates one from conversation history |
 | `/resume [session]` | Resume a conversation by ID or name, or open the session picker. Alias: `/continue` |
 | `/review` | Deprecated. Install the [`code-review` plugin](https://github.com/anthropics/claude-code-marketplace/blob/main/code-review/README.md) instead: `claude plugin install code-review@claude-code-marketplace` |
 | `/rewind` | Rewind the conversation and/or code to a previous point, or summarize from a selected message. See [checkpointing](/en/checkpointing). Alias: `/checkpoint` |
