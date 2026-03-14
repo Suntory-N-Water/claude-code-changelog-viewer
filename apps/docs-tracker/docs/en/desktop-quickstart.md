@@ -19,7 +19,7 @@ The desktop app has three tabs:
 
 Chat and Cowork are covered in the [Claude Desktop support articles](https://support.claude.com/en/collections/16163169-claude-desktop). This page focuses on the **Code** tab.
 
-Claude Code requires a [Pro, Max, Teams, or Enterprise subscription](https://claude.com/pricing).
+Claude Code requires a [Pro, Max, Teams, or Enterprise subscription](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=desktop_quickstart_pricing).
 
 ## Install
 
@@ -35,7 +35,7 @@ Linux is not currently supported.
 
 Launch Claude from your Applications folder (macOS) or Start menu (Windows). Sign in with your Anthropic account.
 
-Click the **Code** tab at the top center. If clicking Code prompts you to upgrade, you need to [subscribe to a paid plan](https://claude.com/pricing) first. If it prompts you to sign in online, complete the sign-in and restart the app. If you see a 403 error, see [authentication troubleshooting](/en/desktop#403-or-authentication-errors-in-the-code-tab).
+Click the **Code** tab at the top center. If clicking Code prompts you to upgrade, you need to [subscribe to a paid plan](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=desktop_quickstart_upgrade) first. If it prompts you to sign in online, complete the sign-in and restart the app. If you see a 403 error, see [authentication troubleshooting](/en/desktop#403-or-authentication-errors-in-the-code-tab).
 
 The desktop app includes Claude Code. You don't need to install Node.js or the CLI separately. To use `claude` from the terminal, install the CLI separately. See [Get started with the CLI](/en/quickstart).
 
