@@ -18,7 +18,7 @@ Fast mode requires Claude Code v2.1.36 or later. Check your version with `claude
 What to know:
 
 - Use `/fast` to toggle on fast mode in Claude Code CLI. Also available via `/fast` in Claude Code VS Code Extension.
-- Fast mode for Opus 4.6 pricing starts at $30/150 MTok. Fast mode is available at a 50% discount for all plans until 11:59pm PT on February 16.
+- Fast mode for Opus 4.6 pricing is $30/150 MTok.
 - Available to all Claude Code users on subscription plans (Pro/Max/Team/Enterprise) and Claude Console.
 - For Claude Code users on subscription plans (Pro/Max/Team/Enterprise), fast mode is available via extra usage only and not included in the subscription rate limits.
 
@@ -50,10 +50,9 @@ Fast mode has higher per-token pricing than standard Opus 4.6:
 
 | Mode | Input (MTok) | Output (MTok) |
 | - | - | - |
-| Fast mode on Opus 4.6 (\<200K) | $30 | $150 |
-| Fast mode on Opus 4.6 (>200K) | $60 | $225 |
+| Fast mode on Opus 4.6 | $30 | $150 |
 
-Fast mode is compatible with the 1M token extended context window.
+Fast mode pricing is flat across the full 1M token context window.
 
 When you switch into fast mode mid-conversation, you pay the full fast mode uncached input token price for the entire conversation context. This costs more than if you had enabled fast mode from the start.
 
