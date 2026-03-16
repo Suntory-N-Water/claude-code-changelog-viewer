@@ -4,21 +4,16 @@
  * ChangelogItemCard / PrefixTableOfContents / [version].astro で共通利用
  */
 
-/** 表示順序の配列 */
-export const PREFIX_ORDER = [
-  'Breaking',
-  'Added',
-  'Deprecated',
-  'Changed',
-  'Improved',
-  'Updated',
-  'Removed',
-  'Fixed',
-  'Enabled',
-] as const;
+import type { Prefix } from '@claude-code-changelog-viewer/common';
+
+export {
+  getPrefixSortOrder,
+  PREFIX_ORDER,
+} from '@claude-code-changelog-viewer/common';
+export type { Prefix } from '@claude-code-changelog-viewer/common';
 
 /** 日本語ラベル */
-export const PREFIX_LABELS: Record<string, string> = {
+export const PREFIX_LABELS: Record<Prefix, string> = {
   Breaking: '破壊的変更',
   Added: '追加',
   Deprecated: '非推奨',
@@ -31,7 +26,7 @@ export const PREFIX_LABELS: Record<string, string> = {
 };
 
 /** Tailwind クラス */
-export const PREFIX_STYLES: Record<string, string> = {
+export const PREFIX_STYLES: Record<Prefix, string> = {
   Breaking: 'bg-red-600 text-white shadow-sm',
   Added: 'bg-[hsl(var(--cc-main-orange))] text-white shadow-sm',
   Deprecated: 'border-2 border-yellow-500 text-yellow-700 bg-yellow-50',
@@ -50,7 +45,7 @@ export const PREFIX_DEFAULT_STYLE =
   'border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] bg-[hsl(var(--cc-main-white))]';
 
 /** SVG パス(stroke アイコン) */
-export const PREFIX_ICONS: Record<string, string> = {
+export const PREFIX_ICONS: Record<Prefix, string> = {
   Breaking:
     'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z',
   Added: 'M12 4.5v15m7.5-7.5h-15',
@@ -65,9 +60,3 @@ export const PREFIX_ICONS: Record<string, string> = {
     'M11.42 15.17l-4.655-4.655a1 1 0 010-1.414l.354-.354a1 1 0 011.414 0L12 12.21l3.466-3.465a1 1 0 011.414 0l.354.354a1 1 0 010 1.414L12.834 15.17a1 1 0 01-1.414 0z',
   Enabled: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
 };
-
-/** ソート用ヘルパー: PREFIX_ORDER のインデックスを返す(未定義は末尾) */
-export function getPrefixSortOrder(prefix: string): number {
-  const idx = (PREFIX_ORDER as readonly string[]).indexOf(prefix);
-  return idx === -1 ? PREFIX_ORDER.length : idx;
-}

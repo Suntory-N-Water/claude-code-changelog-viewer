@@ -1,4 +1,5 @@
 ---
+import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import {
   PREFIX_DEFAULT_STYLE,
@@ -32,8 +33,9 @@ const shouldShow = groups.length >= 2;
       <h3 class='text-sm font-semibold text-gray-500 mb-3'>カテゴリ</h3>
       <ul class='space-y-2'>
         {groups.map((group) => {
-          const style = PREFIX_STYLES[group.prefix] || PREFIX_DEFAULT_STYLE;
-          const iconPath = PREFIX_ICONS[group.prefix];
+          const style =
+            PREFIX_STYLES[group.prefix as Prefix] || PREFIX_DEFAULT_STYLE;
+          const iconPath = PREFIX_ICONS[group.prefix as Prefix];
           // importance_score が最大のアイテムの content_ja を代表テキストとして使用
           const representative = group.items.reduce((best, current) =>
             current.item.importance_score > best.item.importance_score

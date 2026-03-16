@@ -24,7 +24,7 @@ const FEATURE_AREA_LABELS: Record<string, string> = {
 /** SEO description */
 const FEATURE_AREA_DESCRIPTIONS: Record<string, string> = {
   Settings:
-    'Claude CodeのSettingsに関する全バージョンの変更履歴。CLAUDE.md、.clauderc、環境変数などの設定変更をバージョン横断で確認できます。',
+    'Claude CodeのSettingsに関する全バージョンの変更履歴。CLAUDE.md、環境変数などの設定変更をバージョン横断で確認できます。',
   'IDE/VSCode':
     'Claude CodeのIDE/VSCode連携に関する全バージョンの変更履歴。エディタ統合、拡張機能、ワークスペース対応の変更をバージョン横断で確認できます。',
   Memory:

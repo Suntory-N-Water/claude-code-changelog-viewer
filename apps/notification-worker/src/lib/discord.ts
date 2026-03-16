@@ -2,11 +2,25 @@ import {
   DISCORD_BOT_AVATAR_URL,
   DISCORD_SUPPRESS_EMBEDS,
   type DiscordWebhookPayload,
+  getPrefixSortOrder,
+  type Prefix,
   truncateForDiscord,
 } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 
 const BOT_USERNAME = 'Claude Code Changelog Bot';
+
+const PREFIX_LABELS: Record<Prefix, string> = {
+  Breaking: '🚨 破壊的変更',
+  Added: '✨ 追加',
+  Deprecated: '⚠️ 非推奨',
+  Changed: '🔄 変更',
+  Improved: '📈 改善',
+  Updated: '⬆️ 更新',
+  Removed: '🗑️ 削除',
+  Fixed: '🔧 修正',
+  Enabled: '✅ 有効化',
+};
 
 export function buildUnsubscribeUrl(workerUrl: string, token: string): string {
   return `${workerUrl}/api/unsubscribe?token=${token}`;
@@ -22,38 +36,36 @@ export function createChangelogMessage(
   siteUrl: string,
 ): DiscordWebhookPayload {
   const viewerUrl = `${siteUrl}/changelog/${version}/`;
+  const footer = `\n## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})\n[🔕 通知を停止する](${unsubscribeUrl})`;
 
   let content = `# Claude Code ${version} 🚀\n\n`;
-  content += `## 全体サマリー\n${data.summary || 'Claude Codeの新しいバージョンがリリースされました。'}\n\n`;
+  content += `${data.summary || 'Claude Codeの新しいバージョンがリリースされました。'}\n`;
 
   if (data.items.length > 0) {
-    content += '## 更新内容\n';
-
+    // prefix でグループ化
+    const groupMap = new Map<string, typeof data.items>();
     for (const item of data.items) {
-      const translatedContent = item.content_ja || item.content;
-      content += `**${translatedContent}**\n`;
+      const group = groupMap.get(item.prefix) ?? [];
+      group.push(item);
+      groupMap.set(item.prefix, group);
+    }
 
-      if (item.inference) {
-        const { before, after, benefit } = item.inference;
-        if (before) {
-          content += `  - 変更前: ${before}\n`;
-        }
-        if (after) {
-          content += `  - 変更後: ${after}\n`;
-        }
-        if (benefit) {
-          content += `  - ユーザーへの恩恵: ${benefit}\n`;
-        }
+    // PREFIX_ORDER に従ってソート、未定義 prefix は末尾
+    const sortedEntries = [...groupMap.entries()].sort(
+      ([a], [b]) => getPrefixSortOrder(a) - getPrefixSortOrder(b),
+    );
+
+    for (const [prefix, items] of sortedEntries) {
+      const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
+      content += `\n## ${label} (${items.length}件)\n`;
+      for (const item of items) {
+        content += `- ${item.content_ja || item.content}\n`;
       }
     }
-    content += '\n';
   }
 
-  content += `## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})`;
-  content += `\n[🔕 通知を停止する](${unsubscribeUrl})`;
-
-  const suffix = `...\n\n## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})\n[🔕 通知を停止する](${unsubscribeUrl})`;
-  content = truncateForDiscord(content, suffix);
+  const suffix = `...\n${footer}`;
+  content = truncateForDiscord(content + footer, suffix);
 
   return {
     content,
