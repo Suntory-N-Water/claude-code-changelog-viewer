@@ -48,9 +48,9 @@ This example enforces a permission deny list and prevents users from bypassing p
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(./secrets/**)"
-    ]
-  },
-  "disableBypassPermissionsMode": "disable"
+    ],
+    "disableBypassPermissionsMode": "disable"
+  }
 }
 ```
 
