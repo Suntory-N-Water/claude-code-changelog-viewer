@@ -206,7 +206,7 @@ Once a plugin is cloned or copied into the local machine, it is copied into the 
 | - | - | - | - |
 | Relative path | `string` (e.g. `"./my-plugin"`) | — | Local directory within the marketplace repo. Must start with `./` |
 | `github` | object | `repo`, `ref?`, `sha?` | |
-| `url` | object | `url` (must end .git), `ref?`, `sha?` | Git URL source |
+| `url` | object | `url`, `ref?`, `sha?` | Git URL source |
 | `git-subdir` | object | `url`, `path`, `ref?`, `sha?` | Subdirectory within a git repo. Clones sparsely to minimize bandwidth for monorepos |
 | `npm` | object | `package`, `version?`, `registry?` | Installed via `npm install` |
 | `pip` | object | `package`, `version?`, `registry?` | Installed via pip |
