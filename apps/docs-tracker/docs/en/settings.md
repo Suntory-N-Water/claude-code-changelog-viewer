@@ -242,6 +242,8 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y
 | `filesystem.allowWrite` | Additional paths where sandboxed commands can write. Arrays are merged across all settings scopes: user, project, and managed paths are combined, not replaced. Also merged with paths from `Edit(...)` allow permission rules. See [path prefixes](#sandbox-path-prefixes) below. | `["//tmp/build", "~/.kube"]` |
 | `filesystem.denyWrite` | Paths where sandboxed commands cannot write. Arrays are merged across all settings scopes. Also merged with paths from `Edit(...)` deny permission rules. | `["//etc", "//usr/local/bin"]` |
 | `filesystem.denyRead` | Paths where sandboxed commands cannot read. Arrays are merged across all settings scopes. Also merged with paths from `Read(...)` deny permission rules. | `["~/.aws/credentials"]` |
+| `filesystem.allowRead` | Paths to re-allow reading within `denyRead` regions. Takes precedence over `denyRead`. Arrays are merged across all settings scopes. Use this to create workspace-only read access patterns. | `["."]` |
+| `filesystem.allowManagedReadPathsOnly` | (Managed settings only) Only `allowRead` paths from managed settings are respected. `allowRead` entries from user, project, and local settings are ignored. Default: false | `true` |
 | `network.allowUnixSockets` | Unix socket paths accessible in sandbox (for SSH agents, etc.) | `["~/.ssh/agent-socket"]` |
 | `network.allowAllUnixSockets` | Allow all Unix socket connections in sandbox. Default: false | `true` |
 | `network.allowLocalBinding` | Allow binding to localhost ports (macOS only). Default: false | `true` |
@@ -254,7 +256,7 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y
 
 #### Sandbox path prefixes
 
-Paths in `filesystem.allowWrite`, `filesystem.denyWrite`, and `filesystem.denyRead` support these prefixes:
+Paths in `filesystem.allowWrite`, `filesystem.denyWrite`, `filesystem.denyRead`, and `filesystem.allowRead` support these prefixes:
 
 | Prefix | Meaning | Example |
 | :- | :- | :- |
