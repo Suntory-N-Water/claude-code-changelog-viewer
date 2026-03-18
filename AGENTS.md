@@ -1,35 +1,34 @@
-# エージェント・ガイドライン
-
-<!-- セクションの構造変更・削除禁止。変更時は個別の値を直接更新すること。 -->
-
-## 基本原則
-
-- ログ・コメント・コミットメッセージは日本語で記載する
-- 明示的に求められない限り、**後方互換性を維持しない**
-
-## プロジェクト概要
+# CLAUDE.md
 
 Bun workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 
-## コマンド
+- ログ・コメント・コミットメッセージは日本語で記載する
+- 明示的に求められない限り、後方互換性を維持しない
 
-- 静的解析: `bun run ai-check`(Stop hook で自動実行)
-- テスト: `bun run --filter <app> test`
+<important if="you need to run commands to build, test, lint, or analyze code">
 
-## コード規約
+| 目的 | コマンド |
+|---|---|
+| 静的解析 | `bun run ai-check`(Stop hook で自動実行) |
+| テスト | `bun run --filter <app> test` |
+</important>
+
+<important if="you are retrieving GitHub repository or issue information">
 
 - GitHub の情報取得には `gh` コマンドを使用する
-- ライブラリの仕様は Context7 MCP サーバー を使用する
-- GitHub Actions ワークフロー更新時は `/dev:actions-check` で静的解析を実施する
-- TypeScript / アプリ固有の規約は `.claude/rules/` を参照
+</important>
 
----
+<important if="you need to check library specifications or API documentation">
 
-## メンテナンスノート
+- ライブラリの仕様は Context7 MCP サーバーを使用する
+</important>
 
-<!-- このセクションは永続。削除禁止。 -->
+<important if="you are modifying or creating GitHub Actions workflows">
 
-1. **定期的に見直す** - 古い指示はエージェントのコンテキストを汚染する
-2. **重要: 指示行は最小限に** - 詳細は別ファイルに移して参照する
-3. **ワークフロー変更時はコマンドを即座に更新する**
-4. **コードから推測できる情報は書かない**
+- 変更後は `/dev:actions-check` で静的解析を実施する
+</important>
+
+<important if="you are writing TypeScript or working on app-specific code">
+
+- TypeScript / アプリ固有の規約は `.claude/rules/` を参照する
+</important>
