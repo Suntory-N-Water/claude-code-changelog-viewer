@@ -130,6 +130,8 @@ Note that using WebFetch alone does not prevent network access. If Bash is allow
 
 `Edit` rules apply to all built-in tools that edit files. Claude makes a best-effort attempt to apply `Read` rules to all built-in tools that read files like Grep and Glob.
 
+Read and Edit deny rules apply to Claude's built-in file tools, not to Bash subprocesses. A `Read(./.env)` deny rule blocks the Read tool but does not prevent `cat .env` in Bash. For OS-level enforcement that blocks all processes from accessing a path, [enable the sandbox](/en/sandboxing).
+
 Read and Edit rules both follow the [gitignore](https://git-scm.com/docs/gitignore) specification with four distinct pattern types:
 
 | Pattern | Meaning | Example | Matches |
@@ -140,6 +142,8 @@ Read and Edit rules both follow the [gitignore](https://git-scm.com/docs/gitigno
 | `path` or `./path` | Path **relative to current directory** | `Read(*.env)` | `<cwd>/*.env` |
 
 A pattern like `/Users/alice/file` is NOT an absolute path. It's relative to the project root. Use `//Users/alice/file` for absolute paths.
+
+On Windows, paths are normalized to POSIX form before matching. `C:\Users\alice` becomes `/c/Users/alice`, so use `//c/**/.env` to match `.env` files anywhere on that drive. To match across all drives, use `//**/.env`.
 
 Examples:
 
