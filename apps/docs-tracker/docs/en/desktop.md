@@ -60,7 +60,7 @@ Permission modes control how much autonomy Claude has during a session: whether 
 | **Ask permissions** | `default` | Claude asks before editing files or running commands. You see a diff and can accept or reject each change. Recommended for new users. |
 | **Auto accept edits** | `acceptEdits` | Claude auto-accepts file edits but still asks before running terminal commands. Use this when you trust file changes and want faster iteration. |
 | **Plan mode** | `plan` | Claude analyzes your code and creates a plan without modifying files or running commands. Good for complex tasks where you want to review the approach first. |
-| **Bypass permissions** | `bypassPermissions` | Claude runs without any permission prompts, equivalent to `--dangerously-skip-permissions` in the CLI. Enable in your Settings → Claude Code under "Allow bypass permissions mode". Only use this in sandboxed containers or VMs. Enterprise admins can disable this option. |
+| **Bypass permissions** | `bypassPermissions` | Claude runs without permission prompts, equivalent to `--dangerously-skip-permissions` in the CLI. Enable in your Settings → Claude Code under "Allow bypass permissions mode". Only use this in sandboxed containers or VMs. See [permission modes](/en/permissions#permission-modes) for what is and isn't skipped. Enterprise admins can disable this option. |
 
 The `dontAsk` permission mode is available only in the [CLI](/en/permissions#permission-modes).
 
