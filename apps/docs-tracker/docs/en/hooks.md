@@ -29,6 +29,7 @@ The table below summarizes when each event fires. The [Hook events](#hook-events
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
 | `Stop` | When Claude finishes responding |
+| `StopFailure` | When the turn ends due to an API error. Output and exit code are ignored |
 | `TeammateIdle` | When an [agent team](/en/agent-teams) teammate is about to go idle |
 | `TaskCompleted` | When a task is being marked as completed |
 | `InstructionsLoaded` | When a CLAUDE.md or `.claude/rules/*.md` file is loaded into context. Fires at session start and when files are lazily loaded during a session |
@@ -152,7 +153,11 @@ The `matcher` field is a regex string that filters when hooks fire. Use `"*"`, `
 | `PreCompact`, `PostCompact` | what triggered compaction | `manual`, `auto` |
 | `SubagentStop` | agent type | same values as `SubagentStart` |
 | `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |
-| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `InstructionsLoaded` | no matcher support | always fires on every occurrence |
+| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, `unknown` |
+| `InstructionsLoaded` | load reason | `session_start`, `nested_traversal`, `path_glob_match`, `include`, `compact` |
+| `Elicitation` | MCP server name | your configured MCP server names |
+| `ElicitationResult` | MCP server name | same values as `Elicitation` |
+| `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove` | no matcher support | always fires on every occurrence |
 
 The matcher is a regex, so `Edit|Write` matches either tool and `Notebook.*` matches any tool starting with Notebook. The matcher runs against a field from the [JSON input](#hook-input-and-output) that Claude Code sends to your hook on stdin. For tool events, that field is `tool_name`. Each [hook event](#hook-events) section lists the full set of matcher values and the input schema for that event.
 
@@ -176,7 +181,7 @@ This example runs a linting script only when Claude writes or edits a file:
 }
 ```
 
-`UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, and `InstructionsLoaded` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
+`UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCompleted`, `WorktreeCreate`, and `WorktreeRemove` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.
 
 #### Match MCP tools
 
@@ -411,14 +416,14 @@ Command hooks receive JSON data via stdin and communicate results through exit c
 
 ### Common input fields
 
-All hook events receive these fields as JSON, in addition to event-specific fields documented in each [hook event](#hook-events) section. For command hooks, this JSON arrives via stdin. For HTTP hooks, it arrives as the POST request body.
+Hook events receive these fields as JSON, in addition to event-specific fields documented in each [hook event](#hook-events) section. For command hooks, this JSON arrives via stdin. For HTTP hooks, it arrives as the POST request body.
 
 | Field | Description |
 | :- | :- |
 | `session_id` | Current session identifier |
 | `transcript_path` | Path to conversation JSON |
 | `cwd` | Current working directory when the hook is invoked |
-| `permission_mode` | Current [permission mode](/en/permissions#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"dontAsk"`, or `"bypassPermissions"` |
+| `permission_mode` | Current [permission mode](/en/permissions#permission-modes): `"default"`, `"plan"`, `"acceptEdits"`, `"dontAsk"`, or `"bypassPermissions"`. Not all events receive this field: see each event's JSON example below to check |
 | `hook_event_name` | Name of the event that fired |
 
 When running with `--agent` or inside a subagent, two additional fields are included:
@@ -485,6 +490,7 @@ Exit code 2 is the way a hook signals "stop, don't do this." The effect depends 
 | `TeammateIdle` | Yes | Prevents the teammate from going idle (teammate continues working) |
 | `TaskCompleted` | Yes | Prevents the task from being marked as completed |
 | `ConfigChange` | Yes | Blocks the configuration change from taking effect (except `policy_settings`) |
+| `StopFailure` | No | Output and exit code are ignored |
 | `PostToolUse` | No | Shows stderr to Claude (tool already ran) |
 | `PostToolUseFailure` | No | Shows stderr to Claude (tool already failed) |
 | `Notification` | No | Shows stderr to user only |
@@ -551,7 +557,7 @@ Not every event supports blocking or controlling behavior through JSON. The even
 | WorktreeCreate | stdout path | Hook prints absolute path to created worktree. Non-zero exit fails creation |
 | Elicitation | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values for accept) |
 | ElicitationResult | `hookSpecificOutput` | `action` (accept/decline/cancel), `content` (form field values override) |
-| WorktreeRemove, Notification, SessionEnd, PreCompact, PostCompact, InstructionsLoaded | None | No decision control. Used for side effects like logging or cleanup |
+| WorktreeRemove, Notification, SessionEnd, PreCompact, PostCompact, InstructionsLoaded, StopFailure | None | No decision control. Used for side effects like logging or cleanup |
 
 Here are examples of each pattern in action:
 
@@ -622,7 +628,6 @@ In addition to the [common input fields](#common-input-fields), SessionStart hoo
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
-  "permission_mode": "default",
   "hook_event_name": "SessionStart",
   "source": "startup",
   "model": "claude-sonnet-4-6"
@@ -691,7 +696,7 @@ Any variables written to this file will be available in all subsequent Bash comm
 
 Fires when a `CLAUDE.md` or `.claude/rules/*.md` file is loaded into context. This event fires at session start for eagerly-loaded files and again later when files are lazily loaded, for example when Claude accesses a subdirectory that contains a nested `CLAUDE.md` or when conditional rules with `paths:` frontmatter match. The hook does not support blocking or decision control. It runs asynchronously for observability purposes.
 
-InstructionsLoaded does not support matchers and fires on every load occurrence.
+The matcher runs against `load_reason`. For example, use `"matcher": "session_start"` to fire only for files loaded at session start, or `"matcher": "path_glob_match|nested_traversal"` to fire only for lazy loads.
 
 #### InstructionsLoaded input
 
@@ -711,7 +716,6 @@ In addition to the [common input fields](#common-input-fields), InstructionsLoad
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../transcript.jsonl",
   "cwd": "/Users/my-project",
-  "permission_mode": "default",
   "hook_event_name": "InstructionsLoaded",
   "file_path": "/Users/my-project/CLAUDE.md",
   "memory_type": "Project",
@@ -1137,7 +1141,6 @@ In addition to the [common input fields](#common-input-fields), Notification hoo
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
-  "permission_mode": "default",
   "hook_event_name": "Notification",
   "message": "Claude needs your permission to use Bash",
   "title": "Permission needed",
@@ -1164,7 +1167,6 @@ In addition to the [common input fields](#common-input-fields), SubagentStart ho
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
-  "permission_mode": "default",
   "hook_event_name": "SubagentStart",
   "agent_id": "agent-abc123",
   "agent_type": "Explore"
@@ -1214,7 +1216,8 @@ SubagentStop hooks use the same decision control format as [Stop hooks](#stop-de
 ### Stop
 
 Runs when the main Claude Code agent has finished responding. Does not run if
-the stoppage occurred due to a user interrupt.
+the stoppage occurred due to a user interrupt. API errors fire
+[StopFailure](#stopfailure) instead.
 
 #### Stop input
 
@@ -1247,6 +1250,34 @@ In addition to the [common input fields](#common-input-fields), Stop hooks recei
   "reason": "Must be provided when Claude is blocked from stopping"
 }
 ```
+
+### StopFailure
+
+Runs instead of [Stop](#stop) when the turn ends due to an API error. Output and exit code are ignored. Use this to log failures, send alerts, or take recovery actions when Claude cannot complete a response due to rate limits, authentication problems, or other API errors.
+
+#### StopFailure input
+
+In addition to the [common input fields](#common-input-fields), StopFailure hooks receive `error`, optional `error_details`, and optional `last_assistant_message`. The `error` field identifies the error type and is used for matcher filtering.
+
+| Field | Description |
+| :- | :- |
+| `error` | Error type: `rate_limit`, `authentication_failed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, or `unknown` |
+| `error_details` | Additional details about the error, when available |
+| `last_assistant_message` | The rendered error text shown in the conversation. Unlike `Stop` and `SubagentStop`, where this field holds Claude's conversational output, for `StopFailure` it contains the API error string itself, such as `"API Error: Rate limit reached"` |
+
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "hook_event_name": "StopFailure",
+  "error": "rate_limit",
+  "error_details": "429 Too Many Requests",
+  "last_assistant_message": "API Error: Rate limit reached"
+}
+```
+
+StopFailure hooks have no decision control. They run for notification and logging purposes only.
 
 ### TeammateIdle
 
@@ -1395,7 +1426,6 @@ In addition to the [common input fields](#common-input-fields), ConfigChange hoo
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
-  "permission_mode": "default",
   "hook_event_name": "ConfigChange",
   "source": "project_settings",
   "file_path": "/Users/.../my-project/.claude/settings.json"
@@ -1526,7 +1556,6 @@ In addition to the [common input fields](#common-input-fields), PreCompact hooks
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
-  "permission_mode": "default",
   "hook_event_name": "PreCompact",
   "trigger": "manual",
   "custom_instructions": ""
@@ -1553,7 +1582,6 @@ In addition to the [common input fields](#common-input-fields), PostCompact hook
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
-  "permission_mode": "default",
   "hook_event_name": "PostCompact",
   "trigger": "manual",
   "compact_summary": "Summary of the compacted conversation..."
@@ -1586,7 +1614,6 @@ In addition to the [common input fields](#common-input-fields), SessionEnd hooks
   "session_id": "abc123",
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
-  "permission_mode": "default",
   "hook_event_name": "SessionEnd",
   "reason": "other"
 }
@@ -1742,6 +1769,7 @@ Events that only support `type: "command"` hooks:
 - `PreCompact`
 - `SessionEnd`
 - `SessionStart`
+- `StopFailure`
 - `SubagentStart`
 - `TeammateIdle`
 - `WorktreeCreate`

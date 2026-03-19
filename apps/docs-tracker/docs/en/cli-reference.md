@@ -21,7 +21,7 @@ You can start sessions, pipe content, resume conversations, and manage updates w
 | `claude -c -p "query"` | Continue via SDK | `claude -c -p "Check for type errors"` |
 | `claude -r "<session>" "query"` | Resume session by ID or name | `claude -r "auth-refactor" "Finish this PR"` |
 | `claude update` | Update to latest version | `claude update` |
-| `claude auth login` | Sign in to your Anthropic account. Use `--email` to pre-fill your email address and `--sso` to force SSO authentication | `claude auth login --email user@example.com --sso` |
+| `claude auth login` | Sign in to your Anthropic account. Use `--email` to pre-fill your email address, `--sso` to force SSO authentication, and `--console` to sign in with Anthropic Console for API usage billing instead of a Claude subscription | `claude auth login --console` |
 | `claude auth logout` | Log out from your Anthropic account | `claude auth logout` |
 | `claude auth status` | Show authentication status as JSON. Use `--text` for human-readable output. Exits with code 0 if logged in, 1 if not | `claude auth status` |
 | `claude agents` | List all configured [subagents](/en/sub-agents), grouped by source | `claude agents` |
