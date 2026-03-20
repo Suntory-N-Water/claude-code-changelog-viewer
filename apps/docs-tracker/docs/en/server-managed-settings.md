@@ -36,7 +36,7 @@ If your devices are enrolled in an MDM or endpoint management solution, endpoint
 
 In [Claude.ai](https://claude.ai), navigate to **Admin Settings > Claude Code > Managed settings**.
 
-Add your configuration as JSON. All [settings available in `settings.json`](/en/settings#available-settings) are supported, including [managed-only settings](/en/permissions#managed-only-settings) like `disableBypassPermissionsMode`.
+Add your configuration as JSON. All [settings available in `settings.json`](/en/settings#available-settings) are supported, including [hooks](/en/hooks), [environment variables](/en/env-vars), and [managed-only settings](/en/permissions#managed-only-settings) like `disableBypassPermissionsMode`.
 
 This example enforces a permission deny list and prevents users from bypassing permissions:
 
@@ -53,6 +53,27 @@ This example enforces a permission deny list and prevents users from bypassing p
   }
 }
 ```
+
+Hooks use the same format as in `settings.json`.
+
+This example runs an audit script after every file edit across the organization:
+
+```json theme={null}
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "/usr/local/bin/audit-edit.sh" }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Because hooks execute shell commands, users see a [security approval dialog](#security-approval-dialogs) before they're applied.
 
 Save your changes. Claude Code clients receive the updated settings on their next startup or hourly polling cycle.
 
