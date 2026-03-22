@@ -150,7 +150,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | `env` | Environment variables that will be applied to every session | `{"FOO": "bar"}` |
 | `attribution` | Customize attribution for git commits and pull requests. See [Attribution settings](#attribution-settings) | `{"commit": "🤖 Generated with Claude Code", "pr": ""}` |
 | `includeCoAuthoredBy` | **Deprecated**: Use `attribution` instead. Whether to include the `co-authored-by Claude` byline in git commits and pull requests (default: `true`) | `false` |
-| `includeGitInstructions` | Include built-in commit and PR workflow instructions in Claude's system prompt (default: `true`). Set to `false` to remove these instructions, for example when using your own git workflow skills. The `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` environment variable takes precedence over this setting when set | `false` |
+| `includeGitInstructions` | Include built-in commit and PR workflow instructions and the git status snapshot in Claude's system prompt (default: `true`). Set to `false` to remove both, for example when using your own git workflow skills. The `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` environment variable takes precedence over this setting when set | `false` |
 | `permissions` | See table below for structure of permissions. | |
 | `hooks` | Configure custom commands to run at lifecycle events. See [hooks documentation](/en/hooks) for format | See [hooks](/en/hooks) |
 | `disableAllHooks` | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline) | `true` |
@@ -203,8 +203,9 @@ These settings are stored in `~/.claude.json` rather than `settings.json`. Addin
 | :- | :- | :- |
 | `autoConnectIde` | Automatically connect to a running IDE when Claude Code starts from an external terminal. Default: `false`. Appears in `/config` as **Auto-connect to IDE (external terminal)** when running outside a VS Code or JetBrains terminal | `true` |
 | `autoInstallIdeExtension` | Automatically install the Claude Code IDE extension when running from a VS Code terminal. Default: `true`. Appears in `/config` as **Auto-install IDE extension** when running inside a VS Code or JetBrains terminal. You can also set the [`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/en/env-vars) environment variable | `false` |
+| `editorMode` | Key binding mode for the input prompt: `"normal"` or `"vim"`. Default: `"normal"`. Written automatically when you run `/vim`. Appears in `/config` as **Key binding mode** | `"vim"` |
 | `showTurnDuration` | Show turn duration messages after responses, e.g. "Cooked for 1m 6s". Default: `true`. Appears in `/config` as **Show turn duration** | `false` |
-| `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals like Windows Terminal and iTerm2. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |
+| `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |
 
 ### Worktree settings
 
