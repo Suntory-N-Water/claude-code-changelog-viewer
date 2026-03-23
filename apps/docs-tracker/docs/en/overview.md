@@ -19,19 +19,19 @@ To install Claude Code, use one of the following methods:
 
 **macOS, Linux, WSL:**
 
-```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```bash theme={null}
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
-```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```powershell theme={null}
 irm https://claude.ai/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
-```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```batch theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
@@ -39,13 +39,13 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 
 Native installations automatically update in the background to keep you on the latest version.
 
-```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```bash theme={null}
 brew install --cask claude-code
 ```
 
 Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes.
 
-```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```powershell theme={null}
 winget install Anthropic.ClaudeCode
 ```
 
@@ -144,6 +144,12 @@ git diff main --name-only | claude -p "review these changed files for security i
 
 See the [CLI reference](/en/cli-reference) for the full set of commands and flags.
 
+Run Claude on a schedule to automate work that repeats: morning PR reviews, overnight CI failure analysis, weekly dependency audits, or syncing docs after PRs merge.
+
+- [Cloud scheduled tasks](/en/web-scheduled-tasks) run on Anthropic-managed infrastructure, so they keep running even when your computer is off. Create them from the web, the Desktop app, or by running `/schedule` in the CLI.
+- [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks) run on your machine, with direct access to your local files and tools
+- [`/loop`](/en/scheduled-tasks) repeats a prompt within a CLI session for quick polling
+
 Sessions aren't tied to a single surface. Move work between environments as your context changes:
 
 - Step away from your desk and keep working from your phone or any browser with [Remote Control](/en/remote-control)
@@ -162,6 +168,7 @@ Beyond the [Terminal](/en/quickstart), [VS Code](/en/vs-code), [JetBrains](/en/j
 | Continue a local session from my phone or another device | [Remote Control](/en/remote-control) |
 | Push events from Telegram, Discord, or my own webhooks into a session | [Channels](/en/channels) |
 | Start a task locally, continue on mobile | [Web](/en/claude-code-on-the-web) or [Claude iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684) |
+| Run Claude on a recurring schedule | [Cloud scheduled tasks](/en/web-scheduled-tasks) or [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks) |
 | Automate PR reviews and issue triage | [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd) |
 | Get automatic code review on every PR | [GitHub Code Review](/en/code-review) |
 | Route bug reports from Slack to pull requests | [Slack](/en/slack) |
