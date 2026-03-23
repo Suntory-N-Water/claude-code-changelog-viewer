@@ -87,7 +87,7 @@ Add the marketplace and install the plugin.
 Select some code in your editor and run your new command.
 
 ```shell theme={null}
-/review
+/quality-review
 ```
 
 To learn more about what plugins can do, including hooks, agents, MCP servers, and LSP servers, see [Plugins](/en/plugins).
