@@ -167,7 +167,7 @@ Beyond the [Terminal](/en/quickstart), [VS Code](/en/vs-code), [JetBrains](/en/j
 | I want to... | Best option |
 | - | - |
 | Continue a local session from my phone or another device | [Remote Control](/en/remote-control) |
-| Push events from Telegram, Discord, or my own webhooks into a session | [Channels](/en/channels) |
+| Push events from Telegram, Discord, iMessage, or my own webhooks into a session | [Channels](/en/channels) |
 | Start a task locally, continue on mobile | [Web](/en/claude-code-on-the-web) or [Claude iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684) |
 | Run Claude on a recurring schedule | [Cloud scheduled tasks](/en/web-scheduled-tasks) or [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks) |
 | Automate PR reviews and issue triage | [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd) |
