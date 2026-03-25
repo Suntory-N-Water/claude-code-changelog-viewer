@@ -3,7 +3,11 @@ import {
   type InferenceBatchResult,
   InferenceBatchResultSchema,
 } from '@claude-code-changelog-viewer/types';
-import { GoogleGenAI, Type } from '@google/genai';
+import { ApiError, GoogleGenAI, Type } from '@google/genai';
+import pRetry, { AbortError } from 'p-retry';
+
+const RETRY_DELAY_MS = 60 * 1000;
+const MAX_RETRIES_PER_MODEL = 3;
 
 /**
  * モデルごとのレート制限設定
@@ -70,11 +74,9 @@ export class GeminiClient {
    * - 503: サービス一時利用不可(高負荷時など)
    */
   private isRetryableError(error: Error): boolean {
-    const message = error.message;
     return (
-      message.includes('429') ||
-      message.includes('503') ||
-      message.includes('UNAVAILABLE')
+      error instanceof ApiError &&
+      (error.status === 429 || error.status === 503)
     );
   }
 
@@ -89,139 +91,155 @@ export class GeminiClient {
 
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
-        this.log.info(`モデルを試行: ${model}`, { method: 'inferAll' });
-        await this.waitForRateLimit(model);
+        return await pRetry(
+          async () => {
+            this.log.info(`モデルを試行: ${model}`, { method: 'inferAll' });
+            await this.waitForRateLimit(model);
 
-        const response = await this.ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.OBJECT,
-              properties: {
-                inferred_items: {
-                  type: Type.ARRAY,
-                  description: '関連ドキュメントがある項目の推論+翻訳結果',
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: {
-                        type: Type.NUMBER,
-                        description: '元のitems配列のインデックス',
-                      },
-                      content_ja: {
-                        type: Type.STRING,
-                        description: 'CHANGELOG項目の日本語翻訳',
-                      },
-                      before: {
-                        type: Type.STRING,
-                        description: '変更前の状況(何が不便だったか)',
-                      },
-                      after: {
-                        type: Type.STRING,
-                        description: '変更後の状況(何が改善されたか)',
-                      },
-                      benefit: {
-                        type: Type.STRING,
-                        description: 'ユーザーへの恩恵(なぜこれが嬉しいのか)',
-                      },
-                    },
-                    propertyOrdering: [
-                      'id',
-                      'content_ja',
-                      'before',
-                      'after',
-                      'benefit',
-                    ],
-                    required: [
-                      'id',
-                      'content_ja',
-                      'before',
-                      'after',
-                      'benefit',
-                    ],
-                  },
-                },
-                translated_items: {
-                  type: Type.ARRAY,
-                  description: '関連ドキュメントがない項目の翻訳結果',
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: {
-                        type: Type.NUMBER,
-                        description: '元のitems配列のインデックス',
-                      },
-                      content_ja: {
-                        type: Type.STRING,
-                        description: 'CHANGELOG項目の日本語翻訳',
+            const response = await this.ai.models.generateContent({
+              model,
+              contents: prompt,
+              config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                    inferred_items: {
+                      type: Type.ARRAY,
+                      description: '関連ドキュメントがある項目の推論+翻訳結果',
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: {
+                            type: Type.NUMBER,
+                            description: '元のitems配列のインデックス',
+                          },
+                          content_ja: {
+                            type: Type.STRING,
+                            description: 'CHANGELOG項目の日本語翻訳',
+                          },
+                          before: {
+                            type: Type.STRING,
+                            description: '変更前の状況(何が不便だったか)',
+                          },
+                          after: {
+                            type: Type.STRING,
+                            description: '変更後の状況(何が改善されたか)',
+                          },
+                          benefit: {
+                            type: Type.STRING,
+                            description:
+                              'ユーザーへの恩恵(なぜこれが嬉しいのか)',
+                          },
+                        },
+                        propertyOrdering: [
+                          'id',
+                          'content_ja',
+                          'before',
+                          'after',
+                          'benefit',
+                        ],
+                        required: [
+                          'id',
+                          'content_ja',
+                          'before',
+                          'after',
+                          'benefit',
+                        ],
                       },
                     },
-                    propertyOrdering: ['id', 'content_ja'],
-                    required: ['id', 'content_ja'],
-                  },
-                },
-                feature_area_corrections: {
-                  type: Type.ARRAY,
-                  description: '機能領域タグの補正(補正が必要な項目のみ)',
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: {
-                        type: Type.NUMBER,
-                        description: '元のitems配列のインデックス',
-                      },
-                      feature_areas: {
-                        type: Type.ARRAY,
-                        description: '補正後の機能領域タグ',
-                        items: { type: Type.STRING },
+                    translated_items: {
+                      type: Type.ARRAY,
+                      description: '関連ドキュメントがない項目の翻訳結果',
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: {
+                            type: Type.NUMBER,
+                            description: '元のitems配列のインデックス',
+                          },
+                          content_ja: {
+                            type: Type.STRING,
+                            description: 'CHANGELOG項目の日本語翻訳',
+                          },
+                        },
+                        propertyOrdering: ['id', 'content_ja'],
+                        required: ['id', 'content_ja'],
                       },
                     },
-                    propertyOrdering: ['id', 'feature_areas'],
-                    required: ['id', 'feature_areas'],
+                    feature_area_corrections: {
+                      type: Type.ARRAY,
+                      description: '機能領域タグの補正(補正が必要な項目のみ)',
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: {
+                            type: Type.NUMBER,
+                            description: '元のitems配列のインデックス',
+                          },
+                          feature_areas: {
+                            type: Type.ARRAY,
+                            description: '補正後の機能領域タグ',
+                            items: { type: Type.STRING },
+                          },
+                        },
+                        propertyOrdering: ['id', 'feature_areas'],
+                        required: ['id', 'feature_areas'],
+                      },
+                    },
+                    summary: {
+                      type: Type.STRING,
+                      description: 'バージョン全体のサマリー(日本語、2-3文)',
+                    },
                   },
+                  propertyOrdering: [
+                    'inferred_items',
+                    'translated_items',
+                    'feature_area_corrections',
+                    'summary',
+                  ],
+                  required: ['inferred_items', 'translated_items', 'summary'],
                 },
-                summary: {
-                  type: Type.STRING,
-                  description: 'バージョン全体のサマリー(日本語、2-3文)',
+                thinkingConfig: {
+                  thinkingBudget: 0,
                 },
               },
-              propertyOrdering: [
-                'inferred_items',
-                'translated_items',
-                'feature_area_corrections',
-                'summary',
-              ],
-              required: ['inferred_items', 'translated_items', 'summary'],
-            },
-            thinkingConfig: {
-              thinkingBudget: 0,
+            });
+
+            if (!response.text) {
+              throw new Error('Gemini APIからの応答が空です');
+            }
+
+            const usage = response.usageMetadata;
+            this.log.info(
+              `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0} (thinking: ${usage?.thoughtsTokenCount ?? 0})`,
+              { method: 'inferAll', model },
+            );
+
+            const parsed = JSON.parse(response.text);
+            const result = InferenceBatchResultSchema.parse(parsed);
+            this.log.info(`モデル成功: ${model}`, { method: 'inferAll' });
+            return result;
+          },
+          {
+            retries: MAX_RETRIES_PER_MODEL,
+            onFailedAttempt: async ({ error, attemptNumber }) => {
+              if (!this.isRetryableError(error)) {
+                throw new AbortError(error.message);
+              }
+              this.log.warn(
+                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
+                { method: 'inferAll' },
+              );
+              await new Promise((resolve) =>
+                setTimeout(resolve, RETRY_DELAY_MS),
+              );
             },
           },
-        });
-
-        if (!response.text) {
-          throw new Error('Gemini APIからの応答が空です');
-        }
-
-        const usage = response.usageMetadata;
-        this.log.info(
-          `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0} (thinking: ${usage?.thoughtsTokenCount ?? 0})`,
-          { method: 'inferAll', model },
         );
-
-        const parsed = JSON.parse(response.text);
-        const result = InferenceBatchResultSchema.parse(parsed);
-        this.log.info(`モデル成功: ${model}`, { method: 'inferAll' });
-        return result;
       } catch (error) {
-        if (error instanceof Error && this.isRetryableError(error)) {
-          lastError = error;
-          this.log.msg('APLG0024', { params: [model] });
-          continue;
-        }
-        throw error;
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.log.msg('APLG0024', { params: [model] });
       }
     }
 
@@ -242,41 +260,63 @@ export class GeminiClient {
    * @returns 生成されたテキスト
    */
   async generateText(prompt: string): Promise<string> {
+    let lastError: Error | null = null;
+
     for (const model of INFERENCE_FALLBACK_MODELS) {
       try {
-        this.log.info(`モデルを試行: ${model}`, { method: 'generateText' });
-        await this.waitForRateLimit(model);
+        return await pRetry(
+          async () => {
+            this.log.info(`モデルを試行: ${model}`, {
+              method: 'generateText',
+            });
+            await this.waitForRateLimit(model);
 
-        const response = await this.ai.models.generateContent({
-          model,
-          contents: prompt,
-          config: {
-            thinkingConfig: {
-              thinkingBudget: 0,
+            const response = await this.ai.models.generateContent({
+              model,
+              contents: prompt,
+              config: {
+                thinkingConfig: {
+                  thinkingBudget: 0,
+                },
+              },
+            });
+
+            if (!response.text) {
+              throw new Error('Gemini APIからの応答が空です');
+            }
+
+            const usage = response.usageMetadata;
+            this.log.info(
+              `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0} (thinking: ${usage?.thoughtsTokenCount ?? 0})`,
+              { method: 'generateText', model },
+            );
+
+            this.log.info(`モデル成功: ${model}`, { method: 'generateText' });
+            return response.text.trim();
+          },
+          {
+            retries: MAX_RETRIES_PER_MODEL,
+            onFailedAttempt: async ({ error, attemptNumber }) => {
+              if (!this.isRetryableError(error)) {
+                throw new AbortError(error.message);
+              }
+              this.log.warn(
+                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
+                { method: 'generateText' },
+              );
+              await new Promise((resolve) =>
+                setTimeout(resolve, RETRY_DELAY_MS),
+              );
             },
           },
-        });
-
-        if (!response.text) {
-          throw new Error('Gemini APIからの応答が空です');
-        }
-
-        const usage = response.usageMetadata;
-        this.log.info(
-          `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0} (thinking: ${usage?.thoughtsTokenCount ?? 0})`,
-          { method: 'generateText', model },
         );
-
-        this.log.info(`モデル成功: ${model}`, { method: 'generateText' });
-        return response.text.trim();
       } catch (error) {
-        if (error instanceof Error && this.isRetryableError(error)) {
-          this.log.msg('APLG0024', { params: [model] });
-          continue;
-        }
-        throw error;
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.log.msg('APLG0024', { params: [model] });
       }
     }
-    throw new Error('All models failed for text generation task.');
+    throw new Error(
+      `All models failed for text generation task. Last error: ${lastError?.message}`,
+    );
   }
 }
