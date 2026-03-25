@@ -99,6 +99,12 @@ Code through hierarchical settings:
 
     The legacy Windows path `C:\ProgramData\ClaudeCode\managed-settings.json` is no longer supported as of v2.1.75. Administrators who deployed settings to that location must migrate files to `C:\Program Files\ClaudeCode\managed-settings.json`.
 
+    File-based managed settings also support a drop-in directory at `managed-settings.d/` in the same system directory alongside `managed-settings.json`. This lets separate teams deploy independent policy fragments without coordinating edits to a single file.
+
+    Following the systemd convention, `managed-settings.json` is merged first as the base, then all `*.json` files in the drop-in directory are sorted alphabetically and merged on top. Later files override earlier ones for scalar values; arrays are concatenated and de-duplicated; objects are deep-merged. Hidden files starting with `.` are ignored.
+
+    Use numeric prefixes to control merge order, for example `10-telemetry.json` and `20-security.json`.
+
   See [managed settings](/en/permissions#managed-only-settings) and [Managed MCP configuration](/en/mcp#managed-mcp-configuration) for details.
 
   Managed deployments can also restrict **plugin marketplace additions** using
@@ -154,6 +160,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | `permissions` | See table below for structure of permissions. | |
 | `autoMode` | Customize what the [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier blocks and allows. Contains `environment`, `allow`, and `soft_deny` arrays of prose rules. See [Configure the auto mode classifier](/en/permissions#configure-the-auto-mode-classifier). Not read from shared project settings | `{"environment": ["Trusted repo: github.example.com/acme"]}` |
 | `disableAutoMode` | Set to `"disable"` to prevent [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) from being activated. Removes `auto` from the `Shift+Tab` cycle and rejects `--permission-mode auto` at startup. Most useful in [managed settings](/en/permissions#managed-settings) where users cannot override it | `"disable"` |
+| `useAutoModeDuringPlan` | Whether plan mode uses auto mode semantics when auto mode is available. Default: `true`. Not read from shared project settings. Appears in `/config` as "Use auto mode during plan" | `false` |
 | `hooks` | Configure custom commands to run at lifecycle events. See [hooks documentation](/en/hooks) for format | See [hooks](/en/hooks) |
 | `disableAllHooks` | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline) | `true` |
 | `allowManagedHooksOnly` | (Managed settings only) Prevent loading of user, project, and plugin hooks. Only allows managed hooks and SDK hooks. See [Hook configuration](#hook-configuration) | `true` |
@@ -177,6 +184,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | `enabledMcpjsonServers` | List of specific MCP servers from `.mcp.json` files to approve | `["memory", "github"]` |
 | `disabledMcpjsonServers` | List of specific MCP servers from `.mcp.json` files to reject | `["filesystem"]` |
 | `channelsEnabled` | (Managed settings only) Allow [channels](/en/channels) for Team and Enterprise users. Unset or `false` blocks channel message delivery regardless of what users pass to `--channels` | `true` |
+| `allowedChannelPlugins` | (Managed settings only) Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Undefined = fall back to the default, empty array = block all channel plugins. Requires `channelsEnabled: true`. See [Restrict which channel plugins can run](/en/channels#restrict-which-channel-plugins-can-run) | `[{ "marketplace": "claude-plugins-official", "plugin": "telegram" }]` |
 | `allowedMcpServers` | When set in managed-settings.json, allowlist of MCP servers users can configure. Undefined = no restrictions, empty array = lockdown. Applies to all scopes. Denylist takes precedence. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration) | `[{ "serverName": "github" }]` |
 | `deniedMcpServers` | When set in managed-settings.json, denylist of MCP servers that are explicitly blocked. Applies to all scopes including managed servers. Denylist takes precedence over allowlist. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration) | `[{ "serverName": "filesystem" }]` |
 | `strictKnownMarketplaces` | When set in managed-settings.json, allowlist of plugin marketplaces users can add. Undefined = no restrictions, empty array = lockdown. Applies to marketplace additions only. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
@@ -252,6 +260,7 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y
 | Keys | Description | Example |
 | :- | :- | :- |
 | `enabled` | Enable bash sandboxing (macOS, Linux, and WSL2). Default: false | `true` |
+| `failIfUnavailable` | Exit with an error at startup if `sandbox.enabled` is true but the sandbox cannot start (missing dependencies, unsupported platform, or platform restrictions). When false (default), a warning is shown and commands run unsandboxed. Intended for managed settings deployments that require sandboxing as a hard gate | `true` |
 | `autoAllowBashIfSandboxed` | Auto-approve bash commands when sandboxed. Default: true | `true` |
 | `excludedCommands` | Commands that should run outside of the sandbox | `["git", "docker"]` |
 | `allowUnsandboxedCommands` | Allow commands to run outside the sandbox via the `dangerouslyDisableSandbox` parameter. When set to `false`, the `dangerouslyDisableSandbox` escape hatch is completely disabled and all commands must run sandboxed (or be in `excludedCommands`). Useful for enterprise policies that require strict sandboxing. Default: true | `false` |
@@ -420,7 +429,7 @@ Settings apply in order of precedence. From highest to lowest:
 1. **Managed settings** ([server-managed](/en/server-managed-settings), [MDM/OS-level policies](#configuration-scopes), or [managed settings](/en/settings#settings-files))
    - Policies deployed by IT through server delivery, MDM configuration profiles, registry policies, or managed settings files
    - Cannot be overridden by any other level, including command line arguments
-   - Within the managed tier, precedence is: server-managed > MDM/OS-level policies > `managed-settings.json` > HKCU registry (Windows only). Only one managed source is used; sources do not merge.
+   - Within the managed tier, precedence is: server-managed > MDM/OS-level policies > file-based (`managed-settings.d/*.json` + `managed-settings.json`) > HKCU registry (Windows only). Only one managed source is used; sources do not merge across tiers. Within the file-based tier, drop-in files and the base file are merged together.
 
 2. **Command line arguments**
    - Temporary overrides for a specific session

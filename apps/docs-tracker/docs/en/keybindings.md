@@ -98,12 +98,14 @@ Actions available in the `Chat` context:
 | Action | Default | Description |
 | :- | :- | :- |
 | `chat:cancel` | Escape | Cancel current input |
+| `chat:killAgents` | Ctrl+X Ctrl+K | Kill all background agents |
 | `chat:cycleMode` | Shift+Tab\* | Cycle permission modes |
 | `chat:modelPicker` | Cmd+P / Meta+P | Open model picker |
+| `chat:fastMode` | Meta+O | Toggle fast mode |
 | `chat:thinkingToggle` | Cmd+T / Meta+T | Toggle extended thinking |
 | `chat:submit` | Enter | Submit message |
 | `chat:undo` | Ctrl+\_ | Undo last action |
-| `chat:externalEditor` | Ctrl+G | Open in external editor |
+| `chat:externalEditor` | Ctrl+G, Ctrl+X Ctrl+E | Open in external editor |
 | `chat:stash` | Ctrl+S | Stash current prompt |
 | `chat:imagePaste` | Ctrl+V (Alt+V on Windows) | Paste image |
 
