@@ -221,7 +221,8 @@ jobs:
         env:
           JOB_NAME: fetch-and-infer-changelog
           NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          SCRIPT_PATH: ${{ github.workspace }}/.github/scripts/create-changelog-processing-issue.mjs
         with:
           script: |
-            const scriptModule = await import('${{ github.workspace }}/.github/scripts/create-changelog-processing-issue.mjs');
+            const scriptModule = await import(process.env.SCRIPT_PATH);
             await scriptModule.default({ github, context, core });
