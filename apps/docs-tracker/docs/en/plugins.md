@@ -119,7 +119,7 @@ Once Claude Code starts, try your new skill:
 
 You'll see Claude respond with a greeting. Run `/help` to see your skill listed under the plugin namespace.
 
-**Why namespacing?** Plugin skills are always namespaced (like `/greet:hello`) to prevent conflicts when multiple plugins have skills with the same name.
+**Why namespacing?** Plugin skills are always namespaced (like `/my-first-plugin:hello`) to prevent conflicts when multiple plugins have skills with the same name.
 
 To change the namespace prefix, update the `name` field in `plugin.json`.
 
