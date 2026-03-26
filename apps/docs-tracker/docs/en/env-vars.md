@@ -19,8 +19,17 @@ Claude Code supports the following environment variables to control its behavior
 | `ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION` | Display description for the custom model entry in the `/model` picker. Defaults to `Custom model (<model-id>)` when not set |
 | `ANTHROPIC_CUSTOM_MODEL_OPTION_NAME` | Display name for the custom model entry in the `/model` picker. Defaults to the model ID when not set |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | See [Model configuration](/en/model-config#environment-variables) |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL_DESCRIPTION` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL_NAME` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL_SUPPORTED_CAPABILITIES` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | See [Model configuration](/en/model-config#environment-variables) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL_NAME` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | See [Model configuration](/en/model-config#environment-variables) |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL_DESCRIPTION` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL_NAME` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL_SUPPORTED_CAPABILITIES` | See [Model configuration](/en/model-config#customize-pinned-model-display-and-capabilities) |
 | `ANTHROPIC_FOUNDRY_API_KEY` | API key for Microsoft Foundry authentication (see [Microsoft Foundry](/en/microsoft-foundry)) |
 | `ANTHROPIC_FOUNDRY_BASE_URL` | Full base URL for the Foundry resource (for example, `https://my-resource.services.ai.azure.com/anthropic`). Alternative to `ANTHROPIC_FOUNDRY_RESOURCE` (see [Microsoft Foundry](/en/microsoft-foundry)) |
 | `ANTHROPIC_FOUNDRY_RESOURCE` | Foundry resource name (for example, `my-resource`). Required if `ANTHROPIC_FOUNDRY_BASE_URL` is not set (see [Microsoft Foundry](/en/microsoft-foundry)) |
@@ -85,6 +94,7 @@ Claude Code supports the following environment variables to control its behavior
 | `CLAUDE_CODE_USER_EMAIL` | Email address for the authenticated user. Used by SDK callers to provide account information synchronously. Requires `CLAUDE_CODE_ACCOUNT_UUID` and `CLAUDE_CODE_ORGANIZATION_UUID` to also be set |
 | `CLAUDE_CODE_USE_BEDROCK` | Use [Bedrock](/en/amazon-bedrock) |
 | `CLAUDE_CODE_USE_FOUNDRY` | Use [Microsoft Foundry](/en/microsoft-foundry) |
+| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | Set to `1` to enable the PowerShell tool on Windows (opt-in preview). When enabled, Claude can run PowerShell commands natively instead of routing through Git Bash. Only supported on native Windows, not WSL. See [PowerShell tool](/en/tools-reference#powershell-tool) |
 | `CLAUDE_CODE_USE_VERTEX` | Use [Vertex](/en/google-vertex-ai) |
 | `CLAUDE_CONFIG_DIR` | Customize where Claude Code stores its configuration and data files |
 | `CLAUDE_ENV_FILE` | Path to a shell script that Claude Code sources before each Bash command. Use to persist virtualenv or conda activation across commands. Also populated dynamically by [SessionStart](/en/hooks#persist-environment-variables), [CwdChanged](/en/hooks#cwdchanged), and [FileChanged](/en/hooks#filechanged) hooks |

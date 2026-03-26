@@ -217,6 +217,8 @@ Actions available in the `Footer` context:
 | :- | :- | :- |
 | `footer:next` | Right | Next footer item |
 | `footer:previous` | Left | Previous footer item |
+| `footer:up` | Up | Navigate up in footer (deselects at top) |
+| `footer:down` | Down | Navigate down in footer |
 | `footer:openSelected` | Enter | Open selected footer item |
 | `footer:clearSelection` | Escape | Clear footer selection |
 
