@@ -46,7 +46,7 @@ See [Terminal configuration](/en/terminal-config) for details.
 | Shortcut | Description | Context |
 | :- | :- | :- |
 | `Ctrl+K` | Delete to end of line | Stores deleted text for pasting |
-| `Ctrl+U` | Delete entire line | Stores deleted text for pasting |
+| `Ctrl+U` | Delete from cursor to line start | Stores deleted text for pasting. Repeat to clear across lines in multiline input |
 | `Ctrl+Y` | Paste deleted text | Paste text deleted with `Ctrl+K` or `Ctrl+U` |
 | `Alt+Y` (after `Ctrl+Y`) | Cycle paste history | After pasting, cycle through previously deleted text. Requires [Option as Meta](#keyboard-shortcuts) on macOS |
 | `Alt+B` | Move cursor back one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |
