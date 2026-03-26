@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/en/commands.md
 
 Type `/` in Claude Code to see all available commands, or type `/` followed by any letters to filter. Not all commands are visible to every user. Some depend on your platform, plan, or environment. For example, `/desktop` only appears on macOS and Windows, `/upgrade` and `/privacy-settings` are only available on Pro and Max plans, and `/terminal-setup` is hidden when your terminal natively supports its keybindings.
 
-Claude Code also includes [bundled skills](/en/skills#bundled-skills) like `/simplify`, `/batch`, and `/debug` that appear alongside built-in commands when you type `/`. To create your own commands, see [skills](/en/skills).
+Claude Code also includes [bundled skills](/en/skills#bundled-skills) like `/simplify`, `/batch`, `/debug`, and `/loop` that appear alongside built-in commands when you type `/`. To create your own commands, see [skills](/en/skills).
 
 In the table below, `<arg>` indicates a required argument and `[arg]` indicates an optional one.
 
@@ -24,7 +24,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/compact [instructions]` | Compact conversation with optional focus instructions |
 | `/config` | Open the [Settings](/en/settings) interface to adjust theme, model, [output style](/en/output-styles), and other preferences. Alias: `/settings` |
 | `/context` | Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings |
-| `/copy [N]` | Copy the last assistant response to clipboard. Pass a number `N` to copy the Nth-latest response: `/copy 2` copies the second-to-last. When code blocks are present, shows an interactive picker to select individual blocks or the full response |
+| `/copy [N]` | Copy the last assistant response to clipboard. Pass a number `N` to copy the Nth-latest response: `/copy 2` copies the second-to-last. When code blocks are present, shows an interactive picker to select individual blocks or the full response. Press `w` in the picker to write the selection to a file instead of the clipboard, which is useful over SSH |
 | `/cost` | Show token usage statistics. See [cost tracking guide](/en/costs#using-the-cost-command) for subscription-specific details |
 | `/desktop` | Continue the current session in the Claude Code Desktop app. macOS and Windows only. Alias: `/app` |
 | `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files |
@@ -52,7 +52,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/model [model]` | Select or change the AI model. For models that support it, use left/right arrows to [adjust effort level](/en/model-config#adjust-effort-level). The change takes effect immediately without waiting for the current response to finish |
 | `/passes` | Share a free week of Claude Code with friends. Only visible if your account is eligible |
 | `/permissions` | View or update [permissions](/en/permissions#manage-permissions). Alias: `/allowed-tools` |
-| `/plan` | Enter plan mode directly from the prompt |
+| `/plan [description]` | Enter plan mode directly from the prompt. Pass an optional description to enter plan mode and immediately start with that task, for example `/plan fix the auth bug` |
 | `/plugin` | Manage Claude Code [plugins](/en/plugins) |
 | `/pr-comments [PR]` | Fetch and display comments from a GitHub pull request. Automatically detects the PR for the current branch, or pass a PR URL or number. Requires the `gh` CLI |
 | `/privacy-settings` | View and update your privacy settings. Only available for Pro and Max plan subscribers |
