@@ -205,7 +205,6 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | `spinnerTipsOverride` | Override spinner tips with custom strings. `tips`: array of tip strings. `excludeDefault`: if `true`, only show custom tips; if `false` or absent, custom tips are merged with built-in tips | `{ "excludeDefault": true, "tips": ["Use our internal tool X"] }` |
 | `prefersReducedMotion` | Reduce or disable UI animations (spinners, shimmer, flash effects) for accessibility | `true` |
 | `fastModePerSessionOptIn` | When `true`, fast mode does not persist across sessions. Each session starts with fast mode off, requiring users to enable it with `/fast`. The user's fast mode preference is still saved. See [Require per-session opt-in](/en/fast-mode#require-per-session-opt-in) | `true` |
-| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `auto` (picks split panes in tmux or iTerm2, in-process otherwise), `in-process`, or `tmux`. See [set up agent teams](/en/agent-teams#set-up-agent-teams) | `"in-process"` |
 | `feedbackSurveyRate` | Probability (0–1) that the [session quality survey](/en/data-usage#session-quality-surveys) appears when eligible. Set to `0` to suppress entirely. Useful when using Bedrock, Vertex, or Foundry where the default sample rate does not apply | `0.05` |
 
 ### Global config settings
@@ -219,6 +218,7 @@ These settings are stored in `~/.claude.json` rather than `settings.json`. Addin
 | `editorMode` | Key binding mode for the input prompt: `"normal"` or `"vim"`. Default: `"normal"`. Written automatically when you run `/vim`. Appears in `/config` as **Key binding mode** | `"vim"` |
 | `showTurnDuration` | Show turn duration messages after responses, e.g. "Cooked for 1m 6s". Default: `true`. Appears in `/config` as **Show turn duration** | `false` |
 | `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |
+| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `auto` (picks split panes in tmux or iTerm2, in-process otherwise), `in-process`, or `tmux`. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `"in-process"` |
 
 ### Worktree settings
 
