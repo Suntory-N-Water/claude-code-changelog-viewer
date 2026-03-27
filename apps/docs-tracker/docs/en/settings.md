@@ -161,6 +161,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt
 | `autoMode` | Customize what the [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier blocks and allows. Contains `environment`, `allow`, and `soft_deny` arrays of prose rules. See [Configure the auto mode classifier](/en/permissions#configure-the-auto-mode-classifier). Not read from shared project settings | `{"environment": ["Trusted repo: github.example.com/acme"]}` |
 | `disableAutoMode` | Set to `"disable"` to prevent [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) from being activated. Removes `auto` from the `Shift+Tab` cycle and rejects `--permission-mode auto` at startup. Most useful in [managed settings](/en/permissions#managed-settings) where users cannot override it | `"disable"` |
 | `useAutoModeDuringPlan` | Whether plan mode uses auto mode semantics when auto mode is available. Default: `true`. Not read from shared project settings. Appears in `/config` as "Use auto mode during plan" | `false` |
+| `disableDeepLinkRegistration` | Set to `"disable"` to prevent Claude Code from registering the `claude-cli://` protocol handler with the operating system on startup. Deep links let external tools open a Claude Code session with a pre-filled prompt via `claude-cli://open?q=...`. Useful in environments where protocol handler registration is restricted or managed separately | `"disable"` |
 | `hooks` | Configure custom commands to run at lifecycle events. See [hooks documentation](/en/hooks) for format | See [hooks](/en/hooks) |
 | `defaultShell` | Default shell for input-box `!` commands. Accepts `"bash"` (default) or `"powershell"`. Setting `"powershell"` routes interactive `!` commands through PowerShell on Windows. Requires `CLAUDE_CODE_USE_POWERSHELL_TOOL=1`. See [PowerShell tool](/en/tools-reference#powershell-tool) | `"powershell"` |
 | `disableAllHooks` | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline) | `true` |
@@ -227,6 +228,8 @@ Configure how `--worktree` creates and manages git worktrees. Use these settings
 | :- | :- | :- |
 | `worktree.symlinkDirectories` | Directories to symlink from the main repository into each worktree to avoid duplicating large directories on disk. No directories are symlinked by default | `["node_modules", ".cache"]` |
 | `worktree.sparsePaths` | Directories to check out in each worktree via git sparse-checkout (cone mode). Only the listed paths are written to disk, which is faster in large monorepos | `["packages/my-app", "shared/utils"]` |
+
+To copy gitignored files like `.env` into new worktrees, use a [`.worktreeinclude` file](/en/common-workflows#copy-gitignored-files-to-worktrees) in your project root instead of a setting.
 
 ### Permission settings
 
