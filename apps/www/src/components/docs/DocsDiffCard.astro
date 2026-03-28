@@ -2,6 +2,7 @@
 import { TZDate } from '@date-fns/tz';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { formatChangelogContent } from '../../lib/format-changelog-content';
 
 type DocFileDiff = {
   filename: string;
@@ -20,6 +21,7 @@ const { id, timestamp, aiSummary, files } = Astro.props;
 
 const jstDate = new TZDate(timestamp, 'Asia/Tokyo');
 const formattedDate = format(jstDate, 'yyyy年M月d日 HH:mm', { locale: ja });
+const formattedSummary = formatChangelogContent(aiSummary);
 
 const totalAdditions = files.reduce((sum, f) => sum + f.additions, 0);
 const totalDeletions = files.reduce((sum, f) => sum + f.deletions, 0);
@@ -51,7 +53,7 @@ const totalDeletions = files.reduce((sum, f) => sum + f.deletions, 0);
           datetime={timestamp}
           class='text-sm font-semibold text-[hsl(var(--cc-main-black))]'
         >
-          {formattedDate} JST
+          {formattedDate}
         </time>
       </div>
       <div
@@ -69,10 +71,11 @@ const totalDeletions = files.reduce((sum, f) => sum + f.deletions, 0);
   </div>
 
   <div class='px-5 py-4 space-y-3'>
-    <!-- AI サマリー -->
-    <p class='text-sm text-[hsl(var(--cc-main-black))] leading-relaxed'>
-      {aiSummary}
-    </p>
+    <!-- サマリー -->
+    <p
+      class='text-sm text-[hsl(var(--cc-main-black))] leading-relaxed'
+      set:html={formattedSummary}
+    />
 
     <!-- 変更ファイル一覧 -->
     <div class='flex flex-wrap gap-1.5'>
@@ -80,11 +83,11 @@ const totalDeletions = files.reduce((sum, f) => sum + f.deletions, 0);
         files.map((file) => (
           <a
             href={`/docs/${id}#${file.filename.replace('.md', '').replace(/\//g, '-')}`}
-            class='inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[hsl(var(--cc-gray)/0.5)] hover:bg-[hsl(var(--cc-gray))] text-xs font-mono text-[hsl(var(--cc-main-black)/0.8)] transition-colors min-h-[28px]'
+            class='inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[hsl(var(--cc-gray)/0.5)] hover:bg-[hsl(var(--cc-gray))] text-xs font-mono text-[hsl(var(--cc-main-black)/0.8)] transition-colors min-h-7'
           >
             <span class='text-green-700 font-medium'>+{file.additions}</span>
             <span class='text-red-600 font-medium'>-{file.deletions}</span>
-            <span class='text-[hsl(var(--cc-main-black)/0.5)] ml-0.5 truncate max-w-[180px]'>
+            <span class='text-[hsl(var(--cc-main-black)/0.5)] ml-0.5 truncate max-w-45'>
               {file.filename}
             </span>
           </a>
