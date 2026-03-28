@@ -66,7 +66,7 @@ async function runWithTimers(promise: Promise<void>) {
 }
 
 function callConsumer(batch: MessageBatch<unknown>, env: CloudflareBindings) {
-  return queueConsumer!(batch, env, {} as ExecutionContext) as Promise<void>;
+  return queueConsumer?.(batch, env, {} as ExecutionContext) as Promise<void>;
 }
 
 describe('queueConsumer integration', () => {
