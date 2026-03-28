@@ -50,7 +50,39 @@ const diffCollection = defineCollection({
   }),
 });
 
+const docsDiffCollection = defineCollection({
+  loader: glob({ pattern: '**/*.json', base: './src/content/docs-diff' }),
+  schema: z.object({
+    entries: z.array(
+      z.object({
+        id: z.string(),
+        timestamp: z.iso.datetime(),
+        aiSummary: z.string(),
+        files: z.array(
+          z.object({
+            filename: z.string(),
+            additions: z.number(),
+            deletions: z.number(),
+            hunks: z.array(
+              z.object({
+                header: z.string(),
+                lines: z.array(
+                  z.object({
+                    type: z.enum(['added', 'removed', 'context']),
+                    content: z.string(),
+                  }),
+                ),
+              }),
+            ),
+          }),
+        ),
+      }),
+    ),
+  }),
+});
+
 export const collections = {
   changelog: changelogCollection,
   diff: diffCollection,
+  docsDiff: docsDiffCollection,
 };

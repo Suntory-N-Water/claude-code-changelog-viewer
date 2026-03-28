@@ -6,6 +6,9 @@ const INFERRED_DIR = join(FETCHER_DIR, 'inferred');
 const CONTENT_DIR = join(process.cwd(), 'src', 'content', 'changelog');
 const DIFF_SOURCE = join(FETCHER_DIR, 'diff', 'changelog_diff.json');
 const DIFF_DIR = join(process.cwd(), 'src', 'content', 'diff');
+const DOCS_TRACKER_DIR = join(process.cwd(), '..', 'docs-tracker');
+const DOCS_DIFF_SOURCE = join(DOCS_TRACKER_DIR, 'diffs', 'docs_diff.json');
+const DOCS_DIFF_DIR = join(process.cwd(), 'src', 'content', 'docs-diff');
 
 // ディレクトリ作成
 try {
@@ -66,4 +69,24 @@ try {
   console.log(`✓ Linked: changelog_diff.json -> ${diffRelativePath}`);
 } catch {
   console.log('⊘ diff/changelog_diff.json not found, skipping');
+}
+
+// docs_diff.json のシンボリックリンク
+try {
+  await mkdir(DOCS_DIFF_DIR, { recursive: true });
+} catch {}
+
+const docsDiffLinkPath = join(DOCS_DIFF_DIR, 'docs_diff.json');
+
+try {
+  await readlink(docsDiffLinkPath);
+  await unlink(docsDiffLinkPath);
+} catch {}
+
+try {
+  const docsDiffRelativePath = relative(DOCS_DIFF_DIR, DOCS_DIFF_SOURCE);
+  await symlink(docsDiffRelativePath, docsDiffLinkPath);
+  console.log(`✓ Linked: docs_diff.json -> ${docsDiffRelativePath}`);
+} catch {
+  console.log('⊘ diffs/docs_diff.json not found, skipping');
 }

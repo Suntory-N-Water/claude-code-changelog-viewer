@@ -1,0 +1,70 @@
+---
+import { getCollection } from 'astro:content';
+import DocsDiffCard from '../../components/docs/DocsDiffCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import { SITE_TITLE } from '../../lib/constants';
+
+const docsDiffEntries = await getCollection('docsDiff');
+
+// entries を時系列(新しい順)に展開
+const allEntries = docsDiffEntries
+  .flatMap((col) => col.data.entries)
+  .sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  );
+
+const pageTitle = '日本語ドキュメント更新タイムライン';
+const pageDescription =
+  'Claude Code 公式日本語ドキュメントの更新履歴を diff 形式で確認できます。';
+---
+
+<Layout
+  title={`${pageTitle} - ${SITE_TITLE}`}
+  description={pageDescription}
+  jsonLd={{
+    type: 'collection',
+    title: pageTitle,
+    description: pageDescription,
+  }}
+  breadcrumbs={[
+    { name: 'トップ', url: Astro.site?.href ?? '/' },
+    { name: 'Docs 更新', url: `${Astro.site?.href ?? '/'}docs` },
+  ]}
+>
+  <div class='max-w-4xl mx-auto px-4 py-8'>
+    <!-- ページヘッダー -->
+    <div class='mb-8'>
+      <h1 class='text-3xl font-bold text-[hsl(var(--cc-main-black))] mb-2'>
+        Docs 更新タイムライン
+      </h1>
+      <p class='text-sm text-gray-500'>
+        Claude Code 公式日本語ドキュメント(<code
+          class='text-xs bg-[hsl(var(--cc-gray)/0.5)] px-1 py-0.5 rounded'
+          >code.claude.com/docs/ja</code
+        >)の更新を追跡しています。
+      </p>
+    </div>
+
+    {
+      allEntries.length === 0 ? (
+        <div class='text-center py-16 text-gray-400'>
+          <p class='text-lg'>まだ更新履歴がありません。</p>
+          <p class='text-sm mt-2'>
+            次回の自動取得(3時間おき)をお待ちください。
+          </p>
+        </div>
+      ) : (
+        <div class='space-y-4'>
+          {allEntries.map((entry) => (
+            <DocsDiffCard
+              id={entry.id}
+              timestamp={entry.timestamp}
+              aiSummary={entry.aiSummary}
+              files={entry.files}
+            />
+          ))}
+        </div>
+      )
+    }
+  </div>
+</Layout>

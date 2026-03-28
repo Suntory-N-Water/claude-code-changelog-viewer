@@ -1,0 +1,109 @@
+---
+import { TZDate } from '@date-fns/tz';
+import { format } from 'date-fns';
+import { ja } from 'date-fns/locale';
+
+type DocFileDiff = {
+  filename: string;
+  additions: number;
+  deletions: number;
+};
+
+type Props = {
+  id: string;
+  timestamp: string;
+  aiSummary: string;
+  files: DocFileDiff[];
+};
+
+const { id, timestamp, aiSummary, files } = Astro.props;
+
+const jstDate = new TZDate(timestamp, 'Asia/Tokyo');
+const formattedDate = format(jstDate, 'yyyy年M月d日 HH:mm', { locale: ja });
+
+const totalAdditions = files.reduce((sum, f) => sum + f.additions, 0);
+const totalDeletions = files.reduce((sum, f) => sum + f.deletions, 0);
+---
+
+<div
+  class='bg-card text-card-foreground rounded-xl border shadow-sm overflow-hidden'
+>
+  <!-- カードヘッダー -->
+  <div class='px-6 py-4 border-b border-[hsl(var(--cc-gray))]'>
+    <div class='flex flex-wrap items-center justify-between gap-2'>
+      <div class='flex items-center gap-2'>
+        <svg
+          class='w-4 h-4 text-[hsl(var(--cc-main-orange))] shrink-0'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+          stroke-width='2'
+          aria-hidden='true'
+        >
+          <path
+            stroke-linecap='round'
+            stroke-linejoin='round'
+            d='M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z'></path>
+        </svg>
+        <time
+          datetime={timestamp}
+          class='text-sm font-medium text-[hsl(var(--cc-main-black))]'
+        >
+          {formattedDate} JST
+        </time>
+      </div>
+      <div class='flex items-center gap-2 text-xs text-gray-500'>
+        <span class='text-green-600 font-mono'>+{totalAdditions}</span>
+        <span class='text-red-500 font-mono'>-{totalDeletions}</span>
+        <span>·</span>
+        <span>{files.length} ファイル</span>
+      </div>
+    </div>
+  </div>
+
+  <div class='px-6 py-4 space-y-4'>
+    <!-- AI サマリー -->
+    <div>
+      <p class='text-sm text-[hsl(var(--cc-main-black))] leading-relaxed'>
+        {aiSummary}
+      </p>
+    </div>
+
+    <!-- 変更ファイル一覧 -->
+    <div class='flex flex-wrap gap-2'>
+      {
+        files.map((file) => (
+          <a
+            href={`/docs/${id}#${file.filename.replace('.md', '').replace(/\//g, '-')}`}
+            class='inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[hsl(var(--cc-gray)/0.5)] hover:bg-[hsl(var(--cc-gray))] text-xs font-mono text-[hsl(var(--cc-main-black))] transition-colors'
+          >
+            <span class='text-green-600'>+{file.additions}</span>
+            <span class='text-red-500'>-{file.deletions}</span>
+            <span class='text-gray-500 ml-1'>{file.filename}</span>
+          </a>
+        ))
+      }
+    </div>
+
+    <!-- 詳細リンク -->
+    <div class='pt-2 border-t border-[hsl(var(--cc-gray)/0.5)]'>
+      <a
+        href={`/docs/${id}`}
+        class='inline-flex items-center gap-1 text-xs text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+      >
+        diff 詳細を表示
+        <svg
+          class='w-3 h-3'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+          stroke-width='2'
+          aria-hidden='true'
+        >
+          <path stroke-linecap='round' stroke-linejoin='round' d='M9 5l7 7-7 7'
+          ></path>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
