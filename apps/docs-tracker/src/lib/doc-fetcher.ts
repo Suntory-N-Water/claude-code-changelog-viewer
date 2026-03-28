@@ -21,8 +21,9 @@ type FetchResult = {
 };
 
 export class ClaudeDocsFetcher {
-  private readonly baseUrl = 'https://code.claude.com/docs/en';
-  private readonly docsMapUrl = `${this.baseUrl}/claude_code_docs_map.md`;
+  private readonly lang: 'en' | 'ja';
+  private readonly baseUrl: string;
+  private readonly docsMapUrl: string;
   private readonly llmsUrl = 'https://code.claude.com/docs/llms.txt';
   private readonly docsDir: string;
   private readonly metadataDir: string;
@@ -30,10 +31,17 @@ export class ClaudeDocsFetcher {
   private readonly retryDelay = 1000; // 1 second
   private readonly log: AppLogger;
 
-  constructor(rootDir: string = '.', logger: AppLogger) {
-    this.docsDir = path.join(rootDir, 'docs', 'en');
+  constructor(
+    rootDir: string = '.',
+    logger: AppLogger,
+    lang: 'en' | 'ja' = 'en',
+  ) {
+    this.lang = lang;
+    this.baseUrl = `https://code.claude.com/docs/${lang}`;
+    this.docsMapUrl = `${this.baseUrl}/claude_code_docs_map.md`;
+    this.docsDir = path.join(rootDir, 'docs', lang);
     this.metadataDir = path.join(rootDir, 'metadata');
-    this.log = logger.child({ component: 'ClaudeDocsFetcher' });
+    this.log = logger.child({ component: 'ClaudeDocsFetcher', lang });
   }
 
   /**
@@ -55,9 +63,11 @@ export class ClaudeDocsFetcher {
       const response = await this.fetchWithRetry(this.docsMapUrl);
       const content = await response.text();
 
-      // Save the docs map
+      // Save the docs map(言語別ファイル名)
+      const docsMapFile =
+        this.lang === 'en' ? 'docs_map.md' : `docs_map_${this.lang}.md`;
       await fs.writeFile(
-        path.join(this.metadataDir, 'docs_map.md'),
+        path.join(this.metadataDir, docsMapFile),
         content,
         'utf-8',
       );
@@ -111,8 +121,12 @@ export class ClaudeDocsFetcher {
 
   /**
    * Fetch llms.txt to get list of all documentation URLs
+   * ja の場合は llms.txt に ja URL が存在しないためスキップ
    */
   async fetchLlmsTxt(): Promise<DocInfo[]> {
+    if (this.lang === 'ja') {
+      return [];
+    }
     this.log.msg('APLG0003', { params: ['llms.txt'] });
 
     try {
@@ -291,8 +305,8 @@ source: ${docInfo.url}
    * e.g., https://code.claude.com/docs/en/sdk/migration-guide.md -> sdk/migration-guide.md
    */
   private getFilenameFromUrl(url: string): string {
-    // Extract path after /docs/en/
-    const match = url.match(/\/docs\/en\/(.+\.md)/);
+    // Extract path after /docs/{lang}/
+    const match = url.match(/\/docs\/(?:en|ja)\/(.+\.md)/);
     const captured = match?.[1];
     if (captured) {
       // Remove query parameters and hash
@@ -359,7 +373,7 @@ source: ${docInfo.url}
   private async hasDocsChanges(): Promise<boolean> {
     try {
       const { stdout } = await execAsync(
-        'git diff --quiet docs/en/ || echo "changed"',
+        `git diff --quiet docs/${this.lang}/ || echo "changed"`,
       );
       return stdout.trim() === 'changed';
     } catch (_error) {
@@ -373,7 +387,9 @@ source: ${docInfo.url}
    * Save metadata
    */
   private async saveMetadata(data: Record<string, unknown>): Promise<void> {
-    const metadataPath = path.join(this.metadataDir, 'last_update.json');
+    const metadataFile =
+      this.lang === 'en' ? 'last_update.json' : `last_update_${this.lang}.json`;
+    const metadataPath = path.join(this.metadataDir, metadataFile);
 
     try {
       let existing = {};

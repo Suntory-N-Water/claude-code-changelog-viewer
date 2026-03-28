@@ -14,11 +14,13 @@ async function main() {
   const startTime = Date.now();
 
   try {
-    // Initialize fetcher with current directory as root
-    const fetcher = new ClaudeDocsFetcher(process.cwd(), logger);
+    // 英語ドキュメント取得(CHANGELOG 解析用)
+    const enFetcher = new ClaudeDocsFetcher(process.cwd(), logger, 'en');
+    await enFetcher.fetchAllDocs();
 
-    // Fetch all documentation
-    await fetcher.fetchAllDocs();
+    // 日本語ドキュメント取得(diff ビューア用)
+    const jaFetcher = new ClaudeDocsFetcher(process.cwd(), logger, 'ja');
+    await jaFetcher.fetchAllDocs();
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.msg('APLG0002', {

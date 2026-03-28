@@ -1,0 +1,868 @@
+---
+title: settings
+source: https://code.claude.com/docs/ja/settings.md
+---
+
+# Claude Code の設定
+
+> Claude Code をグローバル設定とプロジェクトレベルの設定、および環境変数で構成します。
+
+Claude Code は、ニーズに合わせて動作を構成するためのさまざまな設定を提供しています。インタラクティブ REPL を使用する際に `/config` コマンドを実行することで Claude Code を構成できます。これにより、ステータス情報を表示し、構成オプションを変更できるタブ付き設定インターフェースが開きます。
+
+## 構成スコープ
+
+Claude Code は、**スコープシステム**を使用して、構成がどこに適用され、誰と共有されるかを決定します。スコープを理解することで、個人使用、チーム協力、またはエンタープライズデプロイメント用に Claude Code を構成する方法を決定するのに役立ちます。
+
+### 利用可能なスコープ
+
+| スコープ | 場所 | 影響を受けるユーザー | チームと共有? |
+| :- | :- | :- | :- |
+| **Managed** | サーバー管理設定、plist / レジストリ、またはシステムレベルの `managed-settings.json` | マシン上のすべてのユーザー | はい（IT により展開） |
+| **User** | `~/.claude/` ディレクトリ | すべてのプロジェクト全体でのあなた | いいえ |
+| **Project** | リポジトリ内の `.claude/` | このリポジトリのすべてのコラボレーター | はい（git にコミット） |
+| **Local** | `.claude/settings.local.json` | このリポジトリ内のあなたのみ | いいえ（gitignored） |
+
+### 各スコープを使用する場合
+
+**Managed スコープ**は以下の用途です：
+
+- 組織全体で強制する必要があるセキュリティポリシー
+- オーバーライドできないコンプライアンス要件
+- IT/DevOps により展開される標準化された構成
+
+**User スコープ**は以下の用途に最適です：
+
+- すべての場所で必要な個人設定（テーマ、エディター設定）
+- すべてのプロジェクト全体で使用するツールとプラグイン
+- API キーと認証（安全に保存）
+
+**Project スコープ**は以下の用途に最適です：
+
+- チーム共有設定（権限、hooks、MCP サーバー）
+- チーム全体が持つべきプラグイン
+- コラボレーター全体でのツール標準化
+
+**Local スコープ**は以下の用途に最適です：
+
+- 特定のプロジェクトの個人的なオーバーライド
+- チームと共有する前に構成をテストする
+- 他のユーザーには機能しないマシン固有の設定
+
+### スコープの相互作用
+
+同じ設定が複数のスコープで構成されている場合、より具体的なスコープが優先されます：
+
+1. **Managed**（最高） - 何によってもオーバーライドできない
+2. **コマンドライン引数** - 一時的なセッションオーバーライド
+3. **Local** - プロジェクトとユーザー設定をオーバーライド
+4. **Project** - ユーザー設定をオーバーライド
+5. **User**（最低） - 他に何も設定を指定しない場合に適用
+
+たとえば、ユーザー設定で権限が許可されているが、プロジェクト設定で拒否されている場合、プロジェクト設定が優先され、権限はブロックされます。
+
+### スコープを使用する機能
+
+スコープは多くの Claude Code 機能に適用されます：
+
+| 機能 | ユーザーの場所 | プロジェクトの場所 | ローカルの場所 |
+| :- | :- | :- | :- |
+| **Settings** | `~/.claude/settings.json` | `.claude/settings.json` | `.claude/settings.local.json` |
+| **Subagents** | `~/.claude/agents/` | `.claude/agents/` | なし |
+| **MCP servers** | `~/.claude.json` | `.mcp.json` | `~/.claude.json`（プロジェクトごと） |
+| **Plugins** | `~/.claude/settings.json` | `.claude/settings.json` | `.claude/settings.local.json` |
+| **CLAUDE.md** | `~/.claude/CLAUDE.md` | `CLAUDE.md` または `.claude/CLAUDE.md` | なし |
+
+***
+
+## 設定ファイル
+
+`settings.json` ファイルは、階層的な設定を通じて Claude Code を構成するための公式メカニズムです：
+
+- **ユーザー設定**は `~/.claude/settings.json` で定義され、すべてのプロジェクトに適用されます。
+- **プロジェクト設定**はプロジェクトディレクトリに保存されます：
+  - `.claude/settings.json` ソース管理にチェックインされ、チームと共有される設定用
+  - `.claude/settings.local.json` チェックインされない設定用。個人設定と実験に役立ちます。Claude Code は作成時に `.claude/settings.local.json` を無視するように git を構成します。
+- **Managed 設定**：集中管理が必要な組織向けに、Claude Code は managed 設定の複数の配信メカニズムをサポートしています。すべて同じ JSON 形式を使用し、ユーザー設定またはプロジェクト設定でオーバーライドできません：
+
+  - **サーバー管理設定**：Anthropic のサーバーから Claude.ai 管理コンソール経由で配信されます。[サーバー管理設定](/ja/server-managed-settings)を参照してください。
+  - **MDM/OS レベルのポリシー**：macOS と Windows のネイティブデバイス管理を通じて配信されます：
+    - macOS：`com.anthropic.claudecode` managed preferences ドメイン（Jamf、Kandji、または他の MDM ツールの構成プロファイルを通じて展開）
+    - Windows：`HKLM\SOFTWARE\Policies\ClaudeCode` レジストリキーと JSON を含む `Settings` 値（REG\_SZ または REG\_EXPAND\_SZ）（グループポリシーまたは Intune を通じて展開）
+    - Windows（ユーザーレベル）：`HKCU\SOFTWARE\Policies\ClaudeCode`（最低ポリシー優先度、管理者レベルのソースが存在しない場合のみ使用）
+  - **ファイルベース**：`managed-settings.json` と `managed-mcp.json` をシステムディレクトリに展開：
+
+    - macOS：`/Library/Application Support/ClaudeCode/`
+    - Linux と WSL：`/etc/claude-code/`
+    - Windows：`C:\Program Files\ClaudeCode\`
+
+    レガシー Windows パス `C:\ProgramData\ClaudeCode\managed-settings.json` は v2.1.75 以降サポートされなくなりました。そのロケーションに設定を展開した管理者は、ファイルを `C:\Program Files\ClaudeCode\managed-settings.json` に移行する必要があります。
+
+    ファイルベースの managed 設定は、`managed-settings.json` と同じシステムディレクトリ内の `managed-settings.d/` ドロップインディレクトリもサポートしています。これにより、別々のチームが単一ファイルの編集を調整することなく、独立したポリシーフラグメントを展開できます。
+
+    systemd 規則に従い、`managed-settings.json` が最初にベースとしてマージされ、その後、ドロップインディレクトリ内のすべての `*.json` ファイルがアルファベット順にソートされてマージされます。スカラー値の場合、後のファイルが前のファイルをオーバーライドします。配列は連結され、重複排除されます。オブジェクトはディープマージされます。`.` で始まる隠しファイルは無視されます。
+
+    マージ順序を制御するには、数値プレフィックスを使用します。たとえば、`10-telemetry.json` と `20-security.json` です。
+
+  [managed 設定](/ja/permissions#managed-only-settings)と [Managed MCP 構成](/ja/mcp#managed-mcp-configuration)の詳細を参照してください。
+
+  Managed デプロイメントは、`strictKnownMarketplaces` を使用して**プラグインマーケットプレイスの追加**を制限することもできます。詳細については、[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください。
+- **その他の構成**は `~/.claude.json` に保存されます。このファイルには、あなたの設定（テーマ、通知設定、エディターモード）、OAuth セッション、[MCP サーバー](/ja/mcp)ユーザーおよびローカルスコープの構成、プロジェクトごとの状態（許可されたツール、信頼設定）、およびさまざまなキャッシュが含まれます。プロジェクトスコープの MCP サーバーは `.mcp.json` に別途保存されます。
+
+Claude Code は構成ファイルのタイムスタンプ付きバックアップを自動的に作成し、データ損失を防ぐために最新の 5 つのバックアップを保持します。
+
+```JSON Example settings.json theme={null}
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run test *)",
+      "Read(~/.zshrc)"
+    ],
+    "deny": [
+      "Bash(curl *)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_METRICS_EXPORTER": "otlp"
+  },
+  "companyAnnouncements": [
+    "Welcome to Acme Corp! Review our code guidelines at docs.acme.com",
+    "Reminder: Code reviews required for all PRs",
+    "New security policy in effect"
+  ]
+}
+```
+
+上記の例の `$schema` 行は、Claude Code 設定の[公式 JSON スキーマ](https://json.schemastore.org/claude-code-settings.json)を指しています。これを `settings.json` に追加すると、VS Code、Cursor、および JSON スキーマ検証をサポートする他のエディターでオートコンプリートとインライン検証が有効になります。
+
+### 利用可能な設定
+
+`settings.json` は多くのオプションをサポートしています：
+
+| キー | 説明 | 例 |
+| :- | :- | :- |
+| `apiKeyHelper` | `/bin/sh` で実行される認証値を生成するカスタムスクリプト。この値は、モデルリクエストの `X-Api-Key` および `Authorization: Bearer` ヘッダーとして送信されます | `/bin/generate_temp_api_key.sh` |
+| `autoMemoryDirectory` | [自動メモリ](/ja/memory#storage-location)ストレージ用のカスタムディレクトリ。`~/` 展開パスを受け入れます。プロジェクト設定（`.claude/settings.json`）では受け入れられません。共有リポジトリがメモリ書き込みを機密の場所にリダイレクトするのを防ぐため。ポリシー、ローカル、およびユーザー設定から受け入れられます | `"~/my-memory-dir"` |
+| `cleanupPeriodDays` | この期間より長く非アクティブなセッションは起動時に削除されます（デフォルト：30 日）。0 に設定すると、起動時にすべての既存トランスクリプトが削除され、セッション永続化が完全に無効になります。新しい `.jsonl` ファイルは書き込まれず、`/resume` は会話を表示せず、hooks は空の `transcript_path` を受け取ります。 | `20` |
+| `companyAnnouncements` | 起動時にユーザーに表示するアナウンス。複数のアナウンスが提供される場合、ランダムにサイクルされます。 | `["Welcome to Acme Corp! Review our code guidelines at docs.acme.com"]` |
+| `env` | すべてのセッションに適用される環境変数 | `{"FOO": "bar"}` |
+| `attribution` | git コミットとプルリクエストの属性をカスタマイズします。[属性設定](#attribution-settings)を参照してください | `{"commit": "🤖 Generated with Claude Code", "pr": ""}` |
+| `includeCoAuthoredBy` | **非推奨**：代わりに `attribution` を使用してください。git コミットとプルリクエストに `co-authored-by Claude` バイラインを含めるかどうか（デフォルト：`true`） | `false` |
+| `includeGitInstructions` | Claude のシステムプロンプトに組み込みコミットおよび PR ワークフロー命令を含めます（デフォルト：`true`）。たとえば、独自の git ワークフロースキルを使用する場合は、これらの命令を削除するために `false` に設定します。`CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` 環境変数が設定されている場合、この設定よりも優先されます | `false` |
+| `permissions` | 権限の構造については、以下の表を参照してください。 | |
+| `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、および `soft_deny` 配列の散文ルールを含みます。[自動モード分類器を構成](/ja/permissions#configure-the-auto-mode-classifier)を参照してください。共有プロジェクト設定から読み込まれません | `{"environment": ["Trusted repo: github.example.com/acme"]}` |
+| `disableAutoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)の有効化を防ぐために `"disable"` に設定します。`Shift+Tab` サイクルから `auto` を削除し、起動時に `--permission-mode auto` を拒否します。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `"disable"` |
+| `useAutoModeDuringPlan` | プラン モードが自動モードが利用可能な場合に自動モードセマンティクスを使用するかどうか。デフォルト：`true`。共有プロジェクト設定から読み込まれません。`/config` に「プラン中に自動モードを使用」として表示されます | `false` |
+| `hooks` | ライフサイクルイベントで実行するカスタムコマンドを構成します。形式については [hooks ドキュメント](/ja/hooks)を参照してください | [hooks](/ja/hooks)を参照 |
+| `disableAllHooks` | すべての [hooks](/ja/hooks) とカスタム [ステータスライン](/ja/statusline)を無効にします | `true` |
+| `allowManagedHooksOnly` | （Managed 設定のみ）ユーザー、プロジェクト、およびプラグイン hooks の読み込みを防止します。managed hooks と SDK hooks のみを許可します。[Hook 構成](#hook-configuration)を参照してください | `true` |
+| `allowedHttpHookUrls` | HTTP hooks がターゲットにできる URL パターンのホワイトリスト。`*` をワイルドカードとしてサポートします。設定されている場合、一致しない URL を持つ hooks はブロックされます。未定義 = 制限なし、空配列 = すべての HTTP hooks をブロック。設定ソース全体で配列がマージされます。[Hook 構成](#hook-configuration)を参照してください | `["https://hooks.example.com/*"]` |
+| `httpHookAllowedEnvVars` | HTTP hooks がヘッダーに補間できる環境変数名のホワイトリスト。設定されている場合、各 hook の有効な `allowedEnvVars` はこのリストとの交差です。未定義 = 制限なし。設定ソース全体で配列がマージされます。[Hook 構成](#hook-configuration)を参照してください | `["MY_TOKEN", "HOOK_SECRET"]` |
+| `allowManagedPermissionRulesOnly` | （Managed 設定のみ）ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義するのを防止します。managed 設定のルールのみが適用されます。[Managed のみの設定](/ja/permissions#managed-only-settings)を参照してください | `true` |
+| `allowManagedMcpServersOnly` | （Managed 設定のみ）managed 設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。ユーザーは引き続き MCP サーバーを追加できますが、管理者定義のホワイトリストのみが適用されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `true` |
+| `model` | Claude Code に使用するデフォルトモデルをオーバーライドします | `"claude-sonnet-4-6"` |
+| `availableModels` | `/model`、`--model`、Config ツール、または `ANTHROPIC_MODEL` を通じてユーザーが選択できるモデルを制限します。デフォルトオプションには影響しません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください | `["sonnet", "haiku"]` |
+| `modelOverrides` | Anthropic モデル ID を Bedrock 推論プロファイル ARN などのプロバイダー固有のモデル ID にマップします。各モデルピッカーエントリは、プロバイダー API を呼び出すときにマップされた値を使用します。[バージョンごとにモデル ID をオーバーライド](/ja/model-config#override-model-ids-per-version)を参照してください | `{"claude-opus-4-6": "arn:aws:bedrock:..."}` |
+| `effortLevel` | [努力レベル](/ja/model-config#adjust-effort-level)をセッション全体で永続化します。`"low"`、`"medium"`、または `"high"` を受け入れます。`/effort low`、`/effort medium`、または `/effort high` を実行すると自動的に書き込まれます。Opus 4.6 および Sonnet 4.6 でサポートされています | `"medium"` |
+| `otelHeadersHelper` | 動的 OpenTelemetry ヘッダーを生成するスクリプト。起動時および定期的に実行されます（[動的ヘッダー](/ja/monitoring-usage#dynamic-headers)を参照） | `/bin/generate_otel_headers.sh` |
+| `statusLine` | コンテキストを表示するカスタムステータスラインを構成します。[`statusLine` ドキュメント](/ja/statusline)を参照してください | `{"type": "command", "command": "~/.claude/statusline.sh"}` |
+| `fileSuggestion` | `@` ファイルオートコンプリート用のカスタムスクリプトを構成します。[ファイル提案設定](#file-suggestion-settings)を参照してください | `{"type": "command", "command": "~/.claude/file-suggestion.sh"}` |
+| `respectGitignore` | `@` ファイルピッカーが `.gitignore` パターンを尊重するかどうかを制御します。`true`（デフォルト）の場合、`.gitignore` パターンに一致するファイルは提案から除外されます | `false` |
+| `outputStyle` | システムプロンプトを調整するための出力スタイルを構成します。[出力スタイルドキュメント](/ja/output-styles)を参照してください | `"Explanatory"` |
+| `agent` | メインスレッドを名前付き subagent として実行します。その subagent のシステムプロンプト、ツール制限、およびモデルを適用します。[subagents を明示的に呼び出す](/ja/sub-agents#invoke-subagents-explicitly)を参照してください | `"code-reviewer"` |
+| `forceLoginMethod` | `claudeai` を使用して Claude.ai アカウントへのログインを制限するか、`console` を使用して Claude Console（API 使用量請求）アカウントへのログインを制限します | `claudeai` |
+| `forceLoginOrgUUID` | ログイン中に自動的に選択する組織の UUID を指定し、組織選択ステップをバイパスします。`forceLoginMethod` が設定されている必要があります | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
+| `enableAllProjectMcpServers` | プロジェクト `.mcp.json` ファイルで定義されたすべての MCP サーバーを自動的に承認します | `true` |
+| `enabledMcpjsonServers` | `.mcp.json` ファイルから承認する特定の MCP サーバーのリスト | `["memory", "github"]` |
+| `disabledMcpjsonServers` | `.mcp.json` ファイルから拒否する特定の MCP サーバーのリスト | `["filesystem"]` |
+| `channelsEnabled` | （Managed 設定のみ）Team および Enterprise ユーザーに対して[チャネル](/ja/channels)を許可します。未設定または `false` は、ユーザーが `--channels` に渡すものに関係なく、チャネルメッセージ配信をブロックします | `true` |
+| `allowedMcpServers` | managed-settings.json で設定されている場合、ユーザーが構成できる MCP サーバーのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。すべてのスコープに適用されます。拒否リストが優先されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `[{ "serverName": "github" }]` |
+| `deniedMcpServers` | managed-settings.json で設定されている場合、明示的にブロックされた MCP サーバーの拒否リスト。managed サーバーを含むすべてのスコープに適用されます。拒否リストがホワイトリストよりも優先されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `[{ "serverName": "filesystem" }]` |
+| `strictKnownMarketplaces` | managed-settings.json で設定されている場合、ユーザーが追加できるプラグインマーケットプレイスのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。マーケットプレイス追加のみに適用されます。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
+| `blockedMarketplaces` | （Managed 設定のみ）マーケットプレイスソースのブロックリスト。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "untrusted/plugins" }]` |
+| `pluginTrustMessage` | （Managed 設定のみ）インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ。これを使用して、組織固有のコンテキストを追加します。たとえば、内部マーケットプレイスからのプラグインが検証されていることを確認します。 | `"All plugins from our marketplace are approved by IT"` |
+| `awsAuthRefresh` | `.aws` ディレクトリを変更するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `aws sso login --profile myprofile` |
+| `awsCredentialExport` | AWS 認証情報を含む JSON を出力するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `/bin/generate_aws_grant.sh` |
+| `alwaysThinkingEnabled` | すべてのセッションに対してデフォルトで[拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode)を有効にします。通常は直接編集するのではなく `/config` コマンドを通じて構成されます | `true` |
+| `plansDirectory` | プランファイルが保存される場所をカスタマイズします。パスはプロジェクトルートに相対的です。デフォルト：`~/.claude/plans` | `"./plans"` |
+| `showClearContextOnPlanAccept` | プラン受け入れ画面に「コンテキストをクリア」オプションを表示します。デフォルトは `false` です。`true` に設定してオプションを復元します | `true` |
+| `spinnerVerbs` | スピナーとターン期間メッセージに表示されるアクション動詞をカスタマイズします。`mode` を `"replace"` に設定して動詞のみを使用するか、`"append"` に設定してデフォルトに追加します | `{"mode": "append", "verbs": ["Pondering", "Crafting"]}` |
+| `language` | Claude の優先応答言語を構成します（例：`"japanese"`、`"spanish"`、`"french"`）。Claude はデフォルトでこの言語で応答します。また、[音声ディクテーション](/ja/voice-dictation#change-the-dictation-language)言語も設定します | `"japanese"` |
+| `voiceEnabled` | プッシュトゥトーク[音声ディクテーション](/ja/voice-dictation)を有効にします。`/voice` を実行すると自動的に書き込まれます。Claude.ai アカウントが必要です | `true` |
+| `autoUpdatesChannel` | 更新に従うリリースチャネル。約 1 週間古いバージョンで、大きな回帰のあるバージョンをスキップする `"stable"` を使用するか、最新リリースの `"latest"`（デフォルト）を使用します | `"stable"` |
+| `spinnerTipsEnabled` | Claude が作業中にスピナーにヒントを表示します。ヒントを無効にするには `false` に設定します（デフォルト：`true`） | `false` |
+| `spinnerTipsOverride` | スピナーヒントをカスタム文字列でオーバーライドします。`tips`：ヒント文字列の配列。`excludeDefault`：`true` の場合、カスタムヒントのみを表示します。`false` または不在の場合、カスタムヒントは組み込みヒントとマージされます | `{ "excludeDefault": true, "tips": ["Use our internal tool X"] }` |
+| `prefersReducedMotion` | アクセシビリティのために UI アニメーション（スピナー、シマー、フラッシュエフェクト）を削減または無効にします | `true` |
+| `fastModePerSessionOptIn` | `true` の場合、高速モードはセッション全体で永続化されません。各セッションは高速モードがオフで開始され、ユーザーが `/fast` で有効にする必要があります。ユーザーの高速モード設定は引き続き保存されます。[セッションごとのオプトインを要求](/ja/fast-mode#require-per-session-opt-in)を参照してください | `true` |
+| `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`in-process`、または `tmux`。[エージェントチームをセットアップ](/ja/agent-teams#set-up-agent-teams)を参照してください | `"in-process"` |
+| `feedbackSurveyRate` | [セッション品質調査](/ja/data-usage#session-quality-surveys)が適格な場合に表示される確率（0～1）。完全に抑制するには `0` に設定します。Bedrock、Vertex、または Foundry を使用する場合に役立ちます。デフォルトのサンプルレートは適用されません | `0.05` |
+
+### グローバル構成設定
+
+これらの設定は `settings.json` ではなく `~/.claude.json` に保存されます。これらを `settings.json` に追加すると、スキーマ検証エラーがトリガーされます。
+
+| キー | 説明 | 例 |
+| :- | :- | :- |
+| `autoConnectIde` | Claude Code が外部ターミナルから起動するときに、実行中の IDE に自動的に接続します。デフォルト：`false`。VS Code または JetBrains ターミナルの外で実行する場合、`/config` に\*\*IDE に自動接続（外部ターミナル）\*\*として表示されます | `true` |
+| `autoInstallIdeExtension` | VS Code ターミナルから実行するときに Claude Code IDE 拡張機能を自動的にインストールします。デフォルト：`true`。VS Code または JetBrains ターミナル内で実行する場合、`/config` に**IDE 拡張機能を自動インストール**として表示されます。[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/ja/env-vars)環境変数を設定することもできます | `false` |
+| `editorMode` | 入力プロンプトのキーバインディングモード：`"normal"` または `"vim"`。デフォルト：`"normal"`。`/vim` を実行すると自動的に書き込まれます。`/config` に**キーバインディングモード**として表示されます | `"vim"` |
+| `showTurnDuration` | レスポンス後のターン期間メッセージを表示します（例：「Cooked for 1m 6s」）。デフォルト：`true`。`/config` に**ターン期間を表示**として表示されます | `false` |
+| `terminalProgressBarEnabled` | サポートされているターミナルでターミナル進行状況バーを表示します：ConEmu、Ghostty 1.2.0 以降、および iTerm2 3.6.6 以降。デフォルト：`true`。`/config` に**ターミナル進行状況バー**として表示されます | `false` |
+
+### Worktree 設定
+
+`--worktree` が git worktrees を作成および管理する方法を構成します。これらの設定を使用して、大規模なモノレポのディスク使用量とスタートアップ時間を削減します。
+
+| キー | 説明 | 例 |
+| :- | :- | :- |
+| `worktree.symlinkDirectories` | メインリポジトリから各 worktree にシンボリックリンクするディレクトリ。ディスク上の大規模なディレクトリの重複を避けるため。デフォルトではディレクトリはシンボリックリンクされません | `["node_modules", ".cache"]` |
+| `worktree.sparsePaths` | git sparse-checkout（cone モード）を通じて各 worktree でチェックアウトするディレクトリ。リストされたパスのみがディスクに書き込まれます。大規模なモノレポではより高速です | `["packages/my-app", "shared/utils"]` |
+
+### 権限設定
+
+| キー | 説明 | 例 |
+| :- | :- | :- |
+| `allow` | ツール使用を許可する権限ルールの配列。パターンマッチングの詳細については、以下の[権限ルール構文](#permission-rule-syntax)を参照してください | `[ "Bash(git diff *)" ]` |
+| `ask` | ツール使用時に確認を求める権限ルールの配列。[権限ルール構文](#permission-rule-syntax)を参照してください | `[ "Bash(git push *)" ]` |
+| `deny` | ツール使用を拒否する権限ルールの配列。これを使用して、機密ファイルを Claude Code アクセスから除外します。[権限ルール構文](#permission-rule-syntax)と [Bash 権限制限](/ja/permissions#tool-specific-permission-rules)を参照してください | `[ "WebFetch", "Bash(curl *)", "Read(./.env)", "Read(./secrets/**)" ]` |
+| `additionalDirectories` | Claude がアクセスできる追加の[作業ディレクトリ](/ja/permissions#working-directories) | `[ "../docs/" ]` |
+| `defaultMode` | Claude Code を開くときのデフォルト[権限モード](/ja/permission-modes) | `"acceptEdits"` |
+| `disableBypassPermissionsMode` | `"disable"` に設定して `bypassPermissions` モードの有効化を防止します。これにより `--dangerously-skip-permissions` フラグが無効になります。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `"disable"` |
+
+### 権限ルール構文
+
+権限ルールは `Tool` または `Tool(specifier)` の形式に従います。ルールは順序で評価されます：最初に拒否ルール、次に ask、次に allow。最初に一致するルールが優先されます。
+
+クイック例：
+
+| ルール | 効果 |
+| :- | :- |
+| `Bash` | すべての Bash コマンドに一致 |
+| `Bash(npm run *)` | `npm run` で始まるコマンドに一致 |
+| `Read(./.env)` | `.env` ファイルの読み取りに一致 |
+| `WebFetch(domain:example.com)` | example.com へのフェッチリクエストに一致 |
+
+ワイルドカード動作、Read、Edit、WebFetch、MCP、および Agent ルール用のツール固有パターン、および Bash パターンのセキュリティ制限を含む完全なルール構文リファレンスについては、[権限ルール構文](/ja/permissions#permission-rule-syntax)を参照してください。
+
+### サンドボックス設定
+
+高度なサンドボックス動作を構成します。サンドボックスは bash コマンドをファイルシステムとネットワークから分離します。詳細については [サンドボックス](/ja/sandboxing)を参照してください。
+
+| キー | 説明 | 例 |
+| :- | :- | :- |
+| `enabled` | bash サンドボックスを有効にします（macOS、Linux、WSL2）。デフォルト：false | `true` |
+| `failIfUnavailable` | `sandbox.enabled` が true だがサンドボックスが起動できない場合（依存関係の欠落、サポートされていないプラットフォーム、またはプラットフォーム制限）、起動時にエラーで終了します。false（デフォルト）の場合、警告が表示され、コマンドはサンドボックス化されずに実行されます。managed 設定デプロイメント用で、サンドボックスをハードゲートとして必要とします | `true` |
+| `autoAllowBashIfSandboxed` | サンドボックス化されている場合、bash コマンドを自動承認します。デフォルト：true | `true` |
+| `excludedCommands` | サンドボックスの外で実行する必要があるコマンド | `["git", "docker"]` |
+| `allowUnsandboxedCommands` | `dangerouslyDisableSandbox` パラメータを通じてコマンドをサンドボックスの外で実行することを許可します。`false` に設定すると、`dangerouslyDisableSandbox` エスケープハッチが完全に無効になり、すべてのコマンドはサンドボックス化されるか `excludedCommands` に含まれる必要があります。厳密なサンドボックスを必要とするエンタープライズポリシーに役立ちます。デフォルト：true | `false` |
+| `filesystem.allowWrite` | サンドボックス化されたコマンドが書き込みできる追加パス。配列はすべての設定スコープ全体でマージされます：ユーザー、プロジェクト、および managed パスが結合され、置き換えられません。`Edit(...)` allow 権限ルールからのパスともマージされます。以下の[パスプレフィックス](#sandbox-path-prefixes)を参照してください。 | `["/tmp/build", "~/.kube"]` |
+| `filesystem.denyWrite` | サンドボックス化されたコマンドが書き込みできないパス。配列はすべての設定スコープ全体でマージされます。`Edit(...)` deny 権限ルールからのパスともマージされます。 | `["/etc", "/usr/local/bin"]` |
+| `filesystem.denyRead` | サンドボックス化されたコマンドが読み取りできないパス。配列はすべての設定スコープ全体でマージされます。`Read(...)` deny 権限ルールからのパスともマージされます。 | `["~/.aws/credentials"]` |
+| `filesystem.allowRead` | `denyRead` 領域内での読み取りを再度許可するパス。`denyRead` よりも優先されます。配列はすべての設定スコープ全体でマージされます。これを使用してワークスペースのみの読み取りアクセスパターンを作成します。 | `["."]` |
+| `filesystem.allowManagedReadPathsOnly` | （Managed 設定のみ）managed 設定からの `allowRead` パスのみが尊重されます。ユーザー、プロジェクト、およびローカル設定からの `allowRead` エントリは無視されます。デフォルト：false | `true` |
+| `network.allowUnixSockets` | サンドボックスでアクセス可能な Unix ソケットパス（SSH エージェントなど） | `["~/.ssh/agent-socket"]` |
+| `network.allowAllUnixSockets` | サンドボックス内のすべての Unix ソケット接続を許可します。デフォルト：false | `true` |
+| `network.allowLocalBinding` | localhost ポートへのバインドを許可します（macOS のみ）。デフォルト：false | `true` |
+| `network.allowedDomains` | アウトバウンドネットワークトラフィックを許可するドメインの配列。ワイルドカード（例：`*.example.com`）をサポートします。 | `["github.com", "*.npmjs.org"]` |
+| `network.allowManagedDomainsOnly` | （Managed 設定のみ）managed 設定からの `allowedDomains` および `WebFetch(domain:...)` allow ルールのみが尊重されます。ユーザー、プロジェクト、およびローカル設定からのドメインは無視されます。許可されていないドメインはユーザーにプロンプトを表示せずに自動的にブロックされます。拒否されたドメインはすべてのソースから引き続き尊重されます。デフォルト：false | `true` |
+| `network.httpProxyPort` | 独自のプロキシを使用する場合に使用される HTTP プロキシポート。指定されていない場合、Claude は独自のプロキシを実行します。 | `8080` |
+| `network.socksProxyPort` | 独自のプロキシを使用する場合に使用される SOCKS5 プロキシポート。指定されていない場合、Claude は独自のプロキシを実行します。 | `8081` |
+| `enableWeakerNestedSandbox` | 非特権 Docker 環境用の弱いサンドボックスを有効にします（Linux と WSL2 のみ）。**セキュリティを低下させます。** デフォルト：false | `true` |
+| `enableWeakerNetworkIsolation` | （macOS のみ）サンドボックス内のシステム TLS 信頼サービス（`com.apple.trustd.agent`）へのアクセスを許可します。`httpProxyPort` を MITM プロキシおよびカスタム CA と共に使用する場合、`gh`、`gcloud`、`terraform` などの Go ベースのツールが TLS 証明書を検証するために必要です。**セキュリティを低下させます**。データ流出の可能性のあるパスを開きます。デフォルト：false | `true` |
+
+#### サンドボックスパスプレフィックス
+
+`filesystem.allowWrite`、`filesystem.denyWrite`、`filesystem.denyRead`、および `filesystem.allowRead` のパスは、これらのプレフィックスをサポートしています：
+
+| プレフィックス | 意味 | 例 |
+| :- | :- | :- |
+| `/` | ファイルシステムルートからの絶対パス | `/tmp/build` は `/tmp/build` のままです |
+| `~/` | ホームディレクトリに相対的 | `~/.kube` は `$HOME/.kube` になります |
+| `./` またはプレフィックスなし | プロジェクト設定ではプロジェクトルートに相対的、またはユーザー設定では `~/.claude` に相対的 | `./output` は `.claude/settings.json` では `<project-root>/output` に解決されます |
+
+古い `//path` プレフィックスは絶対パスに対して引き続き機能します。以前に単一スラッシュ `/path` を使用してプロジェクト相対解決を期待していた場合は、`./path` に切り替えてください。この構文は [Read および Edit 権限ルール](/ja/permissions#read-and-edit)と異なります。これは `//path` を絶対パスに、`/path` をプロジェクト相対に使用します。サンドボックスファイルシステムパスは標準的な規則を使用します：`/tmp/build` は絶対パスです。
+
+**構成例：**
+
+```json
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "excludedCommands": ["docker"],
+    "filesystem": {
+      "allowWrite": ["/tmp/build", "~/.kube"],
+      "denyRead": ["~/.aws/credentials"]
+    },
+    "network": {
+      "allowedDomains": ["github.com", "*.npmjs.org", "registry.yarnpkg.com"],
+      "allowUnixSockets": [
+        "/var/run/docker.sock"
+      ],
+      "allowLocalBinding": true
+    }
+  }
+}
+```
+
+**ファイルシステムとネットワーク制限**は、一緒にマージされる 2 つの方法で構成できます：
+
+- **`sandbox.filesystem` 設定**（上記）：OS レベルのサンドボックス境界でパスを制御します。これらの制限は、Claude のファイルツールだけでなく、すべてのサブプロセスコマンド（例：`kubectl`、`terraform`、`npm`）に適用されます。
+- **権限ルール**：`Edit` allow/deny ルールを使用して Claude のファイルツールアクセスを制御し、`Read` deny ルールを使用して読み取りをブロックし、`WebFetch` allow/deny ルールを使用してネットワークドメインを制御します。これらのルールからのパスもサンドボックス構成にマージされます。
+
+### 属性設定
+
+Claude Code は git コミットとプルリクエストに属性を追加します。これらは個別に構成されます：
+
+- コミットはデフォルトで[git トレーラー](https://git-scm.com/docs/git-interpret-trailers)（`Co-Authored-By` など）を使用し、カスタマイズまたは無効にできます
+- プルリクエストの説明はプレーンテキストです
+
+| キー | 説明 |
+| :- | :- |
+| `commit` | git コミットの属性（トレーラーを含む）。空の文字列はコミット属性を非表示にします |
+| `pr` | プルリクエストの説明の属性。空の文字列はプルリクエスト属性を非表示にします |
+
+**デフォルトコミット属性：**
+
+```text
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+   Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+```
+
+**デフォルトプルリクエスト属性：**
+
+```text
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+**例：**
+
+```json
+{
+  "attribution": {
+    "commit": "Generated with AI\n\nCo-Authored-By: AI <ai@example.com>",
+    "pr": ""
+  }
+}
+```
+
+`attribution` 設定は非推奨の `includeCoAuthoredBy` 設定よりも優先されます。すべての属性を非表示にするには、`commit` と `pr` を空の文字列に設定します。
+
+### ファイル提案設定
+
+`@` ファイルパスオートコンプリート用のカスタムコマンドを構成します。組み込みファイル提案は高速ファイルシステムトラバーサルを使用しますが、大規模なモノレポは事前構築されたファイルインデックスやカスタムツールなどのプロジェクト固有のインデックスから利益を得る可能性があります。
+
+```json
+{
+  "fileSuggestion": {
+    "type": "command",
+    "command": "~/.claude/file-suggestion.sh"
+  }
+}
+```
+
+コマンドは [hooks](/ja/hooks)と同じ環境変数（`CLAUDE_PROJECT_DIR` を含む）で実行されます。`query` フィールドを含む JSON を stdin 経由で受け取ります：
+
+```json
+{"query": "src/comp"}
+```
+
+stdout にニューラインで区切られたファイルパスを出力します（現在 15 に制限）：
+
+```text
+src/components/Button.tsx
+src/components/Modal.tsx
+src/components/Form.tsx
+```
+
+**例：**
+
+```bash
+#!/bin/bash
+query=$(cat | jq -r '.query')
+your-repo-file-index --query "$query" | head -20
+```
+
+### Hook 構成
+
+これらの設定は、どの hooks が実行を許可されるか、および HTTP hooks がアクセスできるものを制御します。`allowManagedHooksOnly` 設定は [managed 設定](#settings-files)でのみ構成できます。URL と環境変数ホワイトリストは任意の設定レベルで設定でき、ソース全体でマージされます。
+
+**`allowManagedHooksOnly` が `true` の場合の動作：**
+
+- Managed hooks と SDK hooks が読み込まれます
+- ユーザー hooks、プロジェクト hooks、およびプラグイン hooks がブロックされます
+
+**HTTP hook URL を制限：**
+
+HTTP hooks がターゲットにできる URL を制限します。マッチングのワイルドカードとして `*` をサポートします。配列が定義されている場合、一致しない URL をターゲットにする HTTP hooks はサイレントにブロックされます。
+
+```json
+{
+  "allowedHttpHookUrls": ["https://hooks.example.com/*", "http://localhost:*"]
+}
+```
+
+**HTTP hook 環境変数を制限：**
+
+HTTP hooks がヘッダー値に補間できる環境変数名を制限します。各 hook の有効な `allowedEnvVars` はこの設定との交差です。
+
+```json
+{
+  "httpHookAllowedEnvVars": ["MY_TOKEN", "HOOK_SECRET"]
+}
+```
+
+### 設定の優先度
+
+設定は優先度の順に適用されます。最高から最低：
+
+1. **Managed 設定**（[サーバー管理](/ja/server-managed-settings)、[MDM/OS レベルのポリシー](#configuration-scopes)、または [managed 設定](/ja/settings#settings-files)）
+   - IT がサーバー配信、MDM 構成プロファイル、レジストリポリシー、または managed 設定ファイルを通じて展開するポリシー
+   - コマンドラインの引数を含む他のレベルでオーバーライドできません
+   - managed ティア内では、優先度は：サーバー管理 > MDM/OS レベルのポリシー > ファイルベース（`managed-settings.d/*.json` + `managed-settings.json`）> HKCU レジストリ（Windows のみ）です。1 つの managed ソースのみが使用されます。ソースはマージされません。ファイルベースティア内では、ドロップインファイルとベースファイルがマージされます。
+
+2. **コマンドラインの引数**
+   - 特定のセッションの一時的なオーバーライド
+
+3. **ローカルプロジェクト設定**（`.claude/settings.local.json`）
+   - 個人的なプロジェクト固有の設定
+
+4. **共有プロジェクト設定**（`.claude/settings.json`）
+   - ソース管理内のチーム共有プロジェクト設定
+
+5. **ユーザー設定**（`~/.claude/settings.json`）
+   - 個人的なグローバル設定
+
+この階層は、組織のポリシーが常に強制されながら、チームと個人がエクスペリエンスをカスタマイズできることを保証します。同じ優先度は、CLI から Claude Code を実行する場合、[VS Code 拡張機能](/ja/vs-code)から実行する場合、または [JetBrains IDE](/ja/jetbrains)から実行する場合に適用されます。
+
+たとえば、ユーザー設定が `Bash(npm run *)` を許可しているが、プロジェクトの共有設定がそれを拒否している場合、プロジェクト設定が優先され、コマンドはブロックされます。
+
+**配列設定はスコープ全体でマージされます。** 同じ配列値の設定（`sandbox.filesystem.allowWrite` や `permissions.allow` など）が複数のスコープに表示される場合、配列は**連結および重複排除**され、置き換えられません。これは、低優先度のスコープが高優先度のスコープで設定されたエントリをオーバーライドすることなくエントリを追加でき、その逆も同様です。たとえば、managed 設定が `allowWrite` を `["/opt/company-tools"]` に設定し、ユーザーが `["~/.kube"]` を追加する場合、両方のパスが最終構成に含まれます。
+
+### アクティブな設定を確認
+
+Claude Code 内で `/status` を実行して、どの設定ソースがアクティブで、どこから来ているかを確認します。出力は、`Enterprise managed settings (remote)`、`Enterprise managed settings (plist)`、`Enterprise managed settings (HKLM)`、または `Enterprise managed settings (file)` などの出所を含む各構成レイヤー（managed、ユーザー、プロジェクト）を表示します。設定ファイルにエラーが含まれている場合、`/status` は問題を報告して修正できるようにします。
+
+### 構成システムの重要なポイント
+
+- **メモリファイル（`CLAUDE.md`）**：Claude が起動時に読み込む命令とコンテキストを含みます
+- **設定ファイル（JSON）**：権限、環境変数、およびツール動作を構成します
+- **Skills**：`/skill-name` で呼び出すか、Claude によって自動的に読み込むことができるカスタムプロンプト
+- **MCP サーバー**：追加のツールと統合で Claude Code を拡張します
+- **優先度**：高レベルの構成（Managed）が低レベルの構成（User/Project）をオーバーライドします
+- **継承**：設定はマージされ、より具体的な設定がより広い設定に追加またはオーバーライドされます
+
+### システムプロンプト
+
+Claude Code の内部システムプロンプトは公開されていません。カスタム命令を追加するには、`CLAUDE.md` ファイルまたは `--append-system-prompt` フラグを使用します。
+
+### 機密ファイルを除外
+
+API キー、シークレット、環境ファイルなどの機密情報を含むファイルへの Claude Code アクセスを防ぐには、`.claude/settings.json` ファイルの `permissions.deny` 設定を使用します：
+
+```json
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./config/credentials.json)",
+      "Read(./build)"
+    ]
+  }
+}
+```
+
+これは非推奨の `ignorePatterns` 構成に置き換わります。これらのパターンに一致するファイルはファイル検出と検索結果から除外され、これらのファイルの読み取り操作は拒否されます。
+
+## Subagent 構成
+
+Claude Code は、ユーザーレベルとプロジェクトレベルの両方で構成できるカスタム AI subagents をサポートしています。これらの subagents は YAML frontmatter を含む Markdown ファイルとして保存されます：
+
+- **ユーザー subagents**：`~/.claude/agents/` - すべてのプロジェクト全体で利用可能
+- **プロジェクト subagents**：`.claude/agents/` - プロジェクト固有で、チームと共有できます
+
+Subagent ファイルは、カスタムプロンプトとツール権限を持つ特殊な AI アシスタントを定義します。[subagents ドキュメント](/ja/sub-agents)で subagents の作成と使用について詳しく学びます。
+
+## プラグイン構成
+
+Claude Code は、skills、agents、hooks、および MCP サーバーで機能を拡張できるプラグインシステムをサポートしています。プラグインはマーケットプレイスを通じて配布され、ユーザーレベルとリポジトリレベルの両方で構成できます。
+
+### プラグイン設定
+
+`settings.json` のプラグイン関連設定：
+
+```json
+{
+  "enabledPlugins": {
+    "formatter@acme-tools": true,
+    "deployer@acme-tools": true,
+    "analyzer@security-plugins": false
+  },
+  "extraKnownMarketplaces": {
+    "acme-tools": {
+      "source": "github",
+      "repo": "acme-corp/claude-plugins"
+    }
+  }
+}
+```
+
+#### `enabledPlugins`
+
+どのプラグインが有効かを制御します。形式：`"plugin-name@marketplace-name": true/false`
+
+**スコープ**：
+
+- **ユーザー設定**（`~/.claude/settings.json`）：個人的なプラグイン設定
+- **プロジェクト設定**（`.claude/settings.json`）：チームと共有されるプロジェクト固有のプラグイン
+- **ローカル設定**（`.claude/settings.local.json`）：マシンごとのオーバーライド（コミットされない）
+
+**例**：
+
+```json
+{
+  "enabledPlugins": {
+    "code-formatter@team-tools": true,
+    "deployment-tools@team-tools": true,
+    "experimental-features@personal": false
+  }
+}
+```
+
+#### `extraKnownMarketplaces`
+
+リポジトリで利用可能にする必要がある追加のマーケットプレイスを定義します。通常、リポジトリレベルの設定で使用され、チームメンバーが必要なプラグインソースにアクセスできることを確認します。
+
+**リポジトリが `extraKnownMarketplaces` を含む場合**：
+
+1. チームメンバーはフォルダを信頼するときにマーケットプレイスをインストールするよう求められます
+2. チームメンバーはそのマーケットプレイスからプラグインをインストールするよう求められます
+3. ユーザーは不要なマーケットプレイスまたはプラグインをスキップできます（ユーザー設定に保存）
+4. インストールは信頼境界を尊重し、明示的な同意が必要です
+
+**例**：
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "acme-tools": {
+      "source": {
+        "source": "github",
+        "repo": "acme-corp/claude-plugins"
+      }
+    },
+    "security-plugins": {
+      "source": {
+        "source": "git",
+        "url": "https://git.example.com/security/plugins.git"
+      }
+    }
+  }
+}
+```
+
+**マーケットプレイスソースタイプ**：
+
+- `github`：GitHub リポジトリ（`repo` を使用）
+- `git`：任意の git URL（`url` を使用）
+- `directory`：ローカルファイルシステムパス（開発のみ、`path` を使用）
+- `hostPattern`：マーケットプレイスホストに一致する正規表現パターン（`hostPattern` を使用）
+- `settings`：ホストされたリポジトリなしで settings.json に直接宣言されたインラインマーケットプレイス（`name` と `plugins` を使用）
+
+`source: 'settings'` を使用して、ホストされたマーケットプレイスリポジトリをセットアップせずに、小規模なプラグインセットをインラインで宣言します。ここにリストされているプラグインは、GitHub または npm などの外部ソースを参照する必要があります。各プラグインを `enabledPlugins` で個別に有効にする必要があります。
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "team-tools": {
+      "source": {
+        "source": "settings",
+        "name": "team-tools",
+        "plugins": [
+          {
+            "name": "code-formatter",
+            "source": {
+              "source": "github",
+              "repo": "acme-corp/code-formatter"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+
+#### `strictKnownMarketplaces`
+
+**Managed 設定のみ**：ユーザーが追加できるプラグインマーケットプレイスを制御します。この設定は [managed 設定](/ja/settings#settings-files)でのみ構成でき、管理者にマーケットプレイスソースに対する厳密な制御を提供します。
+
+**Managed 設定ファイルの場所**：
+
+- **macOS**：`/Library/Application Support/ClaudeCode/managed-settings.json`
+- **Linux と WSL**：`/etc/claude-code/managed-settings.json`
+- **Windows**：`C:\Program Files\ClaudeCode\managed-settings.json`
+
+**主な特性**：
+
+- managed 設定（`managed-settings.json`）でのみ利用可能
+- ユーザーまたはプロジェクト設定でオーバーライドできません（最高優先度）
+- ネットワーク/ファイルシステム操作の前に強制されます（ブロックされたソースは実行されません）
+- `hostPattern` を除き、ソース仕様に対して完全一致を使用します。`hostPattern` は正規表現マッチングを使用します
+
+**ホワイトリスト動作**：
+
+- `undefined`（デフォルト）：制限なし - ユーザーは任意のマーケットプレイスを追加できます
+- 空配列 `[]`：完全ロックダウン - ユーザーは新しいマーケットプレイスを追加できません
+- ソースのリスト：ユーザーは正確に一致するマーケットプレイスのみを追加できます
+
+**サポートされているすべてのソースタイプ**：
+
+ホワイトリストは複数のマーケットプレイスソースタイプをサポートしています。ほとんどのソースは完全一致を使用しますが、`hostPattern` はマーケットプレイスホストに対して正規表現マッチングを使用します。
+
+1. **GitHub リポジトリ**：
+
+```json
+{ "source": "github", "repo": "acme-corp/approved-plugins" }
+{ "source": "github", "repo": "acme-corp/security-tools", "ref": "v2.0" }
+{ "source": "github", "repo": "acme-corp/plugins", "ref": "main", "path": "marketplace" }
+```
+
+フィールド：`repo`（必須）、`ref`（オプション：ブランチ/タグ/SHA）、`path`（オプション：サブディレクトリ）
+
+2. **Git リポジトリ**：
+
+```json
+{ "source": "git", "url": "https://gitlab.example.com/tools/plugins.git" }
+{ "source": "git", "url": "https://bitbucket.org/acme-corp/plugins.git", "ref": "production" }
+{ "source": "git", "url": "ssh://git@git.example.com/plugins.git", "ref": "v3.1", "path": "approved" }
+```
+
+フィールド：`url`（必須）、`ref`（オプション：ブランチ/タグ/SHA）、`path`（オプション：サブディレクトリ）
+
+3. **URL ベースのマーケットプレイス**：
+
+```json
+{ "source": "url", "url": "https://plugins.example.com/marketplace.json" }
+{ "source": "url", "url": "https://cdn.example.com/marketplace.json", "headers": { "Authorization": "Bearer ${TOKEN}" } }
+```
+
+フィールド：`url`（必須）、`headers`（オプション：認証アクセス用の HTTP ヘッダー）
+
+URL ベースのマーケットプレイスは `marketplace.json` ファイルのみをダウンロードします。サーバーからプラグインファイルをダウンロードしません。URL ベースのマーケットプレイス内のプラグインは、相対パスではなく外部ソース（GitHub、npm、または git URL）を使用する必要があります。相対パスを持つプラグインの場合は、代わりに Git ベースのマーケットプレイスを使用します。詳細については [トラブルシューティング](/ja/plugin-marketplaces#plugins-with-relative-paths-fail-in-url-based-marketplaces)を参照してください。
+
+4. **NPM パッケージ**：
+
+```json
+{ "source": "npm", "package": "@acme-corp/claude-plugins" }
+{ "source": "npm", "package": "@acme-corp/approved-marketplace" }
+```
+
+フィールド：`package`（必須、スコープ付きパッケージをサポート）
+
+5. **ファイルパス**：
+
+```json
+{ "source": "file", "path": "/usr/local/share/claude/acme-marketplace.json" }
+{ "source": "file", "path": "/opt/acme-corp/plugins/marketplace.json" }
+```
+
+フィールド：`path`（必須：marketplace.json ファイルへの絶対パス）
+
+6. **ディレクトリパス**：
+
+```json
+{ "source": "directory", "path": "/usr/local/share/claude/acme-plugins" }
+{ "source": "directory", "path": "/opt/acme-corp/approved-marketplaces" }
+```
+
+フィールド：`path`（必須：`.claude-plugin/marketplace.json` を含むディレクトリへの絶対パス）
+
+7. **ホストパターンマッチング**：
+
+```json
+{ "source": "hostPattern", "hostPattern": "^github\\.example\\.com$" }
+{ "source": "hostPattern", "hostPattern": "^gitlab\\.internal\\.example\\.com$" }
+```
+
+フィールド：`hostPattern`（必須：マーケットプレイスホストに対してマッチする正規表現パターン）
+
+各リポジトリを列挙することなく、特定のホストからすべてのマーケットプレイスを許可する場合は、ホストパターンマッチングを使用します。これは、開発者が独自のマーケットプレイスを作成する内部 GitHub Enterprise または GitLab サーバーを持つ組織に役立ちます。
+
+ソースタイプ別のホスト抽出：
+
+- `github`：常に `github.com` に対してマッチ
+- `git`：URL からホスト名を抽出（HTTPS と SSH 形式の両方をサポート）
+- `url`：URL からホスト名を抽出
+- `npm`、`file`、`directory`：ホストパターンマッチングではサポートされていません
+
+**構成例**：
+
+例：特定のマーケットプレイスのみを許可：
+
+```json
+{
+  "strictKnownMarketplaces": [
+    {
+      "source": "github",
+      "repo": "acme-corp/approved-plugins"
+    },
+    {
+      "source": "github",
+      "repo": "acme-corp/security-tools",
+      "ref": "v2.0"
+    },
+    {
+      "source": "url",
+      "url": "https://plugins.example.com/marketplace.json"
+    },
+    {
+      "source": "npm",
+      "package": "@acme-corp/compliance-plugins"
+    }
+  ]
+}
+```
+
+例 - すべてのマーケットプレイス追加を無効にする：
+
+```json
+{
+  "strictKnownMarketplaces": []
+}
+```
+
+例：内部 git サーバーからすべてのマーケットプレイスを許可：
+
+```json
+{
+  "strictKnownMarketplaces": [
+    {
+      "source": "hostPattern",
+      "hostPattern": "^github\\.example\\.com$"
+    }
+  ]
+}
+```
+
+**完全一致要件**：
+
+マーケットプレイスソースはユーザーの追加を許可するために**正確に**一致する必要があります。git ベースのソース（`github` と `git`）の場合、これはすべてのオプションフィールドを含みます：
+
+- `repo` または `url` は正確に一致する必要があります
+- `ref` フィールドは正確に一致する必要があります（または両方が未定義）
+- `path` フィールドは正確に一致する必要があります（または両方が未定義）
+
+一致**しない**ソースの例：
+
+```json
+// これらは異なるソースです：
+{ "source": "github", "repo": "acme-corp/plugins" }
+{ "source": "github", "repo": "acme-corp/plugins", "ref": "main" }
+
+// これらも異なります：
+{ "source": "github", "repo": "acme-corp/plugins", "path": "marketplace" }
+{ "source": "github", "repo": "acme-corp/plugins" }
+```
+
+**`extraKnownMarketplaces` との比較**：
+
+| 側面 | `strictKnownMarketplaces` | `extraKnownMarketplaces` |
+| - | - | - |
+| **目的** | 組織ポリシーの強制 | チームの利便性 |
+| **設定ファイル** | `managed-settings.json` のみ | 任意の設定ファイル |
+| **動作** | 許可されていない追加をブロック | 不足しているマーケットプレイスを自動インストール |
+| **強制時期** | ネットワーク/ファイルシステム操作の前 | ユーザー信頼プロンプト後 |
+| **オーバーライド可能** | いいえ（最高優先度） | はい（高優先度設定による） |
+| **ソース形式** | 直接ソースオブジェクト | ネストされたソースを持つ名前付きマーケットプレイス |
+| **ユースケース** | コンプライアンス、セキュリティ制限 | オンボーディング、標準化 |
+
+**形式の違い**：
+
+`strictKnownMarketplaces` は直接ソースオブジェクトを使用します：
+
+```json
+{
+  "strictKnownMarketplaces": [
+    { "source": "github", "repo": "acme-corp/plugins" }
+  ]
+}
+```
+
+`extraKnownMarketplaces` は名前付きマーケットプレイスが必要です：
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "acme-tools": {
+      "source": { "source": "github", "repo": "acme-corp/plugins" }
+    }
+  }
+}
+```
+
+**両方を一緒に使用**：
+
+`strictKnownMarketplaces` はポリシーゲートです：ユーザーが追加できるものを制御しますが、マーケットプレイスを登録しません。マーケットプレイスを制限して事前登録するには、`managed-settings.json` で両方を設定します：
+
+```json
+{
+  "strictKnownMarketplaces": [
+    { "source": "github", "repo": "acme-corp/plugins" }
+  ],
+  "extraKnownMarketplaces": {
+    "acme-tools": {
+      "source": { "source": "github", "repo": "acme-corp/plugins" }
+    }
+  }
+}
+```
+
+`strictKnownMarketplaces` のみが設定されている場合、ユーザーは `/plugin marketplace add` を通じて許可されたマーケットプレイスを手動で追加できますが、自動的には利用できません。
+
+**重要な注意**：
+
+- 制限はネットワークリクエストまたはファイルシステム操作の前にチェックされます
+- ブロックされた場合、ユーザーはソースが managed ポリシーでブロックされていることを示す明確なエラーメッセージを表示します
+- 制限は新しいマーケットプレイスの追加にのみ適用されます。以前にインストールされたマーケットプレイスはアクセス可能なままです
+- Managed 設定は最高優先度を持ち、オーバーライドできません
+
+ユーザー向けドキュメントについては、[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください。
+
+### プラグインの管理
+
+`/plugin` コマンドを使用してプラグインを対話的に管理します：
+
+- マーケットプレイスから利用可能なプラグインを参照
+- プラグインをインストール/アンインストール
+- プラグインを有効/無効にする
+- プラグインの詳細を表示（提供されるコマンド、エージェント、hooks）
+- マーケットプレイスを追加/削除
+
+[プラグインドキュメント](/ja/plugins)でプラグインシステムについて詳しく学びます。
+
+## 環境変数
+
+環境変数を使用すると、設定ファイルを編集することなく Claude Code の動作を制御できます。任意の変数は、すべてのセッションに適用するか、チームにロールアウトするために [`settings.json`](#available-settings) の `env` キーで構成することもできます。
+
+完全なリストについては、[環境変数リファレンス](/ja/env-vars)を参照してください。
+
+## Claude が利用できるツール
+
+Claude Code は、ファイルの読み取り、編集、検索、コマンド実行、および subagents のオーケストレーション用のツールセットにアクセスできます。ツール名は、権限ルールと hook マッチャーで使用する正確な文字列です。
+
+完全なリストと Bash ツール動作の詳細については、[ツールリファレンス](/ja/tools-reference)を参照してください。
+
+## 関連項目
+
+- [権限](/ja/permissions)：権限システム、ルール構文、ツール固有パターン、および managed ポリシー
+- [認証](/ja/authentication)：Claude Code へのユーザーアクセスをセットアップ
+- [トラブルシューティング](/ja/troubleshooting)：一般的な構成の問題の解決策
