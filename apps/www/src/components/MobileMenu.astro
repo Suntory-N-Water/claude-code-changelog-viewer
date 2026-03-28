@@ -1,0 +1,92 @@
+---
+type Props = {
+  isDocsPage: boolean;
+};
+
+const { isDocsPage } = Astro.props;
+---
+
+<!-- ハンバーガーボタン -->
+<button
+  id='mobile-menu-btn'
+  type='button'
+  class='sm:hidden flex items-center justify-center w-9 h-9 rounded-md text-[hsl(var(--cc-main-black)/0.6)] hover:text-[hsl(var(--cc-main-black))] hover:bg-[hsl(var(--cc-gray)/0.5)] transition-colors'
+  aria-label='メニューを開く'
+  aria-expanded='false'
+  aria-controls='mobile-menu'
+>
+  <svg
+    id='icon-menu'
+    class='w-5 h-5'
+    fill='none'
+    viewBox='0 0 24 24'
+    stroke='currentColor'
+    stroke-width='2'
+    aria-hidden='true'
+  >
+    <path
+      stroke-linecap='round'
+      stroke-linejoin='round'
+      d='M4 6h16M4 12h16M4 18h16'></path>
+  </svg>
+  <svg
+    id='icon-close'
+    class='w-5 h-5 hidden'
+    fill='none'
+    viewBox='0 0 24 24'
+    stroke='currentColor'
+    stroke-width='2'
+    aria-hidden='true'
+  >
+    <path
+      stroke-linecap='round'
+      stroke-linejoin='round'
+      d='M6 18L18 6M6 6l12 12'></path>
+  </svg>
+</button>
+
+<!-- モバイルメニュードロワー(header基準で絶対配置) -->
+<div
+  id='mobile-menu'
+  class='absolute top-full left-0 right-0 sm:hidden hidden border-t border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white)/0.98)]'
+>
+  <a
+    href='/docs'
+    class={`flex items-center px-4 py-3 text-sm transition-colors ${isDocsPage ? 'text-[hsl(var(--cc-main-orange))] font-medium bg-[hsl(var(--cc-main-orange)/0.05)]' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-gray)/0.3)]'}`}
+    aria-current={isDocsPage ? 'page' : undefined}
+  >
+    Docs 更新履歴
+  </a>
+</div>
+
+<script>
+  function initMobileMenu() {
+    const button = document.getElementById('mobile-menu-btn');
+    const menu = document.getElementById('mobile-menu');
+    const iconMenu = document.getElementById('icon-menu');
+    const iconClose = document.getElementById('icon-close');
+
+    if (!button || !menu || !iconMenu || !iconClose) return;
+
+    function toggleMenu(open: boolean) {
+      menu!.classList.toggle('hidden', !open);
+      button!.setAttribute('aria-expanded', String(open));
+      button!.setAttribute(
+        'aria-label',
+        open ? 'メニューを閉じる' : 'メニューを開く',
+      );
+      iconMenu!.classList.toggle('hidden', open);
+      iconClose!.classList.toggle('hidden', !open);
+    }
+
+    button.addEventListener('click', () => {
+      toggleMenu(button.getAttribute('aria-expanded') !== 'true');
+    });
+
+    // ページ遷移時にメニューを閉じる
+    document.addEventListener('astro:after-swap', () => toggleMenu(false));
+  }
+
+  initMobileMenu();
+  document.addEventListener('astro:after-swap', initMobileMenu);
+</script>

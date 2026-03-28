@@ -20,14 +20,14 @@ const { filename, additions, deletions, hunks } = Astro.props;
 ---
 
 <div
-  class='border border-[hsl(var(--cc-gray))] rounded-lg overflow-hidden font-mono text-sm'
+  class='border border-[hsl(var(--cc-gray))] rounded-lg overflow-hidden font-mono text-xs'
 >
   <!-- ファイルヘッダー -->
   <div
-    class='bg-[hsl(var(--cc-gray)/0.4)] px-4 py-2 flex items-center gap-3 border-b border-[hsl(var(--cc-gray))]'
+    class='bg-[hsl(var(--cc-gray)/0.4)] px-4 py-2.5 flex items-center gap-2.5 border-b border-[hsl(var(--cc-gray))]'
   >
     <svg
-      class='w-4 h-4 text-[hsl(var(--cc-main-black)/0.5)] shrink-0'
+      class='w-3.5 h-3.5 text-[hsl(var(--cc-main-black)/0.45)] shrink-0'
       fill='none'
       viewBox='0 0 24 24'
       stroke='currentColor'
@@ -41,18 +41,17 @@ const { filename, additions, deletions, hunks } = Astro.props;
       ></path>
     </svg>
     <span
-      class='text-[hsl(var(--cc-main-black))] font-semibold flex-1 truncate'
+      class='text-[hsl(var(--cc-main-black))] font-semibold flex-1 truncate text-xs'
     >
       {filename}
     </span>
-    <span class='text-green-700 text-xs font-normal shrink-0'>+{additions}</span
-    >
-    <span class='text-red-600 text-xs font-normal shrink-0'>-{deletions}</span>
+    <span class='text-green-700 font-medium shrink-0'>+{additions}</span>
+    <span class='text-red-600 font-medium shrink-0'>-{deletions}</span>
   </div>
 
   {
     hunks.length === 0 ? (
-      <div class='px-4 py-3 text-[hsl(var(--cc-main-black)/0.5)] text-xs italic'>
+      <div class='px-4 py-3 text-[hsl(var(--cc-main-black)/0.4)] text-xs italic'>
         (詳細なし)
       </div>
     ) : (
@@ -60,27 +59,27 @@ const { filename, additions, deletions, hunks } = Astro.props;
         {hunks.map((hunk) => (
           <>
             {/* ハンクヘッダー */}
-            <div class='bg-blue-50 text-blue-600 px-4 py-1 text-xs border-y border-blue-100'>
+            <div class='bg-[hsl(var(--cc-main-orange)/0.08)] text-[hsl(var(--cc-main-orange))] px-4 py-1 text-xs border-y border-[hsl(var(--cc-main-orange)/0.15)] select-none'>
               {hunk.header}
             </div>
             {/* diff 行 */}
             {hunk.lines.map((line) => (
               <div
-                class={`flex px-0 py-0 leading-5 ${
+                class={`flex leading-5 ${
                   line.type === 'added'
-                    ? 'bg-green-50 border-l-4 border-green-400'
+                    ? 'bg-green-50 border-l-2 border-green-500'
                     : line.type === 'removed'
-                      ? 'bg-red-50 border-l-4 border-red-400'
-                      : 'border-l-4 border-transparent'
+                      ? 'bg-red-50 border-l-2 border-red-500'
+                      : 'border-l-2 border-transparent'
                 }`}
               >
                 <span
-                  class={`select-none w-5 text-center text-xs shrink-0 leading-5 ${
+                  class={`select-none w-5 text-center shrink-0 leading-5 py-0.5 ${
                     line.type === 'added'
                       ? 'text-green-600'
                       : line.type === 'removed'
                         ? 'text-red-500'
-                        : 'text-gray-400'
+                        : 'text-[hsl(var(--cc-main-black)/0.3)]'
                   }`}
                   aria-hidden='true'
                 >
@@ -91,12 +90,12 @@ const { filename, additions, deletions, hunks } = Astro.props;
                       : ' '}
                 </span>
                 <span
-                  class={`px-2 py-0.5 whitespace-pre text-xs ${
+                  class={`px-2 py-0.5 whitespace-pre flex-1 ${
                     line.type === 'added'
                       ? 'text-green-900'
                       : line.type === 'removed'
                         ? 'text-red-900'
-                        : 'text-gray-600'
+                        : 'text-[hsl(var(--cc-main-black)/0.7)]'
                   }`}
                 >
                   {line.content}

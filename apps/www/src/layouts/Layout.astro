@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Footer from '../components/Footer.astro';
+import MobileMenu from '../components/MobileMenu.astro';
 import SearchModal from '../components/SearchModal.astro';
 import ScrollToTop from '../components/ScrollToTop.astro';
 import { SITE_TITLE } from '../lib/constants';
@@ -32,6 +33,7 @@ type Props = {
 };
 
 const { title, description, image, jsonLd, breadcrumbs } = Astro.props;
+const isDocsPage = Astro.url.pathname.startsWith('/docs');
 const defaultDescription =
   'Claude Codeの全バージョンの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。';
 const pageDescription = description || defaultDescription;
@@ -168,25 +170,30 @@ if (breadcrumbs && breadcrumbs.length > 0) {
   </head>
   <body>
     <header
-      class='sticky top-0 z-50 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm border-b border-[hsl(var(--cc-gray))]'
+      class='relative top-0 z-50 bg-[hsl(var(--cc-main-white)/0.95)] backdrop-blur-sm border-b border-[hsl(var(--cc-gray))]'
     >
       <nav
-        class='max-w-6xl mx-auto px-4 h-12 flex items-center justify-between'
+        class='max-w-6xl mx-auto px-4 h-12 flex items-center justify-between gap-2'
       >
         <a
           href='/'
-          class='text-sm font-bold text-[hsl(var(--cc-main-black))] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+          class='text-sm font-bold text-[hsl(var(--cc-main-black))] hover:text-[hsl(var(--cc-main-orange))] transition-colors shrink-0'
         >
           Claude Code Changelog Viewer
         </a>
-        <div class='flex items-center gap-4'>
+
+        <div class='flex items-center gap-2'>
+          <!-- デスクトップ用ナビリンク -->
           <a
             href='/docs'
-            class='text-sm text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+            class={`hidden sm:inline text-sm transition-colors ${isDocsPage ? 'text-[hsl(var(--cc-main-orange))] font-medium' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))]'}`}
+            aria-current={isDocsPage ? 'page' : undefined}
           >
-            Docs 更新
+            Docs 更新履歴
           </a>
+
           <SearchModal />
+          <MobileMenu isDocsPage={isDocsPage} />
         </div>
       </nav>
     </header>
