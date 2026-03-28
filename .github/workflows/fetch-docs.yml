@@ -75,6 +75,17 @@ jobs:
             git diff --staged --name-only
           fi
 
+      - name: Generate docs diff JSON
+        if: steps.git-check.outputs.should_push == 'true'
+        run: bun run generate:docs-diff
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NODE_ENV: production
+
+      - name: Stage diff file
+        if: steps.git-check.outputs.should_push == 'true'
+        run: git add apps/docs-tracker/diffs/docs_diff.json
+
       - name: Commit changes
         if: steps.git-check.outputs.should_push == 'true'
         run: |
