@@ -23,6 +23,7 @@ export type DocFileDiff = {
   filename: string;
   additions: number;
   deletions: number;
+  explanation: string; // AI生成のファイル単位解説(1〜2文)
   hunks: DiffHunk[];
 };
 
@@ -51,12 +52,12 @@ export class DocsDiffGenerator {
   }
 
   /**
-   * git diff --staged から docs/ja/ の変更を取得してパース
+   * git diff --staged から docs/en/ の変更を取得してパース
    */
-  async getJaStagedDiff(): Promise<DocFileDiff[]> {
+  async getEnStagedDiff(): Promise<DocFileDiff[]> {
     try {
       const { stdout } = await execAsync(
-        "git diff --staged --unified=3 -- 'apps/docs-tracker/docs/ja/**/*.md'",
+        "git diff --staged --unified=3 -- 'apps/docs-tracker/docs/en/**/*.md'",
         {
           cwd: path.join(this.rootDir, '..', '..'),
           maxBuffer: 20 * 1024 * 1024,
@@ -64,7 +65,7 @@ export class DocsDiffGenerator {
       );
 
       if (!stdout.trim()) {
-        this.log.info('日本語ドキュメントにステージング済みの変更なし');
+        this.log.info('英語ドキュメントにステージング済みの変更なし');
         return [];
       }
 
@@ -103,14 +104,15 @@ export class DocsDiffGenerator {
           files.push(currentFile);
         }
 
-        // ファイル名を抽出("apps/docs-tracker/docs/ja/foo.md" → "foo.md")
-        const match = line.match(/diff --git a\/.+\/docs\/ja\/(.+) b\//);
+        // ファイル名を抽出("apps/docs-tracker/docs/en/foo.md" → "foo.md")
+        const match = line.match(/diff --git a\/.+\/docs\/en\/(.+) b\//);
         const filename =
           match?.[1] ?? line.replace('diff --git ', '').split(' ')[0];
         currentFile = {
           filename: filename ?? '',
           additions: 0,
           deletions: 0,
+          explanation: '',
           hunks: [],
         };
         currentHunk = null;

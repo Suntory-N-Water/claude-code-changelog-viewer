@@ -7,18 +7,18 @@ import { DocsSummaryClient } from './lib/docs-summary-client';
 const logger = getLogger({ name: 'docs-diff-generator' });
 
 async function main() {
-  logger.msg('APLG0001', { params: ['日本語ドキュメント diff 生成'] });
+  logger.msg('APLG0001', { params: ['英語ドキュメント diff 生成'] });
 
   const startTime = Date.now();
 
   try {
     const generator = new DocsDiffGenerator(process.cwd(), logger);
 
-    // git diff --staged から docs/ja/ の変更を取得
-    const files = await generator.getJaStagedDiff();
+    // git diff --staged から docs/en/ の変更を取得
+    const files = await generator.getEnStagedDiff();
 
     if (files.length === 0) {
-      logger.info('日本語ドキュメントに変更なし。diff 生成をスキップします。');
+      logger.info('英語ドキュメントに変更なし。diff 生成をスキップします。');
       process.exit(0);
     }
 
@@ -28,22 +28,35 @@ async function main() {
       `変更検知: ${files.length} ファイル (+${totalAdditions} -${totalDeletions})`,
     );
 
-    // AI サマリ生成
+    // AI サマリ・解説生成
     const geminiApiKey = process.env['GEMINI_API_KEY'] ?? '';
     let aiSummary = '';
+    let fileExplanations: { filename: string; explanation: string }[] = [];
 
     if (geminiApiKey) {
-      logger.msg('APLG0003', { params: ['AI サマリ'] });
+      logger.msg('APLG0003', { params: ['AI サマリ・解説'] });
       const summaryClient = new DocsSummaryClient(geminiApiKey, logger);
-      aiSummary = await summaryClient.generateSummary(files);
-      logger.msg('APLG0002', { params: ['AI サマリ'] });
+      ({ aiSummary, fileExplanations } =
+        await summaryClient.generateSummaryAndExplanations(files));
+      logger.msg('APLG0002', { params: ['AI サマリ・解説'] });
     } else {
       logger.warn('GEMINI_API_KEY が未設定のため AI サマリをスキップします');
-      aiSummary = `Claude Code の日本語ドキュメントが更新されました(${files.length} ファイル)。`;
+      aiSummary = `Claude Code の英語ドキュメントが更新されました(${files.length} ファイル)。`;
     }
 
+    // AI 解説をファイルごとにマージ
+    const filesWithExplanations = files.map((f) => ({
+      ...f,
+      explanation:
+        fileExplanations.find((e) => e.filename === f.filename)?.explanation ??
+        '',
+    }));
+
     // docs_diff.json に追記
-    const id = await generator.appendDiffEntry(files, aiSummary);
+    const id = await generator.appendDiffEntry(
+      filesWithExplanations,
+      aiSummary,
+    );
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.msg('APLG0002', {

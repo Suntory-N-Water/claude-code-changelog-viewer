@@ -52,17 +52,17 @@ jobs:
         run: |
           git add -A
 
-          # ドキュメント(*.md)ファイルの変更をカウント(changelog.md を除く)
-          DOC_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/docs/**/*.md' | grep -vc 'changelog.md$' || true)
+          # 英語ドキュメント(docs/en/*.md)ファイルの変更をカウント
+          DOC_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/docs/en/**/*.md' | wc -l | tr -d ' ' || true)
           echo "doc_changes=$DOC_CHANGES" >> "$GITHUB_OUTPUT"
 
-          # ドキュメントに変更がある場合のみ should_push=true
+          # 英語ドキュメントに変更がある場合のみ should_push=true
           if [ "$DOC_CHANGES" -gt 0 ]; then
             echo "should_push=true" >> "$GITHUB_OUTPUT"
-            echo "✅ ドキュメントに更新あり: $DOC_CHANGES ファイル"
-            git diff --staged --name-only -- 'apps/docs-tracker/docs/**/*.md' | grep -v 'changelog.md$'
+            echo "✅ 英語ドキュメントに更新あり: $DOC_CHANGES ファイル"
+            git diff --staged --name-only -- 'apps/docs-tracker/docs/en/**/*.md'
           else
-            echo "ℹ️ ドキュメントに更新なし(メタデータ/changelog.md のみの変更はスキップ)"
+            echo "ℹ️ 英語ドキュメントに更新なし(日本語ドキュメントのみの変更はスキップ)"
           fi
 
           # 全変更ファイル数(コミットメッセージ用)

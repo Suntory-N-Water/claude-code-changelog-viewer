@@ -1,6 +1,7 @@
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
-import { ApiError, GoogleGenAI } from '@google/genai';
+import { ApiError, GoogleGenAI, Type } from '@google/genai';
 import pRetry, { AbortError } from 'p-retry';
+import { z } from 'zod';
 import type { DocFileDiff } from './docs-diff-generator';
 
 const RETRY_DELAY_MS = 60 * 1000;
@@ -20,6 +21,21 @@ const FALLBACK_MODELS = [
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
 ];
+
+const SummaryResponseSchema = z.object({
+  aiSummary: z.string(),
+  fileExplanations: z.array(
+    z.object({
+      filename: z.string(),
+      explanation: z.string(),
+    }),
+  ),
+});
+
+export type SummaryResult = {
+  aiSummary: string;
+  fileExplanations: { filename: string; explanation: string }[];
+};
 
 export class DocsSummaryClient {
   private ai: GoogleGenAI;
@@ -56,9 +72,12 @@ export class DocsSummaryClient {
   }
 
   /**
-   * diff の内容から日本語サマリーを生成
+   * diff の内容から日本語サマリーと各ファイルの解説を生成
+   * responseSchema で構造化出力を強制し、Zod でバリデーション
    */
-  async generateSummary(files: DocFileDiff[]): Promise<string> {
+  async generateSummaryAndExplanations(
+    files: DocFileDiff[],
+  ): Promise<SummaryResult> {
     const prompt = this.buildPrompt(files);
     let lastError: Error | null = null;
 
@@ -67,14 +86,48 @@ export class DocsSummaryClient {
         return await pRetry(
           async () => {
             this.log.info(`モデルを試行: ${model}`, {
-              method: 'generateSummary',
+              method: 'generateSummaryAndExplanations',
             });
             await this.waitForRateLimit(model);
 
             const response = await this.ai.models.generateContent({
               model,
               contents: prompt,
-              config: { thinkingConfig: { thinkingBudget: 0 } },
+              config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                    aiSummary: {
+                      type: Type.STRING,
+                      description: '3〜5文の日本語概要サマリー',
+                    },
+                    fileExplanations: {
+                      type: Type.ARRAY,
+                      description: '各ファイルの変更内容の解説',
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          filename: {
+                            type: Type.STRING,
+                            description: 'ファイル名',
+                          },
+                          explanation: {
+                            type: Type.STRING,
+                            description:
+                              'このファイルの変更内容を1〜2文で日本語解説',
+                          },
+                        },
+                        propertyOrdering: ['filename', 'explanation'],
+                        required: ['filename', 'explanation'],
+                      },
+                    },
+                  },
+                  propertyOrdering: ['aiSummary', 'fileExplanations'],
+                  required: ['aiSummary', 'fileExplanations'],
+                },
+                thinkingConfig: { thinkingBudget: 0 },
+              },
             });
 
             if (!response.text) {
@@ -84,10 +137,15 @@ export class DocsSummaryClient {
             const usage = response.usageMetadata;
             this.log.info(
               `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0}`,
-              { method: 'generateSummary', model },
+              { method: 'generateSummaryAndExplanations', model },
             );
 
-            return response.text.trim();
+            const parsed = JSON.parse(response.text);
+            const result = SummaryResponseSchema.parse(parsed);
+            this.log.info(`モデル成功: ${model}`, {
+              method: 'generateSummaryAndExplanations',
+            });
+            return result;
           },
           {
             retries: MAX_RETRIES_PER_MODEL,
@@ -110,9 +168,12 @@ export class DocsSummaryClient {
       }
     }
 
-    // 全モデル失敗時はフォールバックメッセージを返す
+    // 全モデル失敗時はフォールバック
     this.log.error(`全モデルが失敗しました: ${lastError?.message}`);
-    return `Claude Code の日本語ドキュメントが更新されました(${files.length} ファイル)。`;
+    return {
+      aiSummary: `Claude Code の英語ドキュメントが更新されました(${files.length} ファイル)。`,
+      fileExplanations: [],
+    };
   }
 
   private buildPrompt(files: DocFileDiff[]): string {
@@ -153,7 +214,7 @@ export class DocsSummaryClient {
 
 ## 前提 (Premise)
 - Claude Code は開発者向けの AI アシスタント CLI ツールである
-- 公式の日本語ドキュメントが更新された
+- 公式の英語ドキュメントが更新された
 - 開発者は変更の概要を素早く把握したい
 
 ## 状況 (Situation)
@@ -161,25 +222,22 @@ export class DocsSummaryClient {
 - 変更ファイル一覧:
 ${filesSummary}
 
-- 変更内容(抜粋):
+- 変更内容(抜粋、英語テキスト):
 ${diffContent}
 
 ## 目的 (Purpose)
-このドキュメント変更の要約を日本語で作成する。
-開発者が「何が具体的に変わったか」を一目で理解できる要約を提供する。
+このドキュメント変更の要約と、各ファイルの解説を日本語で作成する。
 
 ## 動機 (Motive)
 抽象的な説明ではなく、具体的な変更内容を伝える。
-例: 「ドキュメントが更新されました」ではなく「hooks.md でフック設定の説明に新しい環境変数の説明が追加されました」のように具体的に記述する。
+例: 「ドキュメントが更新されました」ではなく「フック設定の説明に新しい環境変数の説明が追加されました」のように具体的に記述する。
 新機能の追加、既存機能の変更、設定オプションの追加などを優先的に言及する。
 
 ## 制約 (Constraint)
-- 3-5文で簡潔にまとめる
-- 具体的なファイル名や変更内容を含める
-- 「です・ます」調で統一
-- 要約テキストのみを出力し、説明や追加情報は不要
-
-# 出力形式
-要約テキストのみを出力してください。`;
+- diff は英語テキストだが、出力は必ず日本語で記述する
+- aiSummary: 3〜5文の簡潔な概要。「です・ます」調
+- fileExplanations: 変更があったファイルごとに1〜2文で変更内容を解説。「です・ます」調
+- ファイル名はパスやURL形式で記述し、拡張子(.md)は付けない。例: hooks、settings/advanced
+- ヘッダー記号(#, ##)などのMarkdown記法は使用しない。プレーンテキストのみ`;
   }
 }

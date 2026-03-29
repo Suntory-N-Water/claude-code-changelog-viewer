@@ -63,6 +63,7 @@ const docsDiffCollection = defineCollection({
             filename: z.string(),
             additions: z.number(),
             deletions: z.number(),
+            explanation: z.string().optional(),
             hunks: z.array(
               z.object({
                 header: z.string(),
