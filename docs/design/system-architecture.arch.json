@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "title": "Claude Code Changelog Viewer - システムアーキテクチャ",
+  "type": "engineering-diagram",
+  "source": "generated",
+  "profile": "engineering-review",
+  "theme": "tech-blue",
+  "layout": "vertical",
+  "counts": {
+    "nodes": 11,
+    "edges": 12,
+    "modules": 3
+  },
+  "nodes": [
+    {
+      "id": "github",
+      "label": "GitHub",
+      "type": "service",
+      "module": "external"
+    },
+    {
+      "id": "gemini",
+      "label": "Gemini API",
+      "type": "service",
+      "module": "external"
+    },
+    {
+      "id": "discord",
+      "label": "Discord",
+      "type": "service",
+      "module": "external"
+    },
+    {
+      "id": "user",
+      "label": "ユーザー",
+      "type": "user"
+    },
+    {
+      "id": "changelog-fetcher",
+      "label": "変更履歴取得 (毎時)",
+      "type": "process",
+      "module": "github-actions"
+    },
+    {
+      "id": "docs-tracker",
+      "label": "ドキュメント取得 (3時間毎)",
+      "type": "process",
+      "module": "github-actions"
+    },
+    {
+      "id": "www",
+      "label": "フロントエンド (Astro)",
+      "type": "service",
+      "module": "cloudflare"
+    },
+    {
+      "id": "notification-worker",
+      "label": "通知配信 API (Hono)",
+      "type": "service",
+      "module": "cloudflare"
+    },
+    {
+      "id": "d1",
+      "label": "D1 登録データ",
+      "type": "database",
+      "module": "cloudflare"
+    },
+    {
+      "id": "queues",
+      "label": "Queues 配信キュー",
+      "type": "queue",
+      "module": "cloudflare"
+    },
+    {
+      "id": "turnstile",
+      "label": "Turnstile (Bot対策)",
+      "type": "service",
+      "module": "cloudflare"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "from": "github",
+      "to": "changelog-fetcher",
+      "type": "primary",
+      "label": "変更履歴を提供"
+    },
+    {
+      "id": "edge-2",
+      "from": "github",
+      "to": "docs-tracker",
+      "type": "primary",
+      "label": "ドキュメントを提供"
+    },
+    {
+      "id": "edge-3",
+      "from": "changelog-fetcher",
+      "to": "gemini",
+      "type": "data",
+      "label": "翻訳を依頼"
+    },
+    {
+      "id": "edge-4",
+      "from": "changelog-fetcher",
+      "to": "www",
+      "type": "data",
+      "label": "解析結果を反映"
+    },
+    {
+      "id": "edge-5",
+      "from": "docs-tracker",
+      "to": "www",
+      "type": "data",
+      "label": "取得結果を反映"
+    },
+    {
+      "id": "edge-6",
+      "from": "changelog-fetcher",
+      "to": "notification-worker",
+      "type": "primary",
+      "label": "配信をトリガー"
+    },
+    {
+      "id": "edge-7",
+      "from": "user",
+      "to": "www",
+      "type": "primary",
+      "label": "サイトを閲覧"
+    },
+    {
+      "id": "edge-8",
+      "from": "user",
+      "to": "notification-worker",
+      "type": "primary",
+      "label": "通知を登録"
+    },
+    {
+      "id": "edge-9",
+      "from": "notification-worker",
+      "to": "turnstile",
+      "type": "data",
+      "label": "Bot判定"
+    },
+    {
+      "id": "edge-10",
+      "from": "notification-worker",
+      "to": "d1",
+      "type": "data",
+      "label": "登録情報を保存"
+    },
+    {
+      "id": "edge-11",
+      "from": "notification-worker",
+      "to": "queues",
+      "type": "data",
+      "label": "配信を予約"
+    },
+    {
+      "id": "edge-12",
+      "from": "queues",
+      "to": "discord",
+      "type": "primary",
+      "label": "通知を送信"
+    }
+  ],
+  "modules": [
+    {
+      "id": "external",
+      "label": "外部サービス"
+    },
+    {
+      "id": "github-actions",
+      "label": "GitHub Actions"
+    },
+    {
+      "id": "cloudflare",
+      "label": "Cloudflare"
+    }
+  ]
+}

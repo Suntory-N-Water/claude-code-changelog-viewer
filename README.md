@@ -59,55 +59,9 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 
 ## システムアーキテクチャ
 
-```mermaid
-graph TD
-    subgraph "外部サービス"
-        GH[GitHub]
-        GEMINI[Gemini API]
-    end
+![システムアーキテクチャ図](docs/design/system-architecture.svg)
 
-    subgraph "GitHub Actions"
-        FETCH_CL[変更履歴取得]
-        FETCH_DOC[ドキュメント取得]
-    end
-
-    subgraph "Cloudflare Workers"
-        WWW[フロントエンド]
-        NW[通知配信]
-        D1[(登録データ)]
-        QUEUES[配信キュー]
-        TURNSTILE[認証基盤]
-    end
-
-    USER[ユーザー]
-    DISCORD[Discord]
-
-    GH -->|変更履歴を提供| FETCH_CL
-    GH -->|ドキュメントを提供| FETCH_DOC
-    FETCH_CL -->|翻訳を依頼| GEMINI
-    FETCH_CL -->|解析結果を反映| WWW
-    FETCH_DOC -->|取得結果を反映| WWW
-    FETCH_CL -->|配信をトリガー| NW
-
-    USER -->|サイトを閲覧| WWW
-    USER -->|通知を登録| NW
-    NW -->|ボット判定| TURNSTILE
-    NW -->|登録情報を保存| D1
-    NW -->|配信を予約| QUEUES
-    QUEUES -->|通知を送信| DISCORD
-
-    style GH fill:#f3e5f5
-    style GEMINI fill:#f3e5f5
-    style FETCH_CL fill:#c8e6c9
-    style FETCH_DOC fill:#c8e6c9
-    style WWW fill:#fff3e0
-    style NW fill:#fff3e0
-    style D1 fill:#e3f2fd
-    style QUEUES fill:#e3f2fd
-    style TURNSTILE fill:#e3f2fd
-    style USER fill:#e3f2fd
-    style DISCORD fill:#f3e5f5
-```
+> draw.io ファイル: [`docs/design/system-architecture.drawio`](docs/design/system-architecture.drawio)
 
 ## 技術スタック
 

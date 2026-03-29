@@ -1,0 +1,149 @@
+meta:
+  profile: engineering-review
+  theme: tech-blue
+  source: generated
+  layout: vertical
+  canvas: auto
+  title: Claude Code Changelog Viewer - システムアーキテクチャ
+  description: GitHub Actions によるデータ収集・AI処理から、Cloudflare Workers でのホスティング・通知配信までの全体構成
+modules:
+  - id: external
+    label: 外部サービス
+    style:
+      fillColor: '#f3e5f5'
+      strokeColor: '#9c27b0'
+  - id: github-actions
+    label: GitHub Actions
+    style:
+      fillColor: '#e8f5e9'
+      strokeColor: '#2e7d32'
+  - id: cloudflare
+    label: Cloudflare
+    style:
+      fillColor: '#fff3e0'
+      strokeColor: '#e65100'
+nodes:
+  - id: github
+    label: GitHub
+    type: service
+    module: external
+    style:
+      fillColor: '#24292e'
+      fontColor: '#ffffff'
+      strokeColor: '#24292e'
+  - id: gemini
+    label: Gemini API
+    type: service
+    module: external
+    style:
+      fillColor: '#4285f4'
+      fontColor: '#ffffff'
+      strokeColor: '#1a73e8'
+  - id: discord
+    label: Discord
+    type: service
+    module: external
+    style:
+      fillColor: '#5865F2'
+      fontColor: '#ffffff'
+      strokeColor: '#4752c4'
+  - id: user
+    label: ユーザー
+    type: user
+  - id: changelog-fetcher
+    label: 変更履歴取得 (毎時)
+    type: process
+    module: github-actions
+  - id: docs-tracker
+    label: ドキュメント取得 (3時間毎)
+    type: process
+    module: github-actions
+  - id: www
+    label: フロントエンド (Astro)
+    type: service
+    module: cloudflare
+    style:
+      fillColor: '#F6821F'
+      fontColor: '#ffffff'
+      strokeColor: '#F6821F'
+  - id: notification-worker
+    label: 通知配信 API (Hono)
+    type: service
+    module: cloudflare
+    style:
+      fillColor: '#F6821F'
+      fontColor: '#ffffff'
+      strokeColor: '#F6821F'
+  - id: d1
+    label: D1 登録データ
+    type: database
+    module: cloudflare
+    style:
+      fillColor: '#FFA500'
+      fontColor: '#ffffff'
+      strokeColor: '#e65100'
+  - id: queues
+    label: Queues 配信キュー
+    type: queue
+    module: cloudflare
+    style:
+      fillColor: '#FFA500'
+      fontColor: '#ffffff'
+      strokeColor: '#e65100'
+  - id: turnstile
+    label: Turnstile (Bot対策)
+    type: service
+    module: cloudflare
+    style:
+      fillColor: '#FFA500'
+      fontColor: '#ffffff'
+      strokeColor: '#e65100'
+edges:
+  - from: github
+    to: changelog-fetcher
+    label: 変更履歴を提供
+    type: primary
+  - from: github
+    to: docs-tracker
+    label: ドキュメントを提供
+    type: primary
+  - from: changelog-fetcher
+    to: gemini
+    label: 翻訳を依頼
+    type: data
+  - from: changelog-fetcher
+    to: www
+    label: 解析結果を反映
+    type: data
+  - from: docs-tracker
+    to: www
+    label: 取得結果を反映
+    type: data
+  - from: changelog-fetcher
+    to: notification-worker
+    label: 配信をトリガー
+    type: primary
+  - from: user
+    to: www
+    label: サイトを閲覧
+    type: primary
+  - from: user
+    to: notification-worker
+    label: 通知を登録
+    type: primary
+  - from: notification-worker
+    to: turnstile
+    label: Bot判定
+    type: data
+  - from: notification-worker
+    to: d1
+    label: 登録情報を保存
+    type: data
+  - from: notification-worker
+    to: queues
+    label: 配信を予約
+    type: data
+  - from: queues
+    to: discord
+    label: 通知を送信
+    type: primary
