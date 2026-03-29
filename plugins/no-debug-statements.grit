@@ -1,0 +1,24 @@
+or {
+    `debugger` as $match where {
+        register_diagnostic(
+            span = $match,
+            message = "debugger 文はコミット前に削除してください。",
+            severity = "error"
+        )
+    },
+    `alert($...)` as $match where {
+        register_diagnostic(
+            span = $match,
+            message = "alert() はコミット前に削除してください。",
+            severity = "error"
+        )
+    },
+    `console.$method($...)` as $match where {
+        $method <: or { `log`, `debug`, `trace` },
+        register_diagnostic(
+            span = $match,
+            message = "デバッグログはコミット前に削除してください。logger を使用するか、不要であれば削除してください。",
+            severity = "warn"
+        )
+    }
+}
