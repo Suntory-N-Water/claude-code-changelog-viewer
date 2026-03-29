@@ -33,11 +33,9 @@ export async function GET({ props }: APIContext) {
     versionCount: number;
   };
 
-  const png = await generateFeatureAreaOgp(
-    SITE_TITLE,
-    areaLabel,
+  const png = await generateFeatureAreaOgp(SITE_TITLE, areaLabel, {
     itemCount,
     versionCount,
-  );
+  });
   return createPngResponse(png);
 }

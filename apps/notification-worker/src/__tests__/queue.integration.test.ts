@@ -58,7 +58,7 @@ function setupFetchSuccess() {
 
 async function runWithTimers(promise: Promise<void>) {
   const result = promise;
-  for (let i = 0; i < 50; i++) {
+  for (let i = 0; i < 50; i += 1) {
     vi.advanceTimersByTime(1000);
     await Promise.resolve();
   }

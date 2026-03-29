@@ -16,7 +16,7 @@ async function analyzeFile(
 
   // マッチ行のインデックスを収集
   const matchIndices: number[] = [];
-  for (let i = 0; i < lines.length; i++) {
+  for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
     if (line && pattern.test(line)) {
       matchIndices.push(i);

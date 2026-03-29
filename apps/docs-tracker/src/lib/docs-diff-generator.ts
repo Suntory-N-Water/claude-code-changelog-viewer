@@ -146,12 +146,12 @@ export class DocsDiffGenerator {
 
       // diff 行の処理
       if (line.startsWith('+')) {
-        currentFile.additions++;
+        currentFile.additions += 1;
         if (currentHunk) {
           currentHunk.lines.push({ type: 'added', content: line.slice(1) });
         }
       } else if (line.startsWith('-')) {
-        currentFile.deletions++;
+        currentFile.deletions += 1;
         if (currentHunk) {
           currentHunk.lines.push({ type: 'removed', content: line.slice(1) });
         }

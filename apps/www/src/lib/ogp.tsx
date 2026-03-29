@@ -248,11 +248,15 @@ export function generateVersionPageOgp(
 /**
  * 機能エリアページ用OGP画像を生成
  */
+type FeatureAreaOgpOptions = {
+  itemCount: number;
+  versionCount: number;
+};
+
 export function generateFeatureAreaOgp(
   siteTitle: string,
   areaLabel: string,
-  itemCount: number,
-  versionCount: number,
+  { itemCount, versionCount }: FeatureAreaOgpOptions,
 ): Promise<Uint8Array> {
   return renderOgpImage(
     <InfoPageOgp

@@ -42,7 +42,7 @@ describe('searchDocs', () => {
     test('戦略1 が 50件超の場合は戦略2 にフォールバックする', async () => {
       const manyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-many-'));
       try {
-        for (let i = 0; i < 51; i++) {
+        for (let i = 0; i < 51; i += 1) {
           await Bun.write(
             path.join(manyDir, `doc${i}.md`),
             '`common_word` content',
@@ -89,7 +89,7 @@ describe('searchDocs', () => {
       const manyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-many-2-'));
 
       try {
-        for (let i = 0; i < 51; i++) {
+        for (let i = 0; i < 51; i += 1) {
           await Bun.write(path.join(manyDir, `common-${i}.md`), 'common-token');
         }
 
@@ -155,7 +155,7 @@ describe('searchDocs', () => {
       const manyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-dup-'));
 
       try {
-        for (let i = 0; i < 51; i++) {
+        for (let i = 0; i < 51; i += 1) {
           await Bun.write(path.join(manyDir, `common-${i}.md`), 'shared-token');
         }
 

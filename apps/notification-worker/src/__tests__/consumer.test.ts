@@ -145,7 +145,7 @@ describe('queueConsumer', () => {
   async function runWithTimers(promise: Promise<void>) {
     const result = promise;
     // タイマーを繰り返し進める
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 50; i += 1) {
       vi.advanceTimersByTime(1000);
       await Promise.resolve();
     }

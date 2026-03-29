@@ -43,7 +43,7 @@ for (const file of files) {
     await symlink(relativePath, linkPath);
 
     console.log(`✓ Linked: v${version}.json -> ${file}`);
-    count++;
+    count += 1;
   }
 }
 

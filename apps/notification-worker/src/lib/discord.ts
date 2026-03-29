@@ -26,15 +26,20 @@ export function buildUnsubscribeUrl(workerUrl: string, token: string): string {
   return `${workerUrl}/api/unsubscribe?token=${token}`;
 }
 
+type CreateChangelogMessageOptions = {
+  unsubscribeUrl: string;
+  siteUrl: string;
+};
+
 /**
  * 変更ログの通知メッセージを生成する
  */
 export function createChangelogMessage(
   data: Analysis,
   version: string,
-  unsubscribeUrl: string,
-  siteUrl: string,
+  options: CreateChangelogMessageOptions,
 ): DiscordWebhookPayload {
+  const { unsubscribeUrl, siteUrl } = options;
   const viewerUrl = `${siteUrl}/changelog/${version}/`;
   const footer = `\n## 参考\n- [更新内容の詳細](${viewerUrl})\n- [公式リリースノート](https://github.com/anthropics/claude-code/releases/tag/${version})\n[🔕 通知を停止する](${unsubscribeUrl})`;
 

@@ -16,9 +16,7 @@ app.use(
   }),
 );
 
-app.get('/', (c) => {
-  return c.text('ok');
-});
+app.get('/', (c) => c.text('ok'));
 
 app.route('/webhooks', webhooksRoute);
 app.route('/dispatch', dispatchRoute);

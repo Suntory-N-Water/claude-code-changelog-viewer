@@ -476,7 +476,7 @@ source: ${docInfo.url}
           params: ['不要なファイル'],
           attrs: { 'file.name': file },
         });
-        deletedCount++;
+        deletedCount += 1;
       } catch (error) {
         if (error instanceof Error) {
           this.log.msg('APLG0016', {

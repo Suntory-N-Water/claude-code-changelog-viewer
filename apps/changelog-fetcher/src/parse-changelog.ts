@@ -161,10 +161,10 @@ function main() {
 
     if (existingHash) {
       log.info(`${versionKey}: 更新あり`);
-      updatedCount++;
+      updatedCount += 1;
     } else {
       log.info(`${versionKey}: 新規`);
-      newCount++;
+      newCount += 1;
     }
 
     newMetadata[versionKey] = contentHash;

@@ -36,9 +36,10 @@ function calculateContextScore(snippetResult: SnippetResult): number {
   }
 
   // 各スニペットのスコアを合計
-  return snippets.reduce((total, snippet) => {
-    return total + calculateSnippetScore(snippet);
-  }, 0);
+  return snippets.reduce(
+    (total, snippet) => total + calculateSnippetScore(snippet),
+    0,
+  );
 }
 
 /**

@@ -43,11 +43,11 @@ ${snippetsText}`;
     .join('\n\n');
 
   const translationSection = translationItems
-    .map(({ item, index }) => {
-      return `#### 項目 id=${index}
+    .map(
+      ({ item, index }) => `#### 項目 id=${index}
 - prefix: ${item.prefix}
-- content: ${item.content}`;
-    })
+- content: ${item.content}`,
+    )
     .join('\n\n');
 
   const allItemsText = indexedItems

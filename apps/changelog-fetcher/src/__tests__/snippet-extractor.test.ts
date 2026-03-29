@@ -97,9 +97,9 @@ describe('extractSnippets', () => {
 
     test('スニペットは最大 5 件に制限される', async () => {
       const lines: string[] = [];
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 8; i += 1) {
         lines.push(`keyword match ${i}`);
-        for (let j = 0; j < 10; j++) {
+        for (let j = 0; j < 10; j += 1) {
           lines.push(`filler line ${i}-${j}`);
         }
       }
@@ -250,9 +250,9 @@ describe('extractSnippets', () => {
 
     test('スニペット候補が5件を超えても hit_count は全件数を保持する', async () => {
       const lines: string[] = [];
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 8; i += 1) {
         lines.push(`keyword line ${i}`);
-        for (let j = 0; j < 10; j++) {
+        for (let j = 0; j < 10; j += 1) {
           lines.push(`filler ${i}-${j}`);
         }
       }

@@ -83,12 +83,10 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
             env.WORKER_URL,
             webhook.token,
           );
-          const payload = createChangelogMessage(
-            data,
-            version,
+          const payload = createChangelogMessage(data, version, {
             unsubscribeUrl,
-            env.SITE_URL,
-          );
+            siteUrl: env.SITE_URL,
+          });
           const result = await sendToDiscord(webhook.webhook_url, payload);
 
           if (result.ok) {

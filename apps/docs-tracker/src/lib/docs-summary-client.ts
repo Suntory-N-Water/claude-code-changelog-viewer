@@ -199,7 +199,7 @@ export class DocsSummaryClient {
           }
           const prefix = line.type === 'added' ? '+' : '-';
           diffLines.push(`${prefix} ${line.content}`);
-          lineCount++;
+          lineCount += 1;
           if (lineCount >= MAX_DIFF_LINES_FOR_PROMPT) {
             break;
           }
