@@ -1,0 +1,46 @@
+---
+
+---
+
+<div
+  id='scroll-progress'
+  class='fixed top-0 left-0 h-1 w-0 bg-[hsl(var(--cc-main-orange))] z-60 transition-none'
+  role='progressbar'
+  aria-label='ページの読み進め状況'
+  aria-valuenow={0}
+  aria-valuemin={0}
+  aria-valuemax={100}
+>
+</div>
+
+<script>
+  let controller: AbortController | null = null;
+
+  document.addEventListener('astro:page-load', () => {
+    controller?.abort();
+    controller = new AbortController();
+    const { signal } = controller;
+
+    const bar = document.getElementById('scroll-progress');
+    if (!bar) {
+      return;
+    }
+
+    const updateProgress = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      bar.style.width = `${progress}%`;
+      bar.setAttribute('aria-valuenow', String(Math.round(progress)));
+    };
+
+    window.addEventListener('scroll', updateProgress, {
+      signal,
+      passive: true,
+    });
+
+    // ページ遷移後に初期値をリセット
+    updateProgress();
+  });
+</script>
