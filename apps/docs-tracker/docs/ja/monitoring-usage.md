@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/monitoring-usage.md
 
 > Claude Code の OpenTelemetry を有効にして設定する方法を学びます。
 
-OpenTelemetry (OTel) を通じてテレメトリデータをエクスポートすることで、組織全体で Claude Code の使用状況、コスト、ツールアクティビティを追跡します。Claude Code はメトリクスを標準メトリクスプロトコル経由で時系列データとしてエクスポートし、イベントをログ/イベントプロトコル経由でエクスポートします。メトリクスとログのバックエンドを設定して、監視要件に合わせます。
+OpenTelemetry (OTel) を通じてテレメトリデータをエクスポートすることで、組織全体で Claude Code の使用状況、コスト、ツールアクティビティを追跡します。Claude Code はメトリクスを標準メトリクスプロトコル経由で時系列データとしてエクスポートし、イベントをログ/イベントプロトコル経由でエクスポートし、オプションで [トレースプロトコル](#traces-beta)経由で分散トレースをエクスポートします。メトリクス、ログ、トレースのバックエンドを設定して、監視要件に合わせます。
 
 ## クイックスタート
 
@@ -18,8 +18,8 @@ OpenTelemetry (OTel) を通じてテレメトリデータをエクスポート�
 export CLAUDE_CODE_ENABLE_TELEMETRY=1
 
 # 2. エクスポーターを選択する (両方はオプション - 必要なものだけを設定してください)
-export OTEL_METRICS_EXPORTER=otlp       # オプション: otlp, prometheus, console
-export OTEL_LOGS_EXPORTER=otlp          # オプション: otlp, console
+export OTEL_METRICS_EXPORTER=otlp       # オプション: otlp、prometheus、console、none
+export OTEL_LOGS_EXPORTER=otlp          # オプション: otlp、console、none
 
 # 3. OTLP エンドポイントを設定する (OTLP エクスポーター用)
 export OTEL_EXPORTER_OTLP_PROTOCOL=grpc
@@ -68,22 +68,23 @@ claude
 | 環境変数 | 説明 | 例の値 |
 | - | - | - |
 | `CLAUDE_CODE_ENABLE_TELEMETRY` | テレメトリ収集を有効にする (必須) | `1` |
-| `OTEL_METRICS_EXPORTER` | メトリクスエクスポーターのタイプ (カンマ区切り) | `console`, `otlp`, `prometheus` |
-| `OTEL_LOGS_EXPORTER` | ログ/イベントエクスポーターのタイプ (カンマ区切り) | `console`, `otlp` |
-| `OTEL_EXPORTER_OTLP_PROTOCOL` | OTLP エクスポーターのプロトコル (すべてのシグナル) | `grpc`, `http/json`, `http/protobuf` |
+| `OTEL_METRICS_EXPORTER` | メトリクスエクスポーターのタイプ (カンマ区切り)。`none` を使用して無効化 | `console`、`otlp`、`prometheus`、`none` |
+| `OTEL_LOGS_EXPORTER` | ログ/イベントエクスポーターのタイプ (カンマ区切り)。`none` を使用して無効化 | `console`、`otlp`、`none` |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | OTLP エクスポーターのプロトコル (すべてのシグナル) | `grpc`、`http/json`、`http/protobuf` |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP コレクターエンドポイント (すべてのシグナル) | `http://localhost:4317` |
-| `OTEL_EXPORTER_OTLP_METRICS_PROTOCOL` | メトリクスのプロトコル (一般的な設定をオーバーライド) | `grpc`, `http/json`, `http/protobuf` |
+| `OTEL_EXPORTER_OTLP_METRICS_PROTOCOL` | メトリクスのプロトコル (一般的な設定をオーバーライド) | `grpc`、`http/json`、`http/protobuf` |
 | `OTEL_EXPORTER_OTLP_METRICS_ENDPOINT` | OTLP メトリクスエンドポイント (一般的な設定をオーバーライド) | `http://localhost:4318/v1/metrics` |
-| `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` | ログのプロトコル (一般的な設定をオーバーライド) | `grpc`, `http/json`, `http/protobuf` |
+| `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` | ログのプロトコル (一般的な設定をオーバーライド) | `grpc`、`http/json`、`http/protobuf` |
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | OTLP ログエンドポイント (一般的な設定をオーバーライド) | `http://localhost:4318/v1/logs` |
 | `OTEL_EXPORTER_OTLP_HEADERS` | OTLP の認証ヘッダー | `Authorization=Bearer token` |
 | `OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY` | mTLS 認証用のクライアントキー | クライアントキーファイルへのパス |
 | `OTEL_EXPORTER_OTLP_METRICS_CLIENT_CERTIFICATE` | mTLS 認証用のクライアント証明書 | クライアント証明書ファイルへのパス |
-| `OTEL_METRIC_EXPORT_INTERVAL` | エクスポート間隔 (ミリ秒単位、デフォルト: 60000) | `5000`, `60000` |
-| `OTEL_LOGS_EXPORT_INTERVAL` | ログエクスポート間隔 (ミリ秒単位、デフォルト: 5000) | `1000`, `10000` |
+| `OTEL_METRIC_EXPORT_INTERVAL` | エクスポート間隔 (ミリ秒単位、デフォルト: 60000) | `5000`、`60000` |
+| `OTEL_LOGS_EXPORT_INTERVAL` | ログエクスポート間隔 (ミリ秒単位、デフォルト: 5000) | `1000`、`10000` |
 | `OTEL_LOG_USER_PROMPTS` | ユーザープロンプトコンテンツのログを有効にする (デフォルト: 無効) | `1` で有効化 |
-| `OTEL_LOG_TOOL_DETAILS` | ツールイベントでツール入力引数、MCP サーバー/ツール名、スキル名のログを有効にする (デフォルト: 無効) | `1` で有効化 |
-| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | メトリクスの時間性設定 (デフォルト: `delta`)。バックエンドが累積時間性を期待する場合は `cumulative` に設定 | `delta`, `cumulative` |
+| `OTEL_LOG_TOOL_DETAILS` | ツールイベントでツールパラメーターと入力引数のログを有効にする: Bash コマンド、MCP サーバーとツール名、スキル名、ツール入力 (デフォルト: 無効) | `1` で有効化 |
+| `OTEL_LOG_TOOL_CONTENT` | スパンイベントでツール入力と出力コンテンツのログを有効にする (デフォルト: 無効)。[トレース](#traces-beta)が必要です。コンテンツは 60 KB で切り詰められます | `1` で有効化 |
+| `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | メトリクスの時間性設定 (デフォルト: `delta`)。バックエンドが累積時間性を期待する場合は `cumulative` に設定 | `delta`、`cumulative` |
 | `CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS` | 動的ヘッダーを更新するための間隔 (デフォルト: 1740000ms / 29 分) | `900000` |
 
 ### メトリクスカーディナリティ制御
@@ -97,6 +98,22 @@ claude
 | `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` | メトリクスに user.account\_uuid および user.account\_id 属性を含める | `true` | `false` |
 
 これらの変数は、メトリクスのカーディナリティを制御するのに役立ちます。これはメトリクスバックエンドのストレージ要件とクエリパフォーマンスに影響します。カーディナリティが低いほど、一般的にパフォーマンスが向上し、ストレージコストが低くなりますが、分析用のより詳細なデータは少なくなります。
+
+### トレース (ベータ)
+
+分散トレースは、各ユーザープロンプトをそれがトリガーする API リクエストとツール実行にリンクするスパンをエクスポートします。これにより、トレーシングバックエンドで完全なリクエストを単一のトレースとして表示できます。
+
+トレースはデフォルトでオフです。有効にするには、`CLAUDE_CODE_ENABLE_TELEMETRY=1` と `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1` の両方を設定してから、`OTEL_TRACES_EXPORTER` を設定してスパンの送信先を選択します。トレースは、エンドポイント、プロトコル、ヘッダーについて [一般的な OTLP 設定](#common-configuration-variables)を再利用します。
+
+| 環境変数 | 説明 | 例の値 |
+| - | - | - |
+| `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA` | スパントレースを有効にする (必須)。`ENABLE_ENHANCED_TELEMETRY_BETA` も受け入れられます | `1` |
+| `OTEL_TRACES_EXPORTER` | トレースエクスポーターのタイプ (カンマ区切り)。`none` を使用して無効化 | `console`、`otlp`、`none` |
+| `OTEL_EXPORTER_OTLP_TRACES_PROTOCOL` | トレースのプロトコル (`OTEL_EXPORTER_OTLP_PROTOCOL` をオーバーライド) | `grpc`、`http/json`、`http/protobuf` |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | OTLP トレースエンドポイント (`OTEL_EXPORTER_OTLP_ENDPOINT` をオーバーライド) | `http://localhost:4318/v1/traces` |
+| `OTEL_TRACES_EXPORT_INTERVAL` | スパンバッチエクスポート間隔 (ミリ秒単位、デフォルト: 5000) | `1000`、`10000` |
+
+スパンはデフォルトでユーザープロンプトテキストとツールコンテンツをマスクします。これらを含めるには、`OTEL_LOG_USER_PROMPTS=1` と `OTEL_LOG_TOOL_CONTENT=1` を設定します。
 
 ### 動的ヘッダー
 
@@ -229,7 +246,7 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 | `user.account_id` | Anthropic 管理 API と一致するタグ付き形式のアカウント ID (認証時)。例: `user_01BWBeN28...` | `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` (デフォルト: true) |
 | `user.id` | Claude Code インストールごとに生成される匿名デバイス/インストール識別子 | 常に含まれます |
 | `user.email` | ユーザーメールアドレス (OAuth 経由で認証時) | 利用可能な場合は常に含まれます |
-| `terminal.type` | ターミナルタイプ。例: `iTerm.app`, `vscode`, `cursor`, `tmux` | 検出された場合は常に含まれます |
+| `terminal.type` | ターミナルタイプ。例: `iTerm.app`、`vscode`、`cursor`、`tmux` | 検出された場合は常に含まれます |
 
 イベントには、以下の追加属性が含まれます。これらはメトリクスに添付されることはありません。これらはバウンドされていないカーディナリティを引き起こすためです:
 
@@ -270,7 +287,7 @@ Claude Code は以下のメトリクスをエクスポートします:
 **属性**:
 
 - すべての[標準属性](#standard-attributes)
-- `type`: (`"added"`, `"removed"`)
+- `type`: (`"added"`、`"removed"`)
 
 #### プルリクエストカウンター
 
@@ -304,7 +321,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 **属性**:
 
 - すべての[標準属性](#standard-attributes)
-- `type`: (`"input"`, `"output"`, `"cacheRead"`, `"cacheCreation"`)
+- `type`: (`"input"`、`"output"`、`"cacheRead"`、`"cacheCreation"`)
 - `model`: モデル識別子 (例: "claude-sonnet-4-6")
 
 #### コード編集ツール決定カウンター
@@ -314,10 +331,10 @@ Claude Code を介して git コミットを作成するときにインクリメ
 **属性**:
 
 - すべての[標準属性](#standard-attributes)
-- `tool_name`: ツール名 (`"Edit"`, `"Write"`, `"NotebookEdit"`)
-- `decision`: ユーザーの決定 (`"accept"`, `"reject"`)
-- `source`: 決定ソース - `"config"`, `"hook"`, `"user_permanent"`, `"user_temporary"`, `"user_abort"`, または `"user_reject"`
-- `language`: 編集されたファイルのプログラミング言語。例: `"TypeScript"`, `"Python"`, `"JavaScript"`, `"Markdown"`。認識されないファイル拡張子の場合は `"unknown"` を返します。
+- `tool_name`: ツール名 (`"Edit"`、`"Write"`、`"NotebookEdit"`)
+- `decision`: ユーザーの決定 (`"accept"`、`"reject"`)
+- `source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
+- `language`: 編集されたファイルのプログラミング言語。例: `"TypeScript"`、`"Python"`、`"JavaScript"`、`"Markdown"`。認識されないファイル拡張子の場合は `"unknown"` を返します。
 
 #### アクティブ時間カウンター
 
@@ -376,13 +393,13 @@ Claude Code は、OpenTelemetry ログ/イベント経由で以下のイベン�
 - `duration_ms`: 実行時間 (ミリ秒単位)
 - `error`: エラーメッセージ (失敗した場合)
 - `decision_type`: `"accept"` または `"reject"`
-- `decision_source`: 決定ソース - `"config"`, `"hook"`, `"user_permanent"`, `"user_temporary"`, `"user_abort"`, または `"user_reject"`
+- `decision_source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
 - `tool_result_size_bytes`: ツール結果のサイズ (バイト単位)
 - `mcp_server_scope`: MCP サーバースコープ識別子 (MCP ツール用)
-- `tool_parameters`: ツール固有のパラメーターを含む JSON 文字列 (利用可能な場合)
-  - Bash ツールの場合: `bash_command`, `full_command`, `timeout`, `description`, `dangerouslyDisableSandbox`, および `git_commit_id` (git commit コマンドが成功した場合のコミット SHA) を含む
-  - MCP ツール (`OTEL_LOG_TOOL_DETAILS=1` の場合): `mcp_server_name`, `mcp_tool_name` を含む
-  - Skill ツール (`OTEL_LOG_TOOL_DETAILS=1` の場合): `skill_name` を含む
+- `tool_parameters` (`OTEL_LOG_TOOL_DETAILS=1` の場合): ツール固有のパラメーターを含む JSON 文字列:
+  - Bash ツールの場合: `bash_command`、`full_command`、`timeout`、`description`、`dangerouslyDisableSandbox`、および `git_commit_id` (git commit コマンドが成功した場合のコミット SHA) を含む
+  - MCP ツール: `mcp_server_name`、`mcp_tool_name` を含む
+  - Skill ツール: `skill_name` を含む
 - `tool_input` (`OTEL_LOG_TOOL_DETAILS=1` の場合): JSON シリアル化されたツール引数。512 文字を超える個別の値は切り詰められ、全体のペイロードは約 4 K 文字に制限されます。すべてのツール (MCP ツールを含む) に適用されます。
 
 #### API リクエストイベント
@@ -437,9 +454,9 @@ Claude への API リクエストが失敗するときにログされます。
 - `event.name`: `"tool_decision"`
 - `event.timestamp`: ISO 8601 タイムスタンプ
 - `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
-- `tool_name`: ツールの名前 (例: "Read", "Edit", "Write", "NotebookEdit")
+- `tool_name`: ツールの名前 (例: "Read"、"Edit"、"Write"、"NotebookEdit")
 - `decision`: `"accept"` または `"reject"`
-- `source`: 決定ソース - `"config"`, `"hook"`, `"user_permanent"`, `"user_temporary"`, `"user_abort"`, または `"user_reject"`
+- `source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
 
 ## メトリクスとイベントデータの解釈
 
@@ -471,7 +488,7 @@ Claude への API リクエストが失敗するときにログされます。
 - 異常なトークン消費
 - 特定のユーザーからの高いセッションボリューム
 
-すべてのメトリクスは、`user.account_uuid`, `user.account_id`, `organization.id`, `session.id`, `model`, および `app.version` でセグメント化できます。
+すべてのメトリクスは、`user.account_uuid`、`user.account_id`、`organization.id`、`session.id`、`model`、および `app.version` でセグメント化できます。
 
 ### イベント分析
 
@@ -488,7 +505,7 @@ Claude への API リクエストが失敗するときにログされます。
 
 ## バックエンドに関する考慮事項
 
-メトリクスとログバックエンドの選択により、実行できる分析のタイプが決まります:
+メトリクス、ログ、トレースバックエンドの選択により、実行できる分析のタイプが決まります:
 
 ### メトリクスの場合
 
@@ -502,6 +519,13 @@ Claude への API リクエストが失敗するときにログされます。
 - **カラムナーストア (例: ClickHouse)**: 構造化イベント分析
 - **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog)**: メトリクスとイベント間の相関
 
+### トレースの場合
+
+分散トレースストレージとスパン相関をサポートするバックエンドを選択します:
+
+- **分散トレースシステム (例: Jaeger、Zipkin、Grafana Tempo)**: スパン可視化、リクエストウォーターフォール、レイテンシー分析
+- **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog)**: トレース検索とメトリクスおよびログとの相関
+
 日次/週次/月次アクティブユーザー (DAU/WAU/MAU) メトリクスが必要な組織の場合は、効率的な一意値クエリをサポートするバックエンドを検討してください。
 
 ## サービス情報
@@ -510,9 +534,9 @@ Claude への API リクエストが失敗するときにログされます。
 
 - `service.name`: `claude-code`
 - `service.version`: 現在の Claude Code バージョン
-- `os.type`: オペレーティングシステムタイプ (例: `linux`, `darwin`, `windows`)
+- `os.type`: オペレーティングシステムタイプ (例: `linux`、`darwin`、`windows`)
 - `os.version`: オペレーティングシステムバージョン文字列
-- `host.arch`: ホストアーキテクチャ (例: `amd64`, `arm64`)
+- `host.arch`: ホストアーキテクチャ (例: `amd64`、`arm64`)
 - `wsl.version`: WSL バージョン番号 (Windows Subsystem for Linux で実行している場合のみ存在)
 - メーター名: `com.anthropic.claude_code`
 
@@ -523,10 +547,11 @@ Claude への API リクエストが失敗するときにログされます。
 ## セキュリティとプライバシー
 
 - テレメトリはオプトインであり、明示的な設定が必要です
-- 生のファイルコンテンツとコードスニペットはメトリクスやイベントに含まれません。ツール実行イベントには bash コマンドとファイルパスが `tool_parameters` フィールドに含まれ、機密値を含む可能性があります。コマンドにシークレットが含まれる可能性がある場合は、テレメトリバックエンドを設定して `tool_parameters` をフィルタリングまたはマスクしてください
+- 生のファイルコンテンツとコードスニペットはメトリクスやイベントに含まれません。トレーススパンは別のデータパスです: 以下の `OTEL_LOG_TOOL_CONTENT` の項目を参照してください
 - OAuth 経由で認証された場合、`user.email` はテレメトリ属性に含まれます。これが組織にとって懸念事項である場合は、テレメトリバックエンドと協力してこのフィールドをフィルタリングまたはマスクしてください
 - ユーザープロンプトコンテンツはデフォルトでは収集されません。プロンプト長のみが記録されます。プロンプトコンテンツを含めるには、`OTEL_LOG_USER_PROMPTS=1` を設定します
-- ツール入力引数はデフォルトではログされません。これらを含めるには、`OTEL_LOG_TOOL_DETAILS=1` を設定します。有効にすると、`tool_result` イベントには MCP サーバー/ツール名とスキル名、およびファイルパス、URL、検索パターン、その他の引数を含む `tool_input` 属性が含まれます。512 文字を超える個別の値は切り詰められ、合計は約 4 K 文字に制限されますが、引数には機密値が含まれる可能性があります。必要に応じて `tool_input` をフィルタリングまたはマスクするようにテレメトリバックエンドを設定してください
+- ツール入力引数とパラメーターはデフォルトではログされません。これらを含めるには、`OTEL_LOG_TOOL_DETAILS=1` を設定します。有効にすると、`tool_result` イベントには Bash コマンド、MCP サーバーとツール名、スキル名を含む `tool_parameters` 属性、およびファイルパス、URL、検索パターン、その他の引数を含む `tool_input` 属性が含まれます。512 文字を超える個別の値は切り詰められ、合計は約 4 K 文字に制限されますが、引数には機密値が含まれる可能性があります。必要に応じて `tool_input` をフィルタリングまたはマスクするようにテレメトリバックエンドを設定してください
+- ツール入力と出力コンテンツはデフォルトではトレーススパンでログされません。これを含めるには、`OTEL_LOG_TOOL_CONTENT=1` を設定します。有効にすると、スパンイベントには 60 KB で切り詰められたツール入力と出力コンテンツが含まれます。これには Read ツール結果からの生のファイルコンテンツと Bash コマンド出力が含まれる可能性があります。必要に応じてこれらの属性をフィルタリングまたはマスクするようにテレメトリバックエンドを設定してください
 
 ## Amazon Bedrock での Claude Code の監視
 

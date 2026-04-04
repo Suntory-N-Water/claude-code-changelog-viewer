@@ -32,7 +32,7 @@ Before using Claude Code with Chrome, you need:
 - [Google Chrome](https://www.google.com/chrome/) or [Microsoft Edge](https://www.microsoft.com/edge) browser
 - [Claude in Chrome extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) version 1.0.36 or higher, available in the Chrome Web Store for both browsers
 - [Claude Code](/en/quickstart#step-1-install-claude-code) version 2.0.73 or higher
-- A direct Anthropic plan (Pro, Max, Teams, or Enterprise)
+- A direct Anthropic plan (Pro, Max, Team, or Enterprise)
 
 Chrome integration is not available through third-party providers like Amazon Bedrock, Google Cloud Vertex AI, or Microsoft Foundry. If you access Claude exclusively through a third-party provider, you need a separate claude.ai account to use this feature.
 
@@ -213,6 +213,7 @@ These are the most frequently encountered errors and how to resolve them:
 
 ## See also
 
+- [Computer use](/en/computer-use): control native macOS apps when a task can't be done in a browser
 - [Use Claude Code in VS Code](/en/vs-code#automate-browser-tasks-with-chrome): browser automation in the VS Code extension
 - [CLI reference](/en/cli-reference): command-line flags including `--chrome`
 - [Common workflows](/en/common-workflows): more ways to use Claude Code

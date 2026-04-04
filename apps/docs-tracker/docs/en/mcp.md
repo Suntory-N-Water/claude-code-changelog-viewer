@@ -688,7 +688,6 @@ When MCP tools produce large outputs, Claude Code helps manage the token usage t
 To increase the limit for tools that produce large outputs:
 
 ```bash
-# Set a higher limit for MCP tool outputs
 export MAX_MCP_OUTPUT_TOKENS=50000
 claude
 ```
@@ -699,7 +698,23 @@ This is particularly useful when working with MCP servers that:
 - Generate detailed reports or documentation
 - Process extensive log files or debugging information
 
-If you frequently encounter output warnings with specific MCP servers, consider increasing the limit or configuring the server to paginate or filter its responses.
+### Override result size per tool
+
+If you're building an MCP server, you can allow individual tools to return results larger than the default limit by setting `_meta["anthropic/maxResultSizeChars"]` in the tool's `tools/list` response entry. Claude Code uses this value as the maximum result size for that tool, up to a hard ceiling of 500,000 characters.
+
+This is useful for tools that return inherently large but necessary outputs, such as database schemas or full file trees. Without the annotation, results that exceed the default limit are persisted to disk and replaced with a file reference in the conversation.
+
+```json
+{
+  "name": "get_schema",
+  "description": "Returns the full database schema",
+  "_meta": {
+    "anthropic/maxResultSizeChars": 500000
+  }
+}
+```
+
+If you frequently encounter output warnings with specific MCP servers you don't control, consider increasing the `MAX_MCP_OUTPUT_TOKENS` limit or asking the server author to add the `anthropic/maxResultSizeChars` annotation.
 
 ## Respond to MCP elicitation requests
 
@@ -791,12 +806,12 @@ ENABLE_TOOL_SEARCH=false claude
 
 Or set the value in your [settings.json `env` field](/en/settings#available-settings).
 
-You can also disable the MCPSearch tool specifically using the `disallowedTools` setting:
+You can also disable the `ToolSearch` tool specifically:
 
 ```json
 {
   "permissions": {
-    "deny": ["MCPSearch"]
+    "deny": ["ToolSearch"]
   }
 }
 ```

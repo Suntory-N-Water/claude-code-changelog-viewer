@@ -35,6 +35,8 @@ irm https://claude.ai/install.ps1 | iex
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
+If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. Use the PowerShell command above instead. Your prompt shows `PS C:\` when you're in PowerShell.
+
 **Windows requires [Git for Windows](https://git-scm.com/downloads/win).** Install it first if you don't have it.
 
 Native installations automatically update in the background to keep you on the latest version.
@@ -76,8 +78,8 @@ A standalone app for running Claude Code outside your IDE or terminal. Review di
 Download and install:
 
 - [macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs) (Intel and Apple Silicon)
-- [Windows](https://claude.ai/api/desktop/win32/x64/exe/latest/redirect?utm_source=claude_code\&utm_medium=docs) (x64)
-- [Windows ARM64](https://claude.ai/api/desktop/win32/arm64/exe/latest/redirect?utm_source=claude_code\&utm_medium=docs) (remote sessions only)
+- [Windows](https://claude.ai/api/desktop/win32/x64/setup/latest/redirect?utm_source=claude_code\&utm_medium=docs) (x64)
+- [Windows ARM64](https://claude.ai/api/desktop/win32/arm64/setup/latest/redirect?utm_source=claude_code\&utm_medium=docs) (remote sessions only)
 
 After installing, launch Claude, sign in, and click the **Code** tab to start coding. A [paid subscription](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=overview_desktop_pricing) is required.
 
@@ -147,14 +149,14 @@ See the [CLI reference](/en/cli-reference) for the full set of commands and flag
 Run Claude on a schedule to automate work that repeats: morning PR reviews, overnight CI failure analysis, weekly dependency audits, or syncing docs after PRs merge.
 
 - [Cloud scheduled tasks](/en/web-scheduled-tasks) run on Anthropic-managed infrastructure, so they keep running even when your computer is off. Create them from the web, the Desktop app, or by running `/schedule` in the CLI.
-- [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks) run on your machine, with direct access to your local files and tools
+- [Desktop scheduled tasks](/en/desktop-scheduled-tasks) run on your machine, with direct access to your local files and tools
 - [`/loop`](/en/scheduled-tasks) repeats a prompt within a CLI session for quick polling
 
 Sessions aren't tied to a single surface. Move work between environments as your context changes:
 
 - Step away from your desk and keep working from your phone or any browser with [Remote Control](/en/remote-control)
 - Message [Dispatch](/en/desktop#sessions-from-dispatch) a task from your phone and open the Desktop session it creates
-- Kick off a long-running task on the [web](/en/claude-code-on-the-web) or [iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684), then pull it into your terminal with `/teleport`
+- Kick off a long-running task on the [web](/en/claude-code-on-the-web) or [iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684), then pull it into your terminal with `claude --teleport`
 - Hand off a terminal session to the [Desktop app](/en/desktop) with `/desktop` for visual diff review
 - Route tasks from team chat: mention `@Claude` in [Slack](/en/slack) with a bug report and get a pull request back
 
@@ -169,7 +171,7 @@ Beyond the [Terminal](/en/quickstart), [VS Code](/en/vs-code), [JetBrains](/en/j
 | Continue a local session from my phone or another device | [Remote Control](/en/remote-control) |
 | Push events from Telegram, Discord, iMessage, or my own webhooks into a session | [Channels](/en/channels) |
 | Start a task locally, continue on mobile | [Web](/en/claude-code-on-the-web) or [Claude iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684) |
-| Run Claude on a recurring schedule | [Cloud scheduled tasks](/en/web-scheduled-tasks) or [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks) |
+| Run Claude on a recurring schedule | [Cloud scheduled tasks](/en/web-scheduled-tasks) or [Desktop scheduled tasks](/en/desktop-scheduled-tasks) |
 | Automate PR reviews and issue triage | [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd) |
 | Get automatic code review on every PR | [GitHub Code Review](/en/code-review) |
 | Route bug reports from Slack to pull requests | [Slack](/en/slack) |

@@ -50,7 +50,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `Global` | アプリ全体に適用 |
 | `Chat` | メインチャット入力エリア |
 | `Autocomplete` | オートコンプリートメニューが開いている |
-| `Settings` | 設定メニュー（Escape キーのみで閉じる） |
+| `Settings` | 設定メニュー |
 | `Confirmation` | 権限と確認ダイアログ |
 | `Tabs` | タブナビゲーションコンポーネント |
 | `Help` | ヘルプメニューが表示されている |
@@ -58,7 +58,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `HistorySearch` | 履歴検索モード（Ctrl+R） |
 | `Task` | バックグラウンドタスクが実行中 |
 | `ThemePicker` | テーマピッカーダイアログ |
-| `Attachments` | 画像/添付ファイルバーナビゲーション |
+| `Attachments` | 画像添付ファイルナビゲーション（選択ダイアログ内） |
 | `Footer` | フッターインジケータナビゲーション（タスク、チーム、diff） |
 | `MessageSelector` | 巻き戻しと要約ダイアログのメッセージ選択 |
 | `DiffDialog` | Diff ビューアナビゲーション |
@@ -78,6 +78,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | :- | :- | :- |
 | `app:interrupt` | Ctrl+C | 現在の操作をキャンセル |
 | `app:exit` | Ctrl+D | Claude Code を終了 |
+| `app:redraw` | Ctrl+L | 画面を再描画 |
 | `app:toggleTodos` | Ctrl+T | タスクリストの表示を切り替え |
 | `app:toggleTranscript` | Ctrl+O | 詳細トランスクリプトの表示を切り替え |
 
@@ -104,7 +105,8 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `chat:fastMode` | Meta+O | 高速モードを切り替え |
 | `chat:thinkingToggle` | Cmd+T / Meta+T | 拡張思考を切り替え |
 | `chat:submit` | Enter | メッセージを送信 |
-| `chat:undo` | Ctrl+\_ | 最後のアクションを元に戻す |
+| `chat:newline` | （アンバインド） | 送信せずに改行を挿入 |
+| `chat:undo` | Ctrl+\_、Ctrl+Shift+- | 最後のアクションを元に戻す |
 | `chat:externalEditor` | Ctrl+G、Ctrl+X Ctrl+E | 外部エディタで開く |
 | `chat:stash` | Ctrl+S | 現在のプロンプトを保存 |
 | `chat:imagePaste` | Ctrl+V（Windows では Alt+V） | 画像を貼り付け |
@@ -134,6 +136,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `confirm:next` | Down | 次のオプション |
 | `confirm:nextField` | Tab | 次のフィールド |
 | `confirm:previousField` | （アンバインド） | 前のフィールド |
+| `confirm:toggle` | Space | 選択を切り替え |
 | `confirm:cycleMode` | Shift+Tab | 権限モードをサイクル |
 | `confirm:toggleExplanation` | Ctrl+E | 権限説明を切り替え |
 
@@ -152,7 +155,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
 | `transcript:toggleShowAll` | Ctrl+E | すべてのコンテンツの表示を切り替え |
-| `transcript:exit` | Ctrl+C、Escape | トランスクリプトビューを終了 |
+| `transcript:exit` | q、Ctrl+C、Escape | トランスクリプトビューを終了 |
 
 ### 履歴検索アクション
 
@@ -207,7 +210,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `attachments:next` | Right | 次の添付ファイル |
 | `attachments:previous` | Left | 前の添付ファイル |
 | `attachments:remove` | Backspace、Delete | 選択した添付ファイルを削除 |
-| `attachments:exit` | Down、Escape | 添付ファイルバーを終了 |
+| `attachments:exit` | Down、Escape | 添付ファイルナビゲーションを終了 |
 
 ### フッターアクション
 
@@ -217,6 +220,8 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | :- | :- | :- |
 | `footer:next` | Right | 次のフッター項目 |
 | `footer:previous` | Left | 前のフッター項目 |
+| `footer:up` | Up | フッター内で上に移動（最上部で選択解除） |
+| `footer:down` | Down | フッター内で下に移動 |
 | `footer:openSelected` | Enter | 選択したフッター項目を開く |
 | `footer:clearSelection` | Escape | フッター選択をクリア |
 
@@ -283,6 +288,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | :- | :- | :- |
 | `settings:search` | / | 検索モードに入る |
 | `settings:retry` | R | 使用状況データの読み込みを再試行（エラー時） |
+| `settings:close` | Enter | 変更を保存して設定パネルを閉じます。Escape は変更を破棄して閉じます |
 
 ### 音声アクション
 
@@ -351,6 +357,25 @@ ctrl+k ctrl+s   Ctrl+K を押して、リリースしてから Ctrl+S
   ]
 }
 ```
+
+これはコードバインディングでも機能します。プレフィックスを共有するすべてのコードをアンバインドすると、そのプレフィックスを単一キーバインディングとして使用できるようになります。
+
+```json
+{
+  "bindings": [
+    {
+      "context": "Chat",
+      "bindings": {
+        "ctrl+x ctrl+k": null,
+        "ctrl+x ctrl+e": null,
+        "ctrl+x": "chat:newline"
+      }
+    }
+  ]
+}
+```
+
+プレフィックス上の一部のコードをアンバインドしても、すべてをアンバインドしない場合、プレフィックスを押すと残りのバインディングのコード待機モードに入ります。
 
 ## 予約済みショートカット
 

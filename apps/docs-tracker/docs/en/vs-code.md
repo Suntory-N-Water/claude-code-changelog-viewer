@@ -239,7 +239,7 @@ Add `"$schema": "https://json.schemastore.org/claude-code-settings.json"` to you
 | - | - | - |
 | `selectedModel` | `default` | Model for new conversations. Change per-session with `/model`. |
 | `useTerminal` | `false` | Launch Claude in terminal mode instead of graphical panel |
-| `initialPermissionMode` | `default` | Controls approval prompts for new conversations: `default`, `plan`, `acceptEdits`, `auto`, or `bypassPermissions`. See [permission modes](/en/permission-modes). |
+| `initialPermissionMode` | `default` | Controls approval prompts for new conversations: `default`, `plan`, `acceptEdits`, or `bypassPermissions`. See [permission modes](/en/permission-modes). |
 | `preferredLocation` | `panel` | Where Claude opens: `sidebar` (right) or `panel` (new tab) |
 | `autosave` | `true` | Auto-save files before Claude reads or writes them |
 | `useCtrlEnterToSend` | `false` | Use Ctrl/Cmd+Enter instead of Enter to send prompts |
@@ -248,7 +248,7 @@ Add `"$schema": "https://json.schemastore.org/claude-code-settings.json"` to you
 | `respectGitIgnore` | `true` | Exclude .gitignore patterns from file searches |
 | `environmentVariables` | `[]` | Set environment variables for the Claude process. Use Claude Code settings instead for shared config. |
 | `disableLoginPrompt` | `false` | Skip authentication prompts (for third-party provider setups) |
-| `allowDangerouslySkipPermissions` | `false` | Adds [Auto](/en/permission-modes#eliminate-prompts-with-auto-mode) and Bypass permissions to the mode selector. Auto requires a Team plan and Claude Sonnet 4.6 or Opus 4.6, so the option may remain unavailable even with this toggle on. Use Bypass permissions only in sandboxes with no internet access. |
+| `allowDangerouslySkipPermissions` | `false` | Adds [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) and Bypass permissions to the mode selector. Auto mode has [plan, admin, model, and provider requirements](/en/permission-modes#eliminate-prompts-with-auto-mode), so it may remain unavailable even with this toggle on. Use Bypass permissions only in sandboxes with no internet access. |
 | `claudeProcessWrapper` | - | Executable path used to launch the Claude process |
 
 ## VS Code extension vs. Claude Code CLI

@@ -66,21 +66,20 @@ export CLAUDE_CODE_USE_VERTEX=1
 export CLOUD_ML_REGION=global
 export ANTHROPIC_VERTEX_PROJECT_ID=YOUR-PROJECT-ID
 
+# オプション：カスタムエンドポイントまたはゲートウェイ用に Vertex エンドポイント URL をオーバーライドする
+# export ANTHROPIC_VERTEX_BASE_URL=https://aiplatform.googleapis.com
+
 # オプション：必要に応じてプロンプトキャッシングを無効にする
 export DISABLE_PROMPT_CACHING=1
 
-# CLOUD_ML_REGION=global の場合、サポートされていないモデルのリージョンをオーバーライドする
-export VERTEX_REGION_CLAUDE_3_5_HAIKU=us-east5
-
-# オプション：他の特定のモデルのリージョンをオーバーライドする
-export VERTEX_REGION_CLAUDE_3_5_SONNET=us-east5
-export VERTEX_REGION_CLAUDE_3_7_SONNET=us-east5
-export VERTEX_REGION_CLAUDE_4_0_OPUS=europe-west1
-export VERTEX_REGION_CLAUDE_4_0_SONNET=us-east5
-export VERTEX_REGION_CLAUDE_4_1_OPUS=europe-west1
+# CLOUD_ML_REGION=global の場合、グローバルエンドポイントをサポートしていないモデルのリージョンをオーバーライドする
+export VERTEX_REGION_CLAUDE_HAIKU_4_5=us-east5
+export VERTEX_REGION_CLAUDE_4_6_SONNET=europe-west1
 ```
 
-[Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) は、`cache_control` エフェメラルフラグを指定すると自動的にサポートされます。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/login` および `/logout` コマンドは無効になります。
+各モデルバージョンには独自の `VERTEX_REGION_CLAUDE_*` 変数があります。完全なリストについては、[環境変数リファレンス](/ja/env-vars)を参照してください。どのモデルがグローバルエンドポイントをサポートしているか、または地域別のみをサポートしているかを確認するには、[Vertex Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)を確認してください。
+
+[プロンプトキャッシング](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は、`cache_control` エフェメラルフラグを指定すると自動的にサポートされます。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/login` および `/logout` コマンドは無効になります。
 
 ### 5. モデルバージョンをピン留めする
 
@@ -100,14 +99,14 @@ Claude Code は、ピン留め変数が設定されていない場合、これ�
 
 | モデルタイプ | デフォルト値 |
 | :- | :- |
-| プライマリモデル | `claude-sonnet-4-6` |
+| プライマリモデル | `claude-sonnet-4-5@20250929` |
 | 小型/高速モデル | `claude-haiku-4-5@20251001` |
 
 モデルをさらにカスタマイズするには、以下を実行します。
 
 ```bash
 export ANTHROPIC_MODEL='claude-opus-4-6'
-export ANTHROPIC_SMALL_FAST_MODEL='claude-haiku-4-5@20251001'
+export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
 ```
 
 ## IAM 設定
@@ -141,7 +140,7 @@ Claude Opus 4.6、Sonnet 4.6、Sonnet 4.5、および Sonnet 4 は、Vertex AI �
 - [Model Garden](https://console.cloud.google.com/vertex-ai/model-garden) でモデルが有効になっていることを確認してください
 - 指定されたリージョンへのアクセス権があることを確認してください
 - `CLOUD_ML_REGION=global` を使用している場合、[Model Garden](https://console.cloud.google.com/vertex-ai/model-garden) の「サポートされている機能」でモデルがグローバルエンドポイントをサポートしていることを確認してください。グローバルエンドポイントをサポートしていないモデルの場合は、以下のいずれかを実行してください。
-  - `ANTHROPIC_MODEL` または `ANTHROPIC_SMALL_FAST_MODEL` を通じてサポートされているモデルを指定するか、
+  - `ANTHROPIC_MODEL` または `ANTHROPIC_DEFAULT_HAIKU_MODEL` を通じてサポートされているモデルを指定するか、
   - `VERTEX_REGION_<MODEL_NAME>` 環境変数を使用して地域別エンドポイントを設定してください
 
 429 エラーが発生した場合：

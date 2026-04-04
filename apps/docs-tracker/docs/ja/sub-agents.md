@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/sub-agents.md
 
 > Claude Code でタスク固有のワークフローと改善されたコンテキスト管理のための特化した AI サブエージェントを作成して使用します。
 
-サブエージェントは、特定の種類のタスクを処理する特化した AI アシスタントです。各サブエージェントは、カスタムシステムプロンプト、特定のツールアクセス、および独立した権限を備えた独自のコンテキストウィンドウで実行されます。Claude がサブエージェントの説明に一致するタスクに遭遇すると、そのサブエージェントに委譲し、サブエージェントは独立して動作して結果を返します。
+サブエージェントは、特定の種類のタスクを処理する特化した AI アシスタントです。各サブエージェントは、カスタムシステムプロンプト、特定のツールアクセス、および独立した権限を備えた独自のコンテキストウィンドウで実行されます。Claude がサブエージェントの説明に一致するタスクに遭遇すると、そのサブエージェントに委譲し、サブエージェントは独立して動作して結果を返します。実際にコンテキスト節約を確認するには、[コンテキストウィンドウの可視化](/ja/context-window)で、サブエージェントが独自の別のウィンドウで研究を処理するセッションを説明しています。
 
 複数のエージェントが並行して動作し、互いに通信する必要がある場合は、代わりに[エージェントチーム](/ja/agent-teams)を参照してください。サブエージェントは単一のセッション内で動作します。エージェントチームは別々のセッション間で調整します。
 
@@ -57,7 +57,6 @@ Claude Code には、特定のタスク向けの追加のヘルパーエージ�
 
 | エージェント | モデル | Claude が使用する場合 |
 | :- | :- | :- |
-| Bash | 継承 | 別のコンテキストでターミナルコマンドを実行する場合 |
 | statusline-setup | Sonnet | `/statusline` を実行してステータスラインを設定する場合 |
 | Claude Code Guide | Haiku | Claude Code 機能について質問する場合 |
 
@@ -129,12 +128,15 @@ Markdown ファイルとして手動でサブエージェントを作成した�
 
 | 場所 | スコープ | 優先度 | 作成方法 |
 | :- | :- | :- | :- |
-| `--agents` CLI フラグ | 現在のセッション | 1（最高） | Claude Code を起動するときに JSON を渡す |
-| `.claude/agents/` | 現在のプロジェクト | 2 | インタラクティブまたは手動 |
-| `~/.claude/agents/` | すべてのプロジェクト | 3 | インタラクティブまたは手動 |
-| プラグインの `agents/` ディレクトリ | プラグインが有効な場所 | 4（最低） | [プラグイン](/ja/plugins)でインストール |
+| 管理設定 | 組織全体 | 1（最高） | [管理設定](/ja/settings)を通じてデプロイ |
+| `--agents` CLI フラグ | 現在のセッション | 2 | Claude Code を起動するときに JSON を渡す |
+| `.claude/agents/` | 現在のプロジェクト | 3 | インタラクティブまたは手動 |
+| `~/.claude/agents/` | すべてのプロジェクト | 4 | インタラクティブまたは手動 |
+| プラグインの `agents/` ディレクトリ | プラグインが有効な場所 | 5（最低） | [プラグイン](/ja/plugins)でインストール |
 
 **プロジェクトサブエージェント** (`.claude/agents/`)は、コードベース固有のサブエージェントに最適です。バージョン管理にチェックインして、チームが協力して使用および改善できるようにします。
+
+プロジェクトサブエージェントは、現在の作業ディレクトリから上へ向かって検出されます。`--add-dir` で追加されたディレクトリは[ファイルアクセスのみを付与](/ja/permissions#additional-directories-grant-file-access-not-configuration)し、サブエージェントはスキャンされません。プロジェクト全体でサブエージェントを共有するには、`~/.claude/agents/` または[プラグイン](/ja/plugins)を使用します。
 
 **ユーザーサブエージェント** (`~/.claude/agents/`)は、すべてのプロジェクトで利用可能な個人用サブエージェントです。
 
@@ -155,11 +157,15 @@ claude --agents '{
 }'
 ```
 
-`--agents` フラグは、ファイルベースのサブエージェントと同じ[フロントマター](#supported-frontmatter-fields)フィールドを持つ JSON を受け入れます：`description`、`prompt`、`tools`、`disallowedTools`、`model`、`permissionMode`、`mcpServers`、`hooks`、`maxTurns`、`skills`、`initialPrompt`、`memory`、`effort`、`background`、および `isolation`。システムプロンプトには `prompt` を使用します。これはファイルベースのサブエージェントの markdown 本体と同等です。
+`--agents` フラグは、ファイルベースのサブエージェントと同じ[フロントマター](#supported-frontmatter-fields)フィールドを持つ JSON を受け入れます：`description`、`prompt`、`tools`、`disallowedTools`、`model`、`permissionMode`、`mcpServers`、`hooks`、`maxTurns`、`skills`、`initialPrompt`、`memory`、`effort`、`background`、`isolation`、および `color`。システムプロンプトには `prompt` を使用します。これはファイルベースのサブエージェントの markdown 本体と同等です。
+
+**管理サブエージェント** は、組織管理者によってデプロイされます。[管理設定ディレクトリ](/ja/settings#settings-files)内の `.claude/agents/` に markdown ファイルを配置し、プロジェクトおよびユーザーサブエージェントと同じフロントマター形式を使用します。管理定義は、同じ名前のプロジェクトおよびユーザーサブエージェントより優先されます。
 
 **プラグインサブエージェント** は、インストールした[プラグイン](/ja/plugins)から提供されます。これらは、カスタムサブエージェントと一緒に `/agents` に表示されます。プラグインサブエージェントの作成の詳細については、[プラグインコンポーネントリファレンス](/ja/plugins-reference#agents)を参照してください。
 
 セキュリティ上の理由から、プラグインサブエージェントは `hooks`、`mcpServers`、または `permissionMode` フロントマターフィールドをサポートしていません。これらのフィールドはプラグインからエージェントを読み込むときに無視されます。これらが必要な場合は、エージェントファイルを `.claude/agents/` または `~/.claude/agents/` にコピーしてください。また、`settings.json` または `settings.local.json` の [`permissions.allow`](/ja/settings#permission-settings)にルールを追加することもできますが、これらのルールはプラグインサブエージェントだけでなく、セッション全体に適用されます。
+
+これらのスコープのいずれかからのサブエージェント定義は、[エージェントチーム](/ja/agent-teams#use-subagent-definitions-for-teammates)でも利用可能です：チームメイトを生成するときに、サブエージェント型を参照でき、チームメイトはそのシステムプロンプト、ツール、およびモデルを継承します。
 
 ### サブエージェントファイルを書く
 
@@ -192,15 +198,16 @@ specific, actionable feedback on quality, security, and best practices.
 | `tools` | いいえ | サブエージェントが使用できる[ツール](#available-tools)。省略した場合はすべてのツールを継承 |
 | `disallowedTools` | いいえ | 拒否するツール。継承または指定されたリストから削除 |
 | `model` | いいえ | 使用する[モデル](#choose-a-model)：`sonnet`、`opus`、`haiku`、完全なモデル ID（例：`claude-opus-4-6`）、または `inherit`。デフォルトは `inherit` |
-| `permissionMode` | いいえ | [権限モード](#permission-modes)：`default`、`acceptEdits`、`dontAsk`、`bypassPermissions`、または `plan` |
+| `permissionMode` | いいえ | [権限モード](#permission-modes)：`default`、`acceptEdits`、`auto`、`dontAsk`、`bypassPermissions`、または `plan` |
 | `maxTurns` | いいえ | サブエージェントが停止する前の最大エージェントターン数 |
 | `skills` | いいえ | スタートアップ時にサブエージェントのコンテキストに読み込む[スキル](/ja/skills)。呼び出しのために利用可能にするだけでなく、完全なスキルコンテンツが注入されます。サブエージェントは親の会話からスキルを継承しません |
-| `mcpServers` | いいえ | このサブエージェントで利用可能な[MCP サーバー](/ja/mcp)。各エントリは、既に設定されたサーバーを参照するサーバー名（例：`"slack"`）または、サーバー名をキーとし、完全な[MCP サーバー設定](/ja/mcp#configure-mcp-servers)を値とするインライン定義のいずれかです |
+| `mcpServers` | いいえ | このサブエージェントで利用可能な[MCP サーバー](/ja/mcp)。各エントリは、既に設定されたサーバーを参照するサーバー名（例：`"slack"`）または、サーバー名をキーとし、完全な[MCP サーバー設定](/ja/mcp#installing-mcp-servers)を値とするインライン定義のいずれかです |
 | `hooks` | いいえ | このサブエージェントにスコープされた[ライフサイクルフック](#define-hooks-for-subagents) |
 | `memory` | いいえ | [永続メモリスコープ](#enable-persistent-memory)：`user`、`project`、または `local`。クロスセッション学習を有効にします |
 | `background` | いいえ | `true` に設定して、このサブエージェントを常に[バックグラウンドタスク](#run-subagents-in-foreground-or-background)として実行します。デフォルト：`false` |
 | `effort` | いいえ | このサブエージェントがアクティブな場合の努力レベル。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`max`（Opus 4.6 のみ） |
 | `isolation` | いいえ | `worktree` に設定して、サブエージェントを一時的な[git worktree](/ja/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees)で実行し、リポジトリの分離されたコピーを提供します。サブエージェントが変更を加えない場合、worktree は自動的にクリーンアップされます |
+| `color` | いいえ | タスクリストとトランスクリプトでサブエージェントの表示色。`red`、`blue`、`green`、`yellow`、`purple`、`orange`、`pink`、または `cyan` を受け入れます |
 | `initialPrompt` | いいえ | このエージェントがメインセッションエージェント（`--agent` または `agent` 設定を通じて）として実行される場合、最初のユーザーターンとして自動送信されます。[コマンド](/ja/commands)および[スキル](/ja/skills)が処理されます。ユーザーが提供するプロンプトの前に付加されます |
 
 ### モデルを選択する
@@ -308,6 +315,7 @@ MCP サーバーをメイン会話から完全に除外し、そのツール説�
 | :- | :- |
 | `default` | プロンプト付きの標準権限チェック |
 | `acceptEdits` | ファイル編集を自動受け入れ |
+| `auto` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)：AI 分類器が各ツール呼び出しを評価 |
 | `dontAsk` | 権限プロンプトを自動拒否（明示的に許可されたツールは引き続き機能） |
 | `bypassPermissions` | すべての権限チェックをスキップ |
 | `plan` | プランモード（読み取り専用探索） |
@@ -362,7 +370,7 @@ patterns, conventions, and recurring issues you discover.
 メモリが有効な場合：
 
 - サブエージェントのシステムプロンプトには、メモリディレクトリの読み取りと書き込みの指示が含まれます。
-- サブエージェントのシステムプロンプトには、メモリディレクトリの `MEMORY.md` の最初の 200 行も含まれ、`MEMORY.md` が 200 行を超える場合はキュレーションの指示が含まれます。
+- サブエージェントのシステムプロンプトには、メモリディレクトリの `MEMORY.md` の最初の 200 行または 25KB（どちらか小さい方）も含まれ、`MEMORY.md` がその制限を超える場合はキュレーションの指示が含まれます。
 - Read、Write、および Edit ツールが自動的に有効になり、サブエージェントがメモリファイルを管理できるようになります。
 
 ##### 永続メモリのヒント
@@ -544,7 +552,7 @@ Have the code-reviewer subagent look at my recent changes
 
 完全なメッセージは引き続き Claude に送信され、Claude はあなたが何を尋ねたかに基づいてサブエージェントのタスクプロンプトを作成します。@-mention は Claude が呼び出すサブエージェントを制御し、受け取るプロンプトではありません。
 
-有効な[プラグイン](/ja/plugins)から提供されるサブエージェントは、タイプアヘッドに `<plugin-name>:<agent-name>` として表示されます。ピッカーを使用せずに手動で mention を入力することもできます：ローカルサブエージェントの場合は `@agent-<name>`、プラグインサブエージェントの場合は `@agent-<plugin-name>:<agent-name>`。
+有効な[プラグイン](/ja/plugins)から提供されるサブエージェントは、タイプアヘッドに `<plugin-name>:<agent-name>` として表示されます。セッションで現在実行されている名前付きバックグラウンドサブエージェントもタイプアヘッドに表示され、名前の横にステータスが表示されます。ピッカーを使用せずに手動で mention を入力することもできます：ローカルサブエージェントの場合は `@agent-<name>`、プラグインサブエージェントの場合は `@agent-<plugin-name>:<agent-name>`。
 
 **セッション全体をサブエージェントとして実行します。** [`--agent <name>`](/ja/cli-reference)を渡して、メインスレッド自体がそのサブエージェントのシステムプロンプト、ツール制限、およびモデルを採用するセッションを開始します：
 
@@ -645,7 +653,9 @@ Use the code-reviewer subagent to find performance issues, then use the optimize
 
 再開されたサブエージェントは、すべての前のツール呼び出し、結果、および推論を含む、完全な会話履歴を保持します。サブエージェントは、新規に開始するのではなく、停止した場所から正確に再開します。
 
-サブエージェントが完了すると、Claude はエージェント ID を受け取ります。Claude は `SendMessage` ツールを使用してエージェントの ID を `to` フィールドとして使用してサブエージェントを再開します。サブエージェントを再開するには、Claude に前の作業を続けるよう依頼します：
+サブエージェントが完了すると、Claude はエージェント ID を受け取ります。Claude は `SendMessage` ツールを使用してエージェントの ID を `to` フィールドとして使用してサブエージェントを再開します。`SendMessage` ツールは、[エージェントチーム](/ja/agent-teams)が `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` を通じて有効になっている場合にのみ利用可能です。
+
+サブエージェントを再開するには、Claude に前の作業を続けるよう依頼します：
 
 ```text
 Use the code-reviewer subagent to review the authentication module

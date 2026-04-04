@@ -85,6 +85,14 @@ Claude が作業を完了して入力を必要とするときはいつでもデ�
 }
 ```
 
+`osascript` は組み込みの Script Editor アプリを通じて通知をルーティングします。Script Editor に通知権限がない場合、コマンドは静かに失敗し、macOS はそれを付与するよう求めません。Terminal でこれを 1 回実行して、Script Editor を通知設定に表示させます：
+
+```bash theme={null}
+osascript -e 'display notification "test"'
+```
+
+まだ何も表示されません。**System Settings > Notifications** を開き、リストで **Script Editor** を見つけて、**Allow Notifications** をオンにします。コマンドを再度実行して、テスト通知が表示されることを確認します。
+
 ```json theme={null}
 {
   "hooks": {
@@ -355,6 +363,7 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 | `UserPromptSubmit` | When you submit a prompt, before Claude processes it |
 | `PreToolUse` | Before a tool call executes. Can block it |
 | `PermissionRequest` | When a permission dialog appears |
+| `PermissionDenied` | When a tool call is denied by the auto mode classifier. Return `{retry: true}` to tell the model it may retry the denied tool call |
 | `PostToolUse` | After a tool call succeeds |
 | `PostToolUseFailure` | After a tool call fails |
 | `Notification` | When Claude Code sends a notification |
@@ -376,6 +385,8 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 | `Elicitation` | When an MCP server requests user input during a tool call |
 | `ElicitationResult` | After a user responds to an MCP elicitation, before the response is sent back to the server |
 | `SessionEnd` | When a session terminates |
+
+複数の hooks がマッチする場合、それぞれが独自の結果を返します。決定については、Claude Code は最も制限的な答えを選択します。`PreToolUse` hook が `deny` を返すと、他が何を返すかに関わらず、ツール呼び出しがキャンセルされます。1 つの hook が `ask` を返すと、残りが `allow` を返しても、許可プロンプトが強制されます。`additionalContext` からのテキストはすべての hook から保持され、Claude に一緒に渡されます。
 
 各 hook には、それがどのように実行されるかを決定する `type` があります。ほとんどの hooks は `"type": "command"` を使用し、シェルコマンドを実行します。他の 3 つのタイプが利用可能です：
 
@@ -481,7 +492,7 @@ Claude Code は `permissionDecision` を読み取り、ツール呼び出しを�
 
 | イベント | マッチャーがフィルタリングするもの | マッチャー値の例 |
 | :- | :- | :- |
-| `PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest` | ツール名 | `Bash`、`Edit\|Write`、`mcp__.*` |
+| `PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、`PermissionDenied` | ツール名 | `Bash`、`Edit\|Write`、`mcp__.*` |
 | `SessionStart` | セッションがどのように開始されたか | `startup`、`resume`、`clear`、`compact` |
 | `SessionEnd` | セッションが終了した理由 | `clear`、`resume`、`logout`、`prompt_input_exit`、`bypass_permissions_disabled`、`other` |
 | `Notification` | 通知タイプ | `permission_prompt`、`idle_prompt`、`auth_success`、`elicitation_dialog` |
@@ -494,7 +505,7 @@ Claude Code は `permissionDecision` を読み取り、ツール呼び出しを�
 | `Elicitation` | MCP サーバー名 | 設定した MCP サーバー名 |
 | `ElicitationResult` | MCP サーバー名 | `Elicitation` と同じ値 |
 | `FileChanged` | ファイル名（変更されたファイルのベース名） | `.envrc`、`.env`、監視したい任意のファイル名 |
-| `UserPromptSubmit`、`Stop`、`TeammateIdle`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` | マッチャーサポートなし | すべての発生で常に発火 |
+| `UserPromptSubmit`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` | マッチャーサポートなし | すべての発生で常に発火 |
 
 異なるイベントタイプのマッチャーを示すいくつかの例：
 
@@ -561,6 +572,37 @@ MCP ツールは組み込みツールとは異なる命名規則を使用しま�
 ```
 
 完全なマッチャー構文については、[Hooks リファレンス](/ja/hooks#configuration) を参照してください。
+
+#### `if` フィールドでツール名と引数でフィルタリングする
+
+`if` フィールドには Claude Code v2.1.85 以降が必要です。以前のバージョンはそれを無視し、マッチしたすべての呼び出しで hook を実行します。
+
+`if` フィールドは [許可ルール構文](/ja/permissions) を使用して、ツール名と引数の両方で hooks をフィルタリングするため、hook プロセスはツール呼び出しがマッチするときにのみ生成されます。これは `matcher` を超えており、ツール名のみでグループレベルでフィルタリングします。
+
+たとえば、すべての Bash コマンドではなく、Claude が `git` コマンドを使用するときにのみ hook を実行するには：
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git *)",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-git-policy.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Hook プロセスは Bash コマンドが `git` で始まるときにのみ生成されます。他の Bash コマンドはこのハンドラーを完全にスキップします。`if` フィールドは許可ルールと同じパターンを受け入れます：`"Bash(git *)"`、`"Edit(*.ts)"` など。複数のツール名をマッチさせるには、それぞれ独自の `if` 値を持つ別のハンドラーを使用するか、パイプ交替がサポートされている `matcher` レベルでマッチします。
+
+`if` はツールイベントでのみ機能します：`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、および `PermissionDenied`。他のイベントに追加すると、hook が実行されるのを防ぎます。
 
 ### hook の場所を設定する
 
@@ -678,11 +720,18 @@ HTTP hooks は、Web サーバー、クラウド関数、または外部サー�
 
 ### 制限
 
-- コマンド hooks は stdout、stderr、および終了コードを通じてのみ通信します。コマンドまたはツール呼び出しを直接トリガーすることはできません。HTTP hooks はレスポンスボディを通じて通信します。
+- コマンド hooks は stdout、stderr、および終了コードを通じてのみ通信します。コマンドまたはツール呼び出しを直接トリガーすることはできません。`additionalContext` を通じて返されたテキストは、Claude が平文として読む システムリマインダーとして注入されます。HTTP hooks はレスポンスボディを通じて通信します。
 - Hook タイムアウトはデフォルトで 10 分で、hook ごとに `timeout` フィールド（秒単位）で設定可能です。
 - `PostToolUse` hooks はツールが既に実行されているため、アクションを元に戻すことはできません。
 - `PermissionRequest` hooks は [非インタラクティブモード](/ja/headless)（`-p`）では発火しません。自動化された許可決定には `PreToolUse` hooks を使用します。
 - `Stop` hooks はタスク完了時だけでなく、Claude が応答を終了するたびに発火します。ユーザーの割り込みでは発火しません。API エラーは代わりに [StopFailure](/ja/hooks#stopfailure) を発火させます。
+- 複数の PreToolUse hooks が [`updatedInput`](/ja/hooks#pretooluse) を返してツールの引数を書き直す場合、最後に完了したものが勝ちます。Hooks は並列で実行されるため、順序は非決定的です。同じツールの入力を変更する複数の hooks を持つことを避けてください。
+
+### Hooks と許可モード
+
+PreToolUse hooks は任意の許可モードチェックの前に発火します。`permissionDecision: "deny"` を返す hook は、`bypassPermissions` モードまたは `--dangerously-skip-permissions` でもツールをブロックします。これにより、ユーザーが許可モードを変更してバイパスできないポリシーを適用できます。
+
+逆は真ではありません：`"allow"` を返す hook は、設定からの deny ルールをバイパスしません。Hooks は制限を厳しくできますが、許可ルールが許可する範囲を超えて緩和することはできません。
 
 ### Hook が発火しない
 

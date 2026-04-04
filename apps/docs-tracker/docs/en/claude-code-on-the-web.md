@@ -34,12 +34,26 @@ Claude Code on the web is available in research preview to:
 
 ## Getting started
 
+Set up Claude Code on the web from the browser or from your terminal.
+
+### From the browser
+
 1. Visit [claude.ai/code](https://claude.ai/code)
 2. Connect your GitHub account
 3. Install the Claude GitHub App in your repositories
 4. Select your default environment
 5. Submit your coding task
 6. Review changes in diff view, iterate with comments, then create a pull request
+
+### From the terminal
+
+Run `/web-setup` inside Claude Code to connect GitHub using your local `gh` CLI credentials. The command syncs your `gh auth token` to Claude Code on the web, creates a default cloud environment, and opens claude.ai/code in your browser when it finishes.
+
+This path requires the `gh` CLI to be installed and authenticated with `gh auth login`. If `gh` is not available, `/web-setup` opens claude.ai/code so you can connect GitHub from the browser instead.
+
+Your `gh` credentials give Claude access to clone and push, so you can skip the GitHub App for basic sessions. Install the App later if you want [Auto-fix](#auto-fix-pull-requests), which uses the App to receive PR webhooks.
+
+Team and Enterprise admins can disable terminal setup with the Quick web setup toggle at [claude.ai/admin-settings/claude-code](https://claude.ai/admin-settings/claude-code).
 
 ## How it works
 
@@ -88,6 +102,8 @@ When auto-fix is active, Claude receives GitHub events for the PR including new 
 
 Claude may reply to review comment threads on GitHub as part of resolving them. These replies are posted using your GitHub account, so they appear under your username, but each reply is labeled as coming from Claude Code so reviewers know it was written by the agent and not by you directly.
 
+If your repository uses comment-triggered automation such as Atlantis, Terraform Cloud, or custom GitHub Actions that run on `issue_comment` events, be aware that Claude can reply on your behalf, which can trigger those workflows. Review your repository's automation before enabling auto-fix, and consider disabling auto-fix for repositories where a PR comment can deploy infrastructure or run privileged operations.
+
 ## Moving tasks between web and terminal
 
 You can start new tasks on the web from your terminal, or pull web sessions into your terminal to continue locally. Web sessions persist even if you close your laptop, and you can monitor them from anywhere including the Claude mobile app.
@@ -119,6 +135,8 @@ claude --remote "Execute the migration plan in docs/migration-plan.md"
 ```
 
 This pattern gives you control over the strategy while letting Claude execute autonomously in the cloud.
+
+**Plan in the cloud with ultraplan**: To draft and review the plan itself in a web session, use [ultraplan](/en/ultraplan). Claude generates the plan on Claude Code on the web while you keep working, then you comment on sections in your browser and choose to execute remotely or send the plan back to your terminal.
 
 **Run tasks in parallel**: Each `--remote` command creates its own web session that runs independently. You can kick off multiple tasks and they'll all run simultaneously in separate sessions:
 
@@ -159,9 +177,9 @@ types below. After that, share the session link as-is. Recipients who open your
 shared session will see the latest state of the session upon load, but the
 recipient's page will not update in real time.
 
-#### Sharing from an Enterprise or Teams account
+#### Sharing from an Enterprise or Team account
 
-For Enterprise and Teams accounts, the two visibility options are **Private**
+For Enterprise and Team accounts, the two visibility options are **Private**
 and **Team**. Team visibility makes the session visible to other members of your
 Claude.ai organization. Repository access verification is enabled by default,
 based on the GitHub account connected to the recipient's account. Your account's
@@ -668,7 +686,7 @@ Claude Code on the web shares rate limits with all other Claude and Claude Code 
 ## Limitations
 
 - **Repository authentication**: You can only move sessions from web to local when you are authenticated to the same account
-- **Platform restrictions**: Claude Code on the web only works with code hosted in GitHub. GitLab and other non-GitHub repositories cannot be used with cloud sessions
+- **Platform restrictions**: Claude Code on the web only works with code hosted in GitHub. Self-hosted [GitHub Enterprise Server](/en/github-enterprise-server) instances are supported for Team and Enterprise plans. GitLab and other non-GitHub repositories cannot be used with cloud sessions
 
 ## Best practices
 

@@ -90,7 +90,7 @@ teammate on UX, one on technical architecture, one playing devil's advocate.
 
 `tmux` には特定のオペレーティングシステムでの既知の制限があり、従来は macOS で最も効果的に動作します。iTerm2 で `tmux -CC` を使用することが、`tmux` への推奨エントリーポイントです。
 
-デフォルトは `"auto"` で、既に tmux セッション内で実行している場合は分割ペインを使用し、そうでない場合は in-process を使用します。`"tmux"` 設定は分割ペインモードを有効にし、ターミナルに基づいて tmux または iTerm2 を使用するかどうかを自動検出します。オーバーライドするには、[settings.json](/ja/settings) で `teammateMode` を設定してください。
+デフォルトは `"auto"` で、既に tmux セッション内で実行している場合は分割ペインを使用し、そうでない場合は in-process を使用します。`"tmux"` 設定は分割ペインモードを有効にし、ターミナルに基づいて tmux または iTerm2 を使用するかどうかを自動検出します。オーバーライドするには、[グローバル設定](/ja/settings#global-config-settings)で `~/.claude.json` の `teammateMode` を設定してください。
 
 ```json
 {
@@ -173,9 +173,10 @@ Clean up the team
 
 ### hooks で品質ゲートを実施する
 
-[hooks](/ja/hooks) を使用して、チームメンバーが作業を完了したときまたはタスクが完了したときのルールを実施してください。
+[hooks](/ja/hooks) を使用して、チームメンバーが作業を完了したときまたはタスクが作成または完了したときのルールを実施してください。
 
 - [`TeammateIdle`](/ja/hooks#teammateidle)：チームメンバーがアイドル状態になろうとしているときに実行されます。終了コード 2 でフィードバックを送信し、チームメンバーを動作させ続けてください。
+- [`TaskCreated`](/ja/hooks#taskcreated)：タスクが作成されているときに実行されます。終了コード 2 で作成を防止し、フィードバックを送信してください。
 - [`TaskCompleted`](/ja/hooks#taskcompleted)：タスクが完了としてマークされているときに実行されます。終了コード 2 で完了を防止し、フィードバックを送信してください。
 
 ## エージェントチームの動作方法
@@ -211,7 +212,23 @@ Clean up the team
 - **チーム設定**：`~/.claude/teams/{team-name}/config.json`
 - **タスクリスト**：`~/.claude/tasks/{team-name}/`
 
+Claude Code はチームを作成するときにこれらの両方を自動的に生成し、チームメンバーが参加、アイドル状態になる、または離脱するときに更新します。チーム設定には、セッション ID と tmux ペイン ID などのランタイム状態が含まれているため、手動で編集したり、事前に作成したりしないでください。次の状態更新時に変更が上書きされます。
+
+再利用可能なチームメンバーロールを定義するには、代わりに [subagent 定義を使用](#use-subagent-definitions-for-teammates) してください。
+
 チーム設定には、各チームメンバーの名前、エージェント ID、およびエージェントタイプを含む `members` 配列が含まれています。チームメンバーはこのファイルを読み取って、他のチームメンバーを発見できます。
+
+プロジェクトレベルのチーム設定に相当するものはありません。プロジェクトディレクトリ内の `.claude/teams/teams.json` のようなファイルは設定として認識されません。Claude はそれを通常のファイルとして扱います。
+
+### チームメンバーに subagent 定義を使用する
+
+チームメンバーを生成するときに、任意の [subagent スコープ](/ja/sub-agents#choose-the-subagent-scope)（プロジェクト、ユーザー、プラグイン、または CLI 定義）から [subagent](/ja/sub-agents) タイプを参照できます。チームメンバーはその subagent のシステムプロンプト、ツール、およびモデルを継承します。これにより、セキュリティレビュアーやテストランナーなどのロールを 1 回定義し、委任された subagent とエージェントチームチームメンバーの両方として再利用できます。
+
+subagent 定義を使用するには、Claude にチームメンバーを生成するよう指示するときに名前で言及してください。
+
+```text
+Spawn a teammate using the security-reviewer agent type to audit the auth module.
+```
 
 ### 権限
 

@@ -11,11 +11,11 @@ source: https://code.claude.com/docs/en/interactive-mode.md
 
 Keyboard shortcuts may vary by platform and terminal. Press `?` to see available shortcuts for your environment.
 
-**macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+M`, `Alt+P`) require configuring Option as Meta in your terminal:
+**macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+M`, `Alt+P`, `Alt+T`) require configuring Option as Meta in your terminal:
 
 - **iTerm2**: settings → Profiles → Keys → set Left/Right Option key to "Esc+"
 - **Terminal.app**: settings → Profiles → Keyboard → check "Use Option as Meta Key"
-- **VS Code**: settings → Profiles → Keys → set Left/Right Option key to "Esc+"
+- **VS Code**: set `"terminal.integrated.macOptionIsMeta": true` in VS Code settings
 
 See [Terminal configuration](/en/terminal-config) for details.
 
@@ -27,7 +27,7 @@ See [Terminal configuration](/en/terminal-config) for details.
 | `Ctrl+X Ctrl+K` | Kill all background agents. Press twice within 3 seconds to confirm | Background agent control |
 | `Ctrl+D` | Exit Claude Code session | EOF signal |
 | `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding |
-| `Ctrl+L` | Clear terminal screen | Keeps conversation history |
+| `Ctrl+L` | Redraw the screen | Repaints the current UI without clearing conversation history |
 | `Ctrl+O` | Toggle verbose output | Shows detailed tool usage and execution. Also expands MCP read and search calls, which collapse to a single line like "Queried slack" by default |
 | `Ctrl+R` | Reverse search command history | Search through previous commands interactively |
 | `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt |
@@ -38,7 +38,7 @@ See [Terminal configuration](/en/terminal-config) for details.
 | `Esc` + `Esc` | Rewind or summarize | Restore code and/or conversation to a previous point, or summarize from a selected message |
 | `Shift+Tab` or `Alt+M` (some configurations) | Cycle permission modes | Cycle through `default`, `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |
 | `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |
-| `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. Run `/terminal-setup` first to enable this shortcut |
+| `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. On macOS, configure your terminal to send Option as Meta for this shortcut to work |
 | `Option+O` (macOS) or `Alt+O` (Windows/Linux) | Toggle fast mode | Enable or disable [fast mode](/en/fast-mode) |
 
 ### Text editing
@@ -85,7 +85,7 @@ When the transcript viewer is open (toggled with `Ctrl+O`), these shortcuts are 
 | Shortcut | Description |
 | :- | :- |
 | `Ctrl+E` | Toggle show all content |
-| `q`, `Ctrl+C`, `Esc` | Exit transcript view. `Ctrl+C` and `Esc` can be rebound via [`transcript:exit`](/en/keybindings); `q` is not rebindable |
+| `q`, `Ctrl+C`, `Esc` | Exit transcript view. All three can be rebound via [`transcript:exit`](/en/keybindings) |
 
 ### Voice input
 
@@ -244,6 +244,7 @@ Bash mode:
 - Does not require Claude to interpret or approve the command
 - Supports history-based autocomplete: type a partial command and press **Tab** to complete from previous `!` commands in the current project
 - Exit with `Escape`, `Backspace`, or `Ctrl+U` on an empty prompt
+- Pasting text that starts with `!` into an empty prompt enters bash mode automatically, matching typed `!` behavior
 
 This is useful for quick shell operations while maintaining conversation context.
 
@@ -253,7 +254,7 @@ When you first open a session, a grayed-out example command appears in the promp
 
 After Claude responds, suggestions continue to appear based on your conversation history, such as a follow-up step from a multi-part request or a natural continuation of your workflow.
 
-- Press **Tab** to accept the suggestion, or press **Enter** to accept and submit
+- Press **Tab** or **Right arrow** to accept the suggestion, or press **Enter** to accept and submit
 - Start typing to dismiss it
 
 The suggestion runs as a background request that reuses the parent conversation's prompt cache, so the additional cost is minimal. Claude Code skips suggestion generation when the cache is cold to avoid unnecessary cost.

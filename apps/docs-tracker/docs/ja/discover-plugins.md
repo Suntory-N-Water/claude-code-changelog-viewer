@@ -23,12 +23,12 @@ source: https://code.claude.com/docs/ja/discover-plugins.md
 
 ## 公式 Anthropic マーケットプレイス
 
-公式 Anthropic マーケットプレイス（`claude-plugins-official`）は Claude Code を起動すると自動的に利用可能になります。`/plugin` を実行して **Discover** タブに移動し、利用可能なものを参照してください。
+公式 Anthropic マーケットプレイス（`claude-plugins-official`）は Claude Code を起動すると自動的に利用可能になります。`/plugin` を実行して **Discover** タブに移動し、利用可能なものを参照するか、[claude.com/plugins](https://claude.com/plugins)でカタログを表示してください。
 
-公式マーケットプレイスからプラグインをインストールするには：
+公式マーケットプレイスからプラグインをインストールするには、`/plugin install <name>@claude-plugins-official` を使用します。たとえば、GitHub 統合をインストールするには：
 
 ```shell
-/plugin install plugin-name@claude-plugins-official
+/plugin install github@claude-plugins-official
 ```
 
 公式マーケットプレイスは Anthropic によって管理されています。公式マーケットプレイスにプラグインを送信するには、アプリ内送信フォームのいずれかを使用してください。
@@ -277,7 +277,7 @@ claude plugin uninstall formatter@your-org --scope project
 /reload-plugins
 ```
 
-Claude Code はすべてのアクティブなプラグインをリロードし、リロードされたコマンド、スキル、エージェント、フック、プラグイン MCP サーバー、プラグイン LSP サーバーのカウントを表示します。
+Claude Code はすべてのアクティブなプラグインをリロードし、プラグイン、スキル、エージェント、フック、プラグイン MCP サーバー、プラグイン LSP サーバーのカウントを表示します。
 
 ## マーケットプレイスを管理する
 
@@ -331,11 +331,11 @@ UI を通じて個別のマーケットプレイスの自動更新を切り替�
 
 Claude Code とすべてのプラグインの両方のすべての自動更新を完全に無効化するには、`DISABLE_AUTOUPDATER` 環境変数を設定します。詳細については、[自動更新](/ja/setup#auto-updates)を参照してください。
 
-Claude Code の自動更新を無効化しながらプラグイン自動更新を有効化したままにするには、`DISABLE_AUTOUPDATER` と共に `FORCE_AUTOUPDATE_PLUGINS=true` を設定します。
+Claude Code の自動更新を無効化しながらプラグイン自動更新を有効化したままにするには、`DISABLE_AUTOUPDATER` と共に `FORCE_AUTOUPDATE_PLUGINS=1` を設定します。
 
-```shell
-export DISABLE_AUTOUPDATER=true
-export FORCE_AUTOUPDATE_PLUGINS=true
+```bash
+export DISABLE_AUTOUPDATER=1
+export FORCE_AUTOUPDATE_PLUGINS=1
 ```
 
 これは Claude Code の更新を手動で管理したいが、プラグイン更新を自動的に受け取りたい場合に便利です。
@@ -371,7 +371,7 @@ export FORCE_AUTOUPDATE_PLUGINS=true
 
 「unknown command」が表示されるか、`/plugin` コマンドが表示されない場合：
 
-1. **バージョンを確認する**: `claude --version` を実行します。プラグインにはバージョン 1.0.33 以降が必要です。
+1. **バージョンを確認する**: `claude --version` を実行します。
 2. **Claude Code を更新する**:
    - **Homebrew**: `brew upgrade claude-code`
    - **npm**: `npm update -g @anthropic-ai/claude-code`

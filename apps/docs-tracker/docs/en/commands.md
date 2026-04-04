@@ -15,7 +15,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 
 | Command | Purpose |
 | :- | :- |
-| `/add-dir <path>` | Add a new working directory to the current session |
+| `/add-dir <path>` | Add a working directory for file access during the current session. Most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from the added directory |
 | `/agents` | Manage [agent](/en/sub-agents) configurations |
 | `/btw <question>` | Ask a quick [side question](/en/interactive-mode#side-questions-with-btw) without adding to the conversation |
 | `/chrome` | Configure [Claude in Chrome](/en/chrome) settings |
@@ -39,7 +39,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/help` | Show help and available commands |
 | `/hooks` | View [hook](/en/hooks) configurations for tool events |
 | `/ide` | Manage IDE integrations and show status |
-| `/init` | Initialize project with a `CLAUDE.md` guide. Set `CLAUDE_CODE_NEW_INIT=true` for an interactive flow that also walks through skills, hooks, and personal memory files |
+| `/init` | Initialize project with a `CLAUDE.md` guide. Set `CLAUDE_CODE_NEW_INIT=1` for an interactive flow that also walks through skills, hooks, and personal memory files |
 | `/insights` | Generate a report analyzing your Claude Code sessions, including project areas, interaction patterns, and friction points |
 | `/install-github-app` | Set up the [Claude GitHub Actions](/en/github-actions) app for a repository. Walks you through selecting a repo and configuring the integration |
 | `/install-slack-app` | Install the Claude Slack app. Opens a browser to complete the OAuth flow |
@@ -51,9 +51,10 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/mobile` | Show QR code to download the Claude mobile app. Aliases: `/ios`, `/android` |
 | `/model [model]` | Select or change the AI model. For models that support it, use left/right arrows to [adjust effort level](/en/model-config#adjust-effort-level). The change takes effect immediately without waiting for the current response to finish |
 | `/passes` | Share a free week of Claude Code with friends. Only visible if your account is eligible |
-| `/permissions` | View or update [permissions](/en/permissions#manage-permissions). Alias: `/allowed-tools` |
+| `/permissions` | Manage allow, ask, and deny rules for tool permissions. Opens an interactive dialog where you can view rules by scope, add or remove rules, manage working directories, and review [recent auto mode denials](/en/permissions#review-auto-mode-denials). Alias: `/allowed-tools` |
 | `/plan [description]` | Enter plan mode directly from the prompt. Pass an optional description to enter plan mode and immediately start with that task, for example `/plan fix the auth bug` |
 | `/plugin` | Manage Claude Code [plugins](/en/plugins) |
+| `/powerup` | Discover Claude Code features through quick interactive lessons with animated demos |
 | `/pr-comments [PR]` | Fetch and display comments from a GitHub pull request. Automatically detects the PR for the current branch, or pass a PR URL or number. Requires the `gh` CLI |
 | `/privacy-settings` | View and update your privacy settings. Only available for Pro and Max plan subscribers |
 | `/release-notes` | View the full changelog, with the most recent version closest to your prompt |
@@ -72,9 +73,10 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/status` | Open the Settings interface (Status tab) showing version, model, account, and connectivity. Works while Claude is responding, without waiting for the current response to finish |
 | `/statusline` | Configure Claude Code's [status line](/en/statusline). Describe what you want, or run without arguments to auto-configure from your shell prompt |
 | `/stickers` | Order Claude Code stickers |
-| `/tasks` | List and manage background tasks |
+| `/tasks` | List and manage background tasks. Also available as `/bashes` |
 | `/terminal-setup` | Configure terminal keybindings for Shift+Enter and other shortcuts. Only visible in terminals that need it, like VS Code, Alacritty, or Warp |
 | `/theme` | Change the color theme. Includes light and dark variants, colorblind-accessible (daltonized) themes, and ANSI themes that use your terminal's color palette |
+| `/ultraplan <prompt>` | Draft a plan in an [ultraplan](/en/ultraplan) session, review it in your browser, then execute remotely or send it back to your terminal |
 | `/upgrade` | Open the upgrade page to switch to a higher plan tier |
 | `/usage` | Show plan usage limits and rate limit status |
 | `/vim` | Toggle between Vim and Normal editing modes |

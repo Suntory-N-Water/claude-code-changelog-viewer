@@ -134,6 +134,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `model.id`、`model.display_name` | 現在のモデル識別子と表示名 |
 | `cwd`、`workspace.current_dir` | 現在の作業ディレクトリ。両方のフィールドに同じ値が含まれます。`workspace.current_dir` は `workspace.project_dir` との一貫性のために推奨されます。 |
 | `workspace.project_dir` | Claude Code が起動されたディレクトリ。セッション中に作業ディレクトリが変更された場合、`cwd` と異なる場合があります |
+| `workspace.added_dirs` | `/add-dir` または `--add-dir` 経由で追加された追加ディレクトリ。追加されていない場合は空配列 |
 | `cost.total_cost_usd` | USD でのセッションの総コスト |
 | `cost.total_duration_ms` | セッション開始からの総経過時間（ミリ秒） |
 | `cost.total_api_duration_ms` | API レスポンスを待つのに費やされた総時間（ミリ秒） |
@@ -144,7 +145,10 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `context_window.remaining_percentage` | 事前計算されたコンテキストウィンドウ残り割合 |
 | `context_window.current_usage` | 最後の API 呼び出しからのトークン数。[コンテキストウィンドウフィールド](#context-window-fields) で説明されています |
 | `exceeds_200k_tokens` | 最新の API レスポンスからの総トークン数（入力、キャッシュ、出力トークンの組み合わせ）が 200k を超えるかどうか。これは実際のコンテキストウィンドウサイズに関係なく固定閾値です。 |
+| `rate_limits.five_hour.used_percentage`、`rate_limits.seven_day.used_percentage` | 5 時間または 7 日のレート制限の消費割合（0～100） |
+| `rate_limits.five_hour.resets_at`、`rate_limits.seven_day.resets_at` | 5 時間または 7 日のレート制限ウィンドウがリセットされる Unix エポック秒 |
 | `session_id` | 一意のセッション識別子 |
+| `session_name` | `--name` フラグまたは `/rename` で設定されたカスタムセッション名。カスタム名が設定されていない場合は不在 |
 | `transcript_path` | 会話トランスクリプトファイルへのパス |
 | `version` | Claude Code バージョン |
 | `output_style.name` | 現在の出力スタイルの名前 |
@@ -162,6 +166,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 {
   "cwd": "/current/working/directory",
   "session_id": "abc123...",
+  "session_name": "my-session",
   "transcript_path": "/path/to/transcript.jsonl",
   "model": {
     "id": "claude-opus-4-6",
@@ -169,9 +174,10 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
   },
   "workspace": {
     "current_dir": "/current/working/directory",
-    "project_dir": "/original/project/directory"
+    "project_dir": "/original/project/directory",
+    "added_dirs": []
   },
-  "version": "1.0.80",
+  "version": "2.1.90",
   "output_style": {
     "name": "default"
   },
@@ -196,6 +202,16 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
     }
   },
   "exceeds_200k_tokens": false,
+  "rate_limits": {
+    "five_hour": {
+      "used_percentage": 23.5,
+      "resets_at": 1738425600
+    },
+    "seven_day": {
+      "used_percentage": 41.2,
+      "resets_at": 1738857600
+    }
+  },
   "vim": {
     "mode": "NORMAL"
   },
@@ -214,9 +230,11 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 **不在の可能性があるフィールド**（JSON に存在しない）：
 
+- `session_name`：`--name` または `/rename` でカスタム名が設定されている場合のみ表示
 - `vim`：vim モードが有効な場合のみ表示
 - `agent`：`--agent` フラグまたはエージェント設定が設定されている場合のみ表示
 - `worktree`：`--worktree` セッション中のみ表示。存在する場合、`branch` と `original_branch` もフックベースの worktree では不在の可能性があります
+- `rate_limits`：Claude.ai サブスクライバー（Pro/Max）がセッションの最初の API レスポンスの後のみ表示。各ウィンドウ（`five_hour`、`seven_day`）は独立して不在の可能性があります。`jq -r '.rate_limits.five_hour.used_percentage // empty'` を使用して、不在を適切に処理します。
 
 **`null` の可能性があるフィールド**：
 
@@ -634,6 +652,70 @@ process.stdin.on('end', () => {
 });
 ```
 
+### レート制限の使用状況
+
+Claude.ai サブスクリプションのレート制限使用状況をステータスラインに表示します。`rate_limits` オブジェクトには `five_hour`（5 時間のローリングウィンドウ）と `seven_day`（週間）ウィンドウが含まれます。各ウィンドウは `used_percentage`（0～100）とウィンドウがリセットされる Unix エポック秒の `resets_at` を提供します。
+
+このフィールドは Claude.ai サブスクライバー（Pro/Max）がセッションの最初の API レスポンスの後のみ存在します。各スクリプトは不在のフィールドを適切に処理します：
+
+```bash Bash theme={null}
+#!/bin/bash
+input=$(cat)
+
+MODEL=$(echo "$input" | jq -r '.model.display_name')
+# "// empty" は rate_limits が不在の場合、出力を生成しません
+FIVE_H=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
+WEEK=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
+
+LIMITS=""
+[ -n "$FIVE_H" ] && LIMITS="5h: $(printf '%.0f' "$FIVE_H")%"
+[ -n "$WEEK" ] && LIMITS="${LIMITS:+$LIMITS }7d: $(printf '%.0f' "$WEEK")%"
+
+[ -n "$LIMITS" ] && echo "[$MODEL] | $LIMITS" || echo "[$MODEL]"
+```
+
+```python Python theme={null}
+#!/usr/bin/env python3
+import json, sys
+
+data = json.load(sys.stdin)
+model = data['model']['display_name']
+
+parts = []
+rate = data.get('rate_limits', {})
+five_h = rate.get('five_hour', {}).get('used_percentage')
+week = rate.get('seven_day', {}).get('used_percentage')
+
+if five_h is not None:
+    parts.append(f"5h: {five_h:.0f}%")
+if week is not None:
+    parts.append(f"7d: {week:.0f}%")
+
+if parts:
+    print(f"[{model}] | {' '.join(parts)}")
+else:
+    print(f"[{model}]")
+```
+
+```javascript Node.js theme={null}
+#!/usr/bin/env node
+let input = '';
+process.stdin.on('data', chunk => input += chunk);
+process.stdin.on('end', () => {
+    const data = JSON.parse(input);
+    const model = data.model.display_name;
+
+    const parts = [];
+    const fiveH = data.rate_limits?.five_hour?.used_percentage;
+    const week = data.rate_limits?.seven_day?.used_percentage;
+
+    if (fiveH != null) parts.push(`5h: ${Math.round(fiveH)}%`);
+    if (week != null) parts.push(`7d: ${Math.round(week)}%`);
+
+    console.log(parts.length ? `[${model}] | ${parts.join(' ')}` : `[${model}]`);
+});
+```
+
 ### 高コストな操作をキャッシュする
 
 ステータスラインスクリプトはアクティブなセッション中に頻繁に実行されます。`git status` や `git diff` などのコマンドは、特に大規模なリポジトリでは遅い場合があります。この例は git 情報を一時ファイルにキャッシュし、5 秒ごとにのみ更新します。
@@ -850,6 +932,11 @@ echo "$dirname [$model]"
 - 複雑なエスケープシーケンス（ANSI 色、OSC 8 リンク）は、他の UI 更新と重複する場合、時々破損した出力を引き起こす可能性があります
 - 破損したテキストが表示される場合は、スクリプトをプレーンテキスト出力に簡略化してみてください
 - エスケープコード付きの複数行ステータスラインは、プレーンテキストの単一行よりもレンダリングの問題が発生しやすくなります
+
+**ワークスペーストラストが必要**
+
+- ステータスラインコマンドは、現在のディレクトリのワークスペーストラストダイアログを受け入れた場合のみ実行されます。`statusLine` はシェルコマンドを実行するため、フックおよび他のシェル実行設定と同じトラストの受け入れが必要です。
+- トラストが受け入れられていない場合、ステータスラインの出力の代わりに `statusline skipped · restart to fix` という通知が表示されます。Claude Code を再起動し、トラストプロンプトを受け入れて有効にします。
 
 **スクリプトエラーまたはハング**
 

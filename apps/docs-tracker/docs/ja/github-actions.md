@@ -547,11 +547,11 @@ jobs:
           github_token: ${{ steps.app-token.outputs.token }}
           trigger_phrase: "@claude"
           use_vertex: "true"
-          claude_args: '--model claude-sonnet-4@20250514 --max-turns 10'
+          claude_args: '--model claude-sonnet-4-5@20250929 --max-turns 10'
         env:
           ANTHROPIC_VERTEX_PROJECT_ID: ${{ steps.auth.outputs.project_id }}
           CLOUD_ML_REGION: us-east5
-          VERTEX_REGION_CLAUDE_3_7_SONNET: us-east5
+          VERTEX_REGION_CLAUDE_4_5_SONNET: us-east5
 ```
 
 プロジェクト ID は Google Cloud 認証ステップから自動的に取得されるため、ハードコードする必要はありません。
@@ -602,7 +602,7 @@ claude_args: "--max-turns 5 --model claude-sonnet-4-6 --mcp-config /path/to/conf
 - `--max-turns`: 最大会話ターン数（デフォルト：10）
 - `--model`: 使用するモデル（例：`claude-sonnet-4-6`）
 - `--mcp-config`: MCP 設定へのパス
-- `--allowed-tools`: 許可されたツールのカンマ区切りリスト
+- `--allowedTools`: 許可されたツールのカンマ区切りリスト。`--allowed-tools` エイリアスも機能します。
 - `--debug`: デバッグ出力を有効にします
 
 ### 代替統合方法

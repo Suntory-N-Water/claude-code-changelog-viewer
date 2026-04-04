@@ -36,15 +36,15 @@ Claude Code は、ツールの承認方法を制御するいくつかの権限�
 | モード | 説明 |
 | :- | :- |
 | `default` | 標準動作。各ツールの最初の使用時に権限を促します |
-| `acceptEdits` | セッション中のファイル編集権限を自動的に受け入れます |
+| `acceptEdits` | セッション中のファイル編集権限を自動的に受け入れます。保護されたディレクトリへの書き込みを除く |
 | `plan` | Plan Mode。Claude はファイルを分析できますが、ファイルを変更したりコマンドを実行したりすることはできません |
 | `auto` | バックグラウンド安全チェック付きでツール呼び出しを自動承認し、アクションがリクエストと一致することを確認します。現在は研究プレビューです |
 | `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します |
 | `bypassPermissions` | 保護されたディレクトリへの書き込みを除くすべての権限プロンプトをスキップします（以下の警告を参照してください） |
 
-`bypassPermissions` モードは権限プロンプトをスキップします。`.git`、`.claude`、`.vscode`、`.idea` ディレクトリへの書き込みは、リポジトリ状態とローカル設定の偶発的な破損を防ぐために、確認を促すままです。`.claude/commands`、`.claude/agents`、`.claude/skills` への書き込みは除外され、プロンプトを表示しません。Claude はスキル、サブエージェント、コマンドを作成するときにそこに定期的に書き込むためです。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
+`bypassPermissions` モードは権限プロンプトをスキップします。`.git`、`.claude`、`.vscode`、`.idea`、`.husky` ディレクトリへの書き込みは、リポジトリ状態、エディタ設定、git フックの偶発的な破損を防ぐために、確認を促すままです。`.claude/commands`、`.claude/agents`、`.claude/skills` への書き込みは除外され、プロンプトを表示しません。Claude はスキル、サブエージェント、コマンドを作成するときにそこに定期的に書き込むためです。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
 
-`bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
+`bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `permissions.disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
 
 ## 権限ルール構文
 
@@ -203,6 +203,24 @@ gitignore パターンでは、`*` は単一のディレクトリ内のファイ
 
 追加ディレクトリ内のファイルは、元の作業ディレクトリと同じ権限ルールに従います。プロンプトなしで読み取り可能になり、ファイル編集権限は現在の権限モードに従います。
 
+### 追加ディレクトリはファイルアクセスを許可し、設定ではありません
+
+ディレクトリを追加すると、Claude がファイルを読み取りおよび編集できる場所が拡張されます。そのディレクトリを完全な設定ルートにはしません。ほとんどの `.claude/` 設定は追加ディレクトリから検出されませんが、いくつかのタイプは例外として読み込まれます。
+
+次の設定タイプは `--add-dir` ディレクトリから読み込まれます。
+
+| 設定 | `--add-dir` から読み込まれます |
+| :- | :- |
+| `.claude/skills/` の [Skills](/ja/skills) | はい、ライブリロード付き |
+| `.claude/settings.json` のプラグイン設定 | `enabledPlugins` と `extraKnownMarketplaces` のみ |
+| [CLAUDE.md](/ja/memory) ファイルと `.claude/rules/` | `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` が設定されている場合のみ |
+
+その他すべて（subagents、コマンド、出力スタイル、フック、その他の設定を含む）は、現在の作業ディレクトリとその親、`~/.claude/` のユーザーディレクトリ、および管理設定からのみ検出されます。その設定をプロジェクト全体で共有するには、次のいずれかのアプローチを使用します。
+
+- **ユーザーレベルの設定**。`~/.claude/agents/`、`~/.claude/output-styles/`、または `~/.claude/settings.json` にファイルを配置して、すべてのプロジェクトで利用可能にします
+- **プラグイン**。設定を [プラグイン](/ja/plugins)としてパッケージ化および配布し、チームがインストールできるようにします
+- **設定ディレクトリから起動する**。使用する `.claude/` 設定を含むディレクトリから Claude Code を実行します
+
 ## 権限がサンドボックスとどのように相互作用するか
 
 権限と[サンドボックス](/ja/sandboxing)は、補完的なセキュリティレイヤーです。
@@ -223,17 +241,22 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 
 ### 管理のみの設定
 
-一部の設定は管理設定でのみ有効です。
+一部の設定は管理設定でのみ有効です。ユーザーまたはプロジェクト設定ファイルに配置しても効果がありません。
 
 | 設定 | 説明 |
 | :- | :- |
-| `allowManagedPermissionRulesOnly` | `true` の場合、ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義することを防止します。管理設定のルールのみが適用されます |
+| `allowedChannelPlugins` | メッセージをプッシュできるチャネルプラグインのホワイトリスト。設定されている場合、デフォルトの Anthropic ホワイトリストを置き換えます。`channelsEnabled: true` が必要です。[チャネルプラグインの実行を制限する](/ja/channels#restrict-which-channel-plugins-can-run)を参照してください |
 | `allowManagedHooksOnly` | `true` の場合、ユーザー、プロジェクト、およびプラグインフックの読み込みを防止します。管理フックと SDK フックのみが許可されます |
 | `allowManagedMcpServersOnly` | `true` の場合、管理設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。[管理 MCP 設定](/ja/mcp#managed-mcp-configuration)を参照してください |
+| `allowManagedPermissionRulesOnly` | `true` の場合、ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義することを防止します。管理設定のルールのみが適用されます |
 | `blockedMarketplaces` | マーケットプレイスソースのブロックリスト。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
+| `channelsEnabled` | Team および Enterprise ユーザーの[チャネル](/ja/channels)を許可します。設定されていないか `false` の場合、ユーザーが `--channels` に渡すものに関係なく、チャネルメッセージ配信をブロックします |
+| `pluginTrustMessage` | インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ |
+| `sandbox.filesystem.allowManagedReadPathsOnly` | `true` の場合、管理設定からの `filesystem.allowRead` パスのみが尊重されます。`denyRead` はすべてのソースからマージされます |
 | `sandbox.network.allowManagedDomainsOnly` | `true` の場合、管理設定からの `allowedDomains` と `WebFetch(domain:...)` allow ルールのみが尊重されます。許可されていないドメインはユーザーに促すことなく自動的にブロックされます。拒否されたドメインはすべてのソースからマージされます |
-| `sandbox.filesystem.allowManagedReadPathsOnly` | `true` の場合、管理設定からの `allowRead` パスのみが尊重されます。ユーザー、プロジェクト、ローカル設定からの `allowRead` エントリは無視されます |
 | `strictKnownMarketplaces` | ユーザーが追加できるプラグインマーケットプレイスを制御します。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
+
+`disableBypassPermissionsMode` は通常、組織ポリシーを強制するために管理設定に配置されますが、任意のスコープから機能します。ユーザーは独自の設定で設定して、自分自身をバイパスモードからロックアウトできます。
 
 [リモートコントロール](/ja/remote-control)と[ウェブセッション](/ja/claude-code-on-the-web)へのアクセスは、管理設定キーで制御されません。Team および Enterprise プランでは、管理者が [Claude Code 管理設定](https://claude.ai/admin-settings/claude-code)でこれらの機能を有効または無効にします。
 

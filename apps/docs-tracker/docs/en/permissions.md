@@ -36,15 +36,15 @@ Claude Code supports several permission modes that control how tools are approve
 | Mode | Description |
 | :- | :- |
 | `default` | Standard behavior: prompts for permission on first use of each tool |
-| `acceptEdits` | Automatically accepts file edit permissions for the session |
+| `acceptEdits` | Automatically accepts file edit permissions for the session, except writes to protected directories |
 | `plan` | Plan Mode: Claude can analyze but not modify files or execute commands |
 | `auto` | Auto-approves tool calls with background safety checks that verify actions align with your request. Currently a research preview |
 | `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules |
 | `bypassPermissions` | Skips permission prompts except for writes to protected directories (see warning below) |
 
-`bypassPermissions` mode skips permission prompts. Writes to `.git`, `.claude`, `.vscode`, and `.idea` directories still prompt for confirmation to prevent accidental corruption of repository state and local configuration. Writes to `.claude/commands`, `.claude/agents`, and `.claude/skills` are exempt and do not prompt, because Claude routinely writes there when creating skills, subagents, and commands. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `disableBypassPermissionsMode` to `"disable"` in [managed settings](#managed-settings).
+`bypassPermissions` mode skips permission prompts. Writes to `.git`, `.claude`, `.vscode`, `.idea`, and `.husky` directories still prompt for confirmation to prevent accidental corruption of repository state, editor configuration, and git hooks. Writes to `.claude/commands`, `.claude/agents`, and `.claude/skills` are exempt and do not prompt, because Claude routinely writes there when creating skills, subagents, and commands. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `permissions.disableBypassPermissionsMode` to `"disable"` in [managed settings](#managed-settings).
 
-To prevent `bypassPermissions` or `auto` mode from being used, set `permissions.disableBypassPermissionsMode` or `disableAutoMode` to `"disable"` in any [settings file](/en/settings#settings-files). These are most useful in [managed settings](#managed-settings) where they cannot be overridden.
+To prevent `bypassPermissions` or `auto` mode from being used, set `permissions.disableBypassPermissionsMode` or `permissions.disableAutoMode` to `"disable"` in any [settings file](/en/settings#settings-files). These are most useful in [managed settings](#managed-settings) where they cannot be overridden.
 
 ## Permission rule syntax
 
@@ -203,6 +203,24 @@ By default, Claude has access to files in the directory where it was launched. Y
 
 Files in additional directories follow the same permission rules as the original working directory: they become readable without prompts, and file editing permissions follow the current permission mode.
 
+### Additional directories grant file access, not configuration
+
+Adding a directory extends where Claude can read and edit files. It does not make that directory a full configuration root: most `.claude/` configuration is not discovered from additional directories, though a few types are loaded as exceptions.
+
+The following configuration types are loaded from `--add-dir` directories:
+
+| Configuration | Loaded from `--add-dir` |
+| :- | :- |
+| [Skills](/en/skills) in `.claude/skills/` | Yes, with live reload |
+| Plugin settings in `.claude/settings.json` | `enabledPlugins` and `extraKnownMarketplaces` only |
+| [CLAUDE.md](/en/memory) files and `.claude/rules/` | Only when `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` is set |
+
+Everything else, including subagents, commands, output styles, hooks, and other settings, is discovered only from the current working directory and its parents, your user directory at `~/.claude/`, and managed settings. To share that configuration across projects, use one of these approaches:
+
+- **User-level configuration**: place files in `~/.claude/agents/`, `~/.claude/output-styles/`, or `~/.claude/settings.json` to make them available in every project
+- **Plugins**: package and distribute configuration as a [plugin](/en/plugins) that teams can install
+- **Launch from the config directory**: run Claude Code from the directory containing the `.claude/` configuration you want
+
 ## How permissions interact with sandboxing
 
 Permissions and [sandboxing](/en/sandboxing) are complementary security layers:
@@ -217,26 +235,38 @@ Use both for defense-in-depth:
 - Filesystem restrictions in the sandbox use Read and Edit deny rules, not separate sandbox configuration
 - Network restrictions combine WebFetch permission rules with the sandbox's `allowedDomains` list
 
+When sandboxing is enabled with `autoAllowBashIfSandboxed: true`, which is the default, sandboxed Bash commands run without prompting even if your permissions include `ask: Bash(*)`. The sandbox boundary substitutes for the per-command prompt. See [sandbox modes](/en/sandboxing#sandbox-modes) to change this behavior.
+
 ## Managed settings
 
 For organizations that need centralized control over Claude Code configuration, administrators can deploy managed settings that cannot be overridden by user or project settings. These policy settings follow the same format as regular settings files and can be delivered through MDM/OS-level policies, managed settings files, or [server-managed settings](/en/server-managed-settings). See [settings files](/en/settings#settings-files) for delivery mechanisms and file locations.
 
 ### Managed-only settings
 
-Some settings are only effective in managed settings:
+The following settings are only read from managed settings. Placing them in user or project settings files has no effect.
 
 | Setting | Description |
 | :- | :- |
-| `allowManagedPermissionRulesOnly` | When `true`, prevents user and project settings from defining `allow`, `ask`, or `deny` permission rules. Only rules in managed settings apply |
+| `allowedChannelPlugins` | Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Requires `channelsEnabled: true`. See [Restrict which channel plugins can run](/en/channels#restrict-which-channel-plugins-can-run) |
 | `allowManagedHooksOnly` | When `true`, prevents loading of user, project, and plugin hooks. Only managed hooks and SDK hooks are allowed |
 | `allowManagedMcpServersOnly` | When `true`, only `allowedMcpServers` from managed settings are respected. `deniedMcpServers` still merges from all sources. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration) |
-| `allowedChannelPlugins` | Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Requires `channelsEnabled: true`. See [Restrict which channel plugins can run](/en/channels#restrict-which-channel-plugins-can-run) |
+| `allowManagedPermissionRulesOnly` | When `true`, prevents user and project settings from defining `allow`, `ask`, or `deny` permission rules. Only rules in managed settings apply |
 | `blockedMarketplaces` | Blocklist of marketplace sources. Blocked sources are checked before downloading, so they never touch the filesystem. See [managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) |
+| `channelsEnabled` | Allow [channels](/en/channels) for Team and Enterprise users. Unset or `false` blocks channel message delivery regardless of what users pass to `--channels` |
+| `pluginTrustMessage` | Custom message appended to the plugin trust warning shown before installation |
+| `sandbox.filesystem.allowManagedReadPathsOnly` | When `true`, only `filesystem.allowRead` paths from managed settings are respected. `denyRead` still merges from all sources |
 | `sandbox.network.allowManagedDomainsOnly` | When `true`, only `allowedDomains` and `WebFetch(domain:...)` allow rules from managed settings are respected. Non-allowed domains are blocked automatically without prompting the user. Denied domains still merge from all sources |
-| `sandbox.filesystem.allowManagedReadPathsOnly` | When `true`, only `allowRead` paths from managed settings are respected. `allowRead` entries from user, project, and local settings are ignored |
 | `strictKnownMarketplaces` | Controls which plugin marketplaces users can add. See [managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) |
 
+`disableBypassPermissionsMode` is typically placed in managed settings to enforce organizational policy, but it works from any scope. A user can set it in their own settings to lock themselves out of bypass mode.
+
 Access to [Remote Control](/en/remote-control) and [web sessions](/en/claude-code-on-the-web) is not controlled by a managed settings key. On Team and Enterprise plans, an admin enables or disables these features in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code).
+
+## Review auto mode denials
+
+When [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) denies a tool call, a notification appears and the denied action is recorded in `/permissions` under the Recently denied tab. Press `r` on a denied action to mark it for retry: when you exit the dialog, Claude Code sends a message telling the model it may retry that tool call and resumes the conversation.
+
+To react to denials programmatically, use the [`PermissionDenied` hook](/en/hooks#permissiondenied).
 
 ## Configure the auto mode classifier
 

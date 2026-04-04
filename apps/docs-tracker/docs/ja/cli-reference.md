@@ -27,19 +27,19 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `claude agents` | すべての設定済み [subagents](/ja/sub-agents) をソース別にグループ化して一覧表示 | `claude agents` |
 | `claude auto-mode defaults` | 組み込み [auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) 分類器ルールを JSON として出力します。`claude auto-mode config` を使用して、設定が適用された有効な設定を確認してください | `claude auto-mode defaults > rules.json` |
 | `claude mcp` | Model Context Protocol（MCP）サーバーを設定 | [Claude Code MCP ドキュメント](/ja/mcp) を参照してください。 |
-| `claude plugin` | Claude Code [plugins](/ja/plugins) を管理します。エイリアス：`claude plugins`。サブコマンドについては [plugin reference](/ja/plugins-reference#cli-commands-reference) を参照してください | `claude plugin install code-review@claude-code-marketplace` |
-| `claude remote-control` | [Remote Control](/ja/remote-control) サーバーを開始して、Claude.ai または Claude アプリから Claude Code を制御します。サーバーモード（ローカルインタラクティブセッションなし）で実行されます。[サーバーモードフラグ](/ja/remote-control#server-mode) を参照してください | `claude remote-control --name "My Project"` |
+| `claude plugin` | Claude Code [plugins](/ja/plugins) を管理します。エイリアス：`claude plugins`。サブコマンドについては [plugin reference](/ja/plugins-reference#cli-commands-reference) を参照してください | `claude plugin install code-review@claude-plugins-official` |
+| `claude remote-control` | [Remote Control](/ja/remote-control) サーバーを開始して、Claude.ai または Claude アプリから Claude Code を制御します。サーバーモード（ローカルインタラクティブセッションなし）で実行されます。[サーバーモードフラグ](/ja/remote-control#start-a-remote-control-session) を参照してください | `claude remote-control --name "My Project"` |
 
 ## CLI フラグ
 
-これらのコマンドラインフラグを使用して Claude Code の動作をカスタマイズします。
+これらのコマンドラインフラグを使用して Claude Code の動作をカスタマイズします。`claude --help` はすべてのフラグをリストしていないため、`--help` にフラグが表示されていないことは、そのフラグが利用できないことを意味しません。
 
 | フラグ | 説明 | 例 |
 | :- | :- | :- |
-| `--add-dir` | Claude がアクセスするための追加の作業ディレクトリを追加します（各パスがディレクトリとして存在することを検証します） | `claude --add-dir ../apps ../lib` |
+| `--add-dir` | Claude がファイルを読み取り、編集するための追加の作業ディレクトリを追加します。ファイルアクセスを許可します。ほとんどの `.claude/` 設定は [これらのディレクトリから検出されません](/ja/permissions#additional-directories-grant-file-access-not-configuration)。各パスがディレクトリとして存在することを検証します | `claude --add-dir ../apps ../lib` |
 | `--agent` | 現在のセッションのエージェントを指定します（`agent` 設定をオーバーライドします） | `claude --agent my-custom-agent` |
 | `--agents` | JSON 経由でカスタム subagents を動的に定義します。subagent [frontmatter](/ja/sub-agents#supported-frontmatter-fields) と同じフィールド名を使用し、さらにエージェントの指示用の `prompt` フィールドを追加します | `claude --agents '{"reviewer":{"description":"Reviews code","prompt":"You are a code reviewer"}}'` |
-| `--allow-dangerously-skip-permissions` | 権限バイパスをオプションとして有効にします（すぐには有効化しません）。`--permission-mode` と組み合わせることができます（注意して使用してください） | `claude --permission-mode plan --allow-dangerously-skip-permissions` |
+| `--allow-dangerously-skip-permissions` | `Shift+Tab` モードサイクルに `bypassPermissions` を追加します。これを開始時に有効にしません。`plan` のような別のモードで開始し、後で `bypassPermissions` に切り替えることができます。[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode) を参照してください | `claude --permission-mode plan --allow-dangerously-skip-permissions` |
 | `--allowedTools` | 権限を求めずに実行するツール。パターンマッチングについては [権限ルール構文](/ja/settings#permission-rule-syntax) を参照してください。利用可能なツールを制限するには、代わりに `--tools` を使用してください | `"Bash(git log *)" "Bash(git diff *)" "Read"` |
 | `--append-system-prompt` | デフォルトシステムプロンプトの末尾にカスタムテキストを追加 | `claude --append-system-prompt "Always use TypeScript"` |
 | `--append-system-prompt-file` | ファイルから追加のシステムプロンプトテキストを読み込み、デフォルトプロンプトに追加 | `claude --append-system-prompt-file ./extra-rules.txt` |
@@ -49,8 +49,9 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--chrome` | Web 自動化とテストのための [Chrome ブラウザ統合](/ja/chrome) を有効にします | `claude --chrome` |
 | `--continue`, `-c` | 現在のディレクトリで最新の会話を読み込む | `claude --continue` |
 | `--dangerously-load-development-channels` | 承認されたアローリストにない [channels](/ja/channels-reference#test-during-the-research-preview) をローカル開発用に有効にします。`plugin:<name>@<marketplace>` および `server:<name>` エントリを受け入れます。確認を求めます | `claude --dangerously-load-development-channels server:webhook` |
-| `--dangerously-skip-permissions` | すべての権限プロンプトをスキップします（注意して使用してください）。[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode) を参照して、これが何をスキップし、何をスキップしないかを確認してください | `claude --dangerously-skip-permissions` |
+| `--dangerously-skip-permissions` | すべての権限プロンプトをスキップします。[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode) を参照して、これが何をスキップし、何をスキップしないかを確認してください | `claude --dangerously-skip-permissions` |
 | `--debug` | オプションのカテゴリフィルタリング付きでデバッグモードを有効にします（例：`"api,hooks"` または `"!statsig,!file"`） | `claude --debug "api,mcp"` |
+| `--debug-file <path>` | デバッグログを特定のファイルパスに書き込みます。暗黙的にデバッグモードを有効にします。`CLAUDE_CODE_DEBUG_LOGS_DIR` より優先されます | `claude --debug-file /tmp/claude-debug.log` |
 | `--disable-slash-commands` | このセッションのすべてのスキルとコマンドを無効にします | `claude --disable-slash-commands` |
 | `--disallowedTools` | モデルのコンテキストから削除され、使用できないツール | `"Bash(git log *)" "Bash(git diff *)" "Edit"` |
 | `--effort` | 現在のセッションの [努力レベル](/ja/model-config#adjust-effort-level) を設定します。オプション：`low`、`medium`、`high`、`max`（Opus 4.6 のみ）。セッションスコープであり、設定に永続化されません | `claude --effort high` |
@@ -60,10 +61,11 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--ide` | 起動時に、正確に 1 つの有効な IDE が利用可能な場合、自動的に IDE に接続します | `claude --ide` |
 | `--init` | 初期化フックを実行してインタラクティブモードを開始 | `claude --init` |
 | `--init-only` | 初期化フックを実行して終了（インタラクティブセッションなし） | `claude --init-only` |
-| `--include-partial-messages` | 部分的なストリーミングイベントを出力に含めます（`--print` と `--output-format=stream-json` が必要） | `claude -p --output-format stream-json --include-partial-messages "query"` |
+| `--include-hook-events` | すべてのフックライフサイクルイベントを出力ストリームに含めます。`--output-format stream-json` が必要です | `claude -p --output-format stream-json --include-hook-events "query"` |
+| `--include-partial-messages` | 部分的なストリーミングイベントを出力に含めます。`--print` と `--output-format stream-json` が必要です | `claude -p --output-format stream-json --include-partial-messages "query"` |
 | `--input-format` | プリントモードの入力形式を指定します（オプション：`text`、`stream-json`） | `claude -p --output-format json --input-format stream-json` |
 | `--json-schema` | エージェントがワークフローを完了した後、JSON Schema に一致する検証済み JSON 出力を取得します（プリントモードのみ。[構造化出力](https://platform.claude.com/docs/en/agent-sdk/structured-outputs) を参照） | `claude -p --json-schema '{"type":"object","properties":{...}}' "query"` |
-| `--maintenance` | メンテナンスフックを実行して終了 | `claude --maintenance` |
+| `--maintenance` | メンテナンスフックを実行してインタラクティブモードを開始 | `claude --maintenance` |
 | `--max-budget-usd` | 停止する前に API 呼び出しに費やす最大ドル金額（プリントモードのみ） | `claude -p --max-budget-usd 5.00 "query"` |
 | `--max-turns` | agentic ターンの数を制限します（プリントモードのみ）。制限に達するとエラーで終了します。デフォルトでは制限なし | `claude -p --max-turns 3 "query"` |
 | `--mcp-config` | JSON ファイルまたは文字列から MCP サーバーを読み込みます（スペース区切り） | `claude --mcp-config ./mcp.json` |
@@ -72,13 +74,14 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--no-chrome` | このセッションの [Chrome ブラウザ統合](/ja/chrome) を無効にします | `claude --no-chrome` |
 | `--no-session-persistence` | セッション永続化を無効にして、セッションがディスクに保存されず、再開できないようにします（プリントモードのみ） | `claude -p --no-session-persistence "query"` |
 | `--output-format` | プリントモードの出力形式を指定します（オプション：`text`、`json`、`stream-json`） | `claude -p "query" --output-format json` |
-| `--enable-auto-mode` | `Shift+Tab` サイクルで [auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) をロック解除します。Team プラン（Enterprise と API サポートは近日中にロールアウト予定）と Claude Sonnet 4.6 または Opus 4.6 が必要です | `claude --enable-auto-mode` |
-| `--permission-mode` | 指定された [権限モード](/ja/permission-modes) で開始します | `claude --permission-mode plan` |
+| `--enable-auto-mode` | `Shift+Tab` サイクルで [auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) をロック解除します。Team、Enterprise、または API プランと Claude Sonnet 4.6 または Opus 4.6 が必要です | `claude --enable-auto-mode` |
+| `--permission-mode` | 指定された [権限モード](/ja/permission-modes) で開始します。`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、または `bypassPermissions` を受け入れます。設定ファイルの `defaultMode` をオーバーライドします | `claude --permission-mode plan` |
 | `--permission-prompt-tool` | 非インタラクティブモードで権限プロンプトを処理する MCP ツールを指定します | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
 | `--plugin-dir` | このセッションのみのプラグインをディレクトリから読み込みます。各フラグは 1 つのパスを取ります。複数のディレクトリの場合はフラグを繰り返します：`--plugin-dir A --plugin-dir B` | `claude --plugin-dir ./my-plugins` |
 | `--print`, `-p` | インタラクティブモードなしで応答を出力します（プログラムによる使用の詳細については [Agent SDK ドキュメント](https://platform.claude.com/docs/en/agent-sdk/overview) を参照） | `claude -p "query"` |
 | `--remote` | 提供されたタスク説明で claude.ai に新しい [Web セッション](/ja/claude-code-on-the-web) を作成します | `claude --remote "Fix the login bug"` |
-| `--remote-control`, `--rc` | [Remote Control](/ja/remote-control#interactive-session) を有効にしてインタラクティブセッションを開始し、claude.ai または Claude アプリからも制御できるようにします。オプションでセッションの名前を渡すことができます | `claude --remote-control "My Project"` |
+| `--remote-control`, `--rc` | [Remote Control](/ja/remote-control#start-a-remote-control-session) を有効にしてインタラクティブセッションを開始し、claude.ai または Claude アプリからも制御できるようにします。オプションでセッションの名前を渡すことができます | `claude --remote-control "My Project"` |
+| `--replay-user-messages` | stdin からのユーザーメッセージを stdout に再発行して確認します。`--input-format stream-json` と `--output-format stream-json` が必要です | `claude -p --input-format stream-json --output-format stream-json --replay-user-messages` |
 | `--resume`, `-r` | ID または名前で特定のセッションを再開するか、セッションを選択するためのインタラクティブピッカーを表示します | `claude --resume auth-refactor` |
 | `--session-id` | 会話に特定のセッション ID を使用します（有効な UUID である必要があります） | `claude --session-id "550e8400-e29b-41d4-a716-446655440000"` |
 | `--setting-sources` | 読み込む設定ソースのカンマ区切りリスト（`user`、`project`、`local`） | `claude --setting-sources user,project` |
@@ -87,7 +90,8 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--system-prompt` | デフォルトシステムプロンプト全体をカスタムテキストで置き換え | `claude --system-prompt "You are a Python expert"` |
 | `--system-prompt-file` | ファイルからシステムプロンプトを読み込み、デフォルトプロンプトを置き換え | `claude --system-prompt-file ./custom-prompt.txt` |
 | `--teleport` | [Web セッション](/ja/claude-code-on-the-web) をローカルターミナルで再開します | `claude --teleport` |
-| `--teammate-mode` | [エージェントチーム](/ja/agent-teams) のチームメイトの表示方法を設定します：`auto`（デフォルト）、`in-process`、または `tmux`。[エージェントチームのセットアップ](/ja/agent-teams#set-up-agent-teams) を参照してください | `claude --teammate-mode in-process` |
+| `--teammate-mode` | [エージェントチーム](/ja/agent-teams) のチームメイトの表示方法を設定します：`auto`（デフォルト）、`in-process`、または `tmux`。[ディスプレイモードを選択](/ja/agent-teams#choose-a-display-mode) を参照してください | `claude --teammate-mode in-process` |
+| `--tmux` | worktree 用に tmux セッションを作成します。`--worktree` が必要です。利用可能な場合は iTerm2 ネイティブペインを使用します。従来の tmux の場合は `--tmux=classic` を渡します | `claude -w feature-auth --tmux` |
 | `--tools` | Claude が使用できる組み込みツールを制限します。`""` を使用してすべてを無効にし、`"default"` を使用してすべてを有効にするか、`"Bash,Edit,Read"` のようなツール名を使用します | `claude --tools "Bash,Edit,Read"` |
 | `--verbose` | 詳細ログを有効にし、ターンごとの完全な出力を表示 | `claude --verbose` |
 | `--version`, `-v` | バージョン番号を出力 | `claude -v` |

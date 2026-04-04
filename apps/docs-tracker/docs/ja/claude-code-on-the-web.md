@@ -34,12 +34,26 @@ Claude Code は [iOS](https://apps.apple.com/us/app/claude-by-anthropic/id647375
 
 ## はじめに
 
+ブラウザまたはターミナルからウェブ上の Claude Code をセットアップします。
+
+### ブラウザから
+
 1. [claude.ai/code](https://claude.ai/code) にアクセスします
 2. GitHub アカウントを接続します
 3. リポジトリに Claude GitHub アプリをインストールします
 4. デフォルト環境を選択します
 5. コーディングタスクを送信します
 6. diff ビューで変更を確認し、コメントで反復処理してから、プルリクエストを作成します
+
+### ターミナルから
+
+Claude Code 内で `/web-setup` を実行して、ローカル `gh` CLI 認証情報を使用して GitHub を接続します。このコマンドは `gh auth token` を Claude Code on the web に同期し、デフォルトクラウド環境を作成し、完了時にブラウザで claude.ai/code を開きます。
+
+このパスには `gh` CLI がインストールされ、`gh auth login` で認証されている必要があります。`gh` が利用できない場合、`/web-setup` は claude.ai/code を開いて、代わりにブラウザから GitHub を接続できます。
+
+`gh` 認証情報により Claude はクローンとプッシュにアクセスできるため、基本的なセッションでは GitHub アプリをスキップできます。後で [Auto-fix](#auto-fix-pull-requests) が必要な場合はアプリをインストールします。これはアプリを使用して PR webhook を受け取ります。
+
+Team および Enterprise 管理者は [claude.ai/admin-settings/claude-code](https://claude.ai/admin-settings/claude-code) の Quick web setup トグルでターミナルセットアップを無効にできます。
 
 ## 仕組み
 
@@ -65,6 +79,30 @@ diff ビューから、以下のことができます：
 - 表示内容に基づいて Claude との反復処理を続行する
 
 これにより、ドラフト PR を作成したり GitHub に切り替えたりすることなく、複数ラウンドのフィードバックを通じて変更を改善できます。
+
+## Auto-fix プルリクエスト
+
+Claude はプルリクエストを監視し、CI 失敗とレビューコメントに自動的に応答できます。Claude は PR の GitHub アクティビティをサブスクライブし、チェックが失敗するかレビュアーがコメントを残すと、Claude は調査し、明確な場合は修正をプッシュします。
+
+Auto-fix には Claude GitHub App がリポジトリにインストールされている必要があります。まだインストールしていない場合は、[GitHub App ページ](https://github.com/apps/claude)からインストールするか、[セットアップ](#getting-started)中にプロンプトが表示されたときにインストールします。
+
+PR がどこから来たか、どのデバイスを使用しているかに応じて、auto-fix をオンにするにはいくつかの方法があります：
+
+- **ウェブ上の Claude Code で作成された PR**：CI ステータスバーを開き、**Auto-fix** を選択します
+- **モバイルアプリから**：Claude に PR を auto-fix するよう指示します。例えば「watch this PR and fix any CI failures or review comments」
+- **既存の PR**：PR URL をセッションに貼り付けて、Claude に auto-fix するよう指示します
+
+### Claude が PR アクティビティにどのように応答するか
+
+auto-fix がアクティブな場合、Claude は新しいレビューコメントと CI チェック失敗を含む PR の GitHub イベントを受け取ります。各イベントについて、Claude は調査して進め方を決定します：
+
+- **明確な修正**：Claude が修正に確信があり、以前の指示と矛盾しない場合、Claude は変更を加え、プッシュし、セッションで何が行われたかを説明します
+- **曖昧なリクエスト**：レビュアーのコメントが複数の方法で解釈される可能性がある場合、または建築的に重要なものが含まれている場合、Claude は行動する前にあなたに尋ねます
+- **重複または無アクション イベント**：イベントが重複している場合、または変更が不要な場合、Claude はセッションでそれを記録して続行します
+
+Claude は PR を解決する際に GitHub のレビューコメントスレッドに返信する場合があります。これらの返信はあなたの GitHub アカウントを使用して投稿されるため、あなたのユーザー名の下に表示されますが、各返信は Claude Code から来たものとしてラベル付けされるため、レビュアーはそれがエージェントによって書かれたものであり、あなたが直接書いたものではないことを知っています。
+
+リポジトリが Atlantis、Terraform Cloud、または `issue_comment` イベントで実行されるカスタム GitHub Actions などのコメントトリガー自動化を使用する場合、Claude の返信がそれらのワークフローをトリガーする可能性があることに注意してください。auto-fix を有効にする前にリポジトリの自動化を確認し、PR コメントがインフラストラクチャをデプロイするか特権操作を実行できるリポジトリでは auto-fix を無効にすることを検討してください。
 
 ## ウェブとターミナル間でタスクを移動する
 
@@ -145,6 +183,10 @@ Max および Pro アカウントの場合、2 つの可視性オプションは
 共有する前にセッションで機密コンテンツを確認してください。セッションにはプライベート GitHub リポジトリのコードと認証情報が含まれる可能性があります。リポジトリアクセス検証はデフォルトで有効になっていません。
 
 Settings > Claude Code > Sharing settings に移動して、リポジトリアクセス検証を有効にするか、共有セッションから名前を保留します。
+
+## ウェブ上で定期的なタスクをスケジュールする
+
+定期的なスケジュールで Claude を実行して、日次 PR レビュー、依存関係監査、CI 失敗分析などの作業を自動化します。完全なガイドについては [Schedule tasks on the web](/ja/web-scheduled-tasks) を参照してください。
 
 ## セッションの管理
 
@@ -629,7 +671,7 @@ SessionStart フックは `CLAUDE_ENV_FILE` 環境変数で指定されたファ
 ## 制限事項
 
 - **リポジトリ認証**：ウェブからローカルにセッションを移動できるのは、同じアカウントに認証されている場合のみです
-- **プラットフォーム制限**：ウェブ上の Claude Code は GitHub でホストされているコードでのみ機能します。GitLab およびその他の非 GitHub リポジトリはクラウドセッションで使用できません
+- **プラットフォーム制限**：ウェブ上の Claude Code は GitHub でホストされているコードでのみ機能します。自己ホスト型の [GitHub Enterprise Server](/ja/github-enterprise-server) インスタンスは Teams および Enterprise プランでサポートされています。GitLab およびその他の非 GitHub リポジトリはクラウドセッションで使用できません
 
 ## ベストプラクティス
 

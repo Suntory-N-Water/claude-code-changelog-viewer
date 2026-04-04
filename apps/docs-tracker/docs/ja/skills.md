@@ -112,7 +112,9 @@ my-skill/
 
 #### 追加ディレクトリからのスキル
 
-`--add-dir` 経由で追加されたディレクトリ内の `.claude/skills/` で定義されたスキルは自動的に読み込まれ、ライブ変更検出によって取得されるため、セッション中に再起動せずに編集できます。
+`--add-dir` フラグは[ファイルアクセスを許可](/ja/permissions#additional-directories-grant-file-access-not-configuration)しますが、スキルは例外です。追加されたディレクトリ内の `.claude/skills/` は自動的に読み込まれ、ライブ変更検出によって取得されるため、セッション中に再起動せずにそれらのスキルを編集できます。
+
+その他の `.claude/` 設定（サブエージェント、コマンド、出力スタイル）は追加ディレクトリから読み込まれません。読み込まれるもの、読み込まれないもの、および設定をプロジェクト全体で共有するための推奨方法の完全なリストについては、[例外テーブル](/ja/permissions#additional-directories-grant-file-access-not-configuration)を参照してください。
 
 `--add-dir` ディレクトリの CLAUDE.md ファイルはデフォルトでは読み込まれません。読み込むには、`CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` を設定します。[追加ディレクトリから読み込む](/ja/memory#load-from-additional-directories)を参照してください。
 
@@ -165,7 +167,7 @@ Deploy the application:
 name: my-skill
 description: What this skill does
 disable-model-invocation: true
-allowed-tools: Read, Grep
+allowed-tools: Read Grep
 ---
 
 Your skill instructions here...
@@ -176,16 +178,18 @@ Your skill instructions here...
 | フィールド | 必須 | 説明 |
 | :- | :- | :- |
 | `name` | いいえ | スキルの表示名。省略した場合、ディレクトリ名を使用します。小文字、数字、ハイフンのみ（最大 64 文字）。 |
-| `description` | 推奨 | スキルが何をするか、いつ使用するか。Claude はこれを使用してスキルを適用するかどうかを決定します。省略した場合、マークダウンコンテンツの最初の段落を使用します。 |
+| `description` | 推奨 | スキルが何をするか、いつ使用するか。Claude はこれを使用してスキルを適用するかどうかを決定します。省略した場合、マークダウンコンテンツの最初の段落を使用します。前置きで主要なユースケースを記載してください。スキルリストのコンテキスト使用量を削減するため、250 文字を超える説明は短縮されます。 |
 | `argument-hint` | いいえ | 予想される引数を示すためにオートコンプリート中に表示されるヒント。例：`[issue-number]` または `[filename] [format]`。 |
 | `disable-model-invocation` | いいえ | Claude がこのスキルを自動的に読み込むのを防ぐには `true` に設定します。`/name` で手動でトリガーするワークフロー用です。デフォルト：`false`。 |
 | `user-invocable` | いいえ | `/` メニューから非表示にするには `false` に設定します。ユーザーが直接呼び出すべきではないバックグラウンド知識用です。デフォルト：`true`。 |
-| `allowed-tools` | いいえ | このスキルがアクティブな場合、Claude が許可を求めずに使用できるツール。 |
+| `allowed-tools` | いいえ | このスキルがアクティブな場合、Claude が許可を求めずに使用できるツール。スペース区切り文字列または YAML リストを受け入れます。 |
 | `model` | いいえ | このスキルがアクティブな場合に使用するモデル。 |
 | `effort` | いいえ | [努力レベル](/ja/model-config#adjust-effort-level)（このスキルがアクティブな場合）。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`max`（Opus 4.6 のみ）。 |
 | `context` | いいえ | フォークされたサブエージェントコンテキストで実行するには `fork` に設定します。 |
 | `agent` | いいえ | `context: fork` が設定されている場合に使用するサブエージェントタイプ。 |
 | `hooks` | いいえ | このスキルのライフサイクルにスコープされたフック。設定形式については、[スキルとエージェントのフック](/ja/hooks#hooks-in-skills-and-agents)を参照してください。 |
+| `paths` | いいえ | このスキルがアクティブ化されるタイミングを制限する Glob パターン。カンマ区切り文字列または YAML リストを受け入れます。設定されている場合、Claude はパターンに一致するファイルを操作する場合にのみ、スキルを自動的に読み込みます。[パス固有のルール](/ja/memory#path-specific-rules)と同じ形式を使用します。 |
+| `shell` | いいえ | このスキルの `` !`command` `` ブロックに使用するシェル。`bash`（デフォルト）または `powershell` を受け入れます。`powershell` を設定すると、Windows 上で PowerShell 経由でインラインシェルコマンドが実行されます。`CLAUDE_CODE_USE_POWERSHELL_TOOL=1` が必要です。 |
 
 #### 利用可能な文字列置換
 
@@ -279,7 +283,7 @@ Deploy $ARGUMENTS to production:
 ---
 name: safe-reader
 description: Read files without making changes
-allowed-tools: Read, Grep, Glob
+allowed-tools: Read Grep Glob
 ---
 ```
 
@@ -657,11 +661,11 @@ Claude がスキルを使用したくない場合：
 1. 説明をより具体的にします
 2. スキルを手動で呼び出したい場合のみ `disable-model-invocation: true` を追加します
 
-### Claude がすべてのスキルを見ない
+### スキルの説明が短縮される
 
-スキルの説明がコンテキストに読み込まれるため、Claude は利用可能なものを知っています。多くのスキルがある場合、文字予算を超える可能性があります。予算は動的にコンテキストウィンドウの 2% でスケーリングされ、16,000 文字のフォールバックがあります。`/context` を実行して、除外されたスキルに関する警告を確認します。
+スキルの説明がコンテキストに読み込まれるため、Claude は利用可能なものを知っています。すべてのスキル名は常に含まれていますが、多くのスキルがある場合、説明は文字予算に合わせて短縮される可能性があり、Claude が一致するために必要なキーワードを削除できます。予算はコンテキストウィンドウの 1% で動的にスケーリングされ、8,000 文字のフォールバックがあります。
 
-制限をオーバーライドするには、`SLASH_COMMAND_TOOL_CHAR_BUDGET` 環境変数を設定します。
+制限を上げるには、`SLASH_COMMAND_TOOL_CHAR_BUDGET` 環境変数を設定します。または、説明をソースで短縮します。各エントリは 250 文字でキャップされているため、主要なユースケースを前置きしてください。
 
 ## 関連リソース
 

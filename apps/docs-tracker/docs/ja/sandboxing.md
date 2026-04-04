@@ -299,7 +299,7 @@ npx @anthropic-ai/sandbox-runtime <command-to-sandbox>
 サンドボックスは Bash サブプロセスを分離します。他のツールは異なる境界の下で動作します。
 
 - **組み込みファイルツール**：Read、Edit、Write はサンドボックスを通じて実行するのではなく、許可システムを直接使用します。[許可](/ja/permissions) を参照してください。
-- **デスクトップでのコンピュータ使用**：Claude が macOS でアプリを開いてスクリーンを制御する場合、分離された環境ではなく実際のデスクトップで実行されます。アプリごとの許可プロンプトが各アプリケーションをゲートします。[コンピュータ使用](/ja/desktop#let-claude-use-your-computer) を参照してください。
+- **コンピュータ使用**：Claude が macOS でアプリを開いてスクリーンを制御する場合、分離された環境ではなく実際のデスクトップで実行されます。アプリごとの許可プロンプトが各アプリケーションをゲートします。[CLI でのコンピュータ使用](/ja/computer-use) または [Desktop でのコンピュータ使用](/ja/desktop#let-claude-use-your-computer) を参照してください。
 
 ## 関連項目
 

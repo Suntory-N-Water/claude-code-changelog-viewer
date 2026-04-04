@@ -11,11 +11,11 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 
 キーボードショートカットはプラットフォームとターミナルによって異なる場合があります。`?` を押すと、お使いの環境で利用可能なショートカットが表示されます。
 
-**macOS ユーザー**: Option/Alt キーショートカット（`Alt+B`、`Alt+F`、`Alt+Y`、`Alt+M`、`Alt+P`）を使用するには、ターミナルで Option を Meta として設定する必要があります：
+**macOS ユーザー**: Option/Alt キーショートカット（`Alt+B`、`Alt+F`、`Alt+Y`、`Alt+M`、`Alt+P`、`Alt+T`）を使用するには、ターミナルで Option を Meta として設定する必要があります：
 
 - **iTerm2**: 設定 → プロファイル → キー → Left/Right Option キーを「Esc+」に設定
 - **Terminal.app**: 設定 → プロファイル → キーボード → 「Option キーを Meta キーとして使用」をチェック
-- **VS Code**: 設定 → プロファイル → キー → Left/Right Option キーを「Esc+」に設定
+- **VS Code**: VS Code 設定で `"terminal.integrated.macOptionIsMeta": true` を設定
 
 詳細は [ターミナル設定](/ja/terminal-config) を参照してください。
 
@@ -27,7 +27,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | `Ctrl+X Ctrl+K` | すべてのバックグラウンドエージェントを終了。3 秒以内に 2 回押して確認 | バックグラウンドエージェント制御 |
 | `Ctrl+D` | Claude Code セッションを終了 | EOF シグナル |
 | `Ctrl+G` または `Ctrl+X Ctrl+E` | デフォルトテキストエディタで開く | プロンプトまたはカスタム応答をデフォルトテキストエディタで編集します。`Ctrl+X Ctrl+E` は readline ネイティブバインディングです |
-| `Ctrl+L` | ターミナル画面をクリア | 会話履歴を保持 |
+| `Ctrl+L` | 画面を再描画 | 会話履歴をクリアせずに現在の UI を再描画 |
 | `Ctrl+O` | 詳細出力を切り替え | ツール使用と実行の詳細を表示します。また MCP の読み取りと検索呼び出しを展開します。デフォルトでは「Slack をクエリ」のような 1 行に折りたたまれます |
 | `Ctrl+R` | コマンド履歴を逆順検索 | 前のコマンドをインタラクティブに検索 |
 | `Ctrl+V` または `Cmd+V`（iTerm2）または `Alt+V`（Windows） | クリップボードから画像を貼り付け | カーソルに `[Image #N]` チップを挿入して、プロンプト内で位置的に参照できます |
@@ -38,7 +38,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | `Esc` + `Esc` | 巻き戻しまたは要約 | コードおよび/または会話を前の時点に復元するか、選択したメッセージから要約 |
 | `Shift+Tab` または `Alt+M`（一部の設定） | 権限モードを切り替え | `default`、`acceptEdits`、`plan`、および `auto` や `bypassPermissions` などの有効にしたモード間を循環します。[権限モード](/ja/permission-modes) を参照してください。 |
 | `Option+P`（macOS）または `Alt+P`（Windows/Linux） | モデルを切り替え | プロンプトをクリアせずにモデルを切り替え |
-| `Option+T`（macOS）または `Alt+T`（Windows/Linux） | 拡張思考を切り替え | 拡張思考モードを有効または無効にします。最初に `/terminal-setup` を実行してこのショートカットを有効にしてください |
+| `Option+T`（macOS）または `Alt+T`（Windows/Linux） | 拡張思考を切り替え | 拡張思考モードを有効または無効にします。macOS では、このショートカットが機能するようにターミナルを設定して Option を Meta として送信してください |
 | `Option+O`（macOS）または `Alt+O`（Windows/Linux） | 高速モードを切り替え | [高速モード](/ja/fast-mode) を有効または無効にします |
 
 ### テキスト編集
@@ -46,7 +46,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | ショートカット | 説明 | コンテキスト |
 | :- | :- | :- |
 | `Ctrl+K` | 行末まで削除 | 削除されたテキストを貼り付け用に保存 |
-| `Ctrl+U` | 行全体を削除 | 削除されたテキストを貼り付け用に保存 |
+| `Ctrl+U` | カーソルから行の開始まで削除 | 削除されたテキストを貼り付け用に保存。複数行入力で行全体をクリアするには繰り返す |
 | `Ctrl+Y` | 削除されたテキストを貼り付け | `Ctrl+K` または `Ctrl+U` で削除されたテキストを貼り付け |
 | `Alt+Y`（`Ctrl+Y` の後） | 貼り付け履歴を循環 | 貼り付け後、以前に削除されたテキストを循環します。macOS では [Option を Meta として](#keyboard-shortcuts) 設定が必要 |
 | `Alt+B` | カーソルを 1 単語戻す | 単語ナビゲーション。macOS では [Option を Meta として](#keyboard-shortcuts) 設定が必要 |
@@ -57,8 +57,6 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | ショートカット | 説明 | コンテキスト |
 | :- | :- | :- |
 | `Ctrl+T` | コードブロックの構文強調表示を切り替え | `/theme` ピッカーメニュー内でのみ機能します。Claude の応答のコードが構文色付けを使用するかどうかを制御 |
-
-構文強調表示は Claude Code のネイティブビルドでのみ利用可能です。
 
 ### 複数行入力
 
@@ -87,7 +85,7 @@ Shift+Enter は iTerm2、WezTerm、Ghostty、Kitty で設定なしで機能し�
 | ショートカット | 説明 |
 | :- | :- |
 | `Ctrl+E` | すべてのコンテンツを表示を切り替え |
-| `q`、`Ctrl+C`、`Esc` | トランスクリプトビューを終了します。`Ctrl+C` と `Esc` は [`transcript:exit`](/ja/keybindings) で再バインド可能です。`q` は再バインド不可 |
+| `q`、`Ctrl+C`、`Esc` | トランスクリプトビューを終了します。すべて [`transcript:exit`](/ja/keybindings) で再バインド可能です |
 
 ### 音声入力
 
@@ -246,6 +244,7 @@ Bash モード：
 - Claude がコマンドを解釈または承認する必要がない
 - 履歴ベースのオートコンプリートをサポート：部分的なコマンドを入力し、**Tab** を押して現在のプロジェクトの前の `!` コマンドから完成させる
 - `Escape`、`Backspace`、または空のプロンプトで `Ctrl+U` で終了
+- 空のプロンプトに `!` で始まるテキストを貼り付けると、入力された `!` の動作と一致して、自動的に bash モードに入ります
 
 これは会話コンテキストを保持しながら、クイックシェル操作に便利です。
 
@@ -255,7 +254,7 @@ Bash モード：
 
 Claude が応答した後、マルチパートリクエストのフォローアップステップや、ワークフローの自然な継続など、会話履歴に基づいて提案が表示され続けます。
 
-- **Tab** を押して提案を受け入れるか、**Enter** を押して受け入れて送信
+- **Tab** を押して提案を受け入れるか、**Right arrow** を押して受け入れるか、**Enter** を押して受け入れて送信
 - 入力を開始して却下
 
 提案は、親会話のプロンプトキャッシュを再利用するバックグラウンドリクエストとして実行されるため、追加コストは最小限です。Claude Code はキャッシュがコールドの場合、不要なコストを避けるために提案生成をスキップします。

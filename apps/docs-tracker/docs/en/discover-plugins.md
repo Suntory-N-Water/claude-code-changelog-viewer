@@ -331,11 +331,11 @@ Official Anthropic marketplaces have auto-update enabled by default. Third-party
 
 To disable all automatic updates entirely for both Claude Code and all plugins, set the `DISABLE_AUTOUPDATER` environment variable. See [Auto updates](/en/setup#auto-updates) for details.
 
-To keep plugin auto-updates enabled while disabling Claude Code auto-updates, set `FORCE_AUTOUPDATE_PLUGINS=true` along with `DISABLE_AUTOUPDATER`:
+To keep plugin auto-updates enabled while disabling Claude Code auto-updates, set `FORCE_AUTOUPDATE_PLUGINS=1` along with `DISABLE_AUTOUPDATER`:
 
-```shell
-export DISABLE_AUTOUPDATER=true
-export FORCE_AUTOUPDATE_PLUGINS=true
+```bash
+export DISABLE_AUTOUPDATER=1
+export FORCE_AUTOUPDATE_PLUGINS=1
 ```
 
 This is useful when you want to manage Claude Code updates manually but still receive automatic plugin updates.
@@ -371,7 +371,7 @@ Plugins and marketplaces are highly trusted components that can execute arbitrar
 
 If you see "unknown command" or the `/plugin` command doesn't appear:
 
-1. **Check your version**: Run `claude --version`. Plugins require version 1.0.33 or later.
+1. **Check your version**: Run `claude --version` to see what's installed.
 2. **Update Claude Code**:
    - **Homebrew**: `brew upgrade claude-code`
    - **npm**: `npm update -g @anthropic-ai/claude-code`

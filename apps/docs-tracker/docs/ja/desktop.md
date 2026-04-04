@@ -62,7 +62,7 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 | **Ask permissions** | `default` | Claude はファイルの編集またはコマンドの実行の前に確認を求めます。diff を確認し、各変更を受け入れるか拒否できます。新規ユーザーに推奨されます。 |
 | **Auto accept edits** | `acceptEdits` | Claude はファイル編集を自動的に受け入れますが、ターミナルコマンドの実行前には確認を求めます。ファイル変更を信頼し、より高速な反復を望む場合に使用します。 |
 | **Plan mode** | `plan` | Claude はコードを分析し、ファイルを変更したりコマンドを実行したりせずにプランを作成します。アプローチを最初に確認したい複雑なタスクに適しています。 |
-| **Auto** | `auto` | Claude はすべてのアクションをバックグラウンド安全チェック付きで実行し、リクエストとの整合性を確認します。権限プロンプトを削減しながら監視を維持します。現在研究プレビューです。Team プラン（Enterprise は近日中にロールアウト）で利用可能です。Claude Sonnet 4.6 または Opus 4.6 が必要です。Settings → Claude Code で有効にします。 |
+| **Auto** | `auto` | Claude はすべてのアクションをバックグラウンド安全チェック付きで実行し、リクエストとの整合性を確認します。権限プロンプトを削減しながら監視を維持します。現在研究プレビューです。Team、Enterprise、および API プランで利用可能です。Claude Sonnet 4.6 または Opus 4.6 が必要です。Settings → Claude Code で有効にします。 |
 | **Bypass permissions** | `bypassPermissions` | Claude は権限プロンプトなしで実行され、CLI の`--dangerously-skip-permissions`と同等です。Settings → Claude Code の「Allow bypass permissions mode」で有効にします。サンドボックス化されたコンテナまたは VM でのみ使用してください。エンタープライズ管理者はこのオプションを無効にできます。 |
 
 `dontAsk`権限モードは[CLI](/ja/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)でのみ利用可能です。
@@ -142,7 +142,15 @@ Claude はアプリまたはサービスと対話するための複数の方法�
 
 ### コンピュータ使用を有効にする
 
-コンピュータ使用はデフォルトでオフです。それが必要な何かをするよう Claude に依頼し、それがオフの場合、Claude は Settings でコンピュータ使用を有効にすれば、タスクを実行できることを伝えます。有効にするには、**Settings > Desktop app > General**を開き、**Computer use**をオンに切り替えます。トグルが有効になる前に、2 つの macOS システム権限を付与する必要があります：
+コンピュータ使用はデフォルトでオフです。それが必要な何かをするよう Claude に依頼し、それがオフの場合、Claude は Settings でコンピュータ使用を有効にすれば、タスクを実行できることを伝えます。
+
+Claude Desktop の最新バージョンがあることを確認してください。[claude.com/download](https://claude.com/download)でダウンロードまたは更新してから、アプリを再起動します。
+
+デスクトップアプリで、**Settings > General**（**Desktop app**の下）に移動します。**Computer use**トグルを見つけてオンにします。
+
+トグルが表示されない場合は、macOS で Pro または Max プランを使用していることを確認してから、アプリを更新して再起動します。
+
+トグルが有効になる前に、2 つの macOS システム権限を付与します：
 
 - **Accessibility**：Claude がクリック、入力、スクロールできるようにします
 - **Screen Recording**：Claude がスクリーンに表示されているものを見ることができるようにします
@@ -163,7 +171,7 @@ Claude が初めてアプリを使用する必要がある場合、セッショ�
 
 Terminal、Finder、System Settings などの広範なリーチを持つアプリは、承認が何を付与するかを知るようにプロンプトに追加の警告を表示します。
 
-**Settings > Desktop app > General**で 2 つの設定を設定できます：
+**Settings > General**（**Desktop app**の下）で 2 つの設定を設定できます：
 
 - **Denied apps**：ここにアプリを追加して、プロンプトなしで拒否します。Claude は許可されたアプリのアクションを通じて拒否されたアプリに間接的に影響を与える可能性がありますが、拒否されたアプリと直接対話することはできません。
 - **Unhide apps when Claude finishes**：Claude が作業している間、他のウィンドウは非表示になり、承認されたアプリのみと対話します。Claude が完了すると、この設定をオフにしない限り、非表示のウィンドウが復元されます。
@@ -176,7 +184,9 @@ Terminal、Finder、System Settings などの広範なリーチを持つアプ�
 
 サイドバーの\*\*+ New session\*\*をクリックして、複数のタスクを並列で作業します。Git リポジトリの場合、各セッションは[Git worktrees](/ja/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees)を使用してプロジェクトの独立した分離コピーを取得するため、1 つのセッションの変更は、コミットするまで他のセッションに影響しません。
 
-Worktrees はデフォルトで`<project-root>/.claude/worktrees/`に保存されます。Settings → Claude Code の'Worktree location'でカスタムディレクトリに変更できます。また、すべての worktree ブランチ名の前に付加されるブランチプレフィックスを設定することもできます。これは Claude が作成したブランチを整理するのに便利です。完了したら、サイドバーのセッションにマウスを合わせてアーカイブアイコンをクリックして worktree を削除します。
+Worktrees はデフォルトで`<project-root>/.claude/worktrees/`に保存されます。Settings → Claude Code の「Worktree location」でカスタムディレクトリに変更できます。また、すべての worktree ブランチ名の前に付加されるブランチプレフィックスを設定することもできます。これは Claude が作成したブランチを整理するのに便利です。完了したら、サイドバーのセッションにマウスを合わせてアーカイブアイコンをクリックして worktree を削除します。
+
+gitignored ファイル（`.env`など）を新しい worktrees に含めるには、プロジェクトルートに[`.worktreeinclude`ファイル](/ja/common-workflows#copy-gitignored-files-to-worktrees)を作成します。
 
 セッション分離には[Git](https://git-scm.com/downloads)が必要です。ほとんどの Mac には Git がデフォルトで含まれています。Terminal で`git --version`を実行して確認してください。Windows では、Code タブが機能するために Git が必要です：[Git for Windows をダウンロード](https://git-scm.com/downloads/win)し、インストールしてアプリを再起動します。Git エラーが発生した場合は、Cowork セッションを試してセットアップのトラブルシューティングを行ってください。
 
@@ -201,7 +211,7 @@ Worktrees はデフォルトで`<project-root>/.claude/worktrees/`に保存さ�
 
 [Dispatch](https://support.claude.com/en/articles/13947068)は、[Cowork](https://claude.com/product/cowork#dispatch-and-computer-use)タブに存在する Claude との永続的な会話です。Dispatch にタスクをメッセージで送信すると、それをどのように処理するかを決定します。
 
-タスクは 2 つの方法で Code セッションになります：'Claude Code セッションを開いてログインバグを修正する'など直接要求するか、Dispatch がタスクが開発作業であると判断して自動的に生成するかです。通常 Code にルーティングされるタスクには、バグの修正、依存関係の更新、テストの実行、またはプルリクエストの開くが含まれます。研究、ドキュメント編集、スプレッドシート作業は Cowork に留まります。
+タスクは 2 つの方法で Code セッションになります：「Claude Code セッションを開いてログインバグを修正する」など直接要求するか、Dispatch がタスクが開発作業であると判断して自動的に生成するかです。通常 Code にルーティングされるタスクには、バグの修正、依存関係の更新、テストの実行、またはプルリクエストの開くが含まれます。研究、ドキュメント編集、スプレッドシート作業は Cowork に留まります。
 
 どちらの方法でも、Code セッションは Code タブのサイドバーに**Dispatch**バッジ付きで表示されます。完了したときまたは承認が必要なときに、電話でプッシュ通知を受け取ります。
 
@@ -378,7 +388,7 @@ Claude が別のポートを選択すると、割り当てられたポートを`
 
 Claude Code offers three ways to schedule recurring work:
 
-| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop#schedule-recurring-tasks) | [`/loop`](/en/scheduled-tasks) |
+| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop-scheduled-tasks) | [`/loop`](/en/scheduled-tasks) |
 | :- | :- | :- | :- |
 | Runs on | Anthropic cloud | Your machine | Your machine |
 | Requires machine on | No | Yes | Yes |
@@ -600,7 +610,7 @@ Desktop と CLI は同じ設定ファイルを読み取るため、セットア�
 | セッション分離 | [`--worktree`](/ja/cli-reference)フラグ | 自動 worktrees |
 | 複数セッション | 別のターミナル | サイドバータブ |
 | 定期的なタスク | cron ジョブ、CI パイプライン | [スケジュール済みタスク](#schedule-recurring-tasks) |
-| コンピュータ使用 | 利用できません | macOS での[アプリとスクリーン制御](#let-claude-use-your-computer) |
+| コンピュータ使用 | macOS での[アプリとスクリーン制御](#let-claude-use-your-computer) | macOS での[アプリとスクリーン制御](#let-claude-use-your-computer) |
 | Dispatch 統合 | 利用できません | サイドバーの[Dispatch セッション](#sessions-from-dispatch) |
 | スクリプトと自動化 | [`--print`](/ja/cli-reference)、[Agent SDK](/ja/headless) | 利用できません |
 

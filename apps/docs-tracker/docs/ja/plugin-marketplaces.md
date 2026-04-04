@@ -534,6 +534,8 @@ add コマンドの完全な範囲（GitHub、Git URL、ローカルパス、リ
 
 完全な設定オプションについては、[プラグイン設定](/ja/settings#plugin-settings)を参照してください。
 
+ローカル `directory` または `file` ソースを相対パスで使用する場合、パスはリポジトリのメインチェックアウトに対して解決されます。Git worktree から Claude Code を実行する場合、パスはメインチェックアウトを指し続けるため、すべての worktree は同じマーケットプレイスロケーションを共有します。マーケットプレイス状態は、プロジェクトごとではなく、ユーザーごとに 1 回 `~/.claude/plugins/known_marketplaces.json` に保存されます。
+
 ### コンテナ用にプラグインを事前入力する
 
 コンテナイメージと CI 環境の場合、ビルド時にプラグインディレクトリを事前入力して、Claude Code が実行時にクローンすることなく、マーケットプレイスとプラグインが既に利用可能な状態で起動するようにできます。`CLAUDE_CODE_PLUGIN_SEED_DIR` 環境変数をこのディレクトリを指すように設定します。
@@ -604,7 +606,7 @@ $CLAUDE_CODE_PLUGIN_SEED_DIR/
 }
 ```
 
-ホストの正規表現パターンマッチングを使用して、内部 Git サーバーからのすべてのマーケットプレイスを許可する：
+ホストの正規表現パターンマッチングを使用して、内部 Git サーバーからのすべてのマーケットプレイスを許可する。これは [GitHub Enterprise Server](/ja/github-enterprise-server#plugin-marketplaces-on-ghes) または自己ホスト型 GitLab インスタンスの推奨アプローチです。
 
 ```json
 {
@@ -820,6 +822,20 @@ claude plugin validate .
 - GitLab の場合、トークンが少なくとも `read_repository` スコープを持つことを確認します
 - トークンが期限切れになっていないことを確認します
 
+### オフライン環境でマーケットプレイス更新が失敗する
+
+**症状**：マーケットプレイス `git pull` が失敗し、Claude Code が既存のキャッシュをワイプするため、プラグインが利用不可になります。
+
+**原因**：デフォルトでは、`git pull` が失敗すると、Claude Code は古いクローンを削除して再クローンを試みます。オフラインまたはエアギャップ環境では、再クローンが同じ方法で失敗し、マーケットプレイスディレクトリが空になります。
+
+**解決策**：`CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` を設定して、プルが失敗したときにワイプする代わりに既存のキャッシュを保持します。
+
+```bash
+export CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1
+```
+
+この変数を設定すると、Claude Code は `git pull` 失敗時に古いマーケットプレイスクローンを保持し、最後の既知の良好な状態を使用し続けます。リポジトリに到達できないオフライン展開の場合は、代わりに [`CLAUDE_CODE_PLUGIN_SEED_DIR`](#pre-populate-plugins-for-containers) を使用してビルド時にプラグインディレクトリを事前入力します。
+
 ### Git 操作がタイムアウトする
 
 **症状**：プラグインインストールまたはマーケットプレイス更新が「Git clone timed out after 120s」または「Git pull timed out after 120s」などのタイムアウトエラーで失敗します。
@@ -829,7 +845,7 @@ claude plugin validate .
 **解決策**：`CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS` 環境変数を使用してタイムアウトを増やします。値はミリ秒単位です。
 
 ```bash
-export CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS=300000  # 5 minutes
+export CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS=300000  # 5 分
 ```
 
 ### 相対パスを持つプラグインが URL ベースのマーケットプレイスで失敗する

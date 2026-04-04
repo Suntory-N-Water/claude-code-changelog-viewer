@@ -13,17 +13,17 @@ Desktop adds these capabilities on top of the standard Claude Code experience:
 
 - [Visual diff review](#review-changes-with-diff-view) with inline comments
 - [Live app preview](#preview-your-app) with dev servers
-- [Computer use](#let-claude-use-your-computer) to open apps and control your screen on macOS
+- [Computer use](#let-claude-use-your-computer) to open apps and control your screen on macOS and Windows
 - [GitHub PR monitoring](#monitor-pull-request-status) with auto-fix and auto-merge
 - [Parallel sessions](#work-in-parallel-with-sessions) with automatic Git worktree isolation
 - [Dispatch](#sessions-from-dispatch) integration: send a task from your phone, get a session here
-- [Scheduled tasks](#schedule-recurring-tasks) that run Claude on a recurring schedule
+- [Scheduled tasks](/en/desktop-scheduled-tasks) that run Claude on a recurring schedule
 - [Connectors](#connect-external-tools) for GitHub, Slack, Linear, and more
 - Local, [SSH](#ssh-sessions), and [cloud](#run-long-running-tasks-remotely) environments
 
 New to Desktop? Start with [Get started](/en/desktop-quickstart) to install the app and make your first edit.
 
-This page covers [working with code](#work-with-code), [computer use](#let-claude-use-your-computer), [managing sessions](#manage-sessions), [extending Claude Code](#extend-claude-code), [scheduled tasks](#schedule-recurring-tasks), and [configuration](#environment-configuration). It also includes a [CLI comparison](#coming-from-the-cli) and [troubleshooting](#troubleshooting).
+This page covers [working with code](#work-with-code), [computer use](#let-claude-use-your-computer), [managing sessions](#manage-sessions), [extending Claude Code](#extend-claude-code), and [configuration](#environment-configuration). It also includes a [CLI comparison](#coming-from-the-cli) and [troubleshooting](#troubleshooting).
 
 ## Start a session
 
@@ -62,7 +62,7 @@ Permission modes control how much autonomy Claude has during a session: whether 
 | **Ask permissions** | `default` | Claude asks before editing files or running commands. You see a diff and can accept or reject each change. Recommended for new users. |
 | **Auto accept edits** | `acceptEdits` | Claude auto-accepts file edits but still asks before running terminal commands. Use this when you trust file changes and want faster iteration. |
 | **Plan mode** | `plan` | Claude analyzes your code and creates a plan without modifying files or running commands. Good for complex tasks where you want to review the approach first. |
-| **Auto** | `auto` | Claude executes all actions with background safety checks that verify alignment with your request. Reduces permission prompts while maintaining oversight. Currently a research preview. Available on Team plans (Enterprise rolling out shortly). Requires Claude Sonnet 4.6 or Opus 4.6. Enable in your Settings → Claude Code. |
+| **Auto** | `auto` | Claude executes all actions with background safety checks that verify alignment with your request. Reduces permission prompts while maintaining oversight. Currently a research preview. Available on Team, Enterprise, and API plans. Requires Claude Sonnet 4.6 or Opus 4.6. Enable in your Settings → Claude Code. |
 | **Bypass permissions** | `bypassPermissions` | Claude runs without any permission prompts, equivalent to `--dangerously-skip-permissions` in the CLI. Enable in your Settings → Claude Code under "Allow bypass permissions mode". Only use this in sandboxed containers or VMs. Enterprise admins can disable this option. |
 
 The `dontAsk` permission mode is available only in the [CLI](/en/permission-modes#allow-only-pre-approved-tools-with-dontask-mode).
@@ -121,11 +121,11 @@ PR monitoring requires the [GitHub CLI (`gh`)](https://cli.github.com/) to be in
 
 ## Let Claude use your computer
 
-Computer use lets Claude open your apps, control your screen, and work directly on your machine the way you would. Ask Claude to test a native app in the iOS simulator, interact with a desktop tool that has no CLI, or automate something that only works through a GUI.
+Computer use lets Claude open your apps, control your screen, and work directly on your machine the way you would. Ask Claude to test a native app in a mobile simulator, interact with a desktop tool that has no CLI, or automate something that only works through a GUI.
 
-Computer use is a research preview on macOS that requires a Pro or Max plan. It is not available on Team or Enterprise plans. The Claude Desktop app must be running.
+Computer use is a research preview on macOS and Windows that requires a Pro or Max plan. It is not available on Team or Enterprise plans. The Claude Desktop app must be running.
 
-Computer use is off by default. [Enable it in Settings](#enable-computer-use) and grant the required macOS permissions before Claude can control your screen.
+Computer use is off by default. [Enable it in Settings](#enable-computer-use) before Claude can control your screen. On macOS, you also need to grant Accessibility and Screen Recording permissions.
 
 Unlike the [sandboxed Bash tool](/en/sandboxing), computer use runs on your actual desktop with access to whatever you approve. Claude checks each action and flags potential prompt injection from on-screen content, but the trust boundary is different. See the [computer use safety guide](https://support.claude.com/en/articles/14128542) for best practices.
 
@@ -138,11 +138,19 @@ Claude has several ways to interact with an app or service, and computer use is 
 - If the task is browser work and you have [Claude in Chrome](/en/chrome) set up, Claude uses that.
 - If none of those apply, Claude uses computer use.
 
-The [per-app access tiers](#app-permissions) reinforce this: browsers are capped at view-only, and terminals and IDEs at click-only, steering Claude toward the dedicated tool even when computer use is active. Screen control is reserved for things nothing else can reach, like native apps, hardware control panels, the iOS simulator, or proprietary tools without an API.
+The [per-app access tiers](#app-permissions) reinforce this: browsers are capped at view-only, and terminals and IDEs at click-only, steering Claude toward the dedicated tool even when computer use is active. Screen control is reserved for things nothing else can reach, like native apps, hardware control panels, mobile simulators, or proprietary tools without an API.
 
 ### Enable computer use
 
-Computer use is off by default. If you ask Claude to do something that needs it while it's off, Claude tells you it could do the task if you enable computer use in Settings. To enable it, open **Settings > Desktop app > General** and toggle **Computer use** on. Before the toggle takes effect, you need to grant two macOS system permissions:
+Computer use is off by default. If you ask Claude to do something that needs it while it's off, Claude tells you it could do the task if you enable computer use in Settings.
+
+Make sure you have the latest version of Claude Desktop. Download or update at [claude.com/download](https://claude.com/download), then restart the app.
+
+In the desktop app, go to **Settings > General** (under **Desktop app**). Find the **Computer use** toggle and turn it on. On Windows, the toggle takes effect immediately and setup is complete. On macOS, continue to the next step.
+
+If you don't see the toggle, confirm you're on macOS or Windows with a Pro or Max plan, then update and restart the app.
+
+On macOS, grant two system permissions before the toggle takes effect:
 
 - **Accessibility**: lets Claude click, type, and scroll
 - **Screen Recording**: lets Claude see what's on your screen
@@ -161,9 +169,9 @@ The prompt also shows what level of control Claude gets for that app. These tier
 | Click only | Click and scroll, but not type or use keyboard shortcuts | Terminals, IDEs |
 | Full control | Click, type, drag, and use keyboard shortcuts | Everything else |
 
-Apps with broad reach like Terminal, Finder, and System Settings show an extra warning in the prompt so you know what approving them grants.
+Apps with broad reach, like terminals, Finder or File Explorer, and System Settings or Settings, show an extra warning in the prompt so you know what approving them grants.
 
-You can configure two settings in **Settings > Desktop app > General**:
+You can configure two settings in **Settings > General** (under **Desktop app**):
 
 - **Denied apps**: add apps here to reject them without prompting. Claude may still affect a denied app indirectly through actions in an allowed app, but it can't interact with the denied app directly.
 - **Unhide apps when Claude finishes**: while Claude is working, your other windows are hidden so it interacts with only the approved app. When Claude finishes, hidden windows are restored unless you turn this setting off.
@@ -229,7 +237,7 @@ Connectors are [MCP servers](/en/mcp) with a graphical setup flow. Use them for 
 
 ### Use skills
 
-[Skills](/en/skills) extend what Claude can do. Claude loads them automatically when relevant, or you can invoke one directly: type `/` in the prompt box or click the **+** button and select **Slash commands** to browse what's available. This includes [built-in commands](/en/commands), your [custom skills](/en/skills#create-custom-skills), project skills from your codebase, and skills from any [installed plugins](/en/plugins). Select one and it appears highlighted in the input field. Type your task after it and send as usual.
+[Skills](/en/skills) extend what Claude can do. Claude loads them automatically when relevant, or you can invoke one directly: type `/` in the prompt box or click the **+** button and select **Slash commands** to browse what's available. This includes [built-in commands](/en/commands), your [custom skills](/en/skills#create-your-first-skill), project skills from your codebase, and skills from any [installed plugins](/en/plugins). Select one and it appears highlighted in the input field. Type your task after it and send as usual.
 
 ### Install plugins
 
@@ -372,95 +380,6 @@ To run a Node.js script directly instead of using a package manager command, use
 }
 ```
 
-## Schedule recurring tasks
-
-By default, scheduled tasks start a new session automatically at a time and frequency you choose. Use them for recurring work like daily code reviews, dependency update checks, or morning briefings that pull from your calendar and inbox.
-
-### Compare scheduling options
-
-Claude Code offers three ways to schedule recurring work:
-
-| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop#schedule-recurring-tasks) | [`/loop`](/en/scheduled-tasks) |
-| :- | :- | :- | :- |
-| Runs on | Anthropic cloud | Your machine | Your machine |
-| Requires machine on | No | Yes | Yes |
-| Requires open session | No | No | Yes |
-| Persistent across restarts | Yes | Yes | No (session-scoped) |
-| Access to local files | No (fresh clone) | Yes | Yes |
-| MCP servers | Connectors configured per task | [Config files](/en/mcp) and connectors | Inherits from session |
-| Permission prompts | No (runs autonomously) | Configurable per task | Inherits from session |
-| Customizable schedule | Via `/schedule` in the CLI | Yes | Yes |
-| Minimum interval | 1 hour | 1 minute | 1 minute |
-
-Use **cloud tasks** for work that should run reliably without your machine. Use **Desktop tasks** when you need access to local files and tools. Use **`/loop`** for quick polling during a session.
-
-The Schedule page supports two kinds of tasks:
-
-- **Local tasks**: run on your machine. They have direct access to your local files and tools, but the desktop app must be open and your computer awake for them to run.
-- **Remote tasks**: run on Anthropic-managed cloud infrastructure. They keep running even when your computer is off, but work against a fresh clone of your repository rather than your local checkout.
-
-Both kinds appear in the same task grid. Click **New task** to pick which kind to create. The rest of this section covers local tasks; for remote tasks, see [Cloud scheduled tasks](/en/web-scheduled-tasks).
-
-See [How scheduled tasks run](#how-scheduled-tasks-run) for details on missed runs and catch-up behavior for local tasks.
-
-By default, local scheduled tasks run against whatever state your working directory is in, including uncommitted changes. Enable the worktree toggle in the prompt input to give each run its own isolated Git worktree, the same way [parallel sessions](#work-in-parallel-with-sessions) work.
-
-To create a local scheduled task, click **Schedule** in the sidebar, click **New task**, and choose **New local task**. Configure these fields:
-
-| Field | Description |
-| - | - |
-| Name | Identifier for the task. Converted to lowercase kebab-case and used as the folder name on disk. Must be unique across your tasks. |
-| Description | Short summary shown in the task list. |
-| Prompt | The instructions sent to Claude when the task runs. Write this the same way you'd write any message in the prompt box. The prompt input also includes controls for model, permission mode, working folder, and worktree. |
-| Frequency | How often the task runs. See [frequency options](#frequency-options) below. |
-
-You can also create a task by describing what you want in any session. For example, "set up a daily code review that runs every morning at 9am."
-
-### Frequency options
-
-- **Manual**: no schedule, only runs when you click **Run now**. Useful for saving a prompt you trigger on demand
-- **Hourly**: runs every hour. Each task gets a fixed offset of up to 10 minutes from the top of the hour to stagger API traffic
-- **Daily**: shows a time picker, defaults to 9:00 AM local time
-- **Weekdays**: same as Daily but skips Saturday and Sunday
-- **Weekly**: shows a time picker and a day picker
-
-For intervals the picker doesn't offer (every 15 minutes, first of each month, etc.), ask Claude in any Desktop session to set the schedule. Use plain language; for example, "schedule a task to run all the tests every 6 hours."
-
-### How scheduled tasks run
-
-Local scheduled tasks run on your machine. Desktop checks the schedule every minute while the app is open and starts a fresh session when a task is due, independent of any manual sessions you have open. Each task gets a fixed delay of up to 10 minutes after the scheduled time to stagger API traffic. The delay is deterministic: the same task always starts at the same offset.
-
-When a task fires, you get a desktop notification and a new session appears under a **Scheduled** section in the sidebar. Open it to see what Claude did, review changes, or respond to permission prompts. The session works like any other: Claude can edit files, run commands, create commits, and open pull requests.
-
-Tasks only run while the desktop app is running and your computer is awake. If your computer sleeps through a scheduled time, the run is skipped. To prevent idle-sleep, enable **Keep computer awake** in Settings under **Desktop app → General**. Closing the laptop lid still puts it to sleep. For tasks that need to run even when your computer is off, use a [remote task](/en/web-scheduled-tasks) instead.
-
-### Missed runs
-
-When the app starts or your computer wakes, Desktop checks whether each task missed any runs in the last seven days. If it did, Desktop starts exactly one catch-up run for the most recently missed time and discards anything older. A daily task that missed six days runs once on wake. Desktop shows a notification when a catch-up run starts.
-
-Keep this in mind when writing prompts. A task scheduled for 9am might run at 11pm if your computer was asleep all day. If timing matters, add guardrails to the prompt itself, for example: "Only review today's commits. If it's after 5pm, skip the review and just post a summary of what was missed."
-
-### Permissions for scheduled tasks
-
-Each task has its own permission mode, which you set when creating or editing the task. Allow rules from `~/.claude/settings.json` also apply to scheduled task sessions. If a task runs in Ask mode and needs to run a tool it doesn't have permission for, the run stalls until you approve it. The session stays open in the sidebar so you can answer later.
-
-To avoid stalls, click **Run now** after creating a task, watch for permission prompts, and select "always allow" for each one. Future runs of that task auto-approve the same tools without prompting. You can review and revoke these approvals from the task's detail page.
-
-### Manage scheduled tasks
-
-Click a task in the **Schedule** list to open its detail page. From here you can:
-
-- **Run now**: start the task immediately without waiting for the next scheduled time
-- **Toggle repeats**: pause or resume scheduled runs without deleting the task
-- **Edit**: change the prompt, frequency, folder, or other settings
-- **Review history**: see every past run, including ones that were skipped because your computer was asleep
-- **Review allowed permissions**: see and revoke saved tool approvals for this task from the **Always allowed** panel
-- **Delete**: remove the task and archive all sessions it created
-
-You can also manage tasks by asking Claude in any Desktop session. For example, "pause my dependency-audit task", "delete the standup-prep task", or "show me my scheduled tasks."
-
-To edit a task's prompt on disk, open `~/.claude/scheduled-tasks/<task-name>/SKILL.md` (or under [`CLAUDE_CONFIG_DIR`](/en/env-vars) if set). The file uses YAML frontmatter for `name` and `description`, with the prompt as the body. Changes take effect on the next run. Schedule, folder, model, and enabled state are not in this file: change them through the Edit form or ask Claude.
-
 ## Environment configuration
 
 The environment you pick when [starting a session](#start-a-session) determines where Claude executes and how you connect:
@@ -498,7 +417,7 @@ Claude Code must be installed on the remote machine. Once connected, SSH session
 
 ## Enterprise configuration
 
-Organizations on Teams or Enterprise plans can manage desktop app behavior through admin console controls, managed settings files, and device management policies.
+Organizations on Team or Enterprise plans can manage desktop app behavior through admin console controls, managed settings files, and device management policies.
 
 ### Admin console controls
 
@@ -578,7 +497,7 @@ This table shows the desktop app equivalent for common CLI flags. Flags not list
 
 Desktop and CLI read the same configuration files, so your setup carries over:
 
-- **[CLAUDE.md](/en/memory)** files in your project are used by both
+- **[CLAUDE.md](/en/memory)** and `CLAUDE.local.md` files in your project are used by both
 - **[MCP servers](/en/mcp)** configured in `~/.claude.json` or `.mcp.json` work in both
 - **[Hooks](/en/hooks)** and **[skills](/en/skills)** defined in settings apply to both
 - **[Settings](/en/settings)** in `~/.claude.json` and `~/.claude/settings.json` are shared. Permission rules, allowed tools, and other settings in `settings.json` apply to Desktop sessions.
@@ -601,8 +520,8 @@ This table compares core capabilities between the CLI and Desktop. For a full li
 | File attachments | Not available | Images, PDFs |
 | Session isolation | [`--worktree`](/en/cli-reference) flag | Automatic worktrees |
 | Multiple sessions | Separate terminals | Sidebar tabs |
-| Recurring tasks | Cron jobs, CI pipelines | [Scheduled tasks](#schedule-recurring-tasks) |
-| Computer use | Not available | [App and screen control](#let-claude-use-your-computer) on macOS |
+| Recurring tasks | Cron jobs, CI pipelines | [Scheduled tasks](/en/desktop-scheduled-tasks) |
+| Computer use | [Enable via `/mcp`](/en/computer-use) on macOS | [App and screen control](#let-claude-use-your-computer) on macOS and Windows |
 | Dispatch integration | Not available | [Dispatch sessions](#sessions-from-dispatch) in the sidebar |
 | Scripting and automation | [`--print`](/en/cli-reference), [Agent SDK](/en/headless) | Not available |
 
@@ -631,7 +550,7 @@ Click the version number to copy it to your clipboard.
 If you see `Error 403: Forbidden` or other authentication failures when using the Code tab:
 
 1. Sign out and back in from the app menu. This is the most common fix.
-2. Verify you have an active paid subscription: Pro, Max, Teams, or Enterprise.
+2. Verify you have an active paid subscription: Pro, Max, Team, or Enterprise.
 3. If the CLI works but Desktop does not, quit the desktop app completely, not just close the window, then reopen and sign in again.
 4. Check your internet connection and proxy settings.
 

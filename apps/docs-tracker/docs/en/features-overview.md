@@ -179,7 +179,7 @@ Each feature loads at different points in your session. The tabs below explain w
 
 **Inheritance:** Claude reads CLAUDE.md files from your working directory up to the root, and discovers nested ones in subdirectories as it accesses those files. See [How CLAUDE.md files load](/en/memory#how-claude-md-files-load) for details.
 
-Keep CLAUDE.md under \~500 lines. Move reference material to skills, which load on-demand.
+Keep CLAUDE.md under 200 lines. Move reference material to skills, which load on-demand.
 
 Skills are extra capabilities in Claude's toolkit. They can be reference material (like an API style guide) or invocable workflows you trigger with `/<name>` (like `/deploy`). Claude Code ships with [bundled skills](/en/skills#bundled-skills) like `/simplify`, `/batch`, and `/debug` that work out of the box. You can also create your own. Claude uses skills when appropriate, or you can invoke one directly.
 

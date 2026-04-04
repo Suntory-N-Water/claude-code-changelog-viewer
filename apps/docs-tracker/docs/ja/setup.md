@@ -30,7 +30,7 @@ Claude Code は以下のプラットフォームと構成で実行されます�
 
 ## Claude Code をインストール
 
-グラフィカルインターフェースをお好みですか？[Desktop app](/ja/desktop-quickstart)を使用すると、ターミナルなしで Claude Code を使用できます。[macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)または[Windows](https://claude.ai/api/desktop/win32/x64/exe/latest/redirect?utm_source=claude_code\&utm_medium=docs)でダウンロードしてください。
+グラフィカルインターフェースをお好みですか？[Desktop app](/ja/desktop-quickstart)を使用すると、ターミナルなしで Claude Code を使用できます。[macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)または[Windows](https://claude.com/download?utm_source=claude_code\&utm_medium=docs)でダウンロードしてください。
 
 ターミナルは初めてですか？[ターミナルガイド](/ja/terminal-guide)で段階的な手順を参照してください。
 
@@ -53,6 +53,8 @@ irm https://claude.ai/install.ps1 | iex
 ```batch theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
+
+If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. Use the PowerShell command above instead. Your prompt shows `PS C:\` when you're in PowerShell.
 
 **Windows requires [Git for Windows](https://git-scm.com/downloads/win).** Install it first if you don't have it.
 
@@ -96,6 +98,8 @@ Claude Code が Git Bash インストールを見つけられない場合は、[
 }
 ```
 
+Claude Code は Windows でネイティブに PowerShell を実行することもできます（オプトインプレビュー）。セットアップと制限については、[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください。
+
 **オプション 2: WSL**
 
 WSL 1 と WSL 2 の両方がサポートされています。WSL 2 は強化されたセキュリティのための[サンドボックス](/ja/sandboxing)をサポートしています。WSL 1 はサンドボックスをサポートしていません。
@@ -136,7 +140,7 @@ claude doctor
 
 ## 認証
 
-Claude Code には、Pro、Max、Teams、Enterprise、または Console アカウントが必要です。無料の Claude.ai プランには Claude Code アクセスは含まれていません。[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、または[Microsoft Foundry](/ja/microsoft-foundry)などのサードパーティ API プロバイダーで Claude Code を使用することもできます。
+Claude Code には、Pro、Max、Team、Enterprise、または Console アカウントが必要です。無料の Claude.ai プランには Claude Code アクセスは含まれていません。[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、または[Microsoft Foundry](/ja/microsoft-foundry)などのサードパーティ API プロバイダーで Claude Code を使用することもできます。
 
 インストール後、`claude` を実行してブラウザーのプロンプトに従ってログインします。すべてのアカウントタイプとチームセットアップオプションについては、[認証](/ja/authentication)を参照してください。
 
@@ -230,15 +234,15 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd stable &&
 特定のバージョン番号をインストールするには:
 
 ```bash theme={null}
-curl -fsSL https://claude.ai/install.sh | bash -s 1.0.58
+curl -fsSL https://claude.ai/install.sh | bash -s 2.1.89
 ```
 
 ```powershell theme={null}
-& ([scriptblock]::Create((irm https://claude.ai/install.ps1))) 1.0.58
+& ([scriptblock]::Create((irm https://claude.ai/install.ps1))) 2.1.89
 ```
 
 ```batch theme={null}
-curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd 1.0.58 && del install.cmd
+curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd 2.1.89 && del install.cmd
 ```
 
 ### 非推奨の npm インストール
@@ -271,12 +275,72 @@ npm install -g @anthropic-ai/claude-code
 
 ### バイナリ整合性とコード署名
 
-SHA256 チェックサムとコード署名を使用して Claude Code バイナリの整合性を検証できます。
+各リリースは、すべてのプラットフォームバイナリの SHA256 チェックサムを含む `manifest.json` を公開します。マニフェストは Anthropic GPG キーで署名されているため、マニフェスト上の署名を検証することで、それが列挙するすべてのバイナリを推移的に検証します。
 
-- すべてのプラットフォームの SHA256 チェックサムは、`https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{VERSION}/manifest.json` のリリースマニフェストで公開されています。`{VERSION}` を `2.0.30` などのバージョン番号に置き換えます。
-- 署名付きバイナリは以下のプラットフォーム用に配布されています。
-  - **macOS**: "Anthropic PBC" によって署名され、Apple によって公証されています
-  - **Windows**: "Anthropic, PBC" によって署名されています
+#### マニフェスト署名を検証
+
+ステップ 1～3 には、`gpg` と `curl` を備えた POSIX シェルが必要です。Windows では、Git Bash または WSL で実行します。ステップ 4 には PowerShell オプションが含まれています。
+
+リリース署名キーは固定 URL で公開されています。
+
+```bash theme={null}
+curl -fsSL https://downloads.claude.ai/keys/claude-code.asc | gpg --import
+```
+
+インポートされたキーのフィンガープリントを表示します。
+
+```bash theme={null}
+gpg --fingerprint security@anthropic.com
+```
+
+出力にこのフィンガープリントが含まれていることを確認します。
+
+```text theme={null}
+31DD DE24 DDFA B679 F42D  7BD2 BAA9 29FF 1A7E CACE
+```
+
+`VERSION` を検証するリリースに設定します。
+
+```bash theme={null}
+REPO=https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases
+VERSION=2.1.89
+curl -fsSLO "$REPO/$VERSION/manifest.json"
+curl -fsSLO "$REPO/$VERSION/manifest.json.sig"
+```
+
+マニフェストに対して分離された署名を検証します。
+
+```bash theme={null}
+gpg --verify manifest.json.sig manifest.json
+```
+
+有効な結果は `Good signature from "Anthropic Claude Code Release Signing <security@anthropic.com>"` を報告します。
+
+`gpg` は新しくインポートされたキーに対して `WARNING: This key is not certified with a trusted signature!` も出力します。これは予想されています。`Good signature` 行は暗号化チェックが成功したことを確認します。ステップ 1 のフィンガープリント比較はキー自体が本物であることを確認します。
+
+ダウンロードしたバイナリの SHA256 チェックサムを `manifest.json` の `platforms.<platform>.checksum` の下にリストされている値と比較します。
+
+```bash theme={null}
+sha256sum claude
+```
+
+```bash theme={null}
+shasum -a 256 claude
+```
+
+```powershell theme={null}
+(Get-FileHash claude.exe -Algorithm SHA256).Hash.ToLower()
+```
+
+マニフェスト署名は `2.1.89` 以降のリリースで利用可能です。以前のリリースは分離された署名なしで `manifest.json` にチェックサムを公開します。
+
+#### プラットフォームコード署名
+
+署名付きマニフェストに加えて、個別のバイナリはサポートされている場所でプラットフォーム固有のコード署名を実行します。
+
+- **macOS**: "Anthropic PBC" によって署名され、Apple によって公証されています。`codesign --verify --verbose ./claude` で検証します。
+- **Windows**: "Anthropic, PBC" によって署名されています。`Get-AuthenticodeSignature .\claude.exe` で検証します。
+- **Linux**: 上記のマニフェスト署名を使用して整合性を検証します。Linux バイナリは個別にコード署名されていません。
 
 ## Claude Code をアンインストール
 

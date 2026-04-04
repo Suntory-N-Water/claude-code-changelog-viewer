@@ -34,10 +34,14 @@ Claude Code 内で `/terminal-setup` を実行して、VS Code、Alacritty、Zed
 1. 設定 → プロファイル → キーボードを開く
 2. 「Option キーを Meta キーとして使用」をチェックする
 
-**iTerm2 および VS Code ターミナルの場合：**
+**iTerm2 の場合：**
 
 1. 設定 → プロファイル → キーを開く
 2. 「一般」で、左右の Option キーを「Esc+」に設定する
+
+**VS Code ターミナルの場合：**
+
+VS Code 設定で `"terminal.integrated.macOptionIsMeta": true` を設定します。
 
 ### 通知設定
 
@@ -53,11 +57,23 @@ Kitty と Ghostty は追加設定なしでデスクトップ通知をサポー�
 
 通知が表示されない場合は、ターミナルアプリが OS 設定で通知権限を持っていることを確認してください。
 
+Claude Code を tmux 内で実行する場合、通知と[ターミナルプログレスバー](/ja/settings#global-config-settings)は、tmux 設定でパススルーを有効にした場合にのみ、iTerm2、Kitty、または Ghostty などの外側のターミナルに到達します。
+
+```
+set -g allow-passthrough on
+```
+
+この設定がない場合、tmux はエスケープシーケンスをインターセプトし、ターミナルアプリケーションに到達しません。
+
 デフォルトの macOS Terminal を含む他のターミナルは、ネイティブ通知をサポートしていません。代わりに[通知フック](/ja/hooks#notification)を使用してください。
 
 #### 通知フック
 
 サウンドを再生したりメッセージを送信したりするなど、通知が発火したときにカスタム動作を追加するには、[通知フック](/ja/hooks#notification)を設定してください。フックはターミナル通知と並行して実行され、置き換えではありません。
+
+### ちらつきとメモリ使用量を削減する
+
+長いセッション中にちらつきが見られる場合、または Claude が作業中にターミナルのスクロール位置が上部にジャンプする場合は、[フルスクリーンレンダリング](/ja/fullscreen)を試してください。メモリを一定に保ち、マウスサポートを追加する別のレンダリングパスを使用します。`CLAUDE_CODE_NO_FLICKER=1` で有効にします。
 
 ### 大量入力の処理
 
@@ -69,7 +85,7 @@ Kitty と Ghostty は追加設定なしでデスクトップ通知をサポー�
 
 ### Vim モード
 
-Claude Code は `/vim` で有効にするか、`/config` 経由で設定できる Vim キーバインディングのサブセットをサポートしています。
+Claude Code は `/vim` で有効にするか、`/config` 経由で設定できる Vim キーバインディングのサブセットをサポートしています。設定ファイルでモードを直接設定するには、`~/.claude.json` の [`editorMode`](/ja/settings#global-config-settings) グローバル設定キーを `"vim"` に設定します。
 
 サポートされているサブセットには以下が含まれます。
 

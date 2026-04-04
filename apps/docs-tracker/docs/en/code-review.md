@@ -7,13 +7,13 @@ source: https://code.claude.com/docs/en/code-review.md
 
 > Set up automated PR reviews that catch logic errors, security vulnerabilities, and regressions using multi-agent analysis of your full codebase
 
-Code Review is in research preview, available for [Teams and Enterprise](https://claude.ai/admin-settings/claude-code) subscriptions. It is not available for organizations with [Zero Data Retention](/en/zero-data-retention) enabled.
+Code Review is in research preview, available for [Team and Enterprise](https://claude.ai/admin-settings/claude-code) subscriptions. It is not available for organizations with [Zero Data Retention](/en/zero-data-retention) enabled.
 
 Code Review analyzes your GitHub pull requests and posts findings as inline comments on the lines of code where it found issues. A fleet of specialized agents examine the code changes in the context of your full codebase, looking for logic errors, security vulnerabilities, broken edge cases, and subtle regressions.
 
 Findings are tagged by severity and don't approve or block your PR, so existing review workflows stay intact. You can tune what Claude flags by adding a `CLAUDE.md` or `REVIEW.md` file to your repository.
 
-To run Claude in your own CI infrastructure instead of this managed service, see [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd).
+To run Claude in your own CI infrastructure instead of this managed service, see [GitHub Actions](/en/github-actions) or [GitLab CI/CD](/en/gitlab-ci-cd). For repositories on a self-hosted GitHub instance, see [GitHub Enterprise Server](/en/github-enterprise-server).
 
 This page covers:
 
@@ -22,6 +22,7 @@ This page covers:
 - [Triggering reviews manually](#manually-trigger-reviews) with `@claude review` and `@claude review once`
 - [Customizing reviews](#customize-reviews) with `CLAUDE.md` and `REVIEW.md`
 - [Pricing](#pricing)
+- [Troubleshooting](#troubleshooting) failed runs and missing comments
 
 ## How reviews work
 
@@ -52,7 +53,7 @@ Beyond the inline review comments, each review populates the **Claude Code Revie
 | 🔴 Important | `src/auth/session.ts:142` | Token refresh races with logout, leaving stale sessions active |
 | 🟡 Nit | `src/auth/session.ts:88` | `parseExpiry` silently returns 0 on malformed input |
 
-Each finding also appears as an annotation in the **Files changed** tab, marked directly on the relevant diff lines. Important findings render with a red marker, nits with a yellow warning, and pre-existing bugs with a gray notice.
+Each finding also appears as an annotation in the **Files changed** tab, marked directly on the relevant diff lines. Important findings render with a red marker, nits with a yellow warning, and pre-existing bugs with a gray notice. Annotations and the severity table are written to the check run independently of inline review comments, so they remain available even if GitHub rejects an inline comment on a line that moved.
 
 The check run always completes with a neutral conclusion so it never blocks merging through branch protection rules. If you want to gate merges on Code Review findings, read the severity breakdown from the check run output in your own CI. The last line of the Details text is a machine-readable comment your workflow can parse with `gh` and jq:
 
@@ -192,6 +193,26 @@ In any mode, commenting `@claude review` [opts the PR into push-triggered review
 Costs appear on your Anthropic bill regardless of whether your organization uses AWS Bedrock or Google Vertex AI for other Claude Code features. To set a monthly spend cap for Code Review, go to [claude.ai/admin-settings/usage](https://claude.ai/admin-settings/usage) and configure the limit for the Claude Code Review service.
 
 Monitor spend via the weekly cost chart in [analytics](#view-usage) or the per-repo average cost column in admin settings.
+
+## Troubleshooting
+
+Review runs are best-effort. A failed run never blocks your PR, but it also doesn't retry on its own. This section covers how to recover from a failed run and where to look when the check run reports issues you can't find.
+
+### Retrigger a failed or timed-out review
+
+When the review infrastructure hits an internal error or exceeds its time limit, the check run completes with a title of **Code review encountered an error** or **Code review timed out**. The conclusion is still neutral, so nothing blocks your merge, but no findings are posted.
+
+To run the review again, comment `@claude review once` on the PR. This starts a fresh review without subscribing the PR to future pushes. If the PR is already subscribed to push-triggered reviews, pushing a new commit also starts a new review.
+
+The **Re-run** button in GitHub's Checks tab does not retrigger Code Review. Use the comment command or a new push instead.
+
+### Find issues that aren't showing as inline comments
+
+If the check run title says issues were found but you don't see inline review comments on the diff, look in these other locations where findings are surfaced:
+
+- **Check run Details**: click **Details** next to the Claude Code Review check in the Checks tab. The severity table lists every finding with its file, line, and summary regardless of whether the inline comment was accepted.
+- **Files changed annotations**: open the **Files changed** tab on the PR. Findings render as annotations attached directly to the diff lines, separate from review comments.
+- **Review body**: if you pushed to the PR while a review was running, some findings may reference lines that no longer exist in the current diff. Those appear under an **Additional findings** heading in the review body text rather than as inline comments.
 
 ## Related resources
 

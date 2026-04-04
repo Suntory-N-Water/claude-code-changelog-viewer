@@ -115,6 +115,9 @@ export AWS_REGION=us-east-1  # または希望するリージョン
 
 # オプション：小型/高速モデル（Haiku）のリージョンをオーバーライド
 export ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION=us-west-2
+
+# オプション：カスタムエンドポイントまたはゲートウェイ用に Bedrock エンドポイント URL をオーバーライド
+# export ANTHROPIC_BEDROCK_BASE_URL=https://bedrock-runtime.us-east-1.amazonaws.com
 ```
 
 Claude Code で Bedrock を有効にする場合は、以下に注意してください。
@@ -141,7 +144,7 @@ Claude Code は、ピン留め変数が設定されていない場合、これ�
 
 | モデルタイプ | デフォルト値 |
 | :- | :- |
-| プライマリモデル | `global.anthropic.claude-sonnet-4-6` |
+| プライマリモデル | `us.anthropic.claude-sonnet-4-5-20250929-v1:0` |
 | 小型/高速モデル | `us.anthropic.claude-haiku-4-5-20251001-v1:0` |
 
 モデルをさらにカスタマイズするには、以下のいずれかの方法を使用します。
@@ -149,7 +152,7 @@ Claude Code は、ピン留め変数が設定されていない場合、これ�
 ```bash
 # 推論プロファイル ID を使用
 export ANTHROPIC_MODEL='global.anthropic.claude-sonnet-4-6'
-export ANTHROPIC_SMALL_FAST_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:0'
+export ANTHROPIC_DEFAULT_HAIKU_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:0'
 
 # アプリケーション推論プロファイル ARN を使用
 export ANTHROPIC_MODEL='arn:aws:bedrock:us-east-2:your-account-id:application-inference-profile/your-model-id'
@@ -224,6 +227,12 @@ Claude Code に必要な権限を持つ IAM ポリシーを作成します。
 
 コスト追跡とアクセス制御を簡素化するために、Claude Code 用の専用 AWS アカウントを作成してください。
 
+## 1M トークンコンテキストウィンドウ
+
+Claude Opus 4.6 および Sonnet 4.6 は、Amazon Bedrock で [1M トークンコンテキストウィンドウ](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Claude Code は、1M モデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
+
+ピン留めされたモデルの 1M コンテキストウィンドウを有効にするには、モデル ID に `[1m]` を追加します。詳細については、[Pin models for third-party deployments](/ja/model-config#pin-models-for-third-party-deployments) を参照してください。
+
 ## AWS Guardrails
 
 [Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) を使用すると、Claude Code のコンテンツフィルタリングを実装できます。[Amazon Bedrock コンソール](https://console.aws.amazon.com/bedrock/)で Guardrail を作成し、バージョンを公開してから、Guardrail ヘッダーを [settings file](/ja/settings) に追加します。クロスリージョン推論プロファイルを使用している場合は、Guardrail でクロスリージョン推論を有効にしてください。
@@ -239,6 +248,14 @@ Claude Code に必要な権限を持つ IAM ポリシーを作成します。
 ```
 
 ## トラブルシューティング
+
+### SSO と企業プロキシでの認証ループ
+
+AWS SSO を使用する場合にブラウザタブが繰り返し生成される場合は、[settings file](/ja/settings) から `awsAuthRefresh` 設定を削除してください。これは、企業 VPN または TLS 検査プロキシが SSO ブラウザフローを中断した場合に発生する可能性があります。Claude Code は中断された接続を認証失敗として扱い、`awsAuthRefresh` を再実行し、無限ループします。
+
+ネットワーク環境が自動ブラウザベースの SSO フローに干渉する場合は、`awsAuthRefresh` に依存する代わりに、Claude Code を開始する前に手動で `aws sso login` を使用してください。
+
+### リージョンの問題
 
 リージョンの問題が発生した場合：
 

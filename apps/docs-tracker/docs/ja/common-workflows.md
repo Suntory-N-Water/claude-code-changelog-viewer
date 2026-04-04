@@ -225,6 +225,8 @@ How should we handle database migration?
 
 `Ctrl+G` を押してデフォルトのテキストエディタで計画を開き、Claude が進める前に直接編集できます。
 
+計画を受け入れると、Claude は計画コンテンツからセッションに自動的に名前を付けます。名前はプロンプトバーとセッションピッカーに表示されます。既に `--name` または `/rename` で名前を設定している場合、計画を受け入れてもそれは上書きされません。
+
 ### Plan Mode をデフォルトとして設定する
 
 ```json
@@ -413,7 +415,7 @@ Show me the data from @github:repos/owner/repo/issues
 | **`ultrathink` キーワード** | プロンプトの任意の場所に「ultrathink」を含める | Opus 4.6 と Sonnet 4.6 でそのターンの努力を高に設定します。設定を永続的に変更せずに深い推論が必要な 1 回限りのタスクに便利です |
 | **トグルショートカット** | `Option+T`（macOS）または `Alt+T`（Windows/Linux）を押す | 現在のセッションの思考をオン/オフに切り替えます（すべてのモデル）。[ターミナル設定](/ja/terminal-config)を有効にして Option キーショートカットを有効にする必要がある場合があります |
 | **グローバルデフォルト** | `/config` を使用して思考モードをトグルする | すべてのプロジェクト全体でデフォルトを設定します（すべてのモデル）。`~/.claude/settings.json` に `alwaysThinkingEnabled` として保存されます |
-| **トークン予算を制限する** | [`MAX_THINKING_TOKENS`](/ja/env-vars)環境変数を設定する | 思考予算を特定のトークン数に制限します（Opus 4.6 と Sonnet 4.6 では 0 に設定されていない限り無視されます）。例：`export MAX_THINKING_TOKENS=10000` |
+| **トークン予算を制限する** | [`MAX_THINKING_TOKENS`](/ja/env-vars)環境変数を設定する | 思考予算を特定のトークン数に制限します。Opus 4.6 と Sonnet 4.6 では、適応的推論が無効になっていない限り `0` に設定されている場合のみ適用されます。例：`export MAX_THINKING_TOKENS=10000` |
 
 Claude の思考プロセスを表示するには、`Ctrl+O` を押して詳細モードをトグルし、グレーのイタリック体で表示される内部推論を確認します。
 
@@ -425,9 +427,9 @@ Claude の思考プロセスを表示するには、`Ctrl+O` を押して詳細�
 
 **他のモデルでは**、思考は出力予算から最大 31,999 トークンの固定予算を使用します。[`MAX_THINKING_TOKENS`](/ja/env-vars)環境変数でこれを制限するか、`/config` または `Option+T`/`Alt+T` トグルで思考を完全に無効にできます。
 
-`MAX_THINKING_TOKENS` は Opus 4.6 と Sonnet 4.6 では無視されます。適応的推論が思考の深さを制御するためです。1 つの例外：`MAX_THINKING_TOKENS=0` を設定すると、任意のモデルで思考が完全に無効になります。適応的思考を無効にして固定思考予算に戻すには、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を設定します。[環境変数](/ja/env-vars)を参照してください。
+Opus 4.6 と Sonnet 4.6 では、適応的推論が思考の深さを制御するため、`MAX_THINKING_TOKENS` は `0` に設定されている場合のみ適用されます。または `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` は、これらのモデルを固定予算に戻します。[環境変数](/ja/env-vars)を参照してください。
 
-Claude 4 モデルが要約された思考を表示していても、使用されたすべての思考トークンに対して課金されます
+思考の要約が編集されている場合でも、使用されたすべての思考トークンに対して課金されます。インタラクティブモードでは、思考はデフォルトで折りたたまれたスタブとして表示されます。`settings.json` で `showThinkingSummaries: true` を設定して、完全な要約を表示します。
 
 ***
 
@@ -441,7 +443,7 @@ Claude Code を開始するときは、以前のセッションを再開でき�
 
 アクティブなセッション内から、`/resume` を使用して別の会話に切り替えます。
 
-セッションはプロジェクトディレクトリごとに保存されます。`/resume` ピッカーは同じ git リポジトリからのセッションを表示します。これには worktree が含まれます。
+セッションはプロジェクトディレクトリごとに保存されます。`/resume` ピッカーは同じ git リポジトリからのインタラクティブセッションを表示します。これには worktree が含まれます。`claude -p` または SDK 呼び出しで作成されたセッションはピッカーに表示されませんが、セッション ID をそのまま `claude --resume <session-id>` に渡すことで再開できます。
 
 ### セッションに名前を付ける
 
@@ -500,7 +502,7 @@ claude --resume auth-refactor
 - メッセージ数
 - Git ブランチ（該当する場合）
 
-フォークされたセッション（`/rewind` または `--fork-session` で作成）はルートセッションの下にグループ化され、関連する会話を見つけやすくなります。
+フォークされたセッション（`/branch`、`/rewind`、または `--fork-session` で作成）はルートセッションの下にグループ化され、関連する会話を見つけやすくなります。
 
 ヒント：
 
@@ -543,7 +545,17 @@ claude --worktree bugfix-123
 claude --worktree
 ```
 
-Worktree は `<repo>/.claude/worktrees/<name>` に作成され、デフォルトのリモートブランチから分岐します。worktree ブランチは `worktree-<name>` という名前が付けられます。
+Worktree は `<repo>/.claude/worktrees/<name>` に作成され、デフォルトのリモートブランチから分岐します。これは `origin/HEAD` が指すところです。worktree ブランチは `worktree-<name>` という名前が付けられます。
+
+ベースブランチは Claude Code フラグまたは設定を通じて設定できません。`origin/HEAD` はクローン時に Git が設定したローカル `.git` ディレクトリに保存される参照です。リポジトリのデフォルトブランチが後で GitHub または GitLab で変更された場合、ローカル `origin/HEAD` は古いものを指し続け、worktree はそこから分岐します。ローカル参照をリモートが現在デフォルトと見なしているものと再同期するには：
+
+```bash
+git remote set-head origin -a
+```
+
+これは、ローカル `.git` ディレクトリのみを更新する標準 Git コマンドです。リモートサーバーでは何も変わりません。worktree が特定のブランチではなくリモートのデフォルトに基づくようにしたい場合は、`git remote set-head origin your-branch-name` で明示的に設定します。
+
+worktree の作成方法を完全に制御するには、[WorktreeCreate フック](/ja/hooks#worktreecreate)を設定します。フックは Claude Code のデフォルト `git worktree` ロジックを完全に置き換えるため、必要な ref から取得してブランチできます。
 
 セッション中に Claude に「work in a worktree」または「start a worktree」を依頼することもでき、自動的に作成されます。
 
@@ -561,6 +573,20 @@ worktree セッションを終了すると、Claude は変更があったかど�
 Claude セッション外で worktree をクリーンアップするには、[worktree を手動で管理](#manage-worktrees-manually)を使用します。
 
 `.claude/worktrees/` を `.gitignore` に追加して、worktree コンテンツがメインリポジトリに追跡されていないファイルとして表示されるのを防ぎます。
+
+### Worktree に gitignored ファイルをコピーする
+
+Git worktree は新しいチェックアウトなので、メインリポジトリから `.env` や `.env.local` などの追跡されていないファイルは含まれません。Claude が worktree を作成するときにこれらのファイルを自動的にコピーするには、プロジェクトルートに `.worktreeinclude` ファイルを追加します。
+
+ファイルは `.gitignore` 構文を使用して、コピーするファイルをリストします。パターンに一致し、gitignored されているファイルのみがコピーされるため、追跡されたファイルは決して複製されません。
+
+```text .worktreeinclude theme={null}
+.env
+.env.local
+config/secrets.json
+```
+
+これは `--worktree`、subagent worktree、および[デスクトップアプリ](/ja/desktop#work-in-parallel-with-sessions)の並列セッションで作成された worktree に適用されます。
 
 ### Worktree を手動で管理する
 
@@ -587,7 +613,7 @@ git worktree remove ../project-feature-a
 
 ### Git 以外のバージョン管理
 
-Worktree 分離はデフォルトで git で機能します。SVN、Perforce、Mercurial などの他のバージョン管理システムの場合は、[WorktreeCreate と WorktreeRemove フック](/ja/hooks#worktreecreate)を設定して、カスタム worktree 作成とクリーンアップロジックを提供します。設定されている場合、これらのフックは `--worktree` を使用するときにデフォルトの git 動作を置き換えます。
+Worktree 分離はデフォルトで git で機能します。SVN、Perforce、Mercurial などの他のバージョン管理システムの場合は、[WorktreeCreate と WorktreeRemove フック](/ja/hooks#worktreecreate)を設定して、カスタム worktree 作成とクリーンアップロジックを提供します。設定されている場合、これらのフックは `--worktree` を使用するときにデフォルトの git 動作を置き換えます。そのため、[`.worktreeinclude`](#copy-gitignored-files-to-worktrees)は処理されません。フックスクリプト内でローカル設定ファイルをコピーしてください。
 
 共有タスクとメッセージングを使用した並列セッションの自動調整については、[エージェントチーム](/ja/agent-teams)を参照してください。
 
@@ -709,7 +735,7 @@ cat build-error.txt | claude -p 'concisely explain the root cause of this build 
 
 - パイプを使用して Claude を既存のシェルスクリプトに統合する
 - 他の Unix ツールと組み合わせて強力なワークフローを作成する
-- 構造化出力に --output-format を使用することを検討する
+- 構造化出力に `--output-format` を使用することを検討する
 
 ### 出力形式を制御する
 
@@ -741,7 +767,24 @@ cat log.txt | claude -p 'parse this log file for errors' --output-format stream-
 
 ***
 
-## Claude の機能について質問する
+## Claude をスケジュールで実行する
+
+Claude に長時間実行されるタスクを自動的に定期的に処理させたいとします。例えば、毎朝オープン PR をレビューしたり、毎週依存関係を監査したり、夜間に CI の失敗をチェックしたりします。
+
+実行場所に基づいてスケジューリングオプションを選択します：
+
+| オプション | 実行場所 | 最適な用途 |
+| :- | :- | :- |
+| [クラウドスケジュール済みタスク](/ja/web-scheduled-tasks) | Anthropic 管理インフラストラクチャ | コンピュータがオフの場合でも実行する必要があるタスク。[claude.ai/code](https://claude.ai/code)で設定します。 |
+| [デスクトップスケジュール済みタスク](/ja/desktop#schedule-recurring-tasks) | デスクトップアプリ経由のマシン | ローカルファイル、ツール、またはコミットされていない変更への直接アクセスが必要なタスク。 |
+| [GitHub Actions](/ja/github-actions) | CI パイプライン | オープン PR などのリポジトリイベント、またはワークフロー設定と一緒に存在する必要がある cron スケジュールに関連するタスク。 |
+| [`/loop`](/ja/scheduled-tasks) | 現在の CLI セッション | セッションが開いている間のクイックポーリング。セッションを終了すると、タスクはキャンセルされます。 |
+
+スケジュール済みタスク用のプロンプトを作成するときは、成功がどのように見えるか、および結果をどうするかについて明示的に説明してください。タスクは自律的に実行されるため、質問を明確にすることはできません。例えば：'`needs-review` ラベルが付いたオープン PR をレビューし、問題に関するインラインコメントを残し、`#eng-reviews` Slack チャネルに要約を投稿します。'
+
+***
+
+## Claude にその機能について質問する
 
 Claude は自分のドキュメントへの組み込みアクセスを持っており、自分の機能と制限について質問に答えることができます。
 

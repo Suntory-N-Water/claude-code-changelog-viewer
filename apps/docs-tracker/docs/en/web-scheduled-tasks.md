@@ -22,7 +22,7 @@ Scheduled tasks are available to all Claude Code on the web users, including Pro
 
 Claude Code offers three ways to schedule recurring work:
 
-| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop#schedule-recurring-tasks) | [`/loop`](/en/scheduled-tasks) |
+| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop-scheduled-tasks) | [`/loop`](/en/scheduled-tasks) |
 | :- | :- | :- | :- |
 | Runs on | Anthropic cloud | Your machine | Your machine |
 | Requires machine on | No | Yes | Yes |
@@ -41,7 +41,7 @@ Use **cloud tasks** for work that should run reliably without your machine. Use 
 You can create a scheduled task from three places:
 
 - **Web**: visit [claude.ai/code/scheduled](https://claude.ai/code/scheduled) and click **New scheduled task**
-- **Desktop app**: open the **Schedule** page, click **New task**, and choose **New remote task**. See [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks) for details.
+- **Desktop app**: open the **Schedule** page, click **New task**, and choose **New remote task**. See [Desktop scheduled tasks](/en/desktop-scheduled-tasks) for details.
 - **CLI**: run `/schedule` in any session. Claude walks you through the setup conversationally. You can also pass a description directly, like `/schedule daily PR review at 9am`.
 
 The web and Desktop entry points open a form. The CLI collects the same information through a guided conversation.
@@ -85,7 +85,7 @@ Tasks may run a few minutes after their scheduled time. The offset is consistent
 | Weekdays | Same as Daily but skips Saturday and Sunday. |
 | Weekly | Runs once per week on the day and time you specify. |
 
-For custom intervals like every 2 hours or first of each month, pick the closest preset and update the schedule from the CLI with `/schedule update` to set a specific schedule.
+For custom intervals like every 2 hours or first of each month, pick the closest preset and update the schedule from the CLI with `/schedule update` to set a specific cron expression. The minimum interval is 1 hour. Expressions that fire more frequently, such as `*/30 * * * *`, are rejected.
 
 ### Repositories and branch permissions
 
@@ -128,7 +128,7 @@ You can also manage tasks from the CLI with `/schedule`. Run `/schedule list` to
 
 ## Related resources
 
-- [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks): schedule tasks that run on your machine with access to local files. The Desktop app's **Schedule** page shows both local and remote tasks in the same grid.
+- [Desktop scheduled tasks](/en/desktop-scheduled-tasks): schedule tasks that run on your machine with access to local files. The Desktop app's **Schedule** page shows both local and remote tasks in the same grid.
 - [`/loop` and CLI scheduled tasks](/en/scheduled-tasks): lightweight scheduling within a CLI session
 - [Cloud environment](/en/claude-code-on-the-web#cloud-environment): configure the runtime environment for cloud tasks
 - [MCP connectors](/en/mcp): connect external services like Slack, Linear, and Google Drive

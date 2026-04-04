@@ -11,13 +11,13 @@ Scheduled tasks require Claude Code v2.1.72 or later. Check your version with `c
 
 Scheduled tasks let Claude re-run a prompt automatically on an interval. Use them to poll a deployment, babysit a PR, check back on a long-running build, or remind yourself to do something later in the session. To react to events as they happen instead of polling, see [Channels](/en/channels): your CI can push the failure into the session directly.
 
-Tasks are session-scoped: they live in the current Claude Code process and are gone when you exit. For durable scheduling that survives restarts, use [Cloud](/en/web-scheduled-tasks) or [Desktop](/en/desktop#schedule-recurring-tasks) scheduled tasks, or [GitHub Actions](/en/github-actions).
+Tasks are session-scoped: they live in the current Claude Code process and are gone when you exit. For durable scheduling that survives restarts, use [Cloud](/en/web-scheduled-tasks) or [Desktop](/en/desktop-scheduled-tasks) scheduled tasks, or [GitHub Actions](/en/github-actions).
 
 ## Compare scheduling options
 
 Claude Code offers three ways to schedule recurring work:
 
-| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop#schedule-recurring-tasks) | [`/loop`](/en/scheduled-tasks) |
+| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop-scheduled-tasks) | [`/loop`](/en/scheduled-tasks) |
 | :- | :- | :- | :- |
 | Runs on | Anthropic cloud | Your machine | Your machine |
 | Requires machine on | No | Yes | Yes |
@@ -114,9 +114,9 @@ To avoid every session hitting the API at the same wall-clock moment, the schedu
 
 The offset is derived from the task ID, so the same task always gets the same offset. If exact timing matters, pick a minute that is not `:00` or `:30`, for example `3 9 * * *` instead of `0 9 * * *`, and the one-shot jitter will not apply.
 
-### Three-day expiry
+### Seven-day expiry
 
-Recurring tasks automatically expire 3 days after creation. The task fires one final time, then deletes itself. This bounds how long a forgotten loop can run. If you need a recurring task to last longer, cancel and recreate it before it expires, or use [Cloud scheduled tasks](/en/web-scheduled-tasks) or [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks) for durable scheduling.
+Recurring tasks automatically expire 7 days after creation. The task fires one final time, then deletes itself. This bounds how long a forgotten loop can run. If you need a recurring task to last longer, cancel and recreate it before it expires, or use [Cloud scheduled tasks](/en/web-scheduled-tasks) or [Desktop scheduled tasks](/en/desktop-scheduled-tasks) for durable scheduling.
 
 ## Cron expression reference
 
@@ -151,4 +151,4 @@ For cron-driven automation that needs to run unattended:
 
 - [Cloud scheduled tasks](/en/web-scheduled-tasks): run on Anthropic-managed infrastructure
 - [GitHub Actions](/en/github-actions): use a `schedule` trigger in CI
-- [Desktop scheduled tasks](/en/desktop#schedule-recurring-tasks): run locally on your machine
+- [Desktop scheduled tasks](/en/desktop-scheduled-tasks): run locally on your machine

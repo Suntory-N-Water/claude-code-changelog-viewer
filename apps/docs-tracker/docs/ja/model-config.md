@@ -24,7 +24,8 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
 
 | モデルエイリアス | 動作 |
 | - | - |
-| **`default`** | アカウントタイプに応じた推奨モデル設定 |
+| **`default`** | 特別な値で、モデルオーバーライドをクリアし、アカウントタイプに応じた推奨モデルに戻します。それ自体はモデルエイリアスではありません |
+| **`best`** | 最も高性能な利用可能なモデルを使用します。現在は `opus` と同等です |
 | **`sonnet`** | 日常的なコーディングタスク用に最新の Sonnet モデル（現在は Sonnet 4.6）を使用 |
 | **`opus`** | 複雑な推論タスク用に最新の Opus モデル（現在は Opus 4.6）を使用 |
 | **`haiku`** | シンプルなタスク用に高速で効率的な Haiku モデルを使用 |
@@ -84,19 +85,27 @@ claude --model opus
 
 ### ユーザーが実行するモデルの制御
 
-モデル体験を完全に制御するには、`availableModels` と `model` 設定を一緒に使用します。
+`model` 設定は初期選択であり、強制ではありません。セッション開始時にアクティブなモデルを設定しますが、ユーザーは `/model` を開いて Default を選択することができ、これはそのティアのシステムデフォルトに解決されます。`model` が何に設定されているかに関係なく。
 
-- **availableModels**：ユーザーが切り替えられるものを制限
-- **model**：明示的なモデルオーバーライドを設定し、Default より優先
+モデル体験を完全に制御するには、3 つの設定を組み合わせます。
 
-この例では、すべてのユーザーが Sonnet 4.6 を実行し、Sonnet と Haiku のみを選択できるようにします。
+- **`availableModels`**：ユーザーが切り替えられるという名前のモデルを制限
+- **`model`**：セッション開始時にアクティブなモデルを設定
+- **`ANTHROPIC_DEFAULT_SONNET_MODEL`** / **`ANTHROPIC_DEFAULT_OPUS_MODEL`** / **`ANTHROPIC_DEFAULT_HAIKU_MODEL`**：Default オプションと `sonnet`、`opus`、`haiku` エイリアスが解決するものを制御
+
+この例では、ユーザーを Sonnet 4.5 で開始し、ピッカーを Sonnet と Haiku に制限し、Default を最新リリースではなく Sonnet 4.5 に解決するようにピン留めします。
 
 ```json
 {
-  "model": "sonnet",
-  "availableModels": ["sonnet", "haiku"]
+  "model": "claude-sonnet-4-5",
+  "availableModels": ["claude-sonnet-4-5", "haiku"],
+  "env": {
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-5"
+  }
 }
 ```
+
+`env` ブロックがない場合、ユーザーがピッカーで Default を選択すると、最新の Sonnet リリースが取得され、`model` と `availableModels` のバージョンピンがバイパスされます。
 
 ### マージ動作
 
@@ -242,6 +251,41 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6[1m]'
 `[1m]` サフィックスは、`opusplan` を含むそのエイリアスのすべての使用に 1M コンテキストウィンドウを適用します。Claude Code は、モデル ID をプロバイダーに送信する前にサフィックスを削除します。Opus 4.6 や Sonnet 4.6 など、基盤となるモデルが 1M コンテキストをサポートする場合にのみ `[1m]` を追加します。
 
 `settings.availableModels` アローリストは、サードパーティプロバイダーを使用する場合でも適用されます。フィルタリングはプロバイダー固有のモデル ID ではなく、モデルエイリアス（`opus`、`sonnet`、`haiku`）で一致します。
+
+### ピン留めされたモデルの表示と機能のカスタマイズ
+
+サードパーティプロバイダーでモデルをピン留めする場合、プロバイダー固有の ID は `/model` ピッカーにそのまま表示され、Claude Code はモデルがサポートする機能を認識しない可能性があります。ピン留めされた各モデルの表示名と機能を宣言するコンパニオン環境変数でオーバーライドできます。
+
+これらの変数は、Bedrock、Vertex AI、Foundry などのサードパーティプロバイダーでのみ有効です。Anthropic API を直接使用する場合は効果がありません。
+
+| 環境変数 | 説明 |
+| - | - |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL_NAME` | `/model` ピッカーでピン留めされた Opus モデルの表示名。設定されていない場合はモデル ID がデフォルト |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION` | `/model` ピッカーでピン留めされた Opus モデルの表示説明。設定されていない場合は `Custom Opus model` がデフォルト |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES` | ピン留めされた Opus モデルがサポートする機能のカンマ区切りリスト |
+
+同じ `_NAME`、`_DESCRIPTION`、`_SUPPORTED_CAPABILITIES` サフィックスは `ANTHROPIC_DEFAULT_SONNET_MODEL` と `ANTHROPIC_DEFAULT_HAIKU_MODEL` で利用可能です。
+
+Claude Code は、モデル ID を既知のパターンと照合することで、[努力レベル](#adjust-effort-level) や [拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode) などの機能を有効にします。Bedrock ARN やカスタムデプロイメント名などのプロバイダー固有の ID は、これらのパターンと一致しないことが多く、サポートされている機能が無効のままになります。`_SUPPORTED_CAPABILITIES` を設定して、Claude Code にモデルが実際にサポートする機能を伝えます。
+
+| 機能値 | 有効にするもの |
+| - | - |
+| `effort` | [努力レベル](#adjust-effort-level) と `/effort` コマンド |
+| `max_effort` | `max` 努力レベル |
+| `thinking` | [拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode) |
+| `adaptive_thinking` | タスクの複雑さに基づいて思考を動的に割り当てる適応的推論 |
+| `interleaved_thinking` | ツール呼び出し間の思考 |
+
+`_SUPPORTED_CAPABILITIES` が設定されている場合、リストされた機能は有効になり、リストされていない機能はマッチングされたピン留めされたモデルに対して無効になります。変数が設定されていない場合、Claude Code はモデル ID に基づいた組み込み検出にフォールバックします。
+
+この例では、Bedrock カスタムモデル ARN に Opus をピン留めし、フレンドリーな名前を設定し、その機能を宣言します。
+
+```bash
+export ANTHROPIC_DEFAULT_OPUS_MODEL='arn:aws:bedrock:us-east-1:123456789012:custom-model/abc'
+export ANTHROPIC_DEFAULT_OPUS_MODEL_NAME='Opus via Bedrock'
+export ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION='Opus 4.6 routed through a Bedrock custom endpoint'
+export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES='effort,max_effort,thinking,adaptive_thinking,interleaved_thinking'
+```
 
 ### バージョンごとのモデル ID のオーバーライド
 
