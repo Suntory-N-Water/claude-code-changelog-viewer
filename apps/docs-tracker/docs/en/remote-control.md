@@ -48,6 +48,7 @@ Available flags:
 | Flag | Description |
 | - | - |
 | `--name "My Project"` | Set a custom session title visible in the session list at claude.ai/code. |
+| `--remote-control-session-name-prefix <prefix>` | Prefix for auto-generated session names when no explicit name is set. Defaults to your machine's hostname, producing names like `myhost-graceful-unicorn`. Set `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` for the same effect. |
 | `--spawn <mode>` | How concurrent sessions are created. Press `w` at runtime to toggle.• `same-dir` (default): all sessions share the current working directory, so they can conflict if editing the same files.• `worktree`: each on-demand session gets its own [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Requires a git repository. |
 | `--capacity <N>` | Maximum number of concurrent sessions. Default is 32. |
 | `--verbose` | Show detailed connection and session logs. |
@@ -94,7 +95,9 @@ The remote session title is chosen in this order:
 1. The name you passed to `--name`, `--remote-control`, or `/remote-control`
 2. The title you set with `/rename`
 3. The last meaningful message in existing conversation history
-4. Your first prompt once you send one
+4. An auto-generated name like `myhost-graceful-unicorn`, where `myhost` is your machine's hostname or the prefix you set with `--remote-control-session-name-prefix`
+
+If you didn't set an explicit name, the title updates to reflect your prompt once you send one.
 
 If the environment already has an active session, you'll be asked whether to continue it or start a new one.
 

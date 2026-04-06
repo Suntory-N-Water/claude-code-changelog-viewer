@@ -94,4 +94,4 @@ By default, error reporting, telemetry, and bug reporting are disabled when usin
 | **Claude API (`/feedback` reports)** | Default on.`DISABLE_FEEDBACK_COMMAND=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. |
 | **Session quality surveys** | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. |
 
-All environment variables can be checked into `settings.json` ([read more](/en/settings)).
+All environment variables can be checked into `settings.json` (see [settings reference](/en/settings)).
