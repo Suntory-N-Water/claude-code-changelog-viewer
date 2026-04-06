@@ -53,14 +53,14 @@ jobs:
           git add -A
 
           # 英語ドキュメント(docs/en/*.md)ファイルの変更をカウント
-          DOC_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/docs/en/**/*.md' | wc -l | tr -d ' ' || true)
+          DOC_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/docs/en/' | grep '\.md$' | wc -l | tr -d ' ' || true)
           echo "doc_changes=$DOC_CHANGES" >> "$GITHUB_OUTPUT"
 
           # 英語ドキュメントに変更がある場合のみ should_push=true
           if [ "$DOC_CHANGES" -gt 0 ]; then
             echo "should_push=true" >> "$GITHUB_OUTPUT"
             echo "✅ 英語ドキュメントに更新あり: $DOC_CHANGES ファイル"
-            git diff --staged --name-only -- 'apps/docs-tracker/docs/en/**/*.md'
+            git diff --staged --name-only -- 'apps/docs-tracker/docs/en/' | grep '\.md$'
           else
             echo "ℹ️ 英語ドキュメントに更新なし(日本語ドキュメントのみの変更はスキップ)"
           fi

@@ -57,7 +57,7 @@ export class DocsDiffGenerator {
   async getEnStagedDiff(): Promise<DocFileDiff[]> {
     try {
       const { stdout } = await execAsync(
-        "git diff --staged --unified=3 -- 'apps/docs-tracker/docs/en/**/*.md'",
+        "git diff --staged --unified=3 -- 'apps/docs-tracker/docs/en/'",
         {
           cwd: path.join(this.rootDir, '..', '..'),
           maxBuffer: 20 * 1024 * 1024,
