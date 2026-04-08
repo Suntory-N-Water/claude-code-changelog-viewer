@@ -78,7 +78,7 @@ Actions available in the `Global` context:
 | :- | :- | :- |
 | `app:interrupt` | Ctrl+C | Cancel current operation |
 | `app:exit` | Ctrl+D | Exit Claude Code |
-| `app:redraw` | (unbound) | Force terminal redraw |
+| `app:redraw` | Ctrl+L | Redraw the screen |
 | `app:toggleTodos` | Ctrl+T | Toggle task list visibility |
 | `app:toggleTranscript` | Ctrl+O | Toggle verbose transcript |
 
@@ -99,7 +99,6 @@ Actions available in the `Chat` context:
 | Action | Default | Description |
 | :- | :- | :- |
 | `chat:cancel` | Escape | Cancel current input |
-| `chat:clearInput` | Ctrl+L | Clear prompt input |
 | `chat:killAgents` | Ctrl+X Ctrl+K | Kill all background agents |
 | `chat:cycleMode` | Shift+Tab\* | Cycle permission modes |
 | `chat:modelPicker` | Cmd+P / Meta+P | Open model picker |
