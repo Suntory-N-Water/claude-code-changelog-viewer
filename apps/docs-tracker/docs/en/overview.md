@@ -19,19 +19,19 @@ To install Claude Code, use one of the following methods:
 
 **macOS, Linux, WSL:**
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 irm https://claude.ai/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
-```batch theme={null}
+```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
@@ -41,13 +41,13 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS
 
 Native installations automatically update in the background to keep you on the latest version.
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 brew install --cask claude-code
 ```
 
 Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes.
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 winget install Anthropic.ClaudeCode
 ```
 
@@ -89,7 +89,7 @@ Run Claude Code in your browser with no local setup. Kick off long-running tasks
 
 Start coding at [claude.ai/code](https://claude.ai/code).
 
-[Get started on the web →](/en/claude-code-on-the-web#getting-started)
+[Get started on the web →](/en/web-quickstart)
 
 A plugin for IntelliJ IDEA, PyCharm, WebStorm, and other JetBrains IDEs with interactive diff viewing and selection context sharing.
 
@@ -129,7 +129,7 @@ Create [custom commands](/en/skills) to package repeatable workflows your team c
 
 Spawn [multiple Claude Code agents](/en/sub-agents) that work on different parts of a task simultaneously. A lead agent coordinates the work, assigns subtasks, and merges results.
 
-For fully custom workflows, the [Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) lets you build your own agents powered by Claude Code's tools and capabilities, with full control over orchestration, tool access, and permissions.
+For fully custom workflows, the [Agent SDK](/en/agent-sdk/overview) lets you build your own agents powered by Claude Code's tools and capabilities, with full control over orchestration, tool access, and permissions.
 
 Claude Code is composable and follows the Unix philosophy. Pipe logs into it, run it in CI, or chain it with other tools:
 
@@ -176,7 +176,7 @@ Beyond the [Terminal](/en/quickstart), [VS Code](/en/vs-code), [JetBrains](/en/j
 | Get automatic code review on every PR | [GitHub Code Review](/en/code-review) |
 | Route bug reports from Slack to pull requests | [Slack](/en/slack) |
 | Debug live web applications | [Chrome](/en/chrome) |
-| Build custom agents for your own workflows | [Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) |
+| Build custom agents for your own workflows | [Agent SDK](/en/agent-sdk/overview) |
 
 ## Next steps
 
