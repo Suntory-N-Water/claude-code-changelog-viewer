@@ -32,6 +32,8 @@ Always maintain good security practices and monitor Claude's activities.
 3. Open the repository in VS Code
 4. When prompted, click "Reopen in Container" (or use Command Palette: Cmd+Shift+P → "Dev Containers: Reopen in Container")
 
+Once the container finishes building, open a terminal in VS Code with `` Ctrl+` `` and run `claude` to authenticate and start your first session. The container has Claude Code preinstalled, so you can begin working immediately. Your project files are mounted into the container, and any code Claude writes appears in your local repository.
+
 ## Configuration breakdown
 
 The devcontainer setup consists of three primary components:
