@@ -67,12 +67,12 @@ Then create `my-first-plugin/.claude-plugin/plugin.json` with this content:
 
 ```json my-first-plugin/.claude-plugin/plugin.json theme={null}
 {
-"name": "my-first-plugin",
-"description": "A greeting plugin to learn the basics",
-"version": "1.0.0",
-"author": {
-"name": "Your Name"
-}
+  "name": "my-first-plugin",
+  "description": "A greeting plugin to learn the basics",
+  "version": "1.0.0",
+  "author": {
+    "name": "Your Name"
+  }
 }
 ```
 
