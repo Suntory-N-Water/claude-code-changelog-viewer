@@ -283,7 +283,7 @@ A `CwdChanged` hook fixes this: it runs each time Claude changes directory, so y
 }
 ```
 
-To react to specific files instead of every directory change, use `FileChanged` with a `matcher` listing the filenames to watch (pipe-separated). The `matcher` both configures which files to watch and filters which hooks run. This example watches `.envrc` and `.env` for changes in the current directory:
+To react to specific files instead of every directory change, use `FileChanged` with a `matcher` listing the filenames to watch, separated by `|`. To build the watch list, this value is split into literal filenames rather than evaluated as a regex. See [FileChanged](/en/hooks#filechanged) for how the same value also filters which hook groups run when a file changes. This example watches `.envrc` and `.env` in the working directory:
 
 ```json
 {
@@ -490,9 +490,9 @@ Without a matcher, a hook fires on every occurrence of its event. Matchers let y
 }
 ```
 
-The `"Edit|Write"` matcher is a regex pattern that matches the tool name. The hook only fires when Claude uses the `Edit` or `Write` tool, not when it uses `Bash`, `Read`, or any other tool.
+The `"Edit|Write"` matcher fires only when Claude uses the `Edit` or `Write` tool, not when it uses `Bash`, `Read`, or any other tool. See [Matcher patterns](/en/hooks#matcher-patterns) for how plain names and regular expressions are evaluated.
 
-Each event type matches on a specific field. Matchers support exact strings and regex patterns:
+Each event type matches on a specific field:
 
 | Event | What the matcher filters | Example matcher values |
 | :- | :- | :- |
@@ -508,7 +508,7 @@ Each event type matches on a specific field. Matchers support exact strings and 
 | `InstructionsLoaded` | load reason | `session_start`, `nested_traversal`, `path_glob_match`, `include`, `compact` |
 | `Elicitation` | MCP server name | your configured MCP server names |
 | `ElicitationResult` | MCP server name | same values as `Elicitation` |
-| `FileChanged` | filename (basename of the changed file) | `.envrc`, `.env`, any filename you want to watch |
+| `FileChanged` | literal filenames to watch (see [FileChanged](/en/hooks#filechanged)) | `.envrc\|.env` |
 | `UserPromptSubmit`, `Stop`, `TeammateIdle`, `TaskCreated`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `CwdChanged` | no matcher support | always fires on every occurrence |
 
 A few more examples showing matchers on different event types:
