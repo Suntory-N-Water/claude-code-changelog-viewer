@@ -1,0 +1,2561 @@
+{
+  "id": "20260409-211506",
+  "timestamp": "2026-04-09T21:15:06.076Z",
+  "aiSummary": "Amazon BedrockおよびGoogle Vertex AI向けの対話型セットアップウィザードが導入され、各クラウド環境での認証やモデルの固定設定が容易になりました。コンテキストの圧縮（compaction）後にどの情報が保持されるかを整理した詳細な表が追加され、大規模なセッションでの動作が明確化されています。また、従来の「コマンド」という呼称が「スキル（skills）」に統一され、効率的な開発ワークフローを構築するための段階的なガイドが新たに整備されました。",
+  "files": [
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 21,
+      "deletions": 10,
+      "explanation": "対話型ウィザードによるAWS認証設定と、起動時のモデル利用可能性チェックおよび自動フォールバック機能の説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -16,20 +16,23 @@ Before configuring Claude Code with Bedrock, ensure you have:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- AWS CLI installed and configured (optional - only needed if you don't have another mechanism for getting credentials)"
+            },
+            {
+              "type": "context",
+              "content": "- Appropriate IAM permissions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you are deploying Claude Code to multiple users, [pin your model versions](#4-pin-model-versions) to prevent breakage when Anthropic releases new models."
+            },
+            {
+              "type": "added",
+              "content": "To sign in with your own Bedrock credentials, follow [Sign in with Bedrock](#sign-in-with-bedrock) below. To deploy Claude Code across a team, use the [manual setup](#set-up-manually) steps and [pin your model versions](#4-pin-model-versions) before rolling out."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Set up with the interactive wizard"
+            },
+            {
+              "type": "added",
+              "content": "## Sign in with Bedrock"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The login screen includes an interactive Bedrock setup wizard for first-time configuration. Select **3rd-party platform** at the `claude` login prompt, then choose **Amazon Bedrock** to launch it. The wizard guides you through each step and writes the resulting configuration to your settings:"
+            },
+            {
+              "type": "added",
+              "content": "If you have AWS credentials and want to start using Claude Code through Bedrock, the login wizard walks you through it. You complete the AWS-side prerequisites once per account; the wizard handles the Claude Code side."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- AWS authentication"
+            },
+            {
+              "type": "removed",
+              "content": "- Region selection"
+            },
+            {
+              "type": "removed",
+              "content": "- Credential verification"
+            },
+            {
+              "type": "removed",
+              "content": "- Model pinning"
+            },
+            {
+              "type": "added",
+              "content": "In the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/), open the Model catalog, select an Anthropic model, and submit the use case form. Access is granted immediately after submission. See [Submit use case details](#1-submit-use-case-details) for AWS Organizations and [IAM configuration](#iam-configuration) for the permissions your role needs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Once Bedrock is active, use `/setup-bedrock` to return to the wizard and update your credentials, region, or model pins."
+            },
+            {
+              "type": "added",
+              "content": "Run `claude`. At the login prompt, select **3rd-party platform**, then **Amazon Bedrock**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Setup"
+            },
+            {
+              "type": "added",
+              "content": "Choose how you authenticate to AWS: an AWS profile detected from your `~/.aws` directory, a Bedrock API key, an access key and secret, or credentials already in your environment. The wizard picks up your region, verifies which Claude models your account can invoke, and lets you pin them. It saves the result to the `env` block of your [user settings file](/en/settings), so you don't need to export environment variables yourself."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "After you've signed in, run `/setup-bedrock` any time to reopen the wizard and change your credentials, region, or model pins."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Set up manually"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To configure Bedrock through environment variables instead of the wizard, for example in CI or a scripted enterprise rollout, follow the steps below."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### 1. Submit use case details"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -141,7 +144,7 @@ When enabling Bedrock for Claude Code, keep the following in mind:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### 4. Pin model versions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Pin specific model versions for every deployment. If you use model aliases (`sonnet`, `opus`, `haiku`) without pinning, Claude Code may attempt to use a newer model version that isn't available in your Bedrock account, breaking existing users when Anthropic releases updates."
+            },
+            {
+              "type": "added",
+              "content": "Pin specific model versions when deploying to multiple users. Without pinning, model aliases such as `sonnet` and `opus` resolve to the latest version, which may not yet be available in your Bedrock account when Anthropic releases an update. Claude Code [falls back](#startup-model-checks) to the previous version at startup when the latest is unavailable, but pinning lets you control when your users move to a new model."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set these environment variables to specific Bedrock model IDs:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -194,6 +197,14 @@ This example maps three Opus versions to distinct ARNs so users can switch betwe",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When a user selects one of these versions in `/model`, Claude Code calls Bedrock with the mapped ARN. Versions without an override fall back to the built-in Bedrock model ID or any matching inference profile discovered at startup. See [Override model IDs per version](/en/model-config#override-model-ids-per-version) for details on how overrides interact with `availableModels` and other model settings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Startup model checks"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude Code starts with Bedrock configured, it verifies that the models it intends to use are accessible in your account. This check requires Claude Code v2.1.94 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you have pinned a model version that is older than the current Claude Code default, and your account can invoke the newer version, Claude Code prompts you to update the pin. Accepting writes the new model ID to your [user settings file](/en/settings) and restarts Claude Code. Declining is remembered until the next default version change. Pins that point to an [application inference profile ARN](#map-each-model-version-to-an-inference-profile) are skipped, since those are managed by your administrator."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you have not pinned a model and the current default is unavailable in your account, Claude Code falls back to the previous version for the current session and shows a notice. The fallback is not persisted. Enable the newer model in your Bedrock account or [pin a version](#4-pin-model-versions) to make the choice permanent."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## IAM configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Create an IAM policy with the required permissions for Claude Code:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "Google Vertex AIの設定を対話形式で行うための新しいコマンド /setup-vertex に関する記述が一覧に追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -78,6 +78,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/schedule [description]` | Create, update, list, or run [Cloud scheduled tasks](/en/web-scheduled-tasks). Claude walks you through the setup conversationally |"
+            },
+            {
+              "type": "context",
+              "content": "| `/security-review` | Analyze pending changes on the current branch for security vulnerabilities. Reviews the git diff and identifies risks like injection, auth issues, and data exposure |"
+            },
+            {
+              "type": "context",
+              "content": "| `/setup-bedrock` | Configure [Amazon Bedrock](/en/amazon-bedrock) authentication, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_BEDROCK=1` is set. First-time Bedrock users can also access this wizard from the login screen |"
+            },
+            {
+              "type": "added",
+              "content": "| `/setup-vertex` | Configure [Google Vertex AI](/en/google-vertex-ai) authentication, project, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_VERTEX=1` is set. First-time Vertex AI users can also access this wizard from the login screen |"
+            },
+            {
+              "type": "context",
+              "content": "| `/simplify [focus]` | **[Skill](/en/skills#bundled-skills).** Review your recently changed files for code reuse, quality, and efficiency issues, then fix them. Spawns three review agents in parallel, aggregates their findings, and applies fixes. Pass text to focus on specific concerns: `/simplify focus on memory efficiency` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/skills` | List available [skills](/en/skills) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/stats` | Visualize daily usage, session history, streaks, and model preferences |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "common-workflows.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "起動時の孤立したサブエージェント用ワークツリー削除条件に、未追跡ファイルや未コミットの変更が含まれないことという詳細な制約が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -570,7 +570,7 @@ When you exit a worktree session, Claude handles cleanup based on whether you ma",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **No changes**: the worktree and its branch are removed automatically"
+            },
+            {
+              "type": "context",
+              "content": "- **Changes or commits exist**: Claude prompts you to keep or remove the worktree. Keeping preserves the directory and branch so you can return later. Removing deletes the worktree directory and its branch, discarding all uncommitted changes and commits"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Subagent worktrees orphaned by a crash or an interrupted parallel run are removed automatically at startup once they are older than your [`cleanupPeriodDays`](/en/settings#available-settings) setting, provided they have no modifications to tracked files and no unpushed commits. Untracked files (new files never staged with `git add`) are not checked and do not prevent removal. Worktrees you create with `--worktree` are never removed by this sweep."
+            },
+            {
+              "type": "added",
+              "content": "Subagent worktrees orphaned by a crash or an interrupted parallel run are removed automatically at startup once they are older than your [`cleanupPeriodDays`](/en/settings#available-settings) setting, provided they have no uncommitted changes, no untracked files, and no unpushed commits. Worktrees you create with `--worktree` are never removed by this sweep."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To clean up worktrees outside of a Claude session, use [manual worktree management](#manage-worktrees-manually)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "context-window.md",
+      "additions": 19,
+      "deletions": 1,
+      "explanation": "セッション圧縮時に、システムプロンプトやCLAUDE.md、スキル、パス指定ルールなどがどのように再注入または消失するかを整理した対応表が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -16,7 +16,25 @@ The session walks through a realistic flow with representative token counts:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Before you type anything**: CLAUDE.md, auto memory, MCP tool names, and skill descriptions all load into context. Your own setup may add more here, like an [output style](/en/output-styles) or text from [`--append-system-prompt`](/en/cli-reference), which both go into the system prompt the same way."
+            },
+            {
+              "type": "context",
+              "content": "- **As Claude works**: each file read adds to context, [path-scoped rules](/en/memory#path-specific-rules) load automatically alongside matching files, and a [PostToolUse hook](/en/hooks-guide) fires after each edit."
+            },
+            {
+              "type": "context",
+              "content": "- **The follow-up prompt**: a [subagent](/en/sub-agents) handles the research in its own separate context window, so the large file reads stay out of yours. Only the summary and a small metadata trailer come back."
+            },
+            {
+              "type": "removed",
+              "content": "- **At the end**: `/compact` replaces the conversation with a structured summary. Most startup content reloads automatically. The [skill](/en/skills) listing is the one exception."
+            },
+            {
+              "type": "added",
+              "content": "- **At the end**: `/compact` replaces the conversation with a structured summary. Most startup content reloads automatically; the table below shows what happens to each mechanism."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## What survives compaction"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When a long session compacts, Claude Code summarizes the conversation history to fit the context window. What happens to your instructions depends on how they were loaded:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Mechanism | After compaction |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| System prompt and output style | Unchanged; not part of message history |"
+            },
+            {
+              "type": "added",
+              "content": "| Project-root CLAUDE.md and unscoped rules | Re-injected from disk |"
+            },
+            {
+              "type": "added",
+              "content": "| Auto memory | Re-injected from disk |"
+            },
+            {
+              "type": "added",
+              "content": "| Rules with `paths:` frontmatter | Lost until a matching file is read again |"
+            },
+            {
+              "type": "added",
+              "content": "| Nested CLAUDE.md in subdirectories | Lost until a file in that subdirectory is read again |"
+            },
+            {
+              "type": "added",
+              "content": "| Invoked skill bodies | Re-injected, capped at 5,000 tokens per skill and 25,000 tokens total; oldest dropped first |"
+            },
+            {
+              "type": "added",
+              "content": "| Hooks | Not applicable; hooks run as code, not context |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Path-scoped rules and nested CLAUDE.md files load into message history when their trigger file is read, so compaction summarizes them away with everything else. They reload the next time Claude reads a matching file. If a rule must persist across compaction, drop the `paths:` frontmatter or move it to the project-root CLAUDE.md."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Skill bodies are re-injected after compaction, but large skills are truncated to fit the per-skill cap, and the oldest invoked skills are dropped once the total budget is exceeded. Truncation keeps the start of the file, so put the most important instructions near the top of `SKILL.md`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Check your own session"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "costs.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "組織全体のリミットとは別に、ワークスペース単位でレート制限を設定して他の本番負荷を保護する方法についての案内が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -34,6 +34,8 @@ When using Claude API, you can [set workspace spend limits](https://platform.cla",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you first authenticate Claude Code with your Claude Console account, a workspace called \"Claude Code\" is automatically created for you. This workspace provides centralized cost tracking and management for all Claude Code usage in your organization. You cannot create API keys for this workspace; it is exclusively for Claude Code authentication and usage."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For organizations with custom rate limits, Claude Code traffic in this workspace counts toward your organization's overall API rate limits. You can set a [workspace rate limit](https://platform.claude.com/docs/en/api/rate-limits#setting-lower-limits-for-workspaces) on this workspace's Limits page in the Claude Console to cap Claude Code's share and protect other production workloads."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "On Bedrock, Vertex, and Foundry, Claude Code does not send metrics from your cloud. To get cost metrics, several large enterprises reported using [LiteLLM](/en/llm-gateway#litellm-configuration), which is an open-source tool that helps companies [track spend by key](https://docs.litellm.ai/docs/proxy/virtual_keys#tracking-spend). This project is unaffiliated with Anthropic and has not been audited for security."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Rate limit recommendations"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "UI上のプラグインメニューにおいて、提供される機能の呼称がコマンドからスキルへと変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -243,7 +243,7 @@ Connectors are [MCP servers](/en/mcp) with a graphical setup flow. Use them for",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Plugins](/en/plugins) are reusable packages that add skills, agents, hooks, MCP servers, and LSP configurations to Claude Code. You can install plugins from the desktop app without using the terminal."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For local and [SSH](#ssh-sessions) sessions, click the **+** button next to the prompt box and select **Plugins** to see your installed plugins and their commands. To add a plugin, select **Add plugin** from the submenu to open the plugin browser, which shows available plugins from your configured [marketplaces](/en/plugin-marketplaces) including the official Anthropic marketplace. Select **Manage plugins** to enable, disable, or uninstall plugins."
+            },
+            {
+              "type": "added",
+              "content": "For local and [SSH](#ssh-sessions) sessions, click the **+** button next to the prompt box and select **Plugins** to see your installed plugins and their skills. To add a plugin, select **Add plugin** from the submenu to open the plugin browser, which shows available plugins from your configured [marketplaces](/en/plugin-marketplaces) including the official Anthropic marketplace. Select **Manage plugins** to enable, disable, or uninstall plugins."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugins can be scoped to your user account, a specific project, or local-only. Plugins are not available for remote sessions. For the full plugin reference including creating your own plugins, see [plugins](/en/plugins)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "discover-plugins.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "プラグインが提供する各機能の名称がコマンドからスキルへと一貫して書き換えられ、名前空間の概念についても整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/en/discover-plugins.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Discover and install prebuilt plugins through marketplaces"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Find and install plugins from marketplaces to extend Claude Code with new commands, agents, and capabilities."
+            },
+            {
+              "type": "added",
+              "content": "> Find and install plugins from marketplaces to extend Claude Code with new skills, agents, and capabilities."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugins extend Claude Code with skills, agents, hooks, and MCP servers. Plugin marketplaces are catalogs that help you discover and install these extensions without building them yourself."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -86,7 +86,7 @@ These plugins bundle pre-configured [MCP servers](/en/mcp) so you can connect Cl",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Development workflows"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Plugins that add commands and agents for common development tasks:"
+            },
+            {
+              "type": "added",
+              "content": "Plugins that add skills and agents for common development tasks:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **commit-commands**: Git commit workflows including commit, push, and PR creation"
+            },
+            {
+              "type": "context",
+              "content": "- **pr-review-toolkit**: Specialized agents for reviewing pull requests"
+            }
+          ]
+        },
+        {
+          "header": "@@ -127,7 +127,7 @@ Select a plugin to view its details, then choose an installation scope:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Project scope**: install for all collaborators on this repository"
+            },
+            {
+              "type": "context",
+              "content": "- **Local scope**: install for yourself in this repository only"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For example, select **commit-commands** (a plugin that adds git workflow commands) and install it to your user scope."
+            },
+            {
+              "type": "added",
+              "content": "For example, select **commit-commands** (a plugin that adds git workflow skills) and install it to your user scope."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also install directly from the command line:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -137,7 +137,7 @@ You can also install directly from the command line:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "See [Configuration scopes](/en/settings#configuration-scopes) to learn more about scopes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After installing, run `/reload-plugins` to activate the plugin. Plugin commands are namespaced by the plugin name, so **commit-commands** provides commands like `/commit-commands:commit`."
+            },
+            {
+              "type": "added",
+              "content": "After installing, run `/reload-plugins` to activate the plugin. Plugin skills are namespaced by the plugin name, so **commit-commands** provides skills like `/commit-commands:commit`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Try it out by making a change to a file and running:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -147,7 +147,7 @@ Try it out by making a change to a file and running:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This stages your changes, generates a commit message, and creates the commit."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each plugin works differently. Check the plugin's description in the **Discover** tab or its homepage to learn what commands and capabilities it provides."
+            },
+            {
+              "type": "added",
+              "content": "Each plugin works differently. Check the plugin's description in the **Discover** tab or its homepage to learn what skills and capabilities it provides."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The rest of this guide covers all the ways you can add marketplaces, install plugins, and manage your configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "features-overview.md",
+      "additions": 17,
+      "deletions": 1,
+      "explanation": "CLAUDE.mdから始まり、スキル、MCP、サブエージェント、プラグインへと段階的に拡張していくための具体的な推奨フローが解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -11,7 +11,7 @@ Claude Code combines a model that reasons about your code with [built-in tools](",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For how the core agentic loop works, see [How Claude Code works](/en/how-claude-code-works)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**New to Claude Code?** Start with [CLAUDE.md](/en/memory) for project conventions. Add other extensions as you need them."
+            },
+            {
+              "type": "added",
+              "content": "**New to Claude Code?** Start with [CLAUDE.md](/en/memory) for project conventions, then add other extensions [as specific triggers come up](#build-your-setup-over-time)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Overview"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -42,6 +42,22 @@ Features range from always-on context that Claude sees every session, to on-dema",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**[Plugins](/en/plugins)** are the packaging layer. A plugin bundles skills, hooks, subagents, and MCP servers into a single installable unit. Plugin skills are namespaced (like `/my-plugin:review`) so multiple plugins can coexist. Use plugins when you want to reuse the same setup across multiple repositories or distribute to others via a **[marketplace](/en/plugin-marketplaces)**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Build your setup over time"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You don't need to configure everything up front. Each feature has a recognizable trigger, and most teams add them in roughly this order:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Trigger | Add |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| Claude gets a convention or command wrong twice | Add it to [CLAUDE.md](/en/memory) |"
+            },
+            {
+              "type": "added",
+              "content": "| You keep typing the same prompt to start a task | Save it as a user-invocable [skill](/en/skills) |"
+            },
+            {
+              "type": "added",
+              "content": "| You paste the same playbook or multi-step procedure into chat for the third time | Capture it as a [skill](/en/skills) |"
+            },
+            {
+              "type": "added",
+              "content": "| You keep copying data from a browser tab Claude can't see | Connect that system as an [MCP server](/en/mcp) |"
+            },
+            {
+              "type": "added",
+              "content": "| A side task floods your conversation with output you won't reference again | Route it through a [subagent](/en/sub-agents) |"
+            },
+            {
+              "type": "added",
+              "content": "| You want something to happen every time without asking | Write a [hook](/en/hooks-guide) |"
+            },
+            {
+              "type": "added",
+              "content": "| A second repository needs the same setup | Package it as a [plugin](/en/plugins) |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The same triggers tell you when to update what you already have. A repeated mistake or a recurring review comment is a CLAUDE.md edit, not a one-off correction in chat. A workflow you keep tweaking by hand is a skill that needs another revision."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Compare similar features"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Some features can seem similar. Here's how to tell them apart."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "google-vertex-ai.md",
+      "additions": 28,
+      "deletions": 4,
+      "explanation": "Vertex AI APIの有効化からウィザードを用いた認証、起動時のモデルチェック、利用不可時の旧バージョンへのフォールバック機能が詳細に説明されました。",
+      "hunks": [
+        {
+          "header": "@@ -17,15 +17,31 @@ Before configuring Claude Code with Vertex AI, ensure you have:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Google Cloud SDK (`gcloud`) installed and configured"
+            },
+            {
+              "type": "context",
+              "content": "- Quota allocated in desired GCP region"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you are deploying Claude Code to multiple users, [pin your model versions](#5-pin-model-versions) to prevent breakage when Anthropic releases new models."
+            },
+            {
+              "type": "added",
+              "content": "To sign in with your own Vertex AI credentials, follow [Sign in with Vertex AI](#sign-in-with-vertex-ai) below. To deploy Claude Code across a team, use the [manual setup](#set-up-manually) steps and [pin your model versions](#5-pin-model-versions) before rolling out."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Region Configuration"
+            },
+            {
+              "type": "added",
+              "content": "## Sign in with Vertex AI"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you have Google Cloud credentials and want to start using Claude Code through Vertex AI, the login wizard walks you through it. You complete the GCP-side prerequisites once per project; the wizard handles the Claude Code side."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The Vertex AI setup wizard requires Claude Code v2.1.98 or later. Run `claude --version` to check."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "[Enable the Vertex AI API](#1-enable-vertex-ai-api) for your project, then request access to the Claude models you want in the [Vertex AI Model Garden](https://console.cloud.google.com/vertex-ai/model-garden). See [IAM configuration](#iam-configuration) for the permissions your account needs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `claude`. At the login prompt, select **3rd-party platform**, then **Google Vertex AI**."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Choose how you authenticate to Google Cloud: Application Default Credentials from `gcloud`, a service account key file, or credentials already in your environment. The wizard detects your project and region, verifies which Claude models your project can invoke, and lets you pin them. It saves the result to the `env` block of your [user settings file](/en/settings), so you don't need to export environment variables yourself."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "After you've signed in, run `/setup-vertex` any time to reopen the wizard and change your credentials, project, region, or model pins."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Region configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code can be used with both Vertex AI [global](https://cloud.google.com/blog/products/ai-machine-learning/global-endpoint-for-claude-models-generally-available-on-vertex-ai) and regional endpoints."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Vertex AI may not support the Claude Code default models in all [regions](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations#genai-partner-models) or on [global endpoints](https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-partner-models#supported_models). You may need to switch to a supported region, use a regional endpoint, or specify a supported model."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Setup"
+            },
+            {
+              "type": "added",
+              "content": "## Set up manually"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To configure Vertex AI through environment variables instead of the wizard, for example in CI or a scripted enterprise rollout, follow the steps below."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### 1. Enable Vertex AI API"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -83,7 +99,7 @@ Most model versions have a corresponding `VERTEX_REGION_CLAUDE_*` variable. See",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### 5. Pin model versions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Pin specific model versions for every deployment. If you use model aliases (`sonnet`, `opus`, `haiku`) without pinning, Claude Code may attempt to use a newer model version that isn't enabled in your Vertex AI project, breaking existing users when Anthropic releases updates."
+            },
+            {
+              "type": "added",
+              "content": "Pin specific model versions when deploying to multiple users. Without pinning, model aliases such as `sonnet` and `opus` resolve to the latest version, which may not yet be enabled in your Vertex AI project when Anthropic releases an update. Claude Code [falls back](#startup-model-checks) to the previous version at startup when the latest is unavailable, but pinning lets you control when your users move to a new model."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set these environment variables to specific Vertex AI model IDs:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -109,6 +125,14 @@ export ANTHROPIC_MODEL='claude-opus-4-6'",
+          "lines": [
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Startup model checks"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude Code starts with Vertex AI configured, it verifies that the models it intends to use are accessible in your project. This check requires Claude Code v2.1.98 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you have pinned a model version that is older than the current Claude Code default, and your project can invoke the newer version, Claude Code prompts you to update the pin. Accepting writes the new model ID to your [user settings file](/en/settings) and restarts Claude Code. Declining is remembered until the next default version change."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you have not pinned a model and the current default is unavailable in your project, Claude Code falls back to the previous version for the current session and shows a notice. The fallback is not persisted. Enable the newer model in [Model Garden](https://console.cloud.google.com/vertex-ai/model-garden) or [pin a version](#5-pin-model-versions) to make the choice permanent."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## IAM configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Assign the required IAM permissions:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "外部ツールからデータを手動でコピー＆ペーストする代わりに、MCPサーバーを接続して直接読み書きさせるべきタイミングについての基準が示されました。",
+      "hunks": [
+        {
+          "header": "@@ -9,6 +9,8 @@ source: https://code.claude.com/docs/en/mcp.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Connect a server when you find yourself copying data into chat from another tool, like an issue tracker or a monitoring dashboard. Once connected, Claude can read and act on that system directly instead of working from what you paste."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## What you can do with MCP"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "With MCP servers connected, you can ask Claude Code to:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 14,
+      "deletions": 1,
+      "explanation": "CLAUDE.mdに追記すべき情報の判断基準と、プロジェクトルート以外のディレクトリにあるCLAUDE.mdは圧縮時に自動再注入されない旨の注意が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -39,6 +39,17 @@ Subagents can also maintain their own auto memory. See [subagent configuration](",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "CLAUDE.md files are markdown files that give Claude persistent instructions for a project, your personal workflow, or your entire organization. You write these files in plain text; Claude reads them at the start of every session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### When to add to CLAUDE.md"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Treat CLAUDE.md as the place you write down what you'd otherwise re-explain. Add to it when:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Claude makes the same mistake a second time"
+            },
+            {
+              "type": "added",
+              "content": "- A code review catches something Claude should have known about this codebase"
+            },
+            {
+              "type": "added",
+              "content": "- You type the same correction or clarification into chat that you typed last session"
+            },
+            {
+              "type": "added",
+              "content": "- A new teammate would need the same context to be productive"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Keep it to facts Claude should hold in every session: build commands, conventions, project layout, \"always do X\" rules. If an entry is a multi-step procedure or only matters for one part of the codebase, move it to a [skill](/en/skills) or a [path-scoped rule](#organize-rules-with-claude/rules/) instead. The [extension overview](/en/features-overview#build-your-setup-over-time) covers when to use each mechanism."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Choose where to put CLAUDE.md files"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "CLAUDE.md files can live in several locations, each with a different scope. More specific locations take precedence over broader ones."
+            }
+          ]
+        },
+        {
+          "header": "@@ -368,7 +379,9 @@ Files over 200 lines consume more context and may reduce adherence. Move detaile",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Instructions seem lost after `/compact`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "CLAUDE.md fully survives compaction. After `/compact`, Claude re-reads your CLAUDE.md from disk and re-injects it fresh into the session. If an instruction disappeared after compaction, it was given only in conversation, not written to CLAUDE.md. Add it to CLAUDE.md to make it persist across sessions."
+            },
+            {
+              "type": "added",
+              "content": "Project-root CLAUDE.md survives compaction: after `/compact`, Claude re-reads it from disk and re-injects it into the session. Nested CLAUDE.md files in subdirectories are not re-injected automatically; they reload the next time Claude reads a file in that subdirectory."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If an instruction disappeared after compaction, it was either given only in conversation or lives in a nested CLAUDE.md that hasn't reloaded yet. Add conversation-only instructions to CLAUDE.md to make them persist. See [What survives compaction](/en/context-window#what-survives-compaction) for the full breakdown."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "See [Write effective instructions](#write-effective-instructions) for guidance on size, structure, and specificity."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "モデルを固定しない場合の挙動について、BedrockとVertex AIでは通知とフォールバックが発生し、Foundryではエラーになるというプラットフォーム間の差異が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -239,9 +239,9 @@ Note: `ANTHROPIC_SMALL_FAST_MODEL` is deprecated in favor of",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When deploying Claude Code through [Bedrock](/en/amazon-bedrock), [Vertex AI](/en/google-vertex-ai), or [Foundry](/en/microsoft-foundry), pin model versions before rolling out to users."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Without pinning, Claude Code uses model aliases (`sonnet`, `opus`, `haiku`) that resolve to the latest version. When Anthropic releases a new model, users whose accounts don't have the new version enabled will break silently."
+            },
+            {
+              "type": "added",
+              "content": "Without pinning, Claude Code uses model aliases (`sonnet`, `opus`, `haiku`) that resolve to the latest version. When Anthropic releases a new model that isn't yet enabled in a user's account, Bedrock and Vertex AI users see a notice and fall back to the previous version for that session, while Foundry users see errors because Foundry has no equivalent startup check."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Set all three model environment variables to specific version IDs as part of your initial setup. Skipping this step means a Claude Code update can break your users without any action on your part."
+            },
+            {
+              "type": "added",
+              "content": "Set all three model environment variables to specific version IDs as part of your initial setup. Pinning lets you control when your users move to a new model."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use the following environment variables with version-specific model IDs for your provider:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "output-styles.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "出力スタイルが「何を知っているか」ではなく「どのように応答するか」を変更するためのものであることが強調され、CLAUDE.mdとの役割分担が明確化されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,9 +7,9 @@ source: https://code.claude.com/docs/en/output-styles.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Adapt Claude Code for uses beyond software engineering"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Output styles allow you to use Claude Code as any type of agent while keeping"
+            },
+            {
+              "type": "removed",
+              "content": "its core capabilities, such as running local scripts, reading/writing files, and"
+            },
+            {
+              "type": "removed",
+              "content": "tracking TODOs."
+            },
+            {
+              "type": "added",
+              "content": "Output styles change how Claude responds, not what Claude knows. They modify the system prompt to set role, tone, and output format while keeping core capabilities like running scripts, reading and writing files, and tracking TODOs. Use one when you keep re-prompting for the same voice or format every turn, or when you want Claude to act as something other than a software engineer."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For instructions about your project, conventions, or codebase, use [CLAUDE.md](/en/memory) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Built-in output styles"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 7,
+      "deletions": 6,
+      "explanation": "プラグインの構成要素としてスキルのディレクトリ指定オプションが追加され、構成定義の管理方法に関する解説が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,7 +15,7 @@ Looking to install plugins from an existing marketplace? See [Discover and insta",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Creating and distributing a marketplace involves:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "1. **Creating plugins**: build one or more plugins with commands, agents, hooks, MCP servers, or LSP servers. This guide assumes you already have plugins to distribute; see [Create plugins](/en/plugins) for details on how to create them."
+            },
+            {
+              "type": "added",
+              "content": "1. **Creating plugins**: build one or more plugins with skills, agents, hooks, MCP servers, or LSP servers. This guide assumes you already have plugins to distribute; see [Create plugins](/en/plugins) for details on how to create them."
+            },
+            {
+              "type": "context",
+              "content": "2. **Creating a marketplace file**: define a `marketplace.json` that lists your plugins and where to find them (see [Create the marketplace file](#create-the-marketplace-file))."
+            },
+            {
+              "type": "context",
+              "content": "3. **Host the marketplace**: push to GitHub, GitLab, or another git host (see [Host and distribute marketplaces](#host-and-distribute-marketplaces))."
+            },
+            {
+              "type": "context",
+              "content": "4. **Share with users**: users add your marketplace with `/plugin marketplace add` and install individual plugins (see [Discover and install plugins](/en/discover-plugins))."
+            }
+          ]
+        },
+        {
+          "header": "@@ -84,7 +84,7 @@ Add the marketplace and install the plugin.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "/plugin install quality-review-plugin@my-plugins"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Select some code in your editor and run your new command."
+            },
+            {
+              "type": "added",
+              "content": "Select some code in your editor and run your new skill."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```shell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "/quality-review"
+            }
+          ]
+        },
+        {
+          "header": "@@ -190,7 +190,8 @@ Each plugin entry in the `plugins` array describes a plugin and where to find it",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Type | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `commands` | string\\|array | Custom paths to command files or directories |"
+            },
+            {
+              "type": "added",
+              "content": "| `skills` | string\\|array | Custom paths to skill directories containing `<name>/SKILL.md` |"
+            },
+            {
+              "type": "added",
+              "content": "| `commands` | string\\|array | Custom paths to flat `.md` skill files or directories |"
+            },
+            {
+              "type": "context",
+              "content": "| `agents` | string\\|array | Custom paths to agent files |"
+            },
+            {
+              "type": "context",
+              "content": "| `hooks` | string\\|object | Custom hooks configuration or path to hooks file |"
+            },
+            {
+              "type": "context",
+              "content": "| `mcpServers` | string\\|object | MCP server configurations or path to MCP config |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -441,7 +442,7 @@ Key things to notice:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Strict mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `strict` field controls whether `plugin.json` is the authority for component definitions (commands, agents, hooks, skills, MCP servers, output styles)."
+            },
+            {
+              "type": "added",
+              "content": "The `strict` field controls whether `plugin.json` is the authority for component definitions (skills, agents, hooks, MCP servers, output styles)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Value | Behavior |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -450,8 +451,8 @@ The `strict` field controls whether `plugin.json` is the authority for component",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**When to use each mode:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **`strict: true`**: the plugin has its own `plugin.json` and manages its own components. The marketplace entry can add extra commands or hooks on top. This is the default and works for most plugins."
+            },
+            {
+              "type": "removed",
+              "content": "- **`strict: false`**: the marketplace operator wants full control. The plugin repo provides raw files, and the marketplace entry defines which of those files are exposed as commands, agents, hooks, etc. Useful when the marketplace restructures or curates a plugin's components differently than the plugin author intended."
+            },
+            {
+              "type": "added",
+              "content": "- **`strict: true`**: the plugin has its own `plugin.json` and manages its own components. The marketplace entry can add extra skills or hooks on top. This is the default and works for most plugins."
+            },
+            {
+              "type": "added",
+              "content": "- **`strict: false`**: the marketplace operator wants full control. The plugin repo provides raw files, and the marketplace entry defines which of those files are exposed as skills, agents, hooks, etc. Useful when the marketplace restructures or curates a plugin's components differently than the plugin author intended."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Host and distribute marketplaces"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 18,
+      "deletions": 18,
+      "explanation": "プラグインディレクトリの構造において、従来のcommandsディレクトリをレガシーとし、新たにskillsディレクトリを使用する形式が定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -299,9 +299,9 @@ The manifest is optional. If omitted, Claude Code auto-discovers components in [",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  \"repository\": \"https://github.com/author/plugin\","
+            },
+            {
+              "type": "context",
+              "content": "  \"license\": \"MIT\","
+            },
+            {
+              "type": "context",
+              "content": "  \"keywords\": [\"keyword1\", \"keyword2\"],"
+            },
+            {
+              "type": "added",
+              "content": "  \"skills\": \"./custom/skills/\","
+            },
+            {
+              "type": "context",
+              "content": "  \"commands\": [\"./custom/commands/special.md\"],"
+            },
+            {
+              "type": "context",
+              "content": "  \"agents\": \"./custom/agents/\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"skills\": \"./custom/skills/\","
+            },
+            {
+              "type": "context",
+              "content": "  \"hooks\": \"./config/hooks.json\","
+            },
+            {
+              "type": "context",
+              "content": "  \"mcpServers\": \"./mcp-config.json\","
+            },
+            {
+              "type": "context",
+              "content": "  \"outputStyles\": \"./styles/\","
+            }
+          ]
+        },
+        {
+          "header": "@@ -337,9 +337,9 @@ agent `agent-creator` for the plugin with name `plugin-dev` will appear as",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Type | Description | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `commands` | string\\|array | Custom command files/directories (replaces default `commands/`) | `\"./custom/cmd.md\"` or `[\"./cmd1.md\"]` |"
+            },
+            {
+              "type": "added",
+              "content": "| `skills` | string\\|array | Custom skill directories containing `<name>/SKILL.md` (replaces default `skills/`) | `\"./custom/skills/\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `commands` | string\\|array | Custom flat `.md` skill files or directories (replaces default `commands/`) | `\"./custom/cmd.md\"` or `[\"./cmd1.md\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `agents` | string\\|array | Custom agent files (replaces default `agents/`) | `\"./custom/agents/reviewer.md\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `skills` | string\\|array | Custom skill directories (replaces default `skills/`) | `\"./custom/skills/\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `hooks` | string\\|array\\|object | Hook config paths or inline config | `\"./my-extra-hooks.json\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `mcpServers` | string\\|array\\|object | MCP config paths or inline config | `\"./my-extra-mcp-config.json\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `outputStyles` | string\\|array | Custom output style files/directories (replaces default `output-styles/`) | `\"./styles/\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -392,12 +392,12 @@ The `server` field is required and must match a key in the plugin's `mcpServers`",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Path behavior rules"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For `commands`, `agents`, `skills`, and `outputStyles`, custom paths replace the default directory. If the manifest specifies `commands`, the default `commands/` directory is not scanned. [Hooks](#hooks), [MCP servers](#mcp-servers), and [LSP servers](#lsp-servers) have different semantics for handling multiple sources."
+            },
+            {
+              "type": "added",
+              "content": "For `skills`, `commands`, `agents`, and `outputStyles`, custom paths replace the default directory. If the manifest specifies `skills`, the default `skills/` directory is not scanned. [Hooks](#hooks), [MCP servers](#mcp-servers), and [LSP servers](#lsp-servers) have different semantics for handling multiple sources."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- All paths must be relative to the plugin root and start with `./`"
+            },
+            {
+              "type": "context",
+              "content": "- Components from custom paths use the same naming and namespacing rules"
+            },
+            {
+              "type": "context",
+              "content": "- Multiple paths can be specified as arrays"
+            },
+            {
+              "type": "removed",
+              "content": "- To keep the default directory and add more paths for commands, agents, skills, or output styles, include the default in your array: `\"commands\": [\"./commands/\", \"./extras/deploy.md\"]`"
+            },
+            {
+              "type": "added",
+              "content": "- To keep the default directory and add more paths for skills, commands, agents, or output styles, include the default in your array: `\"skills\": [\"./skills/\", \"./extras/\"]`"
+            },
+            {
+              "type": "context",
+              "content": "- When a skill path points to a directory that contains a `SKILL.md` directly, for example `\"skills\": [\"./\"]` pointing to the plugin root, the frontmatter `name` field in `SKILL.md` determines the skill's invocation name. This gives a stable name regardless of the install directory. If `name` is not set in the frontmatter, the directory basename is used as a fallback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Path examples**:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -525,19 +525,19 @@ A complete plugin follows this structure:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "enterprise-plugin/"
+            },
+            {
+              "type": "context",
+              "content": "├── .claude-plugin/           # Metadata directory (optional)"
+            },
+            {
+              "type": "context",
+              "content": "│   └── plugin.json             # plugin manifest"
+            },
+            {
+              "type": "removed",
+              "content": "├── commands/                 # Default command location"
+            },
+            {
+              "type": "removed",
+              "content": "│   ├── status.md"
+            },
+            {
+              "type": "removed",
+              "content": "│   └── logs.md"
+            },
+            {
+              "type": "removed",
+              "content": "├── agents/                   # Default agent location"
+            },
+            {
+              "type": "removed",
+              "content": "│   ├── security-reviewer.md"
+            },
+            {
+              "type": "removed",
+              "content": "│   ├── performance-tester.md"
+            },
+            {
+              "type": "removed",
+              "content": "│   └── compliance-checker.md"
+            },
+            {
+              "type": "removed",
+              "content": "├── skills/                   # Agent Skills"
+            },
+            {
+              "type": "added",
+              "content": "├── skills/                   # Skills"
+            },
+            {
+              "type": "context",
+              "content": "│   ├── code-reviewer/"
+            },
+            {
+              "type": "context",
+              "content": "│   │   └── SKILL.md"
+            },
+            {
+              "type": "context",
+              "content": "│   └── pdf-processor/"
+            },
+            {
+              "type": "context",
+              "content": "│       ├── SKILL.md"
+            },
+            {
+              "type": "context",
+              "content": "│       └── scripts/"
+            },
+            {
+              "type": "added",
+              "content": "├── commands/                 # Skills as flat .md files"
+            },
+            {
+              "type": "added",
+              "content": "│   ├── status.md"
+            },
+            {
+              "type": "added",
+              "content": "│   └── logs.md"
+            },
+            {
+              "type": "added",
+              "content": "├── agents/                   # Subagent definitions"
+            },
+            {
+              "type": "added",
+              "content": "│   ├── security-reviewer.md"
+            },
+            {
+              "type": "added",
+              "content": "│   ├── performance-tester.md"
+            },
+            {
+              "type": "added",
+              "content": "│   └── compliance-checker.md"
+            },
+            {
+              "type": "context",
+              "content": "├── output-styles/            # Output style definitions"
+            },
+            {
+              "type": "context",
+              "content": "│   └── terse.md"
+            },
+            {
+              "type": "context",
+              "content": "├── hooks/                    # Hook configurations"
+            }
+          ]
+        },
+        {
+          "header": "@@ -563,9 +563,9 @@ The `.claude-plugin/` directory contains the `plugin.json` file. All other direc",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Component | Default Location | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| **Manifest** | `.claude-plugin/plugin.json` | Plugin metadata and configuration (optional) |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Commands** | `commands/` | Skill Markdown files (legacy; use `skills/` for new skills) |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Agents** | `agents/` | Subagent Markdown files |"
+            },
+            {
+              "type": "context",
+              "content": "| **Skills** | `skills/` | Skills with `<name>/SKILL.md` structure |"
+            },
+            {
+              "type": "added",
+              "content": "| **Commands** | `commands/` | Skills as flat Markdown files. Use `skills/` for new plugins |"
+            },
+            {
+              "type": "added",
+              "content": "| **Agents** | `agents/` | Subagent Markdown files |"
+            },
+            {
+              "type": "context",
+              "content": "| **Output styles** | `output-styles/` | Output style definitions |"
+            },
+            {
+              "type": "context",
+              "content": "| **Hooks** | `hooks/hooks.json` | Hook configuration |"
+            },
+            {
+              "type": "context",
+              "content": "| **MCP servers** | `.mcp.json` | MCP server definitions |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -706,7 +706,7 @@ This shows:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Which plugins are being loaded"
+            },
+            {
+              "type": "context",
+              "content": "- Any errors in plugin manifests"
+            },
+            {
+              "type": "removed",
+              "content": "- Command, agent, and hook registration"
+            },
+            {
+              "type": "added",
+              "content": "- Skill, agent, and hook registration"
+            },
+            {
+              "type": "context",
+              "content": "- MCP server initialization"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Common issues"
+            }
+          ]
+        },
+        {
+          "header": "@@ -714,7 +714,7 @@ This shows:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Issue | Cause | Solution |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| Plugin not loading | Invalid `plugin.json` | Run `claude plugin validate` or `/plugin validate` to check `plugin.json`, skill/agent/command frontmatter, and `hooks/hooks.json` for syntax and schema errors |"
+            },
+            {
+              "type": "removed",
+              "content": "| Commands not appearing | Wrong directory structure | Ensure `commands/` at root, not in `.claude-plugin/` |"
+            },
+            {
+              "type": "added",
+              "content": "| Skills not appearing | Wrong directory structure | Ensure `skills/` or `commands/` is at the plugin root, not inside `.claude-plugin/` |"
+            },
+            {
+              "type": "context",
+              "content": "| Hooks not firing | Script not executable | Run `chmod +x script.sh` |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP server fails | Missing `${CLAUDE_PLUGIN_ROOT}` | Use variable for all plugin paths |"
+            },
+            {
+              "type": "context",
+              "content": "| Path errors | Absolute paths used | All paths must be relative and start with `./` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -766,7 +766,7 @@ This shows:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Directory structure mistakes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Symptoms**: Plugin loads but components (commands, agents, hooks) are missing."
+            },
+            {
+              "type": "added",
+              "content": "**Symptoms**: Plugin loads but components (skills, agents, hooks) are missing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Correct structure**: Components must be at the plugin root, not inside `.claude-plugin/`. Only `plugin.json` belongs in `.claude-plugin/`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "新しいプラグインを作成する際には、フラットなMarkdownファイルではなく、SKILL.mdを含むディレクトリ構造を使用することが推奨されています。",
+      "hunks": [
+        {
+          "header": "@@ -161,9 +161,9 @@ You've created a plugin with a skill, but plugins can include much more: custom",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Directory | Location | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `.claude-plugin/` | Plugin root | Contains `plugin.json` manifest (optional if components use default locations) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `commands/` | Plugin root | Skills as Markdown files |"
+            },
+            {
+              "type": "added",
+              "content": "| `skills/` | Plugin root | Skills as `<name>/SKILL.md` directories |"
+            },
+            {
+              "type": "added",
+              "content": "| `commands/` | Plugin root | Skills as flat Markdown files. Use `skills/` for new plugins |"
+            },
+            {
+              "type": "context",
+              "content": "| `agents/` | Plugin root | Custom agent definitions |"
+            },
+            {
+              "type": "removed",
+              "content": "| `skills/` | Plugin root | Agent Skills with `SKILL.md` files |"
+            },
+            {
+              "type": "context",
+              "content": "| `hooks/` | Plugin root | Event handlers in `hooks.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `.mcp.json` | Plugin root | MCP server configurations |"
+            },
+            {
+              "type": "context",
+              "content": "| `.lsp.json` | Plugin root | LSP server configurations for code intelligence |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -275,7 +275,7 @@ claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two",
+          "lines": [
+            {
+              "type": "context",
+              "content": "If your plugin isn't working as expected:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1. **Check the structure**: Ensure your directories are at the plugin root, not inside `.claude-plugin/`"
+            },
+            {
+              "type": "removed",
+              "content": "2. **Test components individually**: Check each command, agent, and hook separately"
+            },
+            {
+              "type": "added",
+              "content": "2. **Test components individually**: Check each skill, agent, and hook separately"
+            },
+            {
+              "type": "context",
+              "content": "3. **Use validation and debugging tools**: See [Debugging and development tools](/en/plugins-reference#debugging-and-development-tools) for CLI commands and troubleshooting techniques"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Share your plugins"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "ウィザードによる設定がユーザー設定ファイルのenvブロックに保存される仕組みに関連して、設定項目の説明が微調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -88,7 +88,7 @@ Code through hierarchical settings:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "  - **Server-managed settings**: delivered from Anthropic's servers via the Claude.ai admin console. See [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": "  - **MDM/OS-level policies**: delivered through native device management on macOS and Windows:"
+            },
+            {
+              "type": "removed",
+              "content": "    - macOS: `com.anthropic.claudecode` managed preferences domain (deployed via configuration profiles in Jamf, Kandji, or other MDM tools)"
+            },
+            {
+              "type": "added",
+              "content": "    - macOS: `com.anthropic.claudecode` managed preferences domain (deployed via configuration profiles in Jamf, Iru (Kandji), or other MDM tools)"
+            },
+            {
+              "type": "context",
+              "content": "    - Windows: `HKLM\\SOFTWARE\\Policies\\ClaudeCode` registry key with a `Settings` value (REG\\_SZ or REG\\_EXPAND\\_SZ) containing JSON (deployed via Group Policy or Intune)"
+            },
+            {
+              "type": "context",
+              "content": "    - Windows (user-level): `HKCU\\SOFTWARE\\Policies\\ClaudeCode` (lowest policy priority, only used when no admin-level source exists)"
+            },
+            {
+              "type": "context",
+              "content": "  - **File-based**: `managed-settings.json` and `managed-mcp.json` deployed to system directories:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -107,6 +107,8 @@ Code through hierarchical settings:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "  See [managed settings](/en/permissions#managed-only-settings) and [Managed MCP configuration](/en/mcp#managed-mcp-configuration) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "  This [repository](https://github.com/anthropics/claude-code/tree/main/examples/mdm) includes starter deployment templates for Jamf, Iru (Kandji), Intune, and Group Policy. Use these as starting points and adjust them to fit your needs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "  Managed deployments can also restrict **plugin marketplace additions** using"
+            },
+            {
+              "type": "context",
+              "content": "  `strictKnownMarketplaces`. For more information, see [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions)."
+            },
+            {
+              "type": "context",
+              "content": "- **Other configuration** is stored in `~/.claude.json`. This file contains your preferences (theme, notification settings, editor mode), OAuth session, [MCP server](/en/mcp) configurations for user and local scopes, per-project state (allowed tools, trust settings), and various caches. Project-scoped MCP servers are stored separately in `.mcp.json`."
+            }
+          ]
+        },
+        {
+          "header": "@@ -858,7 +860,7 @@ Use the `/plugin` command to manage plugins interactively:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Browse available plugins from marketplaces"
+            },
+            {
+              "type": "context",
+              "content": "- Install/uninstall plugins"
+            },
+            {
+              "type": "context",
+              "content": "- Enable/disable plugins"
+            },
+            {
+              "type": "removed",
+              "content": "- View plugin details (commands, agents, hooks provided)"
+            },
+            {
+              "type": "added",
+              "content": "- View plugin details (skills, agents, hooks provided)"
+            },
+            {
+              "type": "context",
+              "content": "- Add/remove marketplaces"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Learn more about the plugin system in the [plugins documentation](/en/plugins)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "特定のタスクを自動化するためのスキル作成に関するガイドが、最新のディレクトリ構造に基づいて更新されています。",
+      "hunks": [
+        {
+          "header": "@@ -9,6 +9,8 @@ source: https://code.claude.com/docs/en/skills.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Skills extend what Claude can do. Create a `SKILL.md` file with instructions, and Claude adds it to its toolkit. Claude uses skills when relevant, or you can invoke one directly with `/skill-name`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Create a skill when you keep pasting the same playbook, checklist, or multi-step procedure into chat, or when a section of CLAUDE.md has grown into a procedure rather than a fact. Unlike CLAUDE.md content, a skill's body loads only when it's used, so long reference material costs almost nothing until you need it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For built-in commands like `/help` and `/compact`, and bundled skills like `/debug` and `/simplify`, see the [commands reference](/en/commands)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Custom commands have been merged into skills.** A file at `.claude/commands/deploy.md` and a skill at `.claude/skills/deploy/SKILL.md` both create `/deploy` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant."
+            }
+          ]
+        },
+        {
+          "header": "@@ -273,9 +275,9 @@ In a regular session, skill descriptions are loaded into context so Claude knows",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you or Claude invoke a skill, the rendered `SKILL.md` content enters the conversation as a single message and stays there for the rest of the session. Claude Code does not re-read the skill file on later turns, so write guidance that should apply throughout a task as standing instructions rather than one-time steps."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Auto-compaction](/en/how-claude-code-works#when-context-fills-up) preserves invoked skills. When the conversation is summarized to free context, Claude Code re-attaches the most recent invocation of each skill after the summary (truncated if the skill is very large). If you invoke the same skill more than once, only the latest copy is carried forward through compaction."
+            },
+            {
+              "type": "added",
+              "content": "[Auto-compaction](/en/how-claude-code-works#when-context-fills-up) carries invoked skills forward within a token budget. When the conversation is summarized to free context, Claude Code re-attaches the most recent invocation of each skill after the summary, keeping the first 5,000 tokens of each. Re-attached skills share a combined budget of 25,000 tokens. Claude Code fills this budget starting from the most recently invoked skill, so older skills can be dropped entirely after compaction if you have invoked many in one session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If a skill seems to stop influencing behavior after the first response, the skill content is still present. The model is choosing other tools or approaches. Strengthen the skill's `description` and instructions so the model keeps preferring it, or use [hooks](/en/hooks) to enforce behavior deterministically."
+            },
+            {
+              "type": "added",
+              "content": "If a skill seems to stop influencing behavior after the first response, the content is usually still present and the model is choosing other tools or approaches. Strengthen the skill's `description` and instructions so the model keeps preferring it, or use [hooks](/en/hooks) to enforce behavior deterministically. If the skill is large or you invoked several others after it, re-invoke it after compaction to restore the full content."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Pre-approve tools for a skill"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "大規模な出力を伴うサイドタスクをメインの会話から切り離して管理するサブエージェントの利用シーンが補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,9 @@ source: https://code.claude.com/docs/en/sub-agents.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Create and use specialized AI subagents in Claude Code for task-specific workflows and improved context management."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Subagents are specialized AI assistants that handle specific types of tasks. Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions. When Claude encounters a task that matches a subagent's description, it delegates to that subagent, which works independently and returns results. To see the context savings in practice, the [context window visualization](/en/context-window) walks through a session where a subagent handles research in its own separate window."
+            },
+            {
+              "type": "added",
+              "content": "Subagents are specialized AI assistants that handle specific types of tasks. Use one when a side task would flood your main conversation with search results, logs, or file contents you won't reference again: the subagent does that work in its own context and returns only the summary. Define a custom subagent when you keep spawning the same kind of worker with the same instructions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions. When Claude encounters a task that matches a subagent's description, it delegates to that subagent, which works independently and returns results. To see the context savings in practice, the [context window visualization](/en/context-window) walks through a session where a subagent handles research in its own separate window."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you need multiple agents working in parallel and communicating with each other, see [agent teams](/en/agent-teams) instead. Subagents work within a single session; agent teams coordinate across separate sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "third-party-integrations.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サードパーティプラットフォームとの連携におけるログインプロンプトの選択肢について、最新のUI仕様に合わせた記述修正が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -198,7 +198,7 @@ Encourage new users to try Claude Code for codebase Q\\&A, or on smaller bug fixe",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Pin model versions for cloud providers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you deploy through [Bedrock](/en/amazon-bedrock), [Vertex AI](/en/google-vertex-ai), or [Foundry](/en/microsoft-foundry), pin specific model versions using `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, and `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Without pinning, Claude Code aliases resolve to the latest version, which can break users when Anthropic releases a new model that isn't yet enabled in your account. See [Model configuration](/en/model-config#pin-models-for-third-party-deployments) for details."
+            },
+            {
+              "type": "added",
+              "content": "If you deploy through [Bedrock](/en/amazon-bedrock), [Vertex AI](/en/google-vertex-ai), or [Foundry](/en/microsoft-foundry), pin specific model versions using `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, and `ANTHROPIC_DEFAULT_HAIKU_MODEL`. Without pinning, model aliases resolve to the latest version, which may not yet be enabled in your account when Anthropic releases an update. Pinning lets you control when your users move to a new model. See [Model configuration](/en/model-config#pin-models-for-third-party-deployments) for what each provider does when the latest version is unavailable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Configure security policies"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "voice-dictation.md",
+      "additions": 13,
+      "deletions": 1,
+      "explanation": "音声入力機能における特定のコマンドやショートカットキーの動作説明が最新化されました。",
+      "hunks": [
+        {
+          "header": "@@ -120,11 +120,23 @@ Because hold detection relies on key-repeat, avoid binding a bare letter key lik",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Common issues when voice dictation does not activate or record:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **`Voice mode requires a Claude.ai account`**: you are authenticated with an API key or a third-party provider. Run `/login` to sign in with a Claude.ai account."
+            },
+            {
+              "type": "removed",
+              "content": "- **`Microphone access is denied`**: grant microphone permission to your terminal in system settings. On macOS, go to System Settings → Privacy & Security → Microphone. On Windows, go to Settings → Privacy → Microphone. Then run `/voice` again."
+            },
+            {
+              "type": "added",
+              "content": "- **`Microphone access is denied`**: grant microphone permission to your terminal in system settings. On macOS, go to System Settings → Privacy & Security → Microphone and enable your terminal app, then run `/voice` again. On Windows, go to Settings → Privacy & security → Microphone and turn on microphone access for desktop apps, then run `/voice` again. If your terminal isn't listed in the macOS settings, see [Terminal not listed in macOS Microphone settings](#terminal-not-listed-in-macos-microphone-settings)."
+            },
+            {
+              "type": "context",
+              "content": "- **`No audio recording tool found` on Linux**: the native audio module could not load and no fallback is installed. Install SoX with the command shown in the error message, for example `sudo apt-get install sox`."
+            },
+            {
+              "type": "context",
+              "content": "- **Nothing happens when holding `Space`**: watch the prompt input while you hold. If spaces keep accumulating, voice dictation is off; run `/voice` to enable it. If only one or two spaces appear and then nothing, voice dictation is on but hold detection is not triggering. Hold detection requires your terminal to send key-repeat events, so it cannot detect a held key if key-repeat is disabled at the OS level."
+            },
+            {
+              "type": "context",
+              "content": "- **Transcription is garbled or in the wrong language**: dictation defaults to English. If you are dictating in another language, set it in `/config` first. See [Change the dictation language](#change-the-dictation-language)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Terminal not listed in macOS Microphone settings"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If your terminal app does not appear under System Settings → Privacy & Security → Microphone, there is no toggle you can enable. Reset the permission state for your terminal so the next `/voice` run triggers a fresh macOS permission prompt."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `tccutil reset Microphone <bundle-id>`, replacing `<bundle-id>` with your terminal's identifier: `com.apple.Terminal` for the built-in Terminal, or `com.googlecode.iterm2` for iTerm2. For other terminals, look up the identifier with `osascript -e 'id of app \"AppName\"'`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can run `tccutil reset Microphone` without a bundle ID, but it revokes microphone access from every app on your Mac, including apps like Zoom or Slack. Each app will need to re-request access on next use, so don't run it during an active call."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "macOS won't re-prompt a process that is already running. Quit the terminal app with Cmd+Q, not just close its windows, then open it again."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Start Claude Code and run `/voice`. macOS prompts for microphone access; allow it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## See also"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Customize keyboard shortcuts](/en/keybindings): rebind `voice:pushToTalk` and other CLI keyboard actions"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

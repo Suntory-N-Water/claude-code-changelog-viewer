@@ -15,7 +15,7 @@ Looking to install plugins from an existing marketplace? See [Discover and insta
 
 Creating and distributing a marketplace involves:
 
-1. **Creating plugins**: build one or more plugins with commands, agents, hooks, MCP servers, or LSP servers. This guide assumes you already have plugins to distribute; see [Create plugins](/en/plugins) for details on how to create them.
+1. **Creating plugins**: build one or more plugins with skills, agents, hooks, MCP servers, or LSP servers. This guide assumes you already have plugins to distribute; see [Create plugins](/en/plugins) for details on how to create them.
 2. **Creating a marketplace file**: define a `marketplace.json` that lists your plugins and where to find them (see [Create the marketplace file](#create-the-marketplace-file)).
 3. **Host the marketplace**: push to GitHub, GitLab, or another git host (see [Host and distribute marketplaces](#host-and-distribute-marketplaces)).
 4. **Share with users**: users add your marketplace with `/plugin marketplace add` and install individual plugins (see [Discover and install plugins](/en/discover-plugins)).
@@ -84,7 +84,7 @@ Add the marketplace and install the plugin.
 /plugin install quality-review-plugin@my-plugins
 ```
 
-Select some code in your editor and run your new command.
+Select some code in your editor and run your new skill.
 
 ```shell theme={null}
 /quality-review
@@ -190,7 +190,8 @@ Each plugin entry in the `plugins` array describes a plugin and where to find it
 
 | Field | Type | Description |
 | :- | :- | :- |
-| `commands` | string\|array | Custom paths to command files or directories |
+| `skills` | string\|array | Custom paths to skill directories containing `<name>/SKILL.md` |
+| `commands` | string\|array | Custom paths to flat `.md` skill files or directories |
 | `agents` | string\|array | Custom paths to agent files |
 | `hooks` | string\|object | Custom hooks configuration or path to hooks file |
 | `mcpServers` | string\|object | MCP server configurations or path to MCP config |
@@ -441,7 +442,7 @@ Key things to notice:
 
 ### Strict mode
 
-The `strict` field controls whether `plugin.json` is the authority for component definitions (commands, agents, hooks, skills, MCP servers, output styles).
+The `strict` field controls whether `plugin.json` is the authority for component definitions (skills, agents, hooks, MCP servers, output styles).
 
 | Value | Behavior |
 | :- | :- |
@@ -450,8 +451,8 @@ The `strict` field controls whether `plugin.json` is the authority for component
 
 **When to use each mode:**
 
-- **`strict: true`**: the plugin has its own `plugin.json` and manages its own components. The marketplace entry can add extra commands or hooks on top. This is the default and works for most plugins.
-- **`strict: false`**: the marketplace operator wants full control. The plugin repo provides raw files, and the marketplace entry defines which of those files are exposed as commands, agents, hooks, etc. Useful when the marketplace restructures or curates a plugin's components differently than the plugin author intended.
+- **`strict: true`**: the plugin has its own `plugin.json` and manages its own components. The marketplace entry can add extra skills or hooks on top. This is the default and works for most plugins.
+- **`strict: false`**: the marketplace operator wants full control. The plugin repo provides raw files, and the marketplace entry defines which of those files are exposed as skills, agents, hooks, etc. Useful when the marketplace restructures or curates a plugin's components differently than the plugin author intended.
 
 ## Host and distribute marketplaces
 
