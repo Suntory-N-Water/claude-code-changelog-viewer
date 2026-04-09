@@ -1,0 +1,195 @@
+{
+  "id": "20260409-001531",
+  "timestamp": "2026-04-09T00:15:31.852Z",
+  "aiSummary": "プルリクエストの自動修正をウェブセッションで実行する/autofix-prコマンドが新設されました。/claude-apiスキルの対象範囲が調整され、Managed Agentsに関するリファレンスが追加されています。Windows環境でのインストール時に発生する証明書失効チェックエラーの回避策が troubleshooting に追記されました。全体として、CI連携機能の強化と導入時のトラブル対応に関する改善が含まれています。",
+  "files": [
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -652,6 +652,7 @@ Auto-fix requires the Claude GitHub App to be installed on your repository. If y",
+          "lines": [
+            {
+              "type": "context",
+              "content": "There are a few ways to turn on auto-fix depending on where the PR came from and what device you're using:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **PRs created in Claude Code on the web**: open the CI status bar and select **Auto-fix**"
+            },
+            {
+              "type": "added",
+              "content": "- **From your terminal**: run [`/autofix-pr`](/en/commands#built-in-commands) while on the PR's branch. Claude Code detects the open PR with `gh`, spawns a web session, and turns on auto-fix in one step"
+            },
+            {
+              "type": "context",
+              "content": "- **From the mobile app**: tell Claude to auto-fix the PR, for example \"watch this PR and fix any CI failures or review comments\""
+            },
+            {
+              "type": "context",
+              "content": "- **Any existing PR**: paste the PR URL into a session and tell Claude to auto-fix it"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -17,6 +17,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `/add-dir <path>` | Add a working directory for file access during the current session. Most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from the added directory |"
+            },
+            {
+              "type": "context",
+              "content": "| `/agents` | Manage [agent](/en/sub-agents) configurations |"
+            },
+            {
+              "type": "added",
+              "content": "| `/autofix-pr [prompt]` | Spawn a [Claude Code on the web](/en/claude-code-on-the-web#auto-fix-pull-requests) session that watches the current branch's PR and pushes fixes when CI fails or reviewers leave comments. Detects the open PR from your checked-out branch with `gh pr view`; to watch a different PR, check out its branch first. By default the remote session is told to fix every CI failure and review comment; pass a prompt to give it different instructions, for example `/autofix-pr only fix lint and type errors`. Requires the `gh` CLI and access to [Claude Code on the web](/en/claude-code-on-the-web#who-can-use-claude-code-on-the-web) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/btw <question>` | Ask a quick [side question](/en/interactive-mode#side-questions-with-btw) without adding to the conversation |"
+            },
+            {
+              "type": "context",
+              "content": "| `/chrome` | Configure [Claude in Chrome](/en/chrome) settings |"
+            },
+            {
+              "type": "context",
+              "content": "| `/clear` | Clear conversation history and free up context. Aliases: `/reset`, `/new` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -24,7 +24,7 @@ You invoke bundled skills the same way as any other skill: type `/` followed by",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Skill | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `/batch <instruction>` | Orchestrate large-scale changes across a codebase in parallel. Researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan. Once approved, spawns one background agent per unit in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/claude-api` | Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL) and Agent SDK reference for Python and TypeScript. Covers tool use, streaming, batches, structured outputs, and common pitfalls. Also activates automatically when your code imports `anthropic`, `@anthropic-ai/sdk`, or `claude_agent_sdk` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/claude-api` | Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL). Covers tool use, streaming, batches, structured outputs, Managed Agents, and common pitfalls. Also activates automatically when your code imports `anthropic` or `@anthropic-ai/sdk` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/debug [description]` | Enable debug logging for the current session and troubleshoot issues by reading the session debug log. Debug logging is off by default unless you started with `claude --debug`, so running `/debug` mid-session starts capturing logs from that point forward. Optionally describe the issue to focus the analysis |"
+            },
+            {
+              "type": "context",
+              "content": "| `/loop [interval] <prompt>` | Run a prompt repeatedly on an interval while the session stays open. Useful for polling a deployment, babysitting a PR, or periodically re-running another skill. Example: `/loop 5m check if the deploy finished`. See [Run prompts on a schedule](/en/scheduled-tasks) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/simplify [focus]` | Review your recently changed files for code reuse, quality, and efficiency issues, then fix them. Spawns three review agents in parallel, aggregates their findings, and applies fixes. Pass text to focus on specific concerns: `/simplify focus on memory efficiency` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshooting.md",
+      "additions": 6,
+      "deletions": 0,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -313,6 +313,12 @@ Errors like `curl: (35) TLS connect error`, `schannel: next InitializeSecurityCo",
+          "lines": [
+            {
+              "type": "context",
+              "content": "   ```"
+            },
+            {
+              "type": "context",
+              "content": "   Ask your IT team for the certificate file if you don't have it. You can also try on a direct connection to confirm the proxy is the cause."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "4. **On Windows, bypass certificate revocation checks** if you see `CRYPT_E_REVOCATION_OFFLINE (0x80092013)`. This means curl reached the server but your network blocks the certificate revocation lookup, which is common behind corporate firewalls. Add `--ssl-revoke-best-effort` to the install command:"
+            },
+            {
+              "type": "added",
+              "content": "   ```bat theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "   curl --ssl-revoke-best-effort -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "added",
+              "content": "   ```"
+            },
+            {
+              "type": "added",
+              "content": "   Alternatively, install with `winget install Anthropic.ClaudeCode`, which avoids curl entirely."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `Failed to fetch version from storage.googleapis.com`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The installer couldn't reach the download server. This typically means `storage.googleapis.com` is blocked on your network."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

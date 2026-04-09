@@ -34,20 +34,14 @@ export type DocsDiffEntry = {
   files: DocFileDiff[];
 };
 
-type DocsDiffFile = {
-  entries: DocsDiffEntry[];
-};
-
 export class DocsDiffGenerator {
   private readonly rootDir: string;
   private readonly diffsDir: string;
-  private readonly diffFilePath: string;
   private readonly log: AppLogger;
 
   constructor(rootDir: string, logger: AppLogger) {
     this.rootDir = rootDir;
     this.diffsDir = path.join(rootDir, 'diffs');
-    this.diffFilePath = path.join(this.diffsDir, 'docs_diff.json');
     this.log = logger.child({ component: 'DocsDiffGenerator' });
   }
 
@@ -185,7 +179,7 @@ export class DocsDiffGenerator {
   }
 
   /**
-   * diff エントリを docs_diff.json に追記(先頭に追加)
+   * diff エントリを {id}.json として diffs/ ディレクトリに保存
    */
   async appendDiffEntry(
     files: DocFileDiff[],
@@ -202,25 +196,11 @@ export class DocsDiffGenerator {
       files,
     };
 
-    // 既存ファイルを読み込み
-    let existing: DocsDiffFile = { entries: [] };
-    try {
-      const content = await fs.readFile(this.diffFilePath, 'utf-8');
-      existing = JSON.parse(content) as DocsDiffFile;
-    } catch {
-      // ファイルが存在しない場合は空から開始
-    }
-
-    existing.entries.unshift(entry);
-
-    await fs.writeFile(
-      this.diffFilePath,
-      JSON.stringify(existing, null, 2),
-      'utf-8',
-    );
+    const filePath = path.join(this.diffsDir, `${id}.json`);
+    await fs.writeFile(filePath, JSON.stringify(entry, null, 2), 'utf-8');
 
     this.log.info(
-      `diff エントリを追記しました: ${id} (${files.length} ファイル)`,
+      `diff エントリを保存しました: ${id}.json (${files.length} ファイル)`,
     );
     return id;
   }

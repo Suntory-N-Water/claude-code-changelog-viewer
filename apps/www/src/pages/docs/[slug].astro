@@ -11,11 +11,9 @@ import { formatChangelogContent } from '../../lib/format-changelog-content';
 export async function getStaticPaths() {
   const docsDiffEntries = await getCollection('docsDiff');
 
-  const allEntries = docsDiffEntries.flatMap((col) => col.data.entries);
-
-  return allEntries.map((entry) => ({
-    params: { slug: entry.id },
-    props: { entry },
+  return docsDiffEntries.map((col) => ({
+    params: { slug: col.data.id },
+    props: { entry: col.data },
   }));
 }
 

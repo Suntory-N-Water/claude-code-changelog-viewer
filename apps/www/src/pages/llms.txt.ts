@@ -35,7 +35,7 @@ export async function GET(context: APIContext) {
 
   // docs diff entries: 新しい順
   const allDocEntries = docsDiffEntries
-    .flatMap((col) => col.data.entries)
+    .map((col) => col.data)
     .sort(
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),

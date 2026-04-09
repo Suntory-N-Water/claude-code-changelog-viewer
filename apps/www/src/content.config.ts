@@ -51,28 +51,24 @@ const diffCollection = defineCollection({
 });
 
 const docsDiffCollection = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: './src/content/docs-diff' }),
+  loader: glob({ pattern: '**/*.json', base: '../docs-tracker/diffs' }),
   schema: z.object({
-    entries: z.array(
+    id: z.string(),
+    timestamp: z.iso.datetime(),
+    aiSummary: z.string(),
+    files: z.array(
       z.object({
-        id: z.string(),
-        timestamp: z.iso.datetime(),
-        aiSummary: z.string(),
-        files: z.array(
+        filename: z.string(),
+        additions: z.number(),
+        deletions: z.number(),
+        explanation: z.string().optional(),
+        hunks: z.array(
           z.object({
-            filename: z.string(),
-            additions: z.number(),
-            deletions: z.number(),
-            explanation: z.string().optional(),
-            hunks: z.array(
+            header: z.string(),
+            lines: z.array(
               z.object({
-                header: z.string(),
-                lines: z.array(
-                  z.object({
-                    type: z.enum(['added', 'removed', 'context']),
-                    content: z.string(),
-                  }),
-                ),
+                type: z.enum(['added', 'removed', 'context']),
+                content: z.string(),
               }),
             ),
           }),

@@ -1,0 +1,1910 @@
+{
+  "id": "20260408-133739",
+  "timestamp": "2026-04-08T13:37:39.381Z",
+  "aiSummary": "Amazon Bedrockの新しいMantleエンドポイントに対応し、ClaudeのネイティブAPI形式でのモデル呼び出しが可能になりました。ローカルデータ管理の詳細が明文化され、セッション履歴やキャッシュの保存場所、保持期間、および手動削除の方法が詳細に解説されています。フック機能においてデバッグログの出力仕様やセッションタイトルの自動設定が導入されたほか、モデルの推論Effortレベルのデフォルト値がユーザーのプランに応じて調整されました。",
+  "files": [
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 78,
+      "deletions": 0,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -260,6 +260,76 @@ Example configuration:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Use the Mantle endpoint"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Mantle is an Amazon Bedrock endpoint that serves Claude models through the native Anthropic API shape rather than the Bedrock Invoke API. It uses the same AWS credentials, IAM permissions, and `awsAuthRefresh` configuration described earlier on this page."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Mantle requires Claude Code v2.1.94 or later. Run `claude --version` to check."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Enable Mantle"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With AWS credentials already configured, set `CLAUDE_CODE_USE_MANTLE` to route requests to the Mantle endpoint:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "export CLAUDE_CODE_USE_MANTLE=1"
+            },
+            {
+              "type": "added",
+              "content": "export AWS_REGION=us-east-1"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code constructs the endpoint URL from `AWS_REGION`. To override it for a custom endpoint or gateway, set `ANTHROPIC_BEDROCK_MANTLE_BASE_URL`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/status` inside Claude Code to confirm. The provider line shows `Amazon Bedrock (Mantle)` when Mantle is active."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Select a Mantle model"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Mantle uses model IDs prefixed with `anthropic.` and without a version suffix, for example `anthropic.claude-haiku-4-5`. The models available to your account depend on what your organization has been granted; additional model IDs are listed in your onboarding materials from AWS. Contact your AWS account team to request access to allowlisted models."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Set the model with the `--model` flag or with `/model` inside Claude Code:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude --model anthropic.claude-haiku-4-5"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Run Mantle alongside the Invoke API"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The models available to you on Mantle may not include every model you use today. Setting both `CLAUDE_CODE_USE_BEDROCK` and `CLAUDE_CODE_USE_MANTLE` lets Claude Code call both endpoints from the same session. Model IDs that match the Mantle format are routed to Mantle, and all other model IDs go to the Bedrock Invoke API."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "export CLAUDE_CODE_USE_BEDROCK=1"
+            },
+            {
+              "type": "added",
+              "content": "export CLAUDE_CODE_USE_MANTLE=1"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To surface a Mantle model in the `/model` picker, list its ID in `availableModels` in your [settings file](/en/settings). This setting also restricts the picker to the listed entries, so include every alias you want to keep available:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"availableModels\": [\"opus\", \"sonnet\", \"haiku\", \"anthropic.claude-haiku-4-5\"]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Entries with the `anthropic.` prefix are added as custom picker options and routed to Mantle. Replace `anthropic.claude-haiku-4-5` with the model ID your account has been granted. See [Restrict model selection](/en/model-config#restrict-model-selection) for how `availableModels` interacts with other model settings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When both providers are active, `/status` shows `Amazon Bedrock + Amazon Bedrock (Mantle)`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Route Mantle through a gateway"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If your organization routes model traffic through a centralized [LLM gateway](/en/llm-gateway) that injects AWS credentials server-side, disable client-side authentication so Claude Code sends requests without SigV4 signatures or `x-api-key` headers:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "export CLAUDE_CODE_USE_MANTLE=1"
+            },
+            {
+              "type": "added",
+              "content": "export CLAUDE_CODE_SKIP_MANTLE_AUTH=1"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_BEDROCK_MANTLE_BASE_URL=https://your-gateway.example.com"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Mantle environment variables"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "These variables are specific to the Mantle endpoint. See [Environment variables](/en/env-vars) for the full list."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Variable | Purpose |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_USE_MANTLE` | Enable the Mantle endpoint. Set to `1` or `true`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_BEDROCK_MANTLE_BASE_URL` | Override the default Mantle endpoint URL |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_SKIP_MANTLE_AUTH` | Skip client-side authentication for proxy setups |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Authentication loop with SSO and corporate proxies"
+            }
+          ]
+        },
+        {
+          "header": "@@ -282,6 +352,14 @@ If you receive an error \"on-demand throughput isn’t supported\":",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code uses the Bedrock [Invoke API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html) and does not support the Converse API."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Mantle endpoint errors"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If `/status` does not show `Amazon Bedrock (Mantle)` after you set `CLAUDE_CODE_USE_MANTLE`, the variable is not reaching the process. Confirm it is exported in the shell where you launched `claude`, or set it in the `env` block of your [settings file](/en/settings)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A `403` from the Mantle endpoint with valid credentials means your AWS account has not been granted access to the model you requested. Contact your AWS account team to request access."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A `400` that names the model ID means that model is not served on Mantle. Mantle has its own model lineup separate from the standard Bedrock catalog, so inference profile IDs such as `us.anthropic.claude-sonnet-4-6` will not work. Use a Mantle-format ID, or enable [both endpoints](#run-mantle-alongside-the-invoke-api) so Claude Code routes each request to the endpoint where the model is available."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Additional resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Bedrock documentation](https://docs.aws.amazon.com/bedrock/)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-directory.md",
+      "additions": 58,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -15,12 +15,15 @@ This page is an interactive explorer: click files in the tree to see what each o",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## What's not shown"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The explorer covers the files you'll interact with most. A few things live elsewhere:"
+            },
+            {
+              "type": "added",
+              "content": "The explorer covers files you author and edit. A few authored files live elsewhere:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| File | Location | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `managed-settings.json` | System-level, varies by OS | Enterprise-enforced settings that you can't override. See [server-managed settings](/en/server-managed-settings). |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE.local.md` | Project root | Your private preferences for this project, loaded alongside CLAUDE.md. Create it manually and add it to `.gitignore`. |"
+            },
+            {
+              "type": "added",
+              "content": "| Installed plugins | `~/.claude/plugins/` | Cloned marketplaces, installed plugin versions, and per-plugin data, managed by `claude plugin` commands. Orphaned versions are deleted 7 days after a plugin update or uninstall. See [plugin caching](/en/plugins-reference#plugin-caching-and-file-resolution). |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`~/.claude` also holds data Claude Code writes as you work: transcripts, prompt history, file snapshots, caches, and logs. See [application data](#application-data) below."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## File reference"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -70,6 +73,60 @@ The explorer shows what files can exist. To see what actually loaded in your cur",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `/context` first for the overview, then the specific command for the area you want to investigate."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Application data"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Beyond the config you author, `~/.claude` holds data Claude Code writes during sessions. These files are plaintext. Anything that passes through a tool (file contents, command output, pasted text) lands in a transcript on disk."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Swept automatically"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Files older than [`cleanupPeriodDays`](/en/settings#available-settings) (default 30) are deleted on the next startup."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Path under `~/.claude/` | Contents |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `projects/<project>/<session>.jsonl` | Full conversation transcript: every message, tool call, and tool result |"
+            },
+            {
+              "type": "added",
+              "content": "| `projects/<project>/<session>/tool-results/` | Large tool outputs spilled to separate files |"
+            },
+            {
+              "type": "added",
+              "content": "| `file-history/<session>/` | Pre-edit snapshots of files Claude changed, used for [checkpoint restore](/en/checkpointing) |"
+            },
+            {
+              "type": "added",
+              "content": "| `plans/` | Plan files written during [plan mode](/en/permission-modes#plan-mode) |"
+            },
+            {
+              "type": "added",
+              "content": "| `debug/` | Per-session debug logs |"
+            },
+            {
+              "type": "added",
+              "content": "| `paste-cache/`, `image-cache/` | Contents of large pastes and attached images |"
+            },
+            {
+              "type": "added",
+              "content": "| `session-env/` | Per-session environment metadata |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Not swept"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "These persist until you delete them."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Path under `~/.claude/` | Contents |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `history.jsonl` | Every prompt you've typed, with timestamp and project path. Used for up-arrow recall. |"
+            },
+            {
+              "type": "added",
+              "content": "| `statsig/` | Feature-flag cache and a stable anonymous device ID |"
+            },
+            {
+              "type": "added",
+              "content": "| `stats-cache.json` | Aggregated token and cost counts shown by `/cost` |"
+            },
+            {
+              "type": "added",
+              "content": "| `backups/` | Timestamped copies of `~/.claude.json` taken before config migrations |"
+            },
+            {
+              "type": "added",
+              "content": "| `downloads/` | Native binary downloads staged by the auto-updater |"
+            },
+            {
+              "type": "added",
+              "content": "| `todos/` | Legacy per-session task lists. No longer written by current versions; safe to delete. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`shell-snapshots/` and `sockets/` are runtime files removed when the session exits cleanly."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Plaintext storage"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Transcripts and history are not encrypted at rest; OS file permissions are the only protection. If a tool reads a `.env` file or a command prints a credential, that value is written to `projects/<project>/<session>.jsonl`. To reduce exposure:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Lower `cleanupPeriodDays` to shorten how long transcripts are kept"
+            },
+            {
+              "type": "added",
+              "content": "- For headless runs, pass `--no-session-persistence` with `-p`, or set `persistSession: false` in the SDK, to skip writing transcripts entirely. There is no interactive-mode equivalent."
+            },
+            {
+              "type": "added",
+              "content": "- Use [permission rules](/en/permissions) to deny reads of credential files"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Clear local data"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can delete these at any time. You lose the listed capability for past sessions; new sessions are unaffected."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Delete | You lose |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `~/.claude/projects/` | Resume, continue, and rewind for past sessions |"
+            },
+            {
+              "type": "added",
+              "content": "| `~/.claude/history.jsonl` | Up-arrow prompt recall |"
+            },
+            {
+              "type": "added",
+              "content": "| `~/.claude/file-history/` | Checkpoint restore for past sessions |"
+            },
+            {
+              "type": "added",
+              "content": "| `~/.claude/debug/`, `paste-cache/`, `image-cache/`, `todos/` | Nothing user-facing |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Don't delete `~/.claude.json`, `settings.json`, or `plugins/`: those hold your auth, preferences, and installed plugins."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Manage Claude's memory](/en/memory): write and organize CLAUDE.md, rules, and auto memory"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "common-workflows.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -443,7 +443,7 @@ When starting Claude Code, you can resume a previous session:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "From inside an active session, use `/resume` to switch to a different conversation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Sessions are stored per project directory. The `/resume` picker shows interactive sessions from the same git repository, including worktrees. Sessions created by `claude -p` or SDK invocations do not appear in the picker, but you can still resume one by passing its session ID directly to `claude --resume <session-id>`."
+            },
+            {
+              "type": "added",
+              "content": "Sessions are stored per project directory. The `/resume` picker shows interactive sessions from the same git repository, including worktrees. When you select a session from another worktree of the same repository, Claude Code resumes it directly without requiring you to switch directories first. Sessions created by `claude -p` or SDK invocations do not appear in the picker, but you can still resume one by passing its session ID directly to `claude --resume <session-id>`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Name your sessions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "data-usage.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -44,7 +44,7 @@ Anthropic retains Claude Code data based on your account type and preferences.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Standard: 30-day retention period"
+            },
+            {
+              "type": "context",
+              "content": "- [Zero data retention](/en/zero-data-retention): available for Claude Code on Claude for Enterprise. ZDR is enabled on a per-organization basis; each new organization must have ZDR enabled separately by your account team"
+            },
+            {
+              "type": "removed",
+              "content": "- Local caching: Claude Code clients may store sessions locally for up to 30 days to enable session resumption (configurable)"
+            },
+            {
+              "type": "added",
+              "content": "- Local caching: Claude Code clients store session transcripts locally in plaintext under `~/.claude/projects/` for 30 days by default (configurable via `cleanupPeriodDays`) to enable session resumption. See [application data](/en/claude-directory#application-data) for what's stored and how to clear it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can delete individual Claude Code on the web sessions at any time. Deleting a session permanently removes the session's event data. For instructions on how to delete sessions, see [Managing sessions](/en/claude-code-on-the-web#managing-sessions)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -15,6 +15,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_AUTH_TOKEN` | Custom value for the `Authorization` header (the value you set here will be prefixed with `Bearer `) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_BASE_URL` | Override the API endpoint to route requests through a proxy or gateway. When set to a non-first-party host, [MCP tool search](/en/mcp#scale-with-mcp-tool-search) is disabled by default. Set `ENABLE_TOOL_SEARCH=true` if your proxy forwards `tool_reference` blocks |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_BEDROCK_BASE_URL` | Override the Bedrock endpoint URL. Use for custom Bedrock endpoints or when routing through an [LLM gateway](/en/llm-gateway). See [Amazon Bedrock](/en/amazon-bedrock) |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_BEDROCK_MANTLE_BASE_URL` | Override the Bedrock Mantle endpoint URL. See [Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_BETAS` | Comma-separated list of additional `anthropic-beta` header values to include in API requests. Claude Code already sends the beta headers it needs; use this to opt into an [Anthropic API beta](https://platform.claude.com/docs/en/api/beta-headers) before Claude Code adds native support. Unlike the [`--betas` flag](/en/cli-reference#cli-flags), which requires API key authentication, this variable works with all auth methods including Claude.ai subscription |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_CUSTOM_HEADERS` | Custom headers to add to requests (`Name: Value` format, newline-separated for multiple headers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_CUSTOM_MODEL_OPTION` | Model ID to add as a custom entry in the `/model` picker. Use this to make a non-standard or gateway-specific model selectable without replacing built-in aliases. See [Model configuration](/en/model-config#add-a-custom-model-option) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -119,6 +120,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SIMPLE` | Set to `1` to run with a minimal system prompt and only the Bash, file read, and file edit tools. MCP tools from `--mcp-config` are still available. Disables auto-discovery of hooks, skills, plugins, MCP servers, auto memory, and CLAUDE.md. The [`--bare`](/en/headless#start-faster-with-bare-mode) CLI flag sets this |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_BEDROCK_AUTH` | Skip AWS authentication for Bedrock (for example, when using an LLM gateway) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_FOUNDRY_AUTH` | Skip Azure authentication for Microsoft Foundry (for example, when using an LLM gateway) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_SKIP_MANTLE_AUTH` | Skip AWS authentication for Bedrock Mantle (for example, when using an LLM gateway) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_VERTEX_AUTH` | Skip Google authentication for Vertex (for example, when using an LLM gateway) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SUBAGENT_MODEL` | See [Model configuration](/en/model-config) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` | Set to `1` to strip Anthropic and cloud provider credentials from subprocess environments (Bash tool, hooks, MCP stdio servers). The parent Claude process keeps these credentials for API calls, but child processes cannot read them, reducing exposure to prompt injection attacks that attempt to exfiltrate secrets via shell expansion. `claude-code-action` sets this automatically when `allowed_non_write_users` is configured |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -130,6 +132,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_TMPDIR` | Override the temp directory used for internal temp files. Claude Code appends `/claude-{uid}/` (Unix) or `/claude/` (Windows) to this path. Default: `/tmp` on macOS, `os.tmpdir()` on Linux/Windows |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_BEDROCK` | Use [Bedrock](/en/amazon-bedrock) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_FOUNDRY` | Use [Microsoft Foundry](/en/microsoft-foundry) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_USE_MANTLE` | Use the Bedrock [Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | Set to `1` to enable the PowerShell tool on Windows (opt-in preview). When enabled, Claude can run PowerShell commands natively instead of routing through Git Bash. Only supported on native Windows, not WSL. See [PowerShell tool](/en/tools-reference#powershell-tool) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_VERTEX` | Use [Vertex](/en/google-vertex-ai) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CONFIG_DIR` | Override the configuration directory (default: `~/.claude`). All settings, credentials, session history, and plugins are stored under this path. Useful for running multiple accounts side by side: for example, `alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fast-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -117,7 +117,7 @@ This is useful for controlling costs in organizations where users run multiple c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Handle rate limits"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fast mode has separate rate limits from standard Opus 4.6. When you hit the fast mode rate limit or run out of extra usage credits:"
+            },
+            {
+              "type": "added",
+              "content": "Fast mode has separate rate limits from standard Opus 4.6. When you hit the fast mode rate limit or run out of extra usage:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1. Fast mode automatically falls back to standard Opus 4.6"
+            },
+            {
+              "type": "context",
+              "content": "2. The `↯` icon turns gray to indicate cooldown"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -437,7 +437,7 @@ The exit code determines what happens next:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Exit 0**: the action proceeds. For `UserPromptSubmit` and `SessionStart` hooks, anything you write to stdout is added to Claude's context."
+            },
+            {
+              "type": "context",
+              "content": "- **Exit 2**: the action is blocked. Write a reason to stderr, and Claude receives it as feedback so it can adjust."
+            },
+            {
+              "type": "removed",
+              "content": "- **Any other exit code**: the action proceeds. Stderr is logged but not shown to Claude. Toggle verbose mode with `Ctrl+O` to see these messages in the transcript."
+            },
+            {
+              "type": "added",
+              "content": "- **Any other exit code**: the action proceeds. The transcript shows a one-line error notice; the full stderr goes to the [debug log](/en/hooks#debug-hooks)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Structured JSON output"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -535,7 +535,7 @@ Match only `Bash` tool calls and log each command to a file. The `PostToolUse` e",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "MCP tools use a different naming convention than built-in tools: `mcp__<server>__<tool>`, where `<server>` is the MCP server name and `<tool>` is the tool it provides. For example, `mcp__github__search_repositories` or `mcp__filesystem__read_file`. Use a regex matcher to target all tools from a specific server, or match across servers with a pattern like `mcp__.*__write.*`. See [Match MCP tools](/en/hooks#match-mcp-tools) in the reference for the full list of examples."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The command below extracts the tool name from the hook's JSON input with `jq` and writes it to stderr, where it shows up in verbose mode (`Ctrl+O`):"
+            },
+            {
+              "type": "added",
+              "content": "The command below extracts the tool name from the hook's JSON input with `jq` and writes it to stderr. Writing to stderr keeps stdout clean for JSON output and sends the message to the [debug log](/en/hooks#debug-hooks):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -806,7 +806,9 @@ The `$-` variable contains shell flags, and `i` means interactive. Hooks run in",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Debug techniques"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Toggle verbose mode with `Ctrl+O` to see hook output in the transcript, or run `claude --debug` for full execution details including which hooks matched and their exit codes."
+            },
+            {
+              "type": "added",
+              "content": "The transcript view, toggled with `Ctrl+O`, shows a one-line summary for each hook that fired: success is silent, blocking errors show stderr, and non-blocking errors show only the hook name."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For full execution details including which hooks matched, their exit codes, stdout, and stderr, read the debug log. Start Claude Code with `claude --debug-file /tmp/claude.log` to write to a known path, then `tail -f /tmp/claude.log` in another terminal. If you started without that flag, run `/debug` mid-session to enable logging and find the log path."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Learn more"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 7,
+      "deletions": 5,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -468,11 +468,11 @@ The `tool_name` and `tool_input` fields are event-specific. Each [hook event](#h",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The exit code from your hook command tells Claude Code whether the action should proceed, be blocked, or be ignored."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Exit 0** means success. Claude Code parses stdout for [JSON output fields](#json-output). JSON output is only processed on exit 0. For most events, stdout is only shown in verbose mode (`Ctrl+O`). The exceptions are `UserPromptSubmit` and `SessionStart`, where stdout is added as context that Claude can see and act on."
+            },
+            {
+              "type": "added",
+              "content": "**Exit 0** means success. Claude Code parses stdout for [JSON output fields](#json-output). JSON output is only processed on exit 0. For most events, stdout is written to the debug log but not shown in the transcript. The exceptions are `UserPromptSubmit` and `SessionStart`, where stdout is added as context that Claude can see and act on."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Exit 2** means a blocking error. Claude Code ignores stdout and any JSON in it. Instead, stderr text is fed back to Claude as an error message. The effect depends on the event: `PreToolUse` blocks the tool call, `UserPromptSubmit` rejects the prompt, and so on. See [exit code 2 behavior](#exit-code-2-behavior-per-event) for the full list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Any other exit code** is a non-blocking error for most hook events. stderr is shown in verbose mode (`Ctrl+O`) and execution continues."
+            },
+            {
+              "type": "added",
+              "content": "**Any other exit code** is a non-blocking error for most hook events. The transcript shows a one-line `<hook name> hook error` notice and execution continues. The full stderr is written to the debug log."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For example, a hook command script that blocks dangerous Bash commands:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -556,7 +556,7 @@ The JSON object supports three kinds of fields:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `continue` | `true` | If `false`, Claude stops processing entirely after the hook runs. Takes precedence over any event-specific decision fields |"
+            },
+            {
+              "type": "context",
+              "content": "| `stopReason` | none | Message shown to the user when `continue` is `false`. Not shown to Claude |"
+            },
+            {
+              "type": "removed",
+              "content": "| `suppressOutput` | `false` | If `true`, hides stdout from verbose mode output |"
+            },
+            {
+              "type": "added",
+              "content": "| `suppressOutput` | `false` | If `true`, omits stdout from the debug log |"
+            },
+            {
+              "type": "context",
+              "content": "| `systemMessage` | none | Warning message shown to the user |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To stop Claude entirely regardless of event type:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -788,6 +788,7 @@ To block a prompt, return a JSON object with `decision` set to `\"block\"`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `decision` | `\"block\"` prevents the prompt from being processed and erases it from context. Omit to allow the prompt to proceed |"
+            },
+            {
+              "type": "context",
+              "content": "| `reason` | Shown to the user when `decision` is `\"block\"`. Not added to context |"
+            },
+            {
+              "type": "context",
+              "content": "| `additionalContext` | String added to Claude's context |"
+            },
+            {
+              "type": "added",
+              "content": "| `sessionTitle` | Sets the session title, same effect as `/rename`. Use to name sessions automatically based on the prompt content |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -795,7 +796,8 @@ To block a prompt, return a JSON object with `decision` set to `\"block\"`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  \"reason\": \"Explanation for decision\","
+            },
+            {
+              "type": "context",
+              "content": "  \"hookSpecificOutput\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"hookEventName\": \"UserPromptSubmit\","
+            },
+            {
+              "type": "removed",
+              "content": "    \"additionalContext\": \"My additional context here\""
+            },
+            {
+              "type": "added",
+              "content": "    \"additionalContext\": \"My additional context here\","
+            },
+            {
+              "type": "added",
+              "content": "    \"sessionTitle\": \"My session title\""
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2295,7 +2297,7 @@ On Windows, you can run individual hooks in PowerShell by setting `\"shell\": \"pow",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Debug hooks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `claude --debug` to see hook execution details, including which hooks matched, their exit codes, and output."
+            },
+            {
+              "type": "added",
+              "content": "Hook execution details, including which hooks matched, their exit codes, and full stdout and stderr, are written to the debug log file. Start Claude Code with `claude --debug-file <path>` to write the log to a known location, or run `claude --debug` and read the log at `~/.claude/debug/<session-id>.txt`. The `--debug` flag does not print to the terminal."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "[DEBUG] Executing hooks for PostToolUse:Write"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "how-claude-code-works.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -93,7 +93,7 @@ You can access Claude Code through the terminal, the [desktop app](/en/desktop),",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Work with sessions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code saves your conversation locally as you work. Each message, tool use, and result is stored, which enables [rewinding](#undo-changes-with-checkpoints), [resuming, and forking](#resume-or-fork-sessions) sessions. Before Claude makes code changes, it also snapshots the affected files so you can revert if needed."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code saves your conversation locally as you work. Each message, tool use, and result is written to a plaintext JSONL file under `~/.claude/projects/`, which enables [rewinding](#undo-changes-with-checkpoints), [resuming, and forking](#resume-or-fork-sessions) sessions. Before Claude makes code changes, it also snapshots the affected files so you can revert if needed. For paths, retention, and how to clear this data, see [application data in `~/.claude`](/en/claude-directory#application-data)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Sessions are independent.** Each new session starts with a fresh context window, without the conversation history from previous sessions. Claude can persist learnings across sessions using [auto memory](/en/memory#auto-memory), and you can add your own persistent instructions in [CLAUDE.md](/en/memory)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -27,7 +27,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+X Ctrl+K` | Kill all background agents. Press twice within 3 seconds to confirm | Background agent control |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+D` | Exit Claude Code session | EOF signal |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+L` | Redraw the screen | Repaints the current UI without clearing conversation history |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+L` | Clear prompt input | Clears typed text, keeps conversation history |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+O` | Toggle verbose output | Shows detailed tool usage and execution. Also expands MCP read and search calls, which collapse to a single line like \"Queried slack\" by default |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+R` | Reverse search command history | Search through previous commands interactively |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "keybindings.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -78,7 +78,7 @@ Actions available in the `Global` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `app:interrupt` | Ctrl+C | Cancel current operation |"
+            },
+            {
+              "type": "context",
+              "content": "| `app:exit` | Ctrl+D | Exit Claude Code |"
+            },
+            {
+              "type": "removed",
+              "content": "| `app:redraw` | Ctrl+L | Redraw the screen |"
+            },
+            {
+              "type": "added",
+              "content": "| `app:redraw` | (unbound) | Force terminal redraw |"
+            },
+            {
+              "type": "context",
+              "content": "| `app:toggleTodos` | Ctrl+T | Toggle task list visibility |"
+            },
+            {
+              "type": "context",
+              "content": "| `app:toggleTranscript` | Ctrl+O | Toggle verbose transcript |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -99,6 +99,7 @@ Actions available in the `Chat` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Action | Default | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:cancel` | Escape | Cancel current input |"
+            },
+            {
+              "type": "added",
+              "content": "| `chat:clearInput` | Ctrl+L | Clear prompt input |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:killAgents` | Ctrl+X Ctrl+K | Kill all background agents |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:cycleMode` | Shift+Tab\\* | Cycle permission modes |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:modelPicker` | Cmd+P / Meta+P | Open model picker |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 7,
+      "deletions": 3,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -113,6 +113,10 @@ Without the `env` block, a user who selects Default in the picker would get the",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When `availableModels` is set at multiple levels, such as user settings and project settings, arrays are merged and deduplicated. To enforce a strict allowlist, set `availableModels` in managed or policy settings which take highest priority."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Mantle model IDs"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the [Bedrock Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint) is enabled, entries in `availableModels` that start with `anthropic.` are added to the `/model` picker as custom options and routed to the Mantle endpoint. This is an exception to the alias-only matching described in [Pin models for third-party deployments](#pin-models-for-third-party-deployments). The setting still restricts the picker to listed entries, so include the standard aliases alongside any Mantle IDs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Special model behavior"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `default` model setting"
+            }
+          ]
+        },
+        {
+          "header": "@@ -143,11 +147,11 @@ and Sonnet's efficiency for execution.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Three levels persist across sessions: **low**, **medium**, and **high**. A fourth level, **max**, provides the deepest reasoning with no constraint on token spending, so responses are slower and cost more than at `high`. `max` is available on Opus 4.6 only and does not persist across sessions except through the `CLAUDE_CODE_EFFORT_LEVEL` environment variable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Opus 4.6 and Sonnet 4.6 default to medium effort. This applies to all providers, including Bedrock, Vertex AI, and direct API access."
+            },
+            {
+              "type": "added",
+              "content": "The default effort level depends on your plan. Pro and Max subscribers default to medium effort. All other users default to high effort: API key, Team, Enterprise, and third-party provider (Bedrock, Vertex AI, Foundry) users."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Medium is the recommended level for most coding tasks: it balances speed and reasoning depth, and higher levels can cause the model to overthink routine work. Reserve `high` or `max` for tasks that genuinely benefit from deeper reasoning, such as hard debugging problems or complex architectural decisions."
+            },
+            {
+              "type": "added",
+              "content": "Your plan's default suits most coding tasks. Raise effort for work that benefits from deeper reasoning, such as hard debugging problems or complex architectural decisions. Higher levels can cause the model to overthink routine work."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For one-off deep reasoning without changing your session setting, include \"ultrathink\" in your prompt to trigger high effort for that turn."
+            },
+            {
+              "type": "added",
+              "content": "For one-off deep reasoning without changing your session setting, include \"ultrathink\" in your prompt to trigger high effort for that turn. This has no effect if your session is already at high or max."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Setting effort:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "output-styles.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -89,7 +89,8 @@ tasks. [Your custom instructions here...]",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can save these files at the user level (`~/.claude/output-styles`) or"
+            },
+            {
+              "type": "removed",
+              "content": "project level (`.claude/output-styles`)."
+            },
+            {
+              "type": "added",
+              "content": "project level (`.claude/output-styles`). [Plugins](/en/plugins-reference) can"
+            },
+            {
+              "type": "added",
+              "content": "also ship output styles in an `output-styles/` directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Frontmatter"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -398,6 +398,7 @@ For `commands`, `agents`, `skills`, and `outputStyles`, custom paths replace the",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Components from custom paths use the same naming and namespacing rules"
+            },
+            {
+              "type": "context",
+              "content": "- Multiple paths can be specified as arrays"
+            },
+            {
+              "type": "context",
+              "content": "- To keep the default directory and add more paths for commands, agents, skills, or output styles, include the default in your array: `\"commands\": [\"./commands/\", \"./extras/deploy.md\"]`"
+            },
+            {
+              "type": "added",
+              "content": "- When a skill path points to a directory that contains a `SKILL.md` directly, for example `\"skills\": [\"./\"]` pointing to the plugin root, the frontmatter `name` field in `SKILL.md` determines the skill's invocation name. This gives a stable name regardless of the install directory. If `name` is not set in the frontmatter, the directory basename is used as a fallback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Path examples**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -495,6 +496,8 @@ Plugins are specified in one of two ways:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For security and verification purposes, Claude Code copies *marketplace* plugins to the user's local **plugin cache** (`~/.claude/plugins/cache`) rather than using them in-place. Understanding this behavior is important when developing plugins that reference external files."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each installed version is a separate directory in the cache. When you update or uninstall a plugin, the previous version directory is marked as orphaned and removed automatically 7 days later. The grace period lets concurrent Claude Code sessions that already loaded the old version keep running without errors."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Path traversal limitations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Installed plugins cannot reference files outside their directory. Paths that traverse outside the plugin root (such as `../shared-utils`) will not work after installation because those external files are not copied to the cache."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins.md",
+      "additions": 6,
+      "deletions": 6,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -67,12 +67,12 @@ Then create `my-first-plugin/.claude-plugin/plugin.json` with this content:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json my-first-plugin/.claude-plugin/plugin.json theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "removed",
+              "content": "\"name\": \"my-first-plugin\","
+            },
+            {
+              "type": "removed",
+              "content": "\"description\": \"A greeting plugin to learn the basics\","
+            },
+            {
+              "type": "removed",
+              "content": "\"version\": \"1.0.0\","
+            },
+            {
+              "type": "removed",
+              "content": "\"author\": {"
+            },
+            {
+              "type": "removed",
+              "content": "\"name\": \"Your Name\""
+            },
+            {
+              "type": "removed",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "  \"name\": \"my-first-plugin\","
+            },
+            {
+              "type": "added",
+              "content": "  \"description\": \"A greeting plugin to learn the basics\","
+            },
+            {
+              "type": "added",
+              "content": "  \"version\": \"1.0.0\","
+            },
+            {
+              "type": "added",
+              "content": "  \"author\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"name\": \"Your Name\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshooting.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -673,6 +673,8 @@ If Claude Code prompts you to log in again after a session, your OAuth token may",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `/login` to re-authenticate. If this happens frequently, check that your system clock is accurate, as token validation depends on correct timestamps."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On macOS, login can also fail when the Keychain is locked or its password is out of sync with your account password, which prevents Claude Code from saving credentials. Run `claude doctor` to check Keychain access. To unlock the Keychain manually, run `security unlock-keychain ~/Library/Keychains/login.keychain-db`. If unlocking doesn't help, open Keychain Access, select the `login` keychain, and choose Edit > Change Password for Keychain \"login\" to resync it with your account password."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configuration file locations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code stores configuration in several locations:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "ultraplan.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/ultraplan.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Start a plan from your CLI, draft it on Claude Code on the web, then execute it remotely or back in your terminal"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Ultraplan is in research preview. Behavior and capabilities may change based on feedback."
+            },
+            {
+              "type": "added",
+              "content": "Ultraplan is in research preview and requires Claude Code v2.1.91 or later. Behavior and capabilities may change based on feedback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ultraplan hands a planning task from your local CLI to a [Claude Code on the web](/en/claude-code-on-the-web) session running in [plan mode](/en/permission-modes#analyze-before-you-edit-with-plan-mode). Claude drafts the plan in the cloud while you keep working in your terminal. When the plan is ready, you open it in your browser to comment on specific sections, ask for revisions, and choose where to execute it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -17,7 +17,7 @@ This is useful when you want a richer review surface than the terminal offers:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Hands-off drafting**: the plan is generated remotely, so your terminal stays free for other work"
+            },
+            {
+              "type": "context",
+              "content": "- **Flexible execution**: approve the plan to run on the web and open a pull request, or send it back to your terminal"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Ultraplan requires a [Claude Code on the web](/en/claude-code-on-the-web#who-can-use-claude-code-on-the-web) account and a GitHub repository. The cloud session runs in your account's default [cloud environment](/en/claude-code-on-the-web#cloud-environment)."
+            },
+            {
+              "type": "added",
+              "content": "Ultraplan requires a [Claude Code on the web](/en/claude-code-on-the-web#who-can-use-claude-code-on-the-web) account and a GitHub repository. Because it runs on Anthropic's cloud infrastructure, it is not available when using Amazon Bedrock, Google Cloud Vertex AI, or Microsoft Foundry. The cloud session runs in your account's default [cloud environment](/en/claude-code-on-the-web#cloud-environment)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Launch ultraplan from the CLI"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
