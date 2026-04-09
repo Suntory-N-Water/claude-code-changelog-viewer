@@ -16,7 +16,7 @@ Each mode makes a different tradeoff between convenience and oversight. The tabl
 | Mode | What runs without asking | Best for |
 | :- | :- | :- |
 | `default` | Reads only | Getting started, sensitive work |
-| [`acceptEdits`](#auto-approve-file-edits-with-acceptedits-mode) | Reads and file edits | Iterating on code you're reviewing |
+| [`acceptEdits`](#auto-approve-file-edits-with-acceptedits-mode) | Reads, file edits, and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.) | Iterating on code you're reviewing |
 | [`plan`](#analyze-before-you-edit-with-plan-mode) | Reads only | Exploring a codebase before changing it |
 | [`auto`](#eliminate-prompts-with-auto-mode) | Everything, with background safety checks | Long tasks, reducing prompt fatigue |
 | [`dontAsk`](#allow-only-pre-approved-tools-with-dontask-mode) | Only pre-approved tools | Locked-down CI and scripts |
@@ -93,7 +93,9 @@ claude remote-control --permission-mode acceptEdits
 
 ## Auto-approve file edits with acceptEdits mode
 
-`acceptEdits` mode lets Claude create and edit files in your working directory without prompting. Writes to [protected paths](#protected-paths) and all non-edit actions still prompt the same as default mode. The status bar shows `⏵⏵ accept edits on` while this mode is active.
+`acceptEdits` mode lets Claude create and edit files in your working directory without prompting. The status bar shows `⏵⏵ accept edits on` while this mode is active.
+
+In addition to file edits, `acceptEdits` mode auto-approves common filesystem Bash commands: `mkdir`, `touch`, `rm`, `rmdir`, `mv`, `cp`, and `sed`. Like file edits, these are auto-approved only for paths inside your working directory or `additionalDirectories`. Paths outside that scope, writes to [protected paths](#protected-paths), and all other Bash commands still prompt.
 
 Use `acceptEdits` when you want to review changes in your editor or via `git diff` after the fact rather than approving each edit inline. Press `Shift+Tab` once from default mode to enter it, or start with it directly:
 
@@ -168,6 +170,7 @@ The classifier trusts your working directory and your repo's configured remotes.
 - Reading `.env` and sending credentials to their matching API
 - Read-only HTTP requests
 - Pushing to the branch you started on or one Claude created
+- Sandbox network access requests
 
 Run `claude auto-mode defaults` to see the full rule lists. If routine actions get blocked, an administrator can add trusted repos, buckets, and services via the `autoMode.environment` setting: see [Configure the auto mode classifier](/en/permissions#configure-the-auto-mode-classifier).
 

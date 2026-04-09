@@ -36,7 +36,7 @@ Claude Code supports several permission modes that control how tools are approve
 | Mode | Description |
 | :- | :- |
 | `default` | Standard behavior: prompts for permission on first use of each tool |
-| `acceptEdits` | Automatically accepts file edit permissions for the session, except writes to protected directories |
+| `acceptEdits` | Automatically accepts file edits and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.) for paths in the working directory or `additionalDirectories` |
 | `plan` | Plan Mode: Claude can analyze but not modify files or execute commands |
 | `auto` | Auto-approves tool calls with background safety checks that verify actions align with your request. Currently a research preview |
 | `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules |

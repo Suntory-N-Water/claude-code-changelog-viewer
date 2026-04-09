@@ -28,7 +28,7 @@ See [Terminal configuration](/en/terminal-config) for details.
 | `Ctrl+D` | Exit Claude Code session | EOF signal |
 | `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding |
 | `Ctrl+L` | Clear prompt input | Clears typed text, keeps conversation history |
-| `Ctrl+O` | Toggle verbose output | Shows detailed tool usage and execution. Also expands MCP read and search calls, which collapse to a single line like "Queried slack" by default |
+| `Ctrl+O` | Toggle transcript viewer | Shows detailed tool usage and execution. Also expands MCP read and search calls, which collapse to a single line like "Queried slack" by default. In [fullscreen rendering](/en/fullscreen), cycles through three states: normal prompt, transcript mode, and focus view (last prompt + tool summary + response) |
 | `Ctrl+R` | Reverse search command history | Search through previous commands interactively |
 | `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt |
 | `Ctrl+B` | Background running tasks | Backgrounds bash commands and agents. Tmux users press twice |
