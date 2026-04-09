@@ -45,11 +45,15 @@ async function main() {
     }
 
     // AI 解説をファイルごとにマージ
+    // AIはプロンプト制約により .md なしで返す場合があるため正規化して比較
     const filesWithExplanations = files.map((f) => ({
       ...f,
       explanation:
-        fileExplanations.find((e) => e.filename === f.filename)?.explanation ??
-        '',
+        fileExplanations.find(
+          (e) =>
+            e.filename === f.filename ||
+            e.filename === f.filename.replace(/\.md$/, ''),
+        )?.explanation ?? '',
     }));
 
     // docs_diff.json に追記

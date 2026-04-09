@@ -334,7 +334,7 @@ source: ${docInfo.url}
     try {
       const response = await fetch(url, {
         headers: {
-          'User-Agent': 'Claude-Code-Doc-Tracker/1.0',
+          'User-Agent': 'Claude-Code-Changelog-Viewer/1.0',
           Accept: 'text/markdown, text/plain, */*',
         },
       });

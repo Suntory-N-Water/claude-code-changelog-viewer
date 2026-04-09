@@ -6,8 +6,8 @@ import type { AppLogger } from '@claude-code-changelog-viewer/common';
 
 const execAsync = promisify(exec);
 
-// diff が巨大な場合(初回取得時など)にファイル詳細を省略する閾値
-const MAX_DIFF_LINES = 1000;
+// 単一ファイルの diff が大きい場合にファイル詳細を省略する閾値(追加+削除行数)
+const MAX_FILE_DIFF_LINES = 200;
 
 export type DiffLine = {
   type: 'added' | 'removed' | 'context';
@@ -72,7 +72,7 @@ export class DocsDiffGenerator {
       const totalLines = stdout.split('\n').length;
       this.log.info(`diff 取得完了: ${totalLines} 行`);
 
-      return this.parseUnifiedDiff(stdout, totalLines > MAX_DIFF_LINES);
+      return this.parseUnifiedDiff(stdout);
     } catch (error) {
       if (error instanceof Error) {
         this.log.error('git diff の取得に失敗', error);
@@ -83,10 +83,9 @@ export class DocsDiffGenerator {
 
   /**
    * unified diff テキストを DocFileDiff[] にパース
-   * @param diffText - git diff の出力
-   * @param truncate - true の場合 hunks を空にしてファイル統計のみ記録(初回取得時など)
+   * 単一ファイルの追加+削除行数が MAX_FILE_DIFF_LINES を超える場合は hunks を省略する
    */
-  parseUnifiedDiff(diffText: string, truncate = false): DocFileDiff[] {
+  parseUnifiedDiff(diffText: string): DocFileDiff[] {
     const files: DocFileDiff[] = [];
     const lines = diffText.split('\n');
 
@@ -97,11 +96,8 @@ export class DocsDiffGenerator {
       // 新しいファイルの開始
       if (line.startsWith('diff --git ')) {
         if (currentFile) {
-          if (currentHunk) {
-            currentFile.hunks.push(currentHunk);
-            currentHunk = null;
-          }
-          files.push(currentFile);
+          currentFile = this.finalizeFileDiff(currentFile, currentHunk, files);
+          currentHunk = null;
         }
 
         // ファイル名を抽出("apps/docs-tracker/docs/en/foo.md" → "foo.md")
@@ -128,7 +124,7 @@ export class DocsDiffGenerator {
         if (currentHunk) {
           currentFile.hunks.push(currentHunk);
         }
-        currentHunk = truncate ? null : { header: line, lines: [] };
+        currentHunk = { header: line, lines: [] };
         continue;
       }
 
@@ -162,13 +158,30 @@ export class DocsDiffGenerator {
 
     // 最後のファイルを追加
     if (currentFile) {
-      if (currentHunk) {
-        currentFile.hunks.push(currentHunk);
-      }
-      files.push(currentFile);
+      this.finalizeFileDiff(currentFile, currentHunk, files);
     }
 
     return files.filter((f) => f.filename !== '');
+  }
+
+  /**
+   * 現在のファイル diff を確定して files に追加する
+   * 追加+削除行数が MAX_FILE_DIFF_LINES を超える場合は hunks を省略する
+   * @returns null(次のファイル処理用)
+   */
+  private finalizeFileDiff(
+    file: DocFileDiff,
+    hunk: DiffHunk | null,
+    files: DocFileDiff[],
+  ): null {
+    if (hunk) {
+      file.hunks.push(hunk);
+    }
+    if (file.additions + file.deletions > MAX_FILE_DIFF_LINES) {
+      file.hunks = [];
+    }
+    files.push(file);
+    return null;
   }
 
   /**

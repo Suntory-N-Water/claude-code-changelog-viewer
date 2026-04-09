@@ -18,6 +18,8 @@ type Props = {
 };
 
 const { filename, additions, deletions, explanation, hunks } = Astro.props;
+
+const docUrl = `https://code.claude.com/docs/en/${filename.replace(/\.md$/, '')}`;
 ---
 
 <div
@@ -45,8 +47,30 @@ const { filename, additions, deletions, explanation, hunks } = Astro.props;
       <span
         class='text-[hsl(var(--cc-main-black))] font-semibold flex-1 truncate text-xs'
       >
-        {filename}
+        {filename.replace(/\.md$/, '')}
       </span>
+      <a
+        href={docUrl}
+        target='_blank'
+        rel='noopener noreferrer'
+        class='shrink-0 -mr-1 p-1.5 text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+        aria-label='公式ドキュメントを開く(外部リンク)'
+      >
+        <svg
+          class='w-3.5 h-3.5'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+          stroke-width='1.8'
+          aria-hidden='true'
+        >
+          <path
+            stroke-linecap='round'
+            stroke-linejoin='round'
+            d='M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25'
+          ></path>
+        </svg>
+      </a>
       <span class='text-green-700 font-medium shrink-0'>+{additions}</span>
       <span class='text-red-600 font-medium shrink-0'>-{deletions}</span>
     </div>
@@ -61,8 +85,8 @@ const { filename, additions, deletions, explanation, hunks } = Astro.props;
 
   {
     hunks.length === 0 ? (
-      <div class='px-4 py-3 text-[hsl(var(--cc-main-black)/0.4)] text-xs italic'>
-        (詳細なし)
+      <div class='px-4 py-3 text-[hsl(var(--cc-main-black)/0.4)] text-xs'>
+        (差分が大きいため省略しています)
       </div>
     ) : (
       <div class='overflow-x-auto'>
