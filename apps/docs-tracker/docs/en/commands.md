@@ -17,6 +17,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | :- | :- |
 | `/add-dir <path>` | Add a working directory for file access during the current session. Most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from the added directory |
 | `/agents` | Manage [agent](/en/sub-agents) configurations |
+| `/autofix-pr [prompt]` | Spawn a [Claude Code on the web](/en/claude-code-on-the-web#auto-fix-pull-requests) session that watches the current branch's PR and pushes fixes when CI fails or reviewers leave comments. Detects the open PR from your checked-out branch with `gh pr view`; to watch a different PR, check out its branch first. By default the remote session is told to fix every CI failure and review comment; pass a prompt to give it different instructions, for example `/autofix-pr only fix lint and type errors`. Requires the `gh` CLI and access to [Claude Code on the web](/en/claude-code-on-the-web#who-can-use-claude-code-on-the-web) |
 | `/btw <question>` | Ask a quick [side question](/en/interactive-mode#side-questions-with-btw) without adding to the conversation |
 | `/chrome` | Configure [Claude in Chrome](/en/chrome) settings |
 | `/clear` | Clear conversation history and free up context. Aliases: `/reset`, `/new` |
