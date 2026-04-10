@@ -1,0 +1,1304 @@
+{
+  "id": "20260410-063449",
+  "timestamp": "2026-04-10T06:34:49.463Z",
+  "aiSummary": "新機能としてバックグラウンドでスクリプトを実行し、出力を逐次監視できるMonitorツールの詳細が追加されました。PythonおよびTypeScript SDKにおけるMonitorツールの入力パラメータやタスク管理方法が具体的に示されています。Homebrewでのインストールにおいて、安定版のclaude-codeと最新版を追跡するclaude-code@latestの2つの選択肢が導入されました。各OS向けのセットアップ手順やトラブルシューティング情報も、新しいインストールオプションに合わせて更新されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/overview.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "バックグラウンドスクリプトの出力をイベントとして監視するMonitorツールの概要が表に追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -119,6 +119,7 @@ Your agent can read files, run commands, and search codebases out of the box. Ke",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Write** | Create new files |"
+            },
+            {
+              "type": "context",
+              "content": "| **Edit** | Make precise edits to existing files |"
+            },
+            {
+              "type": "context",
+              "content": "| **Bash** | Run terminal commands, scripts, git operations |"
+            },
+            {
+              "type": "added",
+              "content": "| **Monitor** | Watch a background script and react to each output line as an event |"
+            },
+            {
+              "type": "context",
+              "content": "| **Glob** | Find files by pattern (`**/*.ts`, `src/**/*.py`) |"
+            },
+            {
+              "type": "context",
+              "content": "| **Grep** | Search file contents with regex |"
+            },
+            {
+              "type": "context",
+              "content": "| **WebSearch** | Search the web for current information |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 30,
+      "deletions": 3,
+      "explanation": "MonitorツールのPython向け定義と、バックグラウンドタスクの種別にMonitorが含まれる旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -1510,7 +1510,7 @@ class RateLimitInfo:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `TaskStartedMessage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Emitted when a background task starts. A background task is anything tracked outside the main turn: a backgrounded Bash command, a subagent spawned via the Agent tool, or a remote agent. The `task_type` field tells you which. This naming is unrelated to the `Task`-to-`Agent` tool rename."
+            },
+            {
+              "type": "added",
+              "content": "Emitted when a background task starts. A background task is anything tracked outside the main turn: a backgrounded Bash command, a [Monitor](#monitor) watch, a subagent spawned via the Agent tool, or a remote agent. The `task_type` field tells you which. This naming is unrelated to the `Task`-to-`Agent` tool rename."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python"
+            },
+            {
+              "type": "context",
+              "content": "@dataclass"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1530,7 +1530,7 @@ class TaskStartedMessage(SystemMessage):",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `uuid` | `str` | Unique message identifier |"
+            },
+            {
+              "type": "context",
+              "content": "| `session_id` | `str` | Session identifier |"
+            },
+            {
+              "type": "context",
+              "content": "| `tool_use_id` | `str \\| None` | Associated tool use ID |"
+            },
+            {
+              "type": "removed",
+              "content": "| `task_type` | `str \\| None` | Which kind of background task: `\"local_bash\"`, `\"local_agent\"`, `\"remote_agent\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `task_type` | `str \\| None` | Which kind of background task: `\"local_bash\"` for background Bash and Monitor watches, `\"local_agent\"`, or `\"remote_agent\"` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `TaskUsage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1571,7 +1571,7 @@ class TaskProgressMessage(SystemMessage):",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `TaskNotificationMessage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Emitted when a task completes, fails, or is stopped."
+            },
+            {
+              "type": "added",
+              "content": "Emitted when a background task completes, fails, or is stopped. Background tasks include `run_in_background` Bash commands, Monitor watches, and background subagents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python"
+            },
+            {
+              "type": "context",
+              "content": "@dataclass"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2265,6 +2265,33 @@ Asks the user clarifying questions during execution. See [Handle approvals and u",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Monitor"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Tool name:** `Monitor`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Runs a background script and delivers each stdout line to Claude as an event so it can react without polling. Monitor follows the same permission rules as Bash. See the [Monitor tool reference](/en/tools-reference#monitor-tool) for behavior and provider availability."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Input:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```python"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "    \"command\": str,  # Shell script; each stdout line is an event, exit ends the watch"
+            },
+            {
+              "type": "added",
+              "content": "    \"description\": str,  # Short description shown in notifications"
+            },
+            {
+              "type": "added",
+              "content": "    \"timeout_ms\": int | None,  # Kill after this deadline (default 300000, max 3600000)"
+            },
+            {
+              "type": "added",
+              "content": "    \"persistent\": bool | None,  # Run for the lifetime of the session; stop with TaskStop"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Output:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```python"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "    \"taskId\": str,  # ID of the background monitor task"
+            },
+            {
+              "type": "added",
+              "content": "    \"timeoutMs\": int,  # Timeout deadline in milliseconds (0 when persistent)"
+            },
+            {
+              "type": "added",
+              "content": "    \"persistent\": bool | None,  # True when running until TaskStop or session end"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Edit"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Tool name:** `Edit`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 33,
+      "deletions": 2,
+      "explanation": "TypeScript SDKにおけるMonitorInputおよびMonitorOutputの型定義とツールの使い方が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1304,6 +1304,7 @@ type ToolInputSchemas =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  | GrepInput"
+            },
+            {
+              "type": "context",
+              "content": "  | ListMcpResourcesInput"
+            },
+            {
+              "type": "context",
+              "content": "  | McpInput"
+            },
+            {
+              "type": "added",
+              "content": "  | MonitorInput"
+            },
+            {
+              "type": "context",
+              "content": "  | NotebookEditInput"
+            },
+            {
+              "type": "context",
+              "content": "  | ReadMcpResourceInput"
+            },
+            {
+              "type": "context",
+              "content": "  | SubscribeMcpResourceInput"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1371,6 +1372,21 @@ type BashInput = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Executes bash commands in a persistent shell session with optional timeout and background execution."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Monitor"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Tool name:** `Monitor`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```typescript"
+            },
+            {
+              "type": "added",
+              "content": "type MonitorInput = {"
+            },
+            {
+              "type": "added",
+              "content": "  command: string;"
+            },
+            {
+              "type": "added",
+              "content": "  description: string;"
+            },
+            {
+              "type": "added",
+              "content": "  timeout_ms?: number;"
+            },
+            {
+              "type": "added",
+              "content": "  persistent?: boolean;"
+            },
+            {
+              "type": "added",
+              "content": "};"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Runs a background script and delivers each stdout line to Claude as an event so it can react without polling. Set `persistent: true` for session-length watches such as log tails. Monitor follows the same permission rules as Bash. See the [Monitor tool reference](/en/tools-reference#monitor-tool) for behavior and provider availability."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### TaskOutput"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Tool name:** `TaskOutput`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1625,6 +1641,7 @@ type ToolOutputSchemas =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  | GlobOutput"
+            },
+            {
+              "type": "context",
+              "content": "  | GrepOutput"
+            },
+            {
+              "type": "context",
+              "content": "  | ListMcpResourcesOutput"
+            },
+            {
+              "type": "added",
+              "content": "  | MonitorOutput"
+            },
+            {
+              "type": "context",
+              "content": "  | NotebookEditOutput"
+            },
+            {
+              "type": "context",
+              "content": "  | ReadMcpResourceOutput"
+            },
+            {
+              "type": "context",
+              "content": "  | TaskStopOutput"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1721,6 +1738,20 @@ type BashOutput = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Returns command output with stdout/stderr split. Background commands include a `backgroundTaskId`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Monitor"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Tool name:** `Monitor`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```typescript"
+            },
+            {
+              "type": "added",
+              "content": "type MonitorOutput = {"
+            },
+            {
+              "type": "added",
+              "content": "  taskId: string;"
+            },
+            {
+              "type": "added",
+              "content": "  timeoutMs: number;"
+            },
+            {
+              "type": "added",
+              "content": "  persistent?: boolean;"
+            },
+            {
+              "type": "added",
+              "content": "};"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Returns the background task ID for the running monitor. Use this ID with `TaskStop` to cancel the watch early."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Edit"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Tool name:** `Edit`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2395,7 +2426,7 @@ type SDKStatusMessage = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SDKTaskNotificationMessage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Notification when a background task completes, fails, or is stopped."
+            },
+            {
+              "type": "added",
+              "content": "Notification when a background task completes, fails, or is stopped. Background tasks include `run_in_background` Bash commands, [Monitor](#monitor) watches, and background subagents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type SDKTaskNotificationMessage = {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2520,7 +2551,7 @@ type SDKAuthStatusMessage = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SDKTaskStartedMessage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Emitted when a background task begins."
+            },
+            {
+              "type": "added",
+              "content": "Emitted when a background task begins. The `task_type` field is `\"local_bash\"` for background Bash commands and [Monitor](#monitor) watches, `\"local_agent\"` for subagents, or `\"remote_agent\"`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type SDKTaskStartedMessage = {"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "discover-plugins.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Homebrewを使用したアップグレード手順に、最新版用カスクに関する注意書きが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -382,7 +382,7 @@ If you see \"unknown command\" or the `/plugin` command doesn't appear:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1. **Check your version**: Run `claude --version` to see what's installed."
+            },
+            {
+              "type": "context",
+              "content": "2. **Update Claude Code**:"
+            },
+            {
+              "type": "removed",
+              "content": "   - **Homebrew**: `brew upgrade claude-code`"
+            },
+            {
+              "type": "added",
+              "content": "   - **Homebrew**: `brew upgrade claude-code` (or `brew upgrade claude-code@latest` if you installed that cask)"
+            },
+            {
+              "type": "context",
+              "content": "   - **npm**: `npm update -g @anthropic-ai/claude-code`"
+            },
+            {
+              "type": "context",
+              "content": "   - **Native installer**: Re-run the install command from [Setup](/en/setup)"
+            },
+            {
+              "type": "context",
+              "content": "3. **Restart Claude Code**: After updating, restart your terminal and run `claude` again."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "overview.md",
+      "additions": 8,
+      "deletions": 6,
+      "explanation": "コードブロックのフォーマットが修正され、Homebrewの安定版と最新版それぞれのカスクの違いについての説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -28,19 +28,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -50,13 +50,15 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes."
+            },
+            {
+              "type": "added",
+              "content": "Homebrew offers two casks. `claude-code` tracks the stable release channel, which is typically about a week behind and skips releases with major regressions. `claude-code@latest` tracks the latest channel and receives new versions as soon as they ship."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Homebrewのインストールオプションとして、安定版と最新版を追跡する2つのチャンネルがあることが説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -407,8 +407,10 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "    ```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "    Homebrew offers two casks. `claude-code` tracks the stable release channel, which is typically about a week behind and skips releases with major regressions. `claude-code@latest` tracks the latest channel and receives new versions as soon as they ship."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    <Info>"
+            },
+            {
+              "type": "removed",
+              "content": "      Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes."
+            },
+            {
+              "type": "added",
+              "content": "      Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": "    </Info>"
+            },
+            {
+              "type": "context",
+              "content": "  </Tab>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 19,
+      "deletions": 9,
+      "explanation": "HomebrewとWinGetの更新手順が詳細化され、新しいカスク名に基づいたアンインストール方法などが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -47,19 +47,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -69,13 +69,15 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes."
+            },
+            {
+              "type": "added",
+              "content": "Homebrew offers two casks. `claude-code` tracks the stable release channel, which is typically about a week behind and skips releases with major regressions. `claude-code@latest` tracks the latest channel and receives new versions as soon as they ship."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -161,11 +163,11 @@ Native installations automatically update in the background. You can [configure",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code checks for updates on startup and periodically while running. Updates download and install in the background, then take effect the next time you start Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Homebrew and WinGet installations do not auto-update. Use `brew upgrade claude-code` or `winget upgrade Anthropic.ClaudeCode` to update manually."
+            },
+            {
+              "type": "added",
+              "content": "Homebrew and WinGet installations do not auto-update. For Homebrew, run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed. For WinGet, run `winget upgrade Anthropic.ClaudeCode`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Known issue:** Claude Code may notify you of updates before the new version is available in these package managers. If an upgrade fails, wait and try again later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Homebrew keeps old versions on disk after upgrades. Run `brew cleanup claude-code` periodically to reclaim disk space."
+            },
+            {
+              "type": "added",
+              "content": "Homebrew keeps old versions on disk after upgrades. Run `brew cleanup` periodically to reclaim disk space."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Configure release channel"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -184,6 +186,8 @@ Configure this via `/config` → **Auto-update channel**, or add it to your [set",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For enterprise deployments, you can enforce a consistent release channel across your organization using [managed settings](/en/permissions#managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Homebrew installations choose a channel by cask name instead of this setting: `claude-code` tracks stable and `claude-code@latest` tracks latest."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Disable auto-updates"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set `DISABLE_AUTOUPDATER` to `\"1\"` in the `env` key of your [`settings.json`](/en/settings#available-settings) file:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -371,12 +375,18 @@ Remove-Item -Path \"$env:USERPROFILE\\.local\\share\\claude\" -Recurse -Force",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Homebrew installation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Remove the Homebrew cask:"
+            },
+            {
+              "type": "added",
+              "content": "Remove the Homebrew cask you installed. If you installed the stable cask:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "brew uninstall --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you installed the latest cask:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "brew uninstall --cask claude-code@latest"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### WinGet installation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Remove the WinGet package:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshooting.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "macOSでのアンインストール手順において、インストールしたカスクの種類に応じたコマンドの使い分けが案内されています。",
+      "hunks": [
+        {
+          "header": "@@ -166,7 +166,7 @@ Uninstall an npm global install:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "npm uninstall -g @anthropic-ai/claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Remove a Homebrew install on macOS:"
+            },
+            {
+              "type": "added",
+              "content": "Remove a Homebrew install on macOS (use `claude-code@latest` if you installed that cask):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "brew uninstall --cask claude-code"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -119,6 +119,7 @@ Your agent can read files, run commands, and search codebases out of the box. Ke
 | **Write** | Create new files |
 | **Edit** | Make precise edits to existing files |
 | **Bash** | Run terminal commands, scripts, git operations |
+| **Monitor** | Watch a background script and react to each output line as an event |
 | **Glob** | Find files by pattern (`**/*.ts`, `src/**/*.py`) |
 | **Grep** | Search file contents with regex |
 | **WebSearch** | Search the web for current information |

@@ -1510,7 +1510,7 @@ class RateLimitInfo:
 
 ### `TaskStartedMessage`
 
-Emitted when a background task starts. A background task is anything tracked outside the main turn: a backgrounded Bash command, a subagent spawned via the Agent tool, or a remote agent. The `task_type` field tells you which. This naming is unrelated to the `Task`-to-`Agent` tool rename.
+Emitted when a background task starts. A background task is anything tracked outside the main turn: a backgrounded Bash command, a [Monitor](#monitor) watch, a subagent spawned via the Agent tool, or a remote agent. The `task_type` field tells you which. This naming is unrelated to the `Task`-to-`Agent` tool rename.
 
 ```python
 @dataclass
@@ -1530,7 +1530,7 @@ class TaskStartedMessage(SystemMessage):
 | `uuid` | `str` | Unique message identifier |
 | `session_id` | `str` | Session identifier |
 | `tool_use_id` | `str \| None` | Associated tool use ID |
-| `task_type` | `str \| None` | Which kind of background task: `"local_bash"`, `"local_agent"`, `"remote_agent"` |
+| `task_type` | `str \| None` | Which kind of background task: `"local_bash"` for background Bash and Monitor watches, `"local_agent"`, or `"remote_agent"` |
 
 ### `TaskUsage`
 
@@ -1571,7 +1571,7 @@ class TaskProgressMessage(SystemMessage):
 
 ### `TaskNotificationMessage`
 
-Emitted when a task completes, fails, or is stopped.
+Emitted when a background task completes, fails, or is stopped. Background tasks include `run_in_background` Bash commands, Monitor watches, and background subagents.
 
 ```python
 @dataclass
@@ -2262,6 +2262,33 @@ Asks the user clarifying questions during execution. See [Handle approvals and u
     "exitCode": int,  # Exit code of the command
     "killed": bool | None,  # Whether command was killed due to timeout
     "shellId": str | None,  # Shell ID for background processes
+}
+```
+
+### Monitor
+
+**Tool name:** `Monitor`
+
+Runs a background script and delivers each stdout line to Claude as an event so it can react without polling. Monitor follows the same permission rules as Bash. See the [Monitor tool reference](/en/tools-reference#monitor-tool) for behavior and provider availability.
+
+**Input:**
+
+```python
+{
+    "command": str,  # Shell script; each stdout line is an event, exit ends the watch
+    "description": str,  # Short description shown in notifications
+    "timeout_ms": int | None,  # Kill after this deadline (default 300000, max 3600000)
+    "persistent": bool | None,  # Run for the lifetime of the session; stop with TaskStop
+}
+```
+
+**Output:**
+
+```python
+{
+    "taskId": str,  # ID of the background monitor task
+    "timeoutMs": int,  # Timeout deadline in milliseconds (0 when persistent)
+    "persistent": bool | None,  # True when running until TaskStop or session end
 }
 ```
 

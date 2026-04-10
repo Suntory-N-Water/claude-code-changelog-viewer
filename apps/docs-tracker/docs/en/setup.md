@@ -47,19 +47,19 @@ To install Claude Code, use one of the following methods:
 
 **macOS, Linux, WSL:**
 
-```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```bash theme={null}
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
-```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```powershell theme={null}
 irm https://claude.ai/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
-```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```batch theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
@@ -69,13 +69,15 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS
 
 Native installations automatically update in the background to keep you on the latest version.
 
-```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+```bash theme={null}
 brew install --cask claude-code
 ```
 
-Homebrew installations do not auto-update. Run `brew upgrade claude-code` periodically to get the latest features and security fixes.
+Homebrew offers two casks. `claude-code` tracks the stable release channel, which is typically about a week behind and skips releases with major regressions. `claude-code@latest` tracks the latest channel and receives new versions as soon as they ship.
 
-```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
+Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes.
+
+```powershell theme={null}
 winget install Anthropic.ClaudeCode
 ```
 
@@ -161,11 +163,11 @@ Native installations automatically update in the background. You can [configure 
 
 Claude Code checks for updates on startup and periodically while running. Updates download and install in the background, then take effect the next time you start Claude Code.
 
-Homebrew and WinGet installations do not auto-update. Use `brew upgrade claude-code` or `winget upgrade Anthropic.ClaudeCode` to update manually.
+Homebrew and WinGet installations do not auto-update. For Homebrew, run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed. For WinGet, run `winget upgrade Anthropic.ClaudeCode`.
 
 **Known issue:** Claude Code may notify you of updates before the new version is available in these package managers. If an upgrade fails, wait and try again later.
 
-Homebrew keeps old versions on disk after upgrades. Run `brew cleanup claude-code` periodically to reclaim disk space.
+Homebrew keeps old versions on disk after upgrades. Run `brew cleanup` periodically to reclaim disk space.
 
 ### Configure release channel
 
@@ -183,6 +185,8 @@ Configure this via `/config` → **Auto-update channel**, or add it to your [set
 ```
 
 For enterprise deployments, you can enforce a consistent release channel across your organization using [managed settings](/en/permissions#managed-settings).
+
+Homebrew installations choose a channel by cask name instead of this setting: `claude-code` tracks stable and `claude-code@latest` tracks latest.
 
 ### Disable auto-updates
 
@@ -371,10 +375,16 @@ Remove-Item -Path "$env:USERPROFILE\.local\share\claude" -Recurse -Force
 
 ### Homebrew installation
 
-Remove the Homebrew cask:
+Remove the Homebrew cask you installed. If you installed the stable cask:
 
 ```bash
 brew uninstall --cask claude-code
+```
+
+If you installed the latest cask:
+
+```bash
+brew uninstall --cask claude-code@latest
 ```
 
 ### WinGet installation
