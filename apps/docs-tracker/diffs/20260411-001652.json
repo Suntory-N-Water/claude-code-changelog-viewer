@@ -1,0 +1,645 @@
+{
+  "id": "20260411-001652",
+  "timestamp": "2026-04-11T00:16:52.547Z",
+  "aiSummary": "Amazon BedrockのHaikuクラスモデル向けリージョン設定がBedrock Mantleにも適用されるよう拡張されました。フック設定において、管理者が強制有効化したプラグイン経由のフックが、制限環境下でも例外として許可される仕様が明記されています。PowerShellコマンド実行時もBashと同様に作業ディレクトリの保持やトレース情報の継承が行われるよう、ツール動作の解説が更新されました。サブエージェント実行時のディレクトリ分離動作や、Managed Agentsに関連するAPIリファレンスの説明も追加されています。",
+  "files": [
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 8,
+      "deletions": 6,
+      "explanation": "Haikuモデルのリージョン上書き設定がBedrock Mantleにも適用される旨が追記され、環境変数一覧にリージョン指定用の変数が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -203,7 +203,8 @@ Set the following environment variables to enable Bedrock:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_USE_BEDROCK=1"
+            },
+            {
+              "type": "context",
+              "content": "export AWS_REGION=us-east-1  # or your preferred region"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Optional: Override the region for the small/fast model (Haiku)"
+            },
+            {
+              "type": "added",
+              "content": "# Optional: Override the region for the small/fast model (Haiku)."
+            },
+            {
+              "type": "added",
+              "content": "# Also applies to Bedrock Mantle."
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION=us-west-2"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Optional: Override the Bedrock endpoint URL for custom endpoints or gateways"
+            }
+          ]
+        },
+        {
+          "header": "@@ -415,11 +416,12 @@ export ANTHROPIC_BEDROCK_MANTLE_BASE_URL=https://your-gateway.example.com",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These variables are specific to the Mantle endpoint. See [Environment variables](/en/env-vars) for the full list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Variable                            | Purpose                                           |"
+            },
+            {
+              "type": "removed",
+              "content": "| :---------------------------------- | :------------------------------------------------ |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_USE_MANTLE`            | Enable the Mantle endpoint. Set to `1` or `true`. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ANTHROPIC_BEDROCK_MANTLE_BASE_URL` | Override the default Mantle endpoint URL          |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_SKIP_MANTLE_AUTH`      | Skip client-side authentication for proxy setups  |"
+            },
+            {
+              "type": "added",
+              "content": "| Variable                                | Purpose                                                             |"
+            },
+            {
+              "type": "added",
+              "content": "| :-------------------------------------- | :------------------------------------------------------------------ |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_USE_MANTLE`                | Enable the Mantle endpoint. Set to `1` or `true`.                   |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_BEDROCK_MANTLE_BASE_URL`     | Override the default Mantle endpoint URL                            |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_SKIP_MANTLE_AUTH`          | Skip client-side authentication for proxy setups                    |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION` | Override AWS region for the Haiku-class model (shared with Bedrock) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/claude-apiコマンドの説明に、Managed Agentsに関するリファレンスが含まれることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -34,7 +34,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/batch <instruction>` | **[Skill](/en/skills#bundled-skills).** Orchestrate large-scale changes across a codebase in parallel. Researches the codebase, decomposes the work into 5 to 30 independent units, and presents a plan. Once approved, spawns one background agent per unit in an isolated [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees). Each agent implements its unit, runs tests, and opens a pull request. Requires a git repository. Example: `/batch migrate src/ from Solid to React` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/btw <question>` | Ask a quick [side question](/en/interactive-mode#side-questions-with-btw) without adding to the conversation |"
+            },
+            {
+              "type": "context",
+              "content": "| `/chrome` | Configure [Claude in Chrome](/en/chrome) settings |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/claude-api` | **[Skill](/en/skills#bundled-skills).** Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL). Covers tool use, streaming, batches, structured outputs, Managed Agents, and common pitfalls. Also activates automatically when your code imports `anthropic` or `@anthropic-ai/sdk` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/claude-api` | **[Skill](/en/skills#bundled-skills).** Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL) and Managed Agents reference. Covers tool use, streaming, batches, structured outputs, and common pitfalls. Also activates automatically when your code imports `anthropic` or `@anthropic-ai/sdk` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/clear` | Clear conversation history and free up context. Aliases: `/reset`, `/new` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/color [color\\|default]` | Set the prompt bar color for the current session. Available colors: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Use `default` to reset |"
+            },
+            {
+              "type": "context",
+              "content": "| `/compact [instructions]` | Compact conversation with optional focus instructions |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "AWSリージョンの上書き変数がBedrock Mantleに対応したことや、ディレクトリ保持の設定がPowerShellにも適用されることが記述されました。",
+      "hunks": [
+        {
+          "header": "@@ -47,7 +47,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_FOUNDRY_RESOURCE` | Foundry resource name (for example, `my-resource`). Required if `ANTHROPIC_FOUNDRY_BASE_URL` is not set (see [Microsoft Foundry](/en/microsoft-foundry)) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_MODEL` | Name of the model setting to use (see [Model Configuration](/en/model-config#environment-variables)) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_SMALL_FAST_MODEL` | \\[DEPRECATED] Name of [Haiku-class model for background tasks](/en/costs) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION` | Override AWS region for the Haiku-class model when using Bedrock |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION` | Override AWS region for the Haiku-class model when using Bedrock or Bedrock Mantle |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_VERTEX_BASE_URL` | Override the Vertex AI endpoint URL. Use for custom Vertex endpoints or when routing through an [LLM gateway](/en/llm-gateway). See [Google Vertex AI](/en/google-vertex-ai) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_VERTEX_PROJECT_ID` | GCP project ID for Vertex AI. Required when using [Google Vertex AI](/en/google-vertex-ai) |"
+            },
+            {
+              "type": "context",
+              "content": "| `API_TIMEOUT_MS` | Timeout for API requests in milliseconds (default: 600000, or 10 minutes; maximum: 2147483647). Increase this when requests time out on slow networks or when routing through a proxy. Values above the maximum overflow the underlying timer and cause requests to fail immediately |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -61,7 +61,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AGENT_SDK_MCP_NO_PREFIX` | Set to `1` to skip the `mcp__<server>__` prefix on tool names from SDK-created MCP servers. Tools use their original names. SDK usage only |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | Set the percentage of context capacity (1-100) at which auto-compaction triggers. By default, auto-compaction triggers at approximately 95% capacity. Use lower values like `50` to compact earlier. Values above the default threshold have no effect. Applies to both main conversations and subagents. This percentage aligns with the `context_window.used_percentage` field available in [status line](/en/statusline) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AUTO_BACKGROUND_TASKS` | Set to `1` to force-enable automatic backgrounding of long-running agent tasks. When enabled, subagents are moved to the background after running for approximately two minutes |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR` | Return to the original working directory after each Bash command |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR` | Return to the original working directory after each Bash or PowerShell command in the main session |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ACCESSIBILITY` | Set to `1` to keep the native terminal cursor visible and disable the inverted-text cursor indicator. Allows screen magnifiers like macOS Zoom to track cursor position |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` | Set to `1` to load CLAUDE.md files from directories specified with `--add-dir`. By default, additional directories do not load memory files |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` | Interval in milliseconds at which credentials should be refreshed (when using [`apiKeyHelper`](/en/settings#available-settings)) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "管理設定で強制有効化されたプラグインからのフックが、allowManagedHooksOnly設定の例外として扱われる仕様が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -153,7 +153,7 @@ Where you define a hook determines its scope:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Plugin](/en/plugins) `hooks/hooks.json` | When plugin is enabled | Yes, bundled with the plugin |"
+            },
+            {
+              "type": "context",
+              "content": "| [Skill](/en/skills) or [agent](/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For details on settings file resolution, see [settings](/en/settings). Enterprise administrators can use `allowManagedHooksOnly` to block user, project, and plugin hooks. See [Hook configuration](/en/settings#hook-configuration)."
+            },
+            {
+              "type": "added",
+              "content": "For details on settings file resolution, see [settings](/en/settings). Enterprise administrators can use `allowManagedHooksOnly` to block user, project, and plugin hooks. Hooks from plugins force-enabled in managed settings `enabledPlugins` are exempt, so administrators can distribute vetted hooks through an organization marketplace. See [Hook configuration](/en/settings#hook-configuration)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Matcher patterns"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "分散トレーシング用のTRACEPARENT環境変数が、BashだけでなくPowerShellのサブプロセスにも自動で継承されるよう変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -124,7 +124,7 @@ Tracing is off by default. To enable it, set both `CLAUDE_CODE_ENABLE_TELEMETRY=",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Spans redact user prompt text and tool content by default. Set `OTEL_LOG_USER_PROMPTS=1` and `OTEL_LOG_TOOL_CONTENT=1` to include them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When tracing is active, Bash subprocesses automatically inherit a `TRACEPARENT` environment variable containing the W3C trace context of the active tool execution span. This lets any subprocess that reads `TRACEPARENT` parent its own spans under the same trace, enabling end-to-end distributed tracing through scripts and commands that Claude runs."
+            },
+            {
+              "type": "added",
+              "content": "When tracing is active, Bash and PowerShell subprocesses automatically inherit a `TRACEPARENT` environment variable containing the W3C trace context of the active tool execution span. This lets any subprocess that reads `TRACEPARENT` parent its own spans under the same trace, enabling end-to-end distributed tracing through scripts and commands that Claude runs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Dynamic headers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "管理フック制限時でも、特定のプラグイン経由のフックはロード可能であることを示す権限設定の説明が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -257,7 +257,7 @@ The following settings are only read from managed settings. Placing them in user",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Setting | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedChannelPlugins` | Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Requires `channelsEnabled: true`. See [Restrict which channel plugins can run](/en/channels#restrict-which-channel-plugins-can-run) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `allowManagedHooksOnly` | When `true`, prevents loading of user, project, and plugin hooks. Only managed hooks and SDK hooks are allowed |"
+            },
+            {
+              "type": "added",
+              "content": "| `allowManagedHooksOnly` | When `true`, only managed hooks, SDK hooks, and hooks from plugins force-enabled in managed settings `enabledPlugins` are loaded. User, project, and all other plugin hooks are blocked |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowManagedMcpServersOnly` | When `true`, only `allowedMcpServers` from managed settings are respected. `deniedMcpServers` still merges from all sources. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration) |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowManagedPermissionRulesOnly` | When `true`, prevents user and project settings from defining `allow`, `ask`, or `deny` permission rules. Only rules in managed settings apply |"
+            },
+            {
+              "type": "context",
+              "content": "| `blockedMarketplaces` | Blocklist of marketplace sources. Blocked sources are checked before downloading, so they never touch the filesystem. See [managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 3,
+      "deletions": 2,
+      "explanation": "組織のマーケットプレイスを通じて検証済みフックを配布できるよう、プラグイン実行に関する制御の詳細が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -164,7 +164,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `allowedChannelPlugins` | (Managed settings only) Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Undefined = fall back to the default, empty array = block all channel plugins. Requires `channelsEnabled: true`. See [Restrict which channel plugins can run](/en/channels#restrict-which-channel-plugins-can-run) | `[{ \"marketplace\": \"claude-plugins-official\", \"plugin\": \"telegram\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedHttpHookUrls` | Allowlist of URL patterns that HTTP hooks may target. Supports `*` as a wildcard. When set, hooks with non-matching URLs are blocked. Undefined = no restriction, empty array = block all HTTP hooks. Arrays merge across settings sources. See [Hook configuration](#hook-configuration) | `[\"https://hooks.example.com/*\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedMcpServers` | When set in managed-settings.json, allowlist of MCP servers users can configure. Undefined = no restrictions, empty array = lockdown. Applies to all scopes. Denylist takes precedence. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration) | `[{ \"serverName\": \"github\" }]` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `allowManagedHooksOnly` | (Managed settings only) Prevent loading of user, project, and plugin hooks. Only allows managed hooks and SDK hooks. See [Hook configuration](#hook-configuration) | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `allowManagedHooksOnly` | (Managed settings only) Only managed hooks, SDK hooks, and hooks from plugins force-enabled in managed settings `enabledPlugins` are loaded. User, project, and all other plugin hooks are blocked. See [Hook configuration](#hook-configuration) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowManagedMcpServersOnly` | (Managed settings only) Only `allowedMcpServers` from managed settings are respected. `deniedMcpServers` still merges from all sources. Users can still add MCP servers, but only the admin-defined allowlist applies. See [Managed MCP configuration](/en/mcp#managed-mcp-configuration) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowManagedPermissionRulesOnly` | (Managed settings only) Prevent user and project settings from defining `allow`, `ask`, or `deny` permission rules. Only rules in managed settings apply. See [Managed-only settings](/en/permissions#managed-only-settings) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `alwaysThinkingEnabled` | Enable [extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) by default for all sessions. Typically configured via the `/config` command rather than editing directly | `true` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -420,7 +420,8 @@ These settings control which hooks are allowed to run and what HTTP hooks can ac",
+          "lines": [
+            {
+              "type": "context",
+              "content": "**Behavior when `allowManagedHooksOnly` is `true`:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Managed hooks and SDK hooks are loaded"
+            },
+            {
+              "type": "removed",
+              "content": "- User hooks, project hooks, and plugin hooks are blocked"
+            },
+            {
+              "type": "added",
+              "content": "- Hooks from plugins force-enabled in managed settings `enabledPlugins` are loaded. This lets administrators distribute vetted hooks through an organization marketplace while blocking everything else. Trust is granted by full `plugin@marketplace` ID, so a plugin with the same name from a different marketplace stays blocked"
+            },
+            {
+              "type": "added",
+              "content": "- User hooks, project hooks, and all other plugin hooks are blocked"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Restrict HTTP hook URLs:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ステータスライン右側に表示される通知に、コンテキスト不足などの一時的な警告が含まれることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -981,6 +981,6 @@ Community projects like [ccstatusline](https://github.com/sirmalloc/ccstatusline",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Notifications share the status line row**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- System notifications like MCP server errors, auto-updates, and token warnings display on the right side of the same row as your status line"
+            },
+            {
+              "type": "added",
+              "content": "- System notifications like MCP server errors and auto-updates display on the right side of the same row as your status line. Transient notifications such as the context-low warning also cycle through this area."
+            },
+            {
+              "type": "context",
+              "content": "- Enabling verbose mode adds a token counter to this area"
+            },
+            {
+              "type": "context",
+              "content": "- On narrow terminals, these notifications may truncate your status line output"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "サブエージェント内でのcdコマンドによるディレクトリ移動が、メインセッションに影響を与えない動作仕様が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -198,6 +198,8 @@ specific, actionable feedback on quality, security, and best practices.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The frontmatter defines the subagent's metadata and configuration. The body becomes the system prompt that guides the subagent's behavior. Subagents receive only this system prompt (plus basic environment details like working directory), not the full Claude Code system prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A subagent starts in the main conversation's current working directory. Within a subagent, `cd` commands do not persist between Bash or PowerShell tool calls and do not affect the main conversation's working directory. To give the subagent an isolated copy of the repository instead, set [`isolation: worktree`](#supported-frontmatter-fields)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Supported frontmatter fields"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The following fields can be used in the YAML frontmatter. Only `name` and `description` are required."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "PowerShellでの作業ディレクトリのリセット挙動がBashと共通であることや、サブエージェントでの変更は保持されないことが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -64,7 +64,7 @@ Permission rules can be configured using `/permissions` or in [permission settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The Bash tool runs each command in a separate process with the following persistence behavior:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- When Claude runs `cd`, the new working directory carries over to later Bash commands as long as it stays inside the project directory or an [additional working directory](/en/permissions#working-directories) you added with `--add-dir`, `/add-dir`, or `additionalDirectories` in settings."
+            },
+            {
+              "type": "added",
+              "content": "- When Claude runs `cd` in the main session, the new working directory carries over to later Bash commands as long as it stays inside the project directory or an [additional working directory](/en/permissions#working-directories) you added with `--add-dir`, `/add-dir`, or `additionalDirectories` in settings. Subagent sessions never carry over working directory changes."
+            },
+            {
+              "type": "context",
+              "content": "  - If `cd` lands outside those directories, Claude Code resets to the project directory and appends `Shell cwd was reset to <dir>` to the tool result."
+            },
+            {
+              "type": "context",
+              "content": "  - To disable this carry-over so every Bash command starts in the project directory, set `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1`."
+            },
+            {
+              "type": "context",
+              "content": "- Environment variables do not persist. An `export` in one command will not be available in the next."
+            }
+          ]
+        },
+        {
+          "header": "@@ -125,6 +125,8 @@ Three additional settings control where PowerShell is used:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `\"shell\": \"powershell\"` on individual [command hooks](/en/hooks#command-hook-fields): runs that hook in PowerShell. Hooks spawn PowerShell directly, so this works regardless of `CLAUDE_CODE_USE_POWERSHELL_TOOL`."
+            },
+            {
+              "type": "context",
+              "content": "- `shell: powershell` in [skill frontmatter](/en/skills#frontmatter-reference): runs `` !`command` `` blocks in PowerShell. Requires the PowerShell tool to be enabled."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The same main-session working-directory reset behavior described under the Bash tool section applies to PowerShell commands, including the `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR` environment variable."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Preview limitations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The PowerShell tool has the following known limitations during the preview:"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
