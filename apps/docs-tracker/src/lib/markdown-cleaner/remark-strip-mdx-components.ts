@@ -1,7 +1,7 @@
 import type { Root } from 'mdast';
 import { visit } from 'unist-util-visit';
 
-// 削除対象のタグ名（子要素ごと削除）
+// 削除対象のタグ名(子要素ごと削除)
 const REMOVE_TAGS = new Set(['img', 'style']);
 
 export function remarkStripMdxComponents() {
@@ -17,7 +17,7 @@ export function remarkStripMdxComponents() {
         return index;
       }
 
-      // JSX 式（コメント、空白式等）を削除
+      // JSX 式(コメント、空白式等)を削除
       if (
         node.type === 'mdxFlowExpression' ||
         node.type === 'mdxTextExpression'
@@ -45,7 +45,7 @@ export function remarkStripMdxComponents() {
           return index;
         }
 
-        // その他は unwrap（子要素を昇格）
+        // その他は unwrap(子要素を昇格)
         parent.children.splice(
           index,
           1,
@@ -53,6 +53,8 @@ export function remarkStripMdxComponents() {
         );
         return index;
       }
+
+      return;
     });
   };
 }
