@@ -18,7 +18,7 @@ import {
   buildDiffMap,
   formatDiffDateTime,
 } from '../../lib/changelog-diff';
-import { semverCompareDesc } from '../../lib/semver';
+import { semverCompareDesc, isLegacyVersion } from '../../lib/semver';
 
 export async function getStaticPaths() {
   const allChangelogs = await getCollection('changelog');
@@ -138,7 +138,9 @@ const totalItemCount = items.length;
 <Layout
   title={`Claude Code v${version} の変更点 - ${items.length}件の新機能・バグ修正を日本語解説`}
   description={description}
-  image={`${import.meta.env.SITE}/changelog/og/v${version}.png`}
+  image={isLegacyVersion(version)
+    ? undefined
+    : `${import.meta.env.SITE}/changelog/og/v${version}.png`}
   jsonLd={{ type: 'article', version, summary }}
   breadcrumbs={[
     { name: 'トップ', url: import.meta.env.SITE },
