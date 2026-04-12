@@ -1,0 +1,14 @@
+language js
+
+// 2階層以上の相対パス (../../) によるインポートを検出。
+
+or {
+  JsImport() as $stmt,
+  JsExportNamedFromClause() as $stmt,
+  JsExportFromClause() as $stmt,
+  JsImportCallExpression() as $stmt,
+  TsImportType() as $stmt
+} where {
+  $stmt <: contains `$src` where { $src <: r"\"\.\./\.\..*" },
+  register_diagnostic(span=$src, message="2階層以上の相対パスでインポートできません。パスエイリアスを使用してください。", severity="error")
+}
