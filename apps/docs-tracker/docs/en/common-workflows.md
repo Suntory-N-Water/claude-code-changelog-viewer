@@ -777,7 +777,7 @@ Pick a scheduling option based on where you want the task to run:
 
 | Option | Where it runs | Best for |
 | :- | :- | :- |
-| [Cloud scheduled tasks](/en/web-scheduled-tasks) | Anthropic-managed infrastructure | Tasks that should run even when your computer is off. Configure at [claude.ai/code](https://claude.ai/code). |
+| [Routines](/en/routines) | Anthropic-managed infrastructure | Tasks that should run even when your computer is off. Can also trigger on API calls or GitHub events in addition to a schedule. Configure at [claude.ai/code/routines](https://claude.ai/code/routines). |
 | [Desktop scheduled tasks](/en/desktop-scheduled-tasks) | Your machine, via the desktop app | Tasks that need direct access to local files, tools, or uncommitted changes. |
 | [GitHub Actions](/en/github-actions) | Your CI pipeline | Tasks tied to repo events like opened PRs, or cron schedules that should live alongside your workflow config. |
 | [`/loop`](/en/scheduled-tasks) | The current CLI session | Quick polling while a session is open. Tasks are cancelled when you exit. |

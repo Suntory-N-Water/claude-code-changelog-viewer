@@ -388,7 +388,7 @@ Claude が別のポートを選択すると、割り当てられたポートを`
 
 Claude Code offers three ways to schedule recurring work:
 
-| | [Cloud](/en/web-scheduled-tasks) | [Desktop](/en/desktop-scheduled-tasks) | [`/loop`](/en/scheduled-tasks) |
+| | [Cloud](/en/routines) | [Desktop](/en/desktop-scheduled-tasks) | [`/loop`](/en/scheduled-tasks) |
 | :- | :- | :- | :- |
 | Runs on | Anthropic cloud | Your machine | Your machine |
 | Requires machine on | No | Yes | Yes |

@@ -50,7 +50,7 @@ Claude Code offers several ways to work when you're not at your terminal. They d
 | [Remote Control](/en/remote-control) | Drive a running session from [claude.ai/code](https://claude.ai/code) or the Claude mobile app | Your machine (CLI or VS Code) | Run `claude remote-control` | Steering in-progress work from another device |
 | [Channels](/en/channels) | Push events from a chat app like Telegram or Discord, or your own server | Your machine (CLI) | [Install a channel plugin](/en/channels#quickstart) or [build your own](/en/channels-reference) | Reacting to external events like CI failures or chat messages |
 | [Slack](/en/slack) | Mention `@Claude` in a team channel | Anthropic cloud | [Install the Slack app](/en/slack#setting-up-claude-code-in-slack) with [Claude Code on the web](/en/claude-code-on-the-web) enabled | PRs and reviews from team chat |
-| [Scheduled tasks](/en/scheduled-tasks) | Set a schedule | [CLI](/en/scheduled-tasks), [Desktop](/en/desktop-scheduled-tasks), or [cloud](/en/web-scheduled-tasks) | Pick a frequency | Recurring automation like daily reviews |
+| [Scheduled tasks](/en/scheduled-tasks) | Set a schedule | [CLI](/en/scheduled-tasks), [Desktop](/en/desktop-scheduled-tasks), or [cloud](/en/routines) | Pick a frequency | Recurring automation like daily reviews |
 
 If you're not sure where to start, [install the CLI](/en/quickstart) and run it in a project directory. If you'd rather not use a terminal, [Desktop](/en/desktop-quickstart) gives you the same engine with a graphical interface.
 
