@@ -367,19 +367,19 @@ To install Claude Code, use one of the following methods:
   <Tab title="Native Install (Recommended)">
     **macOS, Linux, WSL:**
 
-    ```bash  theme={null}
+    ```bash theme={null}
     curl -fsSL https://claude.ai/install.sh | bash
     ```
 
     **Windows PowerShell:**
 
-    ```powershell  theme={null}
+    ```powershell theme={null}
     irm https://claude.ai/install.ps1 | iex
     ```
 
     **Windows CMD:**
 
-    ```batch  theme={null}
+    ```batch theme={null}
     curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
     ```
 
@@ -393,7 +393,7 @@ To install Claude Code, use one of the following methods:
   </Tab>
 
   <Tab title="Homebrew">
-    ```bash  theme={null}
+    ```bash theme={null}
     brew install --cask claude-code
     ```
 
@@ -405,7 +405,7 @@ To install Claude Code, use one of the following methods:
   </Tab>
 
   <Tab title="WinGet">
-    ```powershell  theme={null}
+    ```powershell theme={null}
     winget install Anthropic.ClaudeCode
     ```
 
@@ -624,7 +624,7 @@ Claude と連携する方法は多数あります：
   <Accordion title="段階的な指示を使用する">
     複雑なタスクをステップに分割します：
 
-    ```text  theme={null}
+    ```text theme={null}
     1. ユーザープロファイル用の新しいデータベーステーブルを作成する
     2. ユーザープロファイルを取得および更新するための API エンドポイントを作成する
     3. ユーザーが自分の情報を表示および編集できるウェブページを構築する
@@ -634,11 +634,11 @@ Claude と連携する方法は多数あります：
   <Accordion title="Claude に最初に探索させる">
     変更を加える前に、Claude にコードを理解させます：
 
-    ```text  theme={null}
+    ```text theme={null}
     データベーススキーマを分析する
     ```
 
-    ```text  theme={null}
+    ```text theme={null}
     英国の顧客によって最も頻繁に返品される製品を表示するダッシュボードを構築する
     ```
   </Accordion>
