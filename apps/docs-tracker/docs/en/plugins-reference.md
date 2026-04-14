@@ -314,7 +314,8 @@ The manifest is optional. If omitted, Claude Code auto-discovers components in [
   "hooks": "./config/hooks.json",
   "mcpServers": "./mcp-config.json",
   "outputStyles": "./styles/",
-  "lspServers": "./.lsp.json"
+  "lspServers": "./.lsp.json",
+  "monitors": "./monitors.json"
 }
 ```
 
@@ -353,6 +354,7 @@ agent `agent-creator` for the plugin with name `plugin-dev` will appear as
 | `mcpServers` | string\|array\|object | MCP config paths or inline config | `"./my-extra-mcp-config.json"` |
 | `outputStyles` | string\|array | Custom output style files/directories (replaces default `output-styles/`) | `"./styles/"` |
 | `lspServers` | string\|array\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) configs for code intelligence (go to definition, find references, etc.) | `"./.lsp.json"` |
+| `monitors` | string\|array\|object | Background [Monitor](/en/tools-reference#monitor-tool) configurations that auto-arm when the plugin is enabled at session start or when a skill in this plugin is invoked | `"./monitors.json"` |
 | `userConfig` | object | User-configurable values prompted at enable time. See [User configuration](#user-configuration) | See below |
 | `channels` | array | Channel declarations for message injection (Telegram, Slack, Discord style). See [Channels](#channels) | See below |
 
@@ -401,7 +403,7 @@ The `server` field is required and must match a key in the plugin's `mcpServers`
 
 ### Path behavior rules
 
-For `skills`, `commands`, `agents`, and `outputStyles`, custom paths replace the default directory. If the manifest specifies `skills`, the default `skills/` directory is not scanned. [Hooks](#hooks), [MCP servers](#mcp-servers), and [LSP servers](#lsp-servers) have different semantics for handling multiple sources.
+For `skills`, `commands`, `agents`, `outputStyles`, and `monitors`, a custom path replaces the default. If the manifest specifies `skills`, the default `skills/` directory is not scanned; if it specifies `monitors`, the default `monitors/monitors.json` is not loaded. [Hooks](#hooks), [MCP servers](#mcp-servers), and [LSP servers](#lsp-servers) have different semantics for handling multiple sources.
 
 - All paths must be relative to the plugin root and start with `./`
 - Components from custom paths use the same naming and namespacing rules
@@ -548,6 +550,8 @@ enterprise-plugin/
 │   └── compliance-checker.md
 ├── output-styles/            # Output style definitions
 │   └── terse.md
+├── monitors/                 # Background monitor configurations
+│   └── monitors.json
 ├── hooks/                    # Hook configurations
 │   ├── hooks.json           # Main hook config
 │   └── security-hooks.json  # Additional hooks
@@ -564,7 +568,7 @@ enterprise-plugin/
 └── CHANGELOG.md             # Version history
 ```
 
-The `.claude-plugin/` directory contains the `plugin.json` file. All other directories (commands/, agents/, skills/, output-styles/, hooks/) must be at the plugin root, not inside `.claude-plugin/`.
+The `.claude-plugin/` directory contains the `plugin.json` file. All other directories (commands/, agents/, skills/, output-styles/, monitors/, hooks/) must be at the plugin root, not inside `.claude-plugin/`.
 
 ### File locations reference
 
@@ -578,8 +582,9 @@ The `.claude-plugin/` directory contains the `plugin.json` file. All other direc
 | **Hooks** | `hooks/hooks.json` | Hook configuration |
 | **MCP servers** | `.mcp.json` | MCP server definitions |
 | **LSP servers** | `.lsp.json` | Language server configurations |
+| **Monitors** | `monitors/monitors.json` | Background monitor configurations |
 | **Executables** | `bin/` | Executables added to the Bash tool's `PATH`. Files here are invokable as bare commands in any Bash tool call while the plugin is enabled |
-| **Settings** | `settings.json` | Default configuration applied when the plugin is enabled. Only [`agent`](/en/sub-agents) settings are currently supported |
+| **Settings** | `settings.json` | Default configuration applied when the plugin is enabled. Only the [`agent`](/en/sub-agents) and [`subagentStatusLine`](/en/statusline#subagent-status-lines) keys are currently supported |
 
 ***
 

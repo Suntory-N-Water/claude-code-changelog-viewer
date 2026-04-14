@@ -236,7 +236,7 @@ The following configuration types are loaded from `--add-dir` directories:
 | :- | :- |
 | [Skills](/en/skills) in `.claude/skills/` | Yes, with live reload |
 | Plugin settings in `.claude/settings.json` | `enabledPlugins` and `extraKnownMarketplaces` only |
-| [CLAUDE.md](/en/memory) files and `.claude/rules/` | Only when `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` is set |
+| [CLAUDE.md](/en/memory) files, `.claude/rules/`, and `CLAUDE.local.md` | Only when `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` is set. `CLAUDE.local.md` additionally requires the `local` setting source, which is enabled by default |
 
 Everything else, including subagents, commands, output styles, hooks, and other settings, is discovered only from the current working directory and its parents, your user directory at `~/.claude/`, and managed settings. To share that configuration across projects, use one of these approaches:
 
