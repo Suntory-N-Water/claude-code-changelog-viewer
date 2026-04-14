@@ -10,7 +10,6 @@ import {
   getFeatureAreaLabel,
   toFeatureAreaSlug,
 } from '../lib/feature-area';
-import { generateFAQJsonLd } from '../lib/json-ld';
 import { buildDiffMap } from '../lib/changelog-diff';
 import { semverCompareDesc } from '../lib/semver';
 
@@ -65,8 +64,6 @@ const faqItems = [
       '公式のchangelog.mdをAIが日本語で要約・分析した非公式サイトです。AI生成のため内容が不正確な場合があります。正確な情報は公式リリースノートをご確認ください。',
   },
 ];
-const faqJsonLd = JSON.stringify(generateFAQJsonLd(faqItems));
-
 // 機能エリアセクション用データ
 const areaMap = aggregateByFeatureArea(extractChangelogData(sortedChangelogs));
 const topAreas = [...areaMap.entries()]
@@ -84,6 +81,7 @@ const topAreas = [...areaMap.entries()]
   title='Claude Code Changelog Viewer - 全バージョンの変更履歴をAIが日本語解説'
   description='Claude Code(Anthropic公式CLIツール)の全バージョン変更履歴。Skills・Hooks・MCP・Memoryなど機能別にアップデート内容を絞り込み、AIが新機能・バグ修正・改善点を日本語で解説します。'
   jsonLd={{ type: 'website' }}
+  faqItems={faqItems}
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-6xl mx-auto'>
@@ -270,8 +268,6 @@ const topAreas = [...areaMap.entries()]
       </section>
     </div>
   </div>
-
-  <script is:inline type='application/ld+json' set:html={faqJsonLd} />
 
   <script>
     document.addEventListener('astro:page-load', () => {

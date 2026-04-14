@@ -33,7 +33,6 @@ async function linkVersionFiles(): Promise<void> {
 
   // inferred_vX.Y.Z.json → vX.Y.Z.json としてリンク
   const files = await readdir(CHANGELOG_SRC);
-  let count = 0;
 
   for (const file of files) {
     if (file.startsWith('inferred_v') && file.endsWith('.json')) {
@@ -42,11 +41,8 @@ async function linkVersionFiles(): Promise<void> {
       const dest = join(CHANGELOG_DEST, `v${version}.json`);
       await symlink(relative(CHANGELOG_DEST, src), dest);
       console.log(`v${version}.json -> ${file}`);
-      count += 1;
     }
   }
-
-  console.log(`\nchangelog: ${count} バージョンをリンク`);
 }
 
 // 単一ファイルをシンボリックリンクで配置する

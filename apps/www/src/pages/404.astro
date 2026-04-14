@@ -1,0 +1,136 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import {
+  aggregateByFeatureArea,
+  extractChangelogData,
+  MIN_ITEMS_FOR_PAGE,
+  toFeatureAreaSlug,
+} from '../lib/feature-area';
+import { semverCompareDesc } from '../lib/semver';
+
+// ビルド時に全 URL を生成してクライアントサイド JS にインライン埋め込み
+const [changelogs, docsDiffEntries] = await Promise.all([
+  getCollection('changelog'),
+  getCollection('docsDiff'),
+]);
+
+const changelogUrls = changelogs.map((e) => `/changelog/v${e.data.version}`);
+
+const areaMap = aggregateByFeatureArea(extractChangelogData(changelogs));
+const featureUrls = [...areaMap.entries()]
+  .filter(([, items]) => items.length >= MIN_ITEMS_FOR_PAGE)
+  .map(([area]) => `/features/${toFeatureAreaSlug(area)}`);
+
+const docsUrls = docsDiffEntries.map((e) => `/docs/${e.data.id}`);
+
+const staticUrls = ['/', '/features', '/docs', '/about', '/notify', '/privacy'];
+
+const allUrls = JSON.stringify([
+  ...staticUrls,
+  ...changelogUrls.sort((a, b) => {
+    const av = a.replace('/changelog/v', '');
+    const bv = b.replace('/changelog/v', '');
+    return semverCompareDesc(av, bv);
+  }),
+  ...featureUrls,
+  ...docsUrls,
+]);
+---
+
+<Layout
+  title='ページが見つかりません - Claude Code Changelog Viewer'
+  description='お探しのページは存在しないか、移動した可能性があります。'
+  jsonLd={{ type: 'page' }}
+>
+  <div class='min-h-dvh flex items-center justify-center py-20 px-4'>
+    <div class='max-w-xl mx-auto text-center'>
+      <p
+        class='text-8xl font-bold text-[hsl(var(--cc-main-orange))] mb-6 tabular-nums'
+      >
+        404
+      </p>
+      <h1 class='text-2xl font-bold text-[hsl(var(--cc-main-black))] mb-3'>
+        ページが見つかりません
+      </h1>
+      <p class='text-sm text-gray-500 mb-10'>
+        お探しのURLは存在しないか、移動した可能性があります。
+      </p>
+
+      <div
+        id='suggestions'
+        class='hidden mb-10 text-left border border-[hsl(var(--cc-gray))] rounded-xl p-5'
+      >
+        <p
+          class='text-xs font-medium text-gray-400 uppercase tracking-wide mb-3'
+        >
+          もしかして
+        </p>
+        <ul id='suggestions-list' class='space-y-2'></ul>
+      </div>
+
+      <a
+        href='/'
+        class='inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[hsl(var(--cc-main-orange))] text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-colors text-sm font-medium'
+      >
+        トップページに戻る
+      </a>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline define:vars={{ allUrls }}>
+  const urls = JSON.parse(allUrls);
+
+  /** Levenshtein 距離(DP)*/
+  function levenshtein(a, b) {
+    const m = a.length;
+    const n = b.length;
+    const dp = Array.from({ length: m + 1 }, (_, i) =>
+      Array.from({ length: n + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)),
+    );
+    for (let i = 1; i <= m; i += 1) {
+      for (let j = 1; j <= n; j += 1) {
+        dp[i][j] =
+          a[i - 1] === b[j - 1]
+            ? dp[i - 1][j - 1]
+            : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+    return dp[m][n];
+  }
+
+  function findCandidates(currentPath, maxResults = 3) {
+    const threshold = Math.max(5, Math.floor(currentPath.length * 0.4));
+    return urls
+      .map((url) => ({ url, dist: levenshtein(currentPath, url) }))
+      .filter(({ dist }) => dist <= threshold)
+      .sort((a, b) => a.dist - b.dist)
+      .slice(0, maxResults);
+  }
+
+  function initSuggestions() {
+    const suggestionsEl = document.getElementById('suggestions');
+    const listEl = document.getElementById('suggestions-list');
+    if (!suggestionsEl || !listEl) {
+      return;
+    }
+
+    // View Transitions 経由の再表示時に前回の候補をリセット
+    listEl.innerHTML = '';
+    suggestionsEl.classList.add('hidden');
+
+    const candidates = findCandidates(window.location.pathname);
+    if (candidates.length > 0) {
+      for (const { url } of candidates) {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${url}" class="text-sm text-[hsl(var(--cc-main-orange))] hover:underline break-all">${url}</a>`;
+        listEl.appendChild(li);
+      }
+      suggestionsEl.classList.remove('hidden');
+    }
+  }
+
+  // 初回ロードと View Transitions 経由のナビゲーション両方で発火
+  document.addEventListener('astro:page-load', initSuggestions);
+</script>

@@ -3,27 +3,26 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Footer from '../components/Footer.astro';
 import MobileMenu from '../components/MobileMenu.astro';
-import SearchModal from '../components/SearchModal.astro';
-import ScrollToTop from '../components/ScrollToTop.astro';
 import ScrollProgress from '../components/ScrollProgress.astro';
+import ScrollToTop from '../components/ScrollToTop.astro';
+import SearchModal from '../components/SearchModal.astro';
 import { SITE_TITLE } from '../lib/constants';
 import {
-  generateWebSiteJsonLd,
-  generateArticleJsonLd,
-  generateCollectionPageJsonLd,
-  generateBreadcrumbJsonLd,
+  type BreadcrumbItem,
+  type FAQItem,
+  generateGraphJsonLd,
 } from '../lib/json-ld';
 
 type JsonLdData =
   | { type: 'website' }
-  | { type: 'article'; version: string; summary?: string }
+  | {
+      type: 'article';
+      version: string;
+      summary?: string;
+      datePublished?: string;
+    }
   | { type: 'page' }
   | { type: 'collection'; title: string; description: string };
-
-type BreadcrumbItem = {
-  name: string;
-  url: string;
-};
 
 type Props = {
   title: string;
@@ -31,9 +30,11 @@ type Props = {
   image?: string;
   jsonLd?: JsonLdData;
   breadcrumbs?: BreadcrumbItem[];
+  faqItems?: FAQItem[];
 };
 
-const { title, description, image, jsonLd, breadcrumbs } = Astro.props;
+const { title, description, image, jsonLd, breadcrumbs, faqItems } =
+  Astro.props;
 const isDocsPage = Astro.url.pathname.startsWith('/docs');
 const defaultDescription =
   'Claude Codeの全バージョンの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。';
@@ -42,46 +43,58 @@ const siteUrl = import.meta.env.SITE;
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
 const ogImage = image || `${siteUrl}/og-image.png`;
 
-// JSON-LD 生成
-const jsonLdScripts: string[] = [];
+// JSON-LD 生成(単一 @graph)
+let graphJsonLd: string | null = null;
 
 if (jsonLd?.type === 'website') {
-  jsonLdScripts.push(
-    JSON.stringify(
-      generateWebSiteJsonLd({
-        siteUrl,
-        title,
-        description: pageDescription,
-      }),
+  graphJsonLd = JSON.stringify(
+    generateGraphJsonLd(
+      { type: 'website', siteUrl, title, description: pageDescription },
+      breadcrumbs,
+      faqItems,
     ),
   );
 } else if (jsonLd?.type === 'article') {
-  jsonLdScripts.push(
-    JSON.stringify(
-      generateArticleJsonLd({
+  graphJsonLd = JSON.stringify(
+    generateGraphJsonLd(
+      {
+        type: 'article',
         siteUrl,
         title,
         description: pageDescription,
         url: canonicalUrl,
         version: jsonLd.version,
-      }),
+        datePublished: jsonLd.datePublished,
+      },
+      breadcrumbs,
     ),
   );
 } else if (jsonLd?.type === 'collection') {
-  jsonLdScripts.push(
-    JSON.stringify(
-      generateCollectionPageJsonLd({
+  graphJsonLd = JSON.stringify(
+    generateGraphJsonLd(
+      {
+        type: 'collection',
         siteUrl,
         title: jsonLd.title,
         description: jsonLd.description,
         url: canonicalUrl,
-      }),
+      },
+      breadcrumbs,
     ),
   );
-}
-
-if (breadcrumbs && breadcrumbs.length > 0) {
-  jsonLdScripts.push(JSON.stringify(generateBreadcrumbJsonLd(breadcrumbs)));
+} else if (jsonLd?.type === 'page') {
+  graphJsonLd = JSON.stringify(
+    generateGraphJsonLd(
+      {
+        type: 'page',
+        siteUrl,
+        title,
+        description: pageDescription,
+        url: canonicalUrl,
+      },
+      breadcrumbs,
+    ),
+  );
 }
 ---
 
@@ -98,9 +111,13 @@ if (breadcrumbs && breadcrumbs.length > 0) {
     <link rel='icon' type='image/svg+xml' href='/favicon.svg' />
     <link rel='canonical' href={canonicalUrl} />
     <link rel='sitemap' href='/sitemap-index.xml' />
+    <link rel='nlweb' type='text/plain' href='/llms.txt' />
     <title>{title}</title>
 
-    <meta name='robots' content='index, follow' />
+    <meta
+      name='robots'
+      content='index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
+    />
     <link
       rel='alternate'
       type='application/rss+xml'
@@ -125,9 +142,9 @@ if (breadcrumbs && breadcrumbs.length > 0) {
     <meta name='twitter:image' content={ogImage} />
 
     {
-      jsonLdScripts.map((script) => (
-        <script is:inline type='application/ld+json' set:html={script} />
-      ))
+      graphJsonLd && (
+        <script is:inline type='application/ld+json' set:html={graphJsonLd} />
+      )
     }
 
     <script
@@ -136,8 +153,8 @@ if (breadcrumbs && breadcrumbs.length > 0) {
       src='https://www.googletagmanager.com/gtag/js?id=G-2815S79087'></script>
     <script is:inline>
       window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
+      function gtag(...args) {
+        dataLayer.push(args);
       }
       gtag('js', new Date());
       gtag('config', 'G-2815S79087');

@@ -23,8 +23,9 @@ import { semverCompareDesc, isLegacyVersion } from '../../lib/semver';
 export async function getStaticPaths() {
   const allChangelogs = await getCollection('changelog');
 
-  // GitHub API で Releases のバージョン一覧を取得(1リクエスト固定)
+  // GitHub API で Releases のバージョン一覧と公開日時を取得(1リクエスト固定)
   let releaseVersions: Set<string>;
+  let releaseDateMap: Map<string, string> = new Map();
   try {
     const res = await fetch(
       'https://api.github.com/repos/anthropics/claude-code/releases?per_page=100',
@@ -33,12 +34,17 @@ export async function getStaticPaths() {
     if (!res.ok) {
       throw new Error(`GitHub API: ${res.status}`);
     }
-    const releases: Array<{ tag_name: string }> = await res.json();
+    const releases: Array<{ tag_name: string; published_at: string }> =
+      await res.json();
     releaseVersions = new Set(
       releases.map((r) => r.tag_name.replace(/^v/, '')),
     );
+    releaseDateMap = new Map(
+      releases.map((r) => [r.tag_name.replace(/^v/, ''), r.published_at]),
+    );
   } catch {
     releaseVersions = new Set();
+    releaseDateMap = new Map();
   }
 
   // ページが存在する feature_area を算出
@@ -58,6 +64,7 @@ export async function getStaticPaths() {
     props: {
       entry,
       hasGitHubRelease: releaseVersions.has(entry.data.version),
+      releaseDate: releaseDateMap.get(entry.data.version) ?? null,
       prevVersion: sorted[i + 1]?.data.version ?? null,
       nextVersion: sorted[i - 1]?.data.version ?? null,
       linkedAreas,
@@ -69,6 +76,7 @@ export async function getStaticPaths() {
 const {
   entry,
   hasGitHubRelease,
+  releaseDate,
   prevVersion,
   nextVersion,
   linkedAreas,
@@ -141,7 +149,12 @@ const totalItemCount = items.length;
   image={isLegacyVersion(version)
     ? undefined
     : `${import.meta.env.SITE}/changelog/og/v${version}.png`}
-  jsonLd={{ type: 'article', version, summary }}
+  jsonLd={{
+    type: 'article',
+    version,
+    summary,
+    datePublished: releaseDate ?? undefined,
+  }}
   breadcrumbs={[
     { name: 'トップ', url: import.meta.env.SITE },
     {

@@ -1,27 +1,46 @@
 import { SITE_TITLE } from './constants';
 
-type WebSiteParams = {
-  siteUrl: string;
-  title: string;
-  description: string;
+const COPYRIGHT_YEAR = 2026;
+
+// --- 型定義 ---
+
+export type FAQItem = {
+  question: string;
+  answer: string;
 };
 
-type ArticleParams = {
-  siteUrl: string;
-  title: string;
-  description: string;
-  url: string;
-  version: string;
-};
-
-type BreadcrumbItem = {
+export type BreadcrumbItem = {
   name: string;
   url: string;
 };
 
-function createPublisher(siteUrl: string) {
-  return { '@type': 'Organization', name: SITE_TITLE, url: siteUrl } as const;
-}
+export type JsonLdGraphParams =
+  | { type: 'website'; siteUrl: string; title: string; description: string }
+  | {
+      type: 'article';
+      siteUrl: string;
+      title: string;
+      description: string;
+      url: string;
+      version: string;
+      datePublished?: string;
+    }
+  | {
+      type: 'collection';
+      siteUrl: string;
+      title: string;
+      description: string;
+      url: string;
+    }
+  | {
+      type: 'page';
+      siteUrl: string;
+      title: string;
+      description: string;
+      url: string;
+    };
+
+// --- 内部ノードビルダー (@context なし・@id 付き) ---
 
 const ABOUT_SOFTWARE = {
   '@type': 'SoftwareApplication',
@@ -30,42 +49,128 @@ const ABOUT_SOFTWARE = {
   operatingSystem: 'macOS, Linux, Windows',
 } as const;
 
-export function generateWebSiteJsonLd(params: WebSiteParams): object {
+function buildOrganizationNode(siteUrl: string) {
   return {
-    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': `${siteUrl}/#organization`,
+    name: SITE_TITLE,
+    url: siteUrl,
+    publishingPrinciples: `${siteUrl}/about`,
+  };
+}
+
+function buildWebSiteNode(params: {
+  siteUrl: string;
+  title: string;
+  description: string;
+}) {
+  return {
     '@type': 'WebSite',
+    '@id': `${params.siteUrl}/#website`,
     name: params.title,
     url: params.siteUrl,
     description: params.description,
     inLanguage: 'ja',
-    publisher: createPublisher(params.siteUrl),
+    publisher: { '@id': `${params.siteUrl}/#organization` },
+    copyrightHolder: { '@id': `${params.siteUrl}/#organization` },
+    copyrightYear: COPYRIGHT_YEAR,
+    knowsAbout: [
+      'Claude Code',
+      'Anthropic',
+      'AI coding assistant',
+      'changelog',
+    ],
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${params.siteUrl}/?highlight={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 }
 
-export function generateArticleJsonLd(params: ArticleParams): object {
-  const publisher = createPublisher(params.siteUrl);
+function buildWebPageNode(params: {
+  url: string;
+  title: string;
+  description: string;
+  siteUrl: string;
+}) {
   return {
-    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${params.url}#webpage`,
+    url: params.url,
+    name: params.title,
+    description: params.description,
+    inLanguage: 'ja',
+    isPartOf: { '@id': `${params.siteUrl}/#website` },
+    publisher: { '@id': `${params.siteUrl}/#organization` },
+  };
+}
+
+export function buildArticleNode(params: {
+  siteUrl: string;
+  title: string;
+  description: string;
+  url: string;
+  version: string;
+  datePublished?: string;
+}) {
+  return {
     '@type': 'TechArticle',
+    '@id': `${params.url}#article`,
     headline: params.title,
     description: params.description,
     url: params.url,
     inLanguage: 'ja',
     image: `${params.siteUrl}/changelog/og/v${params.version}.png`,
-    author: publisher,
-    publisher,
+    author: { '@id': `${params.siteUrl}/#organization` },
+    publisher: { '@id': `${params.siteUrl}/#organization` },
+    about: ABOUT_SOFTWARE,
+    isPartOf: { '@id': `${params.siteUrl}/#website` },
+    ...(params.datePublished
+      ? {
+          datePublished: params.datePublished,
+          dateModified: params.datePublished,
+        }
+      : {}),
+  };
+}
+
+function buildCollectionPageNode(params: {
+  url: string;
+  title: string;
+  description: string;
+  siteUrl: string;
+}) {
+  return {
+    '@type': 'CollectionPage',
+    '@id': `${params.url}#webpage`,
+    url: params.url,
+    name: params.title,
+    description: params.description,
+    inLanguage: 'ja',
+    isPartOf: { '@id': `${params.siteUrl}/#website` },
+    publisher: { '@id': `${params.siteUrl}/#organization` },
     about: ABOUT_SOFTWARE,
   };
 }
 
-type FAQItem = {
-  question: string;
-  answer: string;
-};
-
-export function generateFAQJsonLd(items: FAQItem[]): object {
+function buildBreadcrumbNode(items: BreadcrumbItem[]) {
   return {
-    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: item.url,
+    })),
+  };
+}
+
+function buildFAQNode(items: FAQItem[]) {
+  return {
     '@type': 'FAQPage',
     mainEntity: items.map((item) => ({
       '@type': 'Question',
@@ -78,37 +183,57 @@ export function generateFAQJsonLd(items: FAQItem[]): object {
   };
 }
 
-type CollectionPageParams = {
-  siteUrl: string;
-  title: string;
-  description: string;
-  url: string;
-};
+// --- 公開 API: 単一 @graph を返す ---
 
-export function generateCollectionPageJsonLd(
-  params: CollectionPageParams,
+export function generateGraphJsonLd(
+  params: JsonLdGraphParams,
+  breadcrumbs?: BreadcrumbItem[],
+  faqItems?: FAQItem[],
 ): object {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'CollectionPage',
-    name: params.title,
-    description: params.description,
-    url: params.url,
-    inLanguage: 'ja',
-    publisher: createPublisher(params.siteUrl),
-    about: ABOUT_SOFTWARE,
-  };
-}
+  const graph: object[] = [];
 
-export function generateBreadcrumbJsonLd(items: BreadcrumbItem[]): object {
+  graph.push(buildOrganizationNode(params.siteUrl));
+
+  if (params.type === 'website') {
+    graph.push(buildWebSiteNode(params));
+    if (faqItems && faqItems.length > 0) {
+      graph.push(buildFAQNode(faqItems));
+    }
+  } else if (params.type === 'article') {
+    graph.push(
+      buildWebSiteNode({
+        siteUrl: params.siteUrl,
+        title: SITE_TITLE,
+        description: '',
+      }),
+    );
+    graph.push(buildArticleNode(params));
+  } else if (params.type === 'collection') {
+    graph.push(
+      buildWebSiteNode({
+        siteUrl: params.siteUrl,
+        title: SITE_TITLE,
+        description: '',
+      }),
+    );
+    graph.push(buildCollectionPageNode(params));
+  } else {
+    graph.push(
+      buildWebSiteNode({
+        siteUrl: params.siteUrl,
+        title: SITE_TITLE,
+        description: '',
+      }),
+    );
+    graph.push(buildWebPageNode(params));
+  }
+
+  if (breadcrumbs && breadcrumbs.length > 0) {
+    graph.push(buildBreadcrumbNode(breadcrumbs));
+  }
+
   return {
     '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: items.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      item: item.url,
-    })),
+    '@graph': graph,
   };
 }
