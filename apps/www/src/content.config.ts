@@ -51,7 +51,7 @@ const diffCollection = defineCollection({
 });
 
 const docsDiffCollection = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: '../docs-tracker/diffs' }),
+  loader: glob({ pattern: '**/*.json', base: './src/content/docs-diff' }),
   schema: z.object({
     id: z.string(),
     timestamp: z.iso.datetime(),
