@@ -1,0 +1,548 @@
+{
+  "id": "20260415-093113",
+  "timestamp": "2026-04-15T09:31:13.201Z",
+  "aiSummary": "Extended thinking機能において、実行中の進捗状況を示すヒントが表示されるようになりました。GitHub連携におけるトリガー対象が整理され、Pull RequestとReleaseの2つのカテゴリーに限定されています。あわせてフィルタリングで使用できる正規表現などの演算子に関する詳細な仕様と、具体的な記述方法の解説が追加されました。",
+  "files": [
+    {
+      "filename": "common-workflows.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Extended thinkingの実行中に、インジケーターの下に進捗ヒントが表示されるようになった旨が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -397,7 +397,7 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Use extended thinking (thinking mode)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) is enabled by default, giving Claude space to reason through complex problems step-by-step before responding. This reasoning is visible in verbose mode, which you can toggle on with `Ctrl+O`."
+            },
+            {
+              "type": "added",
+              "content": "[Extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) is enabled by default, giving Claude space to reason through complex problems step-by-step before responding. This reasoning is visible in verbose mode, which you can toggle on with `Ctrl+O`. During extended thinking, progress hints appear below the indicator to show that Claude is actively working."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Additionally, Opus 4.6 and Sonnet 4.6 support adaptive reasoning: instead of a fixed thinking token budget, the model dynamically allocates thinking based on your [effort level](/en/model-config#adjust-effort-level) setting. Extended thinking and adaptive reasoning work together to give you control over how deeply Claude reasons before responding."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "routines.md",
+      "additions": 7,
+      "deletions": 19,
+      "explanation": "GitHubトリガーの対象イベントが整理され、フィルタリングで使用する正規表現演算子の完全一致仕様に関する注意書きが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,7 +15,7 @@ Each routine can have one or more triggers attached to it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Scheduled**: run on a recurring cadence like hourly, nightly, or weekly"
+            },
+            {
+              "type": "context",
+              "content": "- **API**: trigger on demand by sending an HTTP POST to a per-routine endpoint with a bearer token"
+            },
+            {
+              "type": "removed",
+              "content": "- **GitHub**: run automatically in response to repository events such as pull requests, pushes, issues, or workflow runs"
+            },
+            {
+              "type": "added",
+              "content": "- **GitHub**: run automatically in response to repository events such as pull requests or releases"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A single routine can combine triggers. For example, a PR review routine can run nightly, trigger from a deploy script, and also react to every new PR."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -178,28 +178,12 @@ Select the repository, choose an event from the [supported events](#supported-ev",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Supported events"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "GitHub triggers can subscribe to any of the following event categories. Within each category you can pick a specific action, such as `pull_request.opened`, or react to all actions in the category."
+            },
+            {
+              "type": "added",
+              "content": "GitHub triggers can subscribe to either of the following event categories. Within each category you can pick a specific action, such as `pull_request.opened`, or react to all actions in the category."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Event | Triggers when |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| Pull request | A PR is opened, closed, assigned, labeled, synchronized, or otherwise updated |"
+            },
+            {
+              "type": "removed",
+              "content": "| Pull request review | A PR review is submitted, edited, or dismissed |"
+            },
+            {
+              "type": "removed",
+              "content": "| Pull request review comment | A comment on a PR diff is created, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Push | Commits are pushed to a branch |"
+            },
+            {
+              "type": "context",
+              "content": "| Release | A release is created, published, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Issues | An issue is opened, edited, closed, labeled, or otherwise updated |"
+            },
+            {
+              "type": "removed",
+              "content": "| Issue comment | A comment on an issue or PR is created, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Sub issues | A sub-issue or parent issue is added or removed |"
+            },
+            {
+              "type": "removed",
+              "content": "| Commit comment | A commit or diff is commented on |"
+            },
+            {
+              "type": "removed",
+              "content": "| Discussion | A discussion is created, edited, answered, or otherwise updated |"
+            },
+            {
+              "type": "removed",
+              "content": "| Discussion comment | A discussion comment is created, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Check run | A check run is created, requested, rerequested, or completed |"
+            },
+            {
+              "type": "removed",
+              "content": "| Check suite | A check suite completes or is requested |"
+            },
+            {
+              "type": "removed",
+              "content": "| Merge queue entry | A PR enters or leaves the merge queue |"
+            },
+            {
+              "type": "removed",
+              "content": "| Workflow run | A GitHub Actions workflow run starts or completes |"
+            },
+            {
+              "type": "removed",
+              "content": "| Workflow job | A GitHub Actions job is queued or completes |"
+            },
+            {
+              "type": "removed",
+              "content": "| Workflow dispatch | A workflow is manually triggered |"
+            },
+            {
+              "type": "removed",
+              "content": "| Repository dispatch | A custom repository\\_dispatch event is sent |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Filter pull requests"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -217,6 +201,10 @@ Use filters to narrow which pull requests start a new session. All filter condit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Is merged | Whether the PR has been merged |"
+            },
+            {
+              "type": "context",
+              "content": "| From fork | Whether the PR comes from a fork |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each filter pairs a field with an operator: equals, contains, starts with, is one of, is not one of, or matches regex."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `matches regex` operator tests the entire field value, not a substring within it. To match any title containing `hotfix`, write `.*hotfix.*`. Without the surrounding `.*`, the filter matches only a title that is exactly `hotfix` with nothing before or after. For literal substring matching without regex syntax, use the `contains` operator instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A few example filter combinations:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Auth module review**: base branch `main`, head branch contains `auth-provider`. Sends any PR that touches authentication to a focused reviewer."
+            }
+          ]
+        },
+        {
+          "header": "@@ -226,7 +214,7 @@ A few example filter combinations:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### How sessions map to events"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each matching GitHub event starts a new session. Session reuse across events is not available for GitHub-triggered routines, so two pushes or two PR updates produce two independent sessions."
+            },
+            {
+              "type": "added",
+              "content": "Each matching GitHub event starts a new session. Session reuse across events is not available for GitHub-triggered routines, so two PR updates produce two independent sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage routines"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "web-scheduled-tasks.md",
+      "additions": 7,
+      "deletions": 19,
+      "explanation": "GitHub連携のトリガー設定において、利用可能なイベントカテゴリーの制限とフィルタ演算子の詳細な使い方が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -15,7 +15,7 @@ Each routine can have one or more triggers attached to it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Scheduled**: run on a recurring cadence like hourly, nightly, or weekly"
+            },
+            {
+              "type": "context",
+              "content": "- **API**: trigger on demand by sending an HTTP POST to a per-routine endpoint with a bearer token"
+            },
+            {
+              "type": "removed",
+              "content": "- **GitHub**: run automatically in response to repository events such as pull requests, pushes, issues, or workflow runs"
+            },
+            {
+              "type": "added",
+              "content": "- **GitHub**: run automatically in response to repository events such as pull requests or releases"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A single routine can combine triggers. For example, a PR review routine can run nightly, trigger from a deploy script, and also react to every new PR."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -178,28 +178,12 @@ Select the repository, choose an event from the [supported events](#supported-ev",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Supported events"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "GitHub triggers can subscribe to any of the following event categories. Within each category you can pick a specific action, such as `pull_request.opened`, or react to all actions in the category."
+            },
+            {
+              "type": "added",
+              "content": "GitHub triggers can subscribe to either of the following event categories. Within each category you can pick a specific action, such as `pull_request.opened`, or react to all actions in the category."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Event | Triggers when |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| Pull request | A PR is opened, closed, assigned, labeled, synchronized, or otherwise updated |"
+            },
+            {
+              "type": "removed",
+              "content": "| Pull request review | A PR review is submitted, edited, or dismissed |"
+            },
+            {
+              "type": "removed",
+              "content": "| Pull request review comment | A comment on a PR diff is created, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Push | Commits are pushed to a branch |"
+            },
+            {
+              "type": "context",
+              "content": "| Release | A release is created, published, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Issues | An issue is opened, edited, closed, labeled, or otherwise updated |"
+            },
+            {
+              "type": "removed",
+              "content": "| Issue comment | A comment on an issue or PR is created, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Sub issues | A sub-issue or parent issue is added or removed |"
+            },
+            {
+              "type": "removed",
+              "content": "| Commit comment | A commit or diff is commented on |"
+            },
+            {
+              "type": "removed",
+              "content": "| Discussion | A discussion is created, edited, answered, or otherwise updated |"
+            },
+            {
+              "type": "removed",
+              "content": "| Discussion comment | A discussion comment is created, edited, or deleted |"
+            },
+            {
+              "type": "removed",
+              "content": "| Check run | A check run is created, requested, rerequested, or completed |"
+            },
+            {
+              "type": "removed",
+              "content": "| Check suite | A check suite completes or is requested |"
+            },
+            {
+              "type": "removed",
+              "content": "| Merge queue entry | A PR enters or leaves the merge queue |"
+            },
+            {
+              "type": "removed",
+              "content": "| Workflow run | A GitHub Actions workflow run starts or completes |"
+            },
+            {
+              "type": "removed",
+              "content": "| Workflow job | A GitHub Actions job is queued or completes |"
+            },
+            {
+              "type": "removed",
+              "content": "| Workflow dispatch | A workflow is manually triggered |"
+            },
+            {
+              "type": "removed",
+              "content": "| Repository dispatch | A custom repository\\_dispatch event is sent |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Filter pull requests"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -217,6 +201,10 @@ Use filters to narrow which pull requests start a new session. All filter condit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Is merged | Whether the PR has been merged |"
+            },
+            {
+              "type": "context",
+              "content": "| From fork | Whether the PR comes from a fork |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each filter pairs a field with an operator: equals, contains, starts with, is one of, is not one of, or matches regex."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `matches regex` operator tests the entire field value, not a substring within it. To match any title containing `hotfix`, write `.*hotfix.*`. Without the surrounding `.*`, the filter matches only a title that is exactly `hotfix` with nothing before or after. For literal substring matching without regex syntax, use the `contains` operator instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A few example filter combinations:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Auth module review**: base branch `main`, head branch contains `auth-provider`. Sends any PR that touches authentication to a focused reviewer."
+            }
+          ]
+        },
+        {
+          "header": "@@ -226,7 +214,7 @@ A few example filter combinations:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### How sessions map to events"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each matching GitHub event starts a new session. Session reuse across events is not available for GitHub-triggered routines, so two pushes or two PR updates produce two independent sessions."
+            },
+            {
+              "type": "added",
+              "content": "Each matching GitHub event starts a new session. Session reuse across events is not available for GitHub-triggered routines, so two PR updates produce two independent sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage routines"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
