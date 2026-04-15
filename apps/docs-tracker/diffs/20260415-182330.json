@@ -1,0 +1,726 @@
+{
+  "id": "20260415-182330",
+  "timestamp": "2026-04-15T18:23:30.693Z",
+  "aiSummary": "クラウドセッションのIDを環境変数として取得し、PRやSlackで共有可能なリンクを作成する手順が追加されました。Code Review機能において、レビューの動作や重要度、通知件数を制御するためのREVIEW.mdの活用方法が大幅に拡充されています。月間の利用額上限に達した際の挙動や、請求に関する注意点も明記されました。JetBrainsなどのIDEにおけるdiff表示設定オプションが具体化され、不要になったスケジュールタスクのドキュメントが削除されています。",
+  "files": [
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 10,
+      "deletions": 0,
+      "explanation": "環境変数を利用してクラウドセッションのURLを生成し、PRやログにリンクを埋め込むための具体的な方法が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -98,6 +98,16 @@ Add `apt update && apt install -y gh` to your [setup script](#setup-scripts).",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Add a `GH_TOKEN` environment variable to your [environment settings](#configure-your-environment) with a GitHub personal access token. `gh` reads `GH_TOKEN` automatically, so no `gh auth login` step is needed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Link artifacts back to the session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each cloud session has a transcript URL on claude.ai, and the session can read its own ID from the `CLAUDE_CODE_REMOTE_SESSION_ID` environment variable. Use this to put a traceable link in PR bodies, commit messages, Slack posts, or generated reports so a reviewer can open the run that produced them."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Ask Claude to construct the link from the environment variable. The following command prints the URL:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "echo \"https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID}\""
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run tests, start services, and add packages"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude runs tests as part of working on a task. Ask for it in your prompt, like \"fix the failing tests in `tests/`\" or \"run pytest after each change.\" Test runners like pytest, jest, and cargo test work out of the box since they're pre-installed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "code-review.md",
+      "additions": 61,
+      "deletions": 24,
+      "explanation": "REVIEW.mdを用いて重要度の定義や通知の制限、特定のパスの除外など、レビュー動作を詳細にカスタマイズする方法が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -28,7 +28,7 @@ This page covers:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once an admin [enables Code Review](#set-up-code-review) for your organization, reviews trigger when a PR opens, on every push, or when manually requested, depending on the repository's configured behavior. Commenting `@claude review` [starts reviews on a PR](#manually-trigger-reviews) in any mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When a review runs, multiple agents analyze the diff and surrounding code in parallel on Anthropic infrastructure. Each agent looks for a different class of issue, then a verification step checks candidates against actual code behavior to filter out false positives. The results are deduplicated, ranked by severity, and posted as inline comments on the specific lines where issues were found. If no issues are found, Claude posts a short confirmation comment on the PR."
+            },
+            {
+              "type": "added",
+              "content": "When a review runs, multiple agents analyze the diff and surrounding code in parallel on Anthropic infrastructure. Each agent looks for a different class of issue, then a verification step checks candidates against actual code behavior to filter out false positives. The results are deduplicated, ranked by severity, and posted as inline comments on the specific lines where issues were found, with a summary in the review body. If no issues are found, Claude posts a short confirmation comment on the PR."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Reviews scale in cost with PR size and complexity, completing in 20 minutes on average. Admins can monitor review activity and spend via the [analytics dashboard](#view-usage)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -128,14 +128,14 @@ If a review is already running on that PR, the request is queued until the in-pr",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Customize reviews"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Code Review reads two files from your repository to guide what it flags. Both are additive on top of the default correctness checks:"
+            },
+            {
+              "type": "added",
+              "content": "Code Review reads two files from your repository to guide what it flags. They differ in how strongly they influence the review:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **`CLAUDE.md`**: shared project instructions that Claude Code uses for all tasks, not just reviews. Use it when guidance also applies to interactive Claude Code sessions."
+            },
+            {
+              "type": "removed",
+              "content": "- **`REVIEW.md`**: review-only guidance, read exclusively during code reviews. Use it for rules that are strictly about what to flag or skip during review and would clutter your general `CLAUDE.md`."
+            },
+            {
+              "type": "added",
+              "content": "- **`CLAUDE.md`**: shared project instructions that Claude Code uses for all tasks, not just reviews. Code Review reads it as project context and flags newly introduced violations as nits."
+            },
+            {
+              "type": "added",
+              "content": "- **`REVIEW.md`**: review-only instructions, injected directly into every agent in the review pipeline as highest priority. Use it to change what gets flagged, at what severity, and how findings are reported."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### CLAUDE.md"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Code Review reads your repository's `CLAUDE.md` files and treats newly-introduced violations as nit-level findings. This works bidirectionally: if your PR changes code in a way that makes a `CLAUDE.md` statement outdated, Claude flags that the docs need updating too."
+            },
+            {
+              "type": "added",
+              "content": "Code Review reads your repository's `CLAUDE.md` files and treats newly introduced violations as [nit-level](#severity-levels) findings. This works bidirectionally: if your PR changes code in a way that makes a `CLAUDE.md` statement outdated, Claude flags that the docs need updating too."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude reads `CLAUDE.md` files at every level of your directory hierarchy, so rules in a subdirectory's `CLAUDE.md` apply only to files under that path. See the [memory documentation](/en/memory) for more on how `CLAUDE.md` works."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -143,33 +143,66 @@ For review-specific guidance that you don't want applied to general Claude Code",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### REVIEW\\.md"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Add a `REVIEW.md` file to your repository root for review-specific rules. Use it to encode:"
+            },
+            {
+              "type": "added",
+              "content": "`REVIEW.md` is a file at your repository root that overrides how Code Review behaves on your repo. Its contents are injected into the system prompt of every agent in the review pipeline as the highest-priority instruction block, taking precedence over the default review guidance."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Company or team style guidelines: \"prefer early returns over nested conditionals\""
+            },
+            {
+              "type": "removed",
+              "content": "- Language- or framework-specific conventions not covered by linters"
+            },
+            {
+              "type": "removed",
+              "content": "- Things Claude should always flag: \"any new API route must have an integration test\""
+            },
+            {
+              "type": "removed",
+              "content": "- Things Claude should skip: \"don't comment on formatting in generated code under `/gen/`\""
+            },
+            {
+              "type": "added",
+              "content": "Because it's pasted verbatim, `REVIEW.md` is plain instructions: [`@` import syntax](/en/memory#import-additional-files) is not expanded, and referenced files are not read into the prompt. Put the rules you want enforced directly in the file."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Example `REVIEW.md`:"
+            },
+            {
+              "type": "added",
+              "content": "#### What you can tune"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`REVIEW.md` is freeform markdown, so anything you can express as a review instruction is in scope. The patterns below have the most impact in practice."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Severity**: redefine what 🔴 Important means for your repo. The default calibration targets production code; a docs repo, a config repo, or a prototype might want a much narrower definition. State explicitly which classes of finding are Important and which are Nit at most. You can also escalate in the other direction, for example treating any `CLAUDE.md` violation as Important rather than the default nit."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Nit volume**: cap how many 🟡 Nit comments a single review posts. Prose and config files can be polished forever. A cap like \"report at most five nits, mention the rest as a count in the summary\" keeps reviews actionable."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Skip rules**: list paths, branch patterns, and finding categories where Claude should post no findings. Common candidates are generated code, lockfiles, vendored dependencies, and machine-authored branches, along with anything your CI already enforces like linting or spellcheck. For paths that warrant some review but not full scrutiny, set a higher bar instead of skipping entirely: \"in `scripts/`, only report if near-certain and severe.\""
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Repo-specific checks**: add rules you want flagged on every PR, like \"new API routes must have an integration test.\" Because `REVIEW.md` is injected as highest priority, these land more reliably than the same rules in a long `CLAUDE.md`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Verification bar**: require evidence before a class of finding is posted. For example, \"behavior claims need a `file:line` citation in the source, not an inference from naming\" cuts false positives that would otherwise cost the author a round trip."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Re-review convergence**: tell Claude how to behave when a PR has already been reviewed. A rule like \"after the first review, suppress new nits and post Important findings only\" stops a one-line fix from reaching round seven on style alone."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Summary shape**: ask for the review body to open with a one-line tally such as `2 factual, 4 style`, and to lead with \"no factual issues\" when that's the case. The author wants to know the shape of the work before the details."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Example"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This `REVIEW.md` recalibrates severity for a backend service, caps nits, skips generated files, and adds repo-specific checks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```markdown"
+            },
+            {
+              "type": "removed",
+              "content": "# Code Review Guidelines"
+            },
+            {
+              "type": "added",
+              "content": "# Review instructions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Always check"
+            },
+            {
+              "type": "removed",
+              "content": "- New API endpoints have corresponding integration tests"
+            },
+            {
+              "type": "removed",
+              "content": "- Database migrations are backward-compatible"
+            },
+            {
+              "type": "removed",
+              "content": "- Error messages don't leak internal details to users"
+            },
+            {
+              "type": "added",
+              "content": "## What Important means here"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Reserve Important for findings that would break behavior, leak data,"
+            },
+            {
+              "type": "added",
+              "content": "or block a rollback: incorrect logic, unscoped database queries, PII"
+            },
+            {
+              "type": "added",
+              "content": "in logs or error messages, and migrations that aren't backward"
+            },
+            {
+              "type": "added",
+              "content": "compatible. Style, naming, and refactoring suggestions are Nit at"
+            },
+            {
+              "type": "added",
+              "content": "most."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Cap the nits"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Report at most five Nits per review. If you found more, say \"plus N"
+            },
+            {
+              "type": "added",
+              "content": "similar items\" in the summary instead of posting them inline. If"
+            },
+            {
+              "type": "added",
+              "content": "everything you found is a Nit, lead the summary with \"No blocking"
+            },
+            {
+              "type": "added",
+              "content": "issues.\""
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Do not report"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Style"
+            },
+            {
+              "type": "removed",
+              "content": "- Prefer `match` statements over chained `isinstance` checks"
+            },
+            {
+              "type": "removed",
+              "content": "- Use structured logging, not f-string interpolation in log calls"
+            },
+            {
+              "type": "added",
+              "content": "- Anything CI already enforces: lint, formatting, type errors"
+            },
+            {
+              "type": "added",
+              "content": "- Generated files under `src/gen/` and any `*.lock` file"
+            },
+            {
+              "type": "added",
+              "content": "- Test-only code that intentionally violates production rules"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Skip"
+            },
+            {
+              "type": "removed",
+              "content": "- Generated files under `src/gen/`"
+            },
+            {
+              "type": "removed",
+              "content": "- Formatting-only changes in `*.lock` files"
+            },
+            {
+              "type": "added",
+              "content": "## Always check"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- New API routes have an integration test"
+            },
+            {
+              "type": "added",
+              "content": "- Log lines don't include email addresses, user IDs, or request bodies"
+            },
+            {
+              "type": "added",
+              "content": "- Database queries are scoped to the caller's tenant"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude auto-discovers `REVIEW.md` at the repository root. No configuration needed."
+            },
+            {
+              "type": "added",
+              "content": "#### Keep it focused"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Length has a cost: a long `REVIEW.md` dilutes the rules that matter most. Keep it to instructions that change review behavior, and leave general project context in `CLAUDE.md`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## View usage"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -182,7 +215,7 @@ Go to [claude.ai/analytics/code-review](https://claude.ai/analytics/code-review)",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Feedback | Count of review comments that were auto-resolved because a developer addressed the issue |"
+            },
+            {
+              "type": "context",
+              "content": "| Repository breakdown | Per-repo counts of PRs reviewed and comments resolved |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The repositories table in admin settings also shows average cost per review for each repo."
+            },
+            {
+              "type": "added",
+              "content": "The repositories table in admin settings also shows average cost per review for each repo. Dashboard cost figures are estimates for monitoring activity; for invoice-accurate spend, refer to your Anthropic bill."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Pricing"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -212,6 +245,10 @@ To run the review again, comment `@claude review once` on the PR. This starts a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The **Re-run** button in GitHub's Checks tab does not retrigger Code Review. Use the comment command or a new push instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Review didn't run and the PR shows a spend-cap message"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When your organization's monthly spend cap is reached, Code Review posts a single comment on the PR explaining that the review was skipped. Reviews resume automatically at the start of the next billing period, or immediately when an admin raises the cap at [claude.ai/admin-settings/usage](https://claude.ai/admin-settings/usage)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Find issues that aren't showing as inline comments"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the check run title says issues were found but you don't see inline review comments on the diff, look in these other locations where findings are surfaced:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "クラウド環境を識別するためのCLAUDE_CODE_REMOTEと、セッションURL生成に使うCLAUDE_CODE_REMOTE_SESSION_IDの2つの環境変数が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -118,6 +118,8 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` | Set to `1` to keep the existing marketplace cache when a `git pull` fails instead of wiping and re-cloning. Useful in offline or airgapped environments where re-cloning would fail the same way. See [Marketplace updates fail in offline environments](/en/plugin-marketplaces#marketplace-updates-fail-in-offline-environments) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PLUGIN_SEED_DIR` | Path to one or more read-only plugin seed directories, separated by `:` on Unix or `;` on Windows. Use this to bundle a pre-populated plugins directory into a container image. Claude Code registers marketplaces from these directories at startup and uses pre-cached plugins without re-cloning. See [Pre-populate plugins for containers](/en/plugin-marketplaces#pre-populate-plugins-for-containers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PROXY_RESOLVES_HOSTS` | Set to `1` to allow the proxy to perform DNS resolution instead of the caller. Opt-in for environments where the proxy should handle hostname resolution |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_REMOTE` | Set automatically to `true` when Claude Code is running as a [cloud session](/en/claude-code-on-the-web). Read this from a hook or setup script to detect whether you are in a cloud environment |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_REMOTE_SESSION_ID` | Set automatically in [cloud sessions](/en/claude-code-on-the-web) to the current session's ID. Read this to construct a link back to the session transcript. See [Link artifacts back to the session](/en/claude-code-on-the-web#link-artifacts-back-to-the-session) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_RESUME_INTERRUPTED_TURN` | Set to `1` to automatically resume if the previous session ended mid-turn. Used in SDK mode so the model continues without requiring the SDK to re-send the prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SCRIPT_CAPS` | JSON object limiting how many times specific scripts may be invoked per session when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set. Keys are substrings matched against the command text; values are integer call limits. For example, `{\"deploy.sh\": 2}` allows `deploy.sh` to be called at most twice. Matching is substring-based so shell-expansion tricks like `./scripts/deploy.sh $(evil)` still count against the cap. Runtime fan-out via `xargs` or `find -exec` is not detected; this is a defense-in-depth control |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SCROLL_SPEED` | Set the mouse wheel scroll multiplier in [fullscreen rendering](/en/fullscreen#adjust-wheel-scroll-speed). Accepts values from 1 to 20. Set to `3` to match `vim` if your terminal sends one wheel event per notch without amplification |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "jetbrains.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "diffツールの設定において、IDEでの表示を選択するautoオプションとターミナルでの表示を維持するterminalオプションの違いが明示されました。",
+      "hunks": [
+        {
+          "header": "@@ -66,7 +66,7 @@ Configure IDE integration through Claude Code's settings:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1. Run `claude`"
+            },
+            {
+              "type": "context",
+              "content": "2. Enter the `/config` command"
+            },
+            {
+              "type": "removed",
+              "content": "3. Set the diff tool to `auto` for automatic IDE detection"
+            },
+            {
+              "type": "added",
+              "content": "3. Set the diff tool to `auto` to show diffs in the IDE, or `terminal` to keep them in the terminal"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Plugin Settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "web-scheduled-tasks.md",
+      "additions": 0,
+      "deletions": 268,
+      "explanation": "ウェブ上のスケジュールタスクに関する古いドキュメントが完全に削除されました。",
+      "hunks": []
+    }
+  ]
+}
