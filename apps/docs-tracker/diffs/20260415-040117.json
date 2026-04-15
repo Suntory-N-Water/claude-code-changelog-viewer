@@ -1,0 +1,404 @@
+{
+  "id": "20260415-040117",
+  "timestamp": "2026-04-15T04:01:17.495Z",
+  "aiSummary": "Windows環境におけるPowerShellとコマンドプロンプトの判別方法が、具体的なエラーメッセージと共に詳しく追記されました。ルーチンの実行APIにおけるtextフィールドの仕様が明確化され、JSONなどの構造化データもリテラル文字列として扱われる点が強調されています。Agent SDKのドキュメントではコード例がPythonからTypeScriptに修正され、Gitワークツリーに関する記述も簡略化されました。プラグインの検索ツールにおいて、古いバージョンのディレクトリをスキップする仕様が新たに追加されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/overview.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "コード例で使用されていたファイル名がauth.pyからauth.tsに変更され、TypeScript環境に合わせた記述になりました。",
+      "hunks": [
+        {
+          "header": "@@ -29,7 +29,7 @@ asyncio.run(main())",
+          "lines": [
+            {
+              "type": "context",
+              "content": "import { query } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "for await (const message of query({"
+            },
+            {
+              "type": "removed",
+              "content": "  prompt: \"Find and fix the bug in auth.py\","
+            },
+            {
+              "type": "added",
+              "content": "  prompt: \"Find and fix the bug in auth.ts\","
+            },
+            {
+              "type": "context",
+              "content": "  options: { allowedTools: [\"Read\", \"Edit\", \"Bash\"] }"
+            },
+            {
+              "type": "context",
+              "content": "})) {"
+            },
+            {
+              "type": "context",
+              "content": "  console.log(message); // Claude reads the file, finds the bug, edits it"
+            }
+          ]
+        },
+        {
+          "header": "@@ -431,7 +431,7 @@ while (response.stop_reason === \"tool_use\") {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "// Agent SDK: Claude handles tools autonomously"
+            },
+            {
+              "type": "removed",
+              "content": "for await (const message of query({ prompt: \"Fix the bug in auth.py\" })) {"
+            },
+            {
+              "type": "added",
+              "content": "for await (const message of query({ prompt: \"Fix the bug in auth.ts\" })) {"
+            },
+            {
+              "type": "context",
+              "content": "  console.log(message);"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "git worktreeの作成に関する戻り値の説明が、より簡潔な表現に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -2070,7 +2070,7 @@ type EnterWorktreeOutput = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Returns information about the created git worktree."
+            },
+            {
+              "type": "added",
+              "content": "Returns information about the git worktree."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Permission Types"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "overview.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "PowerShellとコマンドプロンプトで発生する異なるエラーメッセージに基づき、使用中のシェルを特定する方法が詳しく追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -35,7 +35,7 @@ irm https://claude.ai/install.ps1 | iex",
+          "lines": [
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. Use the PowerShell command above instead. Your prompt shows `PS C:\\` when you're in PowerShell."
+            },
+            {
+              "type": "added",
+              "content": "If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Native Windows setups require [Git for Windows](https://git-scm.com/downloads/win).** Install it first if you don't have it. WSL setups do not need it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "GlobやGrepツールが検索時に古いバージョンのディレクトリをスキップし、古いコードが含まれないようになったことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -500,6 +500,8 @@ For security and verification purposes, Claude Code copies *marketplace* plugins",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each installed version is a separate directory in the cache. When you update or uninstall a plugin, the previous version directory is marked as orphaned and removed automatically 7 days later. The grace period lets concurrent Claude Code sessions that already loaded the old version keep running without errors."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude's Glob and Grep tools skip orphaned version directories during searches, so file results don't include outdated plugin code."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Path traversal limitations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Installed plugins cannot reference files outside their directory. Paths that traverse outside the plugin root (such as `../shared-utils`) will not work after installation because those external files are not copied to the cache."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Windowsでのセットアップ時にシェルを間違えた際のエラー内容と、プロンプト表示による見分け方の解説が強化されました。",
+      "hunks": [
+        {
+          "header": "@@ -383,7 +383,7 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "    ```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "    If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. Use the PowerShell command above instead. Your prompt shows `PS C:\\` when you're in PowerShell."
+            },
+            {
+              "type": "added",
+              "content": "    If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    **Native Windows setups require [Git for Windows](https://git-scm.com/downloads/win).** Install it first if you don't have it. WSL setups do not need it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "routines.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/fireエンドポイントのtextフィールドが自由形式のテキストとして扱われ、構造化データもパースされずに渡される仕様が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -125,7 +125,7 @@ Each routine has its own token, scoped to triggering that routine only. To rotat",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Trigger a routine"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Send a POST request to the `/fire` endpoint with the bearer token in the `Authorization` header. The request body accepts an optional `text` field that's appended to the routine's configured prompt as a one-shot user turn. Use `text` to pass context like an alert body or a failing log."
+            },
+            {
+              "type": "added",
+              "content": "Send a POST request to the `/fire` endpoint with the bearer token in the `Authorization` header. The request body accepts an optional `text` field for run-specific context such as an alert body or a failing log, passed to the routine alongside its saved prompt. The value is freeform text and is not parsed: if you send JSON or another structured payload, the routine receives it as a literal string."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example below triggers a routine from a shell:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "PowerShellとCMDの誤用を防ぐため、それぞれで発生する特有のエラーメッセージと比較方法が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -54,7 +54,7 @@ irm https://claude.ai/install.ps1 | iex",
+          "lines": [
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. Use the PowerShell command above instead. Your prompt shows `PS C:\\` when you're in PowerShell."
+            },
+            {
+              "type": "added",
+              "content": "If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Native Windows setups require [Git for Windows](https://git-scm.com/downloads/win).** Install it first if you don't have it. WSL setups do not need it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "web-scheduled-tasks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ルーチン実行時のtextフィールドに渡すコンテキストの扱いについて、パースされないリテラル文字列である旨の説明が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -125,7 +125,7 @@ Each routine has its own token, scoped to triggering that routine only. To rotat",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Trigger a routine"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Send a POST request to the `/fire` endpoint with the bearer token in the `Authorization` header. The request body accepts an optional `text` field that's appended to the routine's configured prompt as a one-shot user turn. Use `text` to pass context like an alert body or a failing log."
+            },
+            {
+              "type": "added",
+              "content": "Send a POST request to the `/fire` endpoint with the bearer token in the `Authorization` header. The request body accepts an optional `text` field for run-specific context such as an alert body or a failing log, passed to the routine alongside its saved prompt. The value is freeform text and is not parsed: if you send JSON or another structured payload, the routine receives it as a literal string."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example below triggers a routine from a shell:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

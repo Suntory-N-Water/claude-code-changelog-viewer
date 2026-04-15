@@ -29,7 +29,7 @@ asyncio.run(main())
 import { query } from "@anthropic-ai/claude-agent-sdk";
 
 for await (const message of query({
-  prompt: "Find and fix the bug in auth.py",
+  prompt: "Find and fix the bug in auth.ts",
   options: { allowedTools: ["Read", "Edit", "Bash"] }
 })) {
   console.log(message); // Claude reads the file, finds the bug, edits it
@@ -431,7 +431,7 @@ while (response.stop_reason === "tool_use") {
 }
 
 // Agent SDK: Claude handles tools autonomously
-for await (const message of query({ prompt: "Fix the bug in auth.py" })) {
+for await (const message of query({ prompt: "Fix the bug in auth.ts" })) {
   console.log(message);
 }
 ```
