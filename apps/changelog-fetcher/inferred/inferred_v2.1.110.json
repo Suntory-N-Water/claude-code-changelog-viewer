@@ -1,13 +1,13 @@
 {
   "version": "2.1.110",
-  "summary": "画面のちらつきを抑える新しいフルスクリーン描画モード（/tui）が導入され、長時間の作業でも快適な操作が可能になりました。また、IDEでの差分修正のモデルへの通知や、テレメトリ無効時のセッション要約サポートなど、開発フローの精度と利便性を高める重要な改善が行われています。さらに、MCPツール呼び出しのハングアップ防止や権限チェックの厳格化により、システムの安定性とセキュリティが大幅に強化されました。",
+  "summary": "画面のちらつきを抑えメモリ効率を高めるフルスクリーン描画モードが、`/tui`コマンドで対話中に切り替え可能になりました。Remote Control機能におけるプッシュ通知対応や各種管理コマンドの拡充に加え、IDE連携時の修正内容の同期やプラグイン管理画面のUI改善など、操作性と安全性の両面で多くの強化が行われています。",
   "items": [
     {
       "content": "- Added `/tui` command and `tui` setting — run `/tui fullscreen` to switch to flicker-free rendering in the same conversation",
-      "content_ja": "/tui コマンドと tui 設定の追加。会話中に /tui fullscreen を実行することで、ちらつきのないレンダリングモードへ切り替えが可能になりました。",
+      "content_ja": "`/tui`コマンドと`tui`設定を追加：会話の途中でフリッカーフリーなフルスクリーン描画モードへの切り替えが可能に",
       "prefix": "Added",
       "importance_score": 8,
-      "feature_areas": ["Settings", "TUI"],
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/fullscreen.md",
@@ -44,17 +44,25 @@
         }
       ],
       "inference": {
-        "before": "従来のレンダリング方式では、長い会話やツール出力のストリーミング時に画面がちらついたり、VS Code ターミナルなどでスクロール位置が飛んだりすることがありました。",
-        "after": "/tui fullscreen コマンドにより、vim や htop のように画面全体を制御する代替レンダリングパスが利用可能になり、メモリ使用量も一定に保たれます。",
-        "benefit": "画面のちらつきが抑えられ、マウス操作や会話内スクロールもスムーズになるため、長時間のコーディング作業のストレスが大幅に軽減されます。"
+        "before": "従来のCLI描画では、会話が長くなるとメモリ使用量が増加し、ツール出力のストリーミング中に画面がちらついたり、スクロール位置が予期せずジャンプしたりすることがありました。",
+        "after": "`/tui fullscreen`を実行することで、Vimやhtopのようなフルスクリーン描画（オルタネートスクリーン）に切り替えられるようになりました。このモードでは表示されているメッセージのみを描画するため、描画負荷とメモリ使用量が一定に保たれます。",
+        "benefit": "VS Codeの統合ターミナルやiTerm2などの描画がボトルネックになりやすい環境で、非常にスムーズで快適な操作感が得られます。また、マウス操作によるツール結果の開閉も可能になります。"
       }
     },
     {
+      "content": "- Added push notification tool — Claude can send mobile push notifications when Remote Control and \"Push when Claude decides\" config are enabled",
+      "content_ja": "プッシュ通知ツールを追加：Remote Control利用時に、Claudeの判断でモバイル端末へ通知を送信可能になりました。",
+      "prefix": "Added",
+      "importance_score": 8,
+      "feature_areas": ["Settings"],
+      "related_docs": []
+    },
+    {
       "content": "- Changed `Ctrl+O` to toggle between normal and verbose transcript only; focus view is now toggled separately with the new `/focus` command",
-      "content_ja": "Ctrl+O の挙動を通常表示と詳細表示の切り替えのみに変更。フォーカス表示は新しい /focus コマンドで個別に切り替えるよう変更されました。",
+      "content_ja": "`Ctrl+O`ショートカットの動作を変更：通常表示と詳細表示（verbose）の切り替えのみを行い、フォーカス表示は新設の`/focus`コマンドで個別に切り替える仕様に",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": ["TUI"],
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md",
@@ -97,25 +105,25 @@
         }
       ],
       "inference": {
-        "before": "以前は Ctrl+O だけで通常、詳細、フォーカスの 3 つの状態をサイクルしていたため、目的の表示モードにするのに何度もキーを押す必要がありました。",
-        "after": "詳細な思考プロセスを確認したい時は Ctrl+O、重要な変更点だけに集中したい時は /focus と使い分けができるようになりました。",
-        "benefit": "表示モードの管理が整理されたことで、状況に合わせて Claude の回答内容をより素早く、直感的に最適な形式で確認できます。"
+        "before": "以前は`Ctrl+O`キーを押すたびに、「通常」「詳細表示（トランスクリプトモード）」「フォーカス表示」の3つの状態を順番にサイクルしていました。",
+        "after": "`Ctrl+O`は会話の詳細ログを確認するためのトグル専用となり、直近の指示と回答のみに絞る「フォーカス表示」は専用の`/focus`コマンドに分離されました。",
+        "benefit": "特定の表示状態をスキップして何度もキーを叩く手間が省け、ログの確認と集中モードの切り替えをより意図通りに素早く行えるようになります。"
       }
     },
     {
       "content": "- Added `autoScrollEnabled` config to disable conversation auto-scroll in fullscreen mode",
-      "content_ja": "フルスクリーンモードでの会話の自動スクロールを無効化する autoScrollEnabled 設定が追加されました。",
+      "content_ja": "設定`autoScrollEnabled`を追加：フルスクリーンモード時の自動スクロールを無効化できるようになりました。",
       "prefix": "Added",
       "importance_score": 8,
-      "feature_areas": [],
+      "feature_areas": ["Settings"],
       "related_docs": []
     },
     {
       "content": "- Added option to show Claude's last response as commented context in the `Ctrl+G` external editor (enable via `/config`)",
-      "content_ja": "Ctrl+G で開く外部エディタにおいて、Claude の直前の回答をコメントアウトされたコンテキストとして表示するオプションが追加されました（/config から有効化可能）。",
+      "content_ja": "外部エディタ（`Ctrl+G`）でプランを編集する際、Claudeの直近の回答をコメントアウトした状態で参照用コンテキストとして表示するオプションを追加（`/config`で有効化）",
       "prefix": "Added",
       "importance_score": 8,
-      "feature_areas": [],
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -158,14 +166,14 @@
         }
       ],
       "inference": {
-        "before": "外部エディタで計画を編集する際、Claude が提案した直前の回答内容が参照できず、内容を思い出すためにターミナルに戻る必要がありました。",
-        "after": "エディタ内の上部に直前の回答がコメントとして挿入されるため、Claude の意図を確認しながらスムーズに計画を修正できます。",
-        "benefit": "文脈を維持したままエディタで作業できるため、思考を中断することなく、より正確な指示や修正を Claude に戻すことが可能になります。"
+        "before": "エディタでプランを修正する際、Claudeが提案した元の回答内容を確認するには、一度エディタを閉じてターミナルの履歴を遡る必要がありました。",
+        "after": "設定を有効にすると、エディタ内のプランの上にClaudeの直近の応答がコメントとして挿入されるようになります。",
+        "benefit": "Claudeの提案内容をエディタ上で直接見比べながらプランを推敲できるため、実装方針の検討と修正作業が格段に効率化されます。"
       }
     },
     {
       "content": "- Improved `/plugin` Installed tab — items needing attention and favorites appear at the top, disabled items are hidden behind a fold, and `f` favorites the selected item",
-      "content_ja": "/plugin のインストール済みタブの改善。対応が必要な項目や「お気に入り」が上位に表示され、無効化されたプラグインは折りたたんで非表示にできるようになりました。また f キーでお気に入り登録が可能です。",
+      "content_ja": "`/plugin`の「Installed」タブを改善：要対応項目や「お気に入り」を最上部に表示し、無効化された項目は折りたたんで隠すように。また`f`キーでお気に入りの登録が可能に",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": ["Plugins"],
@@ -211,14 +219,14 @@
         }
       ],
       "inference": {
-        "before": "インストール済みのプラグインが増えると、重要なプラグインやエラーが発生しているプラグインを見つけるのが難しくなっていました。",
-        "after": "優先順位に基づいたソートと折りたたみ機能により、管理画面が整理され、必要なプラグインへ即座にアクセスできるようになりました。",
-        "benefit": "多くの拡張機能を利用している場合でも、プラグインの管理・メンテナンスにかかる時間を短縮し、開発環境を常に最適な状態に保てます。"
+        "before": "インストール済みのプラグインが増えるとリストが煩雑になり、頻繁に使うプラグインやエラーが発生しているプラグインを見つけ出すのが困難でした。",
+        "after": "重要な項目が優先的に表示されるよう整理され、不要な項目は視覚的に隠されるようになりました。お気に入り機能（Favorite）により、よく使うツールへ即座にアクセスできます。",
+        "benefit": "多数のプラグインを導入していても、管理画面ですべきことや使いたいものが一目で分かり、メンテナンスのストレスが軽減されます。"
       }
     },
     {
       "content": "- Improved `/doctor` to warn when an MCP server is defined in multiple config scopes with different endpoints",
-      "content_ja": "/doctor コマンドを改善し、同じ MCP サーバーが異なる設定スコープ（ユーザー、プロジェクトなど）で異なるエンドポイントとして定義されている場合に警告を出すようになりました。",
+      "content_ja": "`/doctor`コマンドを改善：異なる設定スコープ（ユーザー、プロジェクト、ローカルなど）で、同じMCPサーバーに対して異なるエンドポイントが定義されている場合に警告を表示",
       "prefix": "Improved",
       "importance_score": 6,
       "feature_areas": ["MCP"],
@@ -264,17 +272,17 @@
         }
       ],
       "inference": {
-        "before": "複数の設定ファイルで MCP サーバーが重複定義されていると、意図しないエンドポイントが優先されて接続エラーや動作の不整合が起きる原因になっていました。",
-        "after": "/doctor を実行するだけで設定の競合を即座に特定し、修正のためのアドバイスを得られるようになりました。",
-        "benefit": "複雑なプロジェクト構成でも MCP 連携のトラブルシューティングが容易になり、外部ツールとの接続の安定性が向上します。"
+        "before": "複数の設定ファイルでMCPサーバーの定義が重複していると、どのエンドポイントが実際に使用されているか分からず、接続トラブルの原因を特定するのに時間がかかっていました。",
+        "after": "診断ツールである`/doctor`がこの競合を検出し、設定ミスを明確に警告してくれるようになりました。",
+        "benefit": "設定の矛盾による意図しない接続エラーを未然に防ぎ、複雑な開発環境のデバッグ時間を大幅に短縮できます。"
       }
     },
     {
       "content": "- `--resume`/`--continue` now resurrects unexpired scheduled tasks",
-      "content_ja": "--resume および --continue コマンドが、期限切れでないスケジュールされたタスクを復活（再開）させるようになりました。",
+      "content_ja": "`--resume`または`--continue`で会話を再開した際、期限が切れていないスケジュール済みタスク（`/loop`など）を自動的に復元・再開",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": [],
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/hooks.md",
@@ -317,17 +325,17 @@
         }
       ],
       "inference": {
-        "before": "スケジュールされたタスクが設定されていても、セッションを中断して再開した際にそれらのタスクが自動的に復元されない場合がありました。",
-        "after": "会話を再開するだけで、待機中だった定期実行タスクなども正しく再アクティブ化されます。",
-        "benefit": "バックグラウンドで実行させている自動化タスクの継続性が保証され、セッションを跨いだ長時間の作業管理が容易になります。"
+        "before": "以前は、セッションを一旦終了したりクラッシュしたりすると、そのセッションで動かしていたスケジュール済みタスク（定期的なビルド確認やステータス監視など）が失われていました。",
+        "after": "会話を再開するだけで、まだ有効なスケジュールタスクが自動的に読み込まれ、監視や実行が継続されます。",
+        "benefit": "バックグラウンドでClaudeに任せていた定型作業を、セッションの再開とともに手動で再設定することなくシームレスに継続できます。"
       }
     },
     {
       "content": "- `/autocompact`, `/context`, `/exit`, and `/reload-plugins` now work from Remote Control (mobile/web) clients",
-      "content_ja": "Remote Control（モバイル・ウェブ）クライアントから、/autocompact、/context、/exit、/reload-plugins の各コマンドが利用可能になりました。",
+      "content_ja": "`/autocompact`、`/context`、`/exit`、`/reload-plugins`の各コマンドが、Remote Control（モバイルやWebクライアント）経由でも実行可能に",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": ["Remote Control"],
+      "feature_areas": ["Settings"],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/discover-plugins.md",
@@ -370,14 +378,14 @@
         }
       ],
       "inference": {
-        "before": "外出先などからリモートで操作している際、コンテキストの整理やプラグインの再読み込みなどの重要なメンテナンス操作をリモート端末から直接行えませんでした。",
-        "after": "スマホやウェブブラウザのインターフェースからでも、ターミナルと同じようにこれらの制御コマンドを実行できます。",
-        "benefit": "場所を選ばずセッションの管理やデバッグが行えるようになり、リモート開発の自由度がさらに高まります。"
+        "before": "リモート接続中は一部の管理用コマンドが制限されており、コンテキストの整理やプラグインの再読み込みをWebブラウザやスマホから行うことができませんでした。",
+        "after": "主要なセッション管理コマンドがリモート環境でもフルサポートされました。",
+        "benefit": "外出先やモバイル端末からでも、ローカルのターミナルと同様にフル機能でセッションの状態を制御・最適化できるようになります。"
       }
     },
     {
       "content": "- Write tool now informs the model when you edit the proposed content in the IDE diff before accepting",
-      "content_ja": "Write ツールにおいて、ユーザーが IDE 上の差分（diff）で提案内容を修正してから適用した場合、その修正内容がモデルに通知されるようになりました。",
+      "content_ja": "IDEの差分表示でユーザーが修正案を直接編集した場合、Claudeがその変更を認識した上で「書き込み（Write）」ツールを確定するように改善",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": ["IDE/VSCode"],
@@ -423,14 +431,14 @@
         }
       ],
       "inference": {
-        "before": "Claude が提案したコードを IDE 上で手動修正して確定しても、Claude 自身はその修正内容を正確に把握できず、後のやり取りで食い違いが生じることがありました。",
-        "after": "確定された最終的なコードの状態が Claude にフィードバックされるため、Claude はユーザーの意図を正しく反映した状態で会話を継続できます。",
-        "benefit": "AI の提案を人間が微調整するフローがより正確になり、Claude との共同作業における認識のズレを防げます。"
+        "before": "Claudeが提案したコードをIDEの差分画面で手動修正しても、Claude自身はその修正内容を正確に把握しておらず、その後のやり取りで食い違いが生じることがありました。",
+        "after": "ユーザーによる手動の編集内容がClaudeにフィードバックされ、Claudeはそれを承知した状態で最終的な書き込み処理を完了させます。",
+        "benefit": "AIの提案に人間が「あと一歩」の調整を加える際、AIと人間との間で認識のズレがなくなるため、共同作業がより正確かつスムーズになります。"
       }
     },
     {
       "content": "- Bash tool now enforces the documented maximum timeout instead of accepting arbitrarily large values",
-      "content_ja": "Bashツールにおいて、ドキュメントに記載された最大タイムアウト時間を厳密に適用し、極端に大きな値を受け付けないよう変更されました。",
+      "content_ja": "Bashツールのタイムアウトについて、仕様上の最大値を厳格に適用するように変更されました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": [],
@@ -438,10 +446,10 @@
     },
     {
       "content": "- SDK/headless sessions now read `TRACEPARENT`/`TRACESTATE` from the environment for distributed trace linking",
-      "content_ja": "SDK およびヘッドレスセッションにおいて、環境変数から TRACEPARENT および TRACESTATE を読み込み、分散トレーシングのリンクをサポートしました。",
+      "content_ja": "SDKおよびヘッドレスセッションにおいて、分散トレーシングのリンク用に環境変数から`TRACEPARENT`と`TRACESTATE`を読み取るように変更",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": ["Monitoring"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
@@ -454,17 +462,17 @@
         }
       ],
       "inference": {
-        "before": "外部ツールやスクリプトから Claude Code を呼び出す際、トレース ID が引き継がれず、エンドツーエンドでのモニタリングが困難でした。",
-        "after": "標準的な W3C Trace Context ヘッダーに対応したことで、呼び出し元のシステムと Claude Code 内の動作を一つのトレースとして紐付けられます。",
-        "benefit": "複雑な自動化パイプラインにおける Claude の動作を監視・分析しやすくなり、パフォーマンスの最適化やエラー原因の特定が容易になります。"
+        "before": "自動化スクリプトやSDK経由でClaude Codeを実行した際、外部の監視システムなどで一連の処理の流れを一貫した「トレース」として追跡することが困難でした。",
+        "after": "標準的なW3Cトレースコンテキストを環境変数から自動で引き継ぐようになりました。",
+        "benefit": "複数のサービスを跨ぐ複雑なパイプラインやCI/CD環境において、Claudeの動作を既存のトレーシングインフラで他のログと統合して詳細に監視・分析できるようになります。"
       }
     },
     {
       "content": "- Session recap is now enabled for users with telemetry disabled (Bedrock, Vertex, Foundry, `DISABLE_TELEMETRY`). Opt out via `/config` or `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0`.",
-      "content_ja": "テレメトリが無効なユーザー（Bedrock、Vertex、Foundry、DISABLE_TELEMETRY 設定時）でもセッション要約機能が利用可能になりました。/config または CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0 でオプトアウトできます。",
+      "content_ja": "テレメトリが無効なユーザー（Bedrock、Vertex、Foundry利用、または`DISABLE_TELEMETRY`設定者）に対しても「不在時のセッション要約（Session recap）」を有効化",
       "prefix": "Changed",
       "importance_score": 6,
-      "feature_areas": ["Memory"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/settings.md",
@@ -507,14 +515,14 @@
         }
       ],
       "inference": {
-        "before": "企業ポリシーなどでテレメトリをオフにしている場合、前回の作業内容を振り返るのに便利なセッション要約機能が制限されていました。",
-        "after": "データの機密性を維持しつつ、セッション再開時にこれまでの経緯を Claude が簡潔にまとめて説明してくれます。",
-        "benefit": "エンタープライズ環境でも、中断していた複雑なタスクの文脈を即座に復旧させ、スムーズに作業を再開できるようになります。"
+        "before": "プライバシー設定などでテレメトリをオフにしていると、Claudeが作業を終えた際に表示される「これまでの作業のまとめ」機能も連動して無効化されていました。",
+        "after": "テレメトリ設定に関わらず、再開時や離席後の進捗確認に便利な要約機能が標準で利用できるようになりました。",
+        "benefit": "エンタープライズ向けの閉域環境や厳格なデータ管理下でも、Claudeが何を完了したかを素早く把握できる利便性を享受できます（必要に応じて設定からオフにもできます）。"
       }
     },
     {
       "content": "- Fixed MCP tool calls hanging indefinitely when the server connection drops mid-response on SSE/HTTP transports",
-      "content_ja": "SSE/HTTP 転送において、サーバー接続が応答の途中で切断された場合に MCP ツール呼び出しがハングし続ける問題を修正しました。",
+      "content_ja": "SSE/HTTP転送を利用したMCPサーバーにおいて、応答の途中で接続が切れた場合にツール呼び出しが永久にハングアップする問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["MCP"],
@@ -560,14 +568,14 @@
         }
       ],
       "inference": {
-        "before": "ネットワークの不安定さなどで MCP サーバーとの通信が途切れると、Claude が無限にレスポンスを待ち続けて操作不能になることがありました。",
-        "after": "通信エラーが適切に検出され、プロセスがハングすることなく、再試行やエラー報告が迅速に行われるようになりました。",
-        "benefit": "外部サービスとの連携における信頼性が向上し、不安定な環境下でも開発プロセスが中断されるリスクを低減できます。"
+        "before": "ネットワークの不安定さなどでMCPサーバーとの接続が応答中に途切れると、Claude Codeが応答待ちのまま固まってしまい、操作不能になることがありました。",
+        "after": "接続断を適切に検知し、ハングアップせずにエラー処理や再接続へ移行できるようになりました。",
+        "benefit": "リモートのMCPツールを利用する際、不意の通信トラブルに巻き込まれて作業が中断されるリスクが軽減され、安定性が向上します。"
       }
     },
     {
       "content": "- Fixed non-streaming fallback retries causing multi-minute hangs when the API is unreachable",
-      "content_ja": "API に到達できない場合に、非ストリーミングのフォールバック再試行によって数分間ハングする問題を修正しました。",
+      "content_ja": "APIが到達不能な際、非ストリーミング方式へのフォールバック（代替実行）のリトライによって数分間操作できなくなる問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -613,14 +621,14 @@
         }
       ],
       "inference": {
-        "before": "ストリーミング接続に失敗した際の再試行ロジックが原因で、ネットワークが遮断されている時に長時間待たされることがありました。",
-        "after": "タイムアウトとリトライの挙動が改善され、ネットワークエラー時に素早くユーザーにフィードバックが返るようになりました。",
-        "benefit": "ネットワークトラブル発生時の不必要な待ち時間が解消され、作業の切り替えをスムーズに行えます。"
+        "before": "APIサーバーへの接続が不安定なとき、バックグラウンドでの再試行が重なり、ターミナルが長時間応答を停止してしまう現象が発生していました。",
+        "after": "リトライ処理のタイムアウトや挙動が最適化され、ネットワークトラブル時でもスムーズにエラーが返されるようになりました。",
+        "benefit": "通信環境が悪い場所でもツールが固まるストレスが減り、すぐに次の操作やトラブル対応に移ることができます。"
       }
     },
     {
       "content": "- Fixed session recap, local slash-command output, and other system status lines not appearing in focus mode",
-      "content_ja": "フォーカスモードでセッション要約やローカルのスラッシュコマンド出力などのシステムステータス行が表示されない問題を修正しました。",
+      "content_ja": "フォーカスモード中にセッション要約やスラッシュコマンドの結果が表示されない問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -628,7 +636,7 @@
     },
     {
       "content": "- Fixed high CPU usage in fullscreen when text is selected while a tool is running",
-      "content_ja": "フルスクリーンモードにおいて、ツール実行中にテキストを選択した際の CPU 使用率の高騰を修正しました。",
+      "content_ja": "フルスクリーンモード中、ツールの実行中にテキストを選択するとCPU使用率が異常に高くなる問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -654,14 +662,14 @@
         }
       ],
       "inference": {
-        "before": "Claude が作業している間にログなどのテキストを選択しようとすると、ターミナルの描画負荷が異常に高くなり、動作が重くなることがありました。",
-        "after": "ツール実行中のインタラクションが最適化され、テキスト選択中もシステムのリソースを浪費しません。",
-        "benefit": "Claude の動作を並行して確認しながらコードのコピーなどの操作を軽快に行えるようになり、効率的なマルチタスクが可能です。"
+        "before": "Claudeが作業をしている最中にログをコピーしようとしてマウスで範囲選択を行うと、描画処理の競合によりパソコンの負荷が急上昇することがありました。",
+        "after": "選択範囲の処理と描画の競合が改善され、実行中の操作も軽量化されました。",
+        "benefit": "Claudeの推論実行を待ちながら安心してコードのコピーや確認作業ができ、PC全体の快適さが維持されます。"
       }
     },
     {
       "content": "- Fixed plugin install not honoring dependencies declared in `plugin.json` when the marketplace entry omits them; `/plugin` install now lists auto-installed dependencies",
-      "content_ja": "マーケットプレイスのエントリに記載がない場合でも、plugin.json で宣言された依存関係を尊重するように修正。また /plugin install 時に自動インストールされる依存関係が表示されるようになりました。",
+      "content_ja": "プラグインのインストール時、マーケットプレイス側に情報がなくても`plugin.json`に記載された依存関係を尊重するように修正。またインストール時に自動導入される依存プラグインを一覧表示",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Plugins"],
@@ -707,14 +715,14 @@
         }
       ],
       "inference": {
-        "before": "特定のプラグインが依存する別のプラグインが正しくインストールされず、機能が不完全なまま起動してしまうことがありました。",
-        "after": "必要な依存関係が自動的かつ確実に追加され、インストール時に何が追加されたのかも明確に把握できます。",
-        "benefit": "プラグインのセットアップがより堅牢になり、複雑な機能を持つ拡張機能も「ワンクリック」で確実に使い始めることができます。"
+        "before": "プラグインが他のプラグインを必要としている場合、カタログ側のメタデータが不足していると依存先の自動インストールに失敗することがありました。",
+        "after": "プラグイン本体の定義ファイルを直接参照して不足分を補うようになり、何が一緒に追加されたかも明確に通知されるようになりました。",
+        "benefit": "複雑な機能を持つプラグインもワンクリックで確実にセットアップでき、インストール後の「動かない」というトラブルを回避できます。"
       }
     },
     {
       "content": "- Fixed skills with `disable-model-invocation: true` failing when invoked via `/<skill>` mid-message",
-      "content_ja": "disable-model-invocation: true 設定のスキルを、メッセージの途中で /<スキル名> を使って呼び出した際に失敗する問題を修正しました。",
+      "content_ja": "`disable-model-invocation: true`が設定されたスキルを、メッセージの途中で`/スキル名`として呼び出した際に失敗する問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Skills"],
@@ -760,14 +768,14 @@
         }
       ],
       "inference": {
-        "before": "手動実行専用に設定したスキルを会話のコンテキスト内で呼び出そうとすると、正しくトリガーされないケースがありました。",
-        "after": "どのタイミングで呼び出しても、設定したプレイブックに従って Claude が正確にタスクを実行します。",
-        "benefit": "定型ワークフローの呼び出しがより柔軟になり、開発フローの自動化がより確実に機能します。"
+        "before": "ユーザーが手動で実行することを想定したスキル（デプロイなど）を、特定の文脈で呼び出そうとするとエラーになるケースがありました。",
+        "after": "明示的な呼び出しであれば、メッセージの挿入箇所に関わらず正しくスキルが起動するようになりました。",
+        "benefit": "定型ワークフローの呼び出しがより柔軟になり、Claudeとの会話の流れを止めることなくカスタムコマンドを活用できます。"
       }
     },
     {
       "content": "- Fixed `--resume` sometimes showing the first prompt instead of the `/rename` name for sessions still running or exited uncleanly",
-      "content_ja": "実行中または異常終了したセッションにおいて、--resume が /rename で付けた名前ではなく最初のプロンプトを表示してしまう問題を修正しました。",
+      "content_ja": "`--resume`使用時、セッションが実行中または異常終了していた場合に、`/rename`で付けた名前ではなく最初のプロンプトが表示されてしまう問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -813,14 +821,14 @@
         }
       ],
       "inference": {
-        "before": "セッションに名前を付けて管理していても、履歴リスト上で元の長いプロンプトが表示され、目的のセッションを識別しにくいことがありました。",
-        "after": "どのような状態のセッションであっても、ユーザーが指定したカスタム名が優先して表示されます。",
-        "benefit": "セッション履歴の視認性が向上し、多数のタスクを並行して管理している状況でも迷わず作業を再開できます。"
+        "before": "過去のセッションを探す際、せっかく付けた分かりやすい名前（例：「認証バグの修正」）ではなく、最初に入力した長い文章が表示され、見分けがつかないことがありました。",
+        "after": "セッションの状態に関わらず、設定したカスタム名が優先的にリストに表示されるよう改善されました。",
+        "benefit": "多数のプロジェクトを並行して進めている場合でも、再開したいセッションを一瞬で見つけ出せるようになります。"
       }
     },
     {
       "content": "- Fixed queued messages briefly appearing twice during multi-tool-call turns",
-      "content_ja": "複数のツール呼び出しを伴うターンにおいて、キューに入ったメッセージが一時的に二重に表示される問題を修正しました。",
+      "content_ja": "複数のツール呼び出しが発生するターンで、送信待ちメッセージが一時的に二重表示される問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -828,7 +836,7 @@
     },
     {
       "content": "- Fixed session cleanup not removing the full session directory including subagent transcripts",
-      "content_ja": "セッションのクリーンアップ機能が、サブエージェントのログを含むセッションディレクトリ全体を完全に削除するように修正されました。",
+      "content_ja": "セッション削除時にサブエージェントのログを含むディレクトリ全体が正しく削除されるよう修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Sub-agents"],
@@ -836,7 +844,7 @@
     },
     {
       "content": "- Fixed dropped keystrokes after the CLI relaunches (e.g. `/tui`, provider setup wizards)",
-      "content_ja": "/tui やプロバイダー設定ウィザードなど、CLI が再起動した後にキー入力がドロップされる問題を修正しました。",
+      "content_ja": "CLIの再起動（`/tui`実行時やプロバイダー設定ウィザード後など）の直後に、キー入力が無視される問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -882,14 +890,14 @@
         }
       ],
       "inference": {
-        "before": "設定モードから戻った直後にタイピングをしても、最初の数文字が入力されないといった不自然な挙動が発生することがありました。",
-        "after": "インターフェースの切り替え後も即座に、かつ確実に入力を受け付けるよう安定性が向上しました。",
-        "benefit": "細かい入力ストレスが解消され、流れるような操作感で Claude と対話を続けられます。"
+        "before": "設定を変更して画面が切り替わった直後、最初の数文字のタイピングが反映されず、打ち直しが必要になる不便さがありました。",
+        "after": "プロセスの切り替え後の入力受け付けがスムーズになり、入力が取りこぼされることがなくなりました。",
+        "benefit": "モードの切り替えや設定変更のたびに一呼吸置く必要がなくなり、思考を止めずに開発を続けられます。"
       }
     },
     {
       "content": "- Fixed garbled startup rendering in macOS Terminal.app and other terminals that don't support synchronized output",
-      "content_ja": "macOSのターミナルや、同期出力（synchronized output）をサポートしていないターミナルでの起動時の描画乱れを修正しました。",
+      "content_ja": "macOSのターミナル等、出力同期非対応の環境で起動時の描画が乱れる問題を修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": [],
@@ -897,7 +905,7 @@
     },
     {
       "content": "- Hardened \"Open in editor\" actions against command injection from untrusted filenames",
-      "content_ja": "信頼できないファイル名によるコマンドインジェクション攻撃を防ぐため、「エディタで開く」アクションのセキュリティを強化しました。",
+      "content_ja": "「エディタで開く」アクションにおいて、不正なファイル名によるコマンドインジェクションへの対策を強化しました。",
       "prefix": "Changed",
       "importance_score": 6,
       "feature_areas": [],
@@ -905,7 +913,7 @@
     },
     {
       "content": "- Fixed `PermissionRequest` hooks returning `updatedInput` not being re-checked against `permissions.deny` rules; `setMode:'bypassPermissions'` updates now respect `disableBypassPermissionsMode`",
-      "content_ja": "PermissionRequest フックが updatedInput を返す際に permissions.deny ルールが再チェックされない問題を修正。また bypassPermissions への更新が disableBypassPermissionsMode 設定を尊重するようになりました。",
+      "content_ja": "`PermissionRequest`フックが返す入力内容が`permissions.deny`ルールに再照合されるよう修正。また`setMode:'bypassPermissions'`による更新が拒否設定を尊重するように改善",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Hooks", "Permissions"],
@@ -951,14 +959,14 @@
         }
       ],
       "inference": {
-        "before": "フックを通じて権限を更新した際、本来禁止されているはずの操作がセキュリティチェックをすり抜けてしまう可能性がありました。",
-        "after": "すべての権限変更に対して常に最新の拒否ルールが適用され、管理者が設定した制限が確実に守られます。",
-        "benefit": "セキュリティ設定のバイパスを防ぎ、特に組織内での利用において安全な開発環境が維持されます。"
+        "before": "フック機能でパーミッションを自動承認させた場合、本来「拒否」されるべき機密ファイルへのアクセスなどが、ルールのチェックをすり抜けてしまうリスクがありました。",
+        "after": "フックによる変更後も常にセキュリティルールが再適用されるようになり、また「プロンプトなし（Bypass）」モードへの切り替えも管理設定による制限が必ず適用されます。",
+        "benefit": "高度な自動化やカスタマイズを行っても、組織や個人で設定した安全策（機密情報の保護など）が確実に維持されるため、安心してツールを使用できます。"
       }
     },
     {
       "content": "- Fixed `PreToolUse` hook `additionalContext` being dropped when the tool call fails",
-      "content_ja": "ツール呼び出しに失敗した際、PreToolUse フックの additionalContext が消失してしまう問題を修正しました。",
+      "content_ja": "ツール呼び出しが失敗した際に、`PreToolUse`フックで追加されたコンテキスト（`additionalContext`）が消失する問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Hooks"],
@@ -1004,14 +1012,14 @@
         }
       ],
       "inference": {
-        "before": "エラー発生時にフックで付与した補足情報が失われ、Claude がエラーの原因を正確に理解できないことがありました。",
-        "after": "失敗時でもフックの情報が保持されるため、Claude はその情報を活用してエラーからの回復を試みることができます。",
-        "benefit": "エラー復旧の精度が向上し、トラブル発生時でも Claude が自律的に解決策を見つけやすくなります。"
+        "before": "ツールの実行前にフックで補足情報を与えても、そのツールがエラーを起こすと情報が引き継がれず、Claudeがエラーの原因を正しく推論できないことがありました。",
+        "after": "ツールの成功・失敗に関わらず、フックによって注入された重要なコンテキストが維持されるようになりました。",
+        "benefit": "デバッグ時や複雑なツール連携において、Claudeが常にフックからの補足情報を考慮できるため、問題解決の精度が向上します。"
       }
     },
     {
       "content": "- Fixed stdio MCP servers that print stray non-JSON lines to stdout being disconnected on the first stray line (regression in 2.1.105)",
-      "content_ja": "標準出力にJSON以外の行を出力するstdio MCPサーバーが、最初の1行目で切断される不具合を修正（2.1.105でのデグレード）",
+      "content_ja": "stdioを利用するMCPサーバーがJSON以外の余計な行を出力した際、即座に切断されてしまう問題を修正（バージョン2.1.105での先祖返りを解消）",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["MCP"],
@@ -1030,14 +1038,14 @@
         }
       ],
       "inference": {
-        "before": "MCPサーバーがデバッグ情報などのJSON以外の文字列を標準出力に混ぜて出力すると、通信エラーと判断され接続が即座に遮断されていました。",
-        "after": "JSON以外の不要な行が含まれていても、接続を維持したまま適切に処理を継続できるようになりました。",
-        "benefit": "ログ出力が完全ではないサードパーティ製MCPサーバーの安定性が向上し、予期せぬ切断に悩まされることなくツールを利用できます。"
+        "before": "一部のMCPサーバーがデバッグログなどを標準出力に混ぜてしまうと、通信エラーとみなされてツールが使えなくなる問題が発生していました。",
+        "after": "JSON形式以外の不要な出力行を適切に無視し、サーバーとの通信を維持できるようになりました。",
+        "benefit": "MCPサーバー側の些細な出力仕様に左右されず、より多くの外部ツールを安定して連携させることができます。"
       }
     },
     {
       "content": "- Fixed headless/SDK session auto-title firing an extra Haiku request when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` or `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` is set",
-      "content_ja": "非本質的な通信の無効化、またはターミナルタイトルの無効化設定時に、ヘッドレス/SDKセッションの自動タイトル生成で余計なHaikuリクエストが発生する不具合を修正",
+      "content_ja": "ヘッドレス/SDKセッションにおいて、非必須通信やターミナルタイトルが非有効化されている際、自動タイトリング機能が不要なHaikuリクエストを送信する問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Settings"],
@@ -1077,17 +1085,17 @@
         }
       ],
       "inference": {
-        "before": "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFICなどの環境変数を設定して通信を制限していても、セッションタイトルの自動生成のために不要なAPIリクエストが実行されていました。",
-        "after": "設定に応じてタイトル生成の挙動が正しく制御され、意図しないAPI呼び出しが完全に抑制されるようになりました。",
-        "benefit": "トークンの節約と不要なネットワークトラフィックの削減が確実になり、特に自動化されたSDK利用環境での効率が向上します。"
+        "before": "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC または CLAUDE_CODE_DISABLE_TERMINAL_TITLE 環境変数を設定して、不要な通信やターミナルタイトルの自動更新を無効にしている場合でも、セッションの自動タイトル生成処理（Haikuモデルによる推論）が不必要に実行されていました。",
+        "after": "これらの環境変数が設定されている場合、ヘッドレスモードやSDK経由のセッションにおいて、タイトリングのためのHaikuリクエストが正しくスキップされるようになります。",
+        "benefit": "不要なAPIリクエストの発生を抑えることで、APIコストの節約と意図しないネットワーク通信の削減が図れます。"
       }
     },
     {
       "content": "- Fixed potential excessive memory allocation when piped (non-TTY) Ink output contains a single very wide line",
-      "content_ja": "パイプ出力（非TTY環境）において、Inkの出力に極端に長い1行が含まれる場合に過度なメモリ割り当てが発生する可能性があった不具合を修正",
+      "content_ja": "非TTY環境（パイプ出力時）において、非常に長い1行が含まれる場合にInkが過剰なメモリを割り当ててしまう問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["TUI"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/terminal-config.md",
@@ -1122,14 +1130,14 @@
         }
       ],
       "inference": {
-        "before": "ターミナル以外の環境に、非常に幅の広い（1行の文字数が多い）テキストを出力しようとすると、レンダリングエンジンのInkが過剰にメモリを消費することがありました。",
-        "after": "非TTY環境でのメモリ管理が最適化され、巨大なログやデータを出力する際の安定性が向上しました。",
-        "benefit": "CI/CDパイプラインやログ収集ツールと連携させてClaude Codeを動かす際に、メモリ不足によるクラッシュを防ぎ、安定して動作させることができます。"
+        "before": "CI環境や他のコマンドへのパイプ出力など、非インタラクティブな（非TTY）環境でClaude Codeを実行した際、非常に横幅の広い（文字数の多い）単一の行が含まれると、UIライブラリであるInkが過剰にメモリを消費する可能性がありました。",
+        "after": "パイプ出力時の非常に長い行の処理が改善され、メモリ使用量が最適化されました。",
+        "benefit": "自動化スクリプトやパイプライン内での動作がより安定し、リソースの限られた環境でもクラッシュを防ぐことができます。"
       }
     },
     {
       "content": "- Fixed `/skills` menu not scrolling when the list overflows the modal in fullscreen mode",
-      "content_ja": "フルスクリーンモードにおいて、`/skills`メニューのリストがモーダルの表示領域を超えた際にスクロールできない不具合を修正",
+      "content_ja": "フルスクリーンモードで、`/skills`メニューのリストが画面をはみ出した際にスクロールできない問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
       "feature_areas": ["Skills"],
@@ -1161,25 +1169,25 @@
         }
       ],
       "inference": {
-        "before": "多くのスキルをインストールしている場合、フルスクリーンモードの`/skills`コマンドで表示されるリストの下部が隠れてしまい、アクセスできなくなっていました。",
-        "after": "モーダル内で正しくスクロールができるようになり、リストの長さに依存せず全てのスキルを確認・選択できるようになりました。",
-        "benefit": "多数のスキルを活用している高度なユーザーでも、UI上の制限を受けることなくスムーズにスキル管理が行えます。"
+        "before": "スキルをたくさん登録していると、フルスクリーン表示のメニューで下の方にあるスキルが見えず、選択もできない状態になっていました。",
+        "after": "メニュー内でのスクロールが正しく機能し、すべてのスキルにアクセスできるようになりました。",
+        "benefit": "登録した多数のカスタムコマンドを、フルスクリーンモードの快適なUIのまま制限なく使いこなせます。"
       }
     },
     {
       "content": "- Fixed Remote Control sessions showing a generic error instead of prompting for re-login when the session is too old",
-      "content_ja": "Remote Controlセッションの有効期限が切れた際、一般的なエラーではなく再ログインを促すプロンプトを表示するように修正されました。",
+      "content_ja": "Remote Controlセッションの期限切れ時に、不明なエラーではなく再ログインを促すよう修正しました。",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Remote Control"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed Remote Control session renames from claude.ai not persisting the title to the local CLI session",
-      "content_ja": "claude.ai 上で行った Remote Control セッションの名前変更が、ローカルの CLI セッションに反映されない問題を修正しました。",
+      "content_ja": "claude.ai上で行ったRemote Controlセッションの名前変更が、ローカルのCLIセッション側に反映されない問題を修正",
       "prefix": "Fixed",
       "importance_score": 4,
-      "feature_areas": ["Remote Control"],
+      "feature_areas": [],
       "related_docs": [
         {
           "file": "apps/docs-tracker/docs/en/desktop.md",
@@ -1222,9 +1230,9 @@
         }
       ],
       "inference": {
-        "before": "ウェブ側で分かりやすい名前に変更しても、手元のターミナルでは古い名前のままで同期が取れていませんでした。",
-        "after": "ウェブ、モバイル、ローカルのすべてのインターフェースでセッション名が完全に同期されます。",
-        "benefit": "デバイスを跨いで作業する場合でも、一貫したセッション名でタスクを管理でき、混乱が生じません。"
+        "before": "Webやモバイルからセッション名を整理しても、手元のターミナル上では古い名前のままで、情報の同期が完全ではありませんでした。",
+        "after": "リモートでの名称変更がローカルにも即座に伝播し、どこから見ても同じ名前で管理できるようになりました。",
+        "benefit": "デバイスを跨いで作業する場合でもセッション管理が一貫し、情報の整理整頓が容易になります。"
       }
     }
   ]
