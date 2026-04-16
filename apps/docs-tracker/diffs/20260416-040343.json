@@ -1,0 +1,456 @@
+{
+  "id": "20260416-040343",
+  "timestamp": "2026-04-16T04:03:43.314Z",
+  "aiSummary": "Claude Agent SDKおよびCLIツールにおけるコスト計算の定義が、確定値からクライアントサイドでの「見積もり値」へと修正されました。SDKがビルド時に持つ価格テーブルを元にローカルで計算を行うため、実際の請求額とは異なる可能性があることが明記されています。正確な請求データを確認するための手段として、Usage and Cost APIやClaude Consoleの参照を推奨するガイダンスが追加されました。全体として、開発時の予算目安としての利用に留め、エンドユーザーへの請求根拠にしないよう注意を促す内容となっています。",
+  "files": [
+    {
+      "filename": "agent-sdk/cost-tracking.md",
+      "additions": 13,
+      "deletions": 5,
+      "explanation": "SDKによるコスト計算はローカルでの見積もりであり、価格改定や未対応モデルの使用により実際の請求額とズレが生じる可能性がある旨の警告が追加されました。開発時の洞察や予算案としてのみ利用し、金融上の決定やエンドユーザーへの請求には使用しないようガイドラインが更新されています。",
+      "hunks": [
+        {
+          "header": "@@ -5,12 +5,20 @@ source: https://code.claude.com/docs/en/agent-sdk/cost-tracking.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Track cost and usage"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Learn how to track token usage, deduplicate parallel tool calls, and calculate costs with the Claude Agent SDK."
+            },
+            {
+              "type": "added",
+              "content": "> Learn how to track token usage, deduplicate parallel tool calls, and estimate costs with the Claude Agent SDK."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The Claude Agent SDK provides detailed token usage information for each interaction with Claude. This guide explains how to properly track costs and understand usage reporting, especially when dealing with parallel tool uses and multi-step conversations."
+            },
+            {
+              "type": "added",
+              "content": "The Claude Agent SDK provides detailed token usage information for each interaction with Claude. This guide explains how to properly track usage and understand cost reporting, especially when dealing with parallel tool uses and multi-step conversations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For complete API documentation, see the [TypeScript SDK reference](/en/agent-sdk/typescript) and [Python SDK reference](/en/agent-sdk/python)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `total_cost_usd` and `costUSD` fields are client-side estimates, not authoritative billing data. The SDK computes them locally from a price table bundled at build time, so they can drift from what you are actually billed when:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- pricing changes"
+            },
+            {
+              "type": "added",
+              "content": "- the installed SDK version does not recognize a model"
+            },
+            {
+              "type": "added",
+              "content": "- billing rules apply that the client cannot model"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use these fields for development insight and approximate budgeting. For authoritative billing, use the [Usage and Cost API](https://platform.claude.com/docs/en/build-with-claude/usage-cost-api) or the Usage page in the [Claude Console](https://platform.claude.com/usage). Do not bill end users or trigger financial decisions from these fields."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Understand token usage"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The TypeScript and Python SDKs expose the same usage data with different field names:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -26,11 +34,11 @@ Cost tracking depends on understanding how the SDK scopes usage data:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Step:** a single request/response cycle within a `query()` call. Each step produces assistant messages with token usage."
+            },
+            {
+              "type": "context",
+              "content": "- **Session:** a series of `query()` calls linked by a session ID (using the `resume` option). Each `query()` call within a session reports its own cost independently."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The following diagram shows the message stream from a single `query()` call, with token usage reported at each step and the authoritative total at the end:"
+            },
+            {
+              "type": "added",
+              "content": "The following diagram shows the message stream from a single `query()` call, with token usage reported at each step and the cumulative estimate at the end:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When Claude responds, it sends one or more assistant messages. In TypeScript, each assistant message contains a nested `BetaMessage` (accessed via `message.message`) with an `id` and a [`usage`](https://platform.claude.com/docs/en/api/messages) object with token counts (`input_tokens`, `output_tokens`). In Python, the `AssistantMessage` dataclass exposes the same data directly via `message.usage` and `message.message_id`. When Claude uses multiple tools in one turn, all messages in that turn share the same ID, so deduplicate by ID to avoid double-counting."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When the `query()` call completes, the SDK emits a result message with `total_cost_usd` and cumulative `usage`. This is available in both TypeScript ([`SDKResultMessage`](/en/agent-sdk/typescript#sdk-result-message)) and Python ([`ResultMessage`](/en/agent-sdk/python#result-message)). If you make multiple `query()` calls (for example, in a multi-turn session), each result only reflects the cost of that individual call. If you only need the total cost, you can ignore the per-step usage and read this single value."
+            },
+            {
+              "type": "added",
+              "content": "When the `query()` call completes, the SDK emits a result message with `total_cost_usd` and cumulative `usage`. This is available in both TypeScript ([`SDKResultMessage`](/en/agent-sdk/typescript#sdk-result-message)) and Python ([`ResultMessage`](/en/agent-sdk/python#result-message)). If you make multiple `query()` calls (for example, in a multi-turn session), each result only reflects the cost of that individual call. If you only need the estimated total, you can ignore the per-step usage and read this single value."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Get the total cost of a query"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -182,7 +190,7 @@ For accurate cost tracking, account for failed conversations, cache token pricin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "In rare cases, you might observe different `output_tokens` values for messages with the same ID. When this occurs:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1. **Use the highest value:** the final message in a group typically contains the accurate total."
+            },
+            {
+              "type": "removed",
+              "content": "2. **Verify against total cost:** the `total_cost_usd` in the result message is authoritative."
+            },
+            {
+              "type": "added",
+              "content": "2. **Prefer the result message:** the `total_cost_usd` in the result message reflects the SDK's accumulated estimate across all steps, so it is more reliable than summing per-step values yourself. It is still an estimate and may differ from your actual bill."
+            },
+            {
+              "type": "context",
+              "content": "3. **Report inconsistencies:** file issues at the [Claude Code GitHub repository](https://github.com/anthropics/claude-code/issues)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Track costs on failed conversations"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Python SDKのResultMessageにおける各フィールドの説明に、クライアント側で算出された見積もり値であることを示す注釈が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1426,7 +1426,7 @@ The `model_usage` dict maps model names to per-model usage. The inner dict keys",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `cacheReadInputTokens` | `int` | Cache read tokens for this model. |"
+            },
+            {
+              "type": "context",
+              "content": "| `cacheCreationInputTokens` | `int` | Cache creation tokens for this model. |"
+            },
+            {
+              "type": "context",
+              "content": "| `webSearchRequests` | `int` | Web search requests made by this model. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `costUSD` | `float` | Cost in USD for this model. |"
+            },
+            {
+              "type": "added",
+              "content": "| `costUSD` | `float` | Estimated cost in USD for this model, computed client-side. See [Track cost and usage](/en/agent-sdk/cost-tracking) for billing caveats. |"
+            },
+            {
+              "type": "context",
+              "content": "| `contextWindow` | `int` | Context window size for this model. |"
+            },
+            {
+              "type": "context",
+              "content": "| `maxOutputTokens` | `int` | Maximum output token limit for this model. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -2183,7 +2183,7 @@ Documentation of input/output schemas for all built-in Claude Code tools. While",
+          "lines": [
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "    \"result\": str,  # Final result from the subagent"
+            },
+            {
+              "type": "context",
+              "content": "    \"usage\": dict | None,  # Token usage statistics"
+            },
+            {
+              "type": "removed",
+              "content": "    \"total_cost_usd\": float | None,  # Total cost in USD"
+            },
+            {
+              "type": "added",
+              "content": "    \"total_cost_usd\": float | None,  # Estimated total cost in USD"
+            },
+            {
+              "type": "context",
+              "content": "    \"duration_ms\": int | None,  # Execution duration in milliseconds"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "TypeScript SDKのモデル別使用統計において、costUSDがクライアントサイドの見積もりであることを明記し、コスト追跡に関する注意事項へのリンクが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -2263,7 +2263,7 @@ type AccountInfo = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `ModelUsage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Per-model usage statistics returned in result messages."
+            },
+            {
+              "type": "added",
+              "content": "Per-model usage statistics returned in result messages. The `costUSD` value is a client-side estimate. See [Track cost and usage](/en/agent-sdk/cost-tracking) for billing caveats."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type ModelUsage = {"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "costs.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/costコマンドで表示されるドル表記の金額が、トークン数からローカルで計算された見積もりであり、公式な請求額はClaude Consoleで確認すべきであることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -19,7 +19,7 @@ This page covers how to [track your costs](#track-your-costs), [manage costs for",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `/cost` command shows API token usage and is intended for API users. Claude Max and Pro subscribers have usage included in their subscription, so `/cost` data isn't relevant for billing purposes. Subscribers can use `/stats` to view usage patterns."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `/cost` command provides detailed token usage statistics for your current session:"
+            },
+            {
+              "type": "added",
+              "content": "The `/cost` command provides detailed token usage statistics for your current session. The dollar figure is an estimate computed locally from token counts and may differ from your actual bill. For authoritative billing, see the Usage page in the [Claude Console](https://platform.claude.com/usage)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "Total cost:            $0.55"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ステータスラインに表示されるセッション合計コストが、クライアント側で計算された見積もり値であることを明確にする記述に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -140,7 +140,7 @@ Claude Code sends the following JSON fields to your script via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `workspace.project_dir` | Directory where Claude Code was launched, which may differ from `cwd` if the working directory changes during a session |"
+            },
+            {
+              "type": "context",
+              "content": "| `workspace.added_dirs` | Additional directories added via `/add-dir` or `--add-dir`. Empty array if none have been added |"
+            },
+            {
+              "type": "context",
+              "content": "| `workspace.git_worktree` | Git worktree name when the current directory is inside a linked worktree created with `git worktree add`. Absent in the main working tree. Populated for any git worktree, unlike `worktree.*` which applies only to `--worktree` sessions |"
+            },
+            {
+              "type": "removed",
+              "content": "| `cost.total_cost_usd` | Total session cost in USD |"
+            },
+            {
+              "type": "added",
+              "content": "| `cost.total_cost_usd` | Estimated session cost in USD, computed client-side. May differ from your actual bill |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_duration_ms` | Total wall-clock time since the session started, in milliseconds |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_api_duration_ms` | Total time spent waiting for API responses in milliseconds |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_lines_added`, `cost.total_lines_removed` | Lines of code changed |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -431,7 +431,7 @@ process.stdin.on('end', () => {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Cost and duration tracking"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Track your session's API costs and elapsed time. The `cost.total_cost_usd` field accumulates the cost of all API calls in the current session. The `cost.total_duration_ms` field measures total elapsed time since the session started, while `cost.total_api_duration_ms` tracks only the time spent waiting for API responses."
+            },
+            {
+              "type": "added",
+              "content": "Track your session's API costs and elapsed time. The `cost.total_cost_usd` field accumulates the estimated cost of all API calls in the current session. The `cost.total_duration_ms` field measures total elapsed time since the session started, while `cost.total_api_duration_ms` tracks only the time spent waiting for API responses."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each script formats cost as currency and converts milliseconds to minutes and seconds:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
