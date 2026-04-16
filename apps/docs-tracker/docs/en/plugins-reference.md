@@ -306,7 +306,11 @@ The manifest is optional. If omitted, Claude Code auto-discovers components in [
   "mcpServers": "./mcp-config.json",
   "outputStyles": "./styles/",
   "lspServers": "./.lsp.json",
-  "monitors": "./monitors.json"
+  "monitors": "./monitors.json",
+  "dependencies": [
+    "helper-lib",
+    { "name": "secrets-vault", "version": "~2.1.0" }
+  ]
 }
 ```
 
@@ -348,6 +352,7 @@ agent `agent-creator` for the plugin with name `plugin-dev` will appear as
 | `monitors` | string\|array\|object | Background [Monitor](/en/tools-reference#monitor-tool) configurations that auto-arm when the plugin is enabled at session start or when a skill in this plugin is invoked | `"./monitors.json"` |
 | `userConfig` | object | User-configurable values prompted at enable time. See [User configuration](#user-configuration) | See below |
 | `channels` | array | Channel declarations for message injection (Telegram, Slack, Discord style). See [Channels](#channels) | See below |
+| `dependencies` | array | Other plugins this plugin requires, optionally with semver version constraints. See [Constrain plugin dependency versions](/en/plugin-dependencies) | `[{ "name": "secrets-vault", "version": "~2.1.0" }]` |
 
 ### User configuration
 
