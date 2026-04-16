@@ -160,6 +160,7 @@ The `effort` option controls how much reasoning Claude applies. Lower effort lev
 | `"low"` | Minimal reasoning, fast responses | File lookups, listing directories |
 | `"medium"` | Balanced reasoning | Routine edits, standard tasks |
 | `"high"` | Thorough analysis | Refactors, debugging |
+| `"xhigh"` | Extended reasoning depth | Coding and agentic tasks; recommended on Opus 4.7 |
 | `"max"` | Maximum reasoning depth | Multi-step problems requiring deep analysis |
 
 If you don't set `effort`, the Python SDK leaves the parameter unset and defers to the model's default behavior. The TypeScript SDK defaults to `"high"`.

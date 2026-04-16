@@ -109,12 +109,12 @@ Change `ClaudeCodeOptions` to `ClaudeAgentOptions`:
 # Before
 from claude_code_sdk import query, ClaudeCodeOptions
 
-options = ClaudeCodeOptions(model="claude-opus-4-6")
+options = ClaudeCodeOptions(model="claude-opus-4-7")
 
 # After
 from claude_agent_sdk import query, ClaudeAgentOptions
 
-options = ClaudeAgentOptions(model="claude-opus-4-6")
+options = ClaudeAgentOptions(model="claude-opus-4-7")
 ```
 
 **5. Review [breaking changes](#breaking-changes)**
@@ -135,12 +135,12 @@ To improve isolation and explicit configuration, Claude Agent SDK v0.1.0 introdu
 # BEFORE (claude-code-sdk)
 from claude_code_sdk import query, ClaudeCodeOptions
 
-options = ClaudeCodeOptions(model="claude-opus-4-6", permission_mode="acceptEdits")
+options = ClaudeCodeOptions(model="claude-opus-4-7", permission_mode="acceptEdits")
 
 # AFTER (claude-agent-sdk)
 from claude_agent_sdk import query, ClaudeAgentOptions
 
-options = ClaudeAgentOptions(model="claude-opus-4-6", permission_mode="acceptEdits")
+options = ClaudeAgentOptions(model="claude-opus-4-7", permission_mode="acceptEdits")
 ```
 
 **Why this changed:** The type name now matches the "Claude Agent SDK" branding and provides consistency across the SDK's naming conventions.

@@ -765,7 +765,7 @@ class ClaudeAgentOptions:
     plugins: list[SdkPluginConfig] = field(default_factory=list)
     max_thinking_tokens: int | None = None  # Deprecated: use thinking instead
     thinking: ThinkingConfig | None = None
-    effort: Literal["low", "medium", "high", "max"] | None = None
+    effort: Literal["low", "medium", "high", "xhigh", "max"] | None = None
     enable_file_checkpointing: bool = False
 ```
 
@@ -807,7 +807,7 @@ class ClaudeAgentOptions:
 | `setting_sources` | `list[SettingSource] \| None` | `None` (no settings) | Control which filesystem settings to load. When omitted, no settings are loaded. **Note:** Must include `"project"` to load CLAUDE.md files |
 | `max_thinking_tokens` | `int \| None` | `None` | *Deprecated* - Maximum tokens for thinking blocks. Use `thinking` instead |
 | `thinking` | [`ThinkingConfig`](#thinking-config) ` \| None` | `None` | Controls extended thinking behavior. Takes precedence over `max_thinking_tokens` |
-| `effort` | `Literal["low", "medium", "high", "max"] \| None` | `None` | Effort level for thinking depth |
+| `effort` | `Literal["low", "medium", "high", "xhigh", "max"] \| None` | `None` | Effort level for thinking depth |
 
 ### `OutputFormat`
 
@@ -1172,7 +1172,7 @@ SdkBeta = Literal["context-1m-2025-08-07"]
 
 Use with the `betas` field in `ClaudeAgentOptions` to enable beta features.
 
-The `context-1m-2025-08-07` beta is retired as of April 30, 2026. Passing this header with Claude Sonnet 4.5 or Sonnet 4 has no effect, and requests that exceed the standard 200k-token context window return an error. To use a 1M-token context window, migrate to [Claude Sonnet 4.6 or Claude Opus 4.6](https://platform.claude.com/docs/en/about-claude/models/overview), which include 1M context at standard pricing with no beta header required.
+The `context-1m-2025-08-07` beta is retired as of April 30, 2026. Passing this header with Claude Sonnet 4.5 or Sonnet 4 has no effect, and requests that exceed the standard 200k-token context window return an error. To use a 1M-token context window, migrate to [Claude Sonnet 4.6, Claude Opus 4.6, or Claude Opus 4.7](https://platform.claude.com/docs/en/about-claude/models/overview), which include 1M context at standard pricing with no beta header required.
 
 ### `McpSdkServerConfig`
 

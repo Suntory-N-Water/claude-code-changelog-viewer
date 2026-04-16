@@ -33,7 +33,7 @@ For simple single-turn queries where you don't need to maintain a session, use `
 import { unstable_v2_prompt } from "@anthropic-ai/claude-agent-sdk";
 
 const result = await unstable_v2_prompt("What is 2 + 2?", {
-  model: "claude-opus-4-6"
+  model: "claude-opus-4-7"
 });
 if (result.subtype === "success") {
   console.log(result.result);
@@ -47,7 +47,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 
 const q = query({
   prompt: "What is 2 + 2?",
-  options: { model: "claude-opus-4-6" }
+  options: { model: "claude-opus-4-7" }
 });
 
 for await (const msg of q) {
@@ -72,7 +72,7 @@ The example below creates a session, sends "Hello!" to Claude, and prints the te
 import { unstable_v2_createSession } from "@anthropic-ai/claude-agent-sdk";
 
 await using session = unstable_v2_createSession({
-  model: "claude-opus-4-6"
+  model: "claude-opus-4-7"
 });
 
 await session.send("Hello!");
@@ -97,7 +97,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 
 const q = query({
   prompt: "Hello!",
-  options: { model: "claude-opus-4-6" }
+  options: { model: "claude-opus-4-7" }
 });
 
 for await (const msg of q) {
@@ -121,7 +121,7 @@ This example asks a math question, then asks a follow-up that references the pre
 import { unstable_v2_createSession } from "@anthropic-ai/claude-agent-sdk";
 
 await using session = unstable_v2_createSession({
-  model: "claude-opus-4-6"
+  model: "claude-opus-4-7"
 });
 
 // Turn 1
@@ -174,7 +174,7 @@ async function* createInputStream() {
 
 const q = query({
   prompt: createInputStream(),
-  options: { model: "claude-opus-4-6" }
+  options: { model: "claude-opus-4-7" }
 });
 
 for await (const msg of q) {
@@ -212,7 +212,7 @@ function getAssistantText(msg: SDKMessage): string | null {
 
 // Create initial session and have a conversation
 const session = unstable_v2_createSession({
-  model: "claude-opus-4-6"
+  model: "claude-opus-4-7"
 });
 
 await session.send("Remember this number: 42");
@@ -230,7 +230,7 @@ session.close();
 
 // Later: resume the session using the stored ID
 await using resumedSession = unstable_v2_resumeSession(sessionId!, {
-  model: "claude-opus-4-6"
+  model: "claude-opus-4-7"
 });
 
 await resumedSession.send("What number did I ask you to remember?");
@@ -248,7 +248,7 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 // Create initial session
 const initialQuery = query({
   prompt: "Remember this number: 42",
-  options: { model: "claude-opus-4-6" }
+  options: { model: "claude-opus-4-7" }
 });
 
 // Get session ID from any message
@@ -270,7 +270,7 @@ console.log("Session ID:", sessionId);
 const resumedQuery = query({
   prompt: "What number did I ask you to remember?",
   options: {
-    model: "claude-opus-4-6",
+    model: "claude-opus-4-7",
     resume: sessionId
   }
 });
@@ -296,7 +296,7 @@ Sessions can be closed manually or automatically using [`await using`](https://w
 import { unstable_v2_createSession } from "@anthropic-ai/claude-agent-sdk";
 
 await using session = unstable_v2_createSession({
-  model: "claude-opus-4-6"
+  model: "claude-opus-4-7"
 });
 // Session closes automatically when the block exits
 ```
@@ -307,7 +307,7 @@ await using session = unstable_v2_createSession({
 import { unstable_v2_createSession } from "@anthropic-ai/claude-agent-sdk";
 
 const session = unstable_v2_createSession({
-  model: "claude-opus-4-6"
+  model: "claude-opus-4-7"
 });
 // ... use the session ...
 session.close();

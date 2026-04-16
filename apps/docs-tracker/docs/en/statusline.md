@@ -174,7 +174,7 @@ Your status line command receives this JSON structure via stdin:
   "session_name": "my-session",
   "transcript_path": "/path/to/transcript.jsonl",
   "model": {
-    "id": "claude-opus-4-6",
+    "id": "claude-opus-4-7",
     "display_name": "Opus"
   },
   "workspace": {

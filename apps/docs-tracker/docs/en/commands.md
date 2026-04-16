@@ -38,7 +38,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/desktop` | Continue the current session in the Claude Code Desktop app. macOS and Windows only. Alias: `/app` |
 | `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files |
 | `/doctor` | Diagnose and verify your Claude Code installation and settings. Results show with status icons. Press `f` to have Claude fix any reported issues |
-| `/effort [low\|medium\|high\|max\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). `low`, `medium`, and `high` persist across sessions. `max` applies to the current session only and requires Opus 4.6. `auto` resets to the model default. Without an argument, shows the current level. Takes effect immediately without waiting for the current response to finish |
+| `/effort [level\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). Accepts `low`, `medium`, `high`, `xhigh`, or `max`; available levels depend on the model and `max` is session-only. `auto` resets to the model default. Without an argument, shows the current level. Takes effect immediately without waiting for the current response to finish |
 | `/exit` | Exit the CLI. Alias: `/quit` |
 | `/export [filename]` | Export the current conversation as plain text. With a filename, writes directly to that file. Without, opens a dialog to copy to clipboard or save to a file |
 | `/extra-usage` | Configure extra usage to keep working when rate limits are hit |
@@ -91,6 +91,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/terminal-setup` | Configure terminal keybindings for Shift+Enter and other shortcuts. Only visible in terminals that need it, like VS Code, Alacritty, or Warp |
 | `/theme` | Change the color theme. Includes light and dark variants, colorblind-accessible (daltonized) themes, and ANSI themes that use your terminal's color palette |
 | `/ultraplan <prompt>` | Draft a plan in an [ultraplan](/en/ultraplan) session, review it in your browser, then execute remotely or send it back to your terminal |
+| `/ultrareview` | Run a deep multi-agent review of the current branch using bug-hunting subagents. See [Ultrareview](/en/ultrareview) |
 | `/upgrade` | Open the upgrade page to switch to a higher plan tier |
 | `/usage` | Show plan usage limits and rate limit status |
 | `/vim` | Removed in v2.1.92. To toggle between Vim and Normal editing modes, use `/config` → Editor mode |

@@ -1,0 +1,3486 @@
+{
+  "id": "20260416-153219",
+  "timestamp": "2026-04-16T15:32:19.380Z",
+  "aiSummary": "新モデルClaude Opus 4.7（claude-opus-4-7）のサポートが追加され、関連するドキュメントが全面的に更新されました。思考の深さを制御するeffortレベルに新しくxhighが導入され、Opus 4.7の推奨設定として案内されています。また、深いバグ調査を実行するための新しいコマンド/ultrareviewや、Autoモードの権限設定に関する変更が反映されました。Amazon BedrockやGoogle Vertex AIなどの各クラウドプラットフォームにおけるOpus 4.7の利用方法やモデルエイリアスの挙動についても詳細が追記されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/agent-loop.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "思考の深さを表すeffortレベルの選択肢に、Opus 4.7で推奨されるxhighが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -160,6 +160,7 @@ The `effort` option controls how much reasoning Claude applies. Lower effort lev",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `\"low\"` | Minimal reasoning, fast responses | File lookups, listing directories |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"medium\"` | Balanced reasoning | Routine edits, standard tasks |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"high\"` | Thorough analysis | Refactors, debugging |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"xhigh\"` | Extended reasoning depth | Coding and agentic tasks; recommended on Opus 4.7 |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"max\"` | Maximum reasoning depth | Multi-step problems requiring deep analysis |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you don't set `effort`, the Python SDK leaves the parameter unset and defers to the model's default behavior. The TypeScript SDK defaults to `\"high\"`."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/migration-guide.md",
+      "additions": 4,
+      "deletions": 4,
+      "explanation": "SDKの移行例で使用されるモデル名が、従来のOpus 4.6から最新のOpus 4.7へ更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -109,12 +109,12 @@ Change `ClaudeCodeOptions` to `ClaudeAgentOptions`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "# Before"
+            },
+            {
+              "type": "context",
+              "content": "from claude_code_sdk import query, ClaudeCodeOptions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "options = ClaudeCodeOptions(model=\"claude-opus-4-6\")"
+            },
+            {
+              "type": "added",
+              "content": "options = ClaudeCodeOptions(model=\"claude-opus-4-7\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# After"
+            },
+            {
+              "type": "context",
+              "content": "from claude_agent_sdk import query, ClaudeAgentOptions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "options = ClaudeAgentOptions(model=\"claude-opus-4-6\")"
+            },
+            {
+              "type": "added",
+              "content": "options = ClaudeAgentOptions(model=\"claude-opus-4-7\")"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**5. Review [breaking changes](#breaking-changes)**"
+            }
+          ]
+        },
+        {
+          "header": "@@ -135,12 +135,12 @@ To improve isolation and explicit configuration, Claude Agent SDK v0.1.0 introdu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "# BEFORE (claude-code-sdk)"
+            },
+            {
+              "type": "context",
+              "content": "from claude_code_sdk import query, ClaudeCodeOptions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "options = ClaudeCodeOptions(model=\"claude-opus-4-6\", permission_mode=\"acceptEdits\")"
+            },
+            {
+              "type": "added",
+              "content": "options = ClaudeCodeOptions(model=\"claude-opus-4-7\", permission_mode=\"acceptEdits\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# AFTER (claude-agent-sdk)"
+            },
+            {
+              "type": "context",
+              "content": "from claude_agent_sdk import query, ClaudeAgentOptions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "options = ClaudeAgentOptions(model=\"claude-opus-4-6\", permission_mode=\"acceptEdits\")"
+            },
+            {
+              "type": "added",
+              "content": "options = ClaudeAgentOptions(model=\"claude-opus-4-7\", permission_mode=\"acceptEdits\")"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Why this changed:** The type name now matches the \"Claude Agent SDK\" branding and provides consistency across the SDK's naming conventions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/overview.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "Opus 4.7を利用するために必要なAgent SDKの最小バージョン要件と、APIエラー時の対処法が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,6 +11,8 @@ The Claude Code SDK has been renamed to the Claude Agent SDK. If you're migratin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Build AI agents that autonomously read files, run commands, search the web, edit code, and more. The Agent SDK gives you the same tools, agent loop, and context management that power Claude Code, programmable in Python and TypeScript."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Opus 4.7 (`claude-opus-4-7`) requires Agent SDK v0.2.111 or later. If you see a `thinking.type.enabled` API error, see [Troubleshooting](/en/agent-sdk/quickstart#troubleshooting)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "import asyncio"
+            },
+            {
+              "type": "context",
+              "content": "from claude_agent_sdk import query, ClaudeAgentOptions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "Python SDKにおけるeffortレベルの型定義にxhighが追加され、1Mトークンのコンテキストウィンドウに関する説明が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -765,7 +765,7 @@ class ClaudeAgentOptions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    plugins: list[SdkPluginConfig] = field(default_factory=list)"
+            },
+            {
+              "type": "context",
+              "content": "    max_thinking_tokens: int | None = None  # Deprecated: use thinking instead"
+            },
+            {
+              "type": "context",
+              "content": "    thinking: ThinkingConfig | None = None"
+            },
+            {
+              "type": "removed",
+              "content": "    effort: Literal[\"low\", \"medium\", \"high\", \"max\"] | None = None"
+            },
+            {
+              "type": "added",
+              "content": "    effort: Literal[\"low\", \"medium\", \"high\", \"xhigh\", \"max\"] | None = None"
+            },
+            {
+              "type": "context",
+              "content": "    enable_file_checkpointing: bool = False"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -807,7 +807,7 @@ class ClaudeAgentOptions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `setting_sources` | `list[SettingSource] \\| None` | `None` (no settings) | Control which filesystem settings to load. When omitted, no settings are loaded. **Note:** Must include `\"project\"` to load CLAUDE.md files |"
+            },
+            {
+              "type": "context",
+              "content": "| `max_thinking_tokens` | `int \\| None` | `None` | *Deprecated* - Maximum tokens for thinking blocks. Use `thinking` instead |"
+            },
+            {
+              "type": "context",
+              "content": "| `thinking` | [`ThinkingConfig`](#thinking-config) ` \\| None` | `None` | Controls extended thinking behavior. Takes precedence over `max_thinking_tokens` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `effort` | `Literal[\"low\", \"medium\", \"high\", \"max\"] \\| None` | `None` | Effort level for thinking depth |"
+            },
+            {
+              "type": "added",
+              "content": "| `effort` | `Literal[\"low\", \"medium\", \"high\", \"xhigh\", \"max\"] \\| None` | `None` | Effort level for thinking depth |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `OutputFormat`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1172,7 +1172,7 @@ SdkBeta = Literal[\"context-1m-2025-08-07\"]",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use with the `betas` field in `ClaudeAgentOptions` to enable beta features."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `context-1m-2025-08-07` beta is retired as of April 30, 2026. Passing this header with Claude Sonnet 4.5 or Sonnet 4 has no effect, and requests that exceed the standard 200k-token context window return an error. To use a 1M-token context window, migrate to [Claude Sonnet 4.6 or Claude Opus 4.6](https://platform.claude.com/docs/en/about-claude/models/overview), which include 1M context at standard pricing with no beta header required."
+            },
+            {
+              "type": "added",
+              "content": "The `context-1m-2025-08-07` beta is retired as of April 30, 2026. Passing this header with Claude Sonnet 4.5 or Sonnet 4 has no effect, and requests that exceed the standard 200k-token context window return an error. To use a 1M-token context window, migrate to [Claude Sonnet 4.6, Claude Opus 4.6, or Claude Opus 4.7](https://platform.claude.com/docs/en/about-claude/models/overview), which include 1M context at standard pricing with no beta header required."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `McpSdkServerConfig`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/quickstart.md",
+      "additions": 12,
+      "deletions": 0,
+      "explanation": "Opus 4.7使用時に古いSDKバージョンで発生するAPIエラーの詳細と、その解決策となるトラブルシューティング項目が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -267,6 +267,18 @@ With `Bash` enabled, try: `\"Write unit tests for utils.py, run them, and fix any",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example above uses `acceptEdits` mode, which auto-approves file operations so the agent can run without interactive prompts. If you want to prompt users for approval, use `default` mode and provide a [`canUseTool` callback](/en/agent-sdk/user-input) that collects user input. For more control, see [Permissions](/en/agent-sdk/permissions)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### API error `thinking.type.enabled` is not supported for this model"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Opus 4.7 replaces `thinking.type.enabled` with `thinking.type.adaptive`. Older Agent SDK versions fail with the following API error when you select `claude-opus-4-7`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "API Error: 400 {\"type\":\"invalid_request_error\",\"message\":\"\\\"thinking.type.enabled\\\" is not supported for this model. Use \\\"thinking.type.adaptive\\\" and \\\"output_config.effort\\\" to control thinking behavior.\"}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Upgrade to Agent SDK v0.2.111 or later to use Opus 4.7."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Next steps"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Now that you've created your first agent, learn how to extend its capabilities and tailor it to your use case:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/secure-deployment.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "プロンプト注入などの脅威に対して、Opus 4.7が最も堅牢なモデルであるという記述に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -17,7 +17,7 @@ Not every deployment needs maximum security. A developer running Claude Code on",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Threat model"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Agents can take unintended actions due to prompt injection (instructions embedded in content they process) or model error. Claude models are designed to resist this, and as analyzed in the [model card](https://www.anthropic.com/claude-opus-4-6-system-card), Claude Opus 4.6 is the most robust frontier model available."
+            },
+            {
+              "type": "added",
+              "content": "Agents can take unintended actions due to prompt injection (instructions embedded in content they process) or model error. Claude models are designed to resist this, and Claude Opus 4.7 is the most robust frontier model available. See the [model overview](https://platform.claude.com/docs/en/about-claude/models/overview) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Defense in depth is still good practice though. For example, if an agent processes a malicious file that instructs it to send customer data to an external server, network controls can block that request entirely."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/slash-commands.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "スラッシュコマンドの実装例で使用されるモデル識別子がOpus 4.7に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -179,7 +179,7 @@ Create `.claude/commands/security-check.md`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "context",
+              "content": "allowed-tools: Read, Grep, Glob"
+            },
+            {
+              "type": "context",
+              "content": "description: Run security vulnerability scan"
+            },
+            {
+              "type": "removed",
+              "content": "model: claude-opus-4-6"
+            },
+            {
+              "type": "added",
+              "content": "model: claude-opus-4-7"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Analyze the codebase for security vulnerabilities including:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript-v2-preview.md",
+      "additions": 12,
+      "deletions": 12,
+      "explanation": "TypeScript SDKのV2プレビュー版ドキュメント内のコード例が、すべてOpus 4.7を使用する形式に置き換えられました。",
+      "hunks": [
+        {
+          "header": "@@ -33,7 +33,7 @@ For simple single-turn queries where you don't need to maintain a session, use `",
+          "lines": [
+            {
+              "type": "context",
+              "content": "import { unstable_v2_prompt } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "const result = await unstable_v2_prompt(\"What is 2 + 2?\", {"
+            },
+            {
+              "type": "removed",
+              "content": "  model: \"claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "  model: \"claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": "if (result.subtype === \"success\") {"
+            },
+            {
+              "type": "context",
+              "content": "  console.log(result.result);"
+            }
+          ]
+        },
+        {
+          "header": "@@ -47,7 +47,7 @@ import { query } from \"@anthropic-ai/claude-agent-sdk\";",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "const q = query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: \"What is 2 + 2?\","
+            },
+            {
+              "type": "removed",
+              "content": "  options: { model: \"claude-opus-4-6\" }"
+            },
+            {
+              "type": "added",
+              "content": "  options: { model: \"claude-opus-4-7\" }"
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "for await (const msg of q) {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -72,7 +72,7 @@ The example below creates a session, sends \"Hello!\" to Claude, and prints the te",
+          "lines": [
+            {
+              "type": "context",
+              "content": "import { unstable_v2_createSession } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "await using session = unstable_v2_createSession({"
+            },
+            {
+              "type": "removed",
+              "content": "  model: \"claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "  model: \"claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "await session.send(\"Hello!\");"
+            }
+          ]
+        },
+        {
+          "header": "@@ -97,7 +97,7 @@ import { query } from \"@anthropic-ai/claude-agent-sdk\";",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "const q = query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: \"Hello!\","
+            },
+            {
+              "type": "removed",
+              "content": "  options: { model: \"claude-opus-4-6\" }"
+            },
+            {
+              "type": "added",
+              "content": "  options: { model: \"claude-opus-4-7\" }"
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "for await (const msg of q) {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -121,7 +121,7 @@ This example asks a math question, then asks a follow-up that references the pre",
+          "lines": [
+            {
+              "type": "context",
+              "content": "import { unstable_v2_createSession } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "await using session = unstable_v2_createSession({"
+            },
+            {
+              "type": "removed",
+              "content": "  model: \"claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "  model: \"claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "// Turn 1"
+            }
+          ]
+        },
+        {
+          "header": "@@ -174,7 +174,7 @@ async function* createInputStream() {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "const q = query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: createInputStream(),"
+            },
+            {
+              "type": "removed",
+              "content": "  options: { model: \"claude-opus-4-6\" }"
+            },
+            {
+              "type": "added",
+              "content": "  options: { model: \"claude-opus-4-7\" }"
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "for await (const msg of q) {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -212,7 +212,7 @@ function getAssistantText(msg: SDKMessage): string | null {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "// Create initial session and have a conversation"
+            },
+            {
+              "type": "context",
+              "content": "const session = unstable_v2_createSession({"
+            },
+            {
+              "type": "removed",
+              "content": "  model: \"claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "  model: \"claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "await session.send(\"Remember this number: 42\");"
+            }
+          ]
+        },
+        {
+          "header": "@@ -230,7 +230,7 @@ session.close();",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "// Later: resume the session using the stored ID"
+            },
+            {
+              "type": "context",
+              "content": "await using resumedSession = unstable_v2_resumeSession(sessionId!, {"
+            },
+            {
+              "type": "removed",
+              "content": "  model: \"claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "  model: \"claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "await resumedSession.send(\"What number did I ask you to remember?\");"
+            }
+          ]
+        },
+        {
+          "header": "@@ -248,7 +248,7 @@ import { query } from \"@anthropic-ai/claude-agent-sdk\";",
+          "lines": [
+            {
+              "type": "context",
+              "content": "// Create initial session"
+            },
+            {
+              "type": "context",
+              "content": "const initialQuery = query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: \"Remember this number: 42\","
+            },
+            {
+              "type": "removed",
+              "content": "  options: { model: \"claude-opus-4-6\" }"
+            },
+            {
+              "type": "added",
+              "content": "  options: { model: \"claude-opus-4-7\" }"
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "// Get session ID from any message"
+            }
+          ]
+        },
+        {
+          "header": "@@ -270,7 +270,7 @@ console.log(\"Session ID:\", sessionId);",
+          "lines": [
+            {
+              "type": "context",
+              "content": "const resumedQuery = query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: \"What number did I ask you to remember?\","
+            },
+            {
+              "type": "context",
+              "content": "  options: {"
+            },
+            {
+              "type": "removed",
+              "content": "    model: \"claude-opus-4-6\","
+            },
+            {
+              "type": "added",
+              "content": "    model: \"claude-opus-4-7\","
+            },
+            {
+              "type": "context",
+              "content": "    resume: sessionId"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "});"
+            }
+          ]
+        },
+        {
+          "header": "@@ -296,7 +296,7 @@ Sessions can be closed manually or automatically using [`await using`](https://w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "import { unstable_v2_createSession } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "await using session = unstable_v2_createSession({"
+            },
+            {
+              "type": "removed",
+              "content": "  model: \"claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "  model: \"claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": "// Session closes automatically when the block exits"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -307,7 +307,7 @@ await using session = unstable_v2_createSession({",
+          "lines": [
+            {
+              "type": "context",
+              "content": "import { unstable_v2_createSession } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "const session = unstable_v2_createSession({"
+            },
+            {
+              "type": "removed",
+              "content": "  model: \"claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "  model: \"claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": "// ... use the session ..."
+            },
+            {
+              "type": "context",
+              "content": "session.close();"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "TypeScript SDKの型定義とドキュメントにおいて、新しいeffortレベルxhighの追加と1Mコンテキストの対象モデル更新が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -288,7 +288,7 @@ Configuration object for the `query()` function.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `debug` | `boolean` | `false` | Enable debug mode for the Claude Code process |"
+            },
+            {
+              "type": "context",
+              "content": "| `debugFile` | `string` | `undefined` | Write debug logs to a specific file path. Implicitly enables debug mode |"
+            },
+            {
+              "type": "context",
+              "content": "| `disallowedTools` | `string[]` | `[]` | Tools to always deny. Deny rules are checked first and override `allowedTools` and `permissionMode` (including `bypassPermissions`) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `effort` | `'low' \\| 'medium' \\| 'high' \\| 'max'` | `'high'` | Controls how much effort Claude puts into its response. Works with adaptive thinking to guide thinking depth |"
+            },
+            {
+              "type": "added",
+              "content": "| `effort` | `'low' \\| 'medium' \\| 'high' \\| 'xhigh' \\| 'max'` | `'high'` | Controls how much effort Claude puts into its response. Works with adaptive thinking to guide thinking depth |"
+            },
+            {
+              "type": "context",
+              "content": "| `enableFileCheckpointing` | `boolean` | `false` | Enable file change tracking for rewinding. See [File checkpointing](/en/agent-sdk/file-checkpointing) |"
+            },
+            {
+              "type": "context",
+              "content": "| `env` | `Record<string, string \\| undefined>` | `process.env` | Environment variables. Set `CLAUDE_AGENT_SDK_CLIENT_APP` to identify your app in the User-Agent header |"
+            },
+            {
+              "type": "context",
+              "content": "| `executable` | `'bun' \\| 'deno' \\| 'node'` | Auto-detected | JavaScript runtime to use |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2157,7 +2157,7 @@ Available beta features that can be enabled via the `betas` option. See [Beta he",
+          "lines": [
+            {
+              "type": "context",
+              "content": "type SdkBeta = \"context-1m-2025-08-07\";"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `context-1m-2025-08-07` beta is retired as of April 30, 2026. Passing this value with Claude Sonnet 4.5 or Sonnet 4 has no effect, and requests that exceed the standard 200k-token context window return an error. To use a 1M-token context window, migrate to [Claude Sonnet 4.6 or Claude Opus 4.6](https://platform.claude.com/docs/en/about-claude/models/overview), which include 1M context at standard pricing with no beta header required."
+            },
+            {
+              "type": "added",
+              "content": "The `context-1m-2025-08-07` beta is retired as of April 30, 2026. Passing this value with Claude Sonnet 4.5 or Sonnet 4 has no effect, and requests that exceed the standard 200k-token context window return an error. To use a 1M-token context window, migrate to [Claude Sonnet 4.6, Claude Opus 4.6, or Claude Opus 4.7](https://platform.claude.com/docs/en/about-claude/models/overview), which include 1M context at standard pricing with no beta header required."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SlashCommand`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -2181,7 +2181,7 @@ type ModelInfo = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  displayName: string;"
+            },
+            {
+              "type": "context",
+              "content": "  description: string;"
+            },
+            {
+              "type": "context",
+              "content": "  supportsEffort?: boolean;"
+            },
+            {
+              "type": "removed",
+              "content": "  supportedEffortLevels?: (\"low\" | \"medium\" | \"high\" | \"max\")[];"
+            },
+            {
+              "type": "added",
+              "content": "  supportedEffortLevels?: (\"low\" | \"medium\" | \"high\" | \"xhigh\" | \"max\")[];"
+            },
+            {
+              "type": "context",
+              "content": "  supportsAdaptiveThinking?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  supportsFastMode?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 7,
+      "deletions": 4,
+      "explanation": "Amazon BedrockでのOpus 4.7用環境変数の設定方法や、モデルエイリアスの解決ルールの詳細が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -213,10 +213,12 @@ When enabling Bedrock for Claude Code, keep the following in mind:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  Pin specific model versions when deploying to multiple users. Without pinning, model aliases such as `sonnet` and `opus` resolve to the latest version, which may not yet be available in your Bedrock account when Anthropic releases an update. Claude Code [falls back](#startup-model-checks) to the previous version at startup when the latest is unavailable, but pinning lets you control when your users move to a new model."
+            },
+            {
+              "type": "context",
+              "content": "</Warning>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Set these environment variables to specific Bedrock model IDs:"
+            },
+            {
+              "type": "added",
+              "content": "Set these environment variables to specific Bedrock model IDs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Without `ANTHROPIC_DEFAULT_OPUS_MODEL`, the `opus` alias on Bedrock resolves to Opus 4.6. Set it to the Opus 4.7 ID to use the latest model:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-6-v1'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-7'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL='us.anthropic.claude-sonnet-4-6'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:0'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -250,11 +252,12 @@ export DISABLE_PROMPT_CACHING=1",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `ANTHROPIC_DEFAULT_*_MODEL` environment variables configure one inference profile per model family. If your organization needs to expose several versions of the same family in the `/model` picker, each routed to its own application inference profile ARN, use the `modelOverrides` setting in your [settings file](/en/settings#settings-files) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This example maps three Opus versions to distinct ARNs so users can switch between them without bypassing your organization's inference profiles:"
+            },
+            {
+              "type": "added",
+              "content": "This example maps four Opus versions to distinct ARNs so users can switch between them without bypassing your organization's inference profiles:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"modelOverrides\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"claude-opus-4-7\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-47-prod\","
+            },
+            {
+              "type": "context",
+              "content": "    \"claude-opus-4-6\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-46-prod\","
+            },
+            {
+              "type": "context",
+              "content": "    \"claude-opus-4-5-20251101\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-45-prod\","
+            },
+            {
+              "type": "context",
+              "content": "    \"claude-opus-4-1-20250805\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-41-prod\""
+            }
+          ]
+        },
+        {
+          "header": "@@ -322,7 +325,7 @@ For details, see [Bedrock IAM documentation](https://docs.aws.amazon.com/bedrock",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## 1M token context window"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Opus 4.6 and Sonnet 4.6 support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Amazon Bedrock. Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "added",
+              "content": "Claude Opus 4.7, Opus 4.6, and Sonnet 4.6 support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Amazon Bedrock. Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To enable the 1M context window for your pinned model, append `[1m]` to the model ID. See [Pin models for third-party deployments](/en/model-config#pin-models-for-third-party-deployments) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "--effortフラグの選択肢更新と、v2.1.111で削除された--enable-auto-modeフラグの代替手段が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -55,7 +55,8 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--debug-file <path>` | Write debug logs to a specific file path. Implicitly enables debug mode. Takes precedence over `CLAUDE_CODE_DEBUG_LOGS_DIR` | `claude --debug-file /tmp/claude-debug.log` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--disable-slash-commands` | Disable all skills and commands for this session | `claude --disable-slash-commands` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--disallowedTools` | Tools that are removed from the model's context and cannot be used | `\"Bash(git log *)\" \"Bash(git diff *)\" \"Edit\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--effort` | Set the [effort level](/en/model-config#adjust-effort-level) for the current session. Options: `low`, `medium`, `high`, `max` (Opus 4.6 only). Session-scoped and does not persist to settings | `claude --effort high` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--effort` | Set the [effort level](/en/model-config#adjust-effort-level) for the current session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model. Session-scoped and does not persist to settings | `claude --effort high` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--enable-auto-mode` | Removed in v2.1.111. Auto mode is now in the `Shift+Tab` cycle by default; use `--permission-mode auto` to start in it | `claude --permission-mode auto` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--exclude-dynamic-system-prompt-sections` | Move per-machine sections from the system prompt (working directory, environment info, memory paths, git status) into the first user message. Improves prompt-cache reuse across different users and machines running the same task. Only applies with the default system prompt; ignored when `--system-prompt` or `--system-prompt-file` is set. Use with `-p` for scripted, multi-user workloads | `claude -p --exclude-dynamic-system-prompt-sections \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--fallback-model` | Enable automatic fallback to specified model when default model is overloaded (print mode only) | `claude -p --fallback-model sonnet \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--fork-session` | When resuming, create a new session ID instead of reusing the original (use with `--resume` or `--continue`) | `claude --resume abc123 --fork-session` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -76,7 +77,6 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--no-chrome` | Disable [Chrome browser integration](/en/chrome) for this session | `claude --no-chrome` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--no-session-persistence` | Disable session persistence so sessions are not saved to disk and cannot be resumed (print mode only) | `claude -p --no-session-persistence \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--output-format` | Specify output format for print mode (options: `text`, `json`, `stream-json`) | `claude -p \"query\" --output-format json` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--enable-auto-mode` | Unlock [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) in the `Shift+Tab` cycle. Requires a Team, Enterprise, or API plan and Claude Sonnet 4.6 or Opus 4.6 | `claude --enable-auto-mode` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--permission-mode` | Begin in a specified [permission mode](/en/permission-modes). Accepts `default`, `acceptEdits`, `plan`, `auto`, `dontAsk`, or `bypassPermissions`. Overrides `defaultMode` from settings files | `claude --permission-mode plan` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--permission-prompt-tool` | Specify an MCP tool to handle permission prompts in non-interactive mode | `claude -p --permission-prompt-tool mcp_auth_tool \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--plugin-dir` | Load plugins from a directory for this session only. Each flag takes one path. Repeat the flag for multiple directories: `--plugin-dir A --plugin-dir B` | `claude --plugin-dir ./my-plugins` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "effortレベルの変更コマンドの説明が更新され、新しいバグ調査用コマンド/ultrareviewの案内が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -38,7 +38,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/desktop` | Continue the current session in the Claude Code Desktop app. macOS and Windows only. Alias: `/app` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files |"
+            },
+            {
+              "type": "context",
+              "content": "| `/doctor` | Diagnose and verify your Claude Code installation and settings. Results show with status icons. Press `f` to have Claude fix any reported issues |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/effort [low\\|medium\\|high\\|max\\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). `low`, `medium`, and `high` persist across sessions. `max` applies to the current session only and requires Opus 4.6. `auto` resets to the model default. Without an argument, shows the current level. Takes effect immediately without waiting for the current response to finish |"
+            },
+            {
+              "type": "added",
+              "content": "| `/effort [level\\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). Accepts `low`, `medium`, `high`, `xhigh`, or `max`; available levels depend on the model and `max` is session-only. `auto` resets to the model default. Without an argument, shows the current level. Takes effect immediately without waiting for the current response to finish |"
+            },
+            {
+              "type": "context",
+              "content": "| `/exit` | Exit the CLI. Alias: `/quit` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/export [filename]` | Export the current conversation as plain text. With a filename, writes directly to that file. Without, opens a dialog to copy to clipboard or save to a file |"
+            },
+            {
+              "type": "context",
+              "content": "| `/extra-usage` | Configure extra usage to keep working when rate limits are hit |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -91,6 +91,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/terminal-setup` | Configure terminal keybindings for Shift+Enter and other shortcuts. Only visible in terminals that need it, like VS Code, Alacritty, or Warp |"
+            },
+            {
+              "type": "context",
+              "content": "| `/theme` | Change the color theme. Includes light and dark variants, colorblind-accessible (daltonized) themes, and ANSI themes that use your terminal's color palette |"
+            },
+            {
+              "type": "context",
+              "content": "| `/ultraplan <prompt>` | Draft a plan in an [ultraplan](/en/ultraplan) session, review it in your browser, then execute remotely or send it back to your terminal |"
+            },
+            {
+              "type": "added",
+              "content": "| `/ultrareview` | Run a deep multi-agent review of the current branch using bug-hunting subagents. See [Ultrareview](/en/ultrareview) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/upgrade` | Open the upgrade page to switch to a higher plan tier |"
+            },
+            {
+              "type": "context",
+              "content": "| `/usage` | Show plan usage limits and rate limit status |"
+            },
+            {
+              "type": "context",
+              "content": "| `/vim` | Removed in v2.1.92. To toggle between Vim and Normal editing modes, use `/config` → Editor mode |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "common-workflows.md",
+      "additions": 7,
+      "deletions": 7,
+      "explanation": "アダプティブ・リーズニング（適応型思考）の仕組みが整理され、Opus 4.7では固定思考予算モードがサポートされない点が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -399,7 +399,7 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) is enabled by default, giving Claude space to reason through complex problems step-by-step before responding. This reasoning is visible in verbose mode, which you can toggle on with `Ctrl+O`. During extended thinking, progress hints appear below the indicator to show that Claude is actively working."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Additionally, Opus 4.6 and Sonnet 4.6 support adaptive reasoning: instead of a fixed thinking token budget, the model dynamically allocates thinking based on your [effort level](/en/model-config#adjust-effort-level) setting. Extended thinking and adaptive reasoning work together to give you control over how deeply Claude reasons before responding."
+            },
+            {
+              "type": "added",
+              "content": "Additionally, [models that support effort](/en/model-config#adjust-effort-level) use adaptive reasoning: instead of a fixed thinking token budget, the model dynamically decides whether and how much to think based on your effort level setting and the task at hand. Adaptive reasoning lets Claude respond faster to routine prompts and reserve deeper thinking for steps that benefit from it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Extended thinking is particularly valuable for complex architectural decisions, challenging bugs, multi-step implementation planning, and evaluating tradeoffs between different approaches."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -411,11 +411,11 @@ Thinking is enabled by default, but you can adjust or disable it.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Scope | How to configure | Details |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Effort level** | Run `/effort`, adjust in `/model`, or set [`CLAUDE_CODE_EFFORT_LEVEL`](/en/env-vars) | Control thinking depth for Opus 4.6 and Sonnet 4.6. See [Adjust effort level](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "removed",
+              "content": "| **`ultrathink` keyword** | Include \"ultrathink\" anywhere in your prompt | Sets effort to high for that turn on Opus 4.6 and Sonnet 4.6. Useful for one-off tasks requiring deep reasoning without permanently changing your effort setting |"
+            },
+            {
+              "type": "added",
+              "content": "| **Effort level** | Run `/effort`, adjust in `/model`, or set [`CLAUDE_CODE_EFFORT_LEVEL`](/en/env-vars) | Control thinking depth on [supported models](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "added",
+              "content": "| **`ultrathink` keyword** | Include \"ultrathink\" anywhere in your prompt | Raises effort for that turn on [supported models](/en/model-config#adjust-effort-level). Useful for one-off tasks requiring deep reasoning without permanently changing your effort setting |"
+            },
+            {
+              "type": "context",
+              "content": "| **Toggle shortcut** | Press `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle thinking on/off for the current session (all models). May require [terminal configuration](/en/terminal-config) to enable Option key shortcuts |"
+            },
+            {
+              "type": "context",
+              "content": "| **Global default** | Use `/config` to toggle thinking mode | Sets your default across all projects (all models).Saved as `alwaysThinkingEnabled` in `~/.claude/settings.json` |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Limit token budget** | Set [`MAX_THINKING_TOKENS`](/en/env-vars) environment variable | Limit the thinking budget to a specific number of tokens. On Opus 4.6 and Sonnet 4.6, only `0` applies unless adaptive reasoning is disabled. Example: `export MAX_THINKING_TOKENS=10000` |"
+            },
+            {
+              "type": "added",
+              "content": "| **Limit token budget** | Set [`MAX_THINKING_TOKENS`](/en/env-vars) environment variable | Limit the thinking budget to a specific number of tokens. On models with adaptive reasoning, only `0` applies unless adaptive reasoning is disabled. Example: `export MAX_THINKING_TOKENS=10000` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To view Claude's thinking process, press `Ctrl+O` to toggle verbose mode and see the internal reasoning displayed as gray italic text."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -423,11 +423,11 @@ To view Claude's thinking process, press `Ctrl+O` to toggle verbose mode and see",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Extended thinking controls how much internal reasoning Claude performs before responding. More thinking provides more space to explore solutions, analyze edge cases, and self-correct mistakes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**With Opus 4.6 and Sonnet 4.6**, thinking uses adaptive reasoning: the model dynamically allocates thinking tokens based on the [effort level](/en/model-config#adjust-effort-level) you select. This is the recommended way to tune the tradeoff between speed and reasoning depth."
+            },
+            {
+              "type": "added",
+              "content": "On [models that support effort](/en/model-config#adjust-effort-level), thinking uses adaptive reasoning: the model dynamically allocates thinking tokens based on the effort level you select. This is the recommended way to tune the tradeoff between speed and reasoning depth. If you want Claude to think more or less often than your effort level would otherwise produce, you can also say so directly in your prompt or in `CLAUDE.md`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**With older models**, thinking uses a fixed token budget drawn from your output allocation. The budget varies by model; see [`MAX_THINKING_TOKENS`](/en/env-vars) for per-model ceilings. You can limit the budget with that environment variable, or disable thinking entirely via `/config` or the `Option+T`/`Alt+T` toggle."
+            },
+            {
+              "type": "added",
+              "content": "With older models, thinking uses a fixed token budget drawn from your output allocation. The budget varies by model; see [`MAX_THINKING_TOKENS`](/en/env-vars) for per-model ceilings. You can limit the budget with that environment variable, or disable thinking entirely via `/config` or the `Option+T`/`Alt+T` toggle."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Opus 4.6 and Sonnet 4.6, [adaptive reasoning](/en/model-config#adjust-effort-level) controls thinking depth, so `MAX_THINKING_TOKENS` only applies when set to `0` to disable thinking, or when `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` reverts these models to the fixed budget. See [environment variables](/en/env-vars)."
+            },
+            {
+              "type": "added",
+              "content": "On models with adaptive reasoning, `MAX_THINKING_TOKENS` only applies when set to `0` to disable thinking, or when `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` reverts the model to the fixed budget. `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` applies to Opus 4.6 and Sonnet 4.6 only. Opus 4.7 always uses adaptive reasoning and does not support a fixed thinking budget. See [environment variables](/en/env-vars)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You're charged for all thinking tokens used even when thinking summaries are redacted. In interactive mode, thinking appears as a collapsed stub by default. Set `showThinkingSummaries: true` in `settings.json` to show full summaries."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "デスクトップアプリにおけるAutoモードのプラン別利用条件と、Opus 4.7特有の思考制御の仕様が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -66,7 +66,7 @@ Permission modes control how much autonomy Claude has during a session: whether",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Ask permissions** | `default` | Claude asks before editing files or running commands. You see a diff and can accept or reject each change. Recommended for new users. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Auto accept edits** | `acceptEdits` | Claude auto-accepts file edits and common filesystem commands like `mkdir`, `touch`, and `mv`, but still asks before running other terminal commands. Use this when you trust file changes and want faster iteration. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Plan mode** | `plan` | Claude reads files and runs commands to explore, then proposes a plan without editing your source code. Good for complex tasks where you want to review the approach first. |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Auto** | `auto` | Claude executes all actions with background safety checks that verify alignment with your request. Reduces permission prompts while maintaining oversight. Currently a research preview. Available on Team, Enterprise, and API plans. Requires Claude Sonnet 4.6 or Opus 4.6. Enable in your Settings → Claude Code. |"
+            },
+            {
+              "type": "added",
+              "content": "| **Auto** | `auto` | Claude executes all actions with background safety checks that verify alignment with your request. Reduces permission prompts while maintaining oversight. Currently a research preview. Available on Max, Team, Enterprise, and API plans. Requires Claude Sonnet 4.6, Opus 4.6, or later on Team, Enterprise, and API plans; Claude Opus 4.7 on Max plans. Not available on Pro plans or third-party providers. Enable in your Settings → Claude Code. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Bypass permissions** | `bypassPermissions` | Claude runs without any permission prompts, equivalent to `--dangerously-skip-permissions` in the CLI. Enable in your Settings → Claude Code under \"Allow bypass permissions mode\". Only use this in sandboxed containers or VMs. Enterprise admins can disable this option. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `dontAsk` permission mode is available only in the [CLI](/en/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -477,7 +477,7 @@ The desktop app does not always inherit your full shell environment. On macOS, w",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To set environment variables for local sessions and dev servers on any platform, open the environment dropdown in the prompt box, hover over **Local**, and click the gear icon to open the local environment editor. Variables you save here are stored encrypted on your machine and apply to every local session and preview server you start. You can also add variables to the `env` key in your `~/.claude/settings.json` file, though these reach Claude sessions only and not dev servers. See [environment variables](/en/env-vars) for the full list of supported variables."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) is enabled by default, which improves performance on complex reasoning tasks but uses additional tokens. To disable thinking entirely, set `MAX_THINKING_TOKENS` to `0` in the local environment editor. On Opus 4.6 and Sonnet 4.6, any other `MAX_THINKING_TOKENS` value is ignored because adaptive reasoning controls thinking depth instead. To use a fixed thinking budget on these models, also set `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` to `1`."
+            },
+            {
+              "type": "added",
+              "content": "[Extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) is enabled by default, which improves performance on complex reasoning tasks but uses additional tokens. To disable thinking entirely, set `MAX_THINKING_TOKENS` to `0` in the local environment editor. On models with [adaptive reasoning](/en/model-config#adjust-effort-level), any other `MAX_THINKING_TOKENS` value is ignored because adaptive reasoning controls thinking depth instead. On Opus 4.6 and Sonnet 4.6, set `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` to `1` to use a fixed thinking budget; Opus 4.7 always uses adaptive reasoning and has no fixed-budget mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Remote sessions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "環境変数の設定可能な値にxhighが追加され、Vertex AI向けのOpus 4.7用リージョン指定変数が導入されました。",
+      "hunks": [
+        {
+          "header": "@@ -66,7 +66,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DEBUG_LOGS_DIR` | Override the debug log file path. Despite the name, this is a file path, not a directory. Requires debug mode to be enabled separately via `--debug` or `/debug`: setting this variable alone does not enable logging. The [`--debug-file`](/en/cli-reference#cli-flags) flag does both at once. Defaults to `~/.claude/debug/<session-id>.txt` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DEBUG_LOG_LEVEL` | Minimum log level written to the debug log file. Values: `verbose`, `debug` (default), `info`, `warn`, `error`. Set to `verbose` to include high-volume diagnostics like full status line command output, or raise to `error` to reduce noise |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_1M_CONTEXT` | Set to `1` to disable [1M context window](/en/model-config#extended-context) support. When set, 1M model variants are unavailable in the model picker. Useful for enterprise environments with compliance requirements |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Set to `1` to disable [adaptive reasoning](/en/model-config#adjust-effort-level) for Opus 4.6 and Sonnet 4.6. When disabled, these models fall back to the fixed thinking budget controlled by `MAX_THINKING_TOKENS` |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Set to `1` to disable [adaptive reasoning](/en/model-config#adjust-effort-level) on Opus 4.6 and Sonnet 4.6 and fall back to the fixed thinking budget controlled by `MAX_THINKING_TOKENS`. Has no effect on Opus 4.7, which always uses adaptive reasoning |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ATTACHMENTS` | Set to `1` to disable attachment processing. File mentions with `@` syntax are sent as plain text instead of being expanded into file content |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_AUTO_MEMORY` | Set to `1` to disable [auto memory](/en/memory#auto-memory). Set to `0` to force auto memory on during the gradual rollout. When disabled, Claude does not create or load auto memory files |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` | Set to `1` to disable all background task functionality, including the `run_in_background` parameter on Bash and subagent tools, auto-backgrounding, and the Ctrl+B shortcut |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -85,7 +85,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` | Set to `1` to disable automatic terminal title updates based on conversation context |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_THINKING` | Set to `1` to force-disable [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) regardless of model support or other settings. More direct than `MAX_THINKING_TOKENS=0` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL` | Set to `1` to disable virtual scrolling in [fullscreen rendering](/en/fullscreen) and render every message in the transcript. Use this if scrolling in fullscreen mode shows blank regions where messages should appear |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_EFFORT_LEVEL` | Set the effort level for supported models. Values: `low`, `medium`, `high`, `max` (Opus 4.6 only), or `auto` to use the model default. Takes precedence over `/effort` and the `effortLevel` setting. See [Adjust effort level](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_EFFORT_LEVEL` | Set the effort level for supported models. Values: `low`, `medium`, `high`, `xhigh`, `max`, or `auto` to use the model default. Available levels depend on the model. Takes precedence over `/effort` and the `effortLevel` setting. See [Adjust effort level](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING` | Set to `1` to force-enable fine-grained tool input streaming. Without this, the API buffers tool input parameters fully before sending delta events, which can delay display on large tool inputs. Anthropic API only: has no effect on Bedrock, Vertex, or Foundry |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` | Set to `false` to disable prompt suggestions (the \"Prompt suggestions\" toggle in `/config`). These are the grayed-out predictions that appear in your prompt input after Claude responds. See [Prompt suggestions](/en/interactive-mode#prompt-suggestions) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TASKS` | Set to `1` to enable the task tracking system in non-interactive mode (the `-p` flag). Tasks are on by default in interactive mode. See [Task list](/en/interactive-mode#task-list) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -181,7 +181,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `IS_DEMO` | Set to `1` to enable demo mode: hides your email and organization name from the header and `/status` output, and skips onboarding. Useful when streaming or recording a session |"
+            },
+            {
+              "type": "context",
+              "content": "| `MAX_MCP_OUTPUT_TOKENS` | Maximum number of tokens allowed in MCP tool responses. Claude Code displays a warning when output exceeds 10,000 tokens. Tools that declare [`anthropic/maxResultSizeChars`](/en/mcp#raise-the-limit-for-a-specific-tool) use that character limit for text content instead, but image content from those tools is still subject to this variable (default: 25000) |"
+            },
+            {
+              "type": "context",
+              "content": "| `MAX_STRUCTURED_OUTPUT_RETRIES` | Number of times to retry when the model's response fails validation against the [`--json-schema`](/en/cli-reference#cli-flags) in non-interactive mode (the `-p` flag). Defaults to 5 |"
+            },
+            {
+              "type": "removed",
+              "content": "| `MAX_THINKING_TOKENS` | Override the [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) token budget. The ceiling is the model's [max output tokens](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison) minus one. Set to `0` to disable thinking entirely. On models with adaptive reasoning (Opus 4.6, Sonnet 4.6), the budget is ignored unless adaptive reasoning is disabled via `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` |"
+            },
+            {
+              "type": "added",
+              "content": "| `MAX_THINKING_TOKENS` | Override the [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) token budget. The ceiling is the model's [max output tokens](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison) minus one. Set to `0` to disable thinking entirely. On models with [adaptive reasoning](/en/model-config#adjust-effort-level), the budget is ignored unless adaptive reasoning is disabled via `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` |"
+            },
+            {
+              "type": "context",
+              "content": "| `MCP_CLIENT_SECRET` | OAuth client secret for MCP servers that require [pre-configured credentials](/en/mcp#use-pre-configured-oauth-credentials). Avoids the interactive prompt when adding a server with `--client-secret` |"
+            },
+            {
+              "type": "context",
+              "content": "| `MCP_CONNECTION_NONBLOCKING` | Set to `true` in non-interactive mode (`-p`) to skip the MCP connection wait entirely. Useful for scripted pipelines where MCP tools are not needed. Without this variable, the first query waits up to 5 seconds for `--mcp-config` server connections |"
+            },
+            {
+              "type": "context",
+              "content": "| `MCP_OAUTH_CALLBACK_PORT` | Fixed port for the OAuth redirect callback, as an alternative to `--callback-port` when adding an MCP server with [pre-configured credentials](/en/mcp#use-pre-configured-oauth-credentials) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -209,6 +209,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `VERTEX_REGION_CLAUDE_4_5_SONNET` | Override region for Claude Sonnet 4.5 when using Vertex AI |"
+            },
+            {
+              "type": "context",
+              "content": "| `VERTEX_REGION_CLAUDE_4_6_OPUS` | Override region for Claude Opus 4.6 when using Vertex AI |"
+            },
+            {
+              "type": "context",
+              "content": "| `VERTEX_REGION_CLAUDE_4_6_SONNET` | Override region for Claude Sonnet 4.6 when using Vertex AI |"
+            },
+            {
+              "type": "added",
+              "content": "| `VERTEX_REGION_CLAUDE_4_7_OPUS` | Override region for Claude Opus 4.7 when using Vertex AI |"
+            },
+            {
+              "type": "context",
+              "content": "| `VERTEX_REGION_CLAUDE_HAIKU_4_5` | Override region for Claude Haiku 4.5 when using Vertex AI |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Standard OpenTelemetry exporter variables (`OTEL_METRICS_EXPORTER`, `OTEL_LOGS_EXPORTER`, `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_PROTOCOL`, `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_METRIC_EXPORT_INTERVAL`, `OTEL_RESOURCE_ATTRIBUTES`, and signal-specific variants) are also supported. See [Monitoring](/en/monitoring-usage) for configuration details."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fast-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "高速応答を優先するFast modeがOpus 4.6専用の機能であり、Opus 4.7では利用できないことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,7 +11,7 @@ Fast mode is in [research preview](#research-preview). The feature, pricing, and",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fast mode is a high-speed configuration for Claude Opus 4.6, making the model 2.5x faster at a higher cost per token. Toggle it on with `/fast` when you need speed for interactive work like rapid iteration or live debugging, and toggle it off when cost matters more than latency."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fast mode is not a different model. It uses the same Opus 4.6 with a different API configuration that prioritizes speed over cost efficiency. You get identical quality and capabilities, just faster responses."
+            },
+            {
+              "type": "added",
+              "content": "Fast mode is not a different model. It uses the same Opus 4.6 with a different API configuration that prioritizes speed over cost efficiency. You get identical quality and capabilities, just faster responses. Fast mode is not available on Opus 4.7 or other models."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fast mode requires Claude Code v2.1.36 or later. Check your version with `claude --version`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "github-actions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "GitHub Actionsで利用可能な最新モデルとしてOpus 4.7の設定方法が案内されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,7 +11,7 @@ Claude Code GitHub Actions brings AI-powered automation to your GitHub workflow.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code GitHub Actions is built on top of the [Claude Agent SDK](/en/agent-sdk/overview), which enables programmatic integration of Claude Code into your applications. You can use the SDK to build custom automation workflows beyond GitHub Actions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Claude Opus 4.6 is now available.** Claude Code GitHub Actions default to Sonnet. To use Opus 4.6, configure the [model parameter](#breaking-changes-reference) to use `claude-opus-4-6`."
+            },
+            {
+              "type": "added",
+              "content": "**Claude Opus 4.7 is now available.** Claude Code GitHub Actions default to Sonnet. To use Opus 4.7, configure the [model parameter](#breaking-changes-reference) to use `claude-opus-4-7`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Why use Claude Code GitHub Actions?"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "google-vertex-ai.md",
+      "additions": 6,
+      "deletions": 4,
+      "explanation": "Vertex AI上でOpus 4.7を利用するための環境変数設定や、1Mトークン対応モデルのリストが更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -173,10 +173,12 @@ Most model versions have a corresponding `VERTEX_REGION_CLAUDE_*` variable. See",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  Pin specific model versions when deploying to multiple users. Without pinning, model aliases such as `sonnet` and `opus` resolve to the latest version, which may not yet be enabled in your Vertex AI project when Anthropic releases an update. Claude Code [falls back](#startup-model-checks) to the previous version at startup when the latest is unavailable, but pinning lets you control when your users move to a new model."
+            },
+            {
+              "type": "context",
+              "content": "</Warning>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Set these environment variables to specific Vertex AI model IDs:"
+            },
+            {
+              "type": "added",
+              "content": "Set these environment variables to specific Vertex AI model IDs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Without `ANTHROPIC_DEFAULT_OPUS_MODEL`, the `opus` alias on Vertex resolves to Opus 4.6. Set it to the Opus 4.7 ID to use the latest model:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -193,7 +195,7 @@ Claude Code uses these default models when no pinning variables are set:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "To customize models further:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_MODEL='claude-opus-4-6'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_MODEL='claude-opus-4-7'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -223,7 +225,7 @@ For details, see [Vertex IAM documentation](https://cloud.google.com/vertex-ai/d",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## 1M token context window"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Opus 4.6, Sonnet 4.6, Sonnet 4.5, and Sonnet 4 support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Vertex AI. Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "added",
+              "content": "Claude Opus 4.7, Opus 4.6, and Sonnet 4.6 support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Vertex AI. Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To enable the 1M context window for your pinned model, append `[1m]` to the model ID. See [Pin models for third-party deployments](/en/model-config#pin-models-for-third-party-deployments) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "microsoft-foundry.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "Microsoft Foundry環境において、opusエイリアスをOpus 4.7に向けるための環境変数設定が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -138,10 +138,12 @@ export ANTHROPIC_FOUNDRY_RESOURCE={resource}",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  Pin specific model versions for every deployment. If you use model aliases (`sonnet`, `opus`, `haiku`) without pinning, Claude Code may attempt to use a newer model version that isn't available in your Foundry account, breaking existing users when Anthropic releases updates. When you create Azure deployments, select a specific model version rather than \"auto-update to latest.\""
+            },
+            {
+              "type": "context",
+              "content": "</Warning>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Set the model variables to match the deployment names you created in step 1:"
+            },
+            {
+              "type": "added",
+              "content": "Set the model variables to match the deployment names you created in step 1."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Without `ANTHROPIC_DEFAULT_OPUS_MODEL`, the `opus` alias on Foundry resolves to Opus 4.6. Set it to the Opus 4.7 ID to use the latest model:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 69,
+      "deletions": 31,
+      "explanation": "各プロバイダーごとのモデルエイリアスの挙動、新規導入されたxhighレベルの用途、プラン別のデフォルト設定が詳細に解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -27,14 +27,18 @@ remembering exact version numbers:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| **`default`** | Special value that clears any model override and reverts to the recommended model for your account type. Not itself a model alias |"
+            },
+            {
+              "type": "context",
+              "content": "| **`best`** | Uses the most capable available model, currently equivalent to `opus` |"
+            },
+            {
+              "type": "removed",
+              "content": "| **`sonnet`** | Uses the latest Sonnet model (currently Sonnet 4.6) for daily coding tasks |"
+            },
+            {
+              "type": "removed",
+              "content": "| **`opus`** | Uses the latest Opus model (currently Opus 4.6) for complex reasoning tasks |"
+            },
+            {
+              "type": "added",
+              "content": "| **`sonnet`** | Uses the latest Sonnet model for daily coding tasks |"
+            },
+            {
+              "type": "added",
+              "content": "| **`opus`** | Uses the latest Opus model for complex reasoning tasks |"
+            },
+            {
+              "type": "context",
+              "content": "| **`haiku`** | Uses the fast and efficient Haiku model for simple tasks |"
+            },
+            {
+              "type": "context",
+              "content": "| **`sonnet[1m]`** | Uses Sonnet with a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions |"
+            },
+            {
+              "type": "context",
+              "content": "| **`opus[1m]`** | Uses Opus with a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions |"
+            },
+            {
+              "type": "context",
+              "content": "| **`opusplan`** | Special mode that uses `opus` during plan mode, then switches to `sonnet` for execution |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Aliases always point to the latest version. To pin to a specific version, use the full model name (for example, `claude-opus-4-6`) or set the corresponding environment variable like `ANTHROPIC_DEFAULT_OPUS_MODEL`."
+            },
+            {
+              "type": "added",
+              "content": "On the Anthropic API, `opus` resolves to Opus 4.7 and `sonnet` resolves to Sonnet 4.6. On Bedrock, Vertex, and Foundry, `opus` resolves to Opus 4.6 and `sonnet` resolves to Sonnet 4.5; newer models are available on those providers by selecting the full model name explicitly or setting `ANTHROPIC_DEFAULT_OPUS_MODEL` or `ANTHROPIC_DEFAULT_SONNET_MODEL`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Aliases point to the recommended version for your provider and update over time. To pin to a specific version, use the full model name (for example, `claude-opus-4-7`) or set the corresponding environment variable like `ANTHROPIC_DEFAULT_OPUS_MODEL`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Opus 4.7 requires Claude Code v2.1.111 or later. Run `claude update` to upgrade."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Setting your model"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -123,12 +127,14 @@ When the [Bedrock Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint) i",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The behavior of `default` depends on your account type:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Max and Team Premium**: defaults to Opus 4.6"
+            },
+            {
+              "type": "removed",
+              "content": "- **Pro and Team Standard**: defaults to Sonnet 4.6"
+            },
+            {
+              "type": "removed",
+              "content": "- **Enterprise**: Opus 4.6 is available but not the default"
+            },
+            {
+              "type": "added",
+              "content": "- **Max and Team Premium**: defaults to Opus 4.7"
+            },
+            {
+              "type": "added",
+              "content": "- **Pro, Team Standard, Enterprise, and Anthropic API**: defaults to Sonnet 4.6"
+            },
+            {
+              "type": "added",
+              "content": "- **Bedrock, Vertex, and Foundry**: defaults to Sonnet 4.5"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code may automatically fall back to Sonnet if you hit a usage threshold with Opus."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On April 23, 2026, the default model for Enterprise pay-as-you-go and Anthropic API users will change to Opus 4.7. To keep a different default, set `ANTHROPIC_MODEL` or the `model` field in [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `opusplan` model setting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `opusplan` model alias provides an automated hybrid approach:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -143,38 +149,69 @@ and Sonnet's efficiency for execution.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Adjust effort level"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Effort levels](https://platform.claude.com/docs/en/build-with-claude/effort) control adaptive reasoning, which dynamically allocates thinking based on task complexity. Lower effort is faster and cheaper for straightforward tasks, while higher effort provides deeper reasoning for complex problems."
+            },
+            {
+              "type": "added",
+              "content": "[Effort levels](https://platform.claude.com/docs/en/build-with-claude/effort) control adaptive reasoning, which lets the model decide whether and how much to think on each step based on task complexity. Lower effort is faster and cheaper for straightforward tasks, while higher effort provides deeper reasoning for complex problems."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Effort is supported on Opus 4.7, Opus 4.6, and Sonnet 4.6. The available levels depend on the model:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Model | Levels |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| Opus 4.7 | `low`, `medium`, `high`, `xhigh`, `max` |"
+            },
+            {
+              "type": "added",
+              "content": "| Opus 4.6 and Sonnet 4.6 | `low`, `medium`, `high`, `max` |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you set a level the active model does not support, Claude Code falls back to the highest supported level at or below the one you set. For example, `xhigh` runs as `high` on Opus 4.6."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Opus 4.7, the default effort is `xhigh` for all plans and providers. On Opus 4.6 and Sonnet 4.6, the default is `high`, or `medium` on Pro and Max."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Three levels persist across sessions: **low**, **medium**, and **high**. A fourth level, **max**, provides the deepest reasoning with no constraint on token spending, so responses are slower and cost more than at `high`. `max` is available on Opus 4.6 only and does not persist across sessions except through the `CLAUDE_CODE_EFFORT_LEVEL` environment variable."
+            },
+            {
+              "type": "added",
+              "content": "When you first run Opus 4.7, Claude Code applies `xhigh` even if you previously set a different effort level for Opus 4.6 or Sonnet 4.6. Run `/effort` again to choose a different level after switching."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The default effort level depends on your plan. Pro and Max subscribers default to medium effort. All other users default to high effort: API key, Team, Enterprise, and third-party provider (Bedrock, Vertex AI, Foundry) users."
+            },
+            {
+              "type": "added",
+              "content": "`low`, `medium`, `high`, and `xhigh` persist across sessions. `max` provides the deepest reasoning with no constraint on token spending and applies to the current session only, except when set through the `CLAUDE_CODE_EFFORT_LEVEL` environment variable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Your plan's default suits most coding tasks. Raise effort for work that benefits from deeper reasoning, such as hard debugging problems or complex architectural decisions. Higher levels can cause the model to overthink routine work."
+            },
+            {
+              "type": "added",
+              "content": "#### Choose an effort level"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For one-off deep reasoning without changing your session setting, include \"ultrathink\" in your prompt to trigger high effort for that turn. This has no effect if your session is already at high or max."
+            },
+            {
+              "type": "added",
+              "content": "Each level trades token spend against capability. The default suits most coding tasks; adjust when you want a different balance."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Setting effort:**"
+            },
+            {
+              "type": "added",
+              "content": "| Level | When to use it |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `low` | Reserve for short, scoped, latency-sensitive tasks that are not intelligence-sensitive |"
+            },
+            {
+              "type": "added",
+              "content": "| `medium` | Reduces token usage for cost-sensitive work that can trade off some intelligence |"
+            },
+            {
+              "type": "added",
+              "content": "| `high` | Balances token usage and intelligence. Use as a minimum for intelligence-sensitive work, or to reduce token spend relative to `xhigh` |"
+            },
+            {
+              "type": "added",
+              "content": "| `xhigh` | Best results for most coding and agentic tasks. Recommended default on Opus 4.7 |"
+            },
+            {
+              "type": "added",
+              "content": "| `max` | Can improve performance on demanding tasks but may show diminishing returns and is prone to overthinking. Test before adopting broadly |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The effort scale is calibrated per model, so the same level name does not represent the same underlying value across models."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For one-off deep reasoning without changing your session setting, include \"ultrathink\" in your prompt to raise effort for that turn. This has no effect if your session is already at the highest available level."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Set the effort level"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **`/effort`**: run `/effort low`, `/effort medium`, `/effort high`, or `/effort max` to change the level, or `/effort auto` to reset to the model default"
+            },
+            {
+              "type": "added",
+              "content": "You can change effort through any of the following:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **`/effort`**: run `/effort` followed by a level name to change it, or `/effort auto` to reset to the model default"
+            },
+            {
+              "type": "context",
+              "content": "- **In `/model`**: use left/right arrow keys to adjust the effort slider when selecting a model"
+            },
+            {
+              "type": "removed",
+              "content": "- **`--effort` flag**: pass `low`, `medium`, `high`, or `max` to set the level for a single session when launching Claude Code"
+            },
+            {
+              "type": "removed",
+              "content": "- **Environment variable**: set `CLAUDE_CODE_EFFORT_LEVEL` to `low`, `medium`, `high`, `max`, or `auto`"
+            },
+            {
+              "type": "removed",
+              "content": "- **Settings**: set `effortLevel` in your settings file to `\"low\"`, `\"medium\"`, or `\"high\"`"
+            },
+            {
+              "type": "added",
+              "content": "- **`--effort` flag**: pass a level name to set it for a single session when launching Claude Code"
+            },
+            {
+              "type": "added",
+              "content": "- **Environment variable**: set `CLAUDE_CODE_EFFORT_LEVEL` to a level name or `auto`"
+            },
+            {
+              "type": "added",
+              "content": "- **Settings**: set `effortLevel` in your settings file"
+            },
+            {
+              "type": "context",
+              "content": "- **Skill and subagent frontmatter**: set `effort` in a [skill](/en/skills#frontmatter-reference) or [subagent](/en/sub-agents#supported-frontmatter-fields) markdown file to override the effort level when that skill or subagent runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The environment variable takes precedence over all other methods, then your configured level, then the model default. Frontmatter effort applies when that skill or subagent is active, overriding the session level but not the environment variable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Effort is supported on Opus 4.6 and Sonnet 4.6. The effort slider appears in `/model` when a supported model is selected. The current effort level is also displayed next to the logo and spinner, for example \"with low effort\", so you can confirm which setting is active without opening `/model`."
+            },
+            {
+              "type": "added",
+              "content": "The effort slider appears in `/model` when a supported model is selected. The current effort level is also displayed next to the logo and spinner, for example \"with low effort\", so you can confirm which setting is active without opening `/model`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Adaptive reasoning and fixed thinking budgets"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Adaptive reasoning makes thinking optional on each step, so Claude can respond faster to routine prompts and reserve deeper thinking for steps that benefit from it. If you want Claude to think more or less often than the current level produces, you can say so directly in your prompt or in `CLAUDE.md`; the model responds to that guidance within its effort setting."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Opus 4.7 always uses adaptive reasoning. The fixed thinking budget mode and `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` do not apply to it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To disable adaptive reasoning on Opus 4.6 and Sonnet 4.6 and revert to the previous fixed thinking budget, set `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1`. When disabled, these models use the fixed budget controlled by `MAX_THINKING_TOKENS`. See [environment variables](/en/env-vars)."
+            },
+            {
+              "type": "added",
+              "content": "On Opus 4.6 and Sonnet 4.6, you can set `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` to revert to the previous fixed thinking budget controlled by `MAX_THINKING_TOKENS`. See [environment variables](/en/env-vars)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Extended context"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Opus 4.6 and Sonnet 4.6 support a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions with large codebases."
+            },
+            {
+              "type": "added",
+              "content": "Opus 4.7, Opus 4.6, and Sonnet 4.6 support a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions with large codebases."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Availability varies by model and plan. On Max, Team, and Enterprise plans, Opus is automatically upgraded to 1M context with no additional configuration. This applies to both Team Standard and Team Premium seats."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Plan | Opus 4.6 with 1M context | Sonnet 4.6 with 1M context |"
+            },
+            {
+              "type": "added",
+              "content": "| Plan | Opus with 1M context | Sonnet with 1M context |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| Max, Team, and Enterprise | Included with subscription | Requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |"
+            },
+            {
+              "type": "context",
+              "content": "| Pro | Requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) | Requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -194,7 +231,7 @@ You can also use the `[1m]` suffix with model aliases or full model names:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "/model sonnet[1m]"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Or append [1m] to a full model name"
+            },
+            {
+              "type": "removed",
+              "content": "/model claude-opus-4-6[1m]"
+            },
+            {
+              "type": "added",
+              "content": "/model claude-opus-4-7[1m]"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Checking your current model"
+            }
+          ]
+        },
+        {
+          "header": "@@ -211,7 +248,7 @@ Use `ANTHROPIC_CUSTOM_MODEL_OPTION` to add a single custom entry to the `/model`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "This example sets all three variables to make a gateway-routed Opus deployment selectable:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_CUSTOM_MODEL_OPTION=\"my-gateway/claude-opus-4-6\""
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_CUSTOM_MODEL_OPTION=\"my-gateway/claude-opus-4-7\""
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_CUSTOM_MODEL_OPTION_NAME=\"Opus via Gateway\""
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION=\"Custom deployment routed through the internal LLM gateway\""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -247,19 +284,19 @@ Use the following environment variables with version-specific model IDs for your",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Provider | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Bedrock | `export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-6-v1'` |"
+            },
+            {
+              "type": "removed",
+              "content": "| Vertex AI | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'` |"
+            },
+            {
+              "type": "removed",
+              "content": "| Foundry | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6'` |"
+            },
+            {
+              "type": "added",
+              "content": "| Bedrock | `export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-7'` |"
+            },
+            {
+              "type": "added",
+              "content": "| Vertex AI | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'` |"
+            },
+            {
+              "type": "added",
+              "content": "| Foundry | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Apply the same pattern for `ANTHROPIC_DEFAULT_SONNET_MODEL` and `ANTHROPIC_DEFAULT_HAIKU_MODEL`. For current and legacy model IDs across all providers, see [Models overview](https://platform.claude.com/docs/en/about-claude/models/overview). To upgrade users to a new model version, update these environment variables and redeploy."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To enable [extended context](#extended-context) for a pinned model, append `[1m]` to the model ID in `ANTHROPIC_DEFAULT_OPUS_MODEL` or `ANTHROPIC_DEFAULT_SONNET_MODEL`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-6[1m]'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7[1m]'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `[1m]` suffix applies the 1M context window to all usage of that alias, including `opusplan`. Claude Code strips the suffix before sending the model ID to your provider. Only append `[1m]` when the underlying model supports 1M context, such as Opus 4.6 or Sonnet 4.6."
+            },
+            {
+              "type": "added",
+              "content": "The `[1m]` suffix applies the 1M context window to all usage of that alias, including `opusplan`. Claude Code strips the suffix before sending the model ID to your provider. Only append `[1m]` when the underlying model supports 1M context, such as Opus 4.7 or Sonnet 4.6."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `settings.availableModels` allowlist still applies when using third-party providers. Filtering matches on the model alias (`opus`, `sonnet`, `haiku`), not the provider-specific model ID."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -282,6 +319,7 @@ Claude Code enables features like [effort levels](#adjust-effort-level) and [ext",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Capability value | Enables |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `effort` | [Effort levels](#adjust-effort-level) and the `/effort` command |"
+            },
+            {
+              "type": "added",
+              "content": "| `xhigh_effort` | The `xhigh` effort level |"
+            },
+            {
+              "type": "context",
+              "content": "| `max_effort` | The `max` effort level |"
+            },
+            {
+              "type": "context",
+              "content": "| `thinking` | [Extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) |"
+            },
+            {
+              "type": "context",
+              "content": "| `adaptive_thinking` | Adaptive reasoning that dynamically allocates thinking based on task complexity |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -294,8 +332,8 @@ This example pins Opus to a Bedrock custom model ARN, sets a friendly name, and",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='arn:aws:bedrock:us-east-1:123456789012:custom-model/abc'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL_NAME='Opus via Bedrock'"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION='Opus 4.6 routed through a Bedrock custom endpoint'"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES='effort,max_effort,thinking,adaptive_thinking,interleaved_thinking'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION='Opus 4.7 routed through a Bedrock custom endpoint'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES='effort,xhigh_effort,max_effort,thinking,adaptive_thinking,interleaved_thinking'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Override model IDs per version"
+            }
+          ]
+        },
+        {
+          "header": "@@ -311,8 +349,8 @@ Set `modelOverrides` in your [settings file](/en/settings#settings-files):",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"modelOverrides\": {"
+            },
+            {
+              "type": "removed",
+              "content": "    \"claude-opus-4-6\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-prod\","
+            },
+            {
+              "type": "removed",
+              "content": "    \"claude-opus-4-5-20251101\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-45-prod\","
+            },
+            {
+              "type": "added",
+              "content": "    \"claude-opus-4-7\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-prod\","
+            },
+            {
+              "type": "added",
+              "content": "    \"claude-opus-4-6\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/opus-46-prod\","
+            },
+            {
+              "type": "context",
+              "content": "    \"claude-sonnet-4-6\": \"arn:aws:bedrock:us-east-2:123456789012:application-inference-profile/sonnet-prod\""
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 5,
+      "deletions": 11,
+      "explanation": "Autoモードがデフォルトで有効になったことに伴い、従来の有効化フラグに関する説明が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -32,7 +32,7 @@ You can switch modes mid-session, at startup, or as a persistent default. The mo",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**During a session**: press `Shift+Tab` to cycle `default` → `acceptEdits` → `plan`. The current mode appears in the status bar. Not every mode is in the default cycle:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- `auto`: appears after you opt in with `--enable-auto-mode` or the persisted equivalent in settings"
+            },
+            {
+              "type": "added",
+              "content": "- `auto`: appears when your account meets the [auto mode requirements](#eliminate-prompts-with-auto-mode)"
+            },
+            {
+              "type": "context",
+              "content": "- `bypassPermissions`: appears after you start with `--permission-mode bypassPermissions`, `--dangerously-skip-permissions`, or `--allow-dangerously-skip-permissions`; the `--allow-` variant adds the mode to the cycle without activating it"
+            },
+            {
+              "type": "context",
+              "content": "- `dontAsk`: never appears in the cycle; set it with `--permission-mode dontAsk`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -127,7 +127,7 @@ Each approve option also offers to clear the planning context first.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Eliminate prompts with auto mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto mode requires Claude Code v2.1.83 or later."
+            },
+            {
+              "type": "added",
+              "content": "Auto mode requires Claude Code v2.1.83 or later. On Max, Team, Enterprise, and Anthropic API plans, auto mode appears in the `Shift+Tab` cycle without the `--enable-auto-mode` flag."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto mode lets Claude execute without permission prompts. A separate classifier model reviews actions before they run, blocking anything that escalates beyond your request, targets unrecognized infrastructure, or appears driven by hostile content Claude read."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -135,19 +135,13 @@ Auto mode is a research preview. It reduces prompts but does not guarantee safet",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto mode is available only when your account meets all of these requirements:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Plan**: Team, Enterprise, or API. Not available on Pro or Max."
+            },
+            {
+              "type": "added",
+              "content": "- **Plan**: Max, Team, Enterprise, or API. Not available on Pro."
+            },
+            {
+              "type": "context",
+              "content": "- **Admin**: on Team and Enterprise, an admin must enable it in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) before users can turn it on. Admins can also lock it off by setting `permissions.disableAutoMode` to `\"disable\"` in [managed settings](/en/permissions#managed-settings)."
+            },
+            {
+              "type": "removed",
+              "content": "- **Model**: Claude Sonnet 4.6 or Opus 4.6. Not available on Haiku or claude-3 models."
+            },
+            {
+              "type": "added",
+              "content": "- **Model**: Claude Sonnet 4.6, Opus 4.6, or later on Team, Enterprise, and API plans; Claude Opus 4.7 on Max plans. Not available on Haiku or claude-3 models."
+            },
+            {
+              "type": "context",
+              "content": "- **Provider**: Anthropic API only. Not available on Bedrock, Vertex, or Foundry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports auto mode as unavailable, one of these requirements is unmet; this is not a transient outage."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Once enabled, start with the flag and `auto` joins the `Shift+Tab` cycle:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "claude --enable-auto-mode"
+            },
+            {
+              "type": "removed",
+              "content": "```"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### What the classifier blocks by default"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The classifier trusts your working directory and your repo's configured remotes. Everything else is treated as external until you [configure trusted infrastructure](/en/permissions#configure-the-auto-mode-classifier)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -208,7 +202,7 @@ The classifier checks [subagent](/en/sub-agents) work at three points:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "2. While the subagent runs, each of its actions goes through the classifier with the same rules as the parent session, and any `permissionMode` in the subagent's frontmatter is ignored."
+            },
+            {
+              "type": "context",
+              "content": "3. When the subagent finishes, the classifier reviews its full action history; if that return check flags a concern, a security warning is prepended to the subagent's results."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The classifier currently runs on Claude Sonnet 4.6 regardless of your main session model. Classifier calls count toward your token usage. Each check sends a portion of the transcript plus the pending action, adding a round-trip before execution. Reads and working-directory edits outside protected paths skip the classifier, so the overhead comes mainly from shell commands and network operations."
+            },
+            {
+              "type": "added",
+              "content": "The classifier uses the same model as your main session. Classifier calls count toward your token usage. Each check sends a portion of the transcript plus the pending action, adding a round-trip before execution. Reads and working-directory edits outside protected paths skip the classifier, so the overhead comes mainly from shell commands and network operations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Allow only pre-approved tools with dontAsk mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "設定ファイル内のeffortLevelに指定できる値の範囲が、最新のモデル仕様に合わせて更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -178,7 +178,7 @@ The `$schema` line in the example above points to the [official JSON schema](htt",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `disableDeepLinkRegistration` | Set to `\"disable\"` to prevent Claude Code from registering the `claude-cli://` protocol handler with the operating system on startup. Deep links let external tools open a Claude Code session with a pre-filled prompt via `claude-cli://open?q=...`. The `q` parameter supports multi-line prompts using URL-encoded newlines (`%0A`). Useful in environments where protocol handler registration is restricted or managed separately | `\"disable\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disabledMcpjsonServers` | List of specific MCP servers from `.mcp.json` files to reject | `[\"filesystem\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableSkillShellExecution` | Disable inline shell execution for `` !`...` `` and ` ```! ` blocks in [skills](/en/skills) and custom commands from user, project, plugin, or additional-directory sources. Commands are replaced with `[shell command execution disabled by policy]` instead of being run. Bundled and managed skills are not affected. Most useful in [managed settings](/en/permissions#managed-settings) where users cannot override it | `true` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `effortLevel` | Persist the [effort level](/en/model-config#adjust-effort-level) across sessions. Accepts `\"low\"`, `\"medium\"`, or `\"high\"`. Written automatically when you run `/effort low`, `/effort medium`, or `/effort high`. Supported on Opus 4.6 and Sonnet 4.6 | `\"medium\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `effortLevel` | Persist the [effort level](/en/model-config#adjust-effort-level) across sessions. Accepts `\"low\"`, `\"medium\"`, `\"high\"`, or `\"xhigh\"`. Written automatically when you run `/effort` with one of those values. See [Adjust effort level](/en/model-config#adjust-effort-level) for supported models | `\"xhigh\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enableAllProjectMcpServers` | Automatically approve all MCP servers defined in project `.mcp.json` files | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enabledMcpjsonServers` | List of specific MCP servers from `.mcp.json` files to approve | `[\"memory\", \"github\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `env` | Environment variables that will be applied to every session | `{\"FOO\": \"bar\"}` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "カスタムスキルの実行環境に関連する内部的な記述が微調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -183,7 +183,7 @@ All fields are optional. Only `description` is recommended so Claude knows when",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `user-invocable` | No | Set to `false` to hide from the `/` menu. Use for background knowledge users shouldn't invoke directly. Default: `true`. |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowed-tools` | No | Tools Claude can use without asking permission when this skill is active. Accepts a space-separated string or a YAML list. |"
+            },
+            {
+              "type": "context",
+              "content": "| `model` | No | Model to use when this skill is active. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `effort` | No | [Effort level](/en/model-config#adjust-effort-level) when this skill is active. Overrides the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `max` (Opus 4.6 only). |"
+            },
+            {
+              "type": "added",
+              "content": "| `effort` | No | [Effort level](/en/model-config#adjust-effort-level) when this skill is active. Overrides the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model. |"
+            },
+            {
+              "type": "context",
+              "content": "| `context` | No | Set to `fork` to run in a forked subagent context. |"
+            },
+            {
+              "type": "context",
+              "content": "| `agent` | No | Which subagent type to use when `context: fork` is set. |"
+            },
+            {
+              "type": "context",
+              "content": "| `hooks` | No | Hooks scoped to this skill's lifecycle. See [Hooks in skills and agents](/en/hooks#hooks-in-skills-and-agents) for configuration format. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ステータスラインに表示される思考情報の表示条件が、アダプティブ・リーズニングの仕様変更に伴い調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -174,7 +174,7 @@ Your status line command receives this JSON structure via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  \"session_name\": \"my-session\","
+            },
+            {
+              "type": "context",
+              "content": "  \"transcript_path\": \"/path/to/transcript.jsonl\","
+            },
+            {
+              "type": "context",
+              "content": "  \"model\": {"
+            },
+            {
+              "type": "removed",
+              "content": "    \"id\": \"claude-opus-4-6\","
+            },
+            {
+              "type": "added",
+              "content": "    \"id\": \"claude-opus-4-7\","
+            },
+            {
+              "type": "context",
+              "content": "    \"display_name\": \"Opus\""
+            },
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"workspace\": {"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "サブエージェントが利用する思考ロジックの説明が、最新モデルの仕様に合わせて更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -201,7 +201,7 @@ The following fields can be used in the YAML frontmatter. Only `name` and `descr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `description` | Yes | When Claude should delegate to this subagent |"
+            },
+            {
+              "type": "context",
+              "content": "| `tools` | No | [Tools](#available-tools) the subagent can use. Inherits all tools if omitted |"
+            },
+            {
+              "type": "context",
+              "content": "| `disallowedTools` | No | Tools to deny, removed from inherited or specified list |"
+            },
+            {
+              "type": "removed",
+              "content": "| `model` | No | [Model](#choose-a-model) to use: `sonnet`, `opus`, `haiku`, a full model ID (for example, `claude-opus-4-6`), or `inherit`. Defaults to `inherit` |"
+            },
+            {
+              "type": "added",
+              "content": "| `model` | No | [Model](#choose-a-model) to use: `sonnet`, `opus`, `haiku`, a full model ID (for example, `claude-opus-4-7`), or `inherit`. Defaults to `inherit` |"
+            },
+            {
+              "type": "context",
+              "content": "| `permissionMode` | No | [Permission mode](#permission-modes): `default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, or `plan` |"
+            },
+            {
+              "type": "context",
+              "content": "| `maxTurns` | No | Maximum number of agentic turns before the subagent stops |"
+            },
+            {
+              "type": "context",
+              "content": "| `skills` | No | [Skills](/en/skills) to load into the subagent's context at startup. The full skill content is injected, not just made available for invocation. Subagents don't inherit skills from the parent conversation |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -209,7 +209,7 @@ The following fields can be used in the YAML frontmatter. Only `name` and `descr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `hooks` | No | [Lifecycle hooks](#define-hooks-for-subagents) scoped to this subagent |"
+            },
+            {
+              "type": "context",
+              "content": "| `memory` | No | [Persistent memory scope](#enable-persistent-memory): `user`, `project`, or `local`. Enables cross-session learning |"
+            },
+            {
+              "type": "context",
+              "content": "| `background` | No | Set to `true` to always run this subagent as a [background task](#run-subagents-in-foreground-or-background). Default: `false` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `effort` | No | Effort level when this subagent is active. Overrides the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `max` (Opus 4.6 only) |"
+            },
+            {
+              "type": "added",
+              "content": "| `effort` | No | Effort level when this subagent is active. Overrides the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model |"
+            },
+            {
+              "type": "context",
+              "content": "| `isolation` | No | Set to `worktree` to run the subagent in a temporary [git worktree](/en/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees), giving it an isolated copy of the repository. The worktree is automatically cleaned up if the subagent makes no changes |"
+            },
+            {
+              "type": "context",
+              "content": "| `color` | No | Display color for the subagent in the task list and transcript. Accepts `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, or `cyan` |"
+            },
+            {
+              "type": "context",
+              "content": "| `initialPrompt` | No | Auto-submitted as the first user turn when this agent runs as the main session agent (via `--agent` or the `agent` setting). [Commands](/en/commands) and [skills](/en/skills) are processed. Prepended to any user-provided prompt |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -219,7 +219,7 @@ The following fields can be used in the YAML frontmatter. Only `name` and `descr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "The `model` field controls which [AI model](/en/model-config) the subagent uses:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Model alias**: Use one of the available aliases: `sonnet`, `opus`, or `haiku`"
+            },
+            {
+              "type": "removed",
+              "content": "- **Full model ID**: Use a full model ID such as `claude-opus-4-6` or `claude-sonnet-4-6`. Accepts the same values as the `--model` flag"
+            },
+            {
+              "type": "added",
+              "content": "- **Full model ID**: Use a full model ID such as `claude-opus-4-7` or `claude-sonnet-4-6`. Accepts the same values as the `--model` flag"
+            },
+            {
+              "type": "context",
+              "content": "- **inherit**: Use the same model as the main conversation"
+            },
+            {
+              "type": "context",
+              "content": "- **Omitted**: If not specified, defaults to `inherit` (uses the same model as the main conversation)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "ultrareview.md",
+      "additions": 23,
+      "deletions": 0,
+      "explanation": "複数のサブエージェントを駆使してブランチ全体の深いコードレビューを行う新機能Ultrareviewの専用ドキュメントが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,23 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: ultrareview"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/ultrareview.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Ultrareview"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Run a deep multi-agent code review with /ultrareview."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Ultrareview requires Claude Code v2.1.111 or later and Claude Opus 4.7."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`/ultrareview` runs a deep multi-agent code review over the changes on your current branch. It spawns parallel bug-hunting subagents to find issues, adversarially verifies each finding to filter out false positives, and returns a ranked list of confirmed problems."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use Ultrareview before opening a pull request when you want higher confidence than a single-pass review provides."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Full documentation for Ultrareview is coming soon."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Related"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See these pages for related review workflows:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Code review](/en/code-review)"
+            },
+            {
+              "type": "added",
+              "content": "- [Subagents](/en/sub-agents)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
