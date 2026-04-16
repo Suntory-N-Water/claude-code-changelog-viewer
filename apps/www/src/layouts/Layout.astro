@@ -12,6 +12,7 @@ import {
   type FAQItem,
   generateGraphJsonLd,
 } from '../lib/json-ld';
+import { escapeJsonForScript } from '../lib/escape-html';
 
 type JsonLdData =
   | { type: 'website' }
@@ -47,52 +48,60 @@ const ogImage = image || `${siteUrl}/og-image.png`;
 let graphJsonLd: string | null = null;
 
 if (jsonLd?.type === 'website') {
-  graphJsonLd = JSON.stringify(
-    generateGraphJsonLd(
-      { type: 'website', siteUrl, title, description: pageDescription },
-      breadcrumbs,
-      faqItems,
+  graphJsonLd = escapeJsonForScript(
+    JSON.stringify(
+      generateGraphJsonLd(
+        { type: 'website', siteUrl, title, description: pageDescription },
+        breadcrumbs,
+        faqItems,
+      ),
     ),
   );
 } else if (jsonLd?.type === 'article') {
-  graphJsonLd = JSON.stringify(
-    generateGraphJsonLd(
-      {
-        type: 'article',
-        siteUrl,
-        title,
-        description: pageDescription,
-        url: canonicalUrl,
-        version: jsonLd.version,
-        datePublished: jsonLd.datePublished,
-      },
-      breadcrumbs,
+  graphJsonLd = escapeJsonForScript(
+    JSON.stringify(
+      generateGraphJsonLd(
+        {
+          type: 'article',
+          siteUrl,
+          title,
+          description: pageDescription,
+          url: canonicalUrl,
+          version: jsonLd.version,
+          datePublished: jsonLd.datePublished,
+        },
+        breadcrumbs,
+      ),
     ),
   );
 } else if (jsonLd?.type === 'collection') {
-  graphJsonLd = JSON.stringify(
-    generateGraphJsonLd(
-      {
-        type: 'collection',
-        siteUrl,
-        title: jsonLd.title,
-        description: jsonLd.description,
-        url: canonicalUrl,
-      },
-      breadcrumbs,
+  graphJsonLd = escapeJsonForScript(
+    JSON.stringify(
+      generateGraphJsonLd(
+        {
+          type: 'collection',
+          siteUrl,
+          title: jsonLd.title,
+          description: jsonLd.description,
+          url: canonicalUrl,
+        },
+        breadcrumbs,
+      ),
     ),
   );
 } else if (jsonLd?.type === 'page') {
-  graphJsonLd = JSON.stringify(
-    generateGraphJsonLd(
-      {
-        type: 'page',
-        siteUrl,
-        title,
-        description: pageDescription,
-        url: canonicalUrl,
-      },
-      breadcrumbs,
+  graphJsonLd = escapeJsonForScript(
+    JSON.stringify(
+      generateGraphJsonLd(
+        {
+          type: 'page',
+          siteUrl,
+          title,
+          description: pageDescription,
+          url: canonicalUrl,
+        },
+        breadcrumbs,
+      ),
     ),
   );
 }
