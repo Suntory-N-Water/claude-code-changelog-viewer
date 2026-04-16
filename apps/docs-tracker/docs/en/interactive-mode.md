@@ -26,9 +26,9 @@ See [Terminal configuration](/en/terminal-config) for details.
 | `Ctrl+C` | Cancel current input or generation | Standard interrupt |
 | `Ctrl+X Ctrl+K` | Kill all background agents. Press twice within 3 seconds to confirm | Background agent control |
 | `Ctrl+D` | Exit Claude Code session | EOF signal |
-| `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding |
-| `Ctrl+L` | Clear prompt input | Clears typed text, keeps conversation history |
-| `Ctrl+O` | Toggle transcript viewer | Shows detailed tool usage and execution. Also expands MCP calls, which collapse to a single line like "Called slack 3 times" by default. In [fullscreen rendering](/en/fullscreen), cycles through three states: normal prompt, transcript mode, and focus view (last prompt + tool summary + response) |
+| `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding. Turn on Show last response in external editor in `/config` to prepend Claude's previous reply as `#`-commented context above your prompt; the comment block is stripped when you save |
+| `Ctrl+L` | Clear prompt input and redraw screen | Clears typed text and forces a full terminal redraw. Conversation history is kept. Use this to recover if the display becomes garbled or partially blank |
+| `Ctrl+O` | Toggle transcript viewer | Shows detailed tool usage and execution. Also expands MCP calls, which collapse to a single line like "Called slack 3 times" by default |
 | `Ctrl+R` | Reverse search command history | Search through previous commands interactively |
 | `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt |
 | `Ctrl+B` | Background running tasks | Backgrounds bash commands and agents. Tmux users press twice |
@@ -46,7 +46,7 @@ See [Terminal configuration](/en/terminal-config) for details.
 | Shortcut | Description | Context |
 | :- | :- | :- |
 | `Ctrl+K` | Delete to end of line | Stores deleted text for pasting |
-| `Ctrl+U` | Delete from cursor to line start | Stores deleted text for pasting. Repeat to clear across lines in multiline input |
+| `Ctrl+U` | Clear entire input buffer | Stores cleared text for pasting with `Ctrl+Y`. `Cmd+Backspace` deletes from cursor to line start |
 | `Ctrl+Y` | Paste deleted text | Paste text deleted with `Ctrl+K` or `Ctrl+U` |
 | `Alt+Y` (after `Ctrl+Y`) | Cycle paste history | After pasting, cycle through previously deleted text. Requires [Option as Meta](#keyboard-shortcuts) on macOS |
 | `Alt+B` | Move cursor back one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |
@@ -85,6 +85,8 @@ When the transcript viewer is open (toggled with `Ctrl+O`), these shortcuts are 
 | Shortcut | Description |
 | :- | :- |
 | `Ctrl+E` | Toggle show all content |
+| `[` | Write the full conversation to your terminal's native scrollback so `Cmd+F`, tmux copy mode, and other native tools can search it. Requires [fullscreen rendering](/en/fullscreen#search-and-review-the-conversation) |
+| `v` | Write the conversation to a temporary file and open it in `$VISUAL` or `$EDITOR`. Requires [fullscreen rendering](/en/fullscreen) |
 | `q`, `Ctrl+C`, `Esc` | Exit transcript view. All three can be rebound via [`transcript:exit`](/en/keybindings) |
 
 ### Voice input
@@ -294,6 +296,14 @@ When working on complex, multi-step work, Claude creates a task list to track pr
 - To see all tasks or clear them, ask Claude directly: "show me all tasks" or "clear all tasks"
 - Tasks persist across context compactions, helping Claude stay organized on larger projects
 - To share a task list across sessions, set `CLAUDE_CODE_TASK_LIST_ID` to use a named directory in `~/.claude/tasks/`: `CLAUDE_CODE_TASK_LIST_ID=my-project claude`
+
+## Session recap
+
+When you return to the terminal after stepping away, Claude Code shows a one-line recap of what happened in the session so far. The recap generates in the background once at least three minutes have passed since the last completed turn and the terminal is unfocused, so it's ready when you switch back. Recaps only appear once the session has at least three turns, and never twice in a row.
+
+Run `/recap` to generate a summary on demand. To turn automatic recaps off, open `/config` and disable **Session recap**.
+
+Session recap is on by default for every plan and provider. To override the `/config` toggle, set [`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/en/env-vars) to `0` or `1`. The recap is always skipped in non-interactive mode.
 
 ## PR review status
 

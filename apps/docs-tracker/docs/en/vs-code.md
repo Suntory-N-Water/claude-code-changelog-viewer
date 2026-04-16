@@ -61,7 +61,7 @@ Claude automatically sees your selected text. Press `Option+K` (Mac) / `Alt+K` (
 
 Here's an example of asking about a particular line in a file:
 
-When Claude wants to edit a file, it shows a side-by-side comparison of the original and proposed changes, then asks for permission. You can accept, reject, or tell Claude what to do instead.
+When Claude wants to edit a file, it shows a side-by-side comparison of the original and proposed changes, then asks for permission. You can accept, reject, or tell Claude what to do instead. If you edit the proposed content directly in the diff view before accepting, Claude is told that you modified it so it does not assume the file matches its original proposal.
 
 For more ideas on what you can do with Claude Code, see [Common workflows](/en/common-workflows).
 

@@ -272,7 +272,7 @@ async for message in query(
 - **Testing** - Isolated test environments
 - **Multi-tenant systems** - Prevent settings leakage between users
 
-**Backward compatibility:** If your application relied on filesystem settings (custom slash commands, CLAUDE.md instructions, etc.), add `settingSources: ['user', 'project', 'local']` to your options.
+Current SDK releases have reverted this default for `query()`: omitting the option once again loads user, project, and local settings, matching the CLI. Pass `settingSources: []` in TypeScript or `setting_sources=[]` in Python if your application depends on the isolated behavior described above. Python SDK 0.1.59 and earlier treated an empty list the same as omitting the option, so upgrade before relying on `setting_sources=[]`. See [What settingSources does not control](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) for inputs that are read even when `settingSources` is `[]`.
 
 ## Why the Rename?
 

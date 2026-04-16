@@ -11,7 +11,7 @@ source: https://code.claude.com/docs/ja/plugins-reference.md
 
 このリファレンスは、Claude Code プラグインシステムの完全な技術仕様を提供します。コンポーネントスキーマ、CLI コマンド、開発ツールを含みます。
 
-**プラグイン**は、Claude Code をカスタム機能で拡張する自己完結型のコンポーネントディレクトリです。プラグインコンポーネントには、skills、agents、hooks、MCP servers、LSP servers が含まれます。
+**プラグイン**は、Claude Code をカスタム機能で拡張する自己完結型のコンポーネントディレクトリです。プラグインコンポーネントには、skills、agents、hooks、MCP servers、LSP servers、monitors が含まれます。
 
 ## プラグインコンポーネントリファレンス
 
@@ -260,6 +260,56 @@ LSP 統合は以下を提供します:
 
 言語サーバーをまずインストールしてから、マーケットプレイスからプラグインをインストールしてください。
 
+### Monitors
+
+プラグインは、プラグインがアクティブな場合に Claude Code が自動的に開始するバックグラウンド monitors を宣言できます。各 monitor はセッションの期間中シェルコマンドを実行し、すべての stdout 行を Claude に通知として配信するため、Claude は自分自身に開始するよう求められることなく、ログエントリ、ステータス変更、またはポーリングされたイベントに反応できます。
+
+プラグイン monitors は[Monitor tool](/ja/tools-reference#monitor-tool)と同じメカニズムを使用し、その可用性制約を共有します。これらはインタラクティブ CLI セッションでのみ実行され、[hooks](#hooks)と同じ信頼レベルでサンドボックス化されずに実行され、Monitor tool が利用できないホストではスキップされます。
+
+プラグイン monitors には Claude Code v2.1.105 以降が必要です。
+
+**場所**: プラグインルートの `monitors/monitors.json`、または plugin.json 内のインライン
+
+**形式**: monitor エントリの JSON 配列
+
+次の `monitors/monitors.json` はデプロイメントステータスエンドポイントとローカルエラーログを監視します:
+
+```json
+[
+  {
+    "name": "deploy-status",
+    "command": "${CLAUDE_PLUGIN_ROOT}/scripts/poll-deploy.sh ${user_config.api_endpoint}",
+    "description": "Deployment status changes"
+  },
+  {
+    "name": "error-log",
+    "command": "tail -F ./logs/error.log",
+    "description": "Application error log",
+    "when": "on-skill-invoke:debug"
+  }
+]
+```
+
+monitors をインラインで宣言するには、`plugin.json` の `monitors` キーを同じ配列に設定します。デフォルト以外のパスから読み込むには、`monitors` を `"./config/monitors.json"` などの相対パス文字列に設定します。
+
+**必須フィールド:**
+
+| フィールド | 説明 |
+| :- | :- |
+| `name` | プラグイン内で一意の識別子。プラグインが再読み込みされるか skill が再度呼び出されるときに重複プロセスを防ぎます |
+| `command` | セッション作業ディレクトリで永続的なバックグラウンドプロセスとして実行されるシェルコマンド |
+| `description` | 監視対象の簡潔な概要。タスクパネルと通知サマリーに表示されます |
+
+**オプションフィールド:**
+
+| フィールド | 説明 |
+| :- | :- |
+| `when` | monitor がいつ開始するかを制御します。`"always"` はセッション開始時とプラグイン再読み込み時に開始し、デフォルトです。`"on-skill-invoke:<skill-name>"` はこのプラグイン内の名前付き skill が最初にディスパッチされるときに開始します |
+
+`command` 値は MCP および LSP サーバー設定と同じ[変数置換](#environment-variables)をサポートします: `${CLAUDE_PLUGIN_ROOT}`、`${CLAUDE_PLUGIN_DATA}`、`${user_config.*}`、および環境からの任意の `${ENV_VAR}`。スクリプトがプラグイン自体のディレクトリから実行される必要がある場合は、コマンドの前に `cd "${CLAUDE_PLUGIN_ROOT}" && ` を付けます。
+
+セッション中にプラグインを無効にしても、既に実行中の monitors は停止しません。セッションが終了するときに停止します。
+
 ***
 
 ## プラグインインストールスコープ
@@ -299,13 +349,18 @@ LSP 統合は以下を提供します:
   "repository": "https://github.com/author/plugin",
   "license": "MIT",
   "keywords": ["keyword1", "keyword2"],
+  "skills": "./custom/skills/",
   "commands": ["./custom/commands/special.md"],
   "agents": "./custom/agents/",
-  "skills": "./custom/skills/",
   "hooks": "./config/hooks.json",
   "mcpServers": "./mcp-config.json",
   "outputStyles": "./styles/",
-  "lspServers": "./.lsp.json"
+  "lspServers": "./.lsp.json",
+  "monitors": "./monitors.json",
+  "dependencies": [
+    "helper-lib",
+    { "name": "secrets-vault", "version": "~2.1.0" }
+  ]
 }
 ```
 
@@ -335,15 +390,17 @@ LSP 統合は以下を提供します:
 
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
-| `commands` | string\|array | 追加のコマンドファイル/ディレクトリ | `"./custom/cmd.md"` または `["./cmd1.md"]` |
-| `agents` | string\|array | 追加のエージェントファイル | `"./custom/agents/reviewer.md"` |
-| `skills` | string\|array | 追加のスキルディレクトリ | `"./custom/skills/"` |
+| `skills` | string\|array | `<name>/SKILL.md` を含むカスタム skill ディレクトリ（デフォルト `skills/` を置き換え） | `"./custom/skills/"` |
+| `commands` | string\|array | カスタムフラット `.md` skill ファイルまたはディレクトリ（デフォルト `commands/` を置き換え） | `"./custom/cmd.md"` または `["./cmd1.md"]` |
+| `agents` | string\|array | カスタムエージェントファイル（デフォルト `agents/` を置き換え） | `"./custom/agents/reviewer.md"` |
 | `hooks` | string\|array\|object | Hook 設定パスまたはインライン設定 | `"./my-extra-hooks.json"` |
 | `mcpServers` | string\|array\|object | MCP 設定パスまたはインライン設定 | `"./my-extra-mcp-config.json"` |
-| `outputStyles` | string\|array | 追加の出力スタイルファイル/ディレクトリ | `"./styles/"` |
+| `outputStyles` | string\|array | カスタム出力スタイルファイル/ディレクトリ（デフォルト `output-styles/` を置き換え） | `"./styles/"` |
 | `lspServers` | string\|array\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)コード インテリジェンス用の設定（定義へのジャンプ、参照の検索など） | `"./.lsp.json"` |
+| `monitors` | string\|array | プラグインがアクティブな場合に自動的に開始されるバックグラウンド[Monitor](/ja/tools-reference#monitor-tool)設定。[Monitors](#monitors)を参照してください | `"./monitors.json"` |
 | `userConfig` | object | ユーザー設定可能な値は有効化時にプロンプトされます。[ユーザー設定](#user-configuration)を参照してください | 下記を参照 |
 | `channels` | array | メッセージ注入用のチャネル宣言（Telegram、Slack、Discord スタイル）。[チャネル](#channels)を参照してください | 下記を参照 |
+| `dependencies` | array | このプラグインが必要とする他のプラグイン。オプションで semver バージョン制約付き。[プラグイン依存関係バージョンを制約](/ja/plugin-dependencies)を参照してください | `[{ "name": "secrets-vault", "version": "~2.1.0" }]` |
 
 ### ユーザー設定
 
@@ -364,7 +421,7 @@ LSP 統合は以下を提供します:
 }
 ```
 
-キーは有効な識別子である必要があります。各値は MCP および LSP サーバー設定、hook コマンド、および（機密でない値のみ）skill およびエージェントコンテンツで `${user_config.KEY}` として置換可能です。値はプラグインサブプロセスに `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数としてもエクスポートされます。
+キーは有効な識別子である必要があります。各値は MCP および LSP サーバー設定、hook コマンド、monitor コマンド、および（機密でない値のみ）skill およびエージェントコンテンツで `${user_config.KEY}` として置換可能です。値はプラグインサブプロセスに `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数としてもエクスポートされます。
 
 機密でない値は `settings.json` の `pluginConfigs[<plugin-id>].options` に保存されます。機密値はシステムキーチェーン（またはキーチェーンが利用できない場合は `~/.claude/.credentials.json`）に移動します。キーチェーンストレージは OAuth トークンと共有され、約 2 KB の合計制限があるため、機密値は小さく保ってください。
 
@@ -390,12 +447,13 @@ LSP 統合は以下を提供します:
 
 ### パス動作ルール
 
-**重要**: カスタムパスはデフォルトディレクトリを置き換えるのではなく、補足します。
+`skills`、`commands`、`agents`、`outputStyles`、`monitors` の場合、カスタムパスはデフォルトを置き換えます。マニフェストが `skills` を指定する場合、デフォルト `skills/` ディレクトリはスキャンされません。`monitors` を指定する場合、デフォルト `monitors/monitors.json` は読み込まれません。[Hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)は複数のソースを処理するための異なるセマンティクスを持ちます。
 
-- `commands/` が存在する場合、カスタムコマンドパスに加えてロードされます
 - すべてのパスはプラグインルートに相対的で、`./` で始まる必要があります
-- カスタムパスからのコマンドは同じ命名と名前空間ルールを使用します
-- 複数のパスを配列として指定して柔軟性を確保できます
+- カスタムパスからのコンポーネントは同じ命名と名前空間ルールを使用します
+- 複数のパスを配列として指定できます
+- skills、commands、agents、output styles のデフォルトディレクトリを保持してさらにパスを追加するには、配列にデフォルトを含めます: `"skills": ["./skills/", "./extras/"]`
+- skill パスが `SKILL.md` を直接含むディレクトリを指す場合（例: `"skills": ["./"]` がプラグインルートを指す）、`SKILL.md` の frontmatter `name` フィールドが skill の呼び出し名を決定します。これはインストールディレクトリに関係なく安定した名前を提供します。frontmatter に `name` が設定されていない場合、ディレクトリ basename がフォールバックとして使用されます。
 
 **パスの例**:
 
@@ -414,7 +472,7 @@ LSP 統合は以下を提供します:
 
 ### 環境変数
 
-Claude Code は、プラグインパスを参照するための 2 つの変数を提供します。どちらも skill コンテンツ、エージェントコンテンツ、hook コマンド、MCP または LSP サーバー設定に表示される場所にインラインで置換されます。どちらも hook プロセスおよび MCP または LSP サーバーサブプロセスに環境変数としてエクスポートされます。
+Claude Code は、プラグインパスを参照するための 2 つの変数を提供します。どちらも skill コンテンツ、エージェントコンテンツ、hook コマンド、monitor コマンド、MCP または LSP サーバー設定に表示される場所にインラインで置換されます。どちらも hook プロセスおよび MCP または LSP サーバーサブプロセスに環境変数としてエクスポートされます。
 
 **`${CLAUDE_PLUGIN_ROOT}`**: プラグインのインストールディレクトリへの絶対パス。プラグインにバンドルされたスクリプト、バイナリ、設定ファイルを参照するために使用します。このパスはプラグインが更新されると変更されるため、ここに書き込むファイルは更新後に保持されません。
 
@@ -493,20 +551,23 @@ Claude Code は、プラグインパスを参照するための 2 つの変数�
 
 セキュリティと検証の目的で、Claude Code は\_マーケットプレイス\_プラグインをユーザーのローカル**プラグインキャッシュ**（`~/.claude/plugins/cache`）にコピーします。これらを所定の場所で使用するのではなく。この動作を理解することは、外部ファイルを参照するプラグインを開発する際に重要です。
 
+各インストール済みバージョンはキャッシュ内の別のディレクトリです。プラグインを更新またはアンインストールすると、前のバージョンディレクトリは孤立したものとしてマークされ、7 日後に自動的に削除されます。猶予期間により、既に古いバージョンを読み込んだ同時実行 Claude Code セッションがエラーなく実行を続けることができます。
+
+Claude の Glob および Grep ツールは検索中に孤立したバージョンディレクトリをスキップするため、ファイル結果には古いプラグインコードが含まれません。
+
 ### パストラバーサル制限
 
 インストールされたプラグインはディレクトリの外側のファイルを参照できません。プラグインルートの外側をトラバースするパス（`../shared-utils` など）は、これらの外部ファイルがキャッシュにコピーされないため、インストール後は機能しません。
 
 ### 外部依存関係の操作
 
-プラグインがディレクトリの外側のファイルにアクセスする必要がある場合、プラグインディレクトリ内の外部ファイルへのシンボリックリンクを作成できます。シンボリックリンクはコピープロセス中に尊重されます:
+プラグインがディレクトリの外側のファイルにアクセスする必要がある場合、プラグインディレクトリ内の外部ファイルへのシンボリックリンクを作成できます。シンボリックリンクはキャッシュに保持されるのではなく逆参照され、実行時にそのターゲットに解決されます。次のコマンドはプラグインディレクトリ内から共有ユーティリティの場所へのリンクを作成します:
 
 ```bash
-# プラグインディレクトリ内
 ln -s /path/to/shared-utils ./shared-utils
 ```
 
-シンボリックリンクされたコンテンツはプラグインキャッシュにコピーされます。これはキャッシングシステムのセキュリティ上の利点を維持しながら柔軟性を提供します。
+これはキャッシングシステムのセキュリティ上の利点を維持しながら柔軟性を提供します。
 
 ***
 
@@ -520,22 +581,28 @@ ln -s /path/to/shared-utils ./shared-utils
 enterprise-plugin/
 ├── .claude-plugin/           # メタデータディレクトリ（オプション）
 │   └── plugin.json             # プラグインマニフェスト
-├── commands/                 # デフォルトコマンド場所
-│   ├── status.md
-│   └── logs.md
-├── agents/                   # デフォルトエージェント場所
-│   ├── security-reviewer.md
-│   ├── performance-tester.md
-│   └── compliance-checker.md
-├── skills/                   # エージェント Skills
+├── skills/                   # Skills
 │   ├── code-reviewer/
 │   │   └── SKILL.md
 │   └── pdf-processor/
 │       ├── SKILL.md
 │       └── scripts/
+├── commands/                 # フラット .md ファイルとしての Skills
+│   ├── status.md
+│   └── logs.md
+├── agents/                   # Subagent 定義
+│   ├── security-reviewer.md
+│   ├── performance-tester.md
+│   └── compliance-checker.md
+├── output-styles/            # 出力スタイル定義
+│   └── terse.md
+├── monitors/                 # バックグラウンド monitor 設定
+│   └── monitors.json
 ├── hooks/                    # Hook 設定
 │   ├── hooks.json           # メイン hook 設定
 │   └── security-hooks.json  # 追加 hooks
+├── bin/                      # PATH に追加されるプラグイン実行可能ファイル
+│   └── my-tool               # Bash tool で裸のコマンドとして呼び出し可能
 ├── settings.json            # プラグインのデフォルト設定
 ├── .mcp.json                # MCP サーバー定義
 ├── .lsp.json                # LSP サーバー設定
@@ -547,20 +614,23 @@ enterprise-plugin/
 └── CHANGELOG.md             # バージョン履歴
 ```
 
-`.claude-plugin/` ディレクトリは `plugin.json` ファイルを含みます。他のすべてのディレクトリ（commands/、agents/、skills/、hooks/）は `.claude-plugin/` 内ではなく、プラグインルートにある必要があります。
+`.claude-plugin/` ディレクトリは `plugin.json` ファイルを含みます。他のすべてのディレクトリ（commands/、agents/、skills/、output-styles/、monitors/、hooks/）は `.claude-plugin/` 内ではなく、プラグインルートにある必要があります。
 
 ### ファイル場所リファレンス
 
 | コンポーネント | デフォルト場所 | 目的 |
 | :- | :- | :- |
 | **マニフェスト** | `.claude-plugin/plugin.json` | プラグインメタデータと設定（オプション） |
-| **コマンド** | `commands/` | Skill マークダウンファイル（レガシー。新しい skills には `skills/` を使用） |
-| **エージェント** | `agents/` | Subagent マークダウンファイル |
 | **Skills** | `skills/` | `<name>/SKILL.md` 構造の Skills |
+| **コマンド** | `commands/` | フラット Markdown ファイルとしての Skills。新しいプラグインには `skills/` を使用 |
+| **Agents** | `agents/` | Subagent Markdown ファイル |
+| **出力スタイル** | `output-styles/` | 出力スタイル定義 |
 | **Hooks** | `hooks/hooks.json` | Hook 設定 |
 | **MCP servers** | `.mcp.json` | MCP サーバー定義 |
 | **LSP servers** | `.lsp.json` | 言語サーバー設定 |
-| **設定** | `settings.json` | プラグインが有効になったときに適用されるデフォルト設定。現在、[`agent`](/ja/sub-agents)設定のみがサポートされています |
+| **Monitors** | `monitors/monitors.json` | バックグラウンド monitor 設定 |
+| **実行可能ファイル** | `bin/` | Bash tool の `PATH` に追加される実行可能ファイル。ここのファイルはプラグインが有効な場合、任意の Bash tool 呼び出しで裸のコマンドとして呼び出し可能 |
+| **設定** | `settings.json` | プラグインが有効になったときに適用されるデフォルト設定。現在、[`agent`](/ja/sub-agents)および[`subagentStatusLine`](/ja/statusline#subagent-status-lines)キーのみがサポートされています |
 
 ***
 
@@ -587,7 +657,7 @@ claude plugin install <plugin> [options]
 | `-s, --scope <scope>` | インストールスコープ: `user`、`project`、または `local` | `user` |
 | `-h, --help` | コマンドのヘルプを表示 | |
 
-スコープはインストールされたプラグインが追加される設定ファイルを決定します。たとえば、--scope project は `.claude/settings.json` の `enabledPlugins` に書き込み、プロジェクトリポジトリをクローンした全員がプラグインを利用できるようにします。
+スコープはインストールされたプラグインが追加される設定ファイルを決定します。たとえば、`--scope project` は `.claude/settings.json` の `enabledPlugins` に書き込み、プロジェクトリポジトリをクローンした全員がプラグインを利用できるようにします。
 
 **例:**
 
@@ -695,7 +765,7 @@ claude plugin update <plugin> [options]
 
 - どのプラグインが読み込まれているか
 - プラグインマニフェストのエラー
-- コマンド、エージェント、hook 登録
+- Skill、agent、hook 登録
 - MCP サーバー初期化
 
 ### 一般的な問題
@@ -703,7 +773,7 @@ claude plugin update <plugin> [options]
 | 問題 | 原因 | 解決策 |
 | :- | :- | :- |
 | プラグインが読み込まれない | 無効な `plugin.json` | `claude plugin validate` または `/plugin validate` で `plugin.json`、skill/agent/command frontmatter、`hooks/hooks.json` の構文とスキーマを確認 |
-| コマンドが表示されない | ディレクトリ構造が間違っている | `commands/` がルートにあることを確認。`.claude-plugin/` 内ではない |
+| Skills が表示されない | ディレクトリ構造が間違っている | `skills/` または `commands/` がプラグインルートにあることを確認。`.claude-plugin/` 内ではない |
 | Hooks が発火しない | スクリプトが実行可能でない | `chmod +x script.sh` を実行 |
 | MCP サーバーが失敗 | `${CLAUDE_PLUGIN_ROOT}` が不足 | すべてのプラグインパスに変数を使用 |
 | パスエラー | 絶対パスが使用されている | すべてのパスは相対的で `./` で始まる必要があります |
@@ -755,7 +825,7 @@ claude plugin update <plugin> [options]
 
 ### ディレクトリ構造の間違い
 
-**症状**: プラグインは読み込まれるがコンポーネント（コマンド、エージェント、hooks）が不足している。
+**症状**: プラグインは読み込まれるがコンポーネント（skills、agents、hooks）が不足している。
 
 **正しい構造**: コンポーネントはプラグインルートにある必要があり、`.claude-plugin/` 内ではありません。`.claude-plugin/` には `plugin.json` のみが属します。
 

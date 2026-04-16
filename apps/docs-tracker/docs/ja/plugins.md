@@ -67,12 +67,12 @@ mkdir my-first-plugin/.claude-plugin
 
 ```json my-first-plugin/.claude-plugin/plugin.json theme={null}
 {
-"name": "my-first-plugin",
-"description": "A greeting plugin to learn the basics",
-"version": "1.0.0",
-"author": {
-"name": "Your Name"
-}
+  "name": "my-first-plugin",
+  "description": "A greeting plugin to learn the basics",
+  "version": "1.0.0",
+  "author": {
+    "name": "Your Name"
+  }
 }
 ```
 
@@ -154,19 +154,21 @@ Claude があなたを名前で挨拶します。スキルに引数を渡す方�
 
 ## プラグイン構造の概要
 
-スキルを使用してプラグインを作成しましたが、プラグインにはさらに多くの機能を含めることができます。カスタムエージェント、フック、MCP サーバー、LSP サーバーです。
+スキルを使用してプラグインを作成しましたが、プラグインにはさらに多くの機能を含めることができます。カスタムエージェント、フック、MCP サーバー、LSP サーバー、バックグラウンドモニターです。
 
 **よくある間違い**：`commands/`、`agents/`、`skills/`、`hooks/` を `.claude-plugin/` ディレクトリ内に配置しないでください。`plugin.json` のみが `.claude-plugin/` 内に入ります。他のすべてのディレクトリはプラグインルートレベルにある必要があります。
 
 | ディレクトリ | 場所 | 目的 |
 | :- | :- | :- |
 | `.claude-plugin/` | プラグインルート | `plugin.json` マニフェストを含みます（コンポーネントがデフォルトの場所を使用する場合はオプション） |
-| `commands/` | プラグインルート | Markdown ファイルとしてのスキル |
+| `skills/` | プラグインルート | `<name>/SKILL.md` ディレクトリとしてのスキル |
+| `commands/` | プラグインルート | フラットな Markdown ファイルとしてのスキル。新しいプラグインには `skills/` を使用してください |
 | `agents/` | プラグインルート | カスタムエージェント定義 |
-| `skills/` | プラグインルート | `SKILL.md` ファイルを含むエージェントスキル |
 | `hooks/` | プラグインルート | `hooks.json` のイベントハンドラー |
 | `.mcp.json` | プラグインルート | MCP サーバー設定 |
 | `.lsp.json` | プラグインルート | コード インテリジェンス用の LSP サーバー設定 |
+| `monitors/` | プラグインルート | `monitors.json` のバックグラウンドモニター設定 |
+| `bin/` | プラグインルート | プラグインが有効になっている間に Bash ツールの `PATH` に追加される実行可能ファイル |
 | `settings.json` | プラグインルート | プラグインが有効になったときに適用されるデフォルト[設定](/ja/settings) |
 
 **次のステップ**：さらに多くの機能を追加する準備ができましたか？[より複雑なプラグインを開発する](#develop-more-complex-plugins)にジャンプして、エージェント、フック、MCP サーバー、LSP サーバーを追加してください。すべてのプラグインコンポーネントの完全な技術仕様については、[プラグインリファレンス](/ja/plugins-reference)を参照してください。
@@ -190,11 +192,10 @@ my-plugin/
         └── SKILL.md
 ```
 
-各 `SKILL.md` には、`name` と `description` フィールドを含むフロントマターが必要で、その後に指示が続きます。
+各 `SKILL.md` には YAML フロントマターと指示が含まれます。Claude がスキルをいつ使用するかを知るように `description` を含めてください。
 
 ```yaml
 ---
-name: code-review
 description: Reviews code for best practices and potential issues. Use when reviewing code, checking PRs, or analyzing code quality.
 ---
 
@@ -229,9 +230,27 @@ LSP（Language Server Protocol）プラグインは Claude にリアルタイム
 
 完全な LSP 設定オプションについては、[LSP サーバー](/ja/plugins-reference#lsp-servers)を参照してください。
 
+### プラグインでバックグラウンドモニターを追加する
+
+バックグラウンドモニターを使用すると、プラグインはログ、ファイル、または外部ステータスをバックグラウンドで監視し、イベントが到着したときに Claude に通知できます。Claude Code はプラグインがアクティブな場合、各モニターを自動的に開始するため、Claude にモニターの開始を指示する必要はありません。
+
+プラグインルートに `monitors/monitors.json` ファイルを追加し、モニターエントリの配列を含めます。
+
+```json monitors/monitors.json theme={null}
+[
+  {
+    "name": "error-log",
+    "command": "tail -F ./logs/error.log",
+    "description": "Application error log"
+  }
+]
+```
+
+`command` からの各 stdout 行は、セッション中に Claude への通知として配信されます。`when` トリガーと変数置換を含む完全なスキーマについては、[モニター](/ja/plugins-reference#monitors)を参照してください。
+
 ### プラグインでデフォルト設定を配布する
 
-プラグインは、プラグインルートに `settings.json` ファイルを含めて、プラグインが有効になったときにデフォルト設定を適用できます。現在、`agent` キーのみがサポートされています。
+プラグインは、プラグインルートに `settings.json` ファイルを含めて、プラグインが有効になったときにデフォルト設定を適用できます。現在、`agent` と `subagentStatusLine` キーのみがサポートされています。
 
 `agent` を設定すると、プラグインの[カスタムエージェント](/ja/sub-agents)の 1 つがメインスレッドとしてアクティブになり、そのシステムプロンプト、ツール制限、モデルが適用されます。これにより、プラグインは有効になったときに Claude Code の動作方法をデフォルトで変更できます。
 
@@ -257,7 +276,7 @@ claude --plugin-dir ./my-plugin
 
 `--plugin-dir` プラグインがインストール済みのマーケットプレイスプラグインと同じ名前を持つ場合、そのセッション中はローカルコピーが優先されます。これにより、最初にアンインストールしなくても、既にインストール済みのプラグインへの変更をテストできます。マネージド設定によって強制的に有効にされたマーケットプレイスプラグインは唯一の例外であり、オーバーライドできません。
 
-プラグインに変更を加えると、`/reload-plugins` を実行して再起動せずに更新を反映させます。これにより、コマンド、スキル、エージェント、フック、プラグイン MCP サーバー、プラグイン LSP サーバーが再読み込みされます。プラグインコンポーネントをテストします。
+プラグインに変更を加えると、`/reload-plugins` を実行して再起動せずに更新を反映させます。これにより、プラグイン、スキル、エージェント、フック、プラグイン MCP サーバー、プラグイン LSP サーバーが再読み込みされます。プラグインコンポーネントをテストします。
 
 - `/plugin-name:skill-name` でスキルを試す
 - `/agents` でエージェントが表示されることを確認する
@@ -274,7 +293,7 @@ claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 プラグインが期待どおりに機能しない場合：
 
 1. **構造を確認する**：ディレクトリが `.claude-plugin/` 内ではなく、プラグインルートにあることを確認してください
-2. **コンポーネントを個別にテストする**：各コマンド、エージェント、フックを個別に確認してください
+2. **コンポーネントを個別にテストする**：各スキル、エージェント、フックを個別に確認してください
 3. **検証とデバッグツールを使用する**：CLI コマンドとトラブルシューティング技術については、[デバッグと開発ツール](/ja/plugins-reference#debugging-and-development-tools)を参照してください
 
 ### プラグインを共有する
@@ -294,6 +313,8 @@ claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 
 - **Claude.ai**：[claude.ai/settings/plugins/submit](https://claude.ai/settings/plugins/submit)
 - **Console**：[platform.claude.com/plugins/submit](https://platform.claude.com/plugins/submit)
+
+プラグインが登録されたら、独自の CLI で Claude Code ユーザーにインストールを促すことができます。[CLI からプラグインを推奨する](/ja/plugin-hints)を参照してください。
 
 完全な技術仕様、デバッグ技術、配布戦略については、[プラグインリファレンス](/ja/plugins-reference)を参照してください。
 

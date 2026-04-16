@@ -27,7 +27,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/btw <question>` | Ask a quick [side question](/en/interactive-mode#side-questions-with-btw) without adding to the conversation |
 | `/chrome` | Configure [Claude in Chrome](/en/chrome) settings |
 | `/claude-api` | **[Skill](/en/skills#bundled-skills).** Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL) and Managed Agents reference. Covers tool use, streaming, batches, structured outputs, and common pitfalls. Also activates automatically when your code imports `anthropic` or `@anthropic-ai/sdk` |
-| `/clear` | Clear conversation history and free up context. Aliases: `/reset`, `/new` |
+| `/clear` | Start a new conversation with empty context. The previous conversation stays available in `/resume`. To free up context while continuing the same conversation, use `/compact` instead. Aliases: `/reset`, `/new` |
 | `/color [color\|default]` | Set the prompt bar color for the current session. Available colors: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Use `default` to reset |
 | `/compact [instructions]` | Compact conversation with optional focus instructions |
 | `/config` | Open the [Settings](/en/settings) interface to adjust theme, model, [output style](/en/output-styles), and other preferences. Alias: `/settings` |
@@ -38,12 +38,14 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/desktop` | Continue the current session in the Claude Code Desktop app. macOS and Windows only. Alias: `/app` |
 | `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files |
 | `/doctor` | Diagnose and verify your Claude Code installation and settings. Results show with status icons. Press `f` to have Claude fix any reported issues |
-| `/effort [level\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). Accepts `low`, `medium`, `high`, `xhigh`, or `max`; available levels depend on the model and `max` is session-only. `auto` resets to the model default. Without an argument, shows the current level. Takes effect immediately without waiting for the current response to finish |
+| `/effort [level\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). Accepts `low`, `medium`, `high`, `xhigh`, or `max`; available levels depend on the model and `max` is session-only. `auto` resets to the model default. Without an argument, opens an interactive slider; use left and right arrows to pick a level and `Enter` to apply. Takes effect immediately without waiting for the current response to finish |
 | `/exit` | Exit the CLI. Alias: `/quit` |
 | `/export [filename]` | Export the current conversation as plain text. With a filename, writes directly to that file. Without, opens a dialog to copy to clipboard or save to a file |
 | `/extra-usage` | Configure extra usage to keep working when rate limits are hit |
 | `/fast [on\|off]` | Toggle [fast mode](/en/fast-mode) on or off |
 | `/feedback [report]` | Submit feedback about Claude Code. Alias: `/bug` |
+| `/focus` | Toggle the focus view, which shows only your last prompt, a one-line tool-call summary with edit diffstats, and the final response. The selection persists across sessions. Only available in [fullscreen rendering](/en/fullscreen) |
+| `/heapdump` | Write a JavaScript heap snapshot and a memory breakdown to `~/Desktop` for diagnosing high memory usage. See [troubleshooting](/en/troubleshooting#high-cpu-or-memory-usage) |
 | `/help` | Show help and available commands |
 | `/hooks` | View [hook](/en/hooks) configurations for tool events |
 | `/ide` | Manage IDE integrations and show status |
@@ -52,13 +54,14 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/install-github-app` | Set up the [Claude GitHub Actions](/en/github-actions) app for a repository. Walks you through selecting a repo and configuring the integration |
 | `/install-slack-app` | Install the Claude Slack app. Opens a browser to complete the OAuth flow |
 | `/keybindings` | Open or create your keybindings configuration file |
+| `/less-permission-prompts` | **[Skill](/en/skills#bundled-skills).** Scan your transcripts for common read-only Bash and MCP tool calls, then add a prioritized allowlist to project `.claude/settings.json` to reduce permission prompts |
 | `/login` | Sign in to your Anthropic account |
 | `/logout` | Sign out from your Anthropic account |
 | `/loop [interval] [prompt]` | **[Skill](/en/skills#bundled-skills).** Run a prompt repeatedly while the session stays open. Omit the interval and Claude self-paces between iterations. Omit the prompt and Claude runs an autonomous maintenance check, or the prompt in `.claude/loop.md` if present. Example: `/loop 5m check if the deploy finished`. See [Run prompts on a schedule](/en/scheduled-tasks). Alias: `/proactive` |
 | `/mcp` | Manage MCP server connections and OAuth authentication |
 | `/memory` | Edit `CLAUDE.md` memory files, enable or disable [auto-memory](/en/memory#auto-memory), and view auto-memory entries |
 | `/mobile` | Show QR code to download the Claude mobile app. Aliases: `/ios`, `/android` |
-| `/model [model]` | Select or change the AI model. For models that support it, use left/right arrows to [adjust effort level](/en/model-config#adjust-effort-level). The change takes effect immediately without waiting for the current response to finish |
+| `/model [model]` | Select or change the AI model. For models that support it, use left/right arrows to [adjust effort level](/en/model-config#adjust-effort-level). With no argument, opens a picker that asks for confirmation when the conversation has prior output, since the next response re-reads the full history without cached context. Once confirmed, the change applies without waiting for the current response to finish |
 | `/passes` | Share a free week of Claude Code with friends. Only visible if your account is eligible |
 | `/permissions` | Manage allow, ask, and deny rules for tool permissions. Opens an interactive dialog where you can view rules by scope, add or remove rules, manage working directories, and review [recent auto mode denials](/en/permissions#review-auto-mode-denials). Alias: `/allowed-tools` |
 | `/plan [description]` | Enter plan mode directly from the prompt. Pass an optional description to enter plan mode and immediately start with that task, for example `/plan fix the auth bug` |
@@ -66,6 +69,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/powerup` | Discover Claude Code features through quick interactive lessons with animated demos |
 | `/pr-comments [PR]` | Removed in v2.1.91. Ask Claude directly to view pull request comments instead. On earlier versions, fetches and displays comments from a GitHub pull request; automatically detects the PR for the current branch, or pass a PR URL or number. Requires the `gh` CLI |
 | `/privacy-settings` | View and update your privacy settings. Only available for Pro and Max plan subscribers |
+| `/recap` | Generate a one-line summary of the current session on demand. See [Session recap](/en/interactive-mode#session-recap) for the automatic recap that appears after you've been away |
 | `/release-notes` | View the changelog in an interactive version picker. Select a specific version to see its release notes, or choose to show all versions |
 | `/reload-plugins` | Reload all active [plugins](/en/plugins) to apply pending changes without restarting. Reports counts for each reloaded component and flags any load errors |
 | `/remote-control` | Make this session available for [remote control](/en/remote-control) from claude.ai. Alias: `/rc` |
@@ -73,14 +77,14 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/rename [name]` | Rename the current session and show the name on the prompt bar. Without a name, auto-generates one from conversation history |
 | `/resume [session]` | Resume a conversation by ID or name, or open the session picker. Alias: `/continue` |
 | `/review [PR]` | Review a pull request locally in your current session. For a deeper cloud-based review, see [`/ultrareview`](/en/ultrareview) |
-| `/rewind` | Rewind the conversation and/or code to a previous point, or summarize from a selected message. See [checkpointing](/en/checkpointing). Alias: `/checkpoint` |
+| `/rewind` | Rewind the conversation and/or code to a previous point, or summarize from a selected message. See [checkpointing](/en/checkpointing). Aliases: `/checkpoint`, `/undo` |
 | `/sandbox` | Toggle [sandbox mode](/en/sandboxing). Available on supported platforms only |
-| `/schedule [description]` | Create, update, list, or run [routines](/en/routines). Claude walks you through the setup conversationally |
+| `/schedule [description]` | Create, update, list, or run [routines](/en/routines). Claude walks you through the setup conversationally. Alias: `/routines` |
 | `/security-review` | Analyze pending changes on the current branch for security vulnerabilities. Reviews the git diff and identifies risks like injection, auth issues, and data exposure |
 | `/setup-bedrock` | Configure [Amazon Bedrock](/en/amazon-bedrock) authentication, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_BEDROCK=1` is set. First-time Bedrock users can also access this wizard from the login screen |
 | `/setup-vertex` | Configure [Google Vertex AI](/en/google-vertex-ai) authentication, project, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_VERTEX=1` is set. First-time Vertex AI users can also access this wizard from the login screen |
 | `/simplify [focus]` | **[Skill](/en/skills#bundled-skills).** Review your recently changed files for code reuse, quality, and efficiency issues, then fix them. Spawns three review agents in parallel, aggregates their findings, and applies fixes. Pass text to focus on specific concerns: `/simplify focus on memory efficiency` |
-| `/skills` | List available [skills](/en/skills) |
+| `/skills` | List available [skills](/en/skills). Press `t` to sort by token count |
 | `/stats` | Visualize daily usage, session history, streaks, and model preferences |
 | `/status` | Open the Settings interface (Status tab) showing version, model, account, and connectivity. Works while Claude is responding, without waiting for the current response to finish |
 | `/statusline` | Configure Claude Code's [status line](/en/statusline). Describe what you want, or run without arguments to auto-configure from your shell prompt |
@@ -89,7 +93,8 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates 
 | `/team-onboarding` | Generate a team onboarding guide from your Claude Code usage history. Claude analyzes your sessions, commands, and MCP server usage from the past 30 days and produces a markdown guide a teammate can paste as a first message to get set up quickly |
 | `/teleport` | Pull a [Claude Code on the web](/en/claude-code-on-the-web#from-web-to-terminal) session into this terminal: opens a picker, then fetches the branch and conversation. Also available as `/tp`. Requires a claude.ai subscription |
 | `/terminal-setup` | Configure terminal keybindings for Shift+Enter and other shortcuts. Only visible in terminals that need it, like VS Code, Alacritty, or Warp |
-| `/theme` | Change the color theme. Includes light and dark variants, colorblind-accessible (daltonized) themes, and ANSI themes that use your terminal's color palette |
+| `/theme` | Change the color theme. Includes an `auto` option that follows your terminal's dark or light mode, light and dark variants, colorblind-accessible (daltonized) themes, and ANSI themes that use your terminal's color palette |
+| `/tui [default\|fullscreen]` | Set the terminal UI renderer and relaunch into it with your conversation intact. `fullscreen` enables the [flicker-free alt-screen renderer](/en/fullscreen). With no argument, prints the active renderer |
 | `/ultraplan <prompt>` | Draft a plan in an [ultraplan](/en/ultraplan) session, review it in your browser, then execute remotely or send it back to your terminal |
 | `/ultrareview [PR]` | Run a deep, multi-agent code review in a cloud sandbox with [ultrareview](/en/ultrareview). Includes 3 free runs on Pro and Max, then requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) |
 | `/upgrade` | Open the upgrade page to switch to a higher plan tier |

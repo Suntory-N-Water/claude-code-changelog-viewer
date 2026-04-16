@@ -21,7 +21,7 @@ This guide covers how hooks work, how to configure them, and provides examples f
 
 Something happens during agent execution and the SDK fires an event: a tool is about to be called (`PreToolUse`), a tool returned a result (`PostToolUse`), a subagent started or stopped, the agent is idle, or execution finished. See the [full list of events](#available-hooks).
 
-The SDK checks for hooks registered for that event type. This includes callback hooks you pass in `options.hooks` and shell command hooks from settings files, but only if you explicitly load them with [`settingSources`](/en/agent-sdk/typescript#setting-source) or [`setting_sources`](/en/agent-sdk/python#setting-source).
+The SDK checks for hooks registered for that event type. This includes callback hooks you pass in `options.hooks` and shell command hooks from settings files when the corresponding [`settingSources`](/en/agent-sdk/typescript#setting-source) or [`setting_sources`](/en/agent-sdk/python#setting-source) entry is enabled, which it is for default `query()` options.
 
 If a hook has a [`matcher`](#matchers) pattern (like `"Write|Edit"`), the SDK tests it against the event's target (for example, the tool name). Hooks without a matcher run for every event of that type.
 

@@ -19,9 +19,9 @@ Claude Code は以下のプラットフォームと構成で実行されます�
   - Ubuntu 20.04 以上
   - Debian 10 以上
   - Alpine Linux 3.19 以上
-- **ハードウェア**: 4 GB 以上の RAM
+- **ハードウェア**: 4 GB 以上の RAM、x64 または ARM64 プロセッサ
 - **ネットワーク**: インターネット接続が必要です。[ネットワーク構成](/ja/network-config#network-access-requirements)を参照してください。
-- **シェル**: Bash、Zsh、PowerShell、または CMD。Windows では、[Git for Windows](https://git-scm.com/downloads/win)が必要です。
+- **シェル**: Bash、Zsh、PowerShell、または CMD。Windows ネイティブセットアップには [Git for Windows](https://git-scm.com/downloads/win)が必要です。WSL セットアップは不要です。
 - **場所**: [Anthropic サポート対象国](https://www.anthropic.com/supported-countries)
 
 ### 追加の依存関係
@@ -84,13 +84,21 @@ claude
 
 ### Windows でのセットアップ
 
-Windows 上の Claude Code には、[Git for Windows](https://git-scm.com/downloads/win)または WSL が必要です。PowerShell、CMD、または Git Bash から `claude` を起動できます。Claude Code は内部的に Git Bash を使用してコマンドを実行します。PowerShell を管理者として実行する必要はありません。
+Claude Code をネイティブに Windows で実行することも、WSL 内で実行することもできます。プロジェクトの場所と必要な機能に基づいて選択してください。
+
+| オプション | 必須 | [サンドボックス](/ja/sandboxing) | 使用時期 |
+| - | - | - | - |
+| ネイティブ Windows | [Git for Windows](https://git-scm.com/downloads/win) | サポートされていません | Windows ネイティブプロジェクトとツール |
+| WSL 2 | WSL 2 有効 | サポートされています | Linux ツールチェーンまたはサンドボックス化されたコマンド実行 |
+| WSL 1 | WSL 1 有効 | サポートされていません | WSL 2 が利用できない場合 |
 
 **オプション 1: Git Bash を使用したネイティブ Windows**
 
-[Git for Windows](https://git-scm.com/downloads/win)をインストールしてから、PowerShell または CMD からインストールコマンドを実行します。
+[Git for Windows](https://git-scm.com/downloads/win)をインストールしてから、PowerShell または CMD からインストールコマンドを実行します。管理者として実行する必要はありません。
 
-Claude Code が Git Bash インストールを見つけられない場合は、[settings.json ファイル](/ja/settings)でパスを設定します。
+PowerShell または CMD からインストールするかどうかは、実行するインストールコマンドにのみ影響します。プロンプトは PowerShell では `PS C:\Users\YourName>` と表示され、CMD では `PS` なしで `C:\Users\YourName>` と表示されます。ターミナルが初めての場合は、[ターミナルガイド](/ja/terminal-guide#windows)で各ステップを説明しています。
+
+インストール後、PowerShell、CMD、または Git Bash から `claude` を起動します。Claude Code は、起動元に関係なく、内部的に Git Bash を使用してコマンドを実行します。Claude Code が Git Bash インストールを見つけられない場合は、[settings.json ファイル](/ja/settings)でパスを設定します。
 
 ```json
 {
@@ -104,7 +112,7 @@ Claude Code は Windows でネイティブに PowerShell を実行すること�
 
 **オプション 2: WSL**
 
-WSL 1 と WSL 2 の両方がサポートされています。WSL 2 は強化されたセキュリティのための[サンドボックス](/ja/sandboxing)をサポートしています。WSL 1 はサンドボックスをサポートしていません。
+WSL ディストリビューションを開き、上記の[インストール手順](#install-claude-code)から Linux インストーラーを実行します。PowerShell または CMD からではなく、WSL ターミナル内で `claude` をインストールして起動します。
 
 ### Alpine Linux と musl ベースのディストリビューション
 
@@ -154,11 +162,11 @@ Claude Code には、Pro、Max、Team、Enterprise、または Console アカウ
 
 Claude Code は起動時と実行中に定期的に更新をチェックします。更新はバックグラウンドでダウンロードおよびインストールされ、次に Claude Code を起動するときに有効になります。
 
-Homebrew および WinGet インストールは自動更新されません。`brew upgrade claude-code` または `winget upgrade Anthropic.ClaudeCode` を使用して手動で更新します。
+Homebrew および WinGet インストールは自動更新されません。Homebrew の場合は、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。
 
 **既知の問題**: Claude Code は、新しいバージョンがこれらのパッケージマネージャーで利用可能になる前に更新を通知する場合があります。アップグレードが失敗した場合は、しばらく待ってからもう一度試してください。
 
-Homebrew はアップグレード後、古いバージョンをディスク上に保持します。`brew cleanup claude-code` を定期的に実行してディスク容量を回収します。
+Homebrew はアップグレード後、古いバージョンをディスク上に保持します。`brew cleanup` を定期的に実行してディスク容量を回収します。
 
 ### リリースチャネルを構成
 
@@ -176,6 +184,8 @@ Homebrew はアップグレード後、古いバージョンをディスク上�
 ```
 
 エンタープライズデプロイメントの場合、[管理設定](/ja/permissions#managed-settings)を使用して、組織全体で一貫したリリースチャネルを適用できます。
+
+Homebrew インストールは、この設定ではなく cask 名でチャネルを選択します。`claude-code` は安定版を追跡し、`claude-code@latest` は最新版を追跡します。
 
 ### 自動更新を無効にする
 
@@ -364,10 +374,16 @@ Remove-Item -Path "$env:USERPROFILE\.local\share\claude" -Recurse -Force
 
 ### Homebrew インストール
 
-Homebrew cask を削除します。
+インストールした Homebrew cask を削除します。安定版 cask をインストールした場合:
 
 ```bash
 brew uninstall --cask claude-code
+```
+
+最新版 cask をインストールした場合:
+
+```bash
+brew uninstall --cask claude-code@latest
 ```
 
 ### WinGet インストール
@@ -389,6 +405,8 @@ npm uninstall -g @anthropic-ai/claude-code
 ### 構成ファイルを削除
 
 構成ファイルを削除すると、すべての設定、許可されたツール、MCP サーバー構成、およびセッション履歴が削除されます。
+
+VS Code 拡張機能、JetBrains プラグイン、および Desktop アプリも `~/.claude/` に書き込みます。それらのいずれかがまだインストールされている場合、ディレクトリは次回実行時に再作成されます。Claude Code を完全に削除するには、これらのファイルを削除する前に、[VS Code 拡張機能](/ja/vs-code#uninstall-the-extension)、JetBrains プラグイン、および Desktop アプリをアンインストールしてください。
 
 Claude Code の設定とキャッシュされたデータを削除するには:
 
