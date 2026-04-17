@@ -1,0 +1,126 @@
+{
+  "id": "20260417-181632",
+  "timestamp": "2026-04-17T18:16:32.393Z",
+  "aiSummary": "モデル設定において、opusplanモデルのコンテキストウィンドウが200Kに制限されるという重要な仕様が明記されました。extended-context設定による1Mへの自動アップグレードは、opus設定のみに適用され、plan-mode用のモデルには適用されないことが明確化されています。一方で、プルリクエストのトリマージュ工程におけるフォーク元判定や外部コントリビューター向けの自動ワークフローに関する記述が削除されました。全体として、モデルごとのコンテキスト容量の差異と、ルーチンにおけるセキュリティ確認プロセスの整理が行われています。",
+  "files": [
+    {
+      "filename": "model-config.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "opusplanモデルのコンテキストウィンドウが200K標準で動作し、1Mへの拡張機能の対象外であることを定義しています。",
+      "hunks": [
+        {
+          "header": "@@ -147,6 +147,8 @@ The `opusplan` model alias provides an automated hybrid approach:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "This gives you the best of both worlds: Opus's superior reasoning for planning,"
+            },
+            {
+              "type": "context",
+              "content": "and Sonnet's efficiency for execution."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The plan-mode Opus phase runs with the standard 200K context window. The automatic 1M upgrade described in [Extended context](#extended-context) applies to the `opus` model setting and does not extend to `opusplan`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Adjust effort level"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Effort levels](https://platform.claude.com/docs/en/build-with-claude/effort) control adaptive reasoning, which lets the model decide whether and how much to think on each step based on task complexity. Lower effort is faster and cheaper for straightforward tasks, while higher effort provides deeper reasoning for complex problems."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "routines.md",
+      "additions": 0,
+      "deletions": 2,
+      "explanation": "外部コントリビューターによるフォークからのプルリクエストを対象とした、自動セキュリティレビューのルーチン説明が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -199,7 +199,6 @@ Use filters to narrow which pull requests start a new session. All filter condit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Labels | Labels applied to the PR |"
+            },
+            {
+              "type": "context",
+              "content": "| Is draft | Whether the PR is in draft state |"
+            },
+            {
+              "type": "context",
+              "content": "| Is merged | Whether the PR has been merged |"
+            },
+            {
+              "type": "removed",
+              "content": "| From fork | Whether the PR comes from a fork |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each filter pairs a field with an operator: equals, contains, starts with, is one of, is not one of, or matches regex."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -208,7 +207,6 @@ The `matches regex` operator tests the entire field value, not a substring withi",
+          "lines": [
+            {
+              "type": "context",
+              "content": "A few example filter combinations:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Auth module review**: base branch `main`, head branch contains `auth-provider`. Sends any PR that touches authentication to a focused reviewer."
+            },
+            {
+              "type": "removed",
+              "content": "- **External contributor triage**: from fork is `true`. Routes every fork-based PR through an extra security and style review before a human looks at it."
+            },
+            {
+              "type": "context",
+              "content": "- **Ready-for-review only**: is draft is `false`. Skips drafts so the routine only runs when the PR is ready for review."
+            },
+            {
+              "type": "context",
+              "content": "- **Label-gated backport**: labels include `needs-backport`. Triggers a port-to-another-branch routine only when a maintainer tags the PR."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
