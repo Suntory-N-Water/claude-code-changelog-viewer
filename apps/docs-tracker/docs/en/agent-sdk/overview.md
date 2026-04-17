@@ -54,6 +54,8 @@ npm install @anthropic-ai/claude-agent-sdk
 pip install claude-agent-sdk
 ```
 
+The TypeScript SDK bundles a native Claude Code binary for your platform as an optional dependency, so you don't need to install Claude Code separately.
+
 Get an API key from the [Console](https://platform.claude.com/), then set it as an environment variable:
 
 ```bash theme={null}
