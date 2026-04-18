@@ -1,6 +1,9 @@
+import { drizzle } from 'drizzle-orm/d1';
+import { eq, sql } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
+import { channels } from '../db/schema';
 
 const baseStyle = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -95,11 +98,7 @@ const renderConfirm = (siteUrl: string, token: string) => html`
   </html>
 `;
 
-/**
- * token で Webhook を検索し、アクティブかどうか検証する。
- * エラー時は HTML レスポンスを直接返す。
- */
-async function findActiveWebhook(
+async function findActiveChannel(
   token: string | null | undefined,
   c: Context<{ Bindings: CloudflareBindings }>,
 ) {
@@ -117,11 +116,12 @@ async function findActiveWebhook(
     };
   }
 
-  const row = await c.env.DB.prepare(
-    'SELECT active FROM webhooks WHERE token = ?',
-  )
-    .bind(token)
-    .first<{ active: number }>();
+  const db = drizzle(c.env.DB);
+  const rows = await db
+    .select({ isActive: channels.isActive })
+    .from(channels)
+    .where(eq(channels.token, token));
+  const row = rows[0] ?? null;
 
   if (!row) {
     return {
@@ -137,7 +137,7 @@ async function findActiveWebhook(
     };
   }
 
-  if (row.active === 0) {
+  if (row.isActive === 0) {
     return {
       ok: false as const,
       response: c.html(
@@ -158,7 +158,7 @@ export const unsubscribeRoute = new Hono<{
 }>()
   // GET: 確認ページを表示(クローラー対策で実際の停止処理は行わない)
   .get('/', async (c) => {
-    const lookup = await findActiveWebhook(c.req.query('token'), c);
+    const lookup = await findActiveChannel(c.req.query('token'), c);
     if (!lookup.ok) {
       return lookup.response;
     }
@@ -169,16 +169,16 @@ export const unsubscribeRoute = new Hono<{
     const body = await c.req.parseBody();
     const token = typeof body['token'] === 'string' ? body['token'] : null;
 
-    const lookup = await findActiveWebhook(token, c);
+    const lookup = await findActiveChannel(token, c);
     if (!lookup.ok) {
       return lookup.response;
     }
 
-    await c.env.DB.prepare(
-      "UPDATE webhooks SET active = 0, updated_at = datetime('now') WHERE token = ?",
-    )
-      .bind(lookup.token)
-      .run();
+    const db = drizzle(c.env.DB);
+    await db
+      .update(channels)
+      .set({ isActive: 0, updatedAt: sql`datetime('now')` })
+      .where(eq(channels.token, lookup.token));
 
     return c.html(
       renderResult(
