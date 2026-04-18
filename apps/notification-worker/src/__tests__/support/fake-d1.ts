@@ -35,6 +35,12 @@ class FakeD1PreparedStatement {
       results,
     } satisfies D1Result<T>;
   }
+
+  // D1 の .raw() に相当: カラム名なしの配列形式で返す(Drizzle ORM が内部で使用)
+  async raw<T = unknown[]>(): Promise<T[]> {
+    const rows = this.db.query(this.query).values(...this.values);
+    return rows as T[];
+  }
 }
 
 export class FakeD1Database {
@@ -42,17 +48,43 @@ export class FakeD1Database {
 
   constructor() {
     this.db.exec(`
-      CREATE TABLE webhooks (
+      CREATE TABLE channels (
         id TEXT PRIMARY KEY,
-        webhook_url TEXT NOT NULL UNIQUE,
+        channel_type TEXT(3) NOT NULL,
         token TEXT NOT NULL UNIQUE,
-        active INTEGER NOT NULL DEFAULT 1,
+        is_active INTEGER NOT NULL DEFAULT 1,
         fail_count INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
-      CREATE INDEX idx_webhooks_active ON webhooks(active);
-      CREATE INDEX idx_webhooks_token ON webhooks(token);
+      CREATE INDEX idx_channels_is_active ON channels(is_active);
+
+      CREATE TABLE discord_channels (
+        channel_id TEXT PRIMARY KEY,
+        webhook_url TEXT NOT NULL UNIQUE,
+        FOREIGN KEY (channel_id) REFERENCES channels(id)
+      );
+
+      CREATE TABLE notification_settings (
+        id TEXT PRIMARY KEY,
+        channel_id TEXT NOT NULL,
+        frequency TEXT(3) NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (channel_id) REFERENCES channels(id)
+      );
+      CREATE INDEX idx_notification_settings_channel_id ON notification_settings(channel_id);
+
+      CREATE TABLE slack_channels (
+        channel_id TEXT PRIMARY KEY,
+        webhook_url TEXT NOT NULL UNIQUE,
+        FOREIGN KEY (channel_id) REFERENCES channels(id)
+      );
+
+      CREATE TABLE email_channels (
+        channel_id TEXT PRIMARY KEY,
+        email_address TEXT NOT NULL UNIQUE,
+        FOREIGN KEY (channel_id) REFERENCES channels(id)
+      );
     `);
   }
 

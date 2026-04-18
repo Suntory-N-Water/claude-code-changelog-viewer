@@ -19,14 +19,18 @@ import { app } from '../index';
 import { FakeD1Database } from './support/fake-d1';
 import {
   createTestEnv,
-  findWebhookByUrl,
-  insertWebhook,
+  findChannelByWebhookUrl,
+  findNotificationSettings,
+  insertDiscordWebhook,
 } from './support/notification-test-support';
+
+const validWebhookUrl = 'https://discord.com/api/webhooks/123456/abcdef';
 
 function createRequestInit(
   body: Record<string, string> = {
-    webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
+    webhook_url: validWebhookUrl,
     turnstile_token: 'valid-token',
+    frequency: 'IMM',
   },
 ): RequestInit {
   return {
@@ -47,64 +51,98 @@ describe('POST /api/webhooks integration', () => {
     db = null;
   });
 
-  it('有効な認証情報と Webhook URL を送るとテスト通知成功後に登録が保存される', async () => {
+  it('有効な認証情報と Webhook URL を送ると channels・discord_channels・notification_settings の3テーブルに登録される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const sut = app;
-    const request = createRequestInit();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
 
     // Act(実行)
-    const response = await sut.request('/api/webhooks', request, env);
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit(),
+      env,
+    );
 
     // Assert(確認)
     expect(response.status).toBe(200);
-
-    const saved = await findWebhookByUrl(
-      db,
-      'https://discord.com/api/webhooks/123456/abcdef',
-    );
-
+    const saved = await findChannelByWebhookUrl(db, validWebhookUrl);
     expect(saved).toEqual({
       id: expect.any(String),
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
-      active: 1,
+      webhook_url: validWebhookUrl,
+      is_active: 1,
       fail_count: 0,
       token: expect.any(String),
     });
   });
 
-  it('既に有効な Webhook URL を送ると重複登録せず競合エラーになる', async () => {
+  it('frequency=IMM を指定して登録すると notification_settings に IMM で保存される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const sut = app;
-    const request = createRequestInit();
     const env = createTestEnv(db);
-    await insertWebhook(db, {
+    mockedVerifyTurnstile.mockResolvedValue(true);
+    mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
+
+    // Act(実行)
+    await app.request('/api/webhooks', createRequestInit(), env);
+
+    // Assert(確認)
+    const saved = await findChannelByWebhookUrl(db, validWebhookUrl);
+    const ns = saved ? await findNotificationSettings(db, saved.id) : null;
+    expect(ns?.frequency).toBe('IMM');
+  });
+
+  it('frequency=WEK を指定して登録できる', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    mockedVerifyTurnstile.mockResolvedValue(true);
+    mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
+
+    // Act(実行)
+    await app.request(
+      '/api/webhooks',
+      createRequestInit({
+        webhook_url: validWebhookUrl,
+        turnstile_token: 'valid-token',
+        frequency: 'WEK',
+      }),
+      env,
+    );
+
+    // Assert(確認)
+    const saved = await findChannelByWebhookUrl(db, validWebhookUrl);
+    const ns = saved ? await findNotificationSettings(db, saved.id) : null;
+    expect(ns?.frequency).toBe('WEK');
+  });
+
+  it('既に有効な Webhook URL を送ると重複登録せず 409 になる', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    await insertDiscordWebhook(db, {
       id: 'existing-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
+      webhookUrl: validWebhookUrl,
       token: 'existing-token',
-      active: 1,
+      isActive: 1,
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
 
     // Act(実行)
-    const response = await sut.request('/api/webhooks', request, env);
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit(),
+      env,
+    );
 
     // Assert(確認)
     expect(response.status).toBe(409);
-    expect(
-      await findWebhookByUrl(
-        db,
-        'https://discord.com/api/webhooks/123456/abcdef',
-      ),
-    ).toEqual({
+    expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toEqual({
       id: 'existing-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
+      webhook_url: validWebhookUrl,
       token: 'existing-token',
-      active: 1,
+      is_active: 1,
       fail_count: 0,
     });
   });
@@ -112,34 +150,31 @@ describe('POST /api/webhooks integration', () => {
   it('停止済みの Webhook URL を送ると同じ token のまま再有効化される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const sut = app;
-    const request = createRequestInit();
     const env = createTestEnv(db);
-    await insertWebhook(db, {
+    await insertDiscordWebhook(db, {
       id: 'existing-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
+      webhookUrl: validWebhookUrl,
       token: 'existing-token',
-      active: 0,
-      fail_count: 2,
+      isActive: 0,
+      failCount: 2,
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
 
     // Act(実行)
-    const response = await sut.request('/api/webhooks', request, env);
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit(),
+      env,
+    );
 
     // Assert(確認)
     expect(response.status).toBe(200);
-    expect(
-      await findWebhookByUrl(
-        db,
-        'https://discord.com/api/webhooks/123456/abcdef',
-      ),
-    ).toEqual({
+    expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toEqual({
       id: 'existing-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
+      webhook_url: validWebhookUrl,
       token: 'existing-token',
-      active: 1,
+      is_active: 1,
       fail_count: 0,
     });
   });
@@ -147,43 +182,101 @@ describe('POST /api/webhooks integration', () => {
   it('Turnstile 検証に失敗すると登録は保存されない', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const sut = app;
-    const request = createRequestInit();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(false);
 
     // Act(実行)
-    const response = await sut.request('/api/webhooks', request, env);
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit(),
+      env,
+    );
 
     // Assert(確認)
     expect(response.status).toBe(403);
-    expect(
-      await findWebhookByUrl(
-        db,
-        'https://discord.com/api/webhooks/123456/abcdef',
-      ),
-    ).toBeNull();
+    expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
   });
 
   it('Discord へのテスト通知が失敗すると登録は保存されない', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const sut = app;
-    const request = createRequestInit();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
     mockedSendToDiscord.mockResolvedValue({ ok: false, status: 404 });
 
     // Act(実行)
-    const response = await sut.request('/api/webhooks', request, env);
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit(),
+      env,
+    );
 
     // Assert(確認)
     expect(response.status).toBe(400);
-    expect(
-      await findWebhookByUrl(
-        db,
-        'https://discord.com/api/webhooks/123456/abcdef',
-      ),
-    ).toBeNull();
+    expect(await findChannelByWebhookUrl(db, validWebhookUrl)).toBeNull();
+  });
+
+  it('不正な Webhook URL で 400 を返す', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    mockedVerifyTurnstile.mockResolvedValue(true);
+
+    // Act(実行)
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit({
+        webhook_url: 'https://example.com/not-a-webhook',
+        turnstile_token: 'valid-token',
+        frequency: 'IMM',
+      }),
+      env,
+    );
+
+    // Assert(確認)
+    expect(response.status).toBe(400);
+    expect(await response.json<unknown>()).toEqual({
+      error: 'Discord Webhook URLの形式が不正です',
+    });
+  });
+
+  it('webhook_url が空文字で 400 を返す', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    mockedVerifyTurnstile.mockResolvedValue(true);
+
+    // Act(実行)
+    const response = await app.request(
+      '/api/webhooks',
+      createRequestInit({ webhook_url: '', turnstile_token: 'valid-token' }),
+      env,
+    );
+
+    // Assert(確認)
+    expect(response.status).toBe(400);
+  });
+
+  it('リクエストボディが不正で 400 を返す', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+
+    // Act(実行)
+    const response = await app.request(
+      '/api/webhooks',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invalid: 'body' }),
+      },
+      env,
+    );
+
+    // Assert(確認)
+    expect(response.status).toBe(400);
+    expect(await response.json<unknown>()).toEqual({
+      error: 'リクエストが不正です',
+    });
   });
 });

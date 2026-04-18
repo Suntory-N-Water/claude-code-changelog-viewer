@@ -47,7 +47,7 @@ const validAnalysis: Analysis = {
 type MockDB = {
   prepare: ReturnType<typeof mock>;
   _run: ReturnType<typeof mock>;
-  _first: ReturnType<typeof mock>;
+  _returningAll: ReturnType<typeof mock>;
 };
 
 function createMockMessage(body: unknown) {
@@ -72,18 +72,18 @@ function createMockBatch(messages: ReturnType<typeof createMockMessage>[]) {
 
 function createMockEnv() {
   const run = mock().mockResolvedValue({ success: true });
-  const first = mock();
+  const returningAll = mock().mockResolvedValue({ results: [] });
   const db: MockDB = {
     prepare: mock().mockReturnValue({
       bind: mock().mockReturnValue({
         all: mock().mockResolvedValue({ results: [] }),
+        raw: mock().mockResolvedValue([]),
         run,
-        first,
+        first: mock().mockResolvedValue(null),
       }),
-      all: mock().mockResolvedValue({ results: [] }),
     }),
     _run: run,
-    _first: first,
+    _returningAll: returningAll,
   };
   return {
     env: {
@@ -106,25 +106,63 @@ function setupFetchSuccess() {
   mockFetch.mockImplementation(impl);
 }
 
+// DB から返るカラム名は SQLite の snake_case(Drizzle がマッピング前の生データ)
+type MockWebhookRow = {
+  id: string;
+  webhook_url: string;
+  token: string;
+  fail_count?: number;
+};
+
 function setupDBWithWebhooks(
   db: MockDB,
-  webhooks: {
-    id: string;
-    webhook_url: string;
-    token: string;
-    fail_count?: number;
-  }[],
+  webhooks: MockWebhookRow[],
+  returningResult?: { fail_count: number; is_active: number },
 ) {
+  db._returningAll = mock().mockResolvedValue({
+    results: returningResult ? [returningResult] : [],
+  });
+
   db.prepare = mock().mockImplementation((sql: string) => {
-    if (sql.includes('SELECT')) {
+    const upper = sql.toUpperCase();
+    const isSelect = upper.startsWith('SELECT');
+    const isReturning = upper.includes('RETURNING');
+
+    if (isSelect) {
+      // Drizzle D1 は SELECT に .raw() を使用する
+      // consumer.ts の select 順: id, webhook_url, token, fail_count
+      const rawRows = webhooks.map((w) => [
+        w.id,
+        w.webhook_url,
+        w.token,
+        w.fail_count ?? 0,
+      ]);
       return {
-        all: mock().mockResolvedValue({ results: webhooks }),
+        bind: mock().mockReturnValue({
+          raw: mock().mockResolvedValue(rawRows),
+          all: mock().mockResolvedValue({ results: [] }),
+          run: db._run,
+          first: mock().mockResolvedValue(null),
+        }),
+      };
+    }
+    if (isReturning) {
+      // RETURNING は .all() で object 形式を返す(Drizzle がカラム名マッピングする)
+      return {
+        bind: mock().mockReturnValue({
+          all: db._returningAll,
+          raw: mock().mockResolvedValue([]),
+          run: db._run,
+          first: mock().mockResolvedValue(null),
+        }),
       };
     }
     return {
       bind: mock().mockReturnValue({
         run: db._run,
-        first: db._first,
+        all: mock().mockResolvedValue({ results: [] }),
+        raw: mock().mockResolvedValue([]),
+        first: mock().mockResolvedValue(null),
       }),
     };
   });
@@ -133,7 +171,6 @@ function setupDBWithWebhooks(
 describe('queueConsumer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // setTimeout を即時実行にする
     vi.useFakeTimers();
   });
 
@@ -141,10 +178,8 @@ describe('queueConsumer', () => {
     vi.useRealTimers();
   });
 
-  // setTimeout を進めながら非同期処理を実行するヘルパー
   async function runWithTimers(promise: Promise<void>) {
     const result = promise;
-    // タイマーを繰り返し進める
     for (let i = 0; i < 50; i += 1) {
       vi.advanceTimersByTime(1000);
       await Promise.resolve();
@@ -157,55 +192,59 @@ describe('queueConsumer', () => {
     return queueConsumer!(batch, env, {} as ExecutionContext) as Promise<void>;
   }
 
-  it('不正なメッセージボディは ack して無視する', async () => {
-    const message = createMockMessage({ invalid: 'body' });
-    const batch = createMockBatch([message]);
-    const { env } = createMockEnv();
+  describe('メッセージ検証', () => {
+    it('不正なメッセージボディは ack して無視する', async () => {
+      const message = createMockMessage({ invalid: 'body' });
+      const batch = createMockBatch([message]);
+      const { env } = createMockEnv();
 
-    await callConsumer(batch, env);
+      await callConsumer(batch, env);
 
-    expect(message.ack).toHaveBeenCalled();
-    expect(message.retry).not.toHaveBeenCalled();
+      expect(message.ack).toHaveBeenCalled();
+      expect(message.retry).not.toHaveBeenCalled();
+    });
+
+    it('version が v で始まらないメッセージは ack して無視する', async () => {
+      const message = createMockMessage({ version: '1.0.0' });
+      const batch = createMockBatch([message]);
+      const { env } = createMockEnv();
+
+      await callConsumer(batch, env);
+
+      expect(message.ack).toHaveBeenCalled();
+      expect(message.retry).not.toHaveBeenCalled();
+    });
   });
 
-  it('version が v で始まらないメッセージは ack して無視する', async () => {
-    const message = createMockMessage({ version: '1.0.0' });
-    const batch = createMockBatch([message]);
-    const { env } = createMockEnv();
+  describe('inferred JSON 取得', () => {
+    it('inferred JSON の取得に失敗した場合は retry する', async () => {
+      const message = createMockMessage({ version: 'v1.0.0' });
+      const batch = createMockBatch([message]);
+      const { env } = createMockEnv();
 
-    await callConsumer(batch, env);
+      mockFetch.mockResolvedValue(new Response(null, { status: 404 }));
 
-    expect(message.ack).toHaveBeenCalled();
-    expect(message.retry).not.toHaveBeenCalled();
+      await callConsumer(batch, env);
+
+      expect(message.retry).toHaveBeenCalled();
+      expect(message.ack).not.toHaveBeenCalled();
+    });
+
+    it('inferred JSON のパースに失敗した場合は retry する', async () => {
+      const message = createMockMessage({ version: 'v1.0.0' });
+      const batch = createMockBatch([message]);
+      const { env } = createMockEnv();
+
+      mockFetch.mockResolvedValue(Response.json({ invalid: 'data' }));
+
+      await callConsumer(batch, env);
+
+      expect(message.retry).toHaveBeenCalled();
+      expect(message.ack).not.toHaveBeenCalled();
+    });
   });
 
-  it('inferred JSON の取得に失敗した場合は retry する', async () => {
-    const message = createMockMessage({ version: 'v1.0.0' });
-    const batch = createMockBatch([message]);
-    const { env } = createMockEnv();
-
-    mockFetch.mockResolvedValue(new Response(null, { status: 404 }));
-
-    await callConsumer(batch, env);
-
-    expect(message.retry).toHaveBeenCalled();
-    expect(message.ack).not.toHaveBeenCalled();
-  });
-
-  it('inferred JSON のパースに失敗した場合は retry する', async () => {
-    const message = createMockMessage({ version: 'v1.0.0' });
-    const batch = createMockBatch([message]);
-    const { env } = createMockEnv();
-
-    mockFetch.mockResolvedValue(Response.json({ invalid: 'data' }));
-
-    await callConsumer(batch, env);
-
-    expect(message.retry).toHaveBeenCalled();
-    expect(message.ack).not.toHaveBeenCalled();
-  });
-
-  it('アクティブな webhook がない場合は ack する', async () => {
+  it('アクティブなチャンネルがない場合は ack する', async () => {
     const message = createMockMessage({ version: 'v1.0.0' });
     const batch = createMockBatch([message]);
     const { env } = createMockEnv();
@@ -266,44 +305,49 @@ describe('queueConsumer', () => {
     const { env, db } = createMockEnv();
 
     setupFetchSuccess();
-    setupDBWithWebhooks(db, [
-      {
-        id: 'wh-1',
-        webhook_url: 'https://discord.com/api/webhooks/1/abc',
-        token: 'tok-1',
-      },
-    ]);
+    setupDBWithWebhooks(
+      db,
+      [
+        {
+          id: 'wh-1',
+          webhook_url: 'https://discord.com/api/webhooks/1/abc',
+          token: 'tok-1',
+        },
+      ],
+      { fail_count: 1, is_active: 1 },
+    );
     mockedSendToDiscord.mockResolvedValue({ ok: false, status: 404 });
-    db._first.mockResolvedValue({ fail_count: 1 });
 
     await runWithTimers(callConsumer(batch, env));
 
     expect(message.ack).toHaveBeenCalled();
   });
 
-  it('fail_count が閾値に達したら webhook を無効化する', async () => {
+  it('fail_count が閾値に達したら channels を無効化する', async () => {
     const message = createMockMessage({ version: 'v1.0.0' });
     const batch = createMockBatch([message]);
     const { env, db } = createMockEnv();
 
     setupFetchSuccess();
-    setupDBWithWebhooks(db, [
-      {
-        id: 'wh-1',
-        webhook_url: 'https://discord.com/api/webhooks/1/abc',
-        token: 'tok-1',
-      },
-    ]);
+    setupDBWithWebhooks(
+      db,
+      [
+        {
+          id: 'wh-1',
+          webhook_url: 'https://discord.com/api/webhooks/1/abc',
+          token: 'tok-1',
+        },
+      ],
+      { fail_count: 3, is_active: 0 },
+    );
     mockedSendToDiscord.mockResolvedValue({ ok: false, status: 401 });
-    // 統合クエリの RETURNING で active=0 が返される
-    db._first.mockResolvedValue({ fail_count: 3, active: 0 });
 
     await runWithTimers(callConsumer(batch, env));
 
     expect(message.ack).toHaveBeenCalled();
   });
 
-  it('sendToDiscord が例外をスローしても他の webhook の処理を続行する', async () => {
+  it('sendToDiscord が例外をスローしても他のチャンネルの処理を続行する', async () => {
     const message = createMockMessage({ version: 'v1.0.0' });
     const batch = createMockBatch([message]);
     const { env, db } = createMockEnv();
@@ -337,7 +381,6 @@ describe('queueConsumer', () => {
     const { env } = createMockEnv();
 
     setupFetchSuccess();
-    // webhook なしの環境でシンプルに ack されることを確認
 
     await callConsumer(batch, env);
 

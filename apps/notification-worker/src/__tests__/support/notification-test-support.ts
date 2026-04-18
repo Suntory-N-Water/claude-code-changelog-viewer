@@ -1,6 +1,13 @@
 import { mock } from 'bun:test';
-import type { WebhookRow } from '../../types';
 import type { FakeD1Database } from './fake-d1';
+
+export type ChannelRow = {
+  id: string;
+  webhook_url: string;
+  token: string;
+  is_active: number;
+  fail_count: number;
+};
 
 export function createTestEnv(db: FakeD1Database) {
   return {
@@ -15,55 +22,92 @@ export function createTestEnv(db: FakeD1Database) {
   } as unknown as CloudflareBindings;
 }
 
-export async function insertWebhook(
+type InsertDiscordWebhookParams = {
+  id: string;
+  webhookUrl: string;
+  token: string;
+  isActive?: number;
+  failCount?: number;
+  frequency?: 'IMM' | 'WEK';
+};
+
+export async function insertDiscordWebhook(
   db: FakeD1Database,
-  webhook: Partial<WebhookRow> &
-    Pick<WebhookRow, 'id' | 'webhook_url' | 'token'>,
+  params: InsertDiscordWebhookParams,
 ) {
+  const {
+    id,
+    webhookUrl,
+    token,
+    isActive = 1,
+    failCount = 0,
+    frequency = 'IMM',
+  } = params;
+
   await db
     .prepare(
-      `INSERT INTO webhooks (
-        id,
-        webhook_url,
-        token,
-        active,
-        fail_count,
-        created_at,
-        updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO channels (id, channel_type, token, is_active, fail_count, created_at, updated_at)
+       VALUES (?, 'DSC', ?, ?, ?, '2026-01-01 00:00:00', '2026-01-01 00:00:00')`,
     )
-    .bind(
-      webhook.id,
-      webhook.webhook_url,
-      webhook.token,
-      webhook.active ?? 1,
-      webhook.fail_count ?? 0,
-      webhook.created_at ?? '2026-01-01 00:00:00',
-      webhook.updated_at ?? '2026-01-01 00:00:00',
+    .bind(id, token, isActive, failCount)
+    .run();
+
+  await db
+    .prepare(
+      'INSERT INTO discord_channels (channel_id, webhook_url) VALUES (?, ?)',
     )
+    .bind(id, webhookUrl)
+    .run();
+
+  await db
+    .prepare(
+      `INSERT INTO notification_settings (id, channel_id, frequency, created_at)
+       VALUES (?, ?, ?, '2026-01-01 00:00:00')`,
+    )
+    .bind(`ns_${id}`, id, frequency)
     .run();
 }
 
-export async function findWebhookByUrl(db: FakeD1Database, webhookUrl: string) {
+export async function findChannelByWebhookUrl(
+  db: FakeD1Database,
+  webhookUrl: string,
+): Promise<ChannelRow | null> {
   return db
     .prepare(
-      'SELECT id, webhook_url, token, active, fail_count FROM webhooks WHERE webhook_url = ?',
+      `SELECT c.id, d.webhook_url, c.token, c.is_active, c.fail_count
+       FROM channels c
+       INNER JOIN discord_channels d ON c.id = d.channel_id
+       WHERE d.webhook_url = ?`,
     )
     .bind(webhookUrl)
-    .first<
-      Pick<WebhookRow, 'id' | 'webhook_url' | 'token' | 'active' | 'fail_count'>
-    >();
+    .first<ChannelRow>();
 }
 
-export async function findWebhookByToken(db: FakeD1Database, token: string) {
+export async function findChannelByToken(
+  db: FakeD1Database,
+  token: string,
+): Promise<ChannelRow | null> {
   return db
     .prepare(
-      'SELECT id, webhook_url, token, active, fail_count FROM webhooks WHERE token = ?',
+      `SELECT c.id, d.webhook_url, c.token, c.is_active, c.fail_count
+       FROM channels c
+       INNER JOIN discord_channels d ON c.id = d.channel_id
+       WHERE c.token = ?`,
     )
     .bind(token)
-    .first<
-      Pick<WebhookRow, 'id' | 'webhook_url' | 'token' | 'active' | 'fail_count'>
-    >();
+    .first<ChannelRow>();
+}
+
+export async function findNotificationSettings(
+  db: FakeD1Database,
+  channelId: string,
+): Promise<{ id: string; channel_id: string; frequency: string } | null> {
+  return db
+    .prepare(
+      'SELECT id, channel_id, frequency FROM notification_settings WHERE channel_id = ?',
+    )
+    .bind(channelId)
+    .first();
 }
 
 export function createQueueMessage(body: unknown) {

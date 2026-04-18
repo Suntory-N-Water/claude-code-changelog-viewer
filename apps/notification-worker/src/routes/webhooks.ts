@@ -1,5 +1,8 @@
+import { eq, sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { channels, discordChannels, notificationSettings } from '../db/schema';
 import {
   buildUnsubscribeUrl,
   createTestMessage,
@@ -11,6 +14,7 @@ import { isValidDiscordWebhookUrl } from '../lib/validation';
 const RequestSchema = z.object({
   webhook_url: z.string(),
   turnstile_token: z.string(),
+  frequency: z.enum(['IMM', 'WEK']),
 });
 
 export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
@@ -20,7 +24,7 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     if (!parseResult.success) {
       return c.json({ error: 'リクエストが不正です' }, 400);
     }
-    const { webhook_url, turnstile_token } = parseResult.data;
+    const { webhook_url, turnstile_token, frequency } = parseResult.data;
 
     // Turnstile トークン検証
     const turnstileValid = await verifyTurnstileToken(
@@ -37,13 +41,19 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     }
 
     // 既存 URL の確認
-    const existing = await c.env.DB.prepare(
-      'SELECT id, token, active FROM webhooks WHERE webhook_url = ?',
-    )
-      .bind(webhook_url)
-      .first<{ id: string; token: string; active: number }>();
+    const db = drizzle(c.env.DB);
+    const rows = await db
+      .select({
+        channelId: channels.id,
+        token: channels.token,
+        isActive: channels.isActive,
+      })
+      .from(discordChannels)
+      .innerJoin(channels, eq(discordChannels.channelId, channels.id))
+      .where(eq(discordChannels.webhookUrl, webhook_url));
+    const existing = rows[0] ?? null;
 
-    if (existing?.active === 1) {
+    if (existing?.isActive === 1) {
       return c.json({ error: '既に登録済みです' }, 409);
     }
 
@@ -60,22 +70,22 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
 
     // 非アクティブの既存レコードがある場合は再有効化
     if (existing) {
-      await c.env.DB.prepare(
-        "UPDATE webhooks SET active = 1, fail_count = 0, updated_at = datetime('now') WHERE id = ?",
-      )
-        .bind(existing.id)
-        .run();
-
+      await db
+        .update(channels)
+        .set({ isActive: 1, failCount: 0, updatedAt: sql`datetime('now')` })
+        .where(eq(channels.id, existing.channelId));
       return c.json({ success: true });
     }
 
     // 新規登録
     const id = crypto.randomUUID();
-    await c.env.DB.prepare(
-      'INSERT INTO webhooks (id, webhook_url, token) VALUES (?, ?, ?)',
-    )
-      .bind(id, webhook_url, token)
-      .run();
+    await db.insert(channels).values({ id, channelType: 'DSC', token });
+    await db
+      .insert(discordChannels)
+      .values({ channelId: id, webhookUrl: webhook_url });
+    await db
+      .insert(notificationSettings)
+      .values({ id: `ns_${id}`, channelId: id, frequency });
 
     return c.json({ success: true });
   },

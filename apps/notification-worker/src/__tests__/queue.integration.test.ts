@@ -30,8 +30,8 @@ import {
   createQueueBatch,
   createQueueMessage,
   createTestEnv,
-  findWebhookByToken,
-  insertWebhook,
+  findChannelByToken,
+  insertDiscordWebhook,
 } from './support/notification-test-support';
 
 const validAnalysis: Analysis = {
@@ -90,11 +90,11 @@ describe('queueConsumer integration', () => {
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
     setupFetchSuccess();
-    await insertWebhook(db, {
+    await insertDiscordWebhook(db, {
       id: 'active-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      fail_count: 2,
+      failCount: 2,
     });
     mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
 
@@ -103,27 +103,27 @@ describe('queueConsumer integration', () => {
 
     // Assert(確認)
     expect(message.ack).toHaveBeenCalled();
-    expect(await findWebhookByToken(db, 'active-token')).toEqual({
+    expect(await findChannelByToken(db, 'active-token')).toEqual({
       id: 'active-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      active: 1,
+      is_active: 1,
       fail_count: 0,
     });
   });
 
-  it('恒久失敗が続くと fail_count が増えしきい値到達で自動停止される', async () => {
+  it('恒久失敗が続くと fail_count が増えしきい値到達で channels.is_active が 0 になる', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage({ version: 'v1.0.0' });
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
     setupFetchSuccess();
-    await insertWebhook(db, {
+    await insertDiscordWebhook(db, {
       id: 'active-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      fail_count: 2,
+      failCount: 2,
     });
     mockedSendToDiscord.mockResolvedValue({ ok: false, status: 404 });
 
@@ -132,33 +132,33 @@ describe('queueConsumer integration', () => {
 
     // Assert(確認)
     expect(message.ack).toHaveBeenCalled();
-    expect(await findWebhookByToken(db, 'active-token')).toEqual({
+    expect(await findChannelByToken(db, 'active-token')).toEqual({
       id: 'active-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      active: 0,
+      is_active: 0,
       fail_count: 3,
     });
   });
 
-  it('複数 webhook 配信中に一部が失敗しても各 Webhook の最終状態が正しく反映される', async () => {
+  it('複数チャンネル配信中に一部が失敗しても各チャンネルの最終状態が正しく反映される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage({ version: 'v1.0.0' });
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
     setupFetchSuccess();
-    await insertWebhook(db, {
+    await insertDiscordWebhook(db, {
       id: 'success-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/success',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/success',
       token: 'success-token',
-      fail_count: 1,
+      failCount: 1,
     });
-    await insertWebhook(db, {
+    await insertDiscordWebhook(db, {
       id: 'fail-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/fail',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/fail',
       token: 'fail-token',
-      fail_count: 2,
+      failCount: 2,
     });
     mockedSendToDiscord
       .mockResolvedValueOnce({ ok: true, status: 204 })
@@ -169,19 +169,41 @@ describe('queueConsumer integration', () => {
 
     // Assert(確認)
     expect(message.ack).toHaveBeenCalled();
-    expect(await findWebhookByToken(db, 'success-token')).toEqual({
+    expect(await findChannelByToken(db, 'success-token')).toEqual({
       id: 'success-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/success',
       token: 'success-token',
-      active: 1,
+      is_active: 1,
       fail_count: 0,
     });
-    expect(await findWebhookByToken(db, 'fail-token')).toEqual({
+    expect(await findChannelByToken(db, 'fail-token')).toEqual({
       id: 'fail-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/fail',
       token: 'fail-token',
-      active: 0,
+      is_active: 0,
       fail_count: 3,
     });
+  });
+
+  it('frequency が WEK のチャンネルはキュー配信時に個別通知が送信されない', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const message = createQueueMessage({ version: 'v1.0.0' });
+    const batch = createQueueBatch([message]);
+    const env = createTestEnv(db);
+    setupFetchSuccess();
+    await insertDiscordWebhook(db, {
+      id: 'wek-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/wek',
+      token: 'wek-token',
+      frequency: 'WEK',
+    });
+
+    // Act(実行)
+    await runWithTimers(callConsumer(batch, env));
+
+    // Assert(確認)
+    expect(mockedSendToDiscord).not.toHaveBeenCalled();
+    expect(message.ack).toHaveBeenCalled();
   });
 });
