@@ -6,7 +6,7 @@ import Search from 'astro-pagefind/components/Search';
   id='search-trigger'
   type='button'
   class='flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 sm:min-w-65 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.4)] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer text-sm'
-  aria-label='検索を開く (⌘K)'
+  aria-label='検索を開く (⌘K / Ctrl+K)'
 >
   <svg
     class='w-4 h-4 shrink-0'
@@ -24,9 +24,16 @@ import Search from 'astro-pagefind/components/Search';
   </svg>
   <span class='hidden sm:inline text-sm flex-1 text-left'>変更内容を検索…</span>
   <kbd
+    id='search-kbd-mac'
     class='hidden sm:inline-flex items-center gap-0.5 rounded border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] px-1.5 py-0.5 text-[11px] font-medium text-[hsl(var(--cc-main-black)/0.4)]'
   >
     <span class='text-xs'>⌘</span>K
+  </kbd>
+  <kbd
+    id='search-kbd-win'
+    class='hidden rounded border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] px-1.5 py-0.5 text-[11px] font-medium text-[hsl(var(--cc-main-black)/0.4)]'
+  >
+    Ctrl+K
   </kbd>
 </button>
 
@@ -75,6 +82,17 @@ import Search from 'astro-pagefind/components/Search';
 <script>
   // View Transitions で蓄積しないよう前回のリスナーを追跡
   let currentKeydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
+  // Mac 以外では Ctrl+K の kbd を表示
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
+  const kbdMac = document.getElementById('search-kbd-mac');
+  const kbdWin = document.getElementById('search-kbd-win');
+  if (kbdMac) {
+    kbdMac.classList.toggle('sm:inline-flex', isMac);
+  }
+  if (kbdWin) {
+    kbdWin.classList.toggle('sm:inline-flex', !isMac);
+  }
 
   function initSearchModal() {
     const trigger = document.getElementById('search-trigger');

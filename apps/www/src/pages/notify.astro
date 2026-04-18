@@ -59,6 +59,26 @@ const siteUrl = import.meta.env.SITE;
         </p>
       </div>
 
+      <!-- クエリパラメータによるタブ初期化: JS 実行前のちらつきを防ぐ -->
+      <script is:inline>
+        (() => {
+          const tab = new URLSearchParams(location.search).get('tab');
+          if (tab !== 'slack' && tab !== 'email') {
+            return;
+          }
+          const style = document.createElement('style');
+          style.id = 'tab-init-style';
+          style.textContent =
+            '#panel-discord{display:none!important}' +
+            (tab === 'slack'
+              ? '#panel-email{display:none!important}'
+              : '#panel-slack{display:none!important}') +
+            '#tab-discord{border-color:transparent!important;color:hsl(var(--cc-main-black)/0.5)!important}' +
+            `#tab-${tab}{border-color:hsl(var(--cc-main-orange))!important;color:hsl(var(--cc-main-orange))!important}`;
+          document.head.appendChild(style);
+        })();
+      </script>
+
       <!-- タブナビゲーション -->
       <div
         class='flex border-b border-[hsl(var(--cc-gray))] mb-8'

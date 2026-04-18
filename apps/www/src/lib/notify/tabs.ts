@@ -2,6 +2,12 @@ import { renderTurnstileFor } from './turnstile';
 
 type Tab = 'discord' | 'slack' | 'email';
 
+const VALID_TABS: Tab[] = ['discord', 'slack', 'email'];
+
+function isValidTab(value: string | null): value is Tab {
+  return VALID_TABS.includes(value as Tab);
+}
+
 /** Discord / Slack / Email タブの切り替えロジックをセットアップする */
 export function setupTabs() {
   const tabDiscord = document.getElementById('tab-discord');
@@ -33,7 +39,7 @@ export function setupTabs() {
     email: { tab: tabEmail, panel: panelEmail },
   };
 
-  function switchTab(active: Tab) {
+  function switchTab(active: Tab, updateUrl = true) {
     for (const [key, { tab, panel }] of Object.entries(tabs) as [
       Tab,
       { tab: HTMLElement; panel: HTMLElement },
@@ -49,6 +55,12 @@ export function setupTabs() {
       );
     }
 
+    if (updateUrl) {
+      const url = new URL(location.href);
+      url.searchParams.set('tab', active);
+      history.replaceState(null, '', url.toString());
+    }
+
     // タブ切り替え時に Turnstile を遅延レンダリング
     if (window.turnstile) {
       renderTurnstileFor('discord-turnstile', 'discord');
@@ -60,6 +72,14 @@ export function setupTabs() {
       }
     }
   }
+
+  // URL クエリパラメータから初期タブを復元
+  const params = new URLSearchParams(location.search);
+  const tabParam = params.get('tab');
+  const initialTab: Tab = isValidTab(tabParam) ? tabParam : 'discord';
+  // インラインスタイルを除去してから切り替え(!important 競合防止)
+  document.getElementById('tab-init-style')?.remove();
+  switchTab(initialTab, false);
 
   tabDiscord.addEventListener('click', () => switchTab('discord'));
   tabSlack.addEventListener('click', () => switchTab('slack'));
