@@ -3,10 +3,9 @@ import slackManifestContent from '../../../../config/slack-app-manifest.yaml?raw
 import Layout from '../layouts/Layout.astro';
 import { SITE_TITLE } from '../lib/constants';
 
-const workerUrl = import.meta.env.DEV
+const url = import.meta.env.DEV
   ? 'http://localhost:8787'
-  : 'https://notification-worker.ayasnppk00.workers.dev';
-const siteUrl = import.meta.env.SITE;
+  : import.meta.env.SITE;
 ---
 
 <Layout
@@ -14,8 +13,8 @@ const siteUrl = import.meta.env.SITE;
   description='Claude Codeの新バージョンがリリースされた際に、Discord・Slack・メールへ自動通知する機能の設定ページです。登録するだけで、最新のアップデート情報をリアルタイムで受け取ることができます。'
   jsonLd={{ type: 'page' }}
   breadcrumbs={[
-    { name: 'トップ', url: siteUrl },
-    { name: '通知設定', url: `${siteUrl}/notify` },
+    { name: 'トップ', url: url },
+    { name: '通知設定', url: `${url}/notify` },
   ]}
 >
   <div class='min-h-dvh py-12 sm:py-20 px-4'>
@@ -219,7 +218,7 @@ const siteUrl = import.meta.env.SITE;
         >
           <form
             id='discord-form'
-            data-worker-url={workerUrl}
+            data-worker-url={url}
             data-channel-type='DSC'
             class='space-y-5'
           >
@@ -429,7 +428,7 @@ const siteUrl = import.meta.env.SITE;
         >
           <form
             id='slack-form'
-            data-worker-url={workerUrl}
+            data-worker-url={url}
             data-channel-type='SLK'
             class='space-y-5'
           >
@@ -589,7 +588,7 @@ const siteUrl = import.meta.env.SITE;
         >
           <form
             id='email-form'
-            data-worker-url={workerUrl}
+            data-worker-url={url}
             data-channel-type='EML'
             class='space-y-5'
           >
