@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 Bun workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 
 - ログ・コメント・コミットメッセージは日本語で記載する
@@ -14,3 +12,4 @@ Bun workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 - ライブラリの仕様は Context7 MCP サーバーを使用する
 - 変更後は `/dev:actions-check` で静的解析を実施する
 - TypeScript / アプリ固有の規約は `.claude/rules/` を参照する
+- `lint` エラー時は `unsafe-fix` を使用してから個別に修正する
