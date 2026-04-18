@@ -4,48 +4,24 @@ import type { Prefix } from '@claude-code-changelog-viewer/common';
 import ChangelogItemCard from '../../components/changelog/ChangelogItemCard.astro';
 import PrefixTableOfContents from '../../components/changelog/PrefixTableOfContents.astro';
 import Layout from '../../layouts/Layout.astro';
-import { formatChangelogContent } from '../../lib/format-changelog-content';
-import { extractChangelogData, getLinkedAreas } from '../../lib/feature-area';
 import {
+  buildDiffMap,
+  type DiffEvent,
+  formatDiffDateTime,
+} from '../../lib/changelog-diff';
+import { extractChangelogData, getLinkedAreas } from '../../lib/feature-area';
+import { formatChangelogContent } from '../../lib/format-changelog-content';
+import {
+  getPrefixSortOrder,
   PREFIX_DEFAULT_STYLE,
   PREFIX_ICONS,
   PREFIX_LABELS,
   PREFIX_STYLES,
-  getPrefixSortOrder,
 } from '../../lib/prefix';
-import {
-  type DiffEvent,
-  buildDiffMap,
-  formatDiffDateTime,
-} from '../../lib/changelog-diff';
-import { semverCompareDesc, isLegacyVersion } from '../../lib/semver';
+import { isLegacyVersion, semverCompareDesc } from '../../lib/semver';
 
 export async function getStaticPaths() {
   const allChangelogs = await getCollection('changelog');
-
-  // GitHub API で Releases のバージョン一覧と公開日時を取得(1リクエスト固定)
-  let releaseVersions: Set<string>;
-  let releaseDateMap: Map<string, string> = new Map();
-  try {
-    const res = await fetch(
-      'https://api.github.com/repos/anthropics/claude-code/releases?per_page=100',
-      { headers: { 'User-Agent': 'claude-code-changelog-viewer' } },
-    );
-    if (!res.ok) {
-      throw new Error(`GitHub API: ${res.status}`);
-    }
-    const releases: Array<{ tag_name: string; published_at: string }> =
-      await res.json();
-    releaseVersions = new Set(
-      releases.map((r) => r.tag_name.replace(/^v/, '')),
-    );
-    releaseDateMap = new Map(
-      releases.map((r) => [r.tag_name.replace(/^v/, ''), r.published_at]),
-    );
-  } catch {
-    releaseVersions = new Set();
-    releaseDateMap = new Map();
-  }
 
   // ページが存在する feature_area を算出
   const linkedAreas = getLinkedAreas(extractChangelogData(allChangelogs));
@@ -63,8 +39,6 @@ export async function getStaticPaths() {
     params: { version: `v${entry.data.version}` },
     props: {
       entry,
-      hasGitHubRelease: releaseVersions.has(entry.data.version),
-      releaseDate: releaseDateMap.get(entry.data.version) ?? null,
       prevVersion: sorted[i + 1]?.data.version ?? null,
       nextVersion: sorted[i - 1]?.data.version ?? null,
       linkedAreas,
@@ -73,15 +47,8 @@ export async function getStaticPaths() {
   }));
 }
 
-const {
-  entry,
-  hasGitHubRelease,
-  releaseDate,
-  prevVersion,
-  nextVersion,
-  linkedAreas,
-  diffEvents,
-} = Astro.props;
+const { entry, prevVersion, nextVersion, linkedAreas, diffEvents } =
+  Astro.props;
 const { version, items, summary } = entry.data;
 
 // 差分ステータス算出
@@ -153,7 +120,6 @@ const totalItemCount = items.length;
     type: 'article',
     version,
     summary,
-    datePublished: releaseDate ?? undefined,
   }}
   breadcrumbs={[
     { name: 'トップ', url: import.meta.env.SITE },
@@ -216,32 +182,28 @@ const totalItemCount = items.length;
           class='flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600'
         >
           <p>変更項目: {totalItemCount}件</p>
-          {
-            hasGitHubRelease && (
-              <a
-                href={`https://github.com/anthropics/claude-code/releases/tag/v${version}`}
-                target='_blank'
-                rel='noopener noreferrer'
-                class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
-              >
-                GitHub Release
-                <svg
-                  class='w-3.5 h-3.5'
-                  fill='none'
-                  viewBox='0 0 24 24'
-                  stroke='currentColor'
-                  stroke-width='2'
-                  aria-hidden='true'
-                >
-                  <path
-                    stroke-linecap='round'
-                    stroke-linejoin='round'
-                    d='M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25'
-                  />
-                </svg>
-              </a>
-            )
-          }
+          <a
+            href={`https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md#${version.replace(/\./g, '')}`}
+            target='_blank'
+            rel='noopener noreferrer'
+            class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
+          >
+            CHANGELOG.md
+            <svg
+              class='w-3.5 h-3.5'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              stroke-width='2'
+              aria-hidden='true'
+            >
+              <path
+                stroke-linecap='round'
+                stroke-linejoin='round'
+                d='M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25'
+              ></path>
+            </svg>
+          </a>
         </div>
         {
           isRemoved && (
