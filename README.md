@@ -8,7 +8,7 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 
 - GitHub Actions で CHANGELOG とドキュメントを定期取得
 - AI による CHANGELOG の自動翻訳・推論(Gemini API 使用)
-- Discord Webhook による新バージョンの自動通知
+- Discord・Slack・メールによる新バージョンの自動通知
 - bun workspace によるモノレポ構成
 - Astro + Cloudflare Workers による高速な静的サイト
 - TypeScript strict mode による型安全な実装
@@ -47,8 +47,8 @@ GitHub Actions により自動的に最新の CHANGELOG と公式ドキュメン
 
 #### `apps/notification-worker`
 - Cloudflare Workers + Hono ベースの通知配信 API
-- Discord Webhook を通じた新バージョンの自動通知
-- Cloudflare D1 で登録者の Webhook URL を管理
+- Discord・Slack・メール(プレビュー版)による新バージョンの自動通知
+- Cloudflare D1 でスーパータイプ/サブタイプ設計により登録者情報を管理
 - Cloudflare Queues による非同期バッチ配信
 - Cloudflare Turnstile による Bot 対策
 - API エンドポイント:
@@ -81,6 +81,8 @@ graph TD
 
     USER[ユーザー]
     DISCORD[Discord]
+    SLACK[Slack]
+    EMAIL[メール]
 
     GH -->|変更履歴を提供| FETCH_CL
     GH -->|ドキュメントを提供| FETCH_DOC
@@ -95,6 +97,8 @@ graph TD
     NW -->|登録情報を保存| D1
     NW -->|配信を予約| QUEUES
     QUEUES -->|通知を送信| DISCORD
+    QUEUES -->|通知を送信| SLACK
+    QUEUES -->|通知を送信| EMAIL
 
     style GH fill:#f3e5f5
     style GEMINI fill:#f3e5f5
@@ -107,6 +111,8 @@ graph TD
     style TURNSTILE fill:#e3f2fd
     style USER fill:#e3f2fd
     style DISCORD fill:#f3e5f5
+    style SLACK fill:#f3e5f5
+    style EMAIL fill:#f3e5f5
 ```
 
 ## 技術スタック
