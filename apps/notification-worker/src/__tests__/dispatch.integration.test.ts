@@ -1,4 +1,10 @@
 import { describe, expect, it, mock } from 'bun:test';
+
+mock.module('../lib/email', () => ({
+  sendToEmail: mock(),
+  createEmailTestMessage: mock(),
+}));
+
 import { app } from '../index';
 import { FakeD1Database } from './support/fake-d1';
 import { createTestEnv } from './support/notification-test-support';

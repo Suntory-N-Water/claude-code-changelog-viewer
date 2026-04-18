@@ -15,6 +15,11 @@ mock.module('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
+mock.module('../lib/email', () => ({
+  sendToEmail: mock(),
+  createEmailTestMessage: mock(),
+}));
+
 import { app } from '../index';
 import { FakeD1Database } from './support/fake-d1';
 import {
@@ -31,6 +36,7 @@ function createRequestInit(
     webhook_url: validWebhookUrl,
     turnstile_token: 'valid-token',
     frequency: 'IMM',
+    channel_type: 'DSC',
   },
 ): RequestInit {
   return {
@@ -107,6 +113,7 @@ describe('POST /api/webhooks integration', () => {
         webhook_url: validWebhookUrl,
         turnstile_token: 'valid-token',
         frequency: 'WEK',
+        channel_type: 'DSC',
       }),
       env,
     );
@@ -229,6 +236,7 @@ describe('POST /api/webhooks integration', () => {
         webhook_url: 'https://example.com/not-a-webhook',
         turnstile_token: 'valid-token',
         frequency: 'IMM',
+        channel_type: 'DSC',
       }),
       env,
     );

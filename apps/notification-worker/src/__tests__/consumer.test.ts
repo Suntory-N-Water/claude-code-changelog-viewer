@@ -24,6 +24,11 @@ mock.module('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
+mock.module('../lib/email', () => ({
+  sendToEmail: mock(),
+  createEmailChangelogMessage: mock(),
+}));
+
 // fetch をモック(spyOn 経由で型安全にモック)
 const mockFetch = spyOn(globalThis, 'fetch');
 
@@ -130,13 +135,18 @@ function setupDBWithWebhooks(
 
     if (isSelect) {
       // Drizzle D1 は SELECT に .raw() を使用する
-      // consumer.ts の select 順: id, webhook_url, token, fail_count
-      const rawRows = webhooks.map((w) => [
-        w.id,
-        w.webhook_url,
-        w.token,
-        w.fail_count ?? 0,
-      ]);
+      // consumer.ts の select 順: id, webhook_url, token, fail_count, channel_type
+      // discord_channels JOIN のみ rows を返す。slack_channels JOIN は空を返す
+      const isDiscordQuery = upper.includes('DISCORD_CHANNELS');
+      const rawRows = isDiscordQuery
+        ? webhooks.map((w) => [
+            w.id,
+            w.webhook_url,
+            w.token,
+            w.fail_count ?? 0,
+            'DSC',
+          ])
+        : [];
       return {
         bind: mock().mockReturnValue({
           raw: mock().mockResolvedValue(rawRows),
