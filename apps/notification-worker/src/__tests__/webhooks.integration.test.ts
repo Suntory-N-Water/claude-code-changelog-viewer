@@ -15,6 +15,11 @@ mock.module('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
+mock.module('../lib/email', () => ({
+  sendToEmail: mock(),
+  createEmailTestMessage: mock(),
+}));
+
 import { app } from '../index';
 import { FakeD1Database } from './support/fake-d1';
 import {

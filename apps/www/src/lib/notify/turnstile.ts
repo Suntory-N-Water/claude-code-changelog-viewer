@@ -12,14 +12,39 @@ declare global {
     onDiscordTurnstileExpired?: () => void;
     onSlackTurnstileSuccess?: () => void;
     onSlackTurnstileExpired?: () => void;
+    onEmailTurnstileSuccess?: () => void;
+    onEmailTurnstileExpired?: () => void;
   }
 }
 
-type TurnstileWidgetIds = { discord: string | null; slack: string | null };
+type TurnstileWidgetIds = {
+  discord: string | null;
+  slack: string | null;
+  email: string | null;
+};
 
 const turnstileWidgets: TurnstileWidgetIds = {
   discord: null,
   slack: null,
+  email: null,
+};
+
+const callbackMap: Record<
+  keyof TurnstileWidgetIds,
+  { success: keyof Window; expired: keyof Window }
+> = {
+  discord: {
+    success: 'onDiscordTurnstileSuccess',
+    expired: 'onDiscordTurnstileExpired',
+  },
+  slack: {
+    success: 'onSlackTurnstileSuccess',
+    expired: 'onSlackTurnstileExpired',
+  },
+  email: {
+    success: 'onEmailTurnstileSuccess',
+    expired: 'onEmailTurnstileExpired',
+  },
 };
 
 /**
@@ -34,15 +59,10 @@ export function renderTurnstileFor(
   if (!container || !window.turnstile || turnstileWidgets[key]) {
     return;
   }
+  const { success, expired } = callbackMap[key];
   turnstileWidgets[key] = window.turnstile.render(container, {
     sitekey: container.getAttribute('data-sitekey'),
-    callback:
-      key === 'discord'
-        ? window.onDiscordTurnstileSuccess
-        : window.onSlackTurnstileSuccess,
-    'expired-callback':
-      key === 'discord'
-        ? window.onDiscordTurnstileExpired
-        : window.onSlackTurnstileExpired,
+    callback: window[success],
+    'expired-callback': window[expired],
   });
 }

@@ -11,3 +11,9 @@ const SLACK_WEBHOOK_REGEX =
 export function isValidSlackWebhookUrl(url: string): boolean {
   return SLACK_WEBHOOK_REGEX.test(url);
 }
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmail(email: string): boolean {
+  return EMAIL_REGEX.test(email);
+}

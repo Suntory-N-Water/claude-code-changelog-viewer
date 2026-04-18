@@ -16,6 +16,8 @@ export function createTestEnv(db: FakeD1Database) {
     NOTIFICATION_QUEUE: {
       sendBatch: mock(() => Promise.resolve(undefined)),
     },
+    SEND_EMAIL: { send: mock(() => Promise.resolve(undefined)) },
+    EMAIL_FROM: 'noreply@claude-code-log.com',
     SITE_URL: 'https://claude-code-log.com',
     TURNSTILE_SECRET_KEY: 'turnstile-secret',
     WORKER_URL: 'https://notification.example.workers.dev',

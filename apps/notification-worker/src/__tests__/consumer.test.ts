@@ -24,6 +24,11 @@ mock.module('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
+mock.module('../lib/email', () => ({
+  sendToEmail: mock(),
+  createEmailChangelogMessage: mock(),
+}));
+
 // fetch をモック(spyOn 経由で型安全にモック)
 const mockFetch = spyOn(globalThis, 'fetch');
 

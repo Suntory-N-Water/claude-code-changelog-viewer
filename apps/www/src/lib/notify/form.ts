@@ -11,6 +11,7 @@ type FormConfig = {
   submitTextId: string;
   submitSpinnerId: string;
   resultMessageId: string;
+  inputFieldName: 'webhook_url' | 'email_address';
   validateUrl: (url: string) => boolean;
 };
 
@@ -24,6 +25,7 @@ export function setupForm(config: FormConfig) {
     submitTextId,
     submitSpinnerId,
     resultMessageId,
+    inputFieldName,
     validateUrl,
   } = config;
 
@@ -63,12 +65,12 @@ export function setupForm(config: FormConfig) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const webhook_url = input.value.trim();
-    if (!webhook_url) {
+    const inputValue = input.value.trim();
+    if (!inputValue) {
       return;
     }
 
-    if (!validateUrl(webhook_url)) {
+    if (!validateUrl(inputValue)) {
       urlError.classList.remove('hidden');
       return;
     }
@@ -90,7 +92,7 @@ export function setupForm(config: FormConfig) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          webhook_url,
+          [inputFieldName]: inputValue,
           turnstile_token,
           // TODO: 週末サマリー通知を実装したら外部から受け取り仕組みにする。それまでは固定値。
           frequency: 'IMM',
@@ -106,7 +108,7 @@ export function setupForm(config: FormConfig) {
           '登録が完了しました。テスト通知を送信しました。';
       } else if (response.status === 409) {
         resultMessage.className = errorClass;
-        resultMessage.textContent = 'このWebhook URLは既に登録されています。';
+        resultMessage.textContent = '既に登録済みです。';
       } else {
         resultMessage.className = errorClass;
         resultMessage.textContent =

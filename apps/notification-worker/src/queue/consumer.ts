@@ -1,20 +1,22 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
-import { drizzle } from 'drizzle-orm/d1';
 import { and, eq, sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/d1';
 import { z } from 'zod';
+import {
+  channels,
+  discordChannels,
+  emailChannels,
+  notificationSettings,
+  slackChannels,
+} from '../db/schema';
 import {
   buildUnsubscribeUrl,
   createChangelogMessage,
   sendToDiscord,
 } from '../lib/discord';
+import { createEmailChangelogMessage, sendToEmail } from '../lib/email';
 import { createSlackChangelogMessage, sendToSlack } from '../lib/slack';
-import {
-  channels,
-  discordChannels,
-  notificationSettings,
-  slackChannels,
-} from '../db/schema';
 
 const logger = getLogger({
   name: 'notification-worker',
@@ -35,13 +37,23 @@ const NotificationMessageSchema = z.object({
   version: z.string().startsWith('v'),
 });
 
-type ChannelRow = {
+type WebhookChannelRow = {
   id: string;
   webhookUrl: string;
   token: string;
   failCount: number;
-  channelType: 'DSC' | 'SLK' | 'EML';
+  channelType: 'DSC' | 'SLK';
 };
+
+type EmailChannelRow = {
+  id: string;
+  emailAddress: string;
+  token: string;
+  failCount: number;
+  channelType: 'EML';
+};
+
+type ChannelRow = WebhookChannelRow | EmailChannelRow;
 
 export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
   async (batch, env) => {
@@ -88,7 +100,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           webhookUrl: discordChannels.webhookUrl,
           token: channels.token,
           failCount: channels.failCount,
-          channelType: channels.channelType,
+          channelType: sql<'DSC'>`'DSC'`,
         })
         .from(channels)
         .innerJoin(discordChannels, eq(discordChannels.channelId, channels.id))
@@ -110,7 +122,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           webhookUrl: slackChannels.webhookUrl,
           token: channels.token,
           failCount: channels.failCount,
-          channelType: channels.channelType,
+          channelType: sql<'SLK'>`'SLK'`,
         })
         .from(channels)
         .innerJoin(slackChannels, eq(slackChannels.channelId, channels.id))
@@ -125,7 +137,29 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           ),
         );
 
-      const rows: ChannelRow[] = [...discordRows, ...slackRows];
+      // Email チャンネル一覧を取得
+      const emailRows = await db
+        .select({
+          id: channels.id,
+          emailAddress: emailChannels.emailAddress,
+          token: channels.token,
+          failCount: channels.failCount,
+          channelType: sql<'EML'>`'EML'`,
+        })
+        .from(channels)
+        .innerJoin(emailChannels, eq(emailChannels.channelId, channels.id))
+        .innerJoin(
+          notificationSettings,
+          eq(notificationSettings.channelId, channels.id),
+        )
+        .where(
+          and(
+            eq(channels.isActive, 1),
+            eq(notificationSettings.frequency, 'IMM'),
+          ),
+        );
+
+      const rows: ChannelRow[] = [...discordRows, ...slackRows, ...emailRows];
 
       if (rows.length === 0) {
         logger.info('アクティブなチャンネルが存在しません');
@@ -144,21 +178,30 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           );
 
           const result =
-            webhook.channelType === 'SLK'
-              ? await sendToSlack(
-                  webhook.webhookUrl,
-                  createSlackChangelogMessage(data, version, {
+            webhook.channelType === 'EML'
+              ? await sendToEmail(env.SEND_EMAIL, {
+                  fromAddress: env.EMAIL_FROM,
+                  toAddress: webhook.emailAddress,
+                  payload: createEmailChangelogMessage(data, version, {
                     unsubscribeUrl,
                     siteUrl: env.SITE_URL,
                   }),
-                )
-              : await sendToDiscord(
-                  webhook.webhookUrl,
-                  createChangelogMessage(data, version, {
-                    unsubscribeUrl,
-                    siteUrl: env.SITE_URL,
-                  }),
-                );
+                })
+              : webhook.channelType === 'SLK'
+                ? await sendToSlack(
+                    webhook.webhookUrl,
+                    createSlackChangelogMessage(data, version, {
+                      unsubscribeUrl,
+                      siteUrl: env.SITE_URL,
+                    }),
+                  )
+                : await sendToDiscord(
+                    webhook.webhookUrl,
+                    createChangelogMessage(data, version, {
+                      unsubscribeUrl,
+                      siteUrl: env.SITE_URL,
+                    }),
+                  );
 
           if (result.ok) {
             if (webhook.failCount > 0) {

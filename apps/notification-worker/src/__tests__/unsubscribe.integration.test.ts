@@ -1,4 +1,10 @@
-import { afterEach, describe, expect, it } from 'bun:test';
+import { afterEach, describe, expect, it, mock } from 'bun:test';
+
+mock.module('../lib/email', () => ({
+  sendToEmail: mock(),
+  createEmailTestMessage: mock(),
+}));
+
 import { app } from '../index';
 import { FakeD1Database } from './support/fake-d1';
 import {

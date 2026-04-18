@@ -21,6 +21,11 @@ mock.module('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
+mock.module('../lib/email', () => ({
+  sendToEmail: mock(),
+  createEmailChangelogMessage: mock(),
+}));
+
 const mockFetch = spyOn(globalThis, 'fetch');
 
 import type { Analysis } from '@claude-code-changelog-viewer/types';
