@@ -8,7 +8,13 @@ import {
   createChangelogMessage,
   sendToDiscord,
 } from '../lib/discord';
-import { channels, discordChannels, notificationSettings } from '../db/schema';
+import { createSlackChangelogMessage, sendToSlack } from '../lib/slack';
+import {
+  channels,
+  discordChannels,
+  notificationSettings,
+  slackChannels,
+} from '../db/schema';
 
 const logger = getLogger({
   name: 'notification-worker',
@@ -28,6 +34,14 @@ const PERMANENT_FAILURE_STATUSES = [401, 403, 404];
 const NotificationMessageSchema = z.object({
   version: z.string().startsWith('v'),
 });
+
+type ChannelRow = {
+  id: string;
+  webhookUrl: string;
+  token: string;
+  failCount: number;
+  channelType: 'DSC' | 'SLK' | 'EML';
+};
 
 export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
   async (batch, env) => {
@@ -65,14 +79,16 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
       }
       const data = parseResult.data;
 
-      // アクティブかつ IMM 設定のチャンネル一覧を取得
       const db = drizzle(env.DB);
-      const rows = await db
+
+      // Discord チャンネル一覧を取得
+      const discordRows = await db
         .select({
           id: channels.id,
           webhookUrl: discordChannels.webhookUrl,
           token: channels.token,
           failCount: channels.failCount,
+          channelType: channels.channelType,
         })
         .from(channels)
         .innerJoin(discordChannels, eq(discordChannels.channelId, channels.id))
@@ -86,6 +102,30 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
             eq(notificationSettings.frequency, 'IMM'),
           ),
         );
+
+      // Slack チャンネル一覧を取得
+      const slackRows = await db
+        .select({
+          id: channels.id,
+          webhookUrl: slackChannels.webhookUrl,
+          token: channels.token,
+          failCount: channels.failCount,
+          channelType: channels.channelType,
+        })
+        .from(channels)
+        .innerJoin(slackChannels, eq(slackChannels.channelId, channels.id))
+        .innerJoin(
+          notificationSettings,
+          eq(notificationSettings.channelId, channels.id),
+        )
+        .where(
+          and(
+            eq(channels.isActive, 1),
+            eq(notificationSettings.frequency, 'IMM'),
+          ),
+        );
+
+      const rows: ChannelRow[] = [...discordRows, ...slackRows];
 
       if (rows.length === 0) {
         logger.info('アクティブなチャンネルが存在しません');
@@ -102,14 +142,25 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
             env.WORKER_URL,
             webhook.token,
           );
-          const payload = createChangelogMessage(data, version, {
-            unsubscribeUrl,
-            siteUrl: env.SITE_URL,
-          });
-          const result = await sendToDiscord(webhook.webhookUrl, payload);
+
+          const result =
+            webhook.channelType === 'SLK'
+              ? await sendToSlack(
+                  webhook.webhookUrl,
+                  createSlackChangelogMessage(data, version, {
+                    unsubscribeUrl,
+                    siteUrl: env.SITE_URL,
+                  }),
+                )
+              : await sendToDiscord(
+                  webhook.webhookUrl,
+                  createChangelogMessage(data, version, {
+                    unsubscribeUrl,
+                    siteUrl: env.SITE_URL,
+                  }),
+                );
 
           if (result.ok) {
-            // fail_count が 0 でない場合のみリセット
             if (webhook.failCount > 0) {
               await db
                 .update(channels)
@@ -117,12 +168,10 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
                 .where(eq(channels.id, webhook.id));
             }
           } else if (result.status === 429) {
-            // レート制限: メッセージをリトライして全チャンネルを再処理する
             logger.warn('レート制限を受信', { channelId: webhook.id });
             hasRateLimitFailure = true;
             break;
           } else if (PERMANENT_FAILURE_STATUSES.includes(result.status)) {
-            // fail_count 加算 + 閾値超過時は is_active=0 を 1 クエリで実行
             const [updateResult] = await db
               .update(channels)
               .set({
@@ -152,7 +201,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           logger.error('webhook送信中に例外が発生', toError(error));
         }
 
-        // Discord API rate limit を避けるため、各送信間に 1 秒間隔(最後は待たない)
+        // API rate limit を避けるため、各送信間に 1 秒間隔(最後は待たない)
         if (i < lastIndex) {
           await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
         }
