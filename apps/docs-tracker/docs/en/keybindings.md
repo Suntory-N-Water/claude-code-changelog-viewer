@@ -328,6 +328,12 @@ Actions available in the `Scroll` context when [fullscreen rendering](/en/fullsc
 | `scroll:fullPageDown` | (unbound) | Scroll down the full viewport height |
 | `selection:copy` | Ctrl+Shift+C / Cmd+C | Copy the selected text to the clipboard |
 | `selection:clear` | (unbound) | Clear the active text selection |
+| `selection:extendLeft` | Shift+Left | Extend the active selection one column left |
+| `selection:extendRight` | Shift+Right | Extend the active selection one column right |
+| `selection:extendUp` | Shift+Up | Extend the active selection one row up. Scrolls the viewport when the selection reaches the top edge |
+| `selection:extendDown` | Shift+Down | Extend the active selection one row down. Scrolls the viewport when the selection reaches the bottom edge |
+| `selection:extendLineStart` | Shift+Home | Extend the active selection to the start of the line |
+| `selection:extendLineEnd` | Shift+End | Extend the active selection to the end of the line |
 
 ## Keystroke syntax
 

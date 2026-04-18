@@ -292,6 +292,7 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y
 | `network.allowLocalBinding` | Allow binding to localhost ports (macOS only). Default: false | `true` |
 | `network.allowMachLookup` | Additional XPC/Mach service names the sandbox may look up (macOS only). Supports a single trailing `*` for prefix matching. Needed for tools that communicate via XPC such as the iOS Simulator or Playwright. | `["com.apple.coresimulator.*"]` |
 | `network.allowedDomains` | Array of domains to allow for outbound network traffic. Supports wildcards (e.g., `*.example.com`). | `["github.com", "*.npmjs.org"]` |
+| `network.deniedDomains` | Array of domains to block for outbound network traffic. Supports the same wildcard syntax as `allowedDomains`. Takes precedence over `allowedDomains` when both match. Merged from all settings sources regardless of `allowManagedDomainsOnly`. | `["sensitive.cloud.example.com"]` |
 | `network.allowManagedDomainsOnly` | (Managed settings only) Only `allowedDomains` and `WebFetch(domain:...)` allow rules from managed settings are respected. Domains from user, project, and local settings are ignored. Non-allowed domains are blocked automatically without prompting the user. Denied domains are still respected from all sources. Default: false | `true` |
 | `network.httpProxyPort` | HTTP proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8080` |
 | `network.socksProxyPort` | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8081` |
@@ -324,6 +325,7 @@ The older `//path` prefix for absolute paths still works. If you previously used
     },
     "network": {
       "allowedDomains": ["github.com", "*.npmjs.org", "registry.yarnpkg.com"],
+      "deniedDomains": ["uploads.github.com"],
       "allowUnixSockets": [
         "/var/run/docker.sock"
       ],

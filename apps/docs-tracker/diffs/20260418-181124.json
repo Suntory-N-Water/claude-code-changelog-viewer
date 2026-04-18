@@ -1,0 +1,818 @@
+{
+  "id": "20260418-181124",
+  "timestamp": "2026-04-18T18:11:24.599Z",
+  "aiSummary": "ネットワークのセキュリティ設定にdeniedDomainsオプションが導入され、特定のドメインへのアクセスを拒否する設定が可能になりました。キーバインドの拡充により、矢印キーやCtrlキーを用いたカーソル移動やテキスト選択の操作性が向上しています。また、パーミッションの自動承認ルールの例外条件や、/loopコマンドの停止方法などの実用的な仕様が詳細化されました。",
+  "files": [
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "サンドボックス内のプロセスがアクセスできないドメインを指定するdeniedDomainsプロパティがSDKに追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -2799,6 +2799,7 @@ Network-specific configuration for sandbox mode.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type SandboxNetworkConfig = {"
+            },
+            {
+              "type": "context",
+              "content": "  allowedDomains?: string[];"
+            },
+            {
+              "type": "added",
+              "content": "  deniedDomains?: string[];"
+            },
+            {
+              "type": "context",
+              "content": "  allowManagedDomainsOnly?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  allowLocalBinding?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  allowUnixSockets?: string[];"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2811,6 +2812,7 @@ type SandboxNetworkConfig = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Property | Type | Default | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedDomains` | `string[]` | `[]` | Domain names that sandboxed processes can access |"
+            },
+            {
+              "type": "added",
+              "content": "| `deniedDomains` | `string[]` | `[]` | Domain names that sandboxed processes cannot access. Takes precedence over `allowedDomains` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowManagedDomainsOnly` | `boolean` | `false` | Restrict network access to only the domains in `allowedDomains` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowLocalBinding` | `boolean` | `false` | Allow processes to bind to local ports (e.g., for dev servers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowUnixSockets` | `string[]` | `[]` | Unix socket paths that processes can access (e.g., Docker socket) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "/compactコマンドの要約機能の解説が詳述され、パーミッションのプロンプトを減らすための新しい/fewer-permission-promptsスキルが導入されました。",
+      "hunks": [
+        {
+          "header": "@@ -29,7 +29,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/claude-api` | **[Skill](/en/skills#bundled-skills).** Load Claude API reference material for your project's language (Python, TypeScript, Java, Go, Ruby, C#, PHP, or cURL) and Managed Agents reference. Covers tool use, streaming, batches, structured outputs, and common pitfalls. Also activates automatically when your code imports `anthropic` or `@anthropic-ai/sdk` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/clear` | Start a new conversation with empty context. The previous conversation stays available in `/resume`. To free up context while continuing the same conversation, use `/compact` instead. Aliases: `/reset`, `/new` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/color [color\\|default]` | Set the prompt bar color for the current session. Available colors: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Use `default` to reset |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/compact [instructions]` | Compact conversation with optional focus instructions |"
+            },
+            {
+              "type": "added",
+              "content": "| `/compact [instructions]` | Free up context by summarizing the conversation so far. Optionally pass focus instructions for the summary. See [how compaction handles rules, skills, and memory files](/en/context-window#what-survives-compaction) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/config` | Open the [Settings](/en/settings) interface to adjust theme, model, [output style](/en/output-styles), and other preferences. Alias: `/settings` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/context` | Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings |"
+            },
+            {
+              "type": "context",
+              "content": "| `/copy [N]` | Copy the last assistant response to clipboard. Pass a number `N` to copy the Nth-latest response: `/copy 2` copies the second-to-last. When code blocks are present, shows an interactive picker to select individual blocks or the full response. Press `w` in the picker to write the selection to a file instead of the clipboard, which is useful over SSH |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -44,6 +44,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/extra-usage` | Configure extra usage to keep working when rate limits are hit |"
+            },
+            {
+              "type": "context",
+              "content": "| `/fast [on\\|off]` | Toggle [fast mode](/en/fast-mode) on or off |"
+            },
+            {
+              "type": "context",
+              "content": "| `/feedback [report]` | Submit feedback about Claude Code. Alias: `/bug` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/fewer-permission-prompts` | **[Skill](/en/skills#bundled-skills).** Scan your transcripts for common read-only Bash and MCP tool calls, then add a prioritized allowlist to project `.claude/settings.json` to reduce permission prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `/focus` | Toggle the focus view, which shows only your last prompt, a one-line tool-call summary with edit diffstats, and the final response. The selection persists across sessions. Only available in [fullscreen rendering](/en/fullscreen) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/heapdump` | Write a JavaScript heap snapshot and a memory breakdown to `~/Desktop` for diagnosing high memory usage. See [troubleshooting](/en/troubleshooting#high-cpu-or-memory-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/help` | Show help and available commands |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -54,7 +55,6 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/install-github-app` | Set up the [Claude GitHub Actions](/en/github-actions) app for a repository. Walks you through selecting a repo and configuring the integration |"
+            },
+            {
+              "type": "context",
+              "content": "| `/install-slack-app` | Install the Claude Slack app. Opens a browser to complete the OAuth flow |"
+            },
+            {
+              "type": "context",
+              "content": "| `/keybindings` | Open or create your keybindings configuration file |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/less-permission-prompts` | **[Skill](/en/skills#bundled-skills).** Scan your transcripts for common read-only Bash and MCP tool calls, then add a prioritized allowlist to project `.claude/settings.json` to reduce permission prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `/login` | Sign in to your Anthropic account |"
+            },
+            {
+              "type": "context",
+              "content": "| `/logout` | Sign out from your Anthropic account |"
+            },
+            {
+              "type": "context",
+              "content": "| `/loop [interval] [prompt]` | **[Skill](/en/skills#bundled-skills).** Run a prompt repeatedly while the session stays open. Omit the interval and Claude self-paces between iterations. Omit the prompt and Claude runs an autonomous maintenance check, or the prompt in `.claude/loop.md` if present. Example: `/loop 5m check if the deploy finished`. See [Run prompts on a schedule](/en/scheduled-tasks). Alias: `/proactive` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "Shiftキーと矢印キーやHome/Endキーを組み合わせた、フルスクリーン表示時におけるテキスト選択の拡張操作が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -53,6 +53,8 @@ Fullscreen rendering captures mouse events and handles them inside Claude Code:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Selected text copies to your clipboard automatically on mouse release. To turn this off, toggle Copy on select in `/config`. With it off, press `Ctrl+Shift+c` to copy manually. On terminals that support the kitty keyboard protocol, such as kitty, WezTerm, Ghostty, and iTerm2, `Cmd+c` also works. If you have a selection active, `Ctrl+c` copies instead of cancelling."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With a selection active, hold `Shift` and press the arrow keys to extend it from the keyboard. `Shift+↑` and `Shift+↓` scroll the viewport when the selection reaches the top or bottom edge. `Shift+Home` and `Shift+End` extend to the start or end of the current line."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Scroll the conversation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fullscreen rendering handles scrolling inside the app. Use these shortcuts to navigate:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 6,
+      "deletions": 3,
+      "explanation": "マルチライン入力時のカーソル移動や履歴移動の挙動が改善され、Ctrl+UやCtrl+Wによる削除・貼り付け操作の仕様が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -34,7 +34,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+B` | Background running tasks | Backgrounds bash commands and agents. Tmux users press twice |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+T` | Toggle task list | Show or hide the [task list](#task-list) in the terminal status area |"
+            },
+            {
+              "type": "context",
+              "content": "| `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Up/Down arrows` | Navigate command history | Recall previous inputs |"
+            },
+            {
+              "type": "added",
+              "content": "| `Up/Down arrows` or `Ctrl+P`/`Ctrl+N` | Move cursor or navigate command history | In multiline input, first moves the cursor within the prompt. Once the cursor is already on the top or bottom edge, pressing again navigates command history |"
+            },
+            {
+              "type": "context",
+              "content": "| `Esc` + `Esc` | Rewind or summarize | Restore code and/or conversation to a previous point, or summarize from a selected message |"
+            },
+            {
+              "type": "context",
+              "content": "| `Shift+Tab` or `Alt+M` (some configurations) | Cycle permission modes | Cycle through `default`, `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -45,9 +45,12 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Shortcut | Description | Context |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+A` | Move cursor to start of current line | In multiline input, moves to the start of the current logical line |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+E` | Move cursor to end of current line | In multiline input, moves to the end of the current logical line |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+K` | Delete to end of line | Stores deleted text for pasting |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+U` | Clear entire input buffer | Stores cleared text for pasting with `Ctrl+Y`. `Cmd+Backspace` deletes from cursor to line start |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+Y` | Paste deleted text | Paste text deleted with `Ctrl+K` or `Ctrl+U` |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+U` | Delete from cursor to line start | Stores deleted text for pasting. Repeat to clear across lines in multiline input. On macOS, terminal emulators including iTerm2 and Terminal.app map `Cmd+Backspace` to this shortcut |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+W` | Delete previous word | Stores deleted text for pasting. On Windows, `Ctrl+Backspace` also deletes the previous word |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+Y` | Paste deleted text | Paste text deleted with `Ctrl+K`, `Ctrl+U`, or `Ctrl+W` |"
+            },
+            {
+              "type": "context",
+              "content": "| `Alt+Y` (after `Ctrl+Y`) | Cycle paste history | After pasting, cycle through previously deleted text. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            },
+            {
+              "type": "context",
+              "content": "| `Alt+B` | Move cursor back one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            },
+            {
+              "type": "context",
+              "content": "| `Alt+F` | Move cursor forward one word | Word navigation. Requires [Option as Meta](#keyboard-shortcuts) on macOS |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "keybindings.md",
+      "additions": 6,
+      "deletions": 0,
+      "explanation": "テキスト選択範囲を上下左右や行末・行頭に拡張するための新しいショートカットキーの一覧が定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -328,6 +328,12 @@ Actions available in the `Scroll` context when [fullscreen rendering](/en/fullsc",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `scroll:fullPageDown` | (unbound) | Scroll down the full viewport height |"
+            },
+            {
+              "type": "context",
+              "content": "| `selection:copy` | Ctrl+Shift+C / Cmd+C | Copy the selected text to the clipboard |"
+            },
+            {
+              "type": "context",
+              "content": "| `selection:clear` | (unbound) | Clear the active text selection |"
+            },
+            {
+              "type": "added",
+              "content": "| `selection:extendLeft` | Shift+Left | Extend the active selection one column left |"
+            },
+            {
+              "type": "added",
+              "content": "| `selection:extendRight` | Shift+Right | Extend the active selection one column right |"
+            },
+            {
+              "type": "added",
+              "content": "| `selection:extendUp` | Shift+Up | Extend the active selection one row up. Scrolls the viewport when the selection reaches the top edge |"
+            },
+            {
+              "type": "added",
+              "content": "| `selection:extendDown` | Shift+Down | Extend the active selection one row down. Scrolls the viewport when the selection reaches the bottom edge |"
+            },
+            {
+              "type": "added",
+              "content": "| `selection:extendLineStart` | Shift+Home | Extend the active selection to the start of the line |"
+            },
+            {
+              "type": "added",
+              "content": "| `selection:extendLineEnd` | Shift+End | Extend the active selection to the end of the line |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Keystroke syntax"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "ワイルドカードルールの適用例が修正され、watchやfind -execなどの特定のコマンド実行時には常にプロンプトが表示される制限事項が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -109,7 +109,7 @@ Bash permission rules support wildcard matching with `*`. Wildcards can appear a",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `Bash(* install)` matches any command ending with ` install`"
+            },
+            {
+              "type": "context",
+              "content": "- `Bash(git * main)` matches commands like `git checkout main` and `git log --oneline main`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A single `*` matches any sequence of characters including spaces, so one wildcard can span multiple arguments. `Bash(git:*)` matches `git log --oneline --all`, and `Bash(git * main)` matches `git push origin main` as well as `git merge main`."
+            },
+            {
+              "type": "added",
+              "content": "A single `*` matches any sequence of characters including spaces, so one wildcard can span multiple arguments. `Bash(git *)` matches `git log --oneline --all`, and `Bash(git * main)` matches `git push origin main` as well as `git merge main`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When `*` appears at the end with a space before it (like `Bash(ls *)`), it enforces a word boundary, requiring the prefix to be followed by a space or end-of-string. For example, `Bash(ls *)` matches `ls -la` but not `lsof`. In contrast, `Bash(ls*)` without a space matches both `ls -la` and `lsof` because there's no word boundary constraint."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -127,6 +127,8 @@ Bare `xargs` is also stripped, so `Bash(grep *)` matches `xargs grep pattern`. S",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This wrapper list is built in and is not configurable. Development environment runners such as `direnv exec`, `devbox run`, `mise exec`, `npx`, and `docker exec` are not in the list. Because these tools execute their arguments as a command, a rule like `Bash(devbox run *)` matches whatever comes after `run`, including `devbox run rm -rf .`. To approve work inside an environment runner, write a specific rule that includes both the runner and the inner command, such as `Bash(devbox run npm test)`. Add one rule per inner command you want to allow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Exec wrappers such as `watch`, `setsid`, `ionice`, and `flock` always prompt and cannot be auto-approved by a prefix rule like `Bash(watch *)`. The same applies to `find` with `-exec` or `-delete`: a `Bash(find *)` rule does not cover these forms. To approve a specific invocation, write an exact-match rule for the full command string."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Read-only commands"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code recognizes a built-in set of Bash commands as read-only and runs them without a permission prompt in every mode. These include `ls`, `cat`, `head`, `tail`, `grep`, `find`, `wc`, `diff`, `stat`, `du`, `cd`, and read-only forms of `git`. The set is not configurable; to require a prompt for one of these commands, add an `ask` or `deny` rule for it."
+            }
+          ]
+        },
+        {
+          "header": "@@ -262,7 +264,7 @@ Use both for defense-in-depth:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Permission deny rules block Claude from even attempting to access restricted resources"
+            },
+            {
+              "type": "context",
+              "content": "- Sandbox restrictions prevent Bash commands from reaching resources outside defined boundaries, even if a prompt injection bypasses Claude's decision-making"
+            },
+            {
+              "type": "context",
+              "content": "- Filesystem restrictions in the sandbox use Read and Edit deny rules, not separate sandbox configuration"
+            },
+            {
+              "type": "removed",
+              "content": "- Network restrictions combine WebFetch permission rules with the sandbox's `allowedDomains` list"
+            },
+            {
+              "type": "added",
+              "content": "- Network restrictions combine WebFetch permission rules with the sandbox's `allowedDomains` and `deniedDomains` lists"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When sandboxing is enabled with `autoAllowBashIfSandboxed: true`, which is the default, sandboxed Bash commands run without prompting even if your permissions include `ask: Bash(*)`. The sandbox boundary substitutes for the per-command prompt. See [sandbox modes](/en/sandboxing#sandbox-modes) to change this behavior."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "remote-control.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "リモート制御時のファイルパス補完機能の追加や、モバイル・Webから実行可能なコマンドリストに/extra-usageが含まれるようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -13,7 +13,7 @@ Remote Control connects [claude.ai/code](https://claude.ai/code) or the Claude a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you start a Remote Control session on your machine, Claude keeps running locally the entire time, so nothing moves to the cloud. With Remote Control you can:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Use your full local environment remotely**: your filesystem, [MCP servers](/en/mcp), tools, and project configuration all stay available"
+            },
+            {
+              "type": "added",
+              "content": "- **Use your full local environment remotely**: your filesystem, [MCP servers](/en/mcp), tools, and project configuration all stay available, and typing `@` autocompletes file paths from your local project"
+            },
+            {
+              "type": "context",
+              "content": "- **Work from both surfaces at once**: the conversation stays in sync across all connected devices, so you can send messages from your terminal, browser, and phone interchangeably"
+            },
+            {
+              "type": "context",
+              "content": "- **Survive interruptions**: if your laptop sleeps or your network drops, the session reconnects automatically when your machine comes back online"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -163,7 +163,7 @@ If notifications don't arrive:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Local process must keep running**: Remote Control runs as a local process. If you close the terminal, quit VS Code, or otherwise stop the `claude` process, the session ends."
+            },
+            {
+              "type": "context",
+              "content": "- **Extended network outage**: if your machine is awake but unable to reach the network for more than roughly 10 minutes, the session times out and the process exits. Run `claude remote-control` again to start a new session."
+            },
+            {
+              "type": "context",
+              "content": "- **Ultraplan disconnects Remote Control**: starting an [ultraplan](/en/ultraplan) session disconnects any active Remote Control session because both features occupy the claude.ai/code interface and only one can be connected at a time."
+            },
+            {
+              "type": "removed",
+              "content": "- **Some commands are local-only**: commands that open an interactive picker in the terminal, such as `/mcp`, `/plugin`, or `/resume`, work only from the local CLI. Commands that produce text output, including `/compact`, `/clear`, `/context`, `/cost`, `/exit`, `/recap`, and `/reload-plugins`, work from mobile and web."
+            },
+            {
+              "type": "added",
+              "content": "- **Some commands are local-only**: commands that open an interactive picker in the terminal, such as `/mcp`, `/plugin`, or `/resume`, work only from the local CLI. Commands that produce text output, including `/compact`, `/clear`, `/context`, `/cost`, `/exit`, `/extra-usage`, `/recap`, and `/reload-plugins`, work from mobile and web."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "allowedDomainsのワイルドカード設定よりも優先して特定のドメインをブロックするdeniedDomainsの使い方が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -235,6 +235,7 @@ Filesystem and network restrictions are configured through both sandbox settings",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Use `Read` and `Edit` deny rules to block access to specific files or directories"
+            },
+            {
+              "type": "context",
+              "content": "- Use `WebFetch` allow/deny rules to control domain access"
+            },
+            {
+              "type": "context",
+              "content": "- Use sandbox `allowedDomains` to control which domains Bash commands can reach"
+            },
+            {
+              "type": "added",
+              "content": "- Use sandbox `deniedDomains` to block specific domains even when a broader `allowedDomains` wildcard would otherwise permit them"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Paths from both `sandbox.filesystem` settings and permission rules are merged together into the final sandbox configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "scheduled-tasks.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "/loopコマンドの実行待機中にEscキーを押すことで、ループ処理を停止できるようになったことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -111,6 +111,10 @@ quiet, say so in one line.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Edits to `loop.md` take effect on the next iteration, so you can refine the instructions while a loop is running. When no `loop.md` exists in either location, the loop falls back to the built-in maintenance prompt. Keep the file concise: content beyond 25,000 bytes is truncated."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Stop a loop"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To stop a `/loop` while it is waiting for the next iteration, press `Esc`. This clears the pending wakeup so the loop does not fire again. Tasks you scheduled by [asking Claude directly](#manage-scheduled-tasks) are not affected by `Esc` and stay in place until you delete them."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Set a one-time reminder"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For one-shot reminders, describe what you want in natural language instead of using `/loop`. Claude schedules a single-fire task that deletes itself after running."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "アウトバウンド通信をブロックするためのnetwork.deniedDomains設定項目が追加され、その優先順位や設定例が示されました。",
+      "hunks": [
+        {
+          "header": "@@ -292,6 +292,7 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `network.allowLocalBinding` | Allow binding to localhost ports (macOS only). Default: false | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `network.allowMachLookup` | Additional XPC/Mach service names the sandbox may look up (macOS only). Supports a single trailing `*` for prefix matching. Needed for tools that communicate via XPC such as the iOS Simulator or Playwright. | `[\"com.apple.coresimulator.*\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `network.allowedDomains` | Array of domains to allow for outbound network traffic. Supports wildcards (e.g., `*.example.com`). | `[\"github.com\", \"*.npmjs.org\"]` |"
+            },
+            {
+              "type": "added",
+              "content": "| `network.deniedDomains` | Array of domains to block for outbound network traffic. Supports the same wildcard syntax as `allowedDomains`. Takes precedence over `allowedDomains` when both match. Merged from all settings sources regardless of `allowManagedDomainsOnly`. | `[\"sensitive.cloud.example.com\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `network.allowManagedDomainsOnly` | (Managed settings only) Only `allowedDomains` and `WebFetch(domain:...)` allow rules from managed settings are respected. Domains from user, project, and local settings are ignored. Non-allowed domains are blocked automatically without prompting the user. Denied domains are still respected from all sources. Default: false | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `network.httpProxyPort` | HTTP proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8080` |"
+            },
+            {
+              "type": "context",
+              "content": "| `network.socksProxyPort` | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8081` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -324,6 +325,7 @@ The older `//path` prefix for absolute paths still works. If you previously used",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    },"
+            },
+            {
+              "type": "context",
+              "content": "    \"network\": {"
+            },
+            {
+              "type": "context",
+              "content": "      \"allowedDomains\": [\"github.com\", \"*.npmjs.org\", \"registry.yarnpkg.com\"],"
+            },
+            {
+              "type": "added",
+              "content": "      \"deniedDomains\": [\"uploads.github.com\"],"
+            },
+            {
+              "type": "context",
+              "content": "      \"allowUnixSockets\": ["
+            },
+            {
+              "type": "context",
+              "content": "        \"/var/run/docker.sock\""
+            },
+            {
+              "type": "context",
+              "content": "      ],"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "ultrareview.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ブランチをレビューする際の確認ダイアログにおいて、対象となるファイル数や行数も表示されるように改善されました。",
+      "hunks": [
+        {
+          "header": "@@ -39,7 +39,7 @@ In PR mode, the remote sandbox clones the pull request directly from GitHub rath",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If your repository is too large to bundle, Claude Code prompts you to use PR mode instead. Push your branch and open a draft PR, then run `/ultrareview <PR-number>`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Before launching, Claude Code shows a confirmation dialog with the review scope, your remaining free runs, and the estimated cost. After you confirm, the review continues in the background and you can keep using your session. The command runs only when you invoke it with `/ultrareview`; Claude does not start an ultrareview on its own."
+            },
+            {
+              "type": "added",
+              "content": "Before launching, Claude Code shows a confirmation dialog with the review scope (including the file and line count when reviewing a branch), your remaining free runs, and the estimated cost. After you confirm, the review continues in the background and you can keep using your session. The command runs only when you invoke it with `/ultrareview`; Claude does not start an ultrareview on its own."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Pricing and free runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
