@@ -26,7 +26,7 @@ export const discordChannels = sqliteTable('discord_channels', {
   webhookUrl: text('webhook_url').notNull().unique(),
 });
 
-// サブタイプ: Slack 固有情報（将来用）
+// サブタイプ: Slack 固有情報
 export const slackChannels = sqliteTable('slack_channels', {
   channelId: text('channel_id')
     .primaryKey()
@@ -34,15 +34,16 @@ export const slackChannels = sqliteTable('slack_channels', {
   webhookUrl: text('webhook_url').notNull().unique(),
 });
 
-// サブタイプ: メール固有情報（将来用）
+// サブタイプ: メール固有情報
 export const emailChannels = sqliteTable('email_channels', {
   channelId: text('channel_id')
     .primaryKey()
     .references(() => channels.id),
-  emailAddress: text('email_address').notNull().unique(),
+  emailHash: text('email_hash').notNull().unique(),
+  emailEncrypted: text('email_encrypted').notNull(),
 });
 
-// 通知設定（行持ちテーブル）
+// 通知設定(行持ちテーブル)
 // frequency: IMM=即時, WEK=週次
 export const notificationSettings = sqliteTable(
   'notification_settings',

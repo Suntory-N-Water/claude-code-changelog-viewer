@@ -9,6 +9,8 @@ export type ChannelRow = {
   fail_count: number;
 };
 
+const TEST_EMAIL_ENCRYPTION_KEY = 'test-email-encryption-key-32bytes!!';
+
 export function createTestEnv(db: FakeD1Database) {
   return {
     DB: db,
@@ -21,6 +23,7 @@ export function createTestEnv(db: FakeD1Database) {
     SITE_URL: 'https://claude-code-log.com',
     TURNSTILE_SECRET_KEY: 'turnstile-secret',
     WORKER_URL: 'https://notification.example.workers.dev',
+    EMAIL_ENCRYPTION_KEY: TEST_EMAIL_ENCRYPTION_KEY,
   } as unknown as CloudflareBindings;
 }
 

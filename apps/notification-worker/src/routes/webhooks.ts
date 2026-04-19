@@ -15,6 +15,7 @@ import {
   sendToDiscord,
 } from '../lib/discord';
 import { createEmailTestMessage, sendToEmail } from '../lib/email';
+import { encryptEmail, hashEmail } from '../lib/email-crypto';
 import { createSlackTestMessage, sendToSlack } from '../lib/slack';
 import { verifyTurnstileToken } from '../lib/turnstile';
 import {
@@ -172,6 +173,15 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: 'メールアドレスの形式が不正です' }, 400);
     }
 
+    const emailHash = await hashEmail(
+      data.email_address,
+      c.env.EMAIL_ENCRYPTION_KEY,
+    );
+    const emailEncrypted = await encryptEmail(
+      data.email_address,
+      c.env.EMAIL_ENCRYPTION_KEY,
+    );
+
     const rows = await db
       .select({
         channelId: channels.id,
@@ -180,7 +190,7 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       })
       .from(emailChannels)
       .innerJoin(channels, eq(emailChannels.channelId, channels.id))
-      .where(eq(emailChannels.emailAddress, data.email_address));
+      .where(eq(emailChannels.emailHash, emailHash));
     const existing = rows[0] ?? null;
 
     if (existing?.isActive === 1) {
@@ -211,7 +221,7 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     await db.insert(channels).values({ id, channelType: 'EML', token });
     await db
       .insert(emailChannels)
-      .values({ channelId: id, emailAddress: data.email_address });
+      .values({ channelId: id, emailHash, emailEncrypted });
     await db
       .insert(notificationSettings)
       .values({ id: `ns_${id}`, channelId: id, frequency: data.frequency });

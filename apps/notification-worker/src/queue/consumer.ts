@@ -16,6 +16,7 @@ import {
   sendToDiscord,
 } from '../lib/discord';
 import { createEmailChangelogMessage, sendToEmail } from '../lib/email';
+import { decryptEmail } from '../lib/email-crypto';
 import { createSlackChangelogMessage, sendToSlack } from '../lib/slack';
 
 const logger = getLogger({
@@ -47,7 +48,7 @@ type WebhookChannelRow = {
 
 type EmailChannelRow = {
   id: string;
-  emailAddress: string;
+  emailEncrypted: string;
   token: string;
   failCount: number;
   channelType: 'EML';
@@ -141,7 +142,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
       const emailRows = await db
         .select({
           id: channels.id,
-          emailAddress: emailChannels.emailAddress,
+          emailEncrypted: emailChannels.emailEncrypted,
           token: channels.token,
           failCount: channels.failCount,
           channelType: sql<'EML'>`'EML'`,
@@ -181,7 +182,10 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
             webhook.channelType === 'EML'
               ? await sendToEmail(env.SEND_EMAIL, {
                   fromAddress: env.EMAIL_FROM,
-                  toAddress: webhook.emailAddress,
+                  toAddress: await decryptEmail(
+                    webhook.emailEncrypted,
+                    env.EMAIL_ENCRYPTION_KEY,
+                  ),
                   payload: createEmailChangelogMessage(data, version, {
                     unsubscribeUrl,
                     siteUrl: env.SITE_URL,

@@ -82,7 +82,8 @@ export class FakeD1Database {
 
       CREATE TABLE email_channels (
         channel_id TEXT PRIMARY KEY,
-        email_address TEXT NOT NULL UNIQUE,
+        email_hash TEXT NOT NULL UNIQUE,
+        email_encrypted TEXT NOT NULL,
         FOREIGN KEY (channel_id) REFERENCES channels(id)
       );
     `);
