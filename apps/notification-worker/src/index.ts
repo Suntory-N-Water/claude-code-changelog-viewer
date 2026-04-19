@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 import { queueConsumer } from './queue/consumer';
 import { dispatchRoute } from './routes/dispatch';
 import { unsubscribeRoute } from './routes/unsubscribe';
@@ -9,10 +10,12 @@ export const app = new Hono<{ Bindings: CloudflareBindings }>().basePath(
   '/api',
 );
 
+app.use('*', secureHeaders());
 app.use(
-  '*',
+  '/webhooks',
   cors({
     origin: ['https://claude-code-log.com', 'http://localhost:4321'],
+    allowHeaders: ['Content-Type'],
   }),
 );
 
