@@ -9,3 +9,9 @@ variable "domain" {
   type        = string
   default     = "claude-code-log.com"
 }
+
+variable "forwarding_email" {
+  description = "メール転送先アドレス"
+  type        = string
+  sensitive   = true
+}

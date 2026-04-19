@@ -9,19 +9,7 @@ resource "cloudflare_zone_dnssec" "this" {
 
 # =============================================================================
 # Email Security - メールのなりすまし対策
-# メール送信の予定がないため、全てのメール送信を拒否する設定
 # =============================================================================
-
-# SPF レコード: このドメインからのメール送信を全て拒否する
-# "v=spf1 -all" = このドメインからメールを送信するサーバーは存在しない
-resource "cloudflare_dns_record" "spf" {
-  zone_id = var.zone_id
-  type    = "TXT"
-  name    = var.domain
-  content = "v=spf1 -all"
-  ttl     = 1
-  comment = "SPF: このドメインからのメール送信を全て拒否"
-}
 
 # DMARC レコード: SPF/DKIM に失敗したメールを全て拒否する
 # p=reject = 認証に失敗したメールを受信サーバーが拒否する
