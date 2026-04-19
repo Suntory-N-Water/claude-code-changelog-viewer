@@ -111,14 +111,14 @@ export function createSlackChangelogMessage(
 
 export function createSlackTestMessage(unsubscribeUrl: string): SlackPayload {
   return {
-    text: 'Claude Code Changelog Bot の通知登録が完了しました',
+    text: 'CCログ超訳 Bot の通知登録が完了しました',
     blocks: [
       {
         type: 'section',
         text: {
           type: 'mrkdwn',
           text:
-            ':white_check_mark: *Claude Code Changelog Bot* の通知登録が完了しました！\n\n' +
+            ':white_check_mark: *CCログ超訳 Bot* の通知登録が完了しました！\n\n' +
             '今後、Claude Code の新しいバージョンがリリースされると、このチャンネルに通知が届きます。\n\n' +
             `<${unsubscribeUrl}|:no_bell: 通知を停止する>`,
         },

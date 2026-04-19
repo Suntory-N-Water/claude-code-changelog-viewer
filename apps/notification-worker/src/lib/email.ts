@@ -37,7 +37,7 @@ export async function sendToEmail(
   const { fromAddress, toAddress, payload } = options;
   try {
     const msg = createMimeMessage();
-    msg.setSender({ name: 'Claude Code Changelog', addr: fromAddress });
+    msg.setSender({ name: 'CCログ超訳', addr: fromAddress });
     msg.setRecipient(toAddress);
     msg.setSubject(payload.subject);
     msg.addMessage({ contentType: 'text/plain', data: payload.text });
@@ -133,7 +133,7 @@ export function createEmailTestMessage(unsubscribeUrl: string): EmailPayload {
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">
   <h1 style="font-size:20px;margin-bottom:8px">✅ 通知登録が完了しました</h1>
-  <p style="color:#555">Claude Code Changelog の更新通知登録が完了しました。</p>
+  <p style="color:#555">CCログ超訳 の更新通知登録が完了しました。</p>
   <p style="color:#555">今後、Claude Code の新しいバージョンがリリースされると、このメールアドレスに通知が届きます。</p>
   <hr style="margin:24px 0;border:none;border-top:1px solid #e5e5e5">
   <p style="font-size:13px;color:#888">
@@ -144,14 +144,14 @@ export function createEmailTestMessage(unsubscribeUrl: string): EmailPayload {
 
   const text = `通知登録が完了しました
 
-Claude Code Changelog の更新通知登録が完了しました。
+CCログ超訳 の更新通知登録が完了しました。
 今後、Claude Code の新しいバージョンがリリースされると、このメールアドレスに通知が届きます。
 
 ---
 通知を停止する: ${unsubscribeUrl}`;
 
   return {
-    subject: 'Claude Code Changelog 通知登録が完了しました',
+    subject: 'CCログ超訳 通知登録が完了しました',
     html,
     text,
   };

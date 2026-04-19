@@ -24,25 +24,25 @@ const FEATURE_AREA_LABELS: Record<string, string> = {
 /** SEO description */
 const FEATURE_AREA_DESCRIPTIONS: Record<string, string> = {
   Settings:
-    'Claude CodeのSettingsに関する全バージョンの変更履歴。CLAUDE.md、環境変数などの設定変更をバージョン横断で確認できます。',
+    'Claude CodeのSettingsに関する変更履歴。CLAUDE.md、環境変数などの設定変更をバージョン横断で確認できます。',
   'IDE/VSCode':
-    'Claude CodeのIDE/VSCode連携に関する全バージョンの変更履歴。エディタ統合、拡張機能、ワークスペース対応の変更をバージョン横断で確認できます。',
+    'Claude CodeのIDE/VSCode連携に関する変更履歴。エディタ統合、拡張機能、ワークスペース対応の変更をバージョン横断で確認できます。',
   Memory:
-    'Claude CodeのMemory機能に関する全バージョンの変更履歴。コンテキスト管理、会話履歴、自動記憶の変更をバージョン横断で確認できます。',
+    'Claude CodeのMemory機能に関する変更履歴。コンテキスト管理、会話履歴、自動記憶の変更をバージョン横断で確認できます。',
   Skills:
-    'Claude CodeのSkills機能に関する全バージョンの変更履歴。カスタムスキル、スラッシュコマンド、スキル管理の変更をバージョン横断で確認できます。',
+    'Claude CodeのSkills機能に関する変更履歴。カスタムスキル、スラッシュコマンド、スキル管理の変更をバージョン横断で確認できます。',
   Permissions:
-    'Claude CodeのPermissions機能に関する全バージョンの変更履歴。ツール許可、セキュリティ設定、承認フローの変更をバージョン横断で確認できます。',
-  MCP: 'Claude CodeのMCP(Model Context Protocol)に関する全バージョンの変更履歴。MCPサーバー、ツール統合、プロトコル対応の変更をバージョン横断で確認できます。',
+    'Claude CodeのPermissions機能に関する変更履歴。ツール許可、セキュリティ設定、承認フローの変更をバージョン横断で確認できます。',
+  MCP: 'Claude CodeのMCP(Model Context Protocol)に関する変更履歴。MCPサーバー、ツール統合、プロトコル対応の変更をバージョン横断で確認できます。',
   Hooks:
-    'Claude CodeのHooks機能に関する全バージョンの変更履歴。カスタムフック、イベントトリガー、自動化の変更をバージョン横断で確認できます。',
+    'Claude CodeのHooks機能に関する変更履歴。カスタムフック、イベントトリガー、自動化の変更をバージョン横断で確認できます。',
   Plugins:
-    'Claude CodeのPlugins機能に関する全バージョンの変更履歴。プラグイン管理、サードパーティ統合の変更をバージョン横断で確認できます。',
+    'Claude CodeのPlugins機能に関する変更履歴。プラグイン管理、サードパーティ統合の変更をバージョン横断で確認できます。',
   'Sub-agents':
-    'Claude CodeのSub-agents機能に関する全バージョンの変更履歴。並列処理、タスク委譲、エージェント制御の変更をバージョン横断で確認できます。',
+    'Claude CodeのSub-agents機能に関する変更履歴。並列処理、タスク委譲、エージェント制御の変更をバージョン横断で確認できます。',
   'Agent Teams':
-    'Claude CodeのAgent Teams機能に関する全バージョンの変更履歴。マルチエージェント連携、チーム設定の変更をバージョン横断で確認できます。',
-  Plan: 'Claude CodeのPlan機能に関する全バージョンの変更履歴。計画立案、タスク分解、実行戦略の変更をバージョン横断で確認できます。',
+    'Claude CodeのAgent Teams機能に関する変更履歴。マルチエージェント連携、チーム設定の変更をバージョン横断で確認できます。',
+  Plan: 'Claude CodeのPlan機能に関する変更履歴。計画立案、タスク分解、実行戦略の変更をバージョン横断で確認できます。',
 };
 
 /** ラベル取得(未知エリアはエリア名をそのまま返す) */
@@ -53,8 +53,7 @@ export function getFeatureAreaLabel(area: string): string {
 /** SEO description 取得(未知エリアはテンプレート生成) */
 export function getFeatureAreaDescription(area: string): string {
   return (
-    FEATURE_AREA_DESCRIPTIONS[area] ??
-    `Claude Codeの${area}に関する全バージョンの変更履歴`
+    FEATURE_AREA_DESCRIPTIONS[area] ?? `Claude Codeの${area}に関する変更履歴`
   );
 }
 

@@ -1,1 +1,1 @@
-export const SITE_TITLE = 'Claude Code Changelog Viewer';
+export const SITE_TITLE = 'CCログ超訳';

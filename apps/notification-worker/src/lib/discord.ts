@@ -8,7 +8,7 @@ import {
 } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 
-const BOT_USERNAME = 'Claude Code Changelog Bot';
+const BOT_USERNAME = 'CCログ超訳 Bot';
 
 const PREFIX_LABELS: Record<Prefix, string> = {
   Breaking: '🚨 破壊的変更',
@@ -90,7 +90,7 @@ export function createTestMessage(
 ): DiscordWebhookPayload {
   return {
     content:
-      '✅ **Claude Code Changelog Bot** の通知登録が完了しました！\n\n' +
+      '✅ **CCログ超訳 Bot** の通知登録が完了しました！\n\n' +
       '今後、Claude Code の新しいバージョンがリリースされると、このチャンネルに通知が届きます。' +
       `\n[🔕 通知を停止する](${unsubscribeUrl})`,
     username: BOT_USERNAME,

@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/d1';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
@@ -47,7 +47,7 @@ const renderResult = (siteUrl: string, title: string, message: string) => html`
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>${title} - Claude Code Changelog Viewer</title>
+      <title>${title} - CCログ超訳</title>
       <style>${baseStyle}</style>
     </head>
     <body>
@@ -66,7 +66,7 @@ const renderConfirm = (siteUrl: string, token: string) => html`
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>通知停止の確認 - Claude Code Changelog Viewer</title>
+      <title>通知停止の確認 - CCログ超訳</title>
       <style>
         ${baseStyle}
         button {
