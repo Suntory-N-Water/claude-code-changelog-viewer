@@ -1,0 +1,468 @@
+---
+import { CONTACT_EMAIL } from '../config/contact';
+import Layout from '../layouts/Layout.astro';
+import { SITE_TITLE } from '../lib/constants';
+
+const siteUrl = import.meta.env.SITE;
+
+const DETAIL_PLACEHOLDER = '{{DETAIL_DATA}}';
+const tabs = [
+  {
+    id: 'bug',
+    label: 'バグ報告',
+    subject: `[バグ報告] ${SITE_TITLE}`,
+    body: [
+      '## 不具合の説明',
+      '',
+      '',
+      '## 不具合の再現手順',
+      '',
+      '',
+      '## 詳細データ(編集しないでください)',
+      DETAIL_PLACEHOLDER,
+    ].join('\n'),
+  },
+  {
+    id: 'other',
+    label: 'その他',
+    subject: `[お問い合わせ] ${SITE_TITLE}`,
+    body: [
+      '## お問い合わせ内容',
+      '',
+      '',
+      '## 詳細データ(編集しないでください)',
+      DETAIL_PLACEHOLDER,
+    ].join('\n'),
+  },
+] as const;
+---
+
+<Layout
+  title={`お問い合わせ - ${SITE_TITLE}`}
+  description={`${SITE_TITLE}に関するバグ報告、機能リクエスト、その他のお問い合わせはこちらからどうぞ。`}
+  jsonLd={{ type: 'page' }}
+  breadcrumbs={[
+    { name: 'トップ', url: siteUrl },
+    { name: 'お問い合わせ', url: `${siteUrl}/contact` },
+  ]}
+>
+  <div class='min-h-dvh py-12 sm:py-20 px-4'>
+    <div class='max-w-xl mx-auto'>
+      <nav class='mb-10'>
+        <a
+          href='/'
+          data-direction='back'
+          class='text-sm text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-orange))] inline-flex items-center gap-1.5 transition-colors'
+        >
+          <svg
+            class='w-4 h-4'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            stroke-width='2'
+            aria-hidden='true'
+          >
+            <path
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              d='M15 19l-7-7 7-7'></path>
+          </svg>
+          トップに戻る
+        </a>
+      </nav>
+
+      <h1
+        class='text-2xl sm:text-3xl font-bold text-[hsl(var(--cc-main-black))] mb-4'
+      >
+        お問い合わせ
+      </h1>
+
+      <p
+        class='text-sm leading-relaxed text-[hsl(var(--cc-main-black)/0.7)] mb-10'
+      >
+        以下のテンプレートを使ってメールでお問い合わせください。
+      </p>
+
+      <div class='space-y-6'>
+        <!-- メールテンプレートカード -->
+        <section
+          class='rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] overflow-hidden'
+        >
+          <!-- タブ -->
+          <div
+            class='flex border-b border-[hsl(var(--cc-gray))]'
+            role='tablist'
+            aria-label='お問い合わせの種類'
+            id='contact-tablist'
+          >
+            {
+              tabs.map((tab, i) => (
+                <button
+                  type='button'
+                  role='tab'
+                  id={`tab-${tab.id}`}
+                  aria-selected={i === 0 ? 'true' : 'false'}
+                  aria-controls={`panel-${tab.id}`}
+                  tabindex={i === 0 ? 0 : -1}
+                  class:list={[
+                    'contact-tab flex-1 px-3 py-3 text-sm transition-colors cursor-pointer',
+                    'hover:text-[hsl(var(--cc-main-orange))]',
+                    'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]',
+                    i === 0
+                      ? 'text-[hsl(var(--cc-main-orange))] border-b-2 border-[hsl(var(--cc-main-orange))] font-medium'
+                      : 'text-[hsl(var(--cc-main-black)/0.5)]',
+                  ]}
+                  data-tab-id={tab.id}
+                >
+                  {tab.label}
+                </button>
+              ))
+            }
+          </div>
+
+          <!-- タブパネル -->
+          {
+            tabs.map((tab, i) => (
+              <div
+                role='tabpanel'
+                id={`panel-${tab.id}`}
+                aria-labelledby={`tab-${tab.id}`}
+                class:list={['contact-panel p-5 sm:p-6', i !== 0 && 'hidden']}
+                data-panel-id={tab.id}
+              >
+                <div class='space-y-5'>
+                  {/* 件名 */}
+                  <div>
+                    <div class='flex items-center justify-between mb-2'>
+                      <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase'>
+                        件名
+                      </span>
+                      <button
+                        type='button'
+                        class='contact-copy-btn inline-flex items-center gap-1 text-xs text-[hsl(var(--cc-main-black)/0.4)] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+                        data-copy-target={`subject-${tab.id}`}
+                        aria-label='件名をコピー'
+                      >
+                        <svg
+                          class='w-3.5 h-3.5'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                          stroke-width='2'
+                          aria-hidden='true'
+                        >
+                          <path
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
+                          />
+                        </svg>
+                        <span class='contact-copy-label'>コピー</span>
+                      </button>
+                    </div>
+                    <div
+                      class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono'
+                      id={`subject-${tab.id}`}
+                    >
+                      {tab.subject}
+                    </div>
+                  </div>
+
+                  {/* 本文 */}
+                  <div>
+                    <div class='flex items-center justify-between mb-2'>
+                      <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase'>
+                        本文
+                      </span>
+                      <button
+                        type='button'
+                        class='contact-copy-btn inline-flex items-center gap-1 text-xs text-[hsl(var(--cc-main-black)/0.4)] hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+                        data-copy-target={`body-${tab.id}`}
+                        aria-label='本文をコピー'
+                      >
+                        <svg
+                          class='w-3.5 h-3.5'
+                          fill='none'
+                          viewBox='0 0 24 24'
+                          stroke='currentColor'
+                          stroke-width='2'
+                          aria-hidden='true'
+                        >
+                          <path
+                            stroke-linecap='round'
+                            stroke-linejoin='round'
+                            d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z'
+                          />
+                        </svg>
+                        <span class='contact-copy-label'>コピー</span>
+                      </button>
+                    </div>
+                    <pre
+                      class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono whitespace-pre-wrap break-all leading-relaxed overflow-hidden'
+                      id={`body-${tab.id}`}
+                      set:text={tab.body}
+                    />
+                  </div>
+
+                  {/* 送信先 */}
+                  <div>
+                    <span class='text-xs font-medium text-[hsl(var(--cc-main-black)/0.4)] tracking-wider uppercase block mb-2'>
+                      送信先
+                    </span>
+                    <div class='rounded-lg bg-[hsl(var(--cc-main-black)/0.03)] border border-[hsl(var(--cc-gray))] px-4 py-3 text-sm text-[hsl(var(--cc-main-black)/0.8)] font-mono'>
+                      {CONTACT_EMAIL}
+                    </div>
+                  </div>
+
+                  {/* アクションボタン */}
+                  <div class='flex flex-col sm:flex-row gap-3 pt-2'>
+                    <a
+                      href={`https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(CONTACT_EMAIL)}&su=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
+                      class='contact-gmail-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[hsl(var(--cc-main-orange))] text-white text-sm font-medium hover:bg-[hsl(var(--cc-orange-hover))] transition-colors cursor-pointer'
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      data-tab-id={tab.id}
+                      aria-label='Gmail でメールを作成する'
+                    >
+                      <svg
+                        class='w-4 h-4'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                        stroke-width='2'
+                        aria-hidden='true'
+                      >
+                        <path
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+                        />
+                      </svg>
+                      Gmail で開く
+                    </a>
+                    <a
+                      href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(tab.subject)}&body=${encodeURIComponent(tab.body)}`}
+                      class='contact-mailto-btn inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))] hover:border-[hsl(var(--cc-main-orange)/0.3)] transition-colors cursor-pointer'
+                      data-tab-id={tab.id}
+                      aria-label='デフォルトのメーラーで開く'
+                    >
+                      <svg
+                        class='w-4 h-4'
+                        fill='none'
+                        viewBox='0 0 24 24'
+                        stroke='currentColor'
+                        stroke-width='2'
+                        aria-hidden='true'
+                      >
+                        <path
+                          stroke-linecap='round'
+                          stroke-linejoin='round'
+                          d='M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25'
+                        />
+                      </svg>
+                      メーラーで開く
+                    </a>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </section>
+
+        <!-- GitHub Issues への導線 -->
+        <section
+          class='rounded-xl border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] p-5 sm:p-6'
+        >
+          <p
+            class='text-sm leading-relaxed text-[hsl(var(--cc-main-black)/0.7)]'
+          >
+            GitHub アカウントをお持ちの場合は、
+            <a
+              href='https://github.com/Suntory-N-Water/claude-code-changelog-viewer/issues'
+              target='_blank'
+              rel='noopener noreferrer'
+              class='text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] underline underline-offset-2 transition-colors'
+            >
+              GitHub Issues
+            </a>
+            からも報告いただけます。
+          </p>
+        </section>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline define:vars={{ tabs, CONTACT_EMAIL, DETAIL_PLACEHOLDER }}>
+  function getDetailData() {
+    const ua = navigator.userAgentData;
+    if (ua) {
+      return JSON.stringify({
+        brands: ua.brands,
+        mobile: ua.mobile,
+        platform: ua.platform,
+      });
+    }
+    return navigator.userAgent;
+  }
+
+  const detailData = getDetailData();
+
+  function resolveBody(bodyTemplate) {
+    return bodyTemplate.replace(DETAIL_PLACEHOLDER, detailData);
+  }
+
+  function buildGmailUrl(subject, body) {
+    const params = new URLSearchParams({
+      view: 'cm',
+      to: CONTACT_EMAIL,
+      su: subject,
+      body: resolveBody(body),
+    });
+    return `https://mail.google.com/mail/?${params.toString()}`;
+  }
+
+  function buildMailtoUrl(subject, body) {
+    const params = new URLSearchParams({
+      subject,
+      body: resolveBody(body),
+    });
+    return `mailto:${CONTACT_EMAIL}?${params.toString()}`;
+  }
+
+  function updateLinks(tabId) {
+    const tmpl = tabs.find((t) => t.id === tabId);
+    if (!tmpl) {
+      return;
+    }
+
+    for (const btn of document.querySelectorAll(
+      `.contact-gmail-btn[data-tab-id="${tabId}"]`,
+    )) {
+      btn.href = buildGmailUrl(tmpl.subject, tmpl.body);
+    }
+    for (const btn of document.querySelectorAll(
+      `.contact-mailto-btn[data-tab-id="${tabId}"]`,
+    )) {
+      btn.href = buildMailtoUrl(tmpl.subject, tmpl.body);
+    }
+  }
+
+  function switchTab(tabId) {
+    for (const btn of document.querySelectorAll('.contact-tab')) {
+      const isActive = btn.dataset.tabId === tabId;
+      btn.setAttribute('aria-selected', String(isActive));
+      btn.tabIndex = isActive ? 0 : -1;
+      if (isActive) {
+        btn.classList.add(
+          'text-[hsl(var(--cc-main-orange))]',
+          'border-b-2',
+          'border-[hsl(var(--cc-main-orange))]',
+          'font-medium',
+        );
+        btn.classList.remove('text-[hsl(var(--cc-main-black)/0.5)]');
+      } else {
+        btn.classList.remove(
+          'text-[hsl(var(--cc-main-orange))]',
+          'border-b-2',
+          'border-[hsl(var(--cc-main-orange))]',
+          'font-medium',
+        );
+        btn.classList.add('text-[hsl(var(--cc-main-black)/0.5)]');
+      }
+    }
+
+    for (const panel of document.querySelectorAll('.contact-panel')) {
+      panel.classList.toggle('hidden', panel.dataset.panelId !== tabId);
+    }
+  }
+
+  async function handleCopy(btn) {
+    const targetId = btn.dataset.copyTarget;
+    const target = document.getElementById(targetId);
+    if (!target) {
+      return;
+    }
+
+    let text = target.textContent || '';
+    if (text.includes(DETAIL_PLACEHOLDER)) {
+      text = resolveBody(text);
+    }
+
+    try {
+      await navigator.clipboard.writeText(text.trim());
+      const label = btn.querySelector('.contact-copy-label');
+      if (label) {
+        const original = label.textContent;
+        label.textContent = 'コピーしました';
+        btn.classList.add('text-[hsl(var(--cc-main-orange))]');
+        setTimeout(() => {
+          label.textContent = original;
+          btn.classList.remove('text-[hsl(var(--cc-main-orange))]');
+        }, 2000);
+      }
+    } catch {
+      // clipboard API 非対応環境向けフォールバック
+      const textarea = document.createElement('textarea');
+      textarea.value = text.trim();
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+  }
+
+  function initContact() {
+    for (const el of document.querySelectorAll('[id^="body-"]')) {
+      if (el.textContent?.includes(DETAIL_PLACEHOLDER)) {
+        el.textContent = resolveBody(el.textContent);
+      }
+    }
+
+    for (const tab of tabs) {
+      updateLinks(tab.id);
+    }
+
+    for (const btn of document.querySelectorAll('.contact-tab')) {
+      btn.addEventListener('click', () => {
+        switchTab(btn.dataset.tabId);
+      });
+    }
+
+    const tabButtons = [...document.querySelectorAll('.contact-tab')];
+    for (const btn of tabButtons) {
+      btn.addEventListener('keydown', (e) => {
+        const idx = tabButtons.indexOf(btn);
+        let nextIdx = -1;
+
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          nextIdx = (idx + 1) % tabButtons.length;
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          nextIdx = (idx - 1 + tabButtons.length) % tabButtons.length;
+        } else if (e.key === 'Home') {
+          e.preventDefault();
+          nextIdx = 0;
+        } else if (e.key === 'End') {
+          e.preventDefault();
+          nextIdx = tabButtons.length - 1;
+        }
+
+        if (nextIdx >= 0) {
+          tabButtons[nextIdx].focus();
+          switchTab(tabButtons[nextIdx].dataset.tabId);
+        }
+      });
+    }
+
+    for (const btn of document.querySelectorAll('.contact-copy-btn')) {
+      btn.addEventListener('click', () => handleCopy(btn));
+    }
+  }
+
+  initContact();
+  document.addEventListener('astro:after-swap', initContact);
+</script>
