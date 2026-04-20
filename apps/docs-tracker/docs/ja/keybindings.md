@@ -58,13 +58,15 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `HistorySearch` | 履歴検索モード（Ctrl+R） |
 | `Task` | バックグラウンドタスクが実行中 |
 | `ThemePicker` | テーマピッカーダイアログ |
-| `Attachments` | 画像添付ファイルナビゲーション（選択ダイアログ内） |
+| `Attachments` | 選択ダイアログ内の画像添付ファイルナビゲーション |
 | `Footer` | フッターインジケータナビゲーション（タスク、チーム、diff） |
 | `MessageSelector` | 巻き戻しと要約ダイアログのメッセージ選択 |
 | `DiffDialog` | Diff ビューアナビゲーション |
 | `ModelPicker` | モデルピッカー努力レベル |
 | `Select` | 汎用選択/リストコンポーネント |
 | `Plugin` | プラグインダイアログ（参照、発見、管理） |
+| `Scroll` | 会話スクロールとフルスクリーンモードでのテキスト選択 |
+| `Doctor` | `/doctor` 診断スクリーン |
 
 ## 利用可能なアクション
 
@@ -78,7 +80,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | :- | :- | :- |
 | `app:interrupt` | Ctrl+C | 現在の操作をキャンセル |
 | `app:exit` | Ctrl+D | Claude Code を終了 |
-| `app:redraw` | Ctrl+L | 画面を再描画 |
+| `app:redraw` | （アンバインド） | ターミナルを強制的に再描画 |
 | `app:toggleTodos` | Ctrl+T | タスクリストの表示を切り替え |
 | `app:toggleTranscript` | Ctrl+O | 詳細トランスクリプトの表示を切り替え |
 
@@ -99,13 +101,14 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
 | `chat:cancel` | Escape | 現在の入力をキャンセル |
+| `chat:clearInput` | Ctrl+L | プロンプト入力をクリアして全画面再描画を強制 |
 | `chat:killAgents` | Ctrl+X Ctrl+K | すべてのバックグラウンドエージェントを終了 |
 | `chat:cycleMode` | Shift+Tab\* | 権限モードをサイクル |
 | `chat:modelPicker` | Cmd+P / Meta+P | モデルピッカーを開く |
 | `chat:fastMode` | Meta+O | 高速モードを切り替え |
 | `chat:thinkingToggle` | Cmd+T / Meta+T | 拡張思考を切り替え |
 | `chat:submit` | Enter | メッセージを送信 |
-| `chat:newline` | （アンバインド） | 送信せずに改行を挿入 |
+| `chat:newline` | Ctrl+J | 送信せずに改行を挿入 |
 | `chat:undo` | Ctrl+\_、Ctrl+Shift+- | 最後のアクションを元に戻す |
 | `chat:externalEditor` | Ctrl+G、Ctrl+X Ctrl+E | 外部エディタで開く |
 | `chat:stash` | Ctrl+S | 現在のプロンプトを保存 |
@@ -279,6 +282,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | :- | :- | :- |
 | `plugin:toggle` | Space | プラグイン選択を切り替え |
 | `plugin:install` | I | 選択したプラグインをインストール |
+| `plugin:favorite` | F | 選択したプラグインをお気に入りにして、インストール済みタブの上部付近にソートされるようにします |
 
 ### 設定アクション
 
@@ -290,6 +294,14 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `settings:retry` | R | 使用状況データの読み込みを再試行（エラー時） |
 | `settings:close` | Enter | 変更を保存して設定パネルを閉じます。Escape は変更を破棄して閉じます |
 
+### Doctor アクション
+
+`Doctor` コンテキストで利用可能なアクション：
+
+| アクション | デフォルト | 説明 |
+| :- | :- | :- |
+| `doctor:fix` | F | 診断レポートを Claude に送信して、報告された問題を修正します。問題が見つかった場合のみアクティブ |
+
 ### 音声アクション
 
 [音声ディクテーション](/ja/voice-dictation)が有効な場合、`Chat` コンテキストで利用可能なアクション：
@@ -297,6 +309,31 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
 | `voice:pushToTalk` | Space | プロンプトをディクテートするために押し続ける |
+
+### スクロールアクション
+
+[フルスクリーンレンダリング](/ja/fullscreen)が有効な場合、`Scroll` コンテキストで利用可能なアクション：
+
+| アクション | デフォルト | 説明 |
+| :- | :- | :- |
+| `scroll:lineUp` | （アンバインド） | 1 行上にスクロール。マウスホイールスクロールがこのアクションをトリガー |
+| `scroll:lineDown` | （アンバインド） | 1 行下にスクロール。マウスホイールスクロールがこのアクションをトリガー |
+| `scroll:pageUp` | PageUp | ビューポート高さの半分だけ上にスクロール |
+| `scroll:pageDown` | PageDown | ビューポート高さの半分だけ下にスクロール |
+| `scroll:top` | Ctrl+Home | 会話の開始位置にジャンプ |
+| `scroll:bottom` | Ctrl+End | 最新メッセージにジャンプして自動フォローを再度有効化 |
+| `scroll:halfPageUp` | （アンバインド） | ビューポート高さの半分だけ上にスクロール。`scroll:pageUp` と同じ動作で、vi スタイルの再バインドのために提供 |
+| `scroll:halfPageDown` | （アンバインド） | ビューポート高さの半分だけ下にスクロール。`scroll:pageDown` と同じ動作で、vi スタイルの再バインドのために提供 |
+| `scroll:fullPageUp` | （アンバインド） | ビューポート高さ全体だけ上にスクロール |
+| `scroll:fullPageDown` | （アンバインド） | ビューポート高さ全体だけ下にスクロール |
+| `selection:copy` | Ctrl+Shift+C / Cmd+C | 選択したテキストをクリップボードにコピー |
+| `selection:clear` | （アンバインド） | アクティブなテキスト選択をクリア |
+| `selection:extendLeft` | Shift+Left | アクティブな選択を 1 列左に拡張 |
+| `selection:extendRight` | Shift+Right | アクティブな選択を 1 列右に拡張 |
+| `selection:extendUp` | Shift+Up | アクティブな選択を 1 行上に拡張。選択が上端に達するとビューポートをスクロール |
+| `selection:extendDown` | Shift+Down | アクティブな選択を 1 行下に拡張。選択が下端に達するとビューポートをスクロール |
+| `selection:extendLineStart` | Shift+Home | アクティブな選択を行の開始位置に拡張 |
+| `selection:extendLineEnd` | Shift+End | アクティブな選択を行の終了位置に拡張 |
 
 ## キーストロークシンタックス
 
@@ -399,7 +436,7 @@ ctrl+k ctrl+s   Ctrl+K を押して、リリースしてから Ctrl+S
 
 ## Vim モードの相互作用
 
-Vim モードが有効な場合（`/vim`）、キーバインディングと Vim モードは独立して動作します。
+Vim モードが `/config` → エディタモードで有効な場合、キーバインディングと Vim モードは独立して動作します。
 
 - **Vim モード** はテキスト入力レベルで入力を処理します（カーソル移動、モード、モーション）
 - **キーバインディング** はコンポーネントレベルでアクションを処理します（todos を切り替え、送信など）

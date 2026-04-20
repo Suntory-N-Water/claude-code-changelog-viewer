@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 
 ## インストール問題のトラブルシューティング
 
-ターミナルを完全にスキップしたい場合は、[Claude Code デスクトップアプリ](/ja/desktop-quickstart)を使用して、グラフィカルインターフェイスを通じて Claude Code をインストールおよび使用できます。[macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)または[Windows](https://claude.ai/api/desktop/win32/x64/exe/latest/redirect?utm_source=claude_code\&utm_medium=docs)用にダウンロードして、コマンドラインセットアップなしでコーディングを開始します。
+ターミナルを完全にスキップしたい場合は、[Claude Code デスクトップアプリ](/ja/desktop-quickstart)を使用して、グラフィカルインターフェイスを通じて Claude Code をインストールおよび使用できます。[macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)または[Windows](https://claude.com/download?utm_source=claude_code\&utm_medium=docs)用にダウンロードして、コマンドラインセットアップなしでコーディングを開始します。
 
 表示されているエラーメッセージまたは症状を見つけます：
 
@@ -21,15 +21,18 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 | Linux でのインストール中に `Killed` | [低メモリサーバーにスワップスペースを追加する](#install-killed-on-low-memory-linux-servers) |
 | `TLS connect error` または `SSL/TLS secure channel` | [CA 証明書を更新する](#tls-or-ssl-connection-errors) |
 | `Failed to fetch version` またはダウンロードサーバーに到達できない | [ネットワークとプロキシ設定を確認する](#check-network-connectivity) |
-| `irm is not recognized` または `&& is not valid` | [シェルに適切なコマンドを使用する](#windows-irm-or--not-recognized) |
+| `irm is not recognized` または `&& is not valid` | [シェルに適切なコマンドを使用する](#windows-wrong-install-command) |
+| `'bash' is not recognized as the name of a cmdlet` | [Windows インストーラーコマンドを使用する](#windows-wrong-install-command) |
 | `Claude Code on Windows requires git-bash` | [Git Bash をインストールまたは設定する](#windows-claude-code-on-windows-requires-git-bash) |
-| `Error loading shared library` | [システムに適切なバイナリバリアントをインストールする](#linux-wrong-binary-variant-installed-muslglibc-mismatch) |
+| `Claude Code does not support 32-bit Windows` | [Windows PowerShell を開く（x86 エントリではなく）](#windows-claude-code-does-not-support-32-bit-windows) |
+| `Error loading shared library` | [システムに適切なバイナリバリアントをインストールする](#linux-wrong-binary-variant-installed-musl/glibc-mismatch) |
 | Linux での `Illegal instruction` | [アーキテクチャの不一致](#illegal-instruction-on-linux) |
-| macOS での `dyld: cannot load` または `Abort trap` | [バイナリの互換性](#dyld-cannot-load-on-macos) |
+| macOS での `dyld: cannot load`、`dyld: Symbol not found`、または `Abort trap` | [バイナリの互換性](#dyld-cannot-load-on-macos) |
 | `Invoke-Expression: Missing argument in parameter list` | [インストールスクリプトが HTML を返す](#install-script-returns-html-instead-of-a-shell-script) |
 | `App unavailable in region` | Claude Code はお客様の国では利用できません。[サポートされている国](https://www.anthropic.com/supported-countries)を参照してください。 |
 | `unable to get local issuer certificate` | [企業 CA 証明書を設定する](#tls-or-ssl-connection-errors) |
 | `OAuth error` または `403 Forbidden` | [認証を修正する](#authentication-issues) |
+| `API Error: 500`、`529 Overloaded`、`429`、またはその他の上記にリストされていない 4xx および 5xx エラー | [エラーリファレンス](/ja/errors)を参照してください |
 
 問題がリストに記載されていない場合は、これらの診断手順を実行してください。
 
@@ -72,11 +75,11 @@ echo $PATH | tr ':' '\n' | grep local/bin
 出力がない場合、ディレクトリが見つかりません。シェル設定に追加します：
 
 ```bash theme={null}
-# Zsh (macOS デフォルト)
+# Zsh（macOS デフォルト）
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 
-# Bash (Linux デフォルト)
+# Bash（Linux デフォルト）
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
@@ -157,7 +160,7 @@ npm グローバルインストールをアンインストールします：
 npm uninstall -g @anthropic-ai/claude-code
 ```
 
-macOS で Homebrew インストールを削除します：
+macOS で Homebrew インストールを削除します（`claude-code@latest` をインストールした場合はそれを使用します）：
 
 ```bash
 brew uninstall --cask claude-code
@@ -313,6 +316,12 @@ Invoke-Expression: Missing argument in parameter list.
    ```
    証明書ファイルがない場合は IT チームに問い合わせてください。直接接続でも試して、プロキシが原因であることを確認できます。
 
+4. **Windows では、証明書失効確認をバイパスする**（`CRYPT_E_NO_REVOCATION_CHECK (0x80092012)` または `CRYPT_E_REVOCATION_OFFLINE (0x80092013)` が表示される場合）。これらは curl がサーバーに到達したが、ネットワークが証明書失効確認をブロックしていることを意味します。これは企業ファイアウォールの背後で一般的です。インストールコマンドに `--ssl-revoke-best-effort` を追加します：
+   ```bat theme={null}
+   curl --ssl-revoke-best-effort -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
+   ```
+   または、`winget install Anthropic.ClaudeCode` でインストールします。これは curl を完全に回避します。
+
 ### `Failed to fetch version from storage.googleapis.com`
 
 インストーラーがダウンロードサーバーに到達できませんでした。これは通常、`storage.googleapis.com` がネットワークでブロックされていることを意味します。
@@ -344,9 +353,9 @@ Invoke-Expression: Missing argument in parameter list.
    winget install Anthropic.ClaudeCode
    ```
 
-### Windows：`irm` または `&&` が認識されない
+### Windows：間違ったインストールコマンド
 
-`'irm' is not recognized` または `The token '&&' is not valid` が表示される場合、シェルに対して間違ったコマンドを実行しています。
+`'irm' is not recognized`、`The token '&&' is not valid`、または `'bash' is not recognized as the name of a cmdlet` が表示される場合、別のシェルまたはオペレーティングシステムのインストールコマンドをコピーしました。
 
 - **`irm` が認識されない**：CMD にいて、PowerShell にいません。2 つのオプションがあります：
 
@@ -363,6 +372,11 @@ Invoke-Expression: Missing argument in parameter list.
   ```
 
 - **`&&` が有効でない**：PowerShell にいますが、CMD インストーラーコマンドを実行しました。PowerShell インストーラーを使用します：
+  ```powershell theme={null}
+  irm https://claude.ai/install.ps1 | iex
+  ```
+
+- **`bash` が認識されない**：Windows で macOS/Linux インストーラーを実行しました。代わりに PowerShell インストーラーを使用します：
   ```powershell theme={null}
   irm https://claude.ai/install.ps1 | iex
   ```
@@ -443,6 +457,18 @@ Claude Desktop を最新バージョンに更新して、この問題を修正�
 
 Git が別の場所にインストールされている場合は、PowerShell で `where.exe git` を実行してパスを見つけ、そのディレクトリから `bin\bash.exe` パスを使用します。
 
+### Windows：Claude Code は 32 ビット Windows をサポートしていません
+
+Windows スタートメニューには 2 つの PowerShell エントリが含まれています：`Windows PowerShell` と `Windows PowerShell (x86)`。x86 エントリは 32 ビットプロセスとして実行され、64 ビットマシンでもこのエラーをトリガーします。どちらの場合かを確認するには、エラーを生成したのと同じウィンドウで以下を実行します：
+
+```powershell
+[Environment]::Is64BitOperatingSystem
+```
+
+これが `True` を出力する場合、オペレーティングシステムは問題ありません。ウィンドウを閉じて、x86 サフィックスなしで `Windows PowerShell` を開き、インストールコマンドを再度実行します。
+
+これが `False` を出力する場合、32 ビット版の Windows を使用しています。Claude Code には 64 ビットオペレーティングシステムが必要です。[システム要件](/ja/setup#system-requirements)を参照してください。
+
 ### Linux：インストールされた間違ったバイナリバリアント（musl/glibc の不一致）
 
 インストール後に `libstdc++.so.6` または `libgcc_s.so.1` などの不足している共有ライブラリに関するエラーが表示される場合、インストーラーはシステムに対して間違ったバイナリバリアントをダウンロードした可能性があります。
@@ -491,11 +517,19 @@ bash: line 142: 2238232 Illegal instruction    "$binary_path" install ${TARGET:+
 
 ### macOS での `dyld: cannot load`
 
-インストール中に `dyld: cannot load` または `Abort trap: 6` が表示される場合、バイナリは macOS バージョンまたはハードウェアと互換性がありません。
+インストール中に `dyld: cannot load`、`dyld: Symbol not found`、または `Abort trap: 6` が表示される場合、バイナリは macOS バージョンまたはハードウェアと互換性がありません。
 
 ```text
 dyld: cannot load 'claude-2.1.42-darwin-x64' (load command 0x80000034 is unknown)
 Abort trap: 6
+```
+
+`libicucore` を参照する `Symbol not found` エラーは、macOS バージョンがバイナリがサポートしているバージョンより古いことを示します：
+
+```text
+dyld: Symbol not found: _ubrk_clone
+  Referenced from: claude-darwin-x64 (which was built for Mac OS X 13.0)
+  Expected in: /usr/lib/libicucore.A.dylib
 ```
 
 **解決策：**
@@ -558,7 +592,7 @@ export PATH="$HOME/.nvm/versions/node/$(node -v)/bin:$PATH"
 
 ### WSL2 サンドボックスセットアップ
 
-[サンドボックス](/ja/sandboxing)は WSL2 でサポートされていますが、追加のパッケージをインストールする必要があります。`/sandbox` を実行するときに「Sandbox requires socat and bubblewrap」というエラーが表示される場合は、依存関係をインストールします：
+[サンドボックス](/ja/sandboxing)は WSL2 でサポートされていますが、追加のパッケージをインストールする必要があります。`/sandbox` を実行するときに `bubblewrap` または `socat` が見つからないというエラーが表示される場合は、依存関係をインストールします：
 
 ```bash theme={null}
 sudo apt-get install bubblewrap socat
@@ -570,6 +604,8 @@ sudo dnf install bubblewrap socat
 
 WSL1 はサンドボックスをサポートしていません。「Sandboxing requires WSL2」が表示される場合は、WSL2 にアップグレードするか、サンドボックスなしで Claude Code を実行する必要があります。
 
+サンドボックス化されたコマンドは `cmd.exe`、`powershell.exe`、または `/mnt/c/` の下の実行可能ファイルなどの Windows バイナリを起動できません。WSL はこれらを Unix ソケット経由で Windows ホストに渡しますが、サンドボックスはこれをブロックします。コマンドが Windows バイナリを呼び出す必要がある場合は、[`excludedCommands`](/ja/settings#sandbox-settings)に追加して、サンドボックスの外で実行されるようにします。
+
 ### インストール中のアクセス許可エラー
 
 ネイティブインストーラーがアクセス許可エラーで失敗する場合、ターゲットディレクトリが書き込み可能でない可能性があります。[ディレクトリのアクセス許可を確認する](#check-directory-permissions)を参照してください。
@@ -579,6 +615,16 @@ WSL1 はサンドボックスをサポートしていません。「Sandboxing r
 ```bash
 curl -fsSL https://claude.ai/install.sh | bash
 ```
+
+### npm インストール後にネイティブバイナリが見つからない
+
+`@anthropic-ai/claude-code` npm パッケージは、`@anthropic-ai/claude-code-darwin-arm64` などのプラットフォーム固有のオプション依存関係を通じてネイティブバイナリを取得します。インストール後に `claude` を実行すると `Could not find native binary package "@anthropic-ai/claude-code-<platform>"` が出力される場合は、次の原因を確認してください：
+
+- **オプション依存関係が無効になっている。** npm インストールコマンドから `--omit=optional` を削除し、pnpm から `--no-optional` を削除し、yarn から `--ignore-optional` を削除し、`.npmrc` が `optional=false` を設定していないことを確認してから、再インストールします。ネイティブバイナリはオプション依存関係としてのみ配信されるため、スキップされた場合は JavaScript フォールバックはありません。
+- **サポートされていないプラットフォーム。** プリビルドバイナリは `darwin-arm64`、`darwin-x64`、`linux-x64`、`linux-arm64`、`linux-x64-musl`、`linux-arm64-musl`、`win32-x64`、および `win32-arm64` に対して公開されています。Claude Code は他のプラットフォーム用のバイナリを出荷しません。[システム要件](/ja/setup#system-requirements)を参照してください。
+- **企業 npm ミラーがプラットフォームパッケージを欠落している。** レジストリが、メタパッケージに加えて 8 つの `@anthropic-ai/claude-code-*` プラットフォームパッケージすべてをミラーしていることを確認してください。
+
+`--ignore-scripts` でインストールすると、このエラーはトリガーされません。バイナリを所定の位置にリンクする postinstall ステップがスキップされるため、Claude Code は各起動時にプラットフォームバイナリを検索して生成するラッパーにフォールバックします。これは機能しますが、より遅く起動します。スクリプトを有効にして再インストールして、直接実行します。
 
 ## アクセス許可と認証
 
@@ -616,6 +662,43 @@ curl -fsSL https://claude.ai/install.sh | bash
 - **Console ユーザー**：管理者によって「Claude Code」または「Developer」ロールが割り当てられていることを確認します
 - **プロキシの背後**：企業プロキシは API リクエストに干渉する可能性があります。[ネットワーク設定](/ja/network-config)でプロキシセットアップを参照してください。
 
+### モデルが見つからないか、アクセスできない
+
+`There's an issue with the selected model (...). It may not exist or you may not have access to it` が表示される場合、API は設定されたモデル名を拒否しました。
+
+一般的な原因：
+
+- `--model` に渡されたモデル名のタイプミス
+- 設定に保存された古いまたは非推奨のモデル ID
+- そのモデルへのアクセス権がない API キー
+
+[優先順位順](/ja/model-config#setting-your-model)でモデルが設定されている場所を確認します：
+
+- `--model` フラグ
+- `ANTHROPIC_MODEL` 環境変数
+- `.claude/settings.local.json` の `model` フィールド
+- プロジェクトの `.claude/settings.json` の `model` フィールド
+- `~/.claude/settings.json` の `model` フィールド
+
+古い値をクリアするには、設定から `model` フィールドを削除するか、`ANTHROPIC_MODEL` を設定解除します。Claude Code はアカウントのデフォルトモデルにフォールバックします。
+
+アカウントで利用可能なモデルを参照するには、`claude` を対話的に開始して `/model` を実行してピッカーを開きます。Vertex AI デプロイメントについては、[Vertex AI トラブルシューティングセクション](/ja/google-vertex-ai#troubleshooting)を参照してください。
+
+### この組織はアクティブなサブスクリプションで無効になっています
+
+アクティブな Claude サブスクリプションがあるにもかかわらず `API Error: 400 ... "This organization has been disabled"` が表示される場合、`ANTHROPIC_API_KEY` 環境変数がサブスクリプションをオーバーライドしています。これは、前の雇用主またはプロジェクトからの古い API キーがシェルプロファイルに設定されている場合に一般的に発生します。
+
+`ANTHROPIC_API_KEY` が存在し、承認されている場合、Claude Code はサブスクリプションの OAuth 認証情報ではなくそのキーを使用します。非対話型モード（`-p`）では、キーが存在する場合は常に使用されます。[認証の優先順位](/ja/authentication#authentication-precedence)で完全な解決順序を参照してください。
+
+代わりにサブスクリプションを使用するには、環境変数を設定解除し、シェルプロファイルから削除します：
+
+```bash
+unset ANTHROPIC_API_KEY
+claude
+```
+
+`~/.zshrc`、`~/.bashrc`、または `~/.profile` で `export ANTHROPIC_API_KEY=...` 行を確認して削除し、変更を永続的にします。Claude Code 内で `/status` を実行して、どの認証方法がアクティブであるかを確認します。
+
 ### WSL2 での OAuth ログイン失敗
 
 WSL2 でのブラウザベースのログインは、WSL が Windows ブラウザを開くことができない場合に失敗する可能性があります。`BROWSER` 環境変数を設定します：
@@ -627,11 +710,13 @@ claude
 
 または URL を手動でコピーします：ログインプロンプトが表示されたら、`c` を押して OAuth URL をコピーし、Windows ブラウザに貼り付けます。
 
-### 「ログインしていません」またはトークンの期限切れ
+### ログインしていないか、トークンの期限切れ
 
 Claude Code がセッション後に再度ログインするよう求める場合、OAuth トークンが期限切れになった可能性があります。
 
 `/login` を実行して再認証します。これが頻繁に発生する場合は、システムクロックが正確であることを確認してください。トークン検証は正確なタイムスタンプに依存しています。
+
+macOS では、Keychain がロックされているか、パスワードがアカウントパスワードと同期していない場合、ログインが失敗することもあります。これにより、Claude Code が認証情報を保存できなくなります。`claude doctor` を実行して Keychain アクセスを確認します。Keychain を手動でロック解除するには、`security unlock-keychain ~/Library/Keychains/login.keychain-db` を実行します。ロック解除が役に立たない場合は、Keychain Access を開き、`login` キーチェーンを選択して、編集 > キーチェーン「login」のパスワードを変更を選択して、アカウントパスワードと再同期します。
 
 ## 設定ファイルの場所
 
@@ -679,6 +764,19 @@ Claude Code はほとんどの開発環境で動作するように設計され�
 2. 主要なタスク間で Claude Code を閉じて再起動します
 3. 大規模なビルドディレクトリを `.gitignore` ファイルに追加することを検討してください
 
+メモリ使用量がこれらのステップ後も高いままの場合は、`/heapdump` を実行して JavaScript ヒープスナップショットとメモリ分析を `~/Desktop` に書き込みます。分析は常駐セットサイズ、JS ヒープ、配列バッファ、および説明されていないネイティブメモリを表示し、成長が JavaScript オブジェクトにあるか、ネイティブコードにあるかを識別するのに役立ちます。Chrome DevTools のメモリ → ロードで `.heapsnapshot` ファイルを開いて、リテイナーを検査します。メモリの問題を報告するときに両方のファイルを [GitHub](https://github.com/anthropics/claude-code/issues) に添付します。
+
+### 自動コンパクションがスラッシング エラーで停止する
+
+`Autocompact is thrashing: the context refilled to the limit...` が表示される場合、自動コンパクションは成功しましたが、ファイルまたはツール出力がコンテキストウィンドウを数回連続で満杯に戻しました。Claude Code は進捗を遂行していないループで API 呼び出しを無駄にするのを避けるために再試行を停止します。
+
+回復するには：
+
+1. Claude に、ファイル全体ではなく、特定の行範囲または関数など、より小さなチャンクで大きなファイルを読むよう依頼します
+2. `/compact` を実行して、大きな出力を削除するフォーカスを使用します（例：`/compact keep only the plan and the diff`）
+3. 大規模ファイルの作業を[サブエージェント](/ja/sub-agents)に移動して、別のコンテキストウィンドウで実行されるようにします
+4. 以前の会話がもう必要ない場合は `/clear` を実行します
+
 ### コマンドがハングまたはフリーズする
 
 Claude Code が応答しないように見える場合：
@@ -691,10 +789,10 @@ Claude Code が応答しないように見える場合：
 Search ツール、`@file` メンション、カスタムエージェント、およびカスタムスキルが機能していない場合は、システム `ripgrep` をインストールします：
 
 ```bash
-# macOS (Homebrew)  
+# macOS（Homebrew）  
 brew install ripgrep
 
-# Windows (winget)
+# Windows（winget）
 winget install BurntSushi.ripgrep.MSVC
 
 # Ubuntu/Debian
@@ -803,7 +901,7 @@ Claude Code は、コードフェンスに言語タグがない Markdown ファ�
 function example() {
   return "hello";
 }
-```text
+```
 ````
 
 適切にタグ付けされたブロックの代わりに：
@@ -813,14 +911,14 @@ function example() {
 function example() {
   return "hello";
 }
-```text
+```
 ````
 
 **解決策：**
 
 1. **Claude に言語タグを追加するよう依頼する**：「このマークダウンファイルのすべてのコードブロックに適切な言語タグを追加してください」とリクエストします。
 
-2. **編集後の自動フォーマットフック を使用する**：言語タグがないコードブロックを検出して追加するための自動フォーマットフックを設定します。[編集後のコード自動フォーマット](/ja/hooks-guide#auto-format-code-after-edits)の例を参照してください。
+2. **編集後の自動フォーマットフックを使用する**：言語タグがないコードブロックを検出して追加するための自動フォーマットフックを設定します。[編集後のコード自動フォーマット](/ja/hooks-guide#auto-format-code-after-edits)の例を参照してください。
 
 3. **手動検証**：Markdown ファイルを生成した後、適切なコードブロックフォーマットを確認し、必要に応じて修正をリクエストします。
 
@@ -848,14 +946,15 @@ function example() {
 
 ここで説明されていない問題が発生している場合：
 
-1. Claude Code 内で `/bug` コマンドを使用して、Anthropic に問題を直接報告します
-2. [GitHub リポジトリ](https://github.com/anthropics/claude-code)で既知の問題を確認します
-3. `/doctor` を実行して問題を診断します。以下をチェックします：
+1. [エラーリファレンス](/ja/errors)で `API Error: 5xx`、`529 Overloaded`、`429`、およびセッション中に表示されるリクエスト検証エラーを参照してください
+2. Claude Code 内で `/feedback` コマンドを使用して、Anthropic に問題を直接報告します
+3. [GitHub リポジトリ](https://github.com/anthropics/claude-code)で既知の問題を確認します
+4. `/doctor` を実行して問題を診断します。以下をチェックします：
    - インストールタイプ、バージョン、および検索機能
    - 自動更新ステータスと利用可能なバージョン
    - 無効な設定ファイル（不正な形式の JSON、不正な型）
-   - MCP サーバー設定エラー
+   - MCP サーバー設定エラー（複数のスコープで同じサーバー名が異なるエンドポイントで定義されている場合を含む）
    - キーバインディング設定の問題
    - コンテキスト使用量の警告（大規模な CLAUDE.md ファイル、高い MCP トークン使用量、到達不可能なアクセス許可ルール）
    - プラグインとエージェントのロードエラー
-4. Claude に直接その機能と機能について質問します - Claude はドキュメントへの組み込みアクセスを持っています
+5. Claude に直接その機能と機能について質問します - Claude はドキュメントへの組み込みアクセスを持っています

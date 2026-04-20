@@ -108,7 +108,7 @@ PowerShell または CMD からインストールするかどうかは、実行�
 }
 ```
 
-Claude Code は Windows でネイティブに PowerShell を実行することもできます（オプトインプレビュー）。セットアップと制限については、[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください。
+Claude Code は Windows でネイティブに PowerShell を実行することもできます。PowerShell ツールは段階的にロールアウトされています。オプトインするには `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` を設定するか、オプトアウトするには `0` を設定します。セットアップと制限については、[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください。
 
 **オプション 2: WSL**
 
@@ -187,6 +187,23 @@ Homebrew はアップグレード後、古いバージョンをディスク上�
 
 Homebrew インストールは、この設定ではなく cask 名でチャネルを選択します。`claude-code` は安定版を追跡し、`claude-code@latest` は最新版を追跡します。
 
+### 最小バージョンをピン留め
+
+`minimumVersion` 設定は下限を確立します。バックグラウンド自動更新と `claude update` は、この値より下のバージョンのインストールを拒否するため、`"stable"` チャネルに移動しても、既に新しい `"latest"` ビルドを使用している場合はダウングレードされません。
+
+`/config` 経由で `"latest"` から `"stable"` に切り替えると、現在のバージョンに留まるか、ダウングレードを許可するかを選択するよう求められます。留まることを選択すると、`minimumVersion` がそのバージョンに設定されます。`"latest"` に戻すと、それがクリアされます。
+
+[settings.json ファイル](/ja/settings)に追加して、下限を明示的にピン留めします。
+
+```json
+{
+  "autoUpdatesChannel": "stable",
+  "minimumVersion": "2.1.100"
+}
+```
+
+[管理設定](/ja/permissions#managed-settings)では、これはユーザーおよびプロジェクト設定がオーバーライドできない組織全体の最小値を適用します。
+
 ### 自動更新を無効にする
 
 [`settings.json`](/ja/settings#available-settings)ファイルの `env` キーで `DISABLE_AUTOUPDATER` を `"1"` に設定します。
@@ -257,31 +274,17 @@ curl -fsSL https://claude.ai/install.sh | bash -s 2.1.89
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd 2.1.89 && del install.cmd
 ```
 
-### 非推奨の npm インストール
+### npm でのインストール
 
-npm インストールは非推奨です。ネイティブインストーラーはより高速で、依存関係が不要で、バックグラウンドで自動更新されます。可能な場合は[ネイティブインストール](#install-claude-code)方法を使用してください。
-
-#### npm からネイティブへの移行
-
-以前に npm で Claude Code をインストールした場合は、ネイティブインストーラーに切り替えます。
-
-```bash
-# ネイティブバイナリをインストール
-curl -fsSL https://claude.ai/install.sh | bash
-
-# 古い npm インストールを削除
-npm uninstall -g @anthropic-ai/claude-code
-```
-
-既存の npm インストールから `claude install` を実行して、ネイティブバイナリを並行してインストールしてから、npm バージョンを削除することもできます。
-
-#### npm でインストール
-
-互換性上の理由で npm インストールが必要な場合は、[Node.js 18 以上](https://nodejs.org/en/download)がインストールされている必要があります。パッケージをグローバルにインストールします。
+Claude Code をグローバル npm パッケージとしてインストールすることもできます。パッケージには [Node.js 18 以上](https://nodejs.org/en/download)が必要です。
 
 ```bash
 npm install -g @anthropic-ai/claude-code
 ```
+
+npm パッケージは、スタンドアロンインストーラーと同じネイティブバイナリをインストールします。npm は `@anthropic-ai/claude-code-darwin-arm64` などのプラットフォーム固有のオプション依存関係を通じてバイナリをプルし、postinstall ステップがそれを所定の位置にリンクします。インストールされた `claude` バイナリ自体は Node を呼び出しません。
+
+サポートされている npm インストールプラットフォームは `darwin-arm64`、`darwin-x64`、`linux-x64`、`linux-arm64`、`linux-x64-musl`、`linux-arm64-musl`、`win32-x64`、および `win32-arm64` です。パッケージマネージャーはオプション依存関係を許可する必要があります。インストール後にバイナリが見つからない場合は、[トラブルシューティング](/ja/troubleshooting#native-binary-not-found-after-npm-install)を参照してください。
 
 `sudo npm install -g` を使用しないでください。これはアクセス許可の問題とセキュリティリスクにつながる可能性があります。アクセス許可エラーが発生した場合は、[トラブルシューティングアクセス許可エラー](/ja/troubleshooting#permission-errors-during-installation)を参照してください。
 

@@ -164,6 +164,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、および `soft_deny` 配列の散文ルールを含みます。[自動モード分類器を構成](/ja/permissions#configure-the-auto-mode-classifier)を参照してください。共有プロジェクト設定から読み込まれません | `{"environment": ["Trusted repo: github.example.com/acme"]}` |
 | `autoUpdatesChannel` | 更新に従うリリースチャネル。約 1 週間古いバージョンで、大きな回帰のあるバージョンをスキップする `"stable"` を使用するか、最新リリースの `"latest"`（デフォルト）を使用します | `"stable"` |
 | `availableModels` | `/model`、`--model`、Config ツール、または `ANTHROPIC_MODEL` を通じてユーザーが選択できるモデルを制限します。デフォルトオプションには影響しません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください | `["sonnet", "haiku"]` |
+| `awaySummaryEnabled` | 数分間ターミナルから離れた後に戻ったときに、1 行のセッション要約を表示します。`false` に設定するか、`/config` でセッション要約をオフにして無効にします。[`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/ja/env-vars)と同じです | `true` |
 | `awsAuthRefresh` | `.aws` ディレクトリを変更するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `aws sso login --profile myprofile` |
 | `awsCredentialExport` | AWS 認証情報を含む JSON を出力するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `/bin/generate_aws_grant.sh` |
 | `blockedMarketplaces` | （Managed 設定のみ）マーケットプレイスソースのブロックリスト。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "untrusted/plugins" }]` |
@@ -192,7 +193,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `includeCoAuthoredBy` | **非推奨**：代わりに `attribution` を使用してください。git コミットとプルリクエストに `co-authored-by Claude` バイラインを含めるかどうか（デフォルト：`true`） | `false` |
 | `includeGitInstructions` | Claude のシステムプロンプトに組み込みコミットおよび PR ワークフロー命令と git ステータススナップショットを含めます（デフォルト：`true`）。たとえば、独自の git ワークフロースキルを使用する場合は、これらの命令を削除するために `false` に設定します。`CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` 環境変数が設定されている場合、この設定よりも優先されます | `false` |
 | `language` | Claude の優先応答言語を構成します（例：`"japanese"`、`"spanish"`、`"french"`）。Claude はデフォルトでこの言語で応答します。また、[音声ディクテーション](/ja/voice-dictation#change-the-dictation-language)言語も設定します | `"japanese"` |
-| `minimumVersion` | 自動アップデーターが特定のバージョン以下にダウングレードするのを防止します。安定チャネルに切り替えて、安定版が追いつくまで現在のバージョンに留まることを選択するときに自動的に設定されます。`autoUpdatesChannel` で使用されます | `"2.1.85"` |
+| `minimumVersion` | 背景自動更新と `claude update` が特定のバージョン以下にインストールするのを防止するフロア。`"latest"` チャネルから `"stable"` に `/config` を通じて切り替えると、現在のバージョンに留まるか、ダウングレードを許可するかを求めるプロンプトが表示されます。留まることを選択すると、この値が設定されます。また、[managed 設定](/ja/permissions#managed-settings)で組織全体の最小値をピンするのに役立ちます | `"2.1.100"` |
 | `model` | Claude Code に使用するデフォルトモデルをオーバーライドします | `"claude-sonnet-4-6"` |
 | `modelOverrides` | Anthropic モデル ID を Bedrock 推論プロファイル ARN などのプロバイダー固有のモデル ID にマップします。各モデルピッカーエントリは、プロバイダー API を呼び出すときにマップされた値を使用します。[バージョンごとにモデル ID をオーバーライド](/ja/model-config#override-model-ids-per-version)を参照してください | `{"claude-opus-4-6": "arn:aws:bedrock:..."}` |
 | `otelHeadersHelper` | 動的 OpenTelemetry ヘッダーを生成するスクリプト。起動時および定期的に実行されます（[動的ヘッダー](/ja/monitoring-usage#dynamic-headers)を参照） | `/bin/generate_otel_headers.sh` |
@@ -209,8 +210,9 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `spinnerVerbs` | スピナーとターン期間メッセージに表示されるアクション動詞をカスタマイズします。`mode` を `"replace"` に設定して動詞のみを使用するか、`"append"` に設定してデフォルトに追加します | `{"mode": "append", "verbs": ["Pondering", "Crafting"]}` |
 | `statusLine` | コンテキストを表示するカスタムステータスラインを構成します。[`statusLine` ドキュメント](/ja/statusline)を参照してください | `{"type": "command", "command": "~/.claude/statusline.sh"}` |
 | `strictKnownMarketplaces` | managed-settings.json で設定されている場合、ユーザーが追加できるプラグインマーケットプレイスのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。マーケットプレイス追加のみに適用されます。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
+| `tui` | ターミナル UI レンダラー。フリッカーのない[alt-screen レンダラー](/ja/fullscreen)を備えた仮想スクロールバック用に `"fullscreen"` を使用します。クラシックメインスクリーンレンダラー用に `"default"` を使用します。`/tui` で設定します | `"fullscreen"` |
 | `useAutoModeDuringPlan` | プラン モードが自動モードが利用可能な場合に自動モードセマンティクスを使用するかどうか。デフォルト：`true`。共有プロジェクト設定から読み込まれません。`/config` に「プラン中に自動モードを使用」として表示されます | `false` |
-| `viewMode` | 起動時のデフォルトトランスクリプトビューモード：`"default"`、`"verbose"`、または `"focus"`。設定されている場合、スティッキー Ctrl+O 選択をオーバーライドします | `"verbose"` |
+| `viewMode` | 起動時のデフォルトトランスクリプトビューモード：`"default"`、`"verbose"`、または `"focus"`。設定されている場合、スティッキー `/focus` 選択をオーバーライドします | `"verbose"` |
 | `voiceEnabled` | プッシュトゥトーク[音声ディクテーション](/ja/voice-dictation)を有効にします。`/voice` を実行すると自動的に書き込まれます。Claude.ai アカウントが必要です | `true` |
 
 ### グローバル構成設定
@@ -221,7 +223,9 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | :- | :- | :- |
 | `autoConnectIde` | Claude Code が外部ターミナルから起動するときに、実行中の IDE に自動的に接続します。デフォルト：`false`。VS Code または JetBrains ターミナルの外で実行する場合、`/config` に\*\*IDE に自動接続（外部ターミナル）\*\*として表示されます | `true` |
 | `autoInstallIdeExtension` | VS Code ターミナルから実行するときに Claude Code IDE 拡張機能を自動的にインストールします。デフォルト：`true`。VS Code または JetBrains ターミナル内で実行する場合、`/config` に**IDE 拡張機能を自動インストール**として表示されます。[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/ja/env-vars)環境変数を設定することもできます | `false` |
+| `autoScrollEnabled` | [フルスクリーンレンダリング](/ja/fullscreen)で、新しい出力を会話の下部に追従します。デフォルト：`true`。`/config` に**自動スクロール**として表示されます。権限プロンプトはこれがオフの場合でもビューにスクロールします | `false` |
 | `editorMode` | 入力プロンプトのキーバインディングモード：`"normal"` または `"vim"`。デフォルト：`"normal"`。`/config` に**エディターモード**として表示されます | `"vim"` |
+| `externalEditorContext` | `Ctrl+G` で外部エディターを開くときに Claude の前の応答を `#` コメント付きコンテキストとして先頭に追加します。デフォルト：`false`。`/config` に**外部エディターに最後の応答を表示**として表示されます | `true` |
 | `showTurnDuration` | レスポンス後のターン期間メッセージを表示します（例：「Cooked for 1m 6s」）。デフォルト：`true`。`/config` に**ターン期間を表示**として表示されます | `false` |
 | `terminalProgressBarEnabled` | サポートされているターミナルでターミナル進行状況バーを表示します：ConEmu、Ghostty 1.2.0 以降、および iTerm2 3.6.6 以降。デフォルト：`true`。`/config` に**ターミナル進行状況バー**として表示されます | `false` |
 | `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`in-process`、または `tmux`。[表示モードを選択](/ja/agent-teams#choose-a-display-mode)を参照してください | `"in-process"` |
@@ -285,6 +289,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `network.allowLocalBinding` | localhost ポートへのバインドを許可します（macOS のみ）。デフォルト：false | `true` |
 | `network.allowMachLookup` | サンドボックスが検索できる追加の XPC/Mach サービス名（macOS のみ）。プレフィックスマッチング用に単一の末尾 `*` をサポートします。iOS Simulator または Playwright などの XPC を通じて通信するツールに必要です。 | `["com.apple.coresimulator.*"]` |
 | `network.allowedDomains` | アウトバウンドネットワークトラフィックを許可するドメインの配列。ワイルドカード（例：`*.example.com`）をサポートします。 | `["github.com", "*.npmjs.org"]` |
+| `network.deniedDomains` | アウトバウンドネットワークトラフィックをブロックするドメインの配列。`allowedDomains` と同じワイルドカード構文をサポートします。両方が一致する場合、拒否リストが優先されます。すべての設定ソースからマージされます。`allowManagedDomainsOnly` に関係なく | `["sensitive.cloud.example.com"]` |
 | `network.allowManagedDomainsOnly` | （Managed 設定のみ）managed 設定からの `allowedDomains` および `WebFetch(domain:...)` allow ルールのみが尊重されます。ユーザー、プロジェクト、およびローカル設定からのドメインは無視されます。許可されていないドメインはユーザーにプロンプトを表示せずに自動的にブロックされます。拒否されたドメインはすべてのソースから引き続き尊重されます。デフォルト：false | `true` |
 | `network.httpProxyPort` | 独自のプロキシを使用する場合に使用される HTTP プロキシポート。指定されていない場合、Claude は独自のプロキシを実行します。 | `8080` |
 | `network.socksProxyPort` | 独自のプロキシを使用する場合に使用される SOCKS5 プロキシポート。指定されていない場合、Claude は独自のプロキシを実行します。 | `8081` |
@@ -317,6 +322,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
     },
     "network": {
       "allowedDomains": ["github.com", "*.npmjs.org", "registry.yarnpkg.com"],
+      "deniedDomains": ["uploads.github.com"],
       "allowUnixSockets": [
         "/var/run/docker.sock"
       ],
