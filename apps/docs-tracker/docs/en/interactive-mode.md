@@ -13,8 +13,8 @@ Keyboard shortcuts may vary by platform and terminal. Press `?` to see available
 
 **macOS users**: Option/Alt key shortcuts (`Alt+B`, `Alt+F`, `Alt+Y`, `Alt+M`, `Alt+P`, `Alt+T`) require configuring Option as Meta in your terminal:
 
-- **iTerm2**: settings → Profiles → Keys → set Left/Right Option key to "Esc+"
-- **Terminal.app**: settings → Profiles → Keyboard → check "Use Option as Meta Key"
+- **iTerm2**: Settings → Profiles → Keys → General → set Left/Right Option key to "Esc+"
+- **Apple Terminal**: Settings → Profiles → Keyboard → check "Use Option as Meta Key"
 - **VS Code**: set `"terminal.integrated.macOptionIsMeta": true` in VS Code settings
 
 See [Terminal configuration](/en/terminal-config) for details.
@@ -66,12 +66,12 @@ See [Terminal configuration](/en/terminal-config) for details.
 | Method | Shortcut | Context |
 | :- | :- | :- |
 | Quick escape | `\` + `Enter` | Works in all terminals |
-| macOS default | `Option+Enter` | Default on macOS |
-| Shift+Enter | `Shift+Enter` | Works out of the box in iTerm2, WezTerm, Ghostty, Kitty |
-| Control sequence | `Ctrl+J` | Line feed character for multiline |
+| Option key | `Option+Enter` | After enabling [Option as Meta](/en/terminal-config#enable-option-key-shortcuts-on-macos) on macOS |
+| Shift+Enter | `Shift+Enter` | Native in iTerm2, WezTerm, Ghostty, Kitty, Warp, Apple Terminal |
+| Control sequence | `Ctrl+J` | Works in any terminal without configuration |
 | Paste mode | Paste directly | For code blocks, logs |
 
-Shift+Enter works without configuration in iTerm2, WezTerm, Ghostty, and Kitty. For other terminals (VS Code, Alacritty, Zed, Warp), run `/terminal-setup` to install the binding.
+Shift+Enter works without configuration in iTerm2, WezTerm, Ghostty, Kitty, Warp, and Apple Terminal. For VS Code, Cursor, Windsurf, Alacritty, and Zed, run `/terminal-setup` to install the binding.
 
 ### Quick commands
 
@@ -160,6 +160,7 @@ In vim normal mode, if the cursor is at the beginning or end of input and cannot
 | `>>` | Indent line |
 | `<<` | Dedent line |
 | `J` | Join lines |
+| `u` | Undo |
 | `.` | Repeat last change |
 
 ### Text objects (NORMAL mode)
