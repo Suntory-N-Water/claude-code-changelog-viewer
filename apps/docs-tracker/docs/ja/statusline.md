@@ -59,6 +59,8 @@ source: https://code.claude.com/docs/ja/statusline.md
 
 オプションの `padding` フィールドは、ステータスラインコンテンツに追加の水平スペース（文字単位）を追加します。デフォルトは `0` です。このパディングはインターフェイスの組み込みスペースに加えて追加されるため、ターミナルエッジからの絶対距離ではなく相対的なインデントを制御します。
 
+オプションの `refreshInterval` フィールドは、[イベント駆動更新](#how-status-lines-work) に加えて、N 秒ごとにコマンドを再実行します。最小値は `1` です。ステータスラインが時計などの時間ベースのデータを表示する場合、またはメインセッションがアイドル状態の間にバックグラウンドサブエージェントが git 状態を変更する場合に設定します。イベントのみで実行する場合は設定しないままにします。
+
 ### ステータスラインを無効にする
 
 `/statusline` を実行し、ステータスラインを削除またはクリアするよう指示します（例：`/statusline delete`、`/statusline clear`、`/statusline remove it`）。settings.json から `statusLine` フィールドを手動で削除することもできます。
@@ -117,6 +119,8 @@ Claude Code はスクリプトを実行し、stdin 経由で [JSON セッショ�
 
 スクリプトは新しいアシスタントメッセージの後、パーミッションモードが変更されたとき、または vim モードが切り替わったときに実行されます。更新は 300ms でデバウンスされます。つまり、急速な変更がバッチ処理され、スクリプトは物事が落ち着いたら一度実行されます。スクリプトがまだ実行中に新しい更新がトリガーされた場合、実行中の実行はキャンセルされます。スクリプトを編集した場合、Claude Code との次の相互作用がトリガーされるまで変更は表示されません。
 
+これらのトリガーは、メインセッションがアイドル状態の場合（例えば、コーディネーターがバックグラウンドサブエージェントを待機している場合）、静かになる可能性があります。アイドル期間中に時間ベースまたは外部ソースのセグメントを最新に保つには、[`refreshInterval`](#manually-configure-a-status-line) を設定して、固定タイマーでもコマンドを再実行します。
+
 **スクリプトが出力できるもの**
 
 - **複数行**：各 `echo` または `print` ステートメントは別の行として表示されます。[複数行の例](#display-multiple-lines) を参照してください。
@@ -135,7 +139,8 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `cwd`、`workspace.current_dir` | 現在の作業ディレクトリ。両方のフィールドに同じ値が含まれます。`workspace.current_dir` は `workspace.project_dir` との一貫性のために推奨されます。 |
 | `workspace.project_dir` | Claude Code が起動されたディレクトリ。セッション中に作業ディレクトリが変更された場合、`cwd` と異なる場合があります |
 | `workspace.added_dirs` | `/add-dir` または `--add-dir` 経由で追加された追加ディレクトリ。追加されていない場合は空配列 |
-| `cost.total_cost_usd` | USD でのセッションの総コスト |
+| `workspace.git_worktree` | 現在のディレクトリが `git worktree add` で作成されたリンク worktree 内にある場合の git worktree 名。メイン作業ツリーでは不在。`worktree.*` が `--worktree` セッションのみに適用されるのとは異なり、任意の git worktree に対して入力されます |
+| `cost.total_cost_usd` | USD でのセッションの推定コスト。クライアント側で計算されます。実際の請求額と異なる場合があります |
 | `cost.total_duration_ms` | セッション開始からの総経過時間（ミリ秒） |
 | `cost.total_api_duration_ms` | API レスポンスを待つのに費やされた総時間（ミリ秒） |
 | `cost.total_lines_added`、`cost.total_lines_removed` | 変更されたコード行 |
@@ -169,13 +174,14 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
   "session_name": "my-session",
   "transcript_path": "/path/to/transcript.jsonl",
   "model": {
-    "id": "claude-opus-4-6",
+    "id": "claude-opus-4-7",
     "display_name": "Opus"
   },
   "workspace": {
     "current_dir": "/current/working/directory",
     "project_dir": "/original/project/directory",
-    "added_dirs": []
+    "added_dirs": [],
+    "git_worktree": "feature-xyz"
   },
   "version": "2.1.90",
   "output_style": {
@@ -231,6 +237,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 **不在の可能性があるフィールド**（JSON に存在しない）：
 
 - `session_name`：`--name` または `/rename` でカスタム名が設定されている場合のみ表示
+- `workspace.git_worktree`：現在のディレクトリがリンク git worktree 内にある場合のみ表示
 - `vim`：vim モードが有効な場合のみ表示
 - `agent`：`--agent` フラグまたはエージェント設定が設定されている場合のみ表示
 - `worktree`：`--worktree` セッション中のみ表示。存在する場合、`branch` と `original_branch` もフックベースの worktree では不在の可能性があります
@@ -424,7 +431,7 @@ process.stdin.on('end', () => {
 
 ### コストと期間の追跡
 
-セッションの API コストと経過時間を追跡します。`cost.total_cost_usd` フィールドは現在のセッションのすべての API 呼び出しのコストを累積します。`cost.total_duration_ms` フィールドはセッション開始からの総経過時間を測定し、`cost.total_api_duration_ms` は API レスポンスを待つのに費やされた時間のみを追跡します。
+セッションの API コストと経過時間を追跡します。`cost.total_cost_usd` フィールドは現在のセッションのすべての API 呼び出しの推定コストを累積します。`cost.total_duration_ms` フィールドはセッション開始からの総経過時間を測定し、`cost.total_api_duration_ms` は API レスポンスを待つのに費やされた時間のみを追跡します。
 
 各スクリプトはコストを通貨としてフォーマットし、ミリ秒を分と秒に変換します：
 
@@ -720,7 +727,7 @@ process.stdin.on('end', () => {
 
 ステータスラインスクリプトはアクティブなセッション中に頻繁に実行されます。`git status` や `git diff` などのコマンドは、特に大規模なリポジトリでは遅い場合があります。この例は git 情報を一時ファイルにキャッシュし、5 秒ごとにのみ更新します。
 
-キャッシュファイルに `/tmp/statusline-git-cache` のような安定した固定ファイル名を使用します。各ステータスラインの呼び出しは新しいプロセスとして実行されるため、`$$`、`os.getpid()`、`process.pid` のようなプロセスベースの識別子は毎回異なる値を生成し、キャッシュは再利用されません。
+キャッシュファイル名は、セッション内のステータスラインの呼び出し間で安定している必要がありますが、異なるリポジトリの同時セッションが互いのキャッシュされた git 状態を読み取らないように、セッション間で一意である必要があります。`$$`、`os.getpid()`、`process.pid` のようなプロセスベースの識別子は、呼び出しのたびに変わり、キャッシュを無効にします。代わりに JSON 入力から `session_id` を使用します：これはセッションの有効期間中は安定しており、セッションごとに一意です。
 
 各スクリプトは git コマンドを実行する前に、キャッシュファイルが不在であるか 5 秒より古いかを確認します：
 
@@ -730,8 +737,9 @@ input=$(cat)
 
 MODEL=$(echo "$input" | jq -r '.model.display_name')
 DIR=$(echo "$input" | jq -r '.workspace.current_dir')
+SESSION_ID=$(echo "$input" | jq -r '.session_id')
 
-CACHE_FILE="/tmp/statusline-git-cache"
+CACHE_FILE="/tmp/statusline-git-cache-$SESSION_ID"
 CACHE_MAX_AGE=5  # 秒
 
 cache_is_stale() {
@@ -767,8 +775,9 @@ import json, sys, subprocess, os, time
 data = json.load(sys.stdin)
 model = data['model']['display_name']
 directory = os.path.basename(data['workspace']['current_dir'])
+session_id = data['session_id']
 
-CACHE_FILE = "/tmp/statusline-git-cache"
+CACHE_FILE = f"/tmp/statusline-git-cache-{session_id}"
 CACHE_MAX_AGE = 5  # 秒
 
 def cache_is_stale():
@@ -811,8 +820,9 @@ process.stdin.on('end', () => {
     const data = JSON.parse(input);
     const model = data.model.display_name;
     const dir = path.basename(data.workspace.current_dir);
+    const sessionId = data.session_id;
 
-    const CACHE_FILE = '/tmp/statusline-git-cache';
+    const CACHE_FILE = `/tmp/statusline-git-cache-${sessionId}`;
     const CACHE_MAX_AGE = 5; // 秒
 
     const cacheIsStale = () => {
@@ -889,9 +899,28 @@ dirname="${cwd##*[/\\]}"
 echo "$dirname [$model]"
 ```
 
+## サブエージェントステータスライン
+
+`subagentStatusLine` 設定は、エージェントパネルに表示される各 [サブエージェント](/ja/sub-agents) のカスタム行本体をレンダリングします。デフォルトの `name · description · token count` 行を独自のフォーマットに置き換えるために使用します。
+
+```json
+{
+  "subagentStatusLine": {
+    "type": "command",
+    "command": "~/.claude/subagent-statusline.sh"
+  }
+}
+```
+
+コマンドは、すべての表示されているサブエージェント行が stdin で単一の JSON オブジェクトとして渡される各リフレッシュティックで実行されます。入力には [基本フックフィールド](/ja/hooks#common-input-fields) に加えて、`columns`（使用可能な行幅）と `tasks` 配列が含まれます。各タスクには `id`、`name`、`type`、`status`、`description`、`label`、`startTime`、`tokenCount`、`tokenSamples`、`cwd` があります。
+
+オーバーライドしたい各行に対して stdout に 1 つの JSON 行を書き込みます。形式は `{"id": "<task id>", "content": "<row body>"}` です。`content` 文字列はそのままレンダリングされます。ANSI 色と OSC 8 ハイパーリンクを含みます。タスクの `id` を省略して、その行のデフォルトレンダリングを保持します。空の `content` 文字列を出力して、その行を非表示にします。
+
+`statusLine` に適用される同じトラストと `disableAllHooks` ゲートが `subagentStatusLine` に適用されます。プラグインは、[`settings.json`](/ja/plugins-reference#standard-plugin-layout) でデフォルトの `subagentStatusLine` を配布できます。
+
 ## ヒント
 
-- **モック入力でテストする**：`echo '{"model":{"display_name":"Opus"},"context_window":{"used_percentage":25}}' | ./statusline.sh`
+- **モック入力でテストする**：`echo '{"model":{"display_name":"Opus"},"workspace":{"current_dir":"/home/user/project"},"context_window":{"used_percentage":25},"session_id":"test-session-abc"}' | ./statusline.sh`
 - **出力を短く保つ**：ステータスバーの幅は限られているため、長い出力は切り詰められたり、不適切にラップされたりする可能性があります
 - **遅い操作をキャッシュする**：スクリプトはアクティブなセッション中に頻繁に実行されるため、`git status` などのコマンドは遅延を引き起こす可能性があります。これを処理する方法については、[キャッシング例](#cache-expensive-operations) を参照してください。
 
@@ -947,6 +976,6 @@ echo "$dirname [$model]"
 
 **通知がステータスラインの行を共有する**
 
-- MCP サーバーエラー、自動更新、トークン警告などのシステム通知は、ステータスラインと同じ行の右側に表示されます
+- MCP サーバーエラー、自動更新などのシステム通知は、ステータスラインと同じ行の右側に表示されます
 - 詳細モードを有効にすると、この領域にトークンカウンターが追加されます
 - 狭いターミナルでは、これらの通知がステータスラインの出力を切り詰める可能性があります

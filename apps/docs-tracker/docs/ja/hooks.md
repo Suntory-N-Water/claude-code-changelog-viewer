@@ -21,6 +21,7 @@ source: https://code.claude.com/docs/ja/hooks.md
 | :- | :- |
 | `SessionStart` | When a session begins or resumes |
 | `UserPromptSubmit` | When you submit a prompt, before Claude processes it |
+| `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |
 | `PreToolUse` | Before a tool call executes. Can block it |
 | `PermissionRequest` | When a permission dialog appears |
 | `PermissionDenied` | When a tool call is denied by the auto mode classifier. Return `{retry: true}` to tell the model it may retry the denied tool call |

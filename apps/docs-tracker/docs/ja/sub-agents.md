@@ -7,7 +7,9 @@ source: https://code.claude.com/docs/ja/sub-agents.md
 
 > Claude Code でタスク固有のワークフローと改善されたコンテキスト管理のための特化した AI サブエージェントを作成して使用します。
 
-サブエージェントは、特定の種類のタスクを処理する特化した AI アシスタントです。各サブエージェントは、カスタムシステムプロンプト、特定のツールアクセス、および独立した権限を備えた独自のコンテキストウィンドウで実行されます。Claude がサブエージェントの説明に一致するタスクに遭遇すると、そのサブエージェントに委譲し、サブエージェントは独立して動作して結果を返します。実際にコンテキスト節約を確認するには、[コンテキストウィンドウの可視化](/ja/context-window)で、サブエージェントが独自の別のウィンドウで研究を処理するセッションを説明しています。
+サブエージェントは、特定の種類のタスクを処理する特化した AI アシスタントです。サイドタスクがメイン会話に検索結果、ログ、または再度参照しないファイルコンテンツで溢れかえる場合に使用します。サブエージェントはそのタスクを独自のコンテキストで実行し、概要のみを返します。同じ種類のワーカーを同じ指示で繰り返し生成する場合は、カスタムサブエージェントを定義します。
+
+各サブエージェントは、カスタムシステムプロンプト、特定のツールアクセス、および独立した権限を備えた独自のコンテキストウィンドウで実行されます。Claude がサブエージェントの説明に一致するタスクに遭遇すると、そのサブエージェントに委譲し、サブエージェントは独立して動作して結果を返します。実際にコンテキスト節約を確認するには、[コンテキストウィンドウの可視化](/ja/context-window)で、サブエージェントが独自の別のウィンドウで研究を処理するセッションを説明しています。
 
 複数のエージェントが並行して動作し、互いに通信する必要がある場合は、代わりに[エージェントチーム](/ja/agent-teams)を参照してください。サブエージェントは単一のセッション内で動作します。エージェントチームは別々のセッション間で調整します。
 
@@ -74,7 +76,7 @@ Claude Code で、以下を実行します：
 /agents
 ```
 
-**Create new agent** を選択し、**Personal** を選択します。これにより、サブエージェントが `~/.claude/agents/` に保存され、すべてのプロジェクトで利用可能になります。
+**Library** タブに切り替え、**Create new agent** を選択し、**Personal** を選択します。これにより、サブエージェントが `~/.claude/agents/` に保存され、すべてのプロジェクトで利用可能になります。
 
 **Generate with Claude** を選択します。プロンプトが表示されたら、サブエージェントを説明します：
 
@@ -110,7 +112,7 @@ Markdown ファイルとして手動でサブエージェントを作成した�
 
 ### /agents コマンドを使用する
 
-`/agents` コマンドは、サブエージェントを管理するためのインタラクティブインターフェースを提供します。`/agents` を実行して以下を行います：
+`/agents` コマンドは、サブエージェントを管理するためのタブ付きインターフェースを開きます。**Running** タブはライブサブエージェントを表示し、それらを開くまたは停止できます。**Library** タブでは以下を実行できます：
 
 - すべての利用可能なサブエージェント（組み込み、ユーザー、プロジェクト、プラグイン）を表示する
 - ガイド付きセットアップまたは Claude 生成を使用して新しいサブエージェントを作成する
@@ -165,7 +167,7 @@ claude --agents '{
 
 セキュリティ上の理由から、プラグインサブエージェントは `hooks`、`mcpServers`、または `permissionMode` フロントマターフィールドをサポートしていません。これらのフィールドはプラグインからエージェントを読み込むときに無視されます。これらが必要な場合は、エージェントファイルを `.claude/agents/` または `~/.claude/agents/` にコピーしてください。また、`settings.json` または `settings.local.json` の [`permissions.allow`](/ja/settings#permission-settings)にルールを追加することもできますが、これらのルールはプラグインサブエージェントだけでなく、セッション全体に適用されます。
 
-これらのスコープのいずれかからのサブエージェント定義は、[エージェントチーム](/ja/agent-teams#use-subagent-definitions-for-teammates)でも利用可能です：チームメイトを生成するときに、サブエージェント型を参照でき、チームメイトはそのシステムプロンプト、ツール、およびモデルを継承します。
+これらのスコープのいずれかからのサブエージェント定義は、[エージェントチーム](/ja/agent-teams#use-subagent-definitions-for-teammates)でも利用可能です：チームメイトを生成するときに、サブエージェント型を参照でき、チームメイトはその `tools` と `model` を使用し、定義の本体がチームメイトのシステムプロンプトに追加指示として追加されます。[エージェントチーム](/ja/agent-teams#use-subagent-definitions-for-teammates)を参照して、どのフロントマターフィールドがこのパスに適用されるかを確認してください。
 
 ### サブエージェントファイルを書く
 
@@ -187,6 +189,8 @@ specific, actionable feedback on quality, security, and best practices.
 
 フロントマターはサブエージェントのメタデータと設定を定義します。本体はサブエージェントの動作をガイドするシステムプロンプトになります。サブエージェントは、このシステムプロンプト（作業ディレクトリなどの基本的な環境詳細を含む）のみを受け取り、完全な Claude Code システムプロンプトは受け取りません。
 
+サブエージェントはメイン会話の現在の作業ディレクトリで開始します。サブエージェント内では、`cd` コマンドは Bash または PowerShell ツール呼び出し間で永続化されず、メイン会話の作業ディレクトリに影響しません。代わりにサブエージェントにリポジトリの分離されたコピーを提供するには、[`isolation: worktree`](#supported-frontmatter-fields)を設定します。
+
 #### サポートされているフロントマターフィールド
 
 以下のフィールドは YAML フロントマターで使用できます。`name` と `description` のみが必須です。
@@ -197,7 +201,7 @@ specific, actionable feedback on quality, security, and best practices.
 | `description` | はい | Claude がこのサブエージェントに委譲する場合 |
 | `tools` | いいえ | サブエージェントが使用できる[ツール](#available-tools)。省略した場合はすべてのツールを継承 |
 | `disallowedTools` | いいえ | 拒否するツール。継承または指定されたリストから削除 |
-| `model` | いいえ | 使用する[モデル](#choose-a-model)：`sonnet`、`opus`、`haiku`、完全なモデル ID（例：`claude-opus-4-6`）、または `inherit`。デフォルトは `inherit` |
+| `model` | いいえ | 使用する[モデル](#choose-a-model)：`sonnet`、`opus`、`haiku`、完全なモデル ID（例：`claude-opus-4-7`）、または `inherit`。デフォルトは `inherit` |
 | `permissionMode` | いいえ | [権限モード](#permission-modes)：`default`、`acceptEdits`、`auto`、`dontAsk`、`bypassPermissions`、または `plan` |
 | `maxTurns` | いいえ | サブエージェントが停止する前の最大エージェントターン数 |
 | `skills` | いいえ | スタートアップ時にサブエージェントのコンテキストに読み込む[スキル](/ja/skills)。呼び出しのために利用可能にするだけでなく、完全なスキルコンテンツが注入されます。サブエージェントは親の会話からスキルを継承しません |
@@ -205,7 +209,7 @@ specific, actionable feedback on quality, security, and best practices.
 | `hooks` | いいえ | このサブエージェントにスコープされた[ライフサイクルフック](#define-hooks-for-subagents) |
 | `memory` | いいえ | [永続メモリスコープ](#enable-persistent-memory)：`user`、`project`、または `local`。クロスセッション学習を有効にします |
 | `background` | いいえ | `true` に設定して、このサブエージェントを常に[バックグラウンドタスク](#run-subagents-in-foreground-or-background)として実行します。デフォルト：`false` |
-| `effort` | いいえ | このサブエージェントがアクティブな場合の努力レベル。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`max`（Opus 4.6 のみ） |
+| `effort` | いいえ | このサブエージェントがアクティブな場合の努力レベル。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`xhigh`、`max`。利用可能なレベルはモデルに依存します |
 | `isolation` | いいえ | `worktree` に設定して、サブエージェントを一時的な[git worktree](/ja/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees)で実行し、リポジトリの分離されたコピーを提供します。サブエージェントが変更を加えない場合、worktree は自動的にクリーンアップされます |
 | `color` | いいえ | タスクリストとトランスクリプトでサブエージェントの表示色。`red`、`blue`、`green`、`yellow`、`purple`、`orange`、`pink`、または `cyan` を受け入れます |
 | `initialPrompt` | いいえ | このエージェントがメインセッションエージェント（`--agent` または `agent` 設定を通じて）として実行される場合、最初のユーザーターンとして自動送信されます。[コマンド](/ja/commands)および[スキル](/ja/skills)が処理されます。ユーザーが提供するプロンプトの前に付加されます |
@@ -215,7 +219,7 @@ specific, actionable feedback on quality, security, and best practices.
 `model` フィールドは、サブエージェントが使用する[AI モデル](/ja/model-config)を制御します：
 
 - **モデルエイリアス**：利用可能なエイリアスの 1 つを使用します：`sonnet`、`opus`、または `haiku`
-- **完全なモデル ID**：`claude-opus-4-6` または `claude-sonnet-4-6` などの完全なモデル ID を使用します。`--model` フラグと同じ値を受け入れます
+- **完全なモデル ID**：`claude-opus-4-7` または `claude-sonnet-4-6` などの完全なモデル ID を使用します。`--model` フラグと同じ値を受け入れます
 - **inherit**：メイン会話と同じモデルを使用します
 - **省略**：指定されていない場合、デフォルトは `inherit`（メイン会話と同じモデルを使用）です
 
@@ -314,15 +318,15 @@ MCP サーバーをメイン会話から完全に除外し、そのツール説�
 | モード | 動作 |
 | :- | :- |
 | `default` | プロンプト付きの標準権限チェック |
-| `acceptEdits` | ファイル編集を自動受け入れ |
-| `auto` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)：AI 分類器が各ツール呼び出しを評価 |
+| `acceptEdits` | ファイル編集と作業ディレクトリまたは `additionalDirectories` 内のパスの一般的なファイルシステムコマンドを自動受け入れ |
+| `auto` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)：バックグラウンド分類器がコマンドと保護されたディレクトリ書き込みを確認 |
 | `dontAsk` | 権限プロンプトを自動拒否（明示的に許可されたツールは引き続き機能） |
 | `bypassPermissions` | すべての権限チェックをスキップ |
 | `plan` | プランモード（読み取り専用探索） |
 
-`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.claude`、`.vscode`、および `.idea` ディレクトリへの書き込みは、`.claude/commands`、`.claude/agents`、および `.claude/skills` を除き、確認を求めるプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
+`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.claude`、`.vscode`、`.idea`、および `.husky` ディレクトリへの書き込みは、`.claude/commands`、`.claude/agents`、および `.claude/skills` を除き、確認を求めるプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
 
-親が `bypassPermissions` を使用する場合、これが優先され、オーバーライドできません。親が[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)を使用する場合、サブエージェントは自動モードを継承し、フロントマター内の `permissionMode` は無視されます：分類器は、親セッションと同じブロックおよび許可ルールを使用してサブエージェントのツール呼び出しを評価します。
+親が `bypassPermissions` または `acceptEdits` を使用する場合、これが優先され、オーバーライドできません。親が[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)を使用する場合、サブエージェントは自動モードを継承し、フロントマター内の `permissionMode` は無視されます：分類器は、親セッションと同じブロックおよび許可ルールを使用してサブエージェントのツール呼び出しを評価します。
 
 #### スキルをサブエージェントにプリロードする
 
@@ -457,6 +461,8 @@ claude --disallowedTools "Agent(Explore)"
 #### サブエージェントフロントマター内の hooks
 
 サブエージェントの markdown ファイルで直接 hooks を定義します。これらの hooks は、その特定のサブエージェントがアクティブな間のみ実行され、終了時にクリーンアップされます。
+
+フロントマター hooks は、Agent ツールまたは @-mention を通じてサブエージェントとして生成されるときに発火します。[`--agent`](#invoke-subagents-explicitly)またはセッション全体で実行される場合は発火しません。セッション全体の hooks については、[`settings.json`](/ja/hooks)で設定してください。
 
 すべての[hook イベント](/ja/hooks#hook-events)がサポートされています。サブエージェントの最も一般的なイベントは：
 
@@ -641,7 +647,7 @@ Use the code-reviewer subagent to find performance issues, then use the optimize
 
 代わりに[スキル](/ja/skills)を検討してください。メイン会話コンテキストで実行される再利用可能なプロンプトまたはワークフローが必要な場合、分離されたサブエージェントコンテキストではなく。
 
-会話に既にあるものについての簡単な質問の場合は、サブエージェントの代わりに[`/btw`](/ja/interactive-mode#side-questions-with-btw)を使用します。完全なコンテキストを表示しますが、ツールアクセスはなく、答えは履歴に追加されるのではなく破棄されます。
+会話に既にあるものについての簡単な質問の場合は、サブエージェントの代わりに[`/btw`](/ja/interactive-mode#side-questions-with-%2Fbtw)を使用します。完全なコンテキストを表示しますが、ツールアクセスはなく、答えは履歴に追加されるのではなく破棄されます。
 
 サブエージェントは他のサブエージェントを生成できません。ワークフローがネストされた委譲を必要とする場合は、[スキル](/ja/skills)を使用するか、メイン会話から[サブエージェントをチェーン](#chain-subagents)します。
 
