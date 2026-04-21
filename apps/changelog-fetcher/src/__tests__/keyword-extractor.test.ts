@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { extractKeywords } from '../parsers/keyword-extractor';
 import type { ParsedItem } from '../types';
 

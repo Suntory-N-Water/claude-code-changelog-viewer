@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 import {
   type IndexedItem,

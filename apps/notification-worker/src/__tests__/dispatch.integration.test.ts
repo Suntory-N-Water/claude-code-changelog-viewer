@@ -1,8 +1,8 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, vi } from 'vitest';
 
-mock.module('../lib/email', () => ({
-  sendToEmail: mock(),
-  createEmailTestMessage: mock(),
+vi.mock('../lib/email', () => ({
+  sendToEmail: vi.fn(),
+  createEmailTestMessage: vi.fn(),
 }));
 
 import { app } from '../index';
@@ -13,7 +13,7 @@ function createQueueEnv(db: FakeD1Database) {
   const env = createTestEnv(db);
   const queued: { body: { version: string } }[][] = [];
   env.NOTIFICATION_QUEUE = {
-    sendBatch: mock(async (messages: { body: { version: string } }[]) => {
+    sendBatch: vi.fn(async (messages: { body: { version: string } }[]) => {
       queued.push(messages);
     }),
   } as unknown as Queue;

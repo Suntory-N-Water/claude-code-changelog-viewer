@@ -1,36 +1,29 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  mock,
-  spyOn,
-  vi,
-} from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // 外部依存のモック
-const mockedSendToDiscord = mock();
+const { mockedSendToDiscord } = vi.hoisted(() => ({
+  mockedSendToDiscord: vi.fn(),
+}));
 
-mock.module('../lib/discord', () => ({
-  buildUnsubscribeUrl: mock(
+vi.mock('../lib/discord', () => ({
+  buildUnsubscribeUrl: vi.fn(
     (workerUrl: string, token: string) =>
       `${workerUrl}/api/unsubscribe?token=${token}`,
   ),
-  createChangelogMessage: mock(() => ({
+  createChangelogMessage: vi.fn(() => ({
     content: 'テスト通知',
     username: 'Bot',
   })),
   sendToDiscord: mockedSendToDiscord,
 }));
 
-mock.module('../lib/email', () => ({
-  sendToEmail: mock(),
-  createEmailChangelogMessage: mock(),
+vi.mock('../lib/email', () => ({
+  sendToEmail: vi.fn(),
+  createEmailChangelogMessage: vi.fn(),
 }));
 
 // fetch をモック(spyOn 経由で型安全にモック)
-const mockFetch = spyOn(globalThis, 'fetch');
+const mockFetch = vi.spyOn(globalThis, 'fetch');
 
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 import { queueConsumer } from '../queue/consumer';
@@ -50,9 +43,9 @@ const validAnalysis: Analysis = {
 };
 
 type MockDB = {
-  prepare: ReturnType<typeof mock>;
-  _run: ReturnType<typeof mock>;
-  _returningAll: ReturnType<typeof mock>;
+  prepare: ReturnType<typeof vi.fn>;
+  _run: ReturnType<typeof vi.fn>;
+  _returningAll: ReturnType<typeof vi.fn>;
 };
 
 function createMockMessage(body: unknown) {
@@ -61,8 +54,8 @@ function createMockMessage(body: unknown) {
     id: 'msg-1',
     timestamp: new Date(),
     attempts: 1,
-    ack: mock(),
-    retry: mock(),
+    ack: vi.fn(),
+    retry: vi.fn(),
   };
 }
 
@@ -70,21 +63,21 @@ function createMockBatch(messages: ReturnType<typeof createMockMessage>[]) {
   return {
     messages,
     queue: 'test-queue',
-    ackAll: mock(),
-    retryAll: mock(),
+    ackAll: vi.fn(),
+    retryAll: vi.fn(),
   } as unknown as MessageBatch<unknown>;
 }
 
 function createMockEnv() {
-  const run = mock().mockResolvedValue({ success: true });
-  const returningAll = mock().mockResolvedValue({ results: [] });
+  const run = vi.fn().mockResolvedValue({ success: true });
+  const returningAll = vi.fn().mockResolvedValue({ results: [] });
   const db: MockDB = {
-    prepare: mock().mockReturnValue({
-      bind: mock().mockReturnValue({
-        all: mock().mockResolvedValue({ results: [] }),
-        raw: mock().mockResolvedValue([]),
+    prepare: vi.fn().mockReturnValue({
+      bind: vi.fn().mockReturnValue({
+        all: vi.fn().mockResolvedValue({ results: [] }),
+        raw: vi.fn().mockResolvedValue([]),
         run,
-        first: mock().mockResolvedValue(null),
+        first: vi.fn().mockResolvedValue(null),
       }),
     }),
     _run: run,
@@ -106,7 +99,8 @@ function createMockEnv() {
 function setupFetchSuccess() {
   const impl: typeof fetch = Object.assign(
     () => Promise.resolve(Response.json(validAnalysis)),
-    { preconnect: globalThis.fetch.preconnect },
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    { preconnect: (globalThis.fetch as any).preconnect },
   );
   mockFetch.mockImplementation(impl);
 }
@@ -124,11 +118,11 @@ function setupDBWithWebhooks(
   webhooks: MockWebhookRow[],
   returningResult?: { fail_count: number; is_active: number },
 ) {
-  db._returningAll = mock().mockResolvedValue({
+  db._returningAll = vi.fn().mockResolvedValue({
     results: returningResult ? [returningResult] : [],
   });
 
-  db.prepare = mock().mockImplementation((sql: string) => {
+  db.prepare = vi.fn().mockImplementation((sql: string) => {
     const upper = sql.toUpperCase();
     const isSelect = upper.startsWith('SELECT');
     const isReturning = upper.includes('RETURNING');
@@ -148,31 +142,31 @@ function setupDBWithWebhooks(
           ])
         : [];
       return {
-        bind: mock().mockReturnValue({
-          raw: mock().mockResolvedValue(rawRows),
-          all: mock().mockResolvedValue({ results: [] }),
+        bind: vi.fn().mockReturnValue({
+          raw: vi.fn().mockResolvedValue(rawRows),
+          all: vi.fn().mockResolvedValue({ results: [] }),
           run: db._run,
-          first: mock().mockResolvedValue(null),
+          first: vi.fn().mockResolvedValue(null),
         }),
       };
     }
     if (isReturning) {
       // RETURNING は .all() で object 形式を返す(Drizzle がカラム名マッピングする)
       return {
-        bind: mock().mockReturnValue({
+        bind: vi.fn().mockReturnValue({
           all: db._returningAll,
-          raw: mock().mockResolvedValue([]),
+          raw: vi.fn().mockResolvedValue([]),
           run: db._run,
-          first: mock().mockResolvedValue(null),
+          first: vi.fn().mockResolvedValue(null),
         }),
       };
     }
     return {
-      bind: mock().mockReturnValue({
+      bind: vi.fn().mockReturnValue({
         run: db._run,
-        all: mock().mockResolvedValue({ results: [] }),
-        raw: mock().mockResolvedValue([]),
-        first: mock().mockResolvedValue(null),
+        all: vi.fn().mockResolvedValue({ results: [] }),
+        raw: vi.fn().mockResolvedValue([]),
+        first: vi.fn().mockResolvedValue(null),
       }),
     };
   });

@@ -1,3 +1,4 @@
+import * as fs from 'node:fs/promises';
 import type { Keywords, SnippetResult } from '../types';
 import { escapeRegex } from './escape-regex';
 import { toAbsolutePath } from './paths';
@@ -11,7 +12,7 @@ async function analyzeFile(
   absolutePath: string,
   pattern: RegExp,
 ): Promise<{ hit_count: number; snippets: string[] }> {
-  const content = await Bun.file(absolutePath).text();
+  const content = await fs.readFile(absolutePath, 'utf8');
   const lines = content.split('\n');
 
   // マッチ行のインデックスを収集

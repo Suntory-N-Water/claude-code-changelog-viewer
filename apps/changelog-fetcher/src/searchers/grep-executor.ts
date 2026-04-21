@@ -1,3 +1,5 @@
+import * as fs from 'node:fs/promises';
+import { globSync } from 'node:fs';
 import * as path from 'node:path';
 import type { Keywords, SearchResult } from '../types';
 import { escapeRegex } from './escape-regex';
@@ -11,8 +13,8 @@ const EXCLUDED_FILE = 'changelog.md';
  * ドキュメントディレクトリから .md ファイル一覧を取得
  */
 function getMdFiles(docsDir: string): string[] {
-  const glob = new Bun.Glob('*.md');
-  return Array.from(glob.scanSync(docsDir))
+  return Array.from(globSync('*.md', { cwd: docsDir }))
+    .map(String)
     .filter((file) => file !== EXCLUDED_FILE)
     .map((file) => path.join(docsDir, file));
 }
@@ -23,7 +25,7 @@ function getMdFiles(docsDir: string): string[] {
 async function loadFileContents(files: string[]): Promise<Map<string, string>> {
   const entries = await Promise.all(
     files.map(async (file) => {
-      const content = await Bun.file(file).text();
+      const content = await fs.readFile(file, 'utf8');
       return [file, content] as const;
     }),
   );

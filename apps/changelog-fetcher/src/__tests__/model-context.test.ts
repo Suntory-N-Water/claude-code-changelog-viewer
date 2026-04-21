@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { buildModelContext, parseModelNames } from '../ai/model-context';
 
 // 実際の model-config.md のエイリアステーブル部分を再現したテストデータ

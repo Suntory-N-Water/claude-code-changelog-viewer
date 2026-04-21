@@ -4,14 +4,14 @@ description: "Setup environment"
 runs:
   using: composite
   steps:
-    # setup
-    - uses: jdx/mise-action@1648a7812b9aeae629881980618f079932869151 # v4.0.1
-
-    # install dependencies
-    - uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+    - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.1.0
       with:
-        path: |
-          ~/.bun/install/cache
-        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-    - run: bun install --frozen-lockfile
+        version: 10
+
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.3.0
+      with:
+        node-version-file: ".node-version"
+        cache: "pnpm"
+
+    - run: pnpm install --frozen-lockfile
       shell: bash

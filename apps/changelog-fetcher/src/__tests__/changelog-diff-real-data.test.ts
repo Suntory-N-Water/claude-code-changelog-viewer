@@ -9,7 +9,7 @@
  * この実データを使って extractItems / items_changed / version_removed の
  * 検知が正しく動作することを検証する。
  */
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { extractItems } from '../parse-changelog';
 
 // コミット1 (9c63e98) 時点の v2.1.64 の内容(実データ)
@@ -43,8 +43,10 @@ describe('実データ検証: v2.1.64 の変遷', () => {
     const items = extractItems(V2_1_64_COMMIT1);
     // 上記テストデータには9項目ある(実際は38項目だが代表的な9項目で検証)
     expect(items).toHaveLength(9);
-    expect(items[0]).toStartWith('- Added persistent session support');
-    expect(items[8]).toStartWith('- Fixed terminal flicker');
+    expect(items[0]?.startsWith('- Added persistent session support')).toBe(
+      true,
+    );
+    expect(items[8]?.startsWith('- Fixed terminal flicker')).toBe(true);
   });
 });
 

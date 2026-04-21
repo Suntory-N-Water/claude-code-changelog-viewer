@@ -1,23 +1,25 @@
-import { afterEach, describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, vi, afterEach } from 'vitest';
+const { mockedVerifyTurnstile, mockedCreateTestMessage, mockedSendToDiscord } =
+  vi.hoisted(() => ({
+    mockedVerifyTurnstile: vi.fn(),
+    mockedCreateTestMessage: vi.fn(() => ({ content: 'テスト通知' })),
+    mockedSendToDiscord: vi.fn(),
+  }));
 
-const mockedVerifyTurnstile = mock();
-const mockedCreateTestMessage = mock(() => ({ content: 'テスト通知' }));
-const mockedSendToDiscord = mock();
-
-mock.module('../lib/turnstile', () => ({
+vi.mock('../lib/turnstile', () => ({
   verifyTurnstileToken: mockedVerifyTurnstile,
 }));
 
-mock.module('../lib/discord', () => ({
+vi.mock('../lib/discord', () => ({
   buildUnsubscribeUrl: (workerUrl: string, token: string) =>
     `${workerUrl}/api/unsubscribe?token=${token}`,
   createTestMessage: mockedCreateTestMessage,
   sendToDiscord: mockedSendToDiscord,
 }));
 
-mock.module('../lib/email', () => ({
-  sendToEmail: mock(),
-  createEmailTestMessage: mock(),
+vi.mock('../lib/email', () => ({
+  sendToEmail: vi.fn(),
+  createEmailTestMessage: vi.fn(),
 }));
 
 import { app } from '../index';

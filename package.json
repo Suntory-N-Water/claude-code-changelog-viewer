@@ -10,18 +10,8 @@
     "url": "git+https://github.com/Suntory-N-Water/claude-code-changelog-viewer.git"
   },
   "license": "MIT",
-  "workspaces": [
-    "packages/*",
-    "apps/*"
-  ],
-  "trustedDependencies": [
-    "workerd"
-  ],
-  "overrides": {
-    "vite": "^7.0.0"
-  },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0"
   },
   "bugs": {
     "url": "https://github.com/Suntory-N-Water/claude-code-changelog-viewer/issues"
@@ -35,33 +25,33 @@
     "claude-code"
   ],
   "scripts": {
-    "dev": "bun run --filter www dev",
-    "dev:notify": "bun run --filter notification-worker dev",
-    "build": "bun run --filter www build",
-    "preview": "bun run --filter www preview",
-    "deploy": "bun run --filter www deploy",
-    "upload": "bun run --filter www upload",
-    "fetch:docs": "bun run --filter docs-tracker fetch-docs",
-    "generate:docs-diff": "bun run --filter docs-tracker generate-diff",
-    "fetch:changelog": "bun run --filter changelog-fetcher fetch",
-    "analyze": "bun run --filter changelog-fetcher analyze",
-    "infer": "bun run --filter changelog-fetcher infer",
-    "infer:no-ai": "bun run --filter changelog-fetcher infer:no-ai",
-    "notify:deploy": "bun run --filter notification-worker deploy",
-    "notify:migrate": "bun run --filter notification-worker wrangler d1 migrations apply notification-db --remote",
-    "notify:migrate:local": "bun run --filter notification-worker wrangler d1 migrations apply notification-db --local",
-    "sync": "bun run --filter www sync",
-    "format": "biome format --write ./apps ./packages && bun run --filter www format",
+    "dev": "pnpm --filter www run dev",
+    "dev:notify": "pnpm --filter notification-worker run dev",
+    "build": "pnpm --filter www run build",
+    "preview": "pnpm --filter www run preview",
+    "deploy": "pnpm --filter www run deploy",
+    "upload": "pnpm --filter www run upload",
+    "fetch:docs": "pnpm --filter docs-tracker run fetch-docs",
+    "generate:docs-diff": "pnpm --filter docs-tracker run generate-diff",
+    "fetch:changelog": "pnpm --filter changelog-fetcher run fetch",
+    "analyze": "pnpm --filter changelog-fetcher run analyze",
+    "infer": "pnpm --filter changelog-fetcher run infer",
+    "infer:no-ai": "pnpm --filter changelog-fetcher run infer:no-ai",
+    "notify:deploy": "pnpm --filter notification-worker run deploy",
+    "notify:migrate": "pnpm --filter notification-worker run db:migrate:remote",
+    "notify:migrate:local": "pnpm --filter notification-worker run db:migrate",
+    "sync": "pnpm --filter www run sync",
+    "format": "biome format --write ./apps ./packages && pnpm --filter www run format",
     "check": "biome check ./apps ./packages",
     "check:fix": "biome check --write ./apps ./packages",
     "lint": "biome lint ./apps ./packages",
     "lint:unsafe-fix": "biome lint --write --unsafe ./apps ./packages",
     "lint:ai": "biome lint --reporter=github ./apps ./packages 2>&1 | { grep '^::' || true; }",
-    "type-check": "bun run --filter '*' type-check && bun run --filter www check",
-    "type-check:ai": "bun run --filter '*' type-check && bun run --filter www check",
-    "test": "bun run --filter notification-worker test && bun run --filter changelog-fetcher test",
-    "test:coverage": "bun run --filter notification-worker test:coverage && bun run --filter changelog-fetcher test:coverage",
-    "ai-check": "bun run format && bun run lint:ai && bun run type-check:ai",
+    "type-check": "pnpm --filter '*' run type-check && pnpm --filter www run check",
+    "type-check:ai": "pnpm --filter '*' run type-check && pnpm --filter www run check",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "ai-check": "pnpm run format && pnpm run lint:ai && pnpm run type-check:ai",
     "knip": "knip",
     "similarity": "similarity-ts --exclude node_modules --exclude dist --exclude .astro --exclude changelogs --exclude analysis --exclude inferred --exclude metadata --exclude '*.d.ts' .",
     "prepare": "husky"
@@ -71,15 +61,16 @@
   },
   "devDependencies": {
     "@actions/core": "^3.0.0",
-    "@actions/github": "^9.0.0",
+    "@actions/github": "^9.1.0",
     "@biomejs/biome": "2.4.9",
-    "@tsconfig/bun": "^1.0.10",
     "@tsconfig/strictest": "^2.0.8",
-    "@types/bun": "^1.3.11",
-    "@types/node": "^25.5.2",
+    "@types/node": "^24.12.2",
+    "@vitest/coverage-v8": "4.1.5",
     "husky": "^9.1.7",
     "knip": "^5.88.1",
     "lint-staged": "^16.4.0",
-    "typescript": "~5.9.3"
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.5"
   }
 }
