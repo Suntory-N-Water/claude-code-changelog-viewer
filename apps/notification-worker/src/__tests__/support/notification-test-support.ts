@@ -1,4 +1,4 @@
-import { mock } from 'bun:test';
+import { vi } from 'vitest';
 import type { FakeD1Database } from './fake-d1';
 
 export type ChannelRow = {
@@ -16,9 +16,9 @@ export function createTestEnv(db: FakeD1Database) {
     DB: db,
     DISPATCH_SECRET: 'dispatch-secret',
     NOTIFICATION_QUEUE: {
-      sendBatch: mock(() => Promise.resolve(undefined)),
+      sendBatch: vi.fn(() => Promise.resolve(undefined)),
     },
-    SEND_EMAIL: { send: mock(() => Promise.resolve(undefined)) },
+    SEND_EMAIL: { send: vi.fn(() => Promise.resolve(undefined)) },
     EMAIL_FROM: 'noreply@claude-code-log.com',
     SITE_URL: 'https://claude-code-log.com',
     TURNSTILE_SECRET_KEY: 'turnstile-secret',
@@ -121,8 +121,8 @@ export function createQueueMessage(body: unknown) {
     id: 'msg-1',
     timestamp: new Date(),
     attempts: 1,
-    ack: mock(),
-    retry: mock(),
+    ack: vi.fn(),
+    retry: vi.fn(),
   };
 }
 
@@ -132,7 +132,7 @@ export function createQueueBatch(
   return {
     messages,
     queue: 'test-queue',
-    ackAll: mock(),
-    retryAll: mock(),
+    ackAll: vi.fn(),
+    retryAll: vi.fn(),
   } as unknown as MessageBatch<unknown>;
 }

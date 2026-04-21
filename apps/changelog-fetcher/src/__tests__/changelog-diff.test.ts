@@ -1,5 +1,6 @@
-import { afterAll, describe, expect, test } from 'bun:test';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { afterAll, describe, expect, test } from 'vitest';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import * as fsPromises from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { ChangelogDiff, DiffEvent } from '../types';
@@ -134,7 +135,7 @@ describe('loadDiffFile / saveDiffFile', () => {
         },
       ],
     };
-    await Bun.write(filePath, JSON.stringify(data, null, 2));
+    saveDiffFile(filePath, data);
 
     const result = loadDiffFile(filePath);
     expect(result).toEqual(data);
@@ -146,9 +147,10 @@ describe('loadDiffFile / saveDiffFile', () => {
 
     saveDiffFile(filePath, data);
 
-    const file = Bun.file(filePath);
-    expect(await file.exists()).toBe(true);
-    expect(await file.json()).toEqual(data);
+    expect(existsSync(filePath)).toBe(true);
+    expect(JSON.parse(await fsPromises.readFile(filePath, 'utf8'))).toEqual(
+      data,
+    );
   });
 });
 

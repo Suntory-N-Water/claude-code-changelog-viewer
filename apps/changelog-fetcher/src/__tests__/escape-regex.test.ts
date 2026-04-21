@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { escapeRegex } from '../searchers/escape-regex';
 
 describe('escapeRegex', () => {

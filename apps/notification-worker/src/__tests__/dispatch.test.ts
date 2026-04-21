@@ -1,4 +1,4 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, vi } from 'vitest';
 import { Hono } from 'hono';
 import { dispatchRoute } from '../routes/dispatch';
 
@@ -12,7 +12,7 @@ function createMockEnv(secret = 'test-secret') {
   return {
     DISPATCH_SECRET: secret,
     NOTIFICATION_QUEUE: {
-      sendBatch: mock(() => Promise.resolve(undefined)),
+      sendBatch: vi.fn(() => Promise.resolve(undefined)),
     },
   };
 }

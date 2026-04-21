@@ -1,4 +1,5 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, test } from 'vitest';
+import * as fsPromises from 'node:fs/promises';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -7,19 +8,22 @@ import { searchDocs } from '../searchers/grep-executor';
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-test-'));
 
 beforeAll(async () => {
-  await Bun.write(
+  await fsPromises.writeFile(
     path.join(tmpDir, 'settings.md'),
     'Use `keyword` for `key1` and `key2` configuration\nSETTINGS info',
   );
-  await Bun.write(
+  await fsPromises.writeFile(
     path.join(tmpDir, 'hooks.md'),
     '`keyword` hook documentation',
   );
-  await Bun.write(
+  await fsPromises.writeFile(
     path.join(tmpDir, 'changelog.md'),
     '`keyword` changelog entry',
   );
-  await Bun.write(path.join(tmpDir, 'unrelated.md'), 'Nothing relevant here');
+  await fsPromises.writeFile(
+    path.join(tmpDir, 'unrelated.md'),
+    'Nothing relevant here',
+  );
 });
 
 afterAll(() => {
@@ -43,13 +47,13 @@ describe('searchDocs', () => {
       const manyDir = fs.mkdtempSync(path.join(os.tmpdir(), 'grep-many-'));
       try {
         for (let i = 0; i < 51; i += 1) {
-          await Bun.write(
+          await fsPromises.writeFile(
             path.join(manyDir, `doc${i}.md`),
             '`common_word` content',
           );
         }
         // 戦略2 で "specific" にマッチするのは1件だけ
-        await Bun.write(
+        await fsPromises.writeFile(
           path.join(manyDir, 'best-match.md'),
           '`common_word` specific content',
         );
@@ -90,10 +94,16 @@ describe('searchDocs', () => {
 
       try {
         for (let i = 0; i < 51; i += 1) {
-          await Bun.write(path.join(manyDir, `common-${i}.md`), 'common-token');
+          await fsPromises.writeFile(
+            path.join(manyDir, `common-${i}.md`),
+            'common-token',
+          );
         }
 
-        await Bun.write(path.join(manyDir, 'unique.md'), 'unique-token');
+        await fsPromises.writeFile(
+          path.join(manyDir, 'unique.md'),
+          'unique-token',
+        );
 
         const result = await searchDocs(
           { original: ['unique-token'], normalized: ['common-token'] },
@@ -156,7 +166,10 @@ describe('searchDocs', () => {
 
       try {
         for (let i = 0; i < 51; i += 1) {
-          await Bun.write(path.join(manyDir, `common-${i}.md`), 'shared-token');
+          await fsPromises.writeFile(
+            path.join(manyDir, `common-${i}.md`),
+            'shared-token',
+          );
         }
 
         const result = await searchDocs(
@@ -191,7 +204,7 @@ describe('searchDocs', () => {
       );
 
       try {
-        await Bun.write(
+        await fsPromises.writeFile(
           path.join(specialDir, 'special.md'),
           'Use `$ARGUMENTS[0]` in configuration',
         );
@@ -214,7 +227,10 @@ describe('searchDocs', () => {
       fs.mkdirSync(childDir);
 
       try {
-        await Bun.write(path.join(childDir, 'nested.md'), 'nested-keyword');
+        await fsPromises.writeFile(
+          path.join(childDir, 'nested.md'),
+          'nested-keyword',
+        );
 
         const result = await searchDocs(
           { original: [], normalized: ['nested-keyword'] },

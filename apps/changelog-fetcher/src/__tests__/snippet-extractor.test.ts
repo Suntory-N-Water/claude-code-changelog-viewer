@@ -1,4 +1,5 @@
-import { afterAll, describe, expect, test } from 'bun:test';
+import { afterAll, describe, expect, test } from 'vitest';
+import * as fsPromises from 'node:fs/promises';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -12,7 +13,7 @@ const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'snippet-test-'));
  * テスト用ファイルを作成し、extractSnippets に渡せる相対パスを返す
  */
 async function writeTestFile(name: string, content: string): Promise<string> {
-  await Bun.write(path.join(tmpDir, name), content);
+  await fsPromises.writeFile(path.join(tmpDir, name), content);
   return path.relative(PROJECT_ROOT, path.join(tmpDir, name));
 }
 

@@ -1,17 +1,10 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  mock,
-  spyOn,
-  vi,
-} from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mockedSendToDiscord = mock();
+const { mockedSendToDiscord } = vi.hoisted(() => ({
+  mockedSendToDiscord: vi.fn(),
+}));
 
-mock.module('../lib/discord', () => ({
+vi.mock('../lib/discord', () => ({
   buildUnsubscribeUrl: (workerUrl: string, token: string) =>
     `${workerUrl}/api/unsubscribe?token=${token}`,
   createChangelogMessage: () => ({
@@ -21,12 +14,12 @@ mock.module('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
-mock.module('../lib/email', () => ({
-  sendToEmail: mock(),
-  createEmailChangelogMessage: mock(),
+vi.mock('../lib/email', () => ({
+  sendToEmail: vi.fn(),
+  createEmailChangelogMessage: vi.fn(),
 }));
 
-const mockFetch = spyOn(globalThis, 'fetch');
+const mockFetch = vi.spyOn(globalThis, 'fetch');
 
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 import { queueConsumer } from '../queue/consumer';
@@ -56,7 +49,8 @@ const validAnalysis: Analysis = {
 function setupFetchSuccess() {
   const impl: typeof fetch = Object.assign(
     () => Promise.resolve(Response.json(validAnalysis)),
-    { preconnect: globalThis.fetch.preconnect },
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    { preconnect: (globalThis.fetch as any).preconnect },
   );
   mockFetch.mockImplementation(impl);
 }

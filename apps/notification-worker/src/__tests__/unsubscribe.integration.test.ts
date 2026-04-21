@@ -1,8 +1,7 @@
-import { afterEach, describe, expect, it, mock } from 'bun:test';
-
-mock.module('../lib/email', () => ({
-  sendToEmail: mock(),
-  createEmailTestMessage: mock(),
+import { describe, expect, it, vi, afterEach } from 'vitest';
+vi.mock('../lib/email', () => ({
+  sendToEmail: vi.fn(),
+  createEmailTestMessage: vi.fn(),
 }));
 
 import { app } from '../index';

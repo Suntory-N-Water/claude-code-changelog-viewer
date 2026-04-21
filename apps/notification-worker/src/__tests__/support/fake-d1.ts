@@ -1,10 +1,12 @@
-import { Database, type SQLQueryBindings } from 'bun:sqlite';
+import { DatabaseSync } from 'node:sqlite';
+import type { SQLInputValue } from 'node:sqlite';
 
+type SQLQueryBindings = SQLInputValue;
 type SqliteRow = Record<string, unknown>;
 
 class FakeD1PreparedStatement {
   constructor(
-    private readonly db: Database,
+    private readonly db: DatabaseSync,
     private readonly query: string,
     private readonly values: SQLQueryBindings[] = [],
   ) {}
@@ -14,12 +16,12 @@ class FakeD1PreparedStatement {
   }
 
   async first<T = SqliteRow>(): Promise<T | null> {
-    const row = this.db.query(this.query).get(...this.values) as T | null;
+    const row = this.db.prepare(this.query).get(...this.values) as T | null;
     return row ?? null;
   }
 
   async run<T = SqliteRow>() {
-    this.db.query(this.query).run(...this.values);
+    this.db.prepare(this.query).run(...this.values);
     return {
       success: true,
       meta: {} as D1Meta & Record<string, unknown>,
@@ -28,7 +30,7 @@ class FakeD1PreparedStatement {
   }
 
   async all<T = SqliteRow>() {
-    const results = this.db.query(this.query).all(...this.values) as T[];
+    const results = this.db.prepare(this.query).all(...this.values) as T[];
     return {
       success: true,
       meta: {} as D1Meta & Record<string, unknown>,
@@ -36,15 +38,15 @@ class FakeD1PreparedStatement {
     } satisfies D1Result<T>;
   }
 
-  // D1 の .raw() に相当: カラム名なしの配列形式で返す(Drizzle ORM が内部で使用)
   async raw<T = unknown[]>(): Promise<T[]> {
-    const rows = this.db.query(this.query).values(...this.values);
+    const resultInfo = this.db.prepare(this.query).all(...this.values);
+    const rows = resultInfo.map((row) => Object.values(row));
     return rows as T[];
   }
 }
 
 export class FakeD1Database {
-  private readonly db = new Database(':memory:');
+  private readonly db = new DatabaseSync(':memory:');
 
   constructor() {
     this.db.exec(`
