@@ -3,98 +3,141 @@ title: terminal-config
 source: https://code.claude.com/docs/ja/terminal-config.md
 ---
 
-# ターミナルセットアップを最適化する
+# Claude Code 用にターミナルを設定する
 
-> Claude Code はターミナルが適切に設定されているときに最適に機能します。これらのガイドラインに従って、エクスペリエンスを最適化してください。
+> Shift+Enter で改行を修正し、Claude が完了したときにターミナルベルを取得し、tmux を設定し、カラーテーマを一致させ、Claude Code CLI で Vim モードを有効にします。
 
-### テーマと外観
+Claude Code はどのターミナルでも設定なしで動作します。このページは、特定の動作が期待どおりに機能していない場合のためのものです。以下から症状を見つけてください。すべてが既に正しく感じられる場合は、このページは必要ありません。
 
-Claude はターミナルのテーマを制御することはできません。これはターミナルアプリケーションによって処理されます。`/config` コマンドを使用して、いつでも Claude Code のテーマをターミナルに合わせることができます。
+- [Shift+Enter が改行を挿入する代わりに送信する](#enter-multiline-prompts)
+- [macOS で Option キーショートカットが機能しない](#enable-option-key-shortcuts-on-macos)
+- [Claude が完了したときに音またはアラートがない](#get-a-terminal-bell-or-notification)
+- [Claude Code を tmux 内で実行している](#configure-tmux)
+- [表示がちらつくか、スクロールバックがジャンプする](#switch-to-fullscreen-rendering)
+- [プロンプトで Vim キーを使いたい](#edit-prompts-with-vim-keybindings)
 
-Claude Code インターフェース自体のさらなるカスタマイズについては、[カスタムステータスライン](/ja/statusline)を設定して、ターミナルの下部に現在のモデル、作業ディレクトリ、または git ブランチなどのコンテキスト情報を表示することができます。
+このページは、ターミナルが Claude Code に正しい信号を送信するようにすることについてです。Claude Code 自体が応答するキーを変更するには、代わりに [キーバインディング](/ja/keybindings) を参照してください。
 
-### 改行
+## 複数行のプロンプトを入力する
 
-Claude Code に改行を入力するためのいくつかのオプションがあります。
+Enter キーを押すとメッセージが送信されます。送信せずに改行を追加するには、Ctrl+J を押すか、`\` を入力してから Enter キーを押します。どちらもセットアップなしですべてのターミナルで機能します。
 
-- **クイックエスケープ**：`\` の後に Enter キーを押して改行を作成します
-- **Shift+Enter**：iTerm2、WezTerm、Ghostty、および Kitty ではそのまま機能します
-- **キーボードショートカット**：他のターミナルで改行を挿入するためのキーバインディングを設定します
+ほとんどのターミナルでは Shift+Enter も押すことができますが、サポートはターミナルエミュレータによって異なります。
 
-**他のターミナルで Shift+Enter を設定する**
+| ターミナル | Shift+Enter で改行 |
+| :- | :- |
+| Ghostty、Kitty、iTerm2、WezTerm、Warp、Apple Terminal | セットアップなしで機能 |
+| VS Code、Cursor、Windsurf、Alacritty、Zed | 1 回 `/terminal-setup` を実行 |
+| Windows Terminal、gnome-terminal、PyCharm や Android Studio などの JetBrains IDE | 利用不可。Ctrl+J または `\` の後に Enter を使用 |
 
-Claude Code 内で `/terminal-setup` を実行して、VS Code、Alacritty、Zed、および Warp の Shift+Enter を自動的に設定します。
+VS Code、Cursor、Windsurf、Alacritty、Zed の場合、`/terminal-setup` は Shift+Enter およびその他のキーバインディングをターミナルの設定ファイルに書き込みます。`Found existing VSCode terminal Shift+Enter key binding` などの競合が報告された場合は、ターミナルの独自のキーバインディングファイル（例：VS Code の `keybindings.json`）からそのエントリを削除し、コマンドを再度実行します。tmux または screen 内ではなく、ホストターミナル内で直接 `/terminal-setup` を実行してください。ホストターミナルの設定に書き込む必要があるためです。
 
-`/terminal-setup` コマンドは、手動設定が必要なターミナルにのみ表示されます。iTerm2、WezTerm、Ghostty、または Kitty を使用している場合、Shift+Enter はすでにネイティブに機能するため、このコマンドは表示されません。
+tmux 内で実行している場合、外側のターミナルがサポートしている場合でも、Shift+Enter には以下の [tmux 設定](#configure-tmux) が必要です。
 
-**Option+Enter（VS Code、iTerm2、または macOS Terminal.app）を設定する**
+改行を別のキーにバインドするか、Enter が改行を挿入し Shift+Enter が送信するように動作を入れ替えるには、[キーバインディングファイル](/ja/keybindings) で `chat:newline` および `chat:submit` アクションをマップします。
 
-**Mac Terminal.app の場合：**
+## macOS で Option キーショートカットを有効にする
 
-1. 設定 → プロファイル → キーボードを開く
-2. 「Option キーを Meta キーとして使用」をチェックする
+Claude Code のいくつかのショートカットは Option キーを使用します。例えば、改行の場合は Option+Enter、モデルを切り替える場合は Option+P です。macOS では、ほとんどのターミナルはデフォルトでは Option を修飾子として送信しないため、これらのショートカットは有効にするまで機能しません。このターミナル設定は通常「Option を Meta キーとして使用」というラベルが付いています。Meta は、現在 Option または Alt というラベルが付いているキーの歴史的な Unix 名です。
 
-**iTerm2 の場合：**
+設定 → プロファイル → キーボードを開き、'Option を Meta キーとして使用'をチェックします。
 
-1. 設定 → プロファイル → キーを開く
-2. 「一般」で、左右の Option キーを「Esc+」に設定する
+Claude Code の初回実行プロンプトで'改行と視覚的ベルの場合は Option+Enter'を受け入れた場合、これは既に完了しています。そのプロンプトは `/terminal-setup` を実行し、Apple Terminal プロファイルで Option を Meta として有効にし、オーディオベルをビジュアルスクリーンフラッシュに切り替えます。
 
-**VS Code ターミナルの場合：**
+設定 → プロファイル → キー → 一般を開き、左 Option キーと右 Option キーを「Esc+」に設定します。
 
-VS Code 設定で `"terminal.integrated.macOptionIsMeta": true` を設定します。
+VS Code 設定に `"terminal.integrated.macOptionIsMeta": true` を追加します。
 
-### 通知設定
+Ghostty、Kitty、およびその他のターミナルについては、ターミナルの設定ファイルで Option-as-Alt または Option-as-Meta 設定を探してください。
 
-Claude がタスクを完了して入力を待っているとき、通知イベントが発火します。このイベントをターミナルを通じてデスクトップ通知として表示するか、[通知フック](/ja/hooks#notification)でカスタムロジックを実行できます。
+## ターミナルベルまたは通知を取得する
 
-#### ターミナル通知
+Claude がタスクを完了するか、権限プロンプトで一時停止すると、通知イベントが発火します。これをターミナルベルまたはデスクトップ通知として表示すると、長いタスクが実行されている間に他の作業に切り替えることができます。
 
-Kitty と Ghostty は追加設定なしでデスクトップ通知をサポートしています。iTerm 2 には設定が必要です。
+Claude Code はデスクトップ通知を Ghostty、Kitty、および iTerm2 でのみ送信します。他のすべてのターミナルには [通知フック](#play-a-sound-with-a-notification-hook) が必要です。通知は SSH 経由でローカルマシンにも到達するため、リモートセッションでもアラートを表示できます。Ghostty と Kitty はさらなるセットアップなしで OS 通知センターに転送します。iTerm2 では転送を有効にする必要があります。
 
-1. iTerm 2 の設定 → プロファイル → ターミナルを開く
-2. 「Notification Center Alerts」を有効にする
-3. 「Filter Alerts」をクリックして「Send escape sequence-generated alerts」をチェックする
+設定 → プロファイル → ターミナルに移動します。
 
-通知が表示されない場合は、ターミナルアプリが OS 設定で通知権限を持っていることを確認してください。
+「Notification Center Alerts」をチェックし、「Filter Alerts」をクリックして「Send escape sequence-generated alerts」を有効にします。
 
-Claude Code を tmux 内で実行する場合、通知と[ターミナルプログレスバー](/ja/settings#global-config-settings)は、tmux 設定でパススルーを有効にした場合にのみ、iTerm2、Kitty、または Ghostty などの外側のターミナルに到達します。
+通知がまだ表示されない場合は、ターミナルアプリケーションが OS 設定で通知権限を持っていることを確認し、tmux 内で実行している場合は [パススルーを有効にします](#configure-tmux)。
 
+### 通知フックでサウンドを再生する
+
+任意のターミナルで [通知フック](/ja/hooks-guide#get-notified-when-claude-needs-input) を設定して、Claude があなたの注意が必要なときにサウンドを再生するか、カスタムコマンドを実行できます。フックはデスクトップ通知の代わりではなく、並行して実行されます。Warp や Apple Terminal などのターミナルは Claude Code がデスクトップ通知を送信しないため、フックのみに依存しています。
+
+以下の例は macOS でシステムサウンドを再生します。リンクされたガイドには macOS、Linux、Windows のデスクトップ通知コマンドがあります。
+
+```json ~/.claude/settings.json theme={null}
+{
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [{ "type": "command", "command": "afplay /System/Library/Sounds/Glass.aiff" }]
+      }
+    ]
+  }
+}
 ```
+
+## tmux を設定する
+
+Claude Code が tmux 内で実行されている場合、デフォルトでは 2 つのことが壊れます。Shift+Enter が改行を挿入する代わりに送信し、デスクトップ通知と [プログレスバー](/ja/settings#global-config-settings) が外側のターミナルに到達しません。これらの行を `~/.tmux.conf` に追加し、`tmux source-file ~/.tmux.conf` を実行して実行中のサーバーに適用します。
+
+```bash ~/.tmux.conf theme={null}
 set -g allow-passthrough on
+set -s extended-keys on
+set -as terminal-features 'xterm*:extkeys'
 ```
 
-この設定がない場合、tmux はエスケープシーケンスをインターセプトし、ターミナルアプリケーションに到達しません。
+`allow-passthrough` 行により、通知とプログレス更新が tmux に飲み込まれるのではなく、iTerm2、Ghostty、または Kitty に到達できます。`extended-keys` 行により、tmux は Shift+Enter をプレーン Enter と区別できるため、改行ショートカットが機能します。
 
-デフォルトの macOS Terminal を含む他のターミナルは、ネイティブ通知をサポートしていません。代わりに[通知フック](/ja/hooks#notification)を使用してください。
+## カラーテーマを一致させる
 
-#### 通知フック
+`/theme` コマンドを使用するか、`/config` のテーマピッカーを使用して、ターミナルに一致する Claude Code テーマを選択します。自動オプションを選択すると、ターミナルの明るいまたは暗い背景が検出されるため、テーマは OS の外観の変更に従います。利用可能なテーマは組み込まれています。カスタムテーマファイルはありません。Claude Code はターミナルアプリケーションによって設定されるターミナル自体のカラースキームを制御しません。
 
-サウンドを再生したりメッセージを送信したりするなど、通知が発火したときにカスタム動作を追加するには、[通知フック](/ja/hooks#notification)を設定してください。フックはターミナル通知と並行して実行され、置き換えではありません。
+インターフェースの下部に表示される内容をカスタマイズするには、現在のモデル、作業ディレクトリ、git ブランチ、またはその他のコンテキストを表示する [カスタムステータスライン](/ja/statusline) を設定します。
 
-### ちらつきとメモリ使用量を削減する
+## フルスクリーンレンダリングに切り替える
 
-長いセッション中にちらつきが見られる場合、または Claude が作業中にターミナルのスクロール位置が上部にジャンプする場合は、[フルスクリーンレンダリング](/ja/fullscreen)を試してください。メモリを一定に保ち、マウスサポートを追加する別のレンダリングパスを使用します。`CLAUDE_CODE_NO_FLICKER=1` で有効にします。
+Claude が作業中に表示がちらつくか、スクロール位置がジャンプする場合は、[フルスクリーンレンダリングモード](/ja/fullscreen) に切り替えます。ターミナルが通常のスクロールバックに追加する代わりに、フルスクリーンアプリ用に予約されている別のスクリーンに描画します。これにより、メモリ使用量が一定に保たれ、スクロールと選択のマウスサポートが追加されます。このモードでは、ターミナルのネイティブスクロールバックではなく、マウスまたは PageUp で Claude Code 内をスクロールします。検索とコピーの方法については、[フルスクリーンページ](/ja/fullscreen#search-and-review-the-conversation) を参照してください。
 
-### 大量入力の処理
+`/tui fullscreen` を実行して、会話をそのままにして現在のセッションで切り替えます。デフォルトにするには、Claude Code を開始する前に `CLAUDE_CODE_NO_FLICKER` 環境変数を設定します。
 
-広範なコードまたは長い指示を扱う場合：
+```bash Bash と Zsh theme={null}
+CLAUDE_CODE_NO_FLICKER=1 claude
+```
 
-- **直接貼り付けを避ける**：Claude Code は非常に長い貼り付けコンテンツで問題が発生する可能性があります
-- **ファイルベースのワークフローを使用する**：コンテンツをファイルに書き込み、Claude に読み込むよう依頼します
-- **VS Code の制限に注意する**：VS Code ターミナルは特に長い貼り付けを切り詰める傾向があります
+```powershell PowerShell theme={null}
+$env:CLAUDE_CODE_NO_FLICKER = "1"; claude
+```
 
-### Vim モード
+```json ~/.claude/settings.json theme={null}
+{
+  "env": {
+    "CLAUDE_CODE_NO_FLICKER": "1"
+  }
+}
+```
 
-Claude Code は `/vim` で有効にするか、`/config` 経由で設定できる Vim キーバインディングのサブセットをサポートしています。設定ファイルでモードを直接設定するには、`~/.claude.json` の [`editorMode`](/ja/settings#global-config-settings) グローバル設定キーを `"vim"` に設定します。
+## 大量のコンテンツを貼り付ける
 
-サポートされているサブセットには以下が含まれます。
+プロンプトに 10,000 文字以上を貼り付けると、Claude Code は入力を `[Pasted text]` プレースホルダーに折りたたんで、入力ボックスが使用可能なままになります。完全なコンテンツは送信時に Claude に送信されます。
 
-- モード切り替え：`Esc`（NORMAL）、`i`/`I`、`a`/`A`、`o`/`O`（INSERT）
-- ナビゲーション：`h`/`j`/`k`/`l`、`w`/`e`/`b`、`0`/`$`/`^`、`gg`/`G`、`f`/`F`/`t`/`T`（`;`/`,` リピート付き）
-- 編集：`x`、`dw`/`de`/`db`/`dd`/`D`、`cw`/`ce`/`cb`/`cc`/`C`、`.`（リピート）
-- ヤンク/ペースト：`yy`/`Y`、`yw`/`ye`/`yb`、`p`/`P`
-- テキストオブジェクト：`iw`/`aw`、`iW`/`aW`、`i"`/`a"`、`i'`/`a'`、`i(`/`a(`、`i[`/`a[`、`i{`/`a{`
-- インデント：`>>`/`<<`
-- 行操作：`J`（行を結合）
+VS Code 統合ターミナルは、Claude Code に到達する前に非常に大きな貼り付けから文字をドロップできるため、そこではファイルベースのワークフローを優先します。ファイル全体や長いログなどの非常に大きな入力の場合は、コンテンツをファイルに書き込み、貼り付けの代わりに Claude に読み込むよう依頼します。これにより、会話トランスクリプトが読みやすくなり、Claude が後の手番でパスでファイルを参照できます。
 
-完全なリファレンスについては、[インタラクティブモード](/ja/interactive-mode#vim-editor-mode)を参照してください。
+## Vim キーバインディングでプロンプトを編集する
+
+Claude Code には、プロンプト入力用の Vim スタイルの編集モードが含まれています。`/config` → エディタモードを通じて有効にするか、`~/.claude.json` で [`editorMode`](/ja/settings#global-config-settings) グローバル設定キーを `"vim"` に設定します。エディタモードを `normal` に戻してオフにします。
+
+Vim モードは NORMAL モードのモーション演算子のサブセットをサポートしています。例えば、`hjkl` ナビゲーションや、テキストオブジェクトを使用した `d`/`c`/`y` などです。完全なキーテーブルについては、[Vim エディタモードリファレンス](/ja/interactive-mode#vim-editor-mode) を参照してください。Vim モーションはキーバインディングファイルを通じて再マップできません。
+
+INSERT モードで Enter キーを押すと、標準 Vim とは異なり、プロンプトが送信されます。代わりに改行を挿入するには、NORMAL モードで `o` または `O` を使用するか、Ctrl+J を使用します。
+
+## 関連リソース
+
+- [インタラクティブモード](/ja/interactive-mode)：完全なキーボードショートカットリファレンスと Vim キーテーブル
+- [キーバインディング](/ja/keybindings)：Enter と Shift+Enter を含む任意の Claude Code ショートカットを再マップ
+- [フルスクリーンレンダリング](/ja/fullscreen)：フルスクリーンモードでのスクロール、検索、コピーの詳細
+- [フック ガイド](/ja/hooks-guide)：Linux と Windows の詳細な通知フック例
+- [トラブルシューティング](/ja/troubleshooting)：ターミナル設定外の問題の修正

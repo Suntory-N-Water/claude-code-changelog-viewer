@@ -13,8 +13,8 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 
 **macOS ユーザー**: Option/Alt キーショートカット（`Alt+B`、`Alt+F`、`Alt+Y`、`Alt+M`、`Alt+P`、`Alt+T`）を使用するには、ターミナルで Option を Meta として設定する必要があります：
 
-- **iTerm2**: 設定 → プロファイル → キー → Left/Right Option キーを「Esc+」に設定
-- **Terminal.app**: 設定 → プロファイル → キーボード → 「Option キーを Meta キーとして使用」をチェック
+- **iTerm2**: 設定 → プロファイル → キー → 一般 → Left/Right Option キーを「Esc+」に設定
+- **Apple Terminal**: 設定 → プロファイル → キーボード → 「Option キーを Meta キーとして使用」をチェック
 - **VS Code**: VS Code 設定で `"terminal.integrated.macOptionIsMeta": true` を設定
 
 詳細は [ターミナル設定](/ja/terminal-config) を参照してください。
@@ -66,12 +66,12 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | 方法 | ショートカット | コンテキスト |
 | :- | :- | :- |
 | クイック脱出 | `\` + `Enter` | すべてのターミナルで機能 |
-| macOS デフォルト | `Option+Enter` | macOS のデフォルト |
-| Shift+Enter | `Shift+Enter` | iTerm2、WezTerm、Ghostty、Kitty で設定なしで機能 |
-| 制御シーケンス | `Ctrl+J` | 複数行の改行文字 |
+| Option キー | `Option+Enter` | macOS で [Option を Meta として](/ja/terminal-config#enable-option-key-shortcuts-on-macos) 有効にした後 |
+| Shift+Enter | `Shift+Enter` | iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal でネイティブ |
+| 制御シーケンス | `Ctrl+J` | 設定なしで任意のターミナルで機能 |
 | ペーストモード | 直接貼り付け | コードブロック、ログの場合 |
 
-Shift+Enter は iTerm2、WezTerm、Ghostty、Kitty で設定なしで機能します。その他のターミナル（VS Code、Alacritty、Zed、Warp）の場合は、`/terminal-setup` を実行してバインディングをインストールしてください。
+Shift+Enter は設定なしで iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal で機能します。VS Code、Cursor、Windsurf、Alacritty、Zed の場合は、`/terminal-setup` を実行してバインディングをインストールしてください。
 
 ### クイックコマンド
 
@@ -160,6 +160,7 @@ Vim ノーマルモードでは、カーソルが入力の開始または終了�
 | `>>` | 行をインデント |
 | `<<` | 行をデデント |
 | `J` | 行を結合 |
+| `u` | 元に戻す |
 | `.` | 最後の変更を繰り返す |
 
 ### テキストオブジェクト（NORMAL モード）
