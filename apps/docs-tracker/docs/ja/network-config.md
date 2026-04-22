@@ -46,9 +46,31 @@ export HTTPS_PROXY=http://username:password@proxy.example.com:8080
 
 高度な認証（NTLM、Kerberos など）が必要なプロキシの場合は、認証方法をサポートする LLM Gateway サービスの使用を検討してください。
 
+## CA 証明書ストア
+
+デフォルトでは、Claude Code は、バンドルされた Mozilla CA 証明書とオペレーティングシステムの証明書ストアの両方を信頼しています。CrowdStrike Falcon や Zscaler などのエンタープライズ TLS インスペクションプロキシは、ルート証明書が OS 信頼ストアにインストールされている場合、追加の設定なしで動作します。
+
+システム CA ストア統合には、ネイティブ Claude Code バイナリ配布が必要です。Node.js ランタイムで実行している場合、システム CA ストアは自動的にマージされません。その場合は、`NODE_EXTRA_CA_CERTS=/path/to/ca-cert.pem` を設定して、エンタープライズルート CA を信頼してください。
+
+`CLAUDE_CODE_CERT_STORE` は、カンマ区切りのソースリストを受け入れます。認識される値は、Claude Code に付属する Mozilla CA セットの場合は `bundled`、オペレーティングシステムの信頼ストアの場合は `system` です。デフォルトは `bundled,system` です。
+
+バンドルされた Mozilla CA セットのみを信頼するには：
+
+```bash
+export CLAUDE_CODE_CERT_STORE=bundled
+```
+
+OS 証明書ストアのみを信頼するには：
+
+```bash
+export CLAUDE_CODE_CERT_STORE=system
+```
+
+`CLAUDE_CODE_CERT_STORE` には、専用の `settings.json` スキーマキーがありません。`~/.claude/settings.json` の `env` ブロック、またはプロセス環境で直接設定してください。
+
 ## カスタム CA 証明書
 
-エンタープライズ環境で HTTPS 接続用のカスタム CA を使用している場合（プロキシ経由でも直接 API アクセスでも）、Claude Code をそれらを信頼するように設定します。
+エンタープライズ環境でカスタム CA を使用している場合は、Claude Code をそれを直接信頼するように設定します。
 
 ```bash
 export NODE_EXTRA_CA_CERTS=/path/to/ca-cert.pem
@@ -79,10 +101,14 @@ Claude Code は以下の URL へのアクセスが必要です。
 
 これらの URL がプロキシ設定とファイアウォールルールでホワイトリストに登録されていることを確認してください。これは、特にコンテナ化された環境または制限されたネットワーク環境で Claude Code を使用する場合に重要です。
 
-ネイティブインストーラーと更新チェックでは、以下の URL も必要です。インストーラーと自動更新プログラムは `storage.googleapis.com` からフェッチしますが、プラグインダウンロードは `downloads.claude.ai` を使用するため、両方をホワイトリストに登録してください。npm を通じて Claude Code をインストールするか、独自のバイナリ配布を管理する場合、エンドユーザーはアクセスが不要な場合があります。
+[Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、または [Foundry](/ja/microsoft-foundry) を使用する場合、モデルトラフィックは `api.anthropic.com` ではなくプロバイダーに送信されます。WebFetch ツールは、[`skipWebFetchPreflight: true`](/ja/settings) を [settings](/ja/settings) で設定しない限り、[ドメイン安全性チェック](/ja/data-usage#webfetch-domain-safety-check) のために `api.anthropic.com` を呼び出します。
 
-- `storage.googleapis.com`：Claude Code バイナリと自動更新プログラムのダウンロードバケット
-- `downloads.claude.ai`：インストールスクリプト、バージョンポインタ、マニフェスト、署名キー、およびプラグイン実行可能ファイルをホストする CDN
+ネイティブインストーラーと更新チェックでは、以下の URL も必要です。古い Claude Code バージョンを実行しているクライアントが `storage.googleapis.com` からフェッチするため、両方をホワイトリストに登録してください。npm を通じて Claude Code をインストールするか、独自のバイナリ配布を管理する場合、エンドユーザーはアクセスが不要な場合があります。
+
+- `downloads.claude.ai`：Claude Code バイナリ、自動更新プログラム、バージョンポインタ、マニフェスト、インストールスクリプト、署名キー、およびプラグイン実行可能ファイルのダウンロードホスト
+- `storage.googleapis.com`：古いクライアントで使用されるレガシーダウンロードホスト
+
+[Chrome 統合](/ja/chrome) は WebSocket ブリッジを通じてブラウザ拡張機能に接続します。Chrome で Claude を使用する場合は、アウトバウンド WebSocket 接続用に `bridge.claudeusercontent.com` をホワイトリストに登録してください。
 
 [Claude Code on the web](/ja/claude-code-on-the-web) および [Code Review](/ja/code-review) は、Anthropic が管理するインフラストラクチャからリポジトリに接続します。GitHub Enterprise Cloud 組織が IP アドレスによるアクセスを制限している場合は、[インストール済み GitHub Apps の IP 許可リスト継承を有効にします](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#allowing-access-by-github-apps)。Claude GitHub App は IP 範囲を登録するため、この設定を有効にするとマニュアル設定なしでアクセスが可能になります。代わりに[範囲を許可リストに手動で追加する](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#adding-an-allowed-ip-address)場合、または他のファイアウォールを設定する場合は、[Anthropic API IP アドレス](https://platform.claude.com/docs/en/api/ip-addresses) を参照してください。
 

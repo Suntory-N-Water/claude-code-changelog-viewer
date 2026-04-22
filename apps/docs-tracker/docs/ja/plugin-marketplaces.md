@@ -15,7 +15,7 @@ source: https://code.claude.com/docs/ja/plugin-marketplaces.md
 
 マーケットプレイスの作成と配布には、以下が含まれます。
 
-1. **プラグインの作成**：コマンド、エージェント、hooks、MCP サーバー、または LSP サーバーを使用して 1 つ以上のプラグインを構築します。このガイドでは、配布するプラグインが既にあることを前提としています。プラグインの作成方法の詳細については、[プラグインの作成](/ja/plugins)を参照してください。
+1. **プラグインの作成**：skills、agents、hooks、MCP サーバー、または LSP サーバーを使用して 1 つ以上のプラグインを構築します。このガイドでは、配布するプラグインが既にあることを前提としています。プラグインの作成方法の詳細については、[プラグインの作成](/ja/plugins)を参照してください。
 2. **マーケットプレイスファイルの作成**：プラグインとその場所を一覧表示する `marketplace.json` を定義します（[マーケットプレイスファイルの作成](#create-the-marketplace-file)を参照）。
 3. **マーケットプレイスのホスト**：GitHub、GitLab、または別の Git ホストにプッシュします（[マーケットプレイスのホストと配布](#host-and-distribute-marketplaces)を参照）。
 4. **ユーザーと共有**：ユーザーが `/plugin marketplace add` でマーケットプレイスを追加し、個別のプラグインをインストールします（[プラグインの検出とインストール](/ja/discover-plugins)を参照）。
@@ -24,7 +24,7 @@ source: https://code.claude.com/docs/ja/plugin-marketplaces.md
 
 ## チュートリアル：ローカルマーケットプレイスの作成
 
-この例では、1 つのプラグイン（コードレビュー用の `/quality-review` スキル）を含むマーケットプレイスを作成します。ディレクトリ構造を作成し、スキルを追加し、プラグインマニフェストとマーケットプレイスカタログを作成してから、インストールしてテストします。
+この例では、1 つのプラグイン（コードレビュー用の `/quality-review` skill）を含むマーケットプレイスを作成します。ディレクトリ構造を作成し、skill を追加し、プラグインマニフェストとマーケットプレイスカタログを作成してから、インストールしてテストします。
 
 ```bash theme={null}
 mkdir -p my-marketplace/.claude-plugin
@@ -32,7 +32,7 @@ mkdir -p my-marketplace/plugins/quality-review-plugin/.claude-plugin
 mkdir -p my-marketplace/plugins/quality-review-plugin/skills/quality-review
 ```
 
-`/quality-review` スキルが何をするかを定義する `SKILL.md` ファイルを作成します。
+`/quality-review` skill が何をするかを定義する `SKILL.md` ファイルを作成します。
 
 ```markdown my-marketplace/plugins/quality-review-plugin/skills/quality-review/SKILL.md theme={null}
 ---
@@ -84,17 +84,17 @@ Be concise and actionable.
 /plugin install quality-review-plugin@my-plugins
 ```
 
-エディタでコードを選択し、新しいコマンドを実行します。
+エディタでコードを選択し、新しい skill を実行します。
 
 ```shell theme={null}
 /quality-review
 ```
 
-プラグインが実行できることの詳細（hooks、エージェント、MCP サーバー、LSP サーバーを含む）については、[プラグイン](/ja/plugins)を参照してください。
+プラグインが実行できることの詳細（hooks、agents、MCP サーバー、LSP サーバーを含む）については、[プラグイン](/ja/plugins)を参照してください。
 
 **プラグインのインストール方法**：ユーザーがプラグインをインストールすると、Claude Code はプラグインディレクトリをキャッシュロケーションにコピーします。これは、`../shared-utils` のようなパスを使用してプラグインディレクトリの外部のファイルを参照できないことを意味します。これらのファイルはコピーされないためです。
 
-プラグイン間でファイルを共有する必要がある場合は、シンボリックリンクを使用します（コピー中にフォローされます）。詳細については、[プラグインキャッシングとファイル解決](/ja/plugins-reference#plugin-caching-and-file-resolution)を参照してください。
+プラグイン間でファイルを共有する必要がある場合は、symlinks を使用します。詳細については、[プラグインキャッシングとファイル解決](/ja/plugins-reference#plugin-caching-and-file-resolution)を参照してください。
 
 ## マーケットプレイスファイルの作成
 
@@ -150,13 +150,14 @@ Be concise and actionable.
 | `name` | string | はい | メンテナーまたはチームの名前 |
 | `email` | string | いいえ | メンテナーの連絡先メール |
 
-### オプションメタデータ
+### オプションフィールド
 
 | フィールド | タイプ | 説明 |
 | :- | :- | :- |
 | `metadata.description` | string | マーケットプレイスの簡潔な説明 |
 | `metadata.version` | string | マーケットプレイスバージョン |
 | `metadata.pluginRoot` | string | 相対プラグインソースパスの前に付加される基本ディレクトリ（例：`"./plugins"` を使用すると、`"source": "./plugins/formatter"` の代わりに `"source": "formatter"` と記述できます） |
+| `allowCrossMarketplaceDependenciesOn` | array | このマーケットプレイス内のプラグインが依存する可能性のある他のマーケットプレイス。ここにリストされていないマーケットプレイスからの依存関係はインストール時にブロックされます。[別のマーケットプレイスからプラグインに依存する](/ja/plugin-dependencies#depend-on-a-plugin-from-another-marketplace)を参照してください。 |
 
 ## プラグインエントリ
 
@@ -190,8 +191,9 @@ Be concise and actionable.
 
 | フィールド | タイプ | 説明 |
 | :- | :- | :- |
-| `commands` | string\|array | コマンドファイルまたはディレクトリへのカスタムパス |
-| `agents` | string\|array | エージェントファイルへのカスタムパス |
+| `skills` | string\|array | `<name>/SKILL.md` を含む skill ディレクトリへのカスタムパス |
+| `commands` | string\|array | フラットな `.md` skill ファイルまたはディレクトリへのカスタムパス |
+| `agents` | string\|array | agent ファイルへのカスタムパス |
 | `hooks` | string\|object | カスタム hooks 設定または hooks ファイルへのパス |
 | `mcpServers` | string\|object | MCP サーバー設定または MCP 設定ファイルへのパス |
 | `lspServers` | string\|object | LSP サーバー設定または LSP 設定ファイルへのパス |
@@ -228,7 +230,7 @@ Be concise and actionable.
 }
 ```
 
-パスはマーケットプレイスルート（`.claude-plugin/` を含むディレクトリ）に相対的に解決されます。上記の例では、`./plugins/my-plugin` は `<repo>/plugins/my-plugin` を指します。`marketplace.json` は `<repo>/.claude-plugin/marketplace.json` に存在していても同じです。`../` を使用して `.claude-plugin/` から抜け出さないでください。
+パスはマーケットプレイスルート（`.claude-plugin/` を含むディレクトリ）に相対的に解決されます。上記の例では、`./plugins/my-plugin` は `<repo>/plugins/my-plugin` を指します。`marketplace.json` は `<repo>/.claude-plugin/marketplace.json` に存在していても同じです。`../` を使用してマーケットプレイスルートの外を参照しないでください。
 
 相対パスは、ユーザーが Git（GitHub、GitLab、または Git URL）経由でマーケットプレイスを追加する場合にのみ機能します。ユーザーが `marketplace.json` ファイルへの直接 URL でマーケットプレイスを追加する場合、相対パスは正しく解決されません。URL ベースの配布の場合は、GitHub、npm、または Git URL ソースを使用してください。詳細については、[トラブルシューティング](#plugins-with-relative-paths-fail-in-url-based-marketplaces)を参照してください。
 
@@ -384,7 +386,7 @@ npm パッケージとして配布されるプラグインは、`npm install` �
 
 ### 高度なプラグインエントリ
 
-この例は、コマンド、エージェント、hooks、MCP サーバーのカスタムパスを含む、多くのオプションフィールドを使用するプラグインエントリを示しています。
+この例は、commands、agents、hooks、MCP サーバーのカスタムパスを含む、多くのオプションフィールドを使用するプラグインエントリを示しています。
 
 ```json
 {
@@ -441,7 +443,7 @@ npm パッケージとして配布されるプラグインは、`npm install` �
 
 ### 厳密モード
 
-`strict` フィールドは、`plugin.json` がコンポーネント定義（コマンド、エージェント、hooks、スキル、MCP サーバー、出力スタイル）の権限であるかどうかを制御します。
+`strict` フィールドは、`plugin.json` がコンポーネント定義（skills、agents、hooks、MCP サーバー、出力スタイル）の権限であるかどうかを制御します。
 
 | 値 | 動作 |
 | :- | :- |
@@ -450,8 +452,8 @@ npm パッケージとして配布されるプラグインは、`npm install` �
 
 **各モードを使用する場合：**
 
-- **`strict: true`**：プラグインは独自の `plugin.json` を持ち、独自のコンポーネントを管理します。マーケットプレイスエントリは上に追加のコマンドまたは hooks を追加できます。これはデフォルトで、ほとんどのプラグインで機能します。
-- **`strict: false`**：マーケットプレイスオペレーターが完全に制御したい場合。プラグインリポジトリは生ファイルを提供し、マーケットプレイスエントリはそれらのファイルのどれがコマンド、エージェント、hooks などとして公開されるかを定義します。マーケットプレイスがプラグイン作成者の意図と異なる方法でプラグインのコンポーネントを再構成またはキュレートする場合に便利です。
+- **`strict: true`**：プラグインは独自の `plugin.json` を持ち、独自のコンポーネントを管理します。マーケットプレイスエントリは上に追加の skills または hooks を追加できます。これはデフォルトで、ほとんどのプラグインで機能します。
+- **`strict: false`**：マーケットプレイスオペレーターが完全に制御したい場合。プラグインリポジトリは生ファイルを提供し、マーケットプレイスエントリはそれらのファイルのどれが skills、agents、hooks などとして公開されるかを定義します。マーケットプレイスがプラグイン作成者の意図と異なる方法でプラグインのコンポーネントを再構成またはキュレートする場合に便利です。
 
 ## マーケットプレイスのホストと配布
 
@@ -475,7 +477,7 @@ GitLab、Bitbucket、自己ホスト型サーバーなど、任意の Git ホス
 
 ### プライベートリポジトリ
 
-Claude Code は、プライベートリポジトリからプラグインをインストールすることをサポートしています。手動インストールと更新の場合、Claude Code は既存の Git 認証情報ヘルパーを使用します。ターミナルでプライベートリポジトリに対して `git clone` が機能する場合、Claude Code でも機能します。一般的な認証情報ヘルパーには、GitHub の `gh auth login`、macOS キーチェーン、`git-credential-store` が含まれます。
+Claude Code は、プライベートリポジトリからプラグインをインストールすることをサポートしています。手動インストールと更新の場合、Claude Code は既存の Git 認証情報ヘルパーを使用します。ターミナルでプライベートリポジトリに対して `git clone` が機能する場合、Claude Code でも機能します。一般的な認証情報ヘルパーには、GitHub の `gh auth login`、macOS キーチェーン、`git-credential-store` が含まれます。SSH アクセスは、ホストが既に `known_hosts` ファイルにあり、キーが `ssh-agent` に読み込まれている限り機能します。Claude Code はホストフィンガープリントとキーパスフレーズの対話的な SSH プロンプトを抑制するためです。
 
 バックグラウンド自動更新は、認証情報ヘルパーなしで起動時に実行されます。これは、対話的なプロンプトが Claude Code の起動をブロックするためです。プライベートマーケットプレイスの自動更新を有効にするには、環境に適切な認証トークンを設定します。
 
@@ -534,7 +536,7 @@ add コマンドの完全な範囲（GitHub、Git URL、ローカルパス、リ
 
 完全な設定オプションについては、[プラグイン設定](/ja/settings#plugin-settings)を参照してください。
 
-ローカル `directory` または `file` ソースを相対パスで使用する場合、パスはリポジトリのメインチェックアウトに対して解決されます。Git worktree から Claude Code を実行する場合、パスはメインチェックアウトを指し続けるため、すべての worktree は同じマーケットプレイスロケーションを共有します。マーケットプレイス状態は、プロジェクトごとではなく、ユーザーごとに 1 回 `~/.claude/plugins/known_marketplaces.json` に保存されます。
+ローカル `directory` または `file` ソースを相対パスで使用する場合、パスはリポジトリのメインチェックアウトに対して解決されます。Git worktrees から Claude Code を実行する場合、パスはメインチェックアウトを指し続けるため、すべての worktrees は同じマーケットプレイスロケーションを共有します。マーケットプレイス状態は、プロジェクトごとではなく、ユーザーごとに 1 回 `~/.claude/plugins/known_marketplaces.json` に保存されます。
 
 ### コンテナ用にプラグインを事前入力する
 
@@ -551,7 +553,16 @@ $CLAUDE_CODE_PLUGIN_SEED_DIR/
   cache/<marketplace>/<plugin>/<version>/...
 ```
 
-シードディレクトリを構築する最も簡単な方法は、イメージビルド中に Claude Code を 1 回実行し、必要なプラグインをインストールしてから、結果の `~/.claude/plugins` ディレクトリをイメージにコピーして、`CLAUDE_CODE_PLUGIN_SEED_DIR` をそれを指すように設定することです。
+シードディレクトリを構築するには、イメージビルド中に Claude Code を 1 回実行し、必要なプラグインをインストールしてから、結果の `~/.claude/plugins` ディレクトリをイメージにコピーして、`CLAUDE_CODE_PLUGIN_SEED_DIR` をそれを指すように設定します。
+
+コピーステップをスキップするには、ビルド中に `CLAUDE_CODE_PLUGIN_CACHE_DIR` をターゲットシードパスに設定して、プラグインが直接そこにインストールされるようにします。
+
+```bash
+CLAUDE_CODE_PLUGIN_CACHE_DIR=/opt/claude-seed claude plugin marketplace add your-org/plugins
+CLAUDE_CODE_PLUGIN_CACHE_DIR=/opt/claude-seed claude plugin install my-tool@your-plugins
+```
+
+その後、コンテナのランタイム環境で `CLAUDE_CODE_PLUGIN_SEED_DIR=/opt/claude-seed` を設定して、Claude Code が起動時にシードから読み込むようにします。
 
 起動時に、Claude Code はシードの `known_marketplaces.json` にあるマーケットプレイスをプライマリ設定に登録し、`cache/` の下にあるプラグインキャッシュを再クローンせずに使用します。これは対話モードと `-p` フラグを使用した非対話モードの両方で機能します。
 
@@ -560,6 +571,7 @@ $CLAUDE_CODE_PLUGIN_SEED_DIR/
 - **読み取り専用**：シードディレクトリは書き込まれません。読み取り専用ファイルシステムで git pull が失敗するため、シードマーケットプレイスの自動更新は無効になります。
 - **シードエントリが優先**：シードで宣言されたマーケットプレイスは、起動時にユーザー設定の一致するエントリを上書きします。シードプラグインをオプトアウトするには、マーケットプレイスを削除するのではなく `/plugin disable` を使用します。
 - **パス解決**：Claude Code はシードの JSON に保存されているパスを信頼するのではなく、実行時に `$CLAUDE_CODE_PLUGIN_SEED_DIR/marketplaces/<name>/` をプローブしてマーケットプレイスコンテンツを見つけます。これは、シードがビルド時と異なるパスにマウントされている場合でも、シードが正しく機能することを意味します。
+- **変更がブロックされます**：シードで管理されているマーケットプレイスに対して `/plugin marketplace remove` または `/plugin marketplace update` を実行すると、管理者にシードイメージを更新するよう指示するガイダンスで失敗します。
 - **設定と構成**：`extraKnownMarketplaces` または `enabledPlugins` がシードに既に存在するマーケットプレイスを宣言している場合、Claude Code はクローンする代わりにシードコピーを使用します。
 
 ### 管理マーケットプレイスの制限
@@ -759,6 +771,113 @@ claude plugin validate .
 
 完全なプラグインテストワークフローについては、[プラグインをローカルでテスト](/ja/plugins#test-your-plugins-locally)を参照してください。技術的なトラブルシューティングについては、[プラグインリファレンス](/ja/plugins-reference)を参照してください。
 
+## CLI からマーケットプレイスを管理する
+
+Claude Code は、スクリプトと自動化のための非対話的な `claude plugin marketplace` サブコマンドを提供します。これらは、対話的なセッション内で利用可能な `/plugin marketplace` コマンドと同等です。
+
+### プラグインマーケットプレイス追加
+
+GitHub リポジトリ、Git URL、リモート URL、またはローカルパスからマーケットプレイスを追加します。
+
+```bash
+claude plugin marketplace add <source> [options]
+```
+
+**引数：**
+
+- `<source>`：GitHub `owner/repo` ショートハンド、Git URL、`marketplace.json` ファイルへのリモート URL、またはローカルディレクトリパス。ブランチまたはタグに固定するには、GitHub ショートハンドに `@ref` を追加するか、Git URL に `#ref` を追加します
+
+**オプション：**
+
+| オプション | 説明 | デフォルト |
+| :- | :- | :- |
+| `--scope <scope>` | マーケットプレイスを宣言する場所：`user`、`project`、または `local`。[プラグインインストールスコープ](/ja/plugins-reference#plugin-installation-scopes)を参照してください | `user` |
+| `--sparse <paths...>` | Git スパースチェックアウト経由で特定のディレクトリにチェックアウトを制限します。モノレポに便利です | |
+
+GitHub から `owner/repo` ショートハンドを使用してマーケットプレイスを追加します。
+
+```bash
+claude plugin marketplace add acme-corp/claude-plugins
+```
+
+`@ref` を使用して特定のブランチまたはタグに固定します。
+
+```bash
+claude plugin marketplace add acme-corp/claude-plugins@v2.0
+```
+
+非 GitHub ホスト上の Git URL から追加します。
+
+```bash
+claude plugin marketplace add https://gitlab.example.com/team/plugins.git
+```
+
+`marketplace.json` ファイルを直接提供するリモート URL から追加します。
+
+```bash
+claude plugin marketplace add https://example.com/marketplace.json
+```
+
+テスト用にローカルディレクトリから追加します。
+
+```bash
+claude plugin marketplace add ./my-marketplace
+```
+
+マーケットプレイスをプロジェクトスコープで宣言して、`.claude/settings.json` 経由でチームと共有します。
+
+```bash
+claude plugin marketplace add acme-corp/claude-plugins --scope project
+```
+
+モノレポの場合、プラグインコンテンツを含むディレクトリにチェックアウトを制限します。
+
+```bash
+claude plugin marketplace add acme-corp/monorepo --sparse .claude-plugin plugins
+```
+
+### プラグインマーケットプレイスリスト
+
+設定されたすべてのマーケットプレイスをリストします。
+
+```bash
+claude plugin marketplace list [options]
+```
+
+**オプション：**
+
+| オプション | 説明 |
+| :- | :- |
+| `--json` | JSON として出力 |
+
+### プラグインマーケットプレイス削除
+
+設定されたマーケットプレイスを削除します。エイリアス `rm` も受け入れられます。
+
+```bash
+claude plugin marketplace remove <name>
+```
+
+**引数：**
+
+- `<name>`：削除するマーケットプレイス名。`claude plugin marketplace list` で表示されます。これは渡したソースではなく、`marketplace.json` の `name` です
+
+マーケットプレイスを削除すると、そこからインストールしたプラグインもアンインストールされます。インストール済みプラグインを失わずにマーケットプレイスを更新するには、`claude plugin marketplace update` を使用してください。
+
+### プラグインマーケットプレイス更新
+
+マーケットプレイスをソースから更新して、新しいプラグインとバージョン変更を取得します。
+
+```bash
+claude plugin marketplace update [name]
+```
+
+**引数：**
+
+- `[name]`：更新するマーケットプレイス名。`claude plugin marketplace list` で表示されます。省略した場合はすべてのマーケットプレイスを更新します
+
+`remove` と `update` の両方は、読み取り専用のシード管理マーケットプレイスに対して実行すると失敗します。すべてのマーケットプレイスを更新する場合、シード管理エントリはスキップされ、他のマーケットプレイスは引き続き更新されます。シード提供プラグインを変更するには、管理者にシードイメージを更新するよう依頼してください。[コンテナ用にプラグインを事前入力する](#pre-populate-plugins-for-containers)を参照してください。
+
 ## トラブルシューティング
 
 ### マーケットプレイスが読み込まれない
@@ -774,7 +893,7 @@ claude plugin validate .
 
 ### マーケットプレイス検証エラー
 
-マーケットプレイスディレクトリから `claude plugin validate .` または `/plugin validate .` を実行して、問題をチェックします。バリデーターは `plugin.json`、スキル/エージェント/コマンドフロントマター、および `hooks/hooks.json` の構文とスキーマエラーをチェックします。一般的なエラー：
+マーケットプレイスディレクトリから `claude plugin validate .` または `/plugin validate .` を実行して、問題をチェックします。バリデーターは `plugin.json`、skill/agent/command frontmatter、および `hooks/hooks.json` の構文とスキーマエラーをチェックします。一般的なエラー：
 
 | エラー | 原因 | 解決策 |
 | :- | :- | :- |
@@ -782,7 +901,7 @@ claude plugin validate .
 | `Invalid JSON syntax: Unexpected token...` | JSON 構文エラー | コンマの欠落、余分なコンマ、または引用符なしの文字列をチェックします |
 | `Duplicate plugin name "x" found in marketplace` | 2 つのプラグインが同じ名前を共有しています | 各プラグインに一意の `name` 値を指定します |
 | `plugins[0].source: Path contains ".."` | ソースパスに `..` が含まれています | マーケットプレイスルートに相対的なパスを使用し、`..` なしで使用します。[相対パス](#relative-paths)を参照してください |
-| `YAML frontmatter failed to parse: ...` | スキル、エージェント、またはコマンドファイルの YAML が無効です | フロントマターブロックの YAML 構文を修正します。実行時にこのファイルはメタデータなしで読み込まれます。 |
+| `YAML frontmatter failed to parse: ...` | skill、agent、またはコマンドファイルの YAML が無効です | frontmatter ブロックの YAML 構文を修正します。実行時にこのファイルはメタデータなしで読み込まれます。 |
 | `Invalid JSON syntax: ...`（hooks.json） | 不正な形式の `hooks/hooks.json` | JSON 構文を修正します。不正な形式の `hooks/hooks.json` はプラグイン全体の読み込みを防ぎます。 |
 
 **警告**（ブロッキングなし）：
@@ -868,7 +987,7 @@ export CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS=300000  # 5 分
 
 **原因**：プラグインはインプレイスで使用されるのではなく、キャッシュディレクトリにコピーされます。プラグインディレクトリの外部のファイルを参照するパス（`../shared-utils` など）は、それらのファイルがコピーされないため機能しません。
 
-**解決策**：シンボリックリンクとディレクトリ再構成を含む回避策については、[プラグインキャッシングとファイル解決](/ja/plugins-reference#plugin-caching-and-file-resolution)を参照してください。
+**解決策**：symlinks とディレクトリ再構成を含む回避策については、[プラグインキャッシングとファイル解決](/ja/plugins-reference#plugin-caching-and-file-resolution)を参照してください。
 
 追加のデバッグツールと一般的な問題については、[デバッグと開発ツール](/ja/plugins-reference#debugging-and-development-tools)を参照してください。
 

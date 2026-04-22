@@ -346,6 +346,8 @@ Implement API endpoints. Follow the conventions and patterns from the preloaded 
 
 各スキルの完全なコンテンツがサブエージェントのコンテキストに注入され、呼び出しのために利用可能にするだけではありません。サブエージェントは親の会話からスキルを継承しません。明示的にリストする必要があります。
 
+[`disable-model-invocation: true`](/ja/skills#control-who-invokes-a-skill)を設定するスキルをプリロードすることはできません。プリロードは Claude が呼び出すことができるスキルの同じセットから引き出されるためです。リストされたスキルが見つからないか無効な場合、Claude Code はそれをスキップし、デバッグログに警告をログします。
+
 これは[サブエージェントでスキルを実行する](/ja/skills#run-skills-in-a-subagent)の逆です。サブエージェントの `skills` を使用すると、サブエージェントはシステムプロンプトを制御し、スキルコンテンツを読み込みます。スキルの `context: fork` を使用すると、スキルコンテンツが指定したエージェントに注入されます。どちらも同じ基盤システムを使用します。
 
 #### 永続メモリを有効にする
@@ -462,7 +464,7 @@ claude --disallowedTools "Agent(Explore)"
 
 サブエージェントの markdown ファイルで直接 hooks を定義します。これらの hooks は、その特定のサブエージェントがアクティブな間のみ実行され、終了時にクリーンアップされます。
 
-フロントマター hooks は、Agent ツールまたは @-mention を通じてサブエージェントとして生成されるときに発火します。[`--agent`](#invoke-subagents-explicitly)またはセッション全体で実行される場合は発火しません。セッション全体の hooks については、[`settings.json`](/ja/hooks)で設定してください。
+フロントマター hooks は、Agent ツールまたは @-mention を通じてサブエージェントとして生成されるときに発火します。また、[`--agent`](#invoke-subagents-explicitly)またはセッション全体で実行される場合にも発火します。メインセッションの場合、[`settings.json`](/ja/hooks)で定義されている hooks と一緒に実行されます。
 
 すべての[hook イベント](/ja/hooks#hook-events)がサポートされています。サブエージェントの最も一般的なイベントは：
 

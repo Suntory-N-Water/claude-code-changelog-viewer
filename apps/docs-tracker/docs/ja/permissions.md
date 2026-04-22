@@ -296,9 +296,11 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 
 ## auto モード分類器を設定する
 
-[Auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode)は、分類器モデルを使用して、プロンプトなしで実行しても安全なアクションかどうかを判断します。デフォルトでは、作業ディレクトリと、存在する場合は現在のリポジトリのリモートのみを信頼します。会社のソースコントロール org にプッシュしたり、チームクラウドバケットに書き込んだりするようなアクションは、潜在的なデータ流出としてブロックされます。`autoMode` 設定ブロックを使用して、組織が信頼するインフラストラクチャを分類器に伝えることができます。
+[Auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode)は、分類器モデルを使用して、プロンプトなしで実行しても安全なアクションかどうかを判断します。デフォルトでは、作業ディレクトリと、存在する場合は現在のリポジトリのリモートのみを信頼します。会社のソースコントロール org にプッシュしたり、チームクラウドバケットに書き込んだりするようなアクションは、潜在的なデータ流出としてブロックされます。
 
-分類器は、ユーザー設定、`.claude/settings.local.json`、管理設定から `autoMode` を読み取ります。チェックインされたリポジトリが独自の allow ルールを注入できるため、`.claude/settings.json` の共有プロジェクト設定からは読み取りません。
+分類器が許可またはブロックする内容を調整するには、[CLAUDE.md](/ja/memory) ファイルに指示を追加します。分類器は会話の横にある信頼できるディレクトリから CLAUDE.md を読み取るため、「force push を決してしない」のような指示は Claude と分類器の両方を同時に操作します。プロジェクト規約と動作ルールはここから始めてください。
+
+プロジェクト全体に適用されるルール（信頼できるインフラストラクチャや組織全体の deny ルールなど）については、`autoMode` 設定ブロックを使用します。分類器は、ユーザー設定、`.claude/settings.local.json`、管理設定から `autoMode` を読み取ります。チェックインされたリポジトリが独自の allow ルールを注入できるため、`.claude/settings.json` の共有プロジェクト設定からは読み取りません。
 
 | スコープ | ファイル | 用途 |
 | :- | :- | :- |
@@ -424,3 +426,9 @@ claude auto-mode critique  # get AI feedback on your custom allow and soft_deny 
 - [認証](/ja/authentication)。Claude Code へのユーザーアクセスを設定します
 - [セキュリティ](/ja/security)。セキュリティ保護とベストプラクティス
 - [フック](/ja/hooks-guide)。ワークフローを自動化し、権限評価を拡張します
+
+## auto モード分類器の拒否を確認する
+
+[auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode)がツール呼び出しを拒否すると、通知が表示され、拒否されたアクションが `/permissions` の「最近拒否されたアクション」タブに記録されます。拒否されたアクションで `r` を押して、再試行用にマークします。ダイアログを終了すると、Claude Code はモデルに、そのツール呼び出しを再試行できることを伝えるメッセージを送信し、会話を再開します。
+
+拒否に対してプログラムで反応するには、[`PermissionDenied` フック](/ja/hooks#permissiondenied)を使用します。

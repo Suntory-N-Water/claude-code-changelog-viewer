@@ -411,10 +411,13 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 {
   "userConfig": {
     "api_endpoint": {
-      "description": "Your team's API endpoint",
-      "sensitive": false
+      "type": "string",
+      "title": "API endpoint",
+      "description": "Your team's API endpoint"
     },
     "api_token": {
+      "type": "string",
+      "title": "API token",
       "description": "API authentication token",
       "sensitive": true
     }
@@ -422,7 +425,20 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 }
 ```
 
-キーは有効な識別子である必要があります。各値は MCP および LSP サーバー設定、hook コマンド、monitor コマンド、および（機密でない値のみ）skill およびエージェントコンテンツで `${user_config.KEY}` として置換可能です。値はプラグインサブプロセスに `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数としてもエクスポートされます。
+キーは有効な識別子である必要があります。各オプションはこれらのフィールドをサポートします:
+
+| フィールド | 必須 | 説明 |
+| :- | :- | :- |
+| `type` | はい | `string`、`number`、`boolean`、`directory`、または `file` のいずれか |
+| `title` | はい | 設定ダイアログに表示されるラベル |
+| `description` | はい | フィールドの下に表示されるヘルプテキスト |
+| `sensitive` | いいえ | `true` の場合、入力をマスクし、値を `settings.json` ではなくセキュアストレージに保存 |
+| `required` | いいえ | `true` の場合、フィールドが空のときに検証が失敗 |
+| `default` | いいえ | ユーザーが何も提供しない場合に使用される値 |
+| `multiple` | いいえ | `string` タイプの場合、文字列の配列を許可 |
+| `min` / `max` | いいえ | `number` タイプの境界 |
+
+各値は MCP および LSP サーバー設定、hook コマンド、monitor コマンド、および skill とエージェントコンテンツ（機密でない値のみ）で `${user_config.KEY}` として置換可能です。すべての値はプラグインサブプロセスに `CLAUDE_PLUGIN_OPTION_<KEY>` 環境変数としてエクスポートされます。
 
 機密でない値は `settings.json` の `pluginConfigs[<plugin-id>].options` に保存されます。機密値はシステムキーチェーン（またはキーチェーンが利用できない場合は `~/.claude/.credentials.json`）に移動します。キーチェーンストレージは OAuth トークンと共有され、約 2 KB の合計制限があるため、機密値は小さく保ってください。
 
@@ -436,8 +452,17 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
     {
       "server": "telegram",
       "userConfig": {
-        "bot_token": { "description": "Telegram bot token", "sensitive": true },
-        "owner_id": { "description": "Your Telegram user ID", "sensitive": false }
+        "bot_token": {
+          "type": "string",
+          "title": "Bot token",
+          "description": "Telegram bot token",
+          "sensitive": true
+        },
+        "owner_id": {
+          "type": "string",
+          "title": "Owner ID",
+          "description": "Your Telegram user ID"
+        }
       }
     }
   ]
@@ -752,6 +777,24 @@ claude plugin update <plugin> [options]
 | オプション | 説明 | デフォルト |
 | :- | :- | :- |
 | `-s, --scope <scope>` | 更新するスコープ: `user`、`project`、`local`、または `managed` | `user` |
+| `-h, --help` | コマンドのヘルプを表示 | |
+
+***
+
+### plugin list
+
+インストール済みプラグインをバージョン、ソースマーケットプレイス、有効状態とともにリストします。
+
+```bash
+claude plugin list [options]
+```
+
+**オプション:**
+
+| オプション | 説明 | デフォルト |
+| :- | :- | :- |
+| `--json` | JSON として出力 | |
+| `--available` | マーケットプレイスから利用可能なプラグインを含めます。`--json` が必要 | |
 | `-h, --help` | コマンドのヘルプを表示 | |
 
 ***

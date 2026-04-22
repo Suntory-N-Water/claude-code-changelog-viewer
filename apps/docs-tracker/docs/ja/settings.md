@@ -86,8 +86,8 @@ Claude Code は、**スコープシステム**を使用して、構成がどこ�
 
   - **サーバー管理設定**：Anthropic のサーバーから Claude.ai 管理コンソール経由で配信されます。[サーバー管理設定](/ja/server-managed-settings)を参照してください。
   - **MDM/OS レベルのポリシー**：macOS と Windows のネイティブデバイス管理を通じて配信されます：
-    - macOS：`com.anthropic.claudecode` managed preferences ドメイン（Jamf、Iru（Kandji）、または他の MDM ツールの構成プロファイルを通じて展開）
-    - Windows：`HKLM\SOFTWARE\Policies\ClaudeCode` レジストリキーと JSON を含む `Settings` 値（REG\_SZ または REG\_EXPAND\_SZ）（グループポリシーまたは Intune を通じて展開）
+    - macOS：`com.anthropic.claudecode` managed preferences ドメイン。plist のトップレベルキーは `managed-settings.json` をミラーリングし、ネストされた設定は辞書として、配列は plist 配列として機能します。Jamf、Iru（Kandji）、または同様の MDM ツールの構成プロファイルを通じて展開します。
+    - Windows：`HKLM\SOFTWARE\Policies\ClaudeCode` レジストリキーと JSON を含む `Settings` 値（REG\_SZ または REG\_EXPAND\_SZ）。グループポリシーまたは Intune を通じて展開します
     - Windows（ユーザーレベル）：`HKCU\SOFTWARE\Policies\ClaudeCode`（最低ポリシー優先度、管理者レベルのソースが存在しない場合のみ使用）
   - **ファイルベース**：`managed-settings.json` と `managed-mcp.json` をシステムディレクトリに展開：
 
@@ -205,6 +205,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `respectGitignore` | `@` ファイルピッカーが `.gitignore` パターンを尊重するかどうかを制御します。`true`（デフォルト）の場合、`.gitignore` パターンに一致するファイルは提案から除外されます | `false` |
 | `showClearContextOnPlanAccept` | プラン受け入れ画面に「コンテキストをクリア」オプションを表示します。デフォルトは `false` です。`true` に設定してオプションを復元します | `true` |
 | `showThinkingSummaries` | [拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode)サマリーをインタラクティブセッションに表示します。未設定または `false`（インタラクティブモードのデフォルト）の場合、思考ブロックは API によって編集され、折りたたまれたスタブとして表示されます。編集は表示内容のみを変更し、モデルが生成するものは変更しません：思考支出を削減するには、[予算を低下させるか思考を無効にする](/ja/common-workflows#use-extended-thinking-thinking-mode)代わりに。非インタラクティブモード（`-p`）と SDK 呼び出し元は、この設定に関係なく常にサマリーを受け取ります | `true` |
+| `skipWebFetchPreflight` | [WebFetch ドメイン安全チェック](/ja/data-usage#webfetch-domain-safety-check)をスキップします。このチェックは、フェッチ前に各リクエストされたホスト名を `api.anthropic.com` に送信します。Bedrock、Vertex AI、または制限的な出力を持つ Foundry デプロイメントなど、Anthropic へのトラフィックをブロックする環境で `true` に設定します。スキップされた場合、WebFetch はブロックリストを参照せずに任意の URL を試みます | `true` |
 | `spinnerTipsEnabled` | Claude が作業中にスピナーにヒントを表示します。ヒントを無効にするには `false` に設定します（デフォルト：`true`） | `false` |
 | `spinnerTipsOverride` | スピナーヒントをカスタム文字列でオーバーライドします。`tips`：ヒント文字列の配列。`excludeDefault`：`true` の場合、カスタムヒントのみを表示します。`false` または不在の場合、カスタムヒントは組み込みヒントとマージされます | `{ "excludeDefault": true, "tips": ["Use our internal tool X"] }` |
 | `spinnerVerbs` | スピナーとターン期間メッセージに表示されるアクション動詞をカスタマイズします。`mode` を `"replace"` に設定して動詞のみを使用するか、`"append"` に設定してデフォルトに追加します | `{"mode": "append", "verbs": ["Pondering", "Crafting"]}` |
@@ -276,7 +277,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | キー | 説明 | 例 |
 | :- | :- | :- |
 | `enabled` | bash サンドボックスを有効にします（macOS、Linux、WSL2）。デフォルト：false | `true` |
-| `failIfUnavailable` | `sandbox.enabled` が true だがサンドボックスが起動できない場合（依存関係の欠落、サポートされていないプラットフォーム、またはプラットフォーム制限）、起動時にエラーで終了します。false（デフォルト）の場合、警告が表示され、コマンドはサンドボックス化されずに実行されます。managed 設定デプロイメント用で、サンドボックスをハードゲートとして必要とします | `true` |
+| `failIfUnavailable` | `sandbox.enabled` が true だがサンドボックスが起動できない場合（依存関係の欠落、サポートされていないプラットフォーム）、起動時にエラーで終了します。false（デフォルト）の場合、警告が表示され、コマンドはサンドボックス化されずに実行されます。managed 設定デプロイメント用で、サンドボックスをハードゲートとして必要とします | `true` |
 | `autoAllowBashIfSandboxed` | サンドボックス化されている場合、bash コマンドを自動承認します。デフォルト：true | `true` |
 | `excludedCommands` | サンドボックスの外で実行する必要があるコマンド | `["docker *"]` |
 | `allowUnsandboxedCommands` | `dangerouslyDisableSandbox` パラメータを通じてコマンドをサンドボックスの外で実行することを許可します。`false` に設定すると、`dangerouslyDisableSandbox` エスケープハッチが完全に無効になり、すべてのコマンドはサンドボックス化されるか `excludedCommands` に含まれる必要があります。厳密なサンドボックスを必要とするエンタープライズポリシーに役立ちます。デフォルト：true | `false` |
@@ -471,7 +472,7 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 
 ### アクティブな設定を確認
 
-Claude Code 内で `/status` を実行して、どの設定ソースがアクティブで、どこから来ているかを確認します。出力は、`Enterprise managed settings (remote)`、`Enterprise managed settings (plist)`、`Enterprise managed settings (HKLM)`、または `Enterprise managed settings (file)` などの出所を含む各構成レイヤー（managed、ユーザー、プロジェクト）を表示します。設定ファイルにエラーが含まれている場合、`/status` は問題を報告して修正できるようにします。
+Claude Code 内で `/status` を実行して、どの設定ソースがアクティブで、どこから来ているかを確認します。出力は、`Enterprise managed settings (remote)`、`Enterprise managed settings (plist)`、`Enterprise managed settings (HKLM)`、`Enterprise managed settings (HKCU)`、または `Enterprise managed settings (file)` などの出所を含む各構成レイヤー（managed、ユーザー、プロジェクト）を表示します。設定ファイルにエラーが含まれている場合、`/status` は問題を報告して修正できるようにします。
 
 ### 構成システムの重要なポイント
 
@@ -890,4 +891,5 @@ Claude Code は、ファイルの読み取り、編集、検索、コマンド�
 
 - [権限](/ja/permissions)：権限システム、ルール構文、ツール固有パターン、および managed ポリシー
 - [認証](/ja/authentication)：Claude Code へのユーザーアクセスをセットアップ
-- [トラブルシューティング](/ja/troubleshooting)：一般的な構成の問題の解決策
+- [設定をデバッグする](/ja/debug-your-config)：設定、hook、または MCP サーバーが有効にならない理由を診断
+- [トラブルシューティング](/ja/troubleshooting)：インストール、認証、およびプラットフォームの問題

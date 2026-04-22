@@ -364,9 +364,7 @@ source: https://code.claude.com/docs/en/quickstart.md
 This quickstart guide will have you using AI-powered coding assistance in a few minutes. By the end, you'll understand how to use Claude Code for common development tasks.
 
 <div className="install-configurator-slot">
-  <Experiment flag="install-configurator-default-surface" treatment={<InstallConfigurator defaultSurface="desktop" />}>
-    <InstallConfigurator />
-  </Experiment>
+  <InstallConfigurator />
 </div>
 
 ## Before you begin

@@ -1,0 +1,2006 @@
+{
+  "id": "20260422-141336",
+  "timestamp": "2026-04-22T14:13:36.437Z",
+  "aiSummary": "管理者向けの導入決定マップや、設定・フック・スキルのトラブルシューティングを専門に扱うデバッグガイドが新設されました。WebFetchツールによるドメイン安全性チェックの仕組みと、その無効化設定であるskipWebFetchPreflightに関する詳細が追加されています。全体として、エンタープライズ向けの管理機能や設定の優先順位、診断コマンドを用いた現状確認の方法がより具体的に整理されました。",
+  "files": [
+    {
+      "filename": "admin-setup.md",
+      "additions": 0,
+      "deletions": 129,
+      "explanation": "組織導入時のAPIプロバイダー選定や、MDM・レジストリを用いた管理設定の配信優先順位、権限管理の決定プロセスが詳細に解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -1,129 +0,0 @@",
+          "lines": [
+            {
+              "type": "removed",
+              "content": "---"
+            },
+            {
+              "type": "removed",
+              "content": "title: admin-setup"
+            },
+            {
+              "type": "removed",
+              "content": "source: https://code.claude.com/docs/en/admin-setup.md"
+            },
+            {
+              "type": "removed",
+              "content": "---"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Set up Claude Code for your organization"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> A decision map for administrators deploying Claude Code, covering API providers, managed settings, policy enforcement, usage monitoring, and data handling."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code enforces organization policy through managed settings that take precedence over local developer configuration. You deliver those settings from the Claude admin console, your mobile device management (MDM) system, or a file on disk. The settings control which tools, commands, servers, and network destinations Claude can reach."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This page walks through the deployment decisions in order. Each row links to the section below and to the reference page for that area."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "SSO, SCIM provisioning, and seat assignment are configured at the Claude account level. See the [Claude Enterprise Administrator Guide](https://claude.com/resources/tutorials/claude-enterprise-administrator-guide) and [seat assignment](https://support.claude.com/en/articles/11845131-use-claude-code-with-your-team-or-enterprise-plan) for those steps."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Decision | What you're choosing | Reference |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Choose your API provider](#choose-your-api-provider) | Where Claude Code authenticates and how it's billed | [Authentication](/en/authentication), [Bedrock](/en/amazon-bedrock), [Vertex AI](/en/google-vertex-ai), [Foundry](/en/microsoft-foundry) |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Decide how settings reach devices](#decide-how-settings-reach-devices) | How managed policy reaches developer machines | [Server-managed settings](/en/server-managed-settings), [Settings files](/en/settings#settings-files) |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Decide what to enforce](#decide-what-to-enforce) | Which tools, commands, and integrations are allowed | [Permissions](/en/permissions), [Sandboxing](/en/sandboxing) |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Set up usage visibility](#set-up-usage-visibility) | How you track spend and adoption | [Analytics](/en/analytics), [Monitoring](/en/monitoring-usage), [Costs](/en/costs) |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Review data handling](#review-data-handling) | Data retention and compliance posture | [Data usage](/en/data-usage), [Security](/en/security) |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Choose your API provider"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code connects to Claude through one of several API providers. Your choice affects billing, authentication, and which compliance posture you inherit."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Provider | Choose this when |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Claude for Teams / Enterprise | You want Claude Code and claude.ai under one per-seat subscription with no infrastructure to run. This is the default recommendation. |"
+            },
+            {
+              "type": "removed",
+              "content": "| Claude Console | You're API-first or want pay-as-you-go billing |"
+            },
+            {
+              "type": "removed",
+              "content": "| Amazon Bedrock | You want to inherit existing AWS compliance controls and billing |"
+            },
+            {
+              "type": "removed",
+              "content": "| Google Vertex AI | You want to inherit existing GCP compliance controls and billing |"
+            },
+            {
+              "type": "removed",
+              "content": "| Microsoft Foundry | You want to inherit existing Azure compliance controls and billing |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For the full provider comparison covering authentication, regions, and feature parity, see the [enterprise deployment overview](/en/third-party-integrations). Each provider's auth setup is in [Authentication](/en/authentication)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Proxy and firewall requirements in [Network configuration](/en/network-config) apply regardless of provider. If you want a single endpoint in front of multiple providers or centralized request logging, see [LLM gateway](/en/llm-gateway)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Decide how settings reach devices"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Managed settings define policy that takes precedence over local developer configuration. Claude Code looks for them in four places and uses the first one it finds on a given device."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Mechanism | Delivery | Priority | Platforms |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Server-managed | Claude.ai admin console | Highest | All |"
+            },
+            {
+              "type": "removed",
+              "content": "| plist / registry policy | macOS: `com.anthropic.claudecode` plistWindows: `HKLM\\SOFTWARE\\Policies\\ClaudeCode` | High | macOS, Windows |"
+            },
+            {
+              "type": "removed",
+              "content": "| File-based managed | macOS: `/Library/Application Support/ClaudeCode/managed-settings.json`Linux and WSL: `/etc/claude-code/managed-settings.json`Windows: `C:\\Program Files\\ClaudeCode\\managed-settings.json` | Medium | All |"
+            },
+            {
+              "type": "removed",
+              "content": "| Windows user registry | `HKCU\\SOFTWARE\\Policies\\ClaudeCode` | Lowest | Windows only |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Server-managed settings reach devices at authentication time and refresh hourly during active sessions, with no endpoint infrastructure. They require a Claude for Teams or Enterprise plan, so deployments on other providers need one of the file-based or OS-level mechanisms instead."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If your organization mixes providers, configure [server-managed settings](/en/server-managed-settings) for Claude.ai users plus a [file-based or plist/registry fallback](/en/settings#settings-files) so other users still receive managed policy."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The plist and HKLM registry locations work with any provider and resist tampering because they require admin privileges to write. The Windows user registry at HKCU is writable without elevation, so treat it as a convenience default rather than an enforcement channel."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Whichever mechanism you choose, managed values take precedence over user and project settings. Array settings such as `permissions.allow` and `permissions.deny` merge entries from all sources, so developers can extend managed lists but not remove from them."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "See [Server-managed settings](/en/server-managed-settings) and [Settings files and precedence](/en/settings#settings-files)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Decide what to enforce"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Managed settings can lock down tools, sandbox execution, restrict MCP servers and plugin sources, and control which hooks run. Each row is a control surface with the setting keys that drive it."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Control | What it does | Key settings |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Permission rules](/en/permissions) | Allow, ask, or deny specific tools and commands | `permissions.allow`, `permissions.deny` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Permission lockdown](/en/permissions#managed-only-settings) | Only managed permission rules apply; disable `--dangerously-skip-permissions` | `allowManagedPermissionRulesOnly`, `permissions.disableBypassPermissionsMode` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Sandboxing](/en/sandboxing) | OS-level filesystem and network isolation with domain allowlists | `sandbox.enabled`, `sandbox.network.allowedDomains` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Managed policy CLAUDE.md](/en/memory#deploy-organization-wide-claude-md) | Org-wide instructions loaded in every session, cannot be excluded | File at the managed policy path |"
+            },
+            {
+              "type": "removed",
+              "content": "| [MCP server control](/en/mcp#managed-mcp-configuration) | Restrict which MCP servers users can add or connect to | `allowedMcpServers`, `deniedMcpServers`, `allowManagedMcpServersOnly` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Plugin marketplace control](/en/plugin-marketplaces#managed-marketplace-restrictions) | Restrict which marketplace sources users can add | `strictKnownMarketplaces`, `blockedMarketplaces` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Hook restrictions](/en/settings#hook-configuration) | Only managed hooks load; restrict HTTP hook URLs | `allowManagedHooksOnly`, `allowedHttpHookUrls` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Version floor](/en/settings) | Prevent auto-update from installing below an org-wide minimum | `minimumVersion` |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Permission rules and sandboxing cover different layers. Denying WebFetch blocks Claude's fetch tool, but if Bash is allowed, `curl` and `wget` can still reach any URL. Sandboxing closes that gap with a network domain allowlist enforced at the OS level."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For the threat model these controls defend against, see [Security](/en/security)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Set up usage visibility"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Choose monitoring based on what you need to report on."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Capability | What you get | Availability | Where to start |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Usage monitoring | OpenTelemetry export of sessions, tools, and tokens | All providers | [Monitoring usage](/en/monitoring-usage) |"
+            },
+            {
+              "type": "removed",
+              "content": "| Analytics dashboard | Per-user metrics, contribution tracking, leaderboard | Anthropic only | [Analytics](/en/analytics) |"
+            },
+            {
+              "type": "removed",
+              "content": "| Cost tracking | Spend limits, rate limits, and usage attribution | Anthropic only | [Costs](/en/costs) |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Cloud providers expose spend through AWS Cost Explorer, GCP Billing, or Azure Cost Management. Claude for Teams and Enterprise plans include a usage dashboard at [claude.ai/analytics/claude-code](https://claude.ai/analytics/claude-code)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Review data handling"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Team, Enterprise, Claude API, and cloud provider plans, Anthropic does not train models on your code or prompts. Your API provider determines retention and compliance posture."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Topic | What to know | Where to start |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Data usage policy | What Anthropic collects, how long it's retained, what's never used for training | [Data usage](/en/data-usage) |"
+            },
+            {
+              "type": "removed",
+              "content": "| Zero Data Retention (ZDR) | Nothing stored after the request completes. Available on Claude for Enterprise | [Zero data retention](/en/zero-data-retention) |"
+            },
+            {
+              "type": "removed",
+              "content": "| Security architecture | Network model, encryption, authentication, audit trail | [Security](/en/security) |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you need request-level audit logging or to route traffic by data sensitivity, place an [LLM gateway](/en/llm-gateway) between developers and your provider. For regulatory requirements and certifications, see [Legal and compliance](/en/legal-and-compliance)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Verify and onboard"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After configuring managed settings, have a developer run `/status` inside Claude Code. The output includes a line beginning with `Enterprise managed settings` followed by the source in parentheses, one of `(remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. See [Verify active settings](/en/settings#verify-active-settings)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Share these resources to help developers get started:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [Quickstart](/en/quickstart): first-session walkthrough from install to working with a project"
+            },
+            {
+              "type": "removed",
+              "content": "- [Common workflows](/en/common-workflows): patterns for everyday tasks like code review, refactoring, and debugging"
+            },
+            {
+              "type": "removed",
+              "content": "- [Claude 101](https://anthropic.skilljar.com/claude-101) and [Claude Code in Action](https://anthropic.skilljar.com/claude-code-in-action): self-paced Anthropic Academy courses"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For login issues, point developers to [authentication troubleshooting](/en/troubleshooting#authentication-issues). The most common fixes are:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Run `/logout` then `/login` to switch accounts"
+            },
+            {
+              "type": "removed",
+              "content": "- Run `claude update` if the enterprise auth option is missing"
+            },
+            {
+              "type": "removed",
+              "content": "- Restart the terminal after updating"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If a developer sees \"You haven't been added to your organization yet,\" their seat doesn't include Claude Code access and needs to be updated in the admin console."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Next steps"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "With provider and delivery mechanism chosen, move on to detailed configuration:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [Server-managed settings](/en/server-managed-settings): deliver managed policy from the Claude admin console"
+            },
+            {
+              "type": "removed",
+              "content": "- [Settings reference](/en/settings): every setting key, file location, and precedence rule"
+            },
+            {
+              "type": "removed",
+              "content": "- [Amazon Bedrock](/en/amazon-bedrock), [Google Vertex AI](/en/google-vertex-ai), [Microsoft Foundry](/en/microsoft-foundry): provider-specific deployment"
+            },
+            {
+              "type": "removed",
+              "content": "- [Claude Enterprise Administrator Guide](https://claude.com/resources/tutorials/claude-enterprise-administrator-guide): SSO, SCIM, seat management, and rollout playbook"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/session-storage.md",
+      "additions": 0,
+      "deletions": 253,
+      "explanation": "古いセッションストレージに関連する記述が削除されました。",
+      "hunks": []
+    },
+    {
+      "filename": "claude-directory.md",
+      "additions": 1,
+      "deletions": 35,
+      "explanation": "トラブルシューティングの内容が新設されたデバッグ用ガイドに移行され、ファイル構成の簡略化が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -78,41 +78,7 @@ Click a filename to open that node in the explorer above.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshoot configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If a setting, hook, or file isn't taking effect, scan the symptoms below."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Symptom | Cause | Fix |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Hook never fires | `matcher` is a JSON array instead of a string | Use a single string with `\\|` to match multiple tools, for example `\"Edit\\|Write\"`. See [matcher patterns](/en/hooks#matcher-patterns). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Hook never fires | `matcher` value is lowercase, for example `\"bash\"` | Matching is case-sensitive. Tool names are capitalized: `Bash`, `Edit`, `Write`, `Read`. |"
+            },
+            {
+              "type": "removed",
+              "content": "| Hook never fires | Hooks are in a standalone `.claude/hooks.json` file | There is no standalone hooks file. Define hooks under the `\"hooks\"` key in `settings.json`. See [hook configuration](/en/hooks). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Permissions, hooks, or env set globally are ignored | Configuration was added to `~/.claude.json` | `~/.claude.json` holds app state and UI toggles. `permissions`, `hooks`, and `env` belong in `~/.claude/settings.json`. These are two different files. |"
+            },
+            {
+              "type": "removed",
+              "content": "| A `settings.json` value seems ignored | The same key is set in `settings.local.json` | `settings.local.json` overrides `settings.json`, and both override `~/.claude/settings.json`. See [settings precedence](/en/settings#settings-precedence). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Skill doesn't appear in `/skills` | Skill file is at `.claude/skills/name.md` instead of in a folder | Use a folder with `SKILL.md` inside: `.claude/skills/name/SKILL.md`. |"
+            },
+            {
+              "type": "removed",
+              "content": "| Subdirectory `CLAUDE.md` instructions seem ignored | Subdirectory files load on demand, not at session start | They load when Claude reads a file in that directory with the Read tool, not at launch and not when writing or creating files there. See [how CLAUDE.md files load](/en/memory#how-claude-md-files-load). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Subagent ignores `CLAUDE.md` instructions | Subagents don't always inherit project memory | Put critical rules in the agent file body, which becomes the subagent's system prompt. See [subagent configuration](/en/sub-agents). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Cleanup logic never runs at session end | No `SessionEnd` hook configured | `SessionStart` and `SessionEnd` both exist. See the [hook events list](/en/hooks#hook-events). |"
+            },
+            {
+              "type": "removed",
+              "content": "| MCP servers in `.mcp.json` never load | File is under `.claude/` or uses Claude Desktop's config format | Project MCP config lives at the repository root as `.mcp.json`, not inside `.claude/`. See [MCP configuration](/en/mcp). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Project MCP server added but doesn't appear | The one-time approval prompt was dismissed | Project-scoped servers require approval. Run `/mcp` to see status and approve. |"
+            },
+            {
+              "type": "removed",
+              "content": "| MCP server fails to start from some directories | `command` or `args` uses a relative file path | Use absolute paths for local scripts. Executables on your `PATH` like `npx` or `uvx` work as-is. |"
+            },
+            {
+              "type": "removed",
+              "content": "| MCP server starts without expected environment variables | Variables are in `settings.json` `env`, which doesn't propagate to MCP child processes | Set per-server `env` inside `.mcp.json` instead. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Bash(rm *)` deny rule doesn't block `/bin/rm` or `find -delete` | Prefix rules match the literal command string, not the underlying executable | Add explicit patterns for each variant, or use a [PreToolUse hook](/en/hooks-guide) or the [sandbox](/en/sandboxing) for a hard guarantee. |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Check what loaded"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The explorer shows what files can exist. To see what actually loaded in your current session, use these commands:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| Command | Shows |"
+            },
+            {
+              "type": "removed",
+              "content": "| - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/context` | Token usage by category: system prompt, memory files, skills, MCP tools, and messages |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/memory` | Which CLAUDE.md and rules files loaded, plus auto-memory entries |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/agents` | Configured subagents and their settings |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/hooks` | Active hook configurations |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/mcp` | Connected MCP servers and their status |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/skills` | Available skills from project, user, and plugin sources |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/permissions` | Current allow and deny rules |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/doctor` | Installation and configuration diagnostics |"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `/context` first for the overview, then the specific command for the area you want to investigate."
+            },
+            {
+              "type": "added",
+              "content": "If a setting, hook, or file isn't taking effect, see [Debug your configuration](/en/debug-your-config) for the inspection commands and a symptom-first lookup table."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Application data"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "data-usage.md",
+      "additions": 8,
+      "deletions": 1,
+      "explanation": "WebFetchツールがホスト名の安全性を確認するためにAnthropicのAPIへ通信する仕様と、そのオプトアウト方法が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -85,7 +85,7 @@ When users run the `/feedback` command, a copy of their full conversation histor",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Default behaviors by API provider"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, error reporting, telemetry, and bug reporting are disabled when using Bedrock, Vertex, or Foundry. Session quality surveys are the exception and appear regardless of provider. You can opt out of all non-essential traffic, including surveys, at once by setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`. Here are the full default behaviors:"
+            },
+            {
+              "type": "added",
+              "content": "By default, error reporting, telemetry, and bug reporting are disabled when using Bedrock, Vertex, or Foundry. Session quality surveys and the WebFetch domain safety check are exceptions and run regardless of provider. You can opt out of all non-essential traffic, including surveys, at once by setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`. This variable does not affect the WebFetch check, which has its own opt-out. Here are the full default behaviors:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Service | Claude API | Vertex API | Bedrock API | Foundry API |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - | - |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -93,5 +93,12 @@ By default, error reporting, telemetry, and bug reporting are disabled when usin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Sentry (Errors)** | Default on.`DISABLE_ERROR_REPORTING=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Claude API (`/feedback` reports)** | Default on.`DISABLE_FEEDBACK_COMMAND=1` to disable. | Default off.`CLAUDE_CODE_USE_VERTEX` must be 1. | Default off.`CLAUDE_CODE_USE_BEDROCK` must be 1. | Default off.`CLAUDE_CODE_USE_FOUNDRY` must be 1. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Session quality surveys** | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. | Default on.`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` to disable. |"
+            },
+            {
+              "type": "added",
+              "content": "| **WebFetch domain safety check** | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. | Default on.`skipWebFetchPreflight: true` in [settings](/en/settings) to disable. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "All environment variables can be checked into `settings.json` (see [settings reference](/en/settings))."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### WebFetch domain safety check"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Before fetching a URL, the WebFetch tool sends the requested hostname to `api.anthropic.com` to check it against a safety blocklist maintained by Anthropic. Only the hostname is sent, not the full URL, path, or page contents. Results are cached per hostname for five minutes."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This check runs regardless of which model provider you use and is not affected by `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`. If your network blocks `api.anthropic.com`, WebFetch requests fail until you either allowlist the domain or set `skipWebFetchPreflight: true` in [settings](/en/settings). Disabling the check means WebFetch attempts to retrieve any URL without consulting the blocklist, so combine it with [`WebFetch` permission rules](/en/permissions#webfetch) if you need to restrict which domains Claude can reach."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "debug-your-config.md",
+      "additions": 95,
+      "deletions": 0,
+      "explanation": "設定やスキルが反映されない原因を特定するための新しい診断ガイドで、/contextや/doctorなどのコマンド活用法がまとめられています。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,95 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: debug-your-config"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/debug-your-config.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Debug your configuration"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Diagnose why CLAUDE.md, settings, hooks, MCP servers, or skills aren't taking effect. Use /context, /doctor, /hooks, and /mcp to see what actually loaded."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude ignores an instruction or a feature you configured doesn't appear, the cause is usually that the file didn't load, it loaded from a different location than you expected, or another file overrode it. This guide shows how to inspect what Claude Code actually loaded so you can narrow down which applies."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For installation, authentication, and connectivity problems, see [Troubleshooting](/en/troubleshooting) instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## See what loaded into context"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `/context` command shows everything occupying the context window for the current session, broken down by category: system prompt, memory files, skills, MCP tools, and conversation messages. Run it first to confirm whether your `CLAUDE.md`, rules, or skill descriptions are present at all."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For detail on a specific category, follow up with the dedicated command:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Command | Shows |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `/memory` | Which `CLAUDE.md` and rules files loaded, plus auto-memory entries |"
+            },
+            {
+              "type": "added",
+              "content": "| `/skills` | Available skills from project, user, and plugin sources |"
+            },
+            {
+              "type": "added",
+              "content": "| `/agents` | Configured subagents and their settings |"
+            },
+            {
+              "type": "added",
+              "content": "| `/hooks` | Active hook configurations |"
+            },
+            {
+              "type": "added",
+              "content": "| `/mcp` | Connected MCP servers and their status |"
+            },
+            {
+              "type": "added",
+              "content": "| `/permissions` | Resolved allow and deny rules currently in effect |"
+            },
+            {
+              "type": "added",
+              "content": "| `/doctor` | Configuration diagnostics: invalid keys, schema errors, installation health |"
+            },
+            {
+              "type": "added",
+              "content": "| `/status` | Active settings sources, including whether managed settings are in effect |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If a memory file is missing from `/memory`, check its location against [how CLAUDE.md files load](/en/memory#how-claude-md-files-load). Subdirectory `CLAUDE.md` files load on demand when Claude reads a file in that directory with the Read tool, not at session start."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If `/memory` confirms the file loaded but Claude still isn't following a particular instruction, the issue is likely how the instruction is written rather than whether it loaded. CLAUDE.md works well for the kinds of guidance you'd give a new teammate, such as project conventions, build commands, and where files belong."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Adherence drops when an instruction is vague enough to interpret multiple ways, when two files give conflicting direction, or when the file has grown long enough that individual rules get less attention. [Write effective instructions](/en/memory#write-effective-instructions) covers the specificity, size, and structure patterns that keep adherence high."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "CLAUDE.md and permissions solve different problems. CLAUDE.md tells Claude how your project works so it makes good decisions. [Permissions](/en/permissions) and [hooks](/en/hooks) enforce limits regardless of what Claude decides. Use CLAUDE.md for \"we do it this way here.\" Use permissions or hooks for security boundaries and anything that must never happen, where you need a guarantee instead of guidance."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Check resolved settings"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Settings merge across managed, user, project, and local scopes. Managed settings always win when present. Among the rest, the closer scope overrides the broader one in the order local, then project, then user. Some settings can also be set by command-line flags or [environment variables](/en/env-vars), which act as another override layer. When a setting doesn't seem to apply, the value you set is usually being overridden by another scope or an environment variable."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/doctor` to validate your configuration files and surface invalid keys or schema errors. Run `/status` to see which settings sources are active, including whether managed settings are in effect. To understand which scope wins for a given key, see [How scopes interact](/en/settings#how-scopes-interact)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Check MCP servers"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/mcp` to see every configured server, its connection status, and whether you have approved it for the current project. A server can be defined correctly but still not provide tools for a few common reasons:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Project-scoped servers in `.mcp.json` require a one-time approval. If the prompt was dismissed, the server stays disabled until you approve it from `/mcp`."
+            },
+            {
+              "type": "added",
+              "content": "- A server that fails to start shows as failed in `/mcp`. Relative file paths in `command` or `args` are a frequent cause, since they resolve against the directory you launched Claude Code from rather than the location of `.mcp.json`."
+            },
+            {
+              "type": "added",
+              "content": "- A server that shows as connected but lists zero tools has started successfully but isn't returning a tool list. Select **Reconnect** from `/mcp`. If the count stays at zero, run `claude --debug mcp` to see the server's stderr output."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For configuration locations and scope rules, see [MCP](/en/mcp)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Check hooks"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/hooks` to list every hook registered for the current session, grouped by event. If a hook you defined doesn't appear, it isn't being read: hooks go under the `\"hooks\"` key in a settings file, not in a standalone file."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the hook appears but doesn't fire, the matcher is the usual cause. The `matcher` field is a single string that uses `|` to match multiple tool names, for example `\"Edit|Write\"`. A misspelled tool name fails silently because the matcher never matches. An array value is a schema error: Claude Code shows a settings error notice, `/doctor` reports the validation failure, and the hook entry is dropped so it won't appear in `/hooks`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Edits to `settings.json` take effect in the running session after a brief file-stability delay. You don't need to restart. If `/hooks` still shows the old definition a few seconds after saving, run `/hooks` again to refresh the view."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If `/hooks` shows the hook but it still does not fire, the next step is to watch hook evaluation live. Start a session with `claude --debug hooks` and trigger the tool call. The debug log records each event, which matchers were checked, and the hook's exit code and output. See [Debug hooks](/en/hooks#debug-hooks) for the log format and [hooks troubleshooting](/en/hooks-guide#limitations-and-troubleshooting) for common failure patterns."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Common causes"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Most configuration surprises trace back to a small set of location and syntax rules. Check these before assuming a bug:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Symptom | Cause | Fix |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| Hook never fires | `matcher` is a JSON array instead of a string | Use a single string with `\\|` to match multiple tools, for example `\"Edit\\|Write\"`. See [matcher patterns](/en/hooks#matcher-patterns). |"
+            },
+            {
+              "type": "added",
+              "content": "| Hook never fires | `matcher` value is lowercase, for example `\"bash\"` | Matching is case-sensitive. Tool names are capitalized: `Bash`, `Edit`, `Write`, `Read`. |"
+            },
+            {
+              "type": "added",
+              "content": "| Hook never fires | Hooks are in a standalone `.claude/hooks.json` file | There is no standalone hooks file. Define hooks under the `\"hooks\"` key in `settings.json`. See [hook configuration](/en/hooks). |"
+            },
+            {
+              "type": "added",
+              "content": "| Permissions, hooks, or env set globally are ignored | Configuration was added to `~/.claude.json` | `~/.claude.json` holds app state and UI toggles. `permissions`, `hooks`, and `env` belong in `~/.claude/settings.json`. These are two different files. |"
+            },
+            {
+              "type": "added",
+              "content": "| A `settings.json` value seems ignored | The same key is set in `settings.local.json` | `settings.local.json` overrides `settings.json`, and both override `~/.claude/settings.json`. See [settings precedence](/en/settings#how-scopes-interact). |"
+            },
+            {
+              "type": "added",
+              "content": "| Skill doesn't appear in `/skills` | Skill file is at `.claude/skills/name.md` instead of in a folder | Use a folder with `SKILL.md` inside: `.claude/skills/name/SKILL.md`. |"
+            },
+            {
+              "type": "added",
+              "content": "| Skill appears in `/skills` but Claude never invokes it | Skill has `disable-model-invocation: true` in its frontmatter, or its description doesn't match how you phrase the request | Check the badge in `/skills`: a \"user-only\" label means Claude won't trigger it on its own. See [skill invocation](/en/skills). |"
+            },
+            {
+              "type": "added",
+              "content": "| Subdirectory `CLAUDE.md` instructions seem ignored | Subdirectory files load on demand, not at session start | They load when Claude reads a file in that directory with the Read tool, not at launch and not when writing or creating files there. See [how CLAUDE.md files load](/en/memory#how-claude-md-files-load). |"
+            },
+            {
+              "type": "added",
+              "content": "| Subagent ignores `CLAUDE.md` instructions | Subagents don't always inherit project memory | Put critical rules in the agent file body, which becomes the subagent's system prompt. See [subagent configuration](/en/sub-agents). |"
+            },
+            {
+              "type": "added",
+              "content": "| Cleanup logic never runs at session end | No `SessionEnd` hook configured | `SessionStart` and `SessionEnd` both exist. See the [hook events list](/en/hooks#hook-events). |"
+            },
+            {
+              "type": "added",
+              "content": "| MCP servers in `.mcp.json` never load | File is under `.claude/` or uses Claude Desktop's config format | Project MCP config goes at the repository root as `.mcp.json`, not inside `.claude/`. See [MCP configuration](/en/mcp). |"
+            },
+            {
+              "type": "added",
+              "content": "| Project MCP server added but doesn't appear | The one-time approval prompt was dismissed | Project-scoped servers require approval. Run `/mcp` to see status and approve. |"
+            },
+            {
+              "type": "added",
+              "content": "| MCP server fails to start from some directories | `command` or `args` uses a relative file path | Use absolute paths for local scripts. Executables on your `PATH` like `npx` or `uvx` work as-is. |"
+            },
+            {
+              "type": "added",
+              "content": "| MCP server starts without expected environment variables | Variables are in `settings.json` `env`, which doesn't propagate to MCP child processes | Set per-server `env` inside `.mcp.json` instead. |"
+            },
+            {
+              "type": "added",
+              "content": "| `Bash(rm *)` deny rule doesn't block `/bin/rm` or `find -delete` | Prefix rules match the literal command string, not the underlying executable | Add explicit patterns for each variant, or use a [PreToolUse hook](/en/hooks-guide) or the [sandbox](/en/sandboxing) for a hard guarantee. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Related resources"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For full reference on each configuration surface, see the dedicated page:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **[`.claude` directory reference](/en/claude-directory)**: every config file location and what reads it"
+            },
+            {
+              "type": "added",
+              "content": "- **[Settings](/en/settings)**: precedence order and the full key list"
+            },
+            {
+              "type": "added",
+              "content": "- **[Hooks reference](/en/hooks)**: event names, payloads, and `--debug hooks` output format"
+            },
+            {
+              "type": "added",
+              "content": "- **[MCP](/en/mcp)**: server configuration, approval, and `/mcp` output"
+            },
+            {
+              "type": "added",
+              "content": "- **[Troubleshooting](/en/troubleshooting)**: `claude doctor`, platform issues, and installation problems"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "フック設定の記述において、軽微な修正が加えられています。",
+      "hunks": [
+        {
+          "header": "@@ -2386,4 +2386,4 @@ Hook execution details, including which hooks matched, their exit codes, and ful",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For more granular hook matching details, set `CLAUDE_CODE_DEBUG_LOG_LEVEL=verbose` to see additional log lines such as hook matcher counts and query matching."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For troubleshooting common issues like hooks not firing, infinite Stop hook loops, or configuration errors, see [Limitations and troubleshooting](/en/hooks-guide#limitations-and-troubleshooting) in the guide."
+            },
+            {
+              "type": "added",
+              "content": "For troubleshooting common issues like hooks not firing, infinite Stop hook loops, or configuration errors, see [Limitations and troubleshooting](/en/hooks-guide#limitations-and-troubleshooting) in the guide. For a broader diagnostic walkthrough covering `/context`, `/doctor`, and settings precedence, see [Debug your config](/en/debug-your-config)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "インタラクティブモードの説明文において、微細なテキストの調整が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -307,7 +307,7 @@ When you return to the terminal after stepping away, Claude Code shows a one-lin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `/recap` to generate a summary on demand. To turn automatic recaps off, open `/config` and disable **Session recap**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Session recap is on by default for every plan and provider. To override the `/config` toggle, set [`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/en/env-vars) to `0` or `1`. The recap is always skipped in non-interactive mode."
+            },
+            {
+              "type": "added",
+              "content": "Session recap is on by default for every plan and provider. The recap is always skipped in non-interactive mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## PR review status"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "メモリ機能に関するドキュメントの構成が微調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -387,6 +387,7 @@ See [Write effective instructions](#write-effective-instructions) for guidance o",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Debug your configuration](/en/debug-your-config): diagnose why CLAUDE.md or settings aren't taking effect"
+            },
+            {
+              "type": "context",
+              "content": "- [Skills](/en/skills): package repeatable workflows that load on demand"
+            },
+            {
+              "type": "context",
+              "content": "- [Settings](/en/settings): configure Claude Code behavior with settings files"
+            },
+            {
+              "type": "context",
+              "content": "- [Subagent memory](/en/sub-agents#enable-persistent-memory): let subagents maintain their own auto memory"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "network-config.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "ネットワーク設定の項目に、特定の通信要件に関する記述が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -101,6 +101,8 @@ Claude Code requires access to the following URLs:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ensure these URLs are allowlisted in your proxy configuration and firewall rules. This is especially important when using Claude Code in containerized or restricted network environments."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When using [Bedrock](/en/amazon-bedrock), [Vertex AI](/en/google-vertex-ai), or [Foundry](/en/microsoft-foundry), model traffic goes to your provider instead of `api.anthropic.com`. The WebFetch tool still calls `api.anthropic.com` for its [domain safety check](/en/data-usage#webfetch-domain-safety-check) unless you set `skipWebFetchPreflight: true` in [settings](/en/settings)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The native installer and update checks also require the following URLs. Allowlist both, since clients running older Claude Code versions fetch from `storage.googleapis.com`. If you install Claude Code through npm or manage your own binary distribution, end users may not need access:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `downloads.claude.ai`: download host for the Claude Code binary, auto-updater, version pointers, manifests, install script, signing keys, and plugin executables"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "overview.md",
+      "additions": 1,
+      "deletions": 8,
+      "explanation": "概要説明のセクションから、重複する古い記述が整理・削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -364,14 +364,7 @@ source: https://code.claude.com/docs/en/overview.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Claude Code is an AI-powered coding assistant that helps you build features, fix bugs, and automate development tasks. It understands your entire codebase and can work across multiple files and tools to get things done."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "<div data-gb-slot=\"overview-install-configurator\">"
+            },
+            {
+              "type": "removed",
+              "content": "  <Experiment"
+            },
+            {
+              "type": "removed",
+              "content": "    flag=\"overview-install-configurator\""
+            },
+            {
+              "type": "removed",
+              "content": "    treatment={"
+            },
+            {
+              "type": "removed",
+              "content": "<Experiment flag=\"install-configurator-default-surface\" treatment={<InstallConfigurator defaultSurface=\"desktop\" />}>"
+            },
+            {
+              "type": "removed",
+              "content": "  <InstallConfigurator />"
+            },
+            {
+              "type": "removed",
+              "content": "</Experiment>"
+            },
+            {
+              "type": "removed",
+              "content": "}"
+            },
+            {
+              "type": "removed",
+              "content": "  />"
+            },
+            {
+              "type": "added",
+              "content": "  <Experiment flag=\"overview-install-configurator\" treatment={<InstallConfigurator />} />"
+            },
+            {
+              "type": "context",
+              "content": "</div>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Get started"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "権限管理設定において、新しい制御オプションに関する記述が補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -302,9 +302,11 @@ To react to denials programmatically, use the [`PermissionDenied` hook](/en/hook",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configure the auto mode classifier"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) uses a classifier model to decide whether each action is safe to run without prompting. Out of the box it trusts only the working directory and, if present, the current repo's remotes. Actions like pushing to your company's source control org or writing to a team cloud bucket will be blocked as potential data exfiltration. The `autoMode` settings block lets you tell the classifier which infrastructure your organization trusts."
+            },
+            {
+              "type": "added",
+              "content": "[Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) uses a classifier model to decide whether each action is safe to run without prompting. Out of the box it trusts only the working directory and, if present, the current repo's remotes. Actions like pushing to your company's source control org or writing to a team cloud bucket will be blocked as potential data exfiltration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The classifier reads `autoMode` from user settings, `.claude/settings.local.json`, and managed settings. It does not read from shared project settings in `.claude/settings.json`, because a checked-in repo could otherwise inject its own allow rules."
+            },
+            {
+              "type": "added",
+              "content": "To adjust what the classifier allows or blocks, add instructions to your [CLAUDE.md](/en/memory) file. The classifier reads CLAUDE.md from trusted directories alongside the conversation, so an instruction like \"never force push\" steers both Claude and the classifier at the same time. Start here for project conventions and behavioral rules."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For rules that apply across projects, such as trusted infrastructure or organization-wide deny rules, use the `autoMode` settings block. The classifier reads `autoMode` from user settings, `.claude/settings.local.json`, and managed settings. It does not read from shared project settings in `.claude/settings.json`, because a checked-in repo could otherwise inject its own allow rules."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Scope | File | Use for |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 30,
+      "deletions": 5,
+      "explanation": "プラグインのマーケットプレイス制限や、管理ポリシーによる制御方法についての詳細が拡充されました。",
+      "hunks": [
+        {
+          "header": "@@ -413,10 +413,13 @@ The `userConfig` field declares values that Claude Code prompts the user for whe",
+          "lines": [
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"userConfig\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"api_endpoint\": {"
+            },
+            {
+              "type": "removed",
+              "content": "      \"description\": \"Your team's API endpoint\","
+            },
+            {
+              "type": "removed",
+              "content": "      \"sensitive\": false"
+            },
+            {
+              "type": "added",
+              "content": "      \"type\": \"string\","
+            },
+            {
+              "type": "added",
+              "content": "      \"title\": \"API endpoint\","
+            },
+            {
+              "type": "added",
+              "content": "      \"description\": \"Your team's API endpoint\""
+            },
+            {
+              "type": "context",
+              "content": "    },"
+            },
+            {
+              "type": "context",
+              "content": "    \"api_token\": {"
+            },
+            {
+              "type": "added",
+              "content": "      \"type\": \"string\","
+            },
+            {
+              "type": "added",
+              "content": "      \"title\": \"API token\","
+            },
+            {
+              "type": "context",
+              "content": "      \"description\": \"API authentication token\","
+            },
+            {
+              "type": "context",
+              "content": "      \"sensitive\": true"
+            },
+            {
+              "type": "context",
+              "content": "    }"
+            }
+          ]
+        },
+        {
+          "header": "@@ -424,7 +427,20 @@ The `userConfig` field declares values that Claude Code prompts the user for whe",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Keys must be valid identifiers. Each value is available for substitution as `${user_config.KEY}` in MCP and LSP server configs, hook commands, monitor commands, and (for non-sensitive values only) skill and agent content. Values are also exported to plugin subprocesses as `CLAUDE_PLUGIN_OPTION_<KEY>` environment variables."
+            },
+            {
+              "type": "added",
+              "content": "Keys must be valid identifiers. Each option supports these fields:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Required | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `type` | Yes | One of `string`, `number`, `boolean`, `directory`, or `file` |"
+            },
+            {
+              "type": "added",
+              "content": "| `title` | Yes | Label shown in the configuration dialog |"
+            },
+            {
+              "type": "added",
+              "content": "| `description` | Yes | Help text shown beneath the field |"
+            },
+            {
+              "type": "added",
+              "content": "| `sensitive` | No | If `true`, masks input and stores the value in secure storage instead of `settings.json` |"
+            },
+            {
+              "type": "added",
+              "content": "| `required` | No | If `true`, validation fails when the field is empty |"
+            },
+            {
+              "type": "added",
+              "content": "| `default` | No | Value used when the user provides nothing |"
+            },
+            {
+              "type": "added",
+              "content": "| `multiple` | No | For `string` type, allow an array of strings |"
+            },
+            {
+              "type": "added",
+              "content": "| `min` / `max` | No | Bounds for `number` type |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each value is available for substitution as `${user_config.KEY}` in MCP and LSP server configs, hook commands, and monitor commands. Non-sensitive values can also be substituted in skill and agent content. All values are exported to plugin subprocesses as `CLAUDE_PLUGIN_OPTION_<KEY>` environment variables."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Non-sensitive values are stored in `settings.json` under `pluginConfigs[<plugin-id>].options`. Sensitive values go to the system keychain (or `~/.claude/.credentials.json` where the keychain is unavailable). Keychain storage is shared with OAuth tokens and has an approximately 2 KB total limit, so keep sensitive values small."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -438,8 +454,17 @@ The `channels` field lets a plugin declare one or more message channels that inj",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    {"
+            },
+            {
+              "type": "context",
+              "content": "      \"server\": \"telegram\","
+            },
+            {
+              "type": "context",
+              "content": "      \"userConfig\": {"
+            },
+            {
+              "type": "removed",
+              "content": "        \"bot_token\": { \"description\": \"Telegram bot token\", \"sensitive\": true },"
+            },
+            {
+              "type": "removed",
+              "content": "        \"owner_id\": { \"description\": \"Your Telegram user ID\", \"sensitive\": false }"
+            },
+            {
+              "type": "added",
+              "content": "        \"bot_token\": {"
+            },
+            {
+              "type": "added",
+              "content": "          \"type\": \"string\","
+            },
+            {
+              "type": "added",
+              "content": "          \"title\": \"Bot token\","
+            },
+            {
+              "type": "added",
+              "content": "          \"description\": \"Telegram bot token\","
+            },
+            {
+              "type": "added",
+              "content": "          \"sensitive\": true"
+            },
+            {
+              "type": "added",
+              "content": "        },"
+            },
+            {
+              "type": "added",
+              "content": "        \"owner_id\": {"
+            },
+            {
+              "type": "added",
+              "content": "          \"type\": \"string\","
+            },
+            {
+              "type": "added",
+              "content": "          \"title\": \"Owner ID\","
+            },
+            {
+              "type": "added",
+              "content": "          \"description\": \"Your Telegram user ID\""
+            },
+            {
+              "type": "added",
+              "content": "        }"
+            },
+            {
+              "type": "context",
+              "content": "      }"
+            },
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  ]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 1,
+      "deletions": 3,
+      "explanation": "導入手順のフローが整理され、不要なステップが削減されました。",
+      "hunks": [
+        {
+          "header": "@@ -364,9 +364,7 @@ source: https://code.claude.com/docs/en/quickstart.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "This quickstart guide will have you using AI-powered coding assistance in a few minutes. By the end, you'll understand how to use Claude Code for common development tasks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "<div className=\"install-configurator-slot\">"
+            },
+            {
+              "type": "removed",
+              "content": "  <Experiment flag=\"install-configurator-default-surface\" treatment={<InstallConfigurator defaultSurface=\"desktop\" />}>"
+            },
+            {
+              "type": "removed",
+              "content": "    <InstallConfigurator />"
+            },
+            {
+              "type": "removed",
+              "content": "  </Experiment>"
+            },
+            {
+              "type": "added",
+              "content": "  <InstallConfigurator />"
+            },
+            {
+              "type": "context",
+              "content": "</div>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Before you begin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "WebFetchのプリフライトチェックをスキップする設定など、新しい設定項目が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -208,6 +208,7 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `respectGitignore` | Control whether the `@` file picker respects `.gitignore` patterns. When `true` (default), files matching `.gitignore` patterns are excluded from suggestions | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showClearContextOnPlanAccept` | Show the \"clear context\" option on the plan accept screen. Defaults to `false`. Set to `true` to restore the option | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showThinkingSummaries` | Show [extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) summaries in interactive sessions. When unset or `false` (default in interactive mode), thinking blocks are redacted by the API and shown as a collapsed stub. Redaction only changes what you see, not what the model generates: to reduce thinking spend, [lower the budget or disable thinking](/en/common-workflows#use-extended-thinking-thinking-mode) instead. Non-interactive mode (`-p`) and SDK callers always receive summaries regardless of this setting | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `skipWebFetchPreflight` | Skip the [WebFetch domain safety check](/en/data-usage#webfetch-domain-safety-check) that sends each requested hostname to `api.anthropic.com` before fetching. Set to `true` in environments that block traffic to Anthropic, such as Bedrock, Vertex AI, or Foundry deployments with restrictive egress. When skipped, WebFetch attempts any URL without consulting the blocklist | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerTipsEnabled` | Show tips in the spinner while Claude is working. Set to `false` to disable tips (default: `true`) | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerTipsOverride` | Override spinner tips with custom strings. `tips`: array of tip strings. `excludeDefault`: if `true`, only show custom tips; if `false` or absent, custom tips are merged with built-in tips | `{ \"excludeDefault\": true, \"tips\": [\"Use our internal tool X\"] }` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerVerbs` | Customize the action verbs shown in the spinner and turn duration messages. Set `mode` to `\"replace\"` to use only your verbs, or `\"append\"` to add them to the defaults | `{\"mode\": \"append\", \"verbs\": [\"Pondering\", \"Crafting\"]}` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -893,4 +894,5 @@ See the [tools reference](/en/tools-reference) for the full list and Bash tool b",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Permissions](/en/permissions): permission system, rule syntax, tool-specific patterns, and managed policies"
+            },
+            {
+              "type": "context",
+              "content": "- [Authentication](/en/authentication): set up user access to Claude Code"
+            },
+            {
+              "type": "removed",
+              "content": "- [Troubleshooting](/en/troubleshooting): solutions for common configuration issues"
+            },
+            {
+              "type": "added",
+              "content": "- [Debug your configuration](/en/debug-your-config): diagnose why a setting, hook, or MCP server isn't taking effect"
+            },
+            {
+              "type": "added",
+              "content": "- [Troubleshooting](/en/troubleshooting): installation, authentication, and platform issues"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "スキルの定義や配置に関する説明が一部更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -180,7 +180,7 @@ All fields are optional. Only `description` is recommended so Claude knows when",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `when_to_use` | No | Additional context for when Claude should invoke the skill, such as trigger phrases or example requests. Appended to `description` in the skill listing and counts toward the 1,536-character cap. |"
+            },
+            {
+              "type": "context",
+              "content": "| `argument-hint` | No | Hint shown during autocomplete to indicate expected arguments. Example: `[issue-number]` or `[filename] [format]`. |"
+            },
+            {
+              "type": "context",
+              "content": "| `arguments` | No | Named positional arguments for [`$name` substitution](#available-string-substitutions) in the skill content. Accepts a space-separated string or a YAML list. Names map to argument positions in order. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `disable-model-invocation` | No | Set to `true` to prevent Claude from automatically loading this skill. Use for workflows you want to trigger manually with `/name`. Default: `false`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `disable-model-invocation` | No | Set to `true` to prevent Claude from automatically loading this skill. Use for workflows you want to trigger manually with `/name`. Also prevents the skill from being [preloaded into subagents](/en/sub-agents#preload-skills-into-subagents). Default: `false`. |"
+            },
+            {
+              "type": "context",
+              "content": "| `user-invocable` | No | Set to `false` to hide from the `/` menu. Use for background knowledge users shouldn't invoke directly. Default: `true`. |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowed-tools` | No | Tools Claude can use without asking permission when this skill is active. Accepts a space-separated string or a YAML list. |"
+            },
+            {
+              "type": "context",
+              "content": "| `model` | No | Model to use when this skill is active. The override applies for the rest of the current turn and is not saved to settings; the session model resumes on your next prompt. Accepts the same values as [`/model`](/en/model-config), or `inherit` to keep the active model. |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -698,6 +698,7 @@ To raise the limit, set the `SLASH_COMMAND_TOOL_CHAR_BUDGET` environment variabl",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **[Debug your configuration](/en/debug-your-config)**: diagnose why a skill isn't appearing or triggering"
+            },
+            {
+              "type": "context",
+              "content": "- **[Subagents](/en/sub-agents)**: delegate tasks to specialized agents"
+            },
+            {
+              "type": "context",
+              "content": "- **[Plugins](/en/plugins)**: package and distribute skills with other extensions"
+            },
+            {
+              "type": "context",
+              "content": "- **[Hooks](/en/hooks)**: automate workflows around tool events"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "サブエージェントの設定オプションに関する情報が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -346,6 +346,8 @@ Implement API endpoints. Follow the conventions and patterns from the preloaded",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The full content of each skill is injected into the subagent's context, not just made available for invocation. Subagents don't inherit skills from the parent conversation; you must list them explicitly."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You cannot preload skills that set [`disable-model-invocation: true`](/en/skills#control-who-invokes-a-skill), since preloading draws from the same set of skills Claude can invoke. If a listed skill is missing or disabled, Claude Code skips it and logs a warning to the debug log."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This is the inverse of [running a skill in a subagent](/en/skills#run-skills-in-a-subagent). With `skills` in a subagent, the subagent controls the system prompt and loads skill content. With `context: fork` in a skill, the skill content is injected into the agent you specify. Both use the same underlying system."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Enable persistent memory"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
