@@ -1,19 +1,19 @@
 packages:
   - 'packages/*'
   - 'apps/*'
-# postinstall 等のライフサイクルスクリプトを許可リスト制にする(pnpm v10 のデフォルト動作だが意図を明示)
-strictDepBuilds: true
+# ビルドスクリプトの実行を許可するパッケージ(pnpm v10 全バージョン対応の構文)
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - '@resvg/resvg-js'
+  - better-sqlite3
+  - esbuild
 
-# true: ビルドスクリプトの実行を許可 / false: 実行不要と明示してエラー表示を抑制
-allowBuilds:
-  '@biomejs/biome': true
-  '@resvg/resvg-js': true
-  better-sqlite3: true
-  esbuild: true
-  core-js-pure: false
-  protobufjs: false
-  sharp: false
-  workerd: false
+# ビルドスクリプトを持つが実行不要なパッケージ(ERR_PNPM_IGNORED_BUILDS 警告を抑制)
+ignoredBuiltDependencies:
+  - core-js-pure
+  - protobufjs
+  - sharp
+  - workerd
 
 # 公開後 1 日未満のパッケージをインストール拒否(ゼロデイ型サプライチェーン攻撃対策)
 minimumReleaseAge: 1440
