@@ -308,7 +308,7 @@ Actions available in the `Chat` context when [voice dictation](/en/voice-dictati
 
 | Action | Default | Description |
 | :- | :- | :- |
-| `voice:pushToTalk` | Space | Hold to dictate a prompt |
+| `voice:pushToTalk` | Space | Dictate a prompt. Hold or tap depending on `/voice` mode |
 
 ### Scroll actions
 
