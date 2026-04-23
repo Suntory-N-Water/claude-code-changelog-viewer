@@ -75,6 +75,7 @@ Click a filename to open that node in the explorer above.
 | [`~/.claude.json`](#ce-claude-json) | Global only | | App state, OAuth, UI toggles, personal MCP servers | [Global config](/en/settings#global-config-settings) |
 | [`projects/<project>/memory/`](#ce-global-projects) | Global only | | Auto memory: Claude's notes to itself across sessions | [Auto memory](/en/memory#auto-memory) |
 | [`keybindings.json`](#ce-keybindings) | Global only | | Custom keyboard shortcuts | [Keybindings](/en/keybindings) |
+| [`themes/*.json`](#ce-themes) | Global only | | Custom color themes | [Custom themes](/en/terminal-config#create-a-custom-theme) |
 
 ## Troubleshoot configuration
 
@@ -108,7 +109,7 @@ The following paths are not covered by automatic cleanup and persist indefinitel
 | Path under `~/.claude/` | Contents |
 | - | - |
 | `history.jsonl` | Every prompt you've typed, with timestamp and project path. Used for up-arrow recall. |
-| `stats-cache.json` | Aggregated token and cost counts shown by `/cost` |
+| `stats-cache.json` | Aggregated token and cost counts shown by `/usage` |
 | `todos/` | Legacy per-session task lists. No longer written by current versions; safe to delete. |
 
 Other small cache and lock files appear depending on which features you use and are safe to delete.
@@ -130,7 +131,7 @@ You can delete any of the application-data paths above at any time. New sessions
 | `~/.claude/projects/` | Resume, continue, and rewind for past sessions |
 | `~/.claude/history.jsonl` | Up-arrow prompt recall |
 | `~/.claude/file-history/` | Checkpoint restore for past sessions |
-| `~/.claude/stats-cache.json` | Historical totals shown by `/cost` |
+| `~/.claude/stats-cache.json` | Historical totals shown by `/usage` |
 | `~/.claude/debug/`, `~/.claude/plans/`, `~/.claude/paste-cache/`, `~/.claude/image-cache/`, `~/.claude/session-env/`, `~/.claude/tasks/`, `~/.claude/shell-snapshots/`, `~/.claude/backups/` | Nothing user-facing |
 | `~/.claude/todos/` | Nothing. Legacy directory not written by current versions. |
 

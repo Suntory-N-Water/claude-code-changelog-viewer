@@ -60,9 +60,18 @@ For all first party users, you can learn more about what data is logged for [loc
 
 The diagram below shows how Claude Code connects to external services during installation and normal operation. Solid lines indicate required connections, while dashed lines represent optional or user-initiated data flows.
 
-Claude Code is installed from [NPM](https://www.npmjs.com/package/@anthropic-ai/claude-code). Claude Code runs locally. In order to interact with the LLM, Claude Code sends data over the network. This data includes all user prompts and model outputs. The data is encrypted in transit via TLS and is not encrypted at rest. Claude Code is compatible with most popular VPNs and LLM proxies.
+Claude Code runs locally. To interact with the LLM, Claude Code sends data over the network. This data includes all user prompts and model outputs, encrypted in transit via TLS 1.2+. Claude Code is compatible with most popular VPNs and LLM proxies.
 
-Claude Code is built on Anthropic's APIs. For details regarding our API's security controls, including our API logging procedures, please refer to compliance artifacts offered in the [Anthropic Trust Center](https://trust.anthropic.com).
+Encryption at rest depends on your model provider:
+
+| Provider | Encryption at rest |
+| - | - |
+| Anthropic API | Infrastructure-level disk encryption (AES-256). Enable [Zero Data Retention](/en/zero-data-retention) for no server-side persistence. |
+| Amazon Bedrock | AES-256 with AWS-managed keys. Customer-managed keys available via AWS KMS. |
+| Google Cloud Vertex AI | Google-managed encryption keys. CMEK available. |
+| Microsoft Foundry | Requests route to Anthropic infrastructure with AES-256 disk encryption. |
+
+Claude Code is built on Anthropic's APIs. For details on API security controls, including API logging procedures, see the compliance artifacts in the [Anthropic Trust Center](https://trust.anthropic.com).
 
 ### Cloud execution: Data flow and dependencies
 
@@ -81,7 +90,7 @@ Claude Code connects from users' machines to the Statsig service to log operatio
 
 Claude Code connects from users' machines to Sentry for operational error logging. The data is encrypted in transit using TLS and at rest using 256-bit AES encryption. Read more in the [Sentry security documentation](https://sentry.io/security/). To opt out of error logging, set the `DISABLE_ERROR_REPORTING` environment variable.
 
-When users run the `/feedback` command, a copy of their full conversation history including code is sent to Anthropic. The data is encrypted in transit and at rest. Optionally, a Github issue is created in our public repository. To opt out, set the `DISABLE_FEEDBACK_COMMAND` environment variable to `1`.
+When users run the `/feedback` command, a copy of their full conversation history including code is sent to Anthropic. The data is encrypted in transit via TLS. Optionally, a GitHub issue is created in the public repository. To opt out, set the `DISABLE_FEEDBACK_COMMAND` environment variable to `1`.
 
 ## Default behaviors by API provider
 

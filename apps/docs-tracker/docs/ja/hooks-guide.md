@@ -400,6 +400,7 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 | `PermissionDenied` | When a tool call is denied by the auto mode classifier. Return `{retry: true}` to tell the model it may retry the denied tool call |
 | `PostToolUse` | After a tool call succeeds |
 | `PostToolUseFailure` | After a tool call fails |
+| `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
 | `Notification` | When Claude Code sends a notification |
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
@@ -422,9 +423,10 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 
 複数の hooks がマッチする場合、それぞれが独自の結果を返します。決定については、Claude Code は最も制限的な答えを選択します。`PreToolUse` hook が `deny` を返すと、他が何を返すかに関わらず、ツール呼び出しがキャンセルされます。1 つの hook が `ask` を返すと、残りが `allow` を返しても、許可プロンプトが強制されます。`additionalContext` からのテキストはすべての hook から保持され、Claude に一緒に渡されます。
 
-各 hook には、それがどのように実行されるかを決定する `type` があります。ほとんどの hooks は `"type": "command"` を使用し、シェルコマンドを実行します。他の 3 つのタイプが利用可能です：
+各 hook には、それがどのように実行されるかを決定する `type` があります。ほとんどの hooks は `"type": "command"` を使用し、シェルコマンドを実行します。他の 4 つのタイプが利用可能です：
 
 - `"type": "http"`：イベントデータを URL に POST します。[HTTP hooks](#http-hooks) を参照してください。
+- `"type": "mcp_tool"`：既に接続されている MCP サーバー上のツールを呼び出します。[MCP tool hooks](/ja/hooks#mcp-tool-hook-fields) を参照してください。
 - `"type": "prompt"`：シングルターン LLM 評価。[プロンプトベースの hooks](#prompt-based-hooks) を参照してください。
 - `"type": "agent"`：ツールアクセス付きマルチターン検証。エージェント hooks は実験的であり、変更される可能性があります。[エージェントベースの hooks](#agent-based-hooks) を参照してください。
 
@@ -469,7 +471,7 @@ exit 0  # exit 0 = 続行させる
 
 終了コードは次に何が起こるかを決定します：
 
-- **終了 0**：アクションが続行されます。`UserPromptSubmit` および `SessionStart` hooks の場合、stdout に書き込むすべてのものが Claude のコンテキストに追加されます。
+- **終了 0**：アクションが続行されます。`UserPromptSubmit`、`UserPromptExpansion`、および `SessionStart` hooks の場合、stdout に書き込むすべてのものが Claude のコンテキストに追加されます。
 - **終了 2**：アクションがブロックされます。stderr に理由を書き込み、Claude はそれをフィードバックとして受け取るため、調整できます。
 - **その他の終了コード**：アクションが続行されます。トランスクリプトは `<hook name> hook error` 通知を表示し、その後 stderr の最初の行が続きます。完全な stderr は [デバッグログ](/ja/hooks#debug-hooks) に記録されます。
 
@@ -543,7 +545,8 @@ exit 0  # exit 0 = 続行させる
 | `Elicitation` | MCP サーバー名 | 設定した MCP サーバー名 |
 | `ElicitationResult` | MCP サーバー名 | `Elicitation` と同じ値 |
 | `FileChanged` | リテラルファイル名を監視（[FileChanged](/ja/hooks#filechanged) を参照） | `.envrc\|.env` |
-| `UserPromptSubmit`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` | マッチャーサポートなし | すべての発生で常に発火 |
+| `UserPromptExpansion` | コマンド名 | スキルまたはコマンド名 |
+| `UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` | マッチャーサポートなし | すべての発生で常に発火 |
 
 異なるイベントタイプのマッチャーを示すいくつかの例：
 

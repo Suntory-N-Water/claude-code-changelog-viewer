@@ -60,9 +60,18 @@ Web 上の個別の Claude Code セッションはいつでも削除できます
 
 以下の図は、インストール中および通常の操作中に Claude Code が外部サービスにどのように接続するかを示しています。実線は必須の接続を示し、破線はオプションまたはユーザーが開始したデータフローを表します。
 
-Claude Code は [NPM](https://www.npmjs.com/package/@anthropic-ai/claude-code) からインストールされます。Claude Code はローカルで実行されます。LLM と対話するために、Claude Code はネットワーク経由でデータを送信します。このデータには、すべてのユーザープロンプトとモデル出力が含まれます。データは TLS 経由で転送中に暗号化され、保存時には暗号化されません。Claude Code はほとんどの一般的な VPN および LLM プロキシと互換性があります。
+Claude Code はローカルで実行されます。LLM と対話するために、Claude Code はネットワーク経由でデータを送信します。このデータには、すべてのユーザープロンプトとモデル出力が含まれます。データは TLS 1.2 以上で転送中に暗号化されます。Claude Code はほとんどの一般的な VPN および LLM プロキシと互換性があります。
 
-Claude Code は Anthropic の API 上に構築されています。API のセキュリティ制御（API ロギング手順を含む）の詳細については、[Anthropic Trust Center](https://trust.anthropic.com) で提供されるコンプライアンスアーティファクトを参照してください。
+保存時の暗号化はモデルプロバイダーによって異なります：
+
+| プロバイダー | 保存時の暗号化 |
+| - | - |
+| Anthropic API | インフラストラクチャレベルのディスク暗号化（AES-256）。サーバー側の永続化がない場合は [Zero Data Retention](/ja/zero-data-retention) を有効にしてください。 |
+| Amazon Bedrock | AWS 管理キーを使用した AES-256。AWS KMS を通じてカスタマー管理キーが利用可能です。 |
+| Google Cloud Vertex AI | Google 管理の暗号化キー。CMEK が利用可能です。 |
+| Microsoft Foundry | リクエストは AES-256 ディスク暗号化を備えた Anthropic インフラストラクチャにルーティングされます。 |
+
+Claude Code は Anthropic の API 上に構築されています。API のセキュリティ制御（API ロギング手順を含む）の詳細については、[Anthropic Trust Center](https://trust.anthropic.com) のコンプライアンスアーティファクトを参照してください。
 
 ### クラウド実行：データフローと依存関係
 
@@ -81,7 +90,7 @@ Claude Code は、ユーザーのマシンから Statsig サービスに接続�
 
 Claude Code は、ユーザーのマシンから Sentry に接続して、運用エラーログを記録します。データは TLS を使用して転送中に暗号化され、256 ビット AES 暗号化を使用して保存時に暗号化されます。詳細については、[Sentry security documentation](https://sentry.io/security/) を参照してください。エラーログをオプトアウトするには、`DISABLE_ERROR_REPORTING` 環境変数を設定します。
 
-ユーザーが `/feedback` コマンドを実行すると、コードを含む完全な会話履歴のコピーが Anthropic に送信されます。データは転送中および保存時に暗号化されます。オプションで、公開リポジトリに Github イシューが作成されます。オプトアウトするには、`DISABLE_FEEDBACK_COMMAND` 環境変数を `1` に設定します。
+ユーザーが `/feedback` コマンドを実行すると、コードを含む完全な会話履歴のコピーが Anthropic に送信されます。データは転送中に TLS で暗号化されます。オプションで、公開リポジトリに GitHub イシューが作成されます。オプトアウトするには、`DISABLE_FEEDBACK_COMMAND` 環境変数を `1` に設定します。
 
 ## API プロバイダーのデフォルト動作
 

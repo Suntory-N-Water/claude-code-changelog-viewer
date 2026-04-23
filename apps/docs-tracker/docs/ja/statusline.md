@@ -157,7 +157,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `transcript_path` | 会話トランスクリプトファイルへのパス |
 | `version` | Claude Code バージョン |
 | `output_style.name` | 現在の出力スタイルの名前 |
-| `vim.mode` | [vim モード](/ja/interactive-mode#vim-editor-mode) が有効な場合の現在の vim モード（`NORMAL` または `INSERT`） |
+| `vim.mode` | [vim モード](/ja/interactive-mode#vim-editor-mode) が有効な場合の現在の vim モード（`NORMAL`、`INSERT`、`VISUAL`、または `VISUAL LINE`） |
 | `agent.name` | `--agent` フラグまたはエージェント設定が設定されている場合のエージェント名 |
 | `worktree.name` | アクティブな worktree の名前。`--worktree` セッション中のみ存在 |
 | `worktree.path` | worktree ディレクトリへの絶対パス |

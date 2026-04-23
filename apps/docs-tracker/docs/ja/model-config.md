@@ -77,7 +77,7 @@ claude --model opus
 
 エンタープライズ管理者は、[管理設定またはポリシー設定](/ja/settings#settings-files) で `availableModels` を使用して、ユーザーが選択できるモデルを制限できます。
 
-`availableModels` が設定されている場合、ユーザーは `/model`、`--model` フラグ、Config ツール、または `ANTHROPIC_MODEL` 環境変数を使用してリスト内にないモデルに切り替えることはできません。
+`availableModels` が設定されている場合、ユーザーは `/model`、`--model` フラグ、または `ANTHROPIC_MODEL` 環境変数を使用してリスト内にないモデルに切り替えることはできません。
 
 ```json
 {
@@ -303,7 +303,7 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7[1m]'
 
 サードパーティプロバイダーでモデルをピン留めする場合、プロバイダー固有の ID は `/model` ピッカーにそのまま表示され、Claude Code はモデルがサポートする機能を認識しない可能性があります。ピン留めされた各モデルの表示名と機能を宣言するコンパニオン環境変数でオーバーライドできます。
 
-これらの変数は、Bedrock、Vertex AI、Foundry などのサードパーティプロバイダーでのみ有効です。Anthropic API を直接使用する場合は効果がありません。
+これらの変数は、Bedrock、Vertex AI、Foundry などのサードパーティプロバイダーでのみ有効です。`ANTHROPIC_BASE_URL` が [LLM ゲートウェイ](/ja/llm-gateway) を指す場合、`_NAME` と `_DESCRIPTION` 変数も有効です。`api.anthropic.com` に直接接続する場合は効果がありません。
 
 | 環境変数 | 説明 |
 | - | - |

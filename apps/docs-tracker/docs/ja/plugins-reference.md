@@ -117,6 +117,7 @@ disallowedTools: Write, Edit
 | `PermissionDenied` | When a tool call is denied by the auto mode classifier. Return `{retry: true}` to tell the model it may retry the denied tool call |
 | `PostToolUse` | After a tool call succeeds |
 | `PostToolUseFailure` | After a tool call fails |
+| `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
 | `Notification` | When Claude Code sends a notification |
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
@@ -141,6 +142,7 @@ disallowedTools: Write, Edit
 
 - `command`: シェルコマンドまたはスクリプトを実行
 - `http`: イベント JSON を URL への POST リクエストとして送信
+- `mcp_tool`: 設定された[MCP server](/ja/mcp)上のツールを呼び出す
 - `prompt`: LLM でプロンプトを評価（コンテキストの `$ARGUMENTS` プレースホルダーを使用）
 - `agent`: 複雑な検証タスク用のツール付き agentic verifier を実行
 
@@ -311,6 +313,24 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 
 セッション中にプラグインを無効にしても、既に実行中の monitors は停止しません。セッションが終了するときに停止します。
 
+### Themes
+
+プラグインは、`/theme` に組み込みプリセットおよびユーザーのローカルテーマと一緒に表示される色テーマを配布できます。テーマは `themes/` 内の JSON ファイルで、`base` プリセットと色トークンのスパース `overrides` マップを持ちます。
+
+```json
+{
+  "name": "Dracula",
+  "base": "dark",
+  "overrides": {
+    "claude": "#bd93f9",
+    "error": "#ff5555",
+    "success": "#50fa7b"
+  }
+}
+```
+
+プラグインテーマを選択すると、`custom:<plugin-name>:<slug>` がユーザーの設定に保持されます。プラグインテーマは読み取り専用です。`/theme` で `Ctrl+E` を押すと、それが `~/.claude/themes/` にコピーされるため、ユーザーはコピーを編集できます。
+
 ***
 
 ## プラグインインストールスコープ
@@ -356,6 +376,7 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
   "hooks": "./config/hooks.json",
   "mcpServers": "./mcp-config.json",
   "outputStyles": "./styles/",
+  "themes": "./themes/",
   "lspServers": "./.lsp.json",
   "monitors": "./monitors.json",
   "dependencies": [
@@ -379,7 +400,7 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
-| `version` | string | セマンティックバージョン。マーケットプレイスエントリにも設定されている場合、`plugin.json` が優先されます。1 つの場所に設定するだけで済みます。 | `"2.1.0"` |
+| `version` | string | オプション。セマンティックバージョン。これを設定するとプラグインをそのバージョン文字列にピン留めするため、ユーザーはバージョンをバンプしたときのみ更新を受け取ります。省略された場合、Claude Code は git コミット SHA にフォールバックするため、すべてのコミットが新しいバージョンとして扱われます。マーケットプレイスエントリにも設定されている場合、`plugin.json` が優先されます。[バージョン管理](#version-management)を参照してください。 | `"2.1.0"` |
 | `description` | string | プラグインの目的の簡潔な説明 | `"Deployment automation tools"` |
 | `author` | object | 著者情報 | `{"name": "Dev Team", "email": "dev@company.com"}` |
 | `homepage` | string | ドキュメント URL | `"https://docs.example.com"` |
@@ -397,6 +418,7 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 | `hooks` | string\|array\|object | Hook 設定パスまたはインライン設定 | `"./my-extra-hooks.json"` |
 | `mcpServers` | string\|array\|object | MCP 設定パスまたはインライン設定 | `"./my-extra-mcp-config.json"` |
 | `outputStyles` | string\|array | カスタム出力スタイルファイル/ディレクトリ（デフォルト `output-styles/` を置き換え） | `"./styles/"` |
+| `themes` | string\|array | カラーテーマファイル/ディレクトリ（デフォルト `themes/` を置き換え）。[テーマ](#themes)を参照してください | `"./themes/"` |
 | `lspServers` | string\|array\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)コード インテリジェンス用の設定（定義へのジャンプ、参照の検索など） | `"./.lsp.json"` |
 | `monitors` | string\|array | プラグインがアクティブな場合に自動的に開始されるバックグラウンド[Monitor](/ja/tools-reference#monitor-tool)設定。[Monitors](#monitors)を参照してください | `"./monitors.json"` |
 | `userConfig` | object | ユーザー設定可能な値は有効化時にプロンプトされます。[ユーザー設定](#user-configuration)を参照してください | 下記を参照 |
@@ -473,7 +495,7 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 
 ### パス動作ルール
 
-`skills`、`commands`、`agents`、`outputStyles`、`monitors` の場合、カスタムパスはデフォルトを置き換えます。マニフェストが `skills` を指定する場合、デフォルト `skills/` ディレクトリはスキャンされません。`monitors` を指定する場合、デフォルト `monitors/monitors.json` は読み込まれません。[Hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)は複数のソースを処理するための異なるセマンティクスを持ちます。
+`skills`、`commands`、`agents`、`outputStyles`、`themes`、`monitors` の場合、カスタムパスはデフォルトを置き換えます。マニフェストが `skills` を指定する場合、デフォルト `skills/` ディレクトリはスキャンされません。`monitors` を指定する場合、デフォルト `monitors/monitors.json` は読み込まれません。[Hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)は複数のソースを処理するための異なるセマンティクスを持ちます。
 
 - すべてのパスはプラグインルートに相対的で、`./` で始まる必要があります
 - カスタムパスからのコンポーネントは同じ命名と名前空間ルールを使用します
@@ -622,6 +644,8 @@ enterprise-plugin/
 │   └── compliance-checker.md
 ├── output-styles/            # 出力スタイル定義
 │   └── terse.md
+├── themes/                   # カラーテーマ定義
+│   └── dracula.json
 ├── monitors/                 # バックグラウンド monitor 設定
 │   └── monitors.json
 ├── hooks/                    # Hook 設定
@@ -640,7 +664,7 @@ enterprise-plugin/
 └── CHANGELOG.md             # バージョン履歴
 ```
 
-`.claude-plugin/` ディレクトリは `plugin.json` ファイルを含みます。他のすべてのディレクトリ（commands/、agents/、skills/、output-styles/、monitors/、hooks/）は `.claude-plugin/` 内ではなく、プラグインルートにある必要があります。
+`.claude-plugin/` ディレクトリは `plugin.json` ファイルを含みます。他のすべてのディレクトリ（commands/、agents/、skills/、output-styles/、themes/、monitors/、hooks/）は `.claude-plugin/` 内ではなく、プラグインルートにある必要があります。
 
 ### ファイル場所リファレンス
 
@@ -651,6 +675,7 @@ enterprise-plugin/
 | **コマンド** | `commands/` | フラット Markdown ファイルとしての Skills。新しいプラグインには `skills/` を使用 |
 | **Agents** | `agents/` | Subagent Markdown ファイル |
 | **出力スタイル** | `output-styles/` | 出力スタイル定義 |
+| **テーマ** | `themes/` | カラーテーマ定義 |
 | **Hooks** | `hooks/hooks.json` | Hook 設定 |
 | **MCP servers** | `.mcp.json` | MCP サーバー定義 |
 | **LSP servers** | `.lsp.json` | 言語サーバー設定 |
@@ -797,6 +822,23 @@ claude plugin list [options]
 | `--available` | マーケットプレイスから利用可能なプラグインを含めます。`--json` が必要 | |
 | `-h, --help` | コマンドのヘルプを表示 | |
 
+### plugin tag
+
+現在のディレクトリ内のプラグインのリリース git タグを作成します。プラグインのフォルダ内から実行してください。[プラグインリリースにタグを付ける](/ja/plugin-dependencies#tag-plugin-releases-for-version-resolution)を参照してください。
+
+```bash
+claude plugin tag [options]
+```
+
+**オプション:**
+
+| オプション | 説明 | デフォルト |
+| :- | :- | :- |
+| `--push` | タグを作成した後、リモートにプッシュ | |
+| `--dry-run` | タグを作成せずに、タグ付けされる内容を出力 | |
+| `-f, --force` | ワーキングツリーがダーティであるか、タグが既に存在する場合でもタグを作成 | |
+| `-h, --help` | コマンドのヘルプを表示 | |
+
 ***
 
 ## デバッグと開発ツール
@@ -850,7 +892,7 @@ claude plugin list [options]
 
 1. イベント名が正しいことを確認（大文字小文字を区別）: `PostToolUse`、`postToolUse` ではない
 2. マッチャーパターンがツールと一致することを確認: ファイル操作の場合 `"matcher": "Write|Edit"`
-3. hook タイプが有効であることを確認: `command`、`http`、`prompt`、または `agent`
+3. hook タイプが有効であることを確認: `command`、`http`、`mcp_tool`、`prompt`、または `agent`
 
 ### MCP サーバートラブルシューティング
 
@@ -896,31 +938,25 @@ my-plugin/
 
 ### バージョン管理
 
-プラグインリリースにはセマンティックバージョニングに従ってください:
+Claude Code はプラグインのバージョンをキャッシュキーとして使用し、更新が利用可能かどうかを判断します。`/plugin update` を実行するか自動更新が実行されると、Claude Code は現在のバージョンを計算し、既にインストールされているものと一致する場合は更新をスキップします。
 
-```json
-{
-  "name": "my-plugin",
-  "version": "2.1.0"
-}
-```
+バージョンは、設定されている最初のものから解決されます：
 
-**バージョン形式**: `MAJOR.MINOR.PATCH`
+1. プラグインの `plugin.json` の `version` フィールド
+2. `marketplace.json` のプラグインのマーケットプレイスエントリの `version` フィールド
+3. git でホストされているマーケットプレイスの `github`、`url`、`git-subdir`、および相対パスソースのプラグインソースの git コミット SHA
+4. npm ソースまたは git リポジトリ内にないローカルディレクトリの場合は `unknown`
 
-- **MAJOR**: 破壊的変更（互換性のない API 変更）
-- **MINOR**: 新機能（後方互換性のある追加）
-- **PATCH**: バグ修正（後方互換性のある修正）
+これにより、プラグインをバージョン管理する 2 つの方法が提供されます：
 
-**ベストプラクティス**:
+| アプローチ | 方法 | 更新動作 | 最適な用途 |
+| :- | :- | :- | :- |
+| **明示的バージョン** | `plugin.json` で `"version": "2.1.0"` を設定 | ユーザーはこのフィールドをバンプした場合のみ更新を取得します。新しいコミットをプッシュしてもバンプしない場合は効果がなく、`/plugin update` は「既に最新バージョンです」と報告します。 | 安定したリリースサイクルを持つ公開プラグイン |
+| **コミット SHA バージョン** | `plugin.json` とマーケットプレイスエントリの両方から `version` を省略 | ユーザーはプラグインの git ソースへの新しいコミットのたびに更新を取得します | 積極的に開発中の内部またはチームプラグイン |
 
-- 最初の安定リリースは `1.0.0` から開始
-- 変更を配布する前に `plugin.json` のバージョンを更新
-- `CHANGELOG.md` ファイルで変更を文書化
-- テスト用に `2.0.0-beta.1` のようなプレリリースバージョンを使用
+`plugin.json` で `version` を設定する場合、ユーザーが変更を受け取るたびにバンプする必要があります。新しいコミットをプッシュするだけでは不十分です。Claude Code は同じバージョン文字列を認識し、キャッシュされたコピーを保持するためです。迅速に反復している場合は、`version` を設定しないままにして、代わりに git コミット SHA が使用されるようにしてください。
 
-Claude Code はバージョンを使用してプラグインを更新するかどうかを判断します。プラグインのコードを変更しても `plugin.json` のバージョンをバンプしない場合、キャッシングのため既存ユーザーは変更を確認できません。
-
-プラグインが[マーケットプレイス](/ja/plugin-marketplaces)ディレクトリ内にある場合、代わりに `marketplace.json` を通じてバージョンを管理でき、`plugin.json` から `version` フィールドを省略できます。
+明示的なバージョンを使用する場合は、[semantic versioning](https://semver.org)（`MAJOR.MINOR.PATCH`）に従ってください：破壊的変更の場合は MAJOR をバンプし、新機能の場合は MINOR をバンプし、バグ修正の場合は PATCH をバンプしてください。`CHANGELOG.md` で変更を文書化してください。
 
 ***
 

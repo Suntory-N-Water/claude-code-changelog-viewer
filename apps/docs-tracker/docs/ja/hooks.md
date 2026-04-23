@@ -27,6 +27,7 @@ source: https://code.claude.com/docs/ja/hooks.md
 | `PermissionDenied` | When a tool call is denied by the auto mode classifier. Return `{retry: true}` to tell the model it may retry the denied tool call |
 | `PostToolUse` | After a tool call succeeds |
 | `PostToolUseFailure` | After a tool call fails |
+| `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
 | `Notification` | When Claude Code sends a notification |
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
@@ -130,7 +131,7 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 
 完全なウォークスルーと注釈付きの例については、上記の[フックがどのように解決されるか](#how-a-hook-resolves)を参照してください。
 
-このページでは各レベルに特定の用語を使用しています。**フック イベント**はライフサイクル ポイント、**マッチャー グループ**はフィルター、**フック ハンドラー**はシェル コマンド、HTTP エンドポイント、プロンプト、または実行されるエージェントです。'フック'単独は一般的な機能を指します。
+このページでは各レベルに特定の用語を使用しています。**フック イベント**はライフサイクル ポイント、**マッチャー グループ**はフィルター、**フック ハンドラー**はシェル コマンド、HTTP エンドポイント、MCP ツール、プロンプト、または実行されるエージェントです。'フック'単独は一般的な機能を指します。
 
 ### フック位置
 
@@ -178,7 +179,7 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 | `UserPromptExpansion` | コマンド名 | スキルまたはコマンド名 |
 | `Elicitation` | MCP サーバー名 | 設定された MCP サーバー名 |
 | `ElicitationResult` | MCP サーバー名 | `Elicitation` と同じ値 |
-| `UserPromptSubmit`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove` | マッチャー サポートなし | すべての出現で常に発火 |
+| `UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove` | マッチャー サポートなし | すべての出現で常に発火 |
 
 マッチャーは、Claude Code がフックに stdin で送信する[JSON 入力](#hook-input-and-output)からのフィールドに対して実行されます。ツール イベントの場合、そのフィールドは `tool_name` です。各[フック イベント](#hook-events)セクションでは、マッチャー値の完全なセットとそのイベントの入力スキーマをリストしています。
 
@@ -202,7 +203,7 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 }
 ```
 
-`UserPromptSubmit`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` はマッチャーをサポートせず、すべての出現で常に発火します。これらのイベントに `matcher` フィールドを追加すると、サイレントに無視されます。
+`UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` はマッチャーをサポートせず、すべての出現で常に発火します。これらのイベントに `matcher` フィールドを追加すると、サイレントに無視されます。
 
 ツール イベントの場合、個別のフック ハンドラーで [`if` フィールド](#common-fields)を設定することで、より狭くフィルタリングできます。`if` は[権限ルール構文](/ja/permissions)を使用してツール名と引数を一緒にマッチするため、`"Bash(git *)"` は `git *` に一致する Bash 入力のサブコマンドのいずれかに対して実行され、`"Edit(*.ts)"` は TypeScript ファイルのみに対して実行されます。
 
@@ -252,10 +253,11 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 
 ### フック ハンドラー フィールド
 
-内側の `hooks` 配列の各オブジェクトはフック ハンドラーです。マッチャーがマッチしたときに実行されるシェル コマンド、HTTP エンドポイント、LLM プロンプト、またはエージェントです。4 つのタイプがあります。
+内側の `hooks` 配列の各オブジェクトはフック ハンドラーです。マッチャーがマッチしたときに実行されるシェル コマンド、HTTP エンドポイント、MCP ツール、LLM プロンプト、またはエージェントです。5 つのタイプがあります。
 
 - **[コマンド フック](#command-hook-fields)** (`type: "command"`): シェル コマンドを実行します。スクリプトはイベントの[JSON 入力](#hook-input-and-output)を stdin で受け取り、終了コードと stdout を通じて結果を通信します。
 - **[HTTP フック](#http-hook-fields)** (`type: "http"`): イベントの JSON 入力を HTTP POST リクエストとして URL に送信します。エンドポイントは、コマンド フックと同じ[JSON 出力形式](#json-output)を使用して、レスポンス本体を通じて結果を通信します。
+- **[MCP ツール フック](#mcp-tool-hook-fields)** (`type: "mcp_tool"`): 既に接続されている[MCP サーバー](/ja/mcp)上のツールを呼び出します。ツールのテキスト出力はコマンド フック stdout のように扱われます。
 - **[プロンプト フック](#prompt-and-agent-hook-fields)** (`type: "prompt"`): Claude モデルにプロンプトを送信して、単一ターンの評価を行います。モデルは yes/no 決定を JSON として返します。[プロンプト ベースのフック](#prompt-based-hooks)を参照してください。
 - **[エージェント フック](#prompt-and-agent-hook-fields)** (`type: "agent"`): Read、Grep、Glob などのツールを使用して条件を検証してから決定を返すことができるサブエージェントを生成します。エージェント フックは実験的であり、変更される可能性があります。[エージェント ベースのフック](#agent-based-hooks)を参照してください。
 
@@ -265,11 +267,13 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 
 | フィールド | 必須 | 説明 |
 | :- | :- | :- |
-| `type` | はい | `"command"`、`"http"`、`"prompt"`、または `"agent"` |
-| `if` | いいえ | `"Bash(git *)"` または `"Edit(*.ts)"` などの権限ルール構文を使用してこのフックが実行されるタイミングをフィルタリングします。ツール呼び出しがパターンにマッチする場合のみ、フックが生成されます。ツール イベントでのみ評価されます。`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`。他のイベントでは、`if` が設定されたフックは実行されません。[権限ルール](/ja/permissions)と同じ構文を使用します |
+| `type` | はい | `"command"`、`"http"`、`"mcp_tool"`、`"prompt"`、または `"agent"` |
+| `if` | いいえ | `"Bash(git *)"` または `"Edit(*.ts)"` などの権限ルール構文を使用してこのフックが実行されるタイミングをフィルタリングします。ツール呼び出しがパターンにマッチする場合のみ、フックが生成されます。または Bash コマンドが解析するには複雑すぎる場合。ツール イベントでのみ評価されます。`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、`PermissionDenied`。他のイベントでは、`if` が設定されたフックは実行されません。[権限ルール](/ja/permissions)と同じ構文を使用します |
 | `timeout` | いいえ | キャンセルまでの秒数。デフォルト: コマンドは 600、プロンプトは 30、エージェントは 60 |
 | `statusMessage` | いいえ | フックの実行中に表示されるカスタム スピナー メッセージ |
 | `once` | いいえ | `true` の場合、セッションごとに 1 回だけ実行してから削除されます。[スキルとエージェントのフック](#hooks-in-skills-and-agents)でのみ尊重されます。設定ファイルとエージェント フロントマターでは無視されます |
+
+`if` フィールドは正確に 1 つの権限ルールを保持します。ルールを組み合わせるための `&&`、`||`、またはリスト構文はありません。複数の条件を適用するには、各条件に対して個別のフック ハンドラーを定義します。Bash の場合、ルールは先頭の `VAR=value` 割り当てが削除された後のツール入力の各サブコマンドに対してマッチされるため、`if: "Bash(git push *)"` は `FOO=bar git push` と `npm test && git push` の両方にマッチします。コマンドが解析するには複雑すぎる場合、いずれかのサブコマンドがマッチすると、またはいつでもフックが実行されます。
 
 #### コマンド フック フィールド
 
@@ -294,7 +298,7 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 
 Claude Code はフックの[JSON 入力](#hook-input-and-output)を `Content-Type: application/json` の POST リクエスト本体として送信します。レスポンス本体はコマンド フックと同じ[JSON 出力形式](#json-output)を使用します。
 
-エラー処理はコマンド フックと異なります。2xx 以外のレスポンス、接続失敗、タイムアウトはすべて、実行を続行できる非ブロッキング エラーを生成します。ツール呼び出しをブロックまたは権限を拒否するには、`decision: "block"` または `permissionDecision: "deny"` を含む JSON 本体を持つ 2xx レスポンスを返します。
+エラー処理はコマンド フックと異なります。2xx 以外のレスポンス、接続失敗、タイムアウトはすべて、実行を続行できる非ブロッキング エラーを生成します。ツール呼び出しをブロックまたは権限を拒否するには、`decision: "block"` または `hookSpecificOutput` を含む `permissionDecision: "deny"` を含む JSON 本体を持つ 2xx レスポンスを返します。
 
 この例は `PreToolUse` イベントをローカル検証サービスに送信し、`MY_TOKEN` 環境変数からのトークンで認証します。
 
@@ -313,6 +317,42 @@ Claude Code はフックの[JSON 入力](#hook-input-and-output)を `Content-Typ
               "Authorization": "Bearer $MY_TOKEN"
             },
             "allowedEnvVars": ["MY_TOKEN"]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+#### MCP ツール フック フィールド
+
+[共通フィールド](#common-fields)に加えて、MCP ツール フックはこれらのフィールドを受け入れます。
+
+| フィールド | 必須 | 説明 |
+| :- | :- | :- |
+| `server` | はい | 設定された MCP サーバーの名前。サーバーは既に接続されている必要があります。フックは OAuth または接続フローをトリガーしません |
+| `tool` | はい | そのサーバー上で呼び出すツールの名前 |
+| `input` | いいえ | ツールに渡される引数。文字列値は、フックの[JSON 入力](#hook-input-and-output)から `${path}` 置換をサポートします（例：`"${tool_input.file_path}"`） |
+
+ツールのテキスト コンテンツはコマンド フック stdout のように扱われます。有効な[JSON 出力](#json-output)として解析される場合、決定として処理されます。そうでない場合は、プレーン テキストとして表示されます。指定されたサーバーが接続されていない場合、またはツールが `isError: true` を返す場合、フックは非ブロッキング エラーを生成し、実行は続行されます。
+
+MCP ツール フックは、Claude Code が MCP サーバーに接続した後、すべてのフック イベントで利用可能です。`SessionStart` と `Setup` は通常、サーバーが接続を完了する前に発火するため、これらのイベント上のフックは最初の実行時に「接続されていない」エラーを予期する必要があります。
+
+この例は、各 `Write` または `Edit` の後、`my_server` MCP サーバー上の `security_scan` ツールを呼び出し、編集されたファイルのパスを渡します。
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "my_server",
+            "tool": "security_scan",
+            "input": { "file_path": "${tool_input.file_path}" }
           }
         ]
       }
@@ -415,7 +455,7 @@ hooks:
 
 Claude Code で `/hooks` と入力して、設定されたフックの読み取り専用ブラウザーを開きます。メニューはすべてのフック イベントを表示し、設定されたフックの数を示し、マッチャーにドリルダウンでき、各フック ハンドラーの完全な詳細を表示します。これを使用して設定を検証し、フックがどの設定ファイルから定義されたかを確認するか、フックのコマンド、プロンプト、または URL を検査します。
 
-メニューは 4 つのフック タイプをすべて表示します。`command`、`prompt`、`agent`、`http`。各フックには、そのソースを示す `[type]` プレフィックスとソース ラベルが付けられています。
+メニューは 5 つのフック タイプをすべて表示します。`command`、`prompt`、`agent`、`http`、`mcp_tool`。各フックには、そのソースを示す `[type]` プレフィックスとソース ラベルが付けられています。
 
 - `User`: `~/.claude/settings.json` から
 - `Project`: `.claude/settings.json` から
@@ -523,6 +563,7 @@ exit 0  # 成功: ツール呼び出しが進行
 | `StopFailure` | いいえ | 出力と終了コードは無視 |
 | `PostToolUse` | いいえ | Claude に stderr を表示（ツールはすでに実行） |
 | `PostToolUseFailure` | いいえ | Claude に stderr を表示（ツールはすでに失敗） |
+| `PostToolBatch` | はい | 次のモデル呼び出しの前に agentic ループを停止 |
 | `PermissionDenied` | いいえ | 終了コードと stderr は無視（拒否はすでに発生）。JSON `hookSpecificOutput.retry: true` を使用してモデルが再試行できることを伝える |
 | `Notification` | いいえ | ユーザーのみに stderr を表示 |
 | `SubagentStart` | いいえ | ユーザーのみに stderr を表示 |
@@ -585,7 +626,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 
 | イベント | 決定パターン | キー フィールド |
 | :- | :- | :- |
-| UserPromptSubmit、UserPromptExpansion、PostToolUse、PostToolUseFailure、Stop、SubagentStop、ConfigChange、PreCompact | トップレベル `decision` | `decision: "block"`、`reason` |
+| UserPromptSubmit、UserPromptExpansion、PostToolUse、PostToolUseFailure、PostToolBatch、Stop、SubagentStop、ConfigChange、PreCompact | トップレベル `decision` | `decision: "block"`、`reason` |
 | TeammateIdle、TaskCreated、TaskCompleted | 終了コードまたは `continue: false` | 終了コード 2 はアクションをブロックし、stderr フィードバックを使用します。JSON `{"continue": false, "stopReason": "..."}` はチームメイト全体を停止し、`Stop` フック動作と一致します |
 | PreToolUse | `hookSpecificOutput` | `permissionDecision`（allow/deny/ask/defer）、`permissionDecisionReason` |
 | PermissionRequest | `hookSpecificOutput` | `decision.behavior`（allow/deny） |
@@ -597,7 +638,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 
 各パターンの実行例を以下に示します。
 
-`UserPromptSubmit`、`UserPromptExpansion`、`PostToolUse`、`PostToolUseFailure`、`Stop`、`SubagentStop`、`ConfigChange`、`PreCompact` で使用されます。唯一の値は `"block"` です。アクションを進行させるには、JSON から `decision` を省略するか、JSON なしで終了 0 で終了します。
+`UserPromptSubmit`、`UserPromptExpansion`、`PostToolUse`、`PostToolUseFailure`、`PostToolBatch`、`Stop`、`SubagentStop`、`ConfigChange`、`PreCompact` で使用されます。唯一の値は `"block"` です。アクションを進行させるには、JSON から `decision` を省略するか、JSON なしで終了 0 で終了します。
 
 ```json theme={null}
 {
@@ -606,7 +647,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 }
 ```
 
-より豊かな制御のために `hookSpecificOutput` を使用します。許可、拒否、または質問。ツール入力を実行前に変更したり、Claude 用に追加コンテキストを注入することもできます。オプションの完全なセットについては、[PreToolUse 決定制御](#pretooluse-decision-control)を参照してください。
+より豊かな制御のために `hookSpecificOutput` を使用します。許可、拒否、またはユーザーへのエスカレーション。ツール入力を実行前に変更したり、Claude 用に追加コンテキストを注入することもできます。オプションの完全なセットについては、[PreToolUse 決定制御](#pretooluse-decision-control)を参照してください。
 
 ```json theme={null}
 {
@@ -644,7 +685,7 @@ Bash コマンド検証、プロンプト フィルタリング、自動承認�
 
 Claude Code が新しいセッションを開始するか、既存のセッションを再開するときに実行されます。既存の問題や最近のコードベース変更など、開発コンテキストをロードしたり、環境変数をセットアップしたりするのに便利です。静的コンテキストでスクリプトが不要な場合は、代わりに[CLAUDE.md](/ja/memory)を使用してください。
 
-SessionStart はすべてのセッションで実行されるため、これらのフックを高速に保ちます。`type: "command"` フックのみがサポートされています。
+SessionStart はすべてのセッションで実行されるため、これらのフックを高速に保ちます。`type: "command"` と `type: "mcp_tool"` フックのみがサポートされています。
 
 マッチャー値はセッションがどのように開始されたかに対応しています。
 
@@ -984,7 +1025,7 @@ Web を検索します。
 | :- | :- |
 | `permissionDecision` | `"allow"` はツール呼び出しをスキップします。`"deny"` はツール呼び出しを防止します。`"ask"` はユーザーに確認を促します。`"defer"` は優雅に終了して、ツールを後で再開できるようにします。[拒否と質問ルール](/ja/permissions#manage-permissions)は、フックが `"allow"` を返すときでも適用されます |
 | `permissionDecisionReason` | `"allow"` と `"ask"` の場合、ユーザーに表示されますが Claude には表示されません。`"deny"` の場合、Claude に表示されます。`"defer"` の場合、無視されます |
-| `updatedInput` | 実行前にツールの入力パラメーターを変更します。`"allow"` と組み合わせて自動承認するか、`"ask"` と組み合わせて変更された入力をユーザーに表示します。`"defer"` の場合、無視されます |
+| `updatedInput` | 実行前にツールの入力パラメーターを変更します。入力オブジェクト全体を置き換えるため、変更されていないフィールドを変更されたフィールドと一緒に含めます。`"allow"` と組み合わせて自動承認するか、`"ask"` と組み合わせて変更された入力をユーザーに表示します。`"defer"` の場合、無視されます |
 | `additionalContext` | ツール実行前に Claude のコンテキストに追加される文字列。`"defer"` の場合、無視されます |
 
 複数の PreToolUse フックが異なる決定を返す場合、優先順位は `deny` > `defer` > `ask` > `allow` です。
@@ -1235,6 +1276,65 @@ PostToolUseFailure フックは PostToolUse と同じ `tool_name` と `tool_inpu
 }
 ```
 
+### PostToolBatch
+
+バッチ内のすべてのツール呼び出しが解決された後、Claude Code が次のモデル リクエストを送信する前に、1 回実行されます。`PostToolUse` はツールごとに 1 回発火します。つまり、Claude が並列ツール呼び出しを行うときに同時に発火します。`PostToolBatch` は完全なバッチで正確に 1 回発火するため、単一のツールではなく、実行されたツールのセットに依存するコンテキストを注入するのに適切な場所です。このイベントにはマッチャーがありません。
+
+#### PostToolBatch 入力
+
+[共通入力フィールド](#common-input-fields)に加えて、PostToolBatch フックはバッチ内のすべてのツール呼び出しを説明する `tool_calls` 配列を受け取ります。
+
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/...",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolBatch",
+  "tool_calls": [
+    {
+      "tool_name": "Read",
+      "tool_input": {"file_path": "/.../ledger/accounts.py"},
+      "tool_use_id": "toolu_01...",
+      "tool_response": "     1\tfrom __future__ import annotations\n     2\t..."
+    },
+    {
+      "tool_name": "Read",
+      "tool_input": {"file_path": "/.../ledger/transactions.py"},
+      "tool_use_id": "toolu_02...",
+      "tool_response": "     1\tfrom __future__ import annotations\n     2\t..."
+    }
+  ]
+}
+```
+
+`tool_response` はモデルが対応する `tool_result` ブロックで受け取るのと同じコンテンツを含みます。値はツールが発行したのと同じように、シリアル化された文字列またはコンテンツ ブロック配列です。`Read` の場合、これは生のファイル コンテンツではなく、行番号が付いたテキストを意味します。応答は大きくなる可能性があるため、必要なフィールドのみを解析してください。
+
+`tool_response` の形状は `PostToolUse` のものと異なります。`PostToolUse` はツールの構造化 `Output` オブジェクト（`Write` の場合は `{filePath: "...", success: true}` など）を渡します。`PostToolBatch` はモデルが見るシリアル化された `tool_result` コンテンツを渡します。
+
+#### PostToolBatch 決定制御
+
+`PostToolBatch` フックは Claude のコンテキストを注入できます。すべてのフックで利用可能な[JSON 出力フィールド](#json-output)に加えて、フック スクリプトはこれらのイベント固有のフィールドを返すことができます。
+
+| フィールド | 説明 |
+| :- | :- |
+| `additionalContext` | 次のモデル呼び出しの前に 1 回注入されるコンテキスト文字列 |
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PostToolBatch",
+    "additionalContext": "These files are part of the ledger module. Run pytest before marking the task complete."
+  }
+}
+```
+
+注入された `additionalContext` はセッション トランスクリプトに永続化されます。`--continue` または `--resume` では、保存されたテキストはディスクから再生され、フックは過去のターンに対して再実行されません。タイムスタンプや現在のコミット SHA などの動的値よりも、規約またはファイル タイプ ガイダンスなどの静的コンテキストを優先します。これらは再開時に古くなるためです。
+
+コンテキストを命令型システム コマンドではなく、事実情報として構成します。帯域外システム コマンドとして書かれたテキストは Claude のプロンプト インジェクション防御をトリガーでき、インジェクションをユーザーに表示します。
+
+`decision: "block"` または `continue: false` を返すと、次のモデル呼び出しの前に agentic ループが停止します。
+
 ### PermissionDenied
 
 [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がツール呼び出しを拒否するときに実行されます。このフックは自動モードでのみ発火します。手動で権限ダイアログを拒否するとき、`PreToolUse` フックがコールをブロックするとき、または `deny` ルールがマッチするときは実行されません。これを使用して分類器の拒否をログ、設定を調整、またはモデルがツール呼び出しを再試行できることを伝えます。
@@ -1452,7 +1552,7 @@ exit 0
 
 ### TaskCompleted
 
-タスクが完了としてマークされるときに実行されます。これは 2 つの状況で発火します。任意のエージェントが TaskUpdate ツール経由でタスクを明示的に完了としてマークするとき、または[エージェント チーム](/ja/agent-teams)チームメイトが進行中のタスクでターンを終了するとき。これを使用して、テストの合格や lint チェックなど、タスクが閉じる前に完了基準を実施します。
+タスクが完了としてマークされるときに実行されます。これは 2 つの状況で発火します。任意のエージェントが TaskUpdate ツール経由でタスクを明示的に完了としてマークするとき、または[エージェント チーム](/ja/agent-teams)チームメイトが進行中のタスクでターンを終了するとき。これを使用してチームメイトが作業を停止する前に品質ゲートを実施します。例えば、lint チェックの合格を要求したり、出力ファイルが存在することを確認したりします。
 
 `TaskCompleted` フックが終了コード 2 で終了すると、タスクは完了としてマークされず、stderr メッセージはモデルへのフィードバックとしてフィードバックされます。チームメイト全体を停止する代わりに再実行するには、`{"continue": false, "stopReason": "..."}` を含む JSON を返します。TaskCompleted フックはマッチャーをサポートせず、すべての出現で発火します。
 
@@ -2063,11 +2163,12 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 
 ## プロンプト ベースのフック
 
-コマンド フックと HTTP フックに加えて、Claude Code はプロンプト ベースのフック（`type: "prompt"`）をサポートしており、LLM を使用してアクションを許可またはブロックするかどうかを評価し、エージェント フック（`type: "agent"`）はツール アクセスを持つ agentic ベリファイアーを生成します。すべてのイベントがすべてのフック タイプをサポートしているわけではありません。
+コマンド、HTTP、MCP ツール フックに加えて、Claude Code はプロンプト ベースのフック（`type: "prompt"`）をサポートしており、LLM を使用してアクションを許可またはブロックするかどうかを評価し、エージェント フック（`type: "agent"`）はツール アクセスを持つ agentic ベリファイアーを生成します。すべてのイベントがすべてのフック タイプをサポートしているわけではありません。
 
-4 つのフック タイプ（`command`、`http`、`prompt`、`agent`）すべてをサポートするイベント：
+5 つのフック タイプ（`command`、`http`、`mcp_tool`、`prompt`、`agent`）すべてをサポートするイベント：
 
 - `PermissionRequest`
+- `PostToolBatch`
 - `PostToolUse`
 - `PostToolUseFailure`
 - `PreToolUse`
@@ -2078,7 +2179,7 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 - `UserPromptExpansion`
 - `UserPromptSubmit`
 
-`command` と `http` フックをサポートするが、`prompt` または `agent` をサポートしないイベント：
+`command`、`http`、`mcp_tool` フックをサポートするが、`prompt` または `agent` をサポートしないイベント：
 
 - `ConfigChange`
 - `CwdChanged`
@@ -2097,7 +2198,7 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 - `WorktreeCreate`
 - `WorktreeRemove`
 
-`SessionStart` は `command` フックのみをサポートします。
+`SessionStart` と `Setup` は `command` と `mcp_tool` フックをサポートしています。これらは `http`、`prompt`、`agent` フックをサポートしていません。
 
 ### プロンプト ベースのフックの仕組み
 
@@ -2135,7 +2236,7 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 | `type` | はい | `"prompt"` である必要があります |
 | `prompt` | はい | LLM に送信するプロンプト テキスト。フック入力 JSON のプレースホルダーとして `$ARGUMENTS` を使用します。`$ARGUMENTS` が存在しない場合、入力 JSON がプロンプトに追加されます |
 | `model` | いいえ | 評価に使用するモデル。デフォルトは高速モデル |
-| `timeout` | いいえ | タイムアウト（秒単位）。デフォルト: 30 |
+| `timeout` | いいえ | タイムアウト（秒単位）。デフォルト：30 |
 
 ### レスポンス スキーマ
 

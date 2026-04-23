@@ -133,6 +133,7 @@ The SDK provides hooks for different stages of agent execution. Some hooks are a
 | `PreToolUse` | Yes | Yes | Tool call request (can block or modify) | Block dangerous shell commands |
 | `PostToolUse` | Yes | Yes | Tool execution result | Log all file changes to audit trail |
 | `PostToolUseFailure` | Yes | Yes | Tool execution failure | Handle or log tool errors |
+| `PostToolBatch` | No | Yes | A full batch of tool calls resolves, once per batch before the next model call | Inject conventions once for the whole batch |
 | `UserPromptSubmit` | Yes | Yes | User prompt submission | Inject additional context into prompts |
 | `Stop` | Yes | Yes | Agent execution stop | Save session state before exit |
 | `SubagentStart` | Yes | Yes | Subagent initialization | Track parallel task spawning |

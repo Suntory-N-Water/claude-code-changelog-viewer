@@ -80,7 +80,7 @@ mkdir my-first-plugin/.claude-plugin
 | :- | :- |
 | `name` | 一意の識別子とスキル名前空間。スキルにはこれが接頭辞として付きます（例：`/my-first-plugin:hello`）。 |
 | `description` | プラグインマネージャーでプラグインを参照またはインストールするときに表示されます。 |
-| `version` | [セマンティックバージョニング](/ja/plugins-reference#version-management)を使用してリリースを追跡します。 |
+| `version` | オプション。設定されている場合、ユーザーはこのフィールドをバンプしたときにのみ更新を受け取ります。省略され、プラグインが git 経由で配布される場合、コミット SHA が使用され、すべてのコミットが新しいバージョンとしてカウントされます。[バージョン管理](/ja/plugins-reference#version-management)を参照してください。 |
 | `author` | オプション。属性に役立ちます。 |
 
 `homepage`、`repository`、`license` などの追加フィールドについては、[完全なマニフェストスキーマ](/ja/plugins-reference#plugin-manifest-schema)を参照してください。
@@ -301,7 +301,7 @@ claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 プラグインを共有する準備ができたら：
 
 1. **ドキュメントを追加する**：インストールと使用方法の指示を含む `README.md` を含めます
-2. **プラグインをバージョン管理する**：`plugin.json` で[セマンティックバージョニング](/ja/plugins-reference#version-management)を使用します
+2. **バージョン管理戦略を選択する**：明示的な `version` を設定するか、git コミット SHA に依存するかを決定してください。[バージョン管理](/ja/plugins-reference#version-management)を参照してください
 3. **マーケットプレイスを作成または使用する**：[プラグインマーケットプレイス](/ja/plugin-marketplaces)を通じて配布してインストールします
 4. **他のユーザーでテストする**：より広い配布の前に、チームメンバーにプラグインをテストしてもらいます
 

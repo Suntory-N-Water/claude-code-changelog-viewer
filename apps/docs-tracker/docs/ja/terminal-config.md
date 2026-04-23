@@ -30,7 +30,7 @@ Enter キーを押すとメッセージが送信されます。送信せずに�
 | VS Code、Cursor、Windsurf、Alacritty、Zed | 1 回 `/terminal-setup` を実行 |
 | Windows Terminal、gnome-terminal、PyCharm や Android Studio などの JetBrains IDE | 利用不可。Ctrl+J または `\` の後に Enter を使用 |
 
-VS Code、Cursor、Windsurf、Alacritty、Zed の場合、`/terminal-setup` は Shift+Enter およびその他のキーバインディングをターミナルの設定ファイルに書き込みます。`Found existing VSCode terminal Shift+Enter key binding` などの競合が報告された場合は、ターミナルの独自のキーバインディングファイル（例：VS Code の `keybindings.json`）からそのエントリを削除し、コマンドを再度実行します。tmux または screen 内ではなく、ホストターミナル内で直接 `/terminal-setup` を実行してください。ホストターミナルの設定に書き込む必要があるためです。
+VS Code、Cursor、Windsurf、Alacritty、Zed の場合、`/terminal-setup` は Shift+Enter およびその他のキーバインディングをターミナルの設定ファイルに書き込みます。VS Code、Cursor、Windsurf ではエディタ設定で `terminal.integrated.mouseWheelScrollSensitivity` も設定され、[フルスクリーンモード](/ja/fullscreen) でのスクロールがスムーズになります。既存のバインディングと設定はそのまま保持されます。`VSCode terminal Shift+Enter key binding already configured` などのメッセージが表示された場合は、変更は加えられていません。tmux または screen 内ではなく、ホストターミナル内で直接 `/terminal-setup` を実行してください。ホストターミナルの設定に書き込む必要があるためです。
 
 tmux 内で実行している場合、外側のターミナルがサポートしている場合でも、Shift+Enter には以下の [tmux 設定](#configure-tmux) が必要です。
 
@@ -94,9 +94,41 @@ set -as terminal-features 'xterm*:extkeys'
 
 ## カラーテーマを一致させる
 
-`/theme` コマンドを使用するか、`/config` のテーマピッカーを使用して、ターミナルに一致する Claude Code テーマを選択します。自動オプションを選択すると、ターミナルの明るいまたは暗い背景が検出されるため、テーマは OS の外観の変更に従います。利用可能なテーマは組み込まれています。カスタムテーマファイルはありません。Claude Code はターミナルアプリケーションによって設定されるターミナル自体のカラースキームを制御しません。
+`/theme` コマンドを使用するか、`/config` のテーマピッカーを使用して、ターミナルに一致する Claude Code テーマを選択します。自動オプションを選択すると、ターミナルの明るいまたは暗い背景が検出されるため、テーマは OS の外観の変更に従います。Claude Code はターミナルアプリケーションによって設定されるターミナル自体のカラースキームを制御しません。
 
 インターフェースの下部に表示される内容をカスタマイズするには、現在のモデル、作業ディレクトリ、git ブランチ、またはその他のコンテキストを表示する [カスタムステータスライン](/ja/statusline) を設定します。
+
+### カスタムテーマを作成する
+
+カスタムテーマには Claude Code v2.1.118 以降が必要です。
+
+組み込みプリセットに加えて、`/theme` はユーザーが定義したカスタムテーマと、インストール済みの [プラグイン](/ja/plugins-reference#themes) によって提供されるテーマを一覧表示します。リストの最後にある **新しいカスタムテーマ…** を選択して、対話的に作成します。テーマに名前を付けてから、個別のカラートークンを選択してオーバーライドします。カスタムテーマがハイライトされている状態で `Ctrl+E` を押すと、編集できます。
+
+各カスタムテーマは `~/.claude/themes/` 内の JSON ファイルです。`.json` 拡張子を除いたファイル名がテーマのスラッグであり、テーマを選択すると `custom:<slug>` がテーマの設定として保存されます。ファイルには 3 つのオプションフィールドがあります。
+
+| フィールド | 型 | 説明 |
+| :- | :- | :- |
+| `name` | string | `/theme` に表示されるラベル。デフォルトはファイル名スラッグ |
+| `base` | string | テーマの開始元となる組み込みプリセット：`dark`、`light`、`dark-daltonized`、`light-daltonized`、`dark-ansi`、または `light-ansi`。デフォルトは `dark` |
+| `overrides` | object | カラートークン名をカラー値にマップします。ここにリストされていないトークンはベースプリセットにフォールスルーします |
+
+カラー値は `#rrggbb`、`#rgb`、`rgb(r,g,b)`、`ansi256(n)`、または `ansi:<name>` を受け入れます。ここで `<name>` は `red` や `cyanBright` などの 16 個の標準 ANSI カラー名の 1 つです。不明なトークンと無効なカラー値は無視されるため、タイプミスはレンダリングを破壊することはできません。
+
+次の例は、ダークプリセットを保持しながら、プロンプトアクセント、エラーテキスト、成功テキストを再色付けするテーマを定義しています。
+
+```json ~/.claude/themes/dracula.json theme={null}
+{
+  "name": "Dracula",
+  "base": "dark",
+  "overrides": {
+    "claude": "#bd93f9",
+    "error": "#ff5555",
+    "success": "#50fa7b"
+  }
+}
+```
+
+Claude Code は `~/.claude/themes/` を監視し、ファイルが変更されるとリロードするため、エディターで行われた編集は再起動なしで実行中のセッションに適用されます。
 
 ## フルスクリーンレンダリングに切り替える
 
@@ -130,7 +162,7 @@ VS Code 統合ターミナルは、Claude Code に到達する前に非常に大
 
 Claude Code には、プロンプト入力用の Vim スタイルの編集モードが含まれています。`/config` → エディタモードを通じて有効にするか、`~/.claude.json` で [`editorMode`](/ja/settings#global-config-settings) グローバル設定キーを `"vim"` に設定します。エディタモードを `normal` に戻してオフにします。
 
-Vim モードは NORMAL モードのモーション演算子のサブセットをサポートしています。例えば、`hjkl` ナビゲーションや、テキストオブジェクトを使用した `d`/`c`/`y` などです。完全なキーテーブルについては、[Vim エディタモードリファレンス](/ja/interactive-mode#vim-editor-mode) を参照してください。Vim モーションはキーバインディングファイルを通じて再マップできません。
+Vim モードは NORMAL モードおよび VISUAL モードのモーションと演算子のサブセットをサポートしています。例えば、`hjkl` ナビゲーション、`v`/`V` 選択、およびテキストオブジェクトを使用した `d`/`c`/`y` などです。完全なキーテーブルについては、[Vim エディタモードリファレンス](/ja/interactive-mode#vim-editor-mode) を参照してください。Vim モーションはキーバインディングファイルを通じて再マップできません。
 
 INSERT モードで Enter キーを押すと、標準 Vim とは異なり、プロンプトが送信されます。代わりに改行を挿入するには、NORMAL モードで `o` または `O` を使用するか、Ctrl+J を使用します。
 
