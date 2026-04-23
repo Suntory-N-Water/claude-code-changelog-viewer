@@ -3,7 +3,16 @@ import { drizzle } from 'drizzle-orm/d1';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
-import { channels } from '../db/schema';
+import {
+  channels,
+  discordChannels,
+  emailChannels,
+  slackChannels,
+} from '../db/schema';
+import { createUnsubscribeNotification, sendToDiscord } from '../lib/discord';
+import { createEmailUnsubscribeNotification, sendToEmail } from '../lib/email';
+import { decryptEmail } from '../lib/email-crypto';
+import { createSlackUnsubscribeNotification, sendToSlack } from '../lib/slack';
 
 const baseStyle = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -175,10 +184,60 @@ export const unsubscribeRoute = new Hono<{
     }
 
     const db = drizzle(c.env.DB);
+
+    const [channelRow] = await db
+      .select({ id: channels.id, channelType: channels.channelType })
+      .from(channels)
+      .where(eq(channels.token, lookup.token));
+
     await db
       .update(channels)
       .set({ isActive: 0, updatedAt: sql`datetime('now')` })
       .where(eq(channels.token, lookup.token));
+
+    try {
+      if (channelRow?.channelType === 'DSC') {
+        const [dscRow] = await db
+          .select({ webhookUrl: discordChannels.webhookUrl })
+          .from(discordChannels)
+          .where(eq(discordChannels.channelId, channelRow.id));
+        if (dscRow?.webhookUrl) {
+          await sendToDiscord(
+            dscRow.webhookUrl,
+            createUnsubscribeNotification(),
+          );
+        }
+      } else if (channelRow?.channelType === 'SLK') {
+        const [slkRow] = await db
+          .select({ webhookUrl: slackChannels.webhookUrl })
+          .from(slackChannels)
+          .where(eq(slackChannels.channelId, channelRow.id));
+        if (slkRow?.webhookUrl) {
+          await sendToSlack(
+            slkRow.webhookUrl,
+            createSlackUnsubscribeNotification(),
+          );
+        }
+      } else if (channelRow?.channelType === 'EML') {
+        const [emlRow] = await db
+          .select({ emailEncrypted: emailChannels.emailEncrypted })
+          .from(emailChannels)
+          .where(eq(emailChannels.channelId, channelRow.id));
+        if (emlRow?.emailEncrypted) {
+          const toAddress = await decryptEmail(
+            emlRow.emailEncrypted,
+            c.env.EMAIL_ENCRYPTION_KEY,
+          );
+          await sendToEmail(c.env.SEND_EMAIL, {
+            fromAddress: c.env.EMAIL_FROM,
+            toAddress,
+            payload: createEmailUnsubscribeNotification(),
+          });
+        }
+      }
+    } catch {
+      // 停止処理は完了しているため通知失敗は無視
+    }
 
     return c.html(
       renderResult(

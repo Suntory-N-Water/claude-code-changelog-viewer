@@ -98,3 +98,17 @@ export function createTestMessage(
     flags: DISCORD_SUPPRESS_EMBEDS,
   };
 }
+
+/**
+ * 通知停止完了メッセージを生成する
+ */
+export function createUnsubscribeNotification(): DiscordWebhookPayload {
+  return {
+    content:
+      '🔕 **CCログ超訳 Bot** の通知を停止しました。\n\n' +
+      'このチャンネルへの Claude Code 更新通知は今後送信されません。',
+    username: BOT_USERNAME,
+    avatar_url: DISCORD_BOT_AVATAR_URL,
+    flags: DISCORD_SUPPRESS_EMBEDS,
+  };
+}

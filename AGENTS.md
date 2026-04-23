@@ -5,8 +5,8 @@ pnpm workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 
 | 目的 | コマンド |
 |---|---|
-| 静的解析 | `bun run ai-check`(Stop hook で自動実行) |
-| テスト | `bun run --filter <app> test` |
+| 静的解析 | `pnpm run ai-check`(Stop hook で自動実行) |
+| テスト | `pnpm run --filter <app> test` |
 
 - GitHub の情報取得には `gh` コマンドを使用する
 - ライブラリの仕様は Context7 MCP サーバーを使用する

@@ -126,3 +126,20 @@ export function createSlackTestMessage(unsubscribeUrl: string): SlackPayload {
     ],
   };
 }
+
+export function createSlackUnsubscribeNotification(): SlackPayload {
+  return {
+    text: 'CCログ超訳 Bot の通知を停止しました',
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text:
+            ':no_bell: *CCログ超訳 Bot* の通知を停止しました。\n\n' +
+            'このチャンネルへの Claude Code 更新通知は今後送信されません。',
+        },
+      },
+    ],
+  };
+}

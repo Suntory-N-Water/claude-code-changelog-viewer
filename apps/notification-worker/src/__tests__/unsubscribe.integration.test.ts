@@ -1,7 +1,19 @@
-import { describe, expect, it, vi, afterEach } from 'vitest';
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
 vi.mock('../lib/email', () => ({
   sendToEmail: vi.fn(),
   createEmailTestMessage: vi.fn(),
+  createEmailUnsubscribeNotification: vi.fn().mockReturnValue({}),
+}));
+vi.mock('../lib/discord', () => ({
+  sendToDiscord: vi.fn().mockResolvedValue({ ok: true, status: 200 }),
+  createUnsubscribeNotification: vi.fn().mockReturnValue({}),
+  buildUnsubscribeUrl: vi
+    .fn()
+    .mockReturnValue('https://example.com/unsubscribe'),
+}));
+vi.mock('../lib/slack', () => ({
+  sendToSlack: vi.fn().mockResolvedValue({ ok: true, status: 200 }),
+  createSlackUnsubscribeNotification: vi.fn().mockReturnValue({}),
 }));
 
 import { app } from '../index';
@@ -11,13 +23,19 @@ import {
   findChannelByToken,
   insertDiscordWebhook,
 } from './support/notification-test-support';
+import { sendToDiscord } from '../lib/discord';
 
 describe('/api/unsubscribe integration', () => {
   let db: FakeD1Database | null = null;
 
+  beforeEach(() => {
+    vi.mocked(sendToDiscord).mockResolvedValue({ ok: true, status: 200 });
+  });
+
   afterEach(() => {
     db?.close();
     db = null;
+    vi.clearAllMocks();
   });
 
   it('有効な token で確認画面を開くと停止前の確認 HTML が返り channels.is_active は変わらない', async () => {
@@ -50,7 +68,7 @@ describe('/api/unsubscribe integration', () => {
     });
   });
 
-  it('有効な token で停止を実行すると channels.is_active が 0 になる', async () => {
+  it('有効な token で停止を実行すると channels.is_active が 0 になり停止通知が送信される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
@@ -78,6 +96,39 @@ describe('/api/unsubscribe integration', () => {
       token: 'active-token',
       is_active: 0,
       fail_count: 0,
+    });
+    expect(sendToDiscord).toHaveBeenCalledOnce();
+    expect(sendToDiscord).toHaveBeenCalledWith(
+      'https://discord.com/api/webhooks/123456/abcdef',
+      expect.anything(),
+    );
+  });
+
+  it('停止通知の送信が失敗しても停止 HTML が返り channels.is_active は 0 になる', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const env = createTestEnv(db);
+    vi.mocked(sendToDiscord).mockRejectedValueOnce(new Error('network error'));
+    const request = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ token: 'active-token' }).toString(),
+    } satisfies RequestInit;
+    await insertDiscordWebhook(db, {
+      id: 'active-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
+      token: 'active-token',
+      isActive: 1,
+    });
+
+    // Act(実行)
+    const response = await app.request('/api/unsubscribe', request, env);
+
+    // Assert(確認)
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain('通知を停止しました');
+    expect(await findChannelByToken(db, 'active-token')).toMatchObject({
+      is_active: 0,
     });
   });
 

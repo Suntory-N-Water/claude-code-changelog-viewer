@@ -1,6 +1,8 @@
+import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
+import { cleanupInactiveChannels } from './cron/cleanup';
 import { queueConsumer } from './queue/consumer';
 import { dispatchRoute } from './routes/dispatch';
 import { unsubscribeRoute } from './routes/unsubscribe';
@@ -28,4 +30,19 @@ app.route('/unsubscribe', unsubscribeRoute);
 export default {
   fetch: app.fetch,
   queue: queueConsumer,
+  async scheduled(
+    event: ScheduledEvent,
+    env: CloudflareBindings,
+    ctx: ExecutionContext,
+  ) {
+    const db = drizzle(env.DB);
+
+    switch (event.cron) {
+      case '0 15 * * *':
+        ctx.waitUntil(cleanupInactiveChannels(db));
+        break;
+      default:
+        console.warn(`Unhandled cron trigger: ${event.cron}`);
+    }
+  },
 };

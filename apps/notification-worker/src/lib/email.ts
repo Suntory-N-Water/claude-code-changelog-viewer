@@ -156,3 +156,26 @@ CCログ超訳 の更新通知登録が完了しました。
     text,
   };
 }
+
+export function createEmailUnsubscribeNotification(): EmailPayload {
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">
+  <h1 style="font-size:20px;margin-bottom:8px">🔕 通知を停止しました</h1>
+  <p style="color:#555">CCログ超訳 の更新通知を停止しました。</p>
+  <p style="color:#555">このメールアドレスへの Claude Code 更新通知は今後送信されません。</p>
+</body>
+</html>`;
+
+  const text = `通知を停止しました
+
+CCログ超訳 の更新通知を停止しました。
+このメールアドレスへの Claude Code 更新通知は今後送信されません。`;
+
+  return {
+    subject: 'CCログ超訳 通知停止のお知らせ',
+    html,
+    text,
+  };
+}
