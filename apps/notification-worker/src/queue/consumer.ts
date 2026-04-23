@@ -59,205 +59,216 @@ type ChannelRow = WebhookChannelRow | EmailChannelRow;
 export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
   async (batch, env) => {
     for (const message of batch.messages) {
-      const bodyResult = NotificationMessageSchema.safeParse(message.body);
-      if (!bodyResult.success) {
-        logger.error('不正なキューメッセージ', {
-          error: bodyResult.error.message,
-        });
-        message.ack();
-        continue;
-      }
-      const { version } = bodyResult.data;
+      try {
+        const bodyResult = NotificationMessageSchema.safeParse(message.body);
+        if (!bodyResult.success) {
+          logger.error('不正なキューメッセージ', {
+            error: bodyResult.error.message,
+          });
+          message.ack();
+          continue;
+        }
+        const { version } = bodyResult.data;
 
-      // GitHub Raw URL から inferred JSON を取得
-      const inferredUrl = `${GITHUB_RAW_BASE}/inferred_${version}.json`;
-      const response = await fetch(inferredUrl);
-      if (!response.ok) {
-        logger.error('inferred JSONの取得に失敗', {
-          url: inferredUrl,
-          status: response.status,
-        });
-        message.retry();
-        continue;
-      }
+        // GitHub Raw URL から inferred JSON を取得
+        const inferredUrl = `${GITHUB_RAW_BASE}/inferred_${version}.json`;
+        const response = await fetch(inferredUrl);
+        if (!response.ok) {
+          logger.error('inferred JSONの取得に失敗', {
+            url: inferredUrl,
+            status: response.status,
+          });
+          message.retry();
+          continue;
+        }
 
-      const rawData = await response.json();
-      const parseResult = AnalysisSchema.safeParse(rawData);
-      if (!parseResult.success) {
-        logger.error('inferred JSONのパースに失敗', {
-          error: parseResult.error.message,
-        });
-        message.retry();
-        continue;
-      }
-      const data = parseResult.data;
+        const rawData = await response.json();
+        const parseResult = AnalysisSchema.safeParse(rawData);
+        if (!parseResult.success) {
+          logger.error('inferred JSONのパースに失敗', {
+            error: parseResult.error.message,
+          });
+          message.retry();
+          continue;
+        }
+        const data = parseResult.data;
 
-      const db = drizzle(env.DB);
+        const db = drizzle(env.DB);
 
-      // Discord チャンネル一覧を取得
-      const discordRows = await db
-        .select({
-          id: channels.id,
-          webhookUrl: discordChannels.webhookUrl,
-          token: channels.token,
-          failCount: channels.failCount,
-          channelType: sql<'DSC'>`'DSC'`,
-        })
-        .from(channels)
-        .innerJoin(discordChannels, eq(discordChannels.channelId, channels.id))
-        .innerJoin(
-          notificationSettings,
-          eq(notificationSettings.channelId, channels.id),
-        )
-        .where(
-          and(
-            eq(channels.isActive, 1),
-            eq(notificationSettings.frequency, 'IMM'),
-          ),
-        );
-
-      // Slack チャンネル一覧を取得
-      const slackRows = await db
-        .select({
-          id: channels.id,
-          webhookUrl: slackChannels.webhookUrl,
-          token: channels.token,
-          failCount: channels.failCount,
-          channelType: sql<'SLK'>`'SLK'`,
-        })
-        .from(channels)
-        .innerJoin(slackChannels, eq(slackChannels.channelId, channels.id))
-        .innerJoin(
-          notificationSettings,
-          eq(notificationSettings.channelId, channels.id),
-        )
-        .where(
-          and(
-            eq(channels.isActive, 1),
-            eq(notificationSettings.frequency, 'IMM'),
-          ),
-        );
-
-      // Email チャンネル一覧を取得
-      const emailRows = await db
-        .select({
-          id: channels.id,
-          emailEncrypted: emailChannels.emailEncrypted,
-          token: channels.token,
-          failCount: channels.failCount,
-          channelType: sql<'EML'>`'EML'`,
-        })
-        .from(channels)
-        .innerJoin(emailChannels, eq(emailChannels.channelId, channels.id))
-        .innerJoin(
-          notificationSettings,
-          eq(notificationSettings.channelId, channels.id),
-        )
-        .where(
-          and(
-            eq(channels.isActive, 1),
-            eq(notificationSettings.frequency, 'IMM'),
-          ),
-        );
-
-      const rows: ChannelRow[] = [...discordRows, ...slackRows, ...emailRows];
-
-      if (rows.length === 0) {
-        logger.info('アクティブなチャンネルが存在しません');
-        message.ack();
-        continue;
-      }
-
-      let hasRateLimitFailure = false;
-      const lastIndex = rows.length - 1;
-
-      for (const [i, webhook] of rows.entries()) {
-        try {
-          const unsubscribeUrl = buildUnsubscribeUrl(
-            env.WORKER_URL,
-            webhook.token,
+        // Discord チャンネル一覧を取得
+        const discordRows = await db
+          .select({
+            id: channels.id,
+            webhookUrl: discordChannels.webhookUrl,
+            token: channels.token,
+            failCount: channels.failCount,
+            channelType: sql<'DSC'>`'DSC'`,
+          })
+          .from(channels)
+          .innerJoin(
+            discordChannels,
+            eq(discordChannels.channelId, channels.id),
+          )
+          .innerJoin(
+            notificationSettings,
+            eq(notificationSettings.channelId, channels.id),
+          )
+          .where(
+            and(
+              eq(channels.isActive, 1),
+              eq(notificationSettings.frequency, 'IMM'),
+            ),
           );
 
-          const result =
-            webhook.channelType === 'EML'
-              ? await sendToEmail(env.SEND_EMAIL, {
-                  fromAddress: env.EMAIL_FROM,
-                  toAddress: await decryptEmail(
-                    webhook.emailEncrypted,
-                    env.EMAIL_ENCRYPTION_KEY,
-                  ),
-                  payload: createEmailChangelogMessage(data, version, {
-                    unsubscribeUrl,
-                    siteUrl: env.SITE_URL,
-                  }),
-                })
-              : webhook.channelType === 'SLK'
-                ? await sendToSlack(
-                    webhook.webhookUrl,
-                    createSlackChangelogMessage(data, version, {
-                      unsubscribeUrl,
-                      siteUrl: env.SITE_URL,
-                    }),
-                  )
-                : await sendToDiscord(
-                    webhook.webhookUrl,
-                    createChangelogMessage(data, version, {
-                      unsubscribeUrl,
-                      siteUrl: env.SITE_URL,
-                    }),
-                  );
+        // Slack チャンネル一覧を取得
+        const slackRows = await db
+          .select({
+            id: channels.id,
+            webhookUrl: slackChannels.webhookUrl,
+            token: channels.token,
+            failCount: channels.failCount,
+            channelType: sql<'SLK'>`'SLK'`,
+          })
+          .from(channels)
+          .innerJoin(slackChannels, eq(slackChannels.channelId, channels.id))
+          .innerJoin(
+            notificationSettings,
+            eq(notificationSettings.channelId, channels.id),
+          )
+          .where(
+            and(
+              eq(channels.isActive, 1),
+              eq(notificationSettings.frequency, 'IMM'),
+            ),
+          );
 
-          if (result.ok) {
-            if (webhook.failCount > 0) {
-              await db
+        // Email チャンネル一覧を取得
+        const emailRows = await db
+          .select({
+            id: channels.id,
+            emailEncrypted: emailChannels.emailEncrypted,
+            token: channels.token,
+            failCount: channels.failCount,
+            channelType: sql<'EML'>`'EML'`,
+          })
+          .from(channels)
+          .innerJoin(emailChannels, eq(emailChannels.channelId, channels.id))
+          .innerJoin(
+            notificationSettings,
+            eq(notificationSettings.channelId, channels.id),
+          )
+          .where(
+            and(
+              eq(channels.isActive, 1),
+              eq(notificationSettings.frequency, 'IMM'),
+            ),
+          );
+
+        const rows: ChannelRow[] = [...discordRows, ...slackRows, ...emailRows];
+
+        if (rows.length === 0) {
+          logger.info('アクティブなチャンネルが存在しません');
+          message.ack();
+          continue;
+        }
+
+        let hasRateLimitFailure = false;
+        const lastIndex = rows.length - 1;
+
+        for (const [i, webhook] of rows.entries()) {
+          try {
+            const unsubscribeUrl = buildUnsubscribeUrl(
+              env.WORKER_URL,
+              webhook.token,
+            );
+
+            const result =
+              webhook.channelType === 'EML'
+                ? await sendToEmail(env.SEND_EMAIL, {
+                    fromAddress: env.EMAIL_FROM,
+                    toAddress: await decryptEmail(
+                      webhook.emailEncrypted,
+                      env.EMAIL_ENCRYPTION_KEY,
+                    ),
+                    payload: createEmailChangelogMessage(data, version, {
+                      unsubscribeUrl,
+                      siteUrl: env.SITE_URL,
+                    }),
+                  })
+                : webhook.channelType === 'SLK'
+                  ? await sendToSlack(
+                      webhook.webhookUrl,
+                      createSlackChangelogMessage(data, version, {
+                        unsubscribeUrl,
+                        siteUrl: env.SITE_URL,
+                      }),
+                    )
+                  : await sendToDiscord(
+                      webhook.webhookUrl,
+                      createChangelogMessage(data, version, {
+                        unsubscribeUrl,
+                        siteUrl: env.SITE_URL,
+                      }),
+                    );
+
+            if (result.ok) {
+              if (webhook.failCount > 0) {
+                await db
+                  .update(channels)
+                  .set({ failCount: 0, updatedAt: sql`datetime('now')` })
+                  .where(eq(channels.id, webhook.id));
+              }
+            } else if (result.status === 429) {
+              logger.warn('レート制限を受信', { channelId: webhook.id });
+              hasRateLimitFailure = true;
+              break;
+            } else if (PERMANENT_FAILURE_STATUSES.includes(result.status)) {
+              const [updateResult] = await db
                 .update(channels)
-                .set({ failCount: 0, updatedAt: sql`datetime('now')` })
-                .where(eq(channels.id, webhook.id));
-            }
-          } else if (result.status === 429) {
-            logger.warn('レート制限を受信', { channelId: webhook.id });
-            hasRateLimitFailure = true;
-            break;
-          } else if (PERMANENT_FAILURE_STATUSES.includes(result.status)) {
-            const [updateResult] = await db
-              .update(channels)
-              .set({
-                failCount: sql`${channels.failCount} + 1`,
-                isActive: sql`CASE WHEN ${channels.failCount} + 1 >= ${MAX_FAIL_COUNT} THEN 0 ELSE ${channels.isActive} END`,
-                updatedAt: sql`datetime('now')`,
-              })
-              .where(eq(channels.id, webhook.id))
-              .returning({
-                failCount: channels.failCount,
-                isActive: channels.isActive,
-              });
+                .set({
+                  failCount: sql`${channels.failCount} + 1`,
+                  isActive: sql`CASE WHEN ${channels.failCount} + 1 >= ${MAX_FAIL_COUNT} THEN 0 ELSE ${channels.isActive} END`,
+                  updatedAt: sql`datetime('now')`,
+                })
+                .where(eq(channels.id, webhook.id))
+                .returning({
+                  failCount: channels.failCount,
+                  isActive: channels.isActive,
+                });
 
-            if (updateResult && updateResult.isActive === 0) {
-              logger.warn('チャンネルを無効化', {
+              if (updateResult && updateResult.isActive === 0) {
+                logger.warn('チャンネルを無効化', {
+                  channelId: webhook.id,
+                  failCount: updateResult.failCount,
+                });
+              }
+            } else {
+              logger.error('送信失敗', {
                 channelId: webhook.id,
-                failCount: updateResult.failCount,
+                status: result.status,
               });
             }
-          } else {
-            logger.error('送信失敗', {
-              channelId: webhook.id,
-              status: result.status,
-            });
+          } catch (error) {
+            logger.error('webhook送信中に例外が発生', toError(error));
           }
-        } catch (error) {
-          logger.error('webhook送信中に例外が発生', toError(error));
+
+          // API rate limit を避けるため、各送信間に 1 秒間隔(最後は待たない)
+          if (i < lastIndex) {
+            await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+          }
         }
 
-        // API rate limit を避けるため、各送信間に 1 秒間隔(最後は待たない)
-        if (i < lastIndex) {
-          await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+        if (hasRateLimitFailure) {
+          message.retry();
+        } else {
+          message.ack();
         }
-      }
-
-      if (hasRateLimitFailure) {
+      } catch (error) {
+        logger.error('メッセージ処理中に例外が発生', {
+          messageId: message.id,
+          error: toError(error),
+        });
         message.retry();
-      } else {
-        message.ack();
       }
     }
   };
