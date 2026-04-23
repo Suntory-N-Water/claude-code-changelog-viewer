@@ -1,0 +1,631 @@
+{
+  "id": "20260423-040339",
+  "timestamp": "2026-04-23T04:03:39.073Z",
+  "aiSummary": "Linux向けパッケージマネージャー（apt, dnf, apk）を利用したインストール手順が新しく追加されました。Debian、Fedora、RHEL、Alpineの各ディストリビューションにおいて、公式リポジトリを登録して管理できるようになっています。パッケージマネージャー経由でインストールした場合は自動更新の対象外となるため、システム標準のアップデートコマンドを利用した手動更新が必要です。各OSでのインストール、公開鍵の検証、およびアンインストールに関する具体的なコマンドが網羅されました。",
+  "files": [
+    {
+      "filename": "overview.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "Linux向けパッケージマネージャーであるapt、dnf、apkを使用したインストールが可能になったことが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -429,6 +429,8 @@ Choose your environment to get started. Most surfaces require a [Claude subscrip",
+          "lines": [
+            {
+              "type": "context",
+              "content": "      </Tab>"
+            },
+            {
+              "type": "context",
+              "content": "    </Tabs>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "    You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    Then start Claude Code in any project:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    ```bash theme={null}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "Debian、Fedora、RHEL、Alpineユーザー向けに、各パッケージマネージャーを利用したセットアップへの案内が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -436,6 +436,8 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  </Tab>"
+            },
+            {
+              "type": "context",
+              "content": "</Tabs>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Step 2: Log in to your account"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code requires an account to use. When you start an interactive session with the `claude` command, you'll need to log in:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 79,
+      "deletions": 4,
+      "explanation": "Linux各OSのリポジトリ登録、署名鍵の検証、インストール、および手動でのアップデートやアンインストール手順が詳細に記述されました。",
+      "hunks": [
+        {
+          "header": "@@ -74,6 +74,8 @@ winget install Anthropic.ClaudeCode",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCode` periodically to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After installation completes, open a terminal in the project you want to work in and start Claude Code:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            }
+          ]
+        },
+        {
+          "header": "@@ -156,13 +158,13 @@ After installing, log in by running `claude` and following the browser prompts.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Update Claude Code"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Native installations automatically update in the background. You can [configure the release channel](#configure-release-channel) to control whether you receive updates immediately or on a delayed stable schedule, or [disable auto-updates](#disable-auto-updates) entirely. Homebrew and WinGet installations require manual updates."
+            },
+            {
+              "type": "added",
+              "content": "Native installations automatically update in the background. You can [configure the release channel](#configure-release-channel) to control whether you receive updates immediately or on a delayed stable schedule, or [disable auto-updates](#disable-auto-updates) entirely. Homebrew, WinGet, and [Linux package manager](#install-with-linux-package-managers) installations require manual updates."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Auto-updates"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code checks for updates on startup and periodically while running. Updates download and install in the background, then take effect the next time you start Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Homebrew and WinGet installations do not auto-update. For Homebrew, run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed. For WinGet, run `winget upgrade Anthropic.ClaudeCode`."
+            },
+            {
+              "type": "added",
+              "content": "Homebrew, WinGet, apt, dnf, and apk installations do not auto-update. For Homebrew, run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed. For WinGet, run `winget upgrade Anthropic.ClaudeCode`. For Linux package managers, see the upgrade commands in [Install with Linux package managers](#install-with-linux-package-managers)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Known issue:** Claude Code may notify you of updates before the new version is available in these package managers. If an upgrade fails, wait and try again later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -226,7 +228,7 @@ claude update",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Advanced installation options"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These options are for version pinning, migrating from npm, and verifying binary integrity."
+            },
+            {
+              "type": "added",
+              "content": "These options are for version pinning, Linux package managers, npm, and verifying binary integrity."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Install a specific version"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -274,6 +276,59 @@ curl -fsSL https://claude.ai/install.sh | bash -s 2.1.89",
+          "lines": [
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd 2.1.89 && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Install with Linux package managers"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code publishes signed apt, dnf, and apk repositories. Replace `stable` with `latest` for the rolling channel. Package manager installations do not auto-update through Claude Code; updates arrive through your normal system upgrade workflow."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "All repositories are signed with the [Claude Code release signing key](#binary-integrity-and-code-signing). Before trusting the key, verify it as described in each tab."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For Debian and Ubuntu. To use the rolling channel, change both `stable` occurrences in the `deb` line: the URL path and the suite name."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "sudo install -d -m 0755 /etc/apt/keyrings"
+            },
+            {
+              "type": "added",
+              "content": "sudo curl -fsSL https://downloads.claude.ai/keys/claude-code.asc \\"
+            },
+            {
+              "type": "added",
+              "content": "  -o /etc/apt/keyrings/claude-code.asc"
+            },
+            {
+              "type": "added",
+              "content": "echo \"deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main\" \\"
+            },
+            {
+              "type": "added",
+              "content": "  | sudo tee /etc/apt/sources.list.d/claude-code.list"
+            },
+            {
+              "type": "added",
+              "content": "sudo apt update"
+            },
+            {
+              "type": "added",
+              "content": "sudo apt install claude-code"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Verify the GPG key fingerprint before trusting it: `gpg --show-keys /etc/apt/keyrings/claude-code.asc` should report `31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To upgrade later, run `sudo apt update && sudo apt upgrade claude-code`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For Fedora and RHEL:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "sudo tee /etc/yum.repos.d/claude-code.repo <<'EOF'"
+            },
+            {
+              "type": "added",
+              "content": "[claude-code]"
+            },
+            {
+              "type": "added",
+              "content": "name=Claude Code"
+            },
+            {
+              "type": "added",
+              "content": "baseurl=https://downloads.claude.ai/claude-code/rpm/stable"
+            },
+            {
+              "type": "added",
+              "content": "enabled=1"
+            },
+            {
+              "type": "added",
+              "content": "gpgcheck=1"
+            },
+            {
+              "type": "added",
+              "content": "gpgkey=https://downloads.claude.ai/keys/claude-code.asc"
+            },
+            {
+              "type": "added",
+              "content": "EOF"
+            },
+            {
+              "type": "added",
+              "content": "sudo dnf install claude-code"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "dnf downloads the key on first install and prompts you to confirm the fingerprint. Verify it matches `31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE` before accepting."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To upgrade later, run `sudo dnf upgrade claude-code`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For Alpine Linux:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```sh theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "wget -O /etc/apk/keys/claude-code.rsa.pub \\"
+            },
+            {
+              "type": "added",
+              "content": "  https://downloads.claude.ai/keys/claude-code.rsa.pub"
+            },
+            {
+              "type": "added",
+              "content": "echo \"https://downloads.claude.ai/claude-code/apk/stable\" >> /etc/apk/repositories"
+            },
+            {
+              "type": "added",
+              "content": "apk add claude-code"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Verify the downloaded key with `sha256sum /etc/apk/keys/claude-code.rsa.pub`, which should report `395759c1f7449ef4cdef305a42e820f3c766d6090d142634ebdb049f113168b6`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To upgrade later, run `apk update && apk upgrade claude-code`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Install with npm"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also install Claude Code as a global npm package. The package requires [Node.js 18 or later](https://nodejs.org/en/download)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -355,7 +410,7 @@ In addition to the signed manifest, individual binaries carry platform-native co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **macOS**: signed by \"Anthropic PBC\" and notarized by Apple. Verify with `codesign --verify --verbose ./claude`."
+            },
+            {
+              "type": "context",
+              "content": "- **Windows**: signed by \"Anthropic, PBC\". Verify with `Get-AuthenticodeSignature .\\claude.exe`."
+            },
+            {
+              "type": "removed",
+              "content": "- **Linux**: use the manifest signature above to verify integrity. Linux binaries are not individually code-signed."
+            },
+            {
+              "type": "added",
+              "content": "- **Linux**: binaries are not individually code-signed. If you download directly from the `claude-code-releases` bucket or use the native installer, verify integrity with the manifest signature above. If you install with [apt, dnf, or apk](#install-with-linux-package-managers), your package manager verifies signatures automatically using the repository signing key."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Uninstall Claude Code"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -397,6 +452,26 @@ Remove the WinGet package:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "winget uninstall Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### apt / dnf / apk"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Remove the package and the repository configuration:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "sudo apt remove claude-code"
+            },
+            {
+              "type": "added",
+              "content": "sudo rm /etc/apt/sources.list.d/claude-code.list /etc/apt/keyrings/claude-code.asc"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "sudo dnf remove claude-code"
+            },
+            {
+              "type": "added",
+              "content": "sudo rm /etc/yum.repos.d/claude-code.repo"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```sh theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "apk del claude-code"
+            },
+            {
+              "type": "added",
+              "content": "sed -i '\\|downloads.claude.ai/claude-code/apk|d' /etc/apk/repositories"
+            },
+            {
+              "type": "added",
+              "content": "rm /etc/apk/keys/claude-code.rsa.pub"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### npm"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Remove the global npm package:"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

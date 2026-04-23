@@ -74,6 +74,8 @@ winget install Anthropic.ClaudeCode
 
 WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCode` periodically to get the latest features and security fixes.
 
+You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
+
 インストールが完了したら、作業するプロジェクトでターミナルを開き、Claude Code を起動します。
 
 ```bash
@@ -156,13 +158,13 @@ Claude Code には、Pro、Max、Team、Enterprise、または Console アカウ
 
 ## Claude Code を更新
 
-ネイティブインストールは自動的にバックグラウンドで更新されます。[リリースチャネルを構成](#configure-release-channel)して、更新をすぐに受け取るか遅延安定スケジュールで受け取るかを制御することも、[自動更新を完全に無効にする](#disable-auto-updates)こともできます。Homebrew および WinGet インストールは手動更新が必要です。
+ネイティブインストールは自動的にバックグラウンドで更新されます。[リリースチャネルを構成](#configure-release-channel)して、更新をすぐに受け取るか遅延安定スケジュールで受け取るかを制御することも、[自動更新を完全に無効にする](#disable-auto-updates)こともできます。Homebrew、WinGet、および[Linux パッケージマネージャー](#install-with-linux-package-managers)インストールは手動更新が必要です。
 
 ### 自動更新
 
 Claude Code は起動時と実行中に定期的に更新をチェックします。更新はバックグラウンドでダウンロードおよびインストールされ、次に Claude Code を起動するときに有効になります。
 
-Homebrew および WinGet インストールは自動更新されません。Homebrew の場合は、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。
+Homebrew、WinGet、apt、dnf、および apk インストールは自動更新されません。Homebrew の場合は、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。Linux パッケージマネージャーの場合は、[Linux パッケージマネージャーでインストール](#install-with-linux-package-managers)のアップグレードコマンドを参照してください。
 
 **既知の問題**: Claude Code は、新しいバージョンがこれらのパッケージマネージャーで利用可能になる前に更新を通知する場合があります。アップグレードが失敗した場合は、しばらく待ってからもう一度試してください。
 
@@ -226,7 +228,7 @@ claude update
 
 ## 高度なインストールオプション
 
-これらのオプションは、バージョンピニング、npm からの移行、およびバイナリ整合性の検証用です。
+これらのオプションは、バージョンピニング、Linux パッケージマネージャー、npm、およびバイナリ整合性の検証用です。
 
 ### 特定のバージョンをインストール
 
@@ -274,6 +276,59 @@ curl -fsSL https://claude.ai/install.sh | bash -s 2.1.89
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd 2.1.89 && del install.cmd
 ```
 
+### Linux パッケージマネージャーでのインストール
+
+Claude Code は署名付き apt、dnf、および apk リポジトリを公開しています。ローリングチャネルの場合は `stable` を `latest` に置き換えてください。パッケージマネージャーのインストールは Claude Code を通じて自動更新されません。更新は通常のシステムアップグレードワークフローを通じて提供されます。
+
+すべてのリポジトリは [Claude Code リリース署名キー](#binary-integrity-and-code-signing)で署名されています。キーを信頼する前に、各タブで説明されているとおりに検証してください。
+
+Debian および Ubuntu 用です。ローリングチャネルを使用するには、`deb` 行の両方の `stable` を変更します。URL パスとスイート名です。
+
+```bash theme={null}
+sudo install -d -m 0755 /etc/apt/keyrings
+sudo curl -fsSL https://downloads.claude.ai/keys/claude-code.asc \
+  -o /etc/apt/keyrings/claude-code.asc
+echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/stable stable main" \
+  | sudo tee /etc/apt/sources.list.d/claude-code.list
+sudo apt update
+sudo apt install claude-code
+```
+
+信頼する前に GPG キーフィンガープリントを検証します。`gpg --show-keys /etc/apt/keyrings/claude-code.asc` は `31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE` を報告する必要があります。
+
+後で更新するには、`sudo apt update && sudo apt upgrade claude-code` を実行します。
+
+Fedora および RHEL 用:
+
+```bash theme={null}
+sudo tee /etc/yum.repos.d/claude-code.repo <<'EOF'
+[claude-code]
+name=Claude Code
+baseurl=https://downloads.claude.ai/claude-code/rpm/stable
+enabled=1
+gpgcheck=1
+gpgkey=https://downloads.claude.ai/keys/claude-code.asc
+EOF
+sudo dnf install claude-code
+```
+
+dnf は最初のインストール時にキーをダウンロードし、フィンガープリントを確認するよう求めます。受け入れる前に `31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE` と一致することを確認してください。
+
+後で更新するには、`sudo dnf upgrade claude-code` を実行します。
+
+Alpine Linux 用:
+
+```sh theme={null}
+wget -O /etc/apk/keys/claude-code.rsa.pub \
+  https://downloads.claude.ai/keys/claude-code.rsa.pub
+echo "https://downloads.claude.ai/claude-code/apk/stable" >> /etc/apk/repositories
+apk add claude-code
+```
+
+`sha256sum /etc/apk/keys/claude-code.rsa.pub` でダウンロードされたキーを検証します。これは `395759c1f7449ef4cdef305a42e820f3c766d6090d142634ebdb049f113168b6` を報告する必要があります。
+
+後で更新するには、`apk update && apk upgrade claude-code` を実行します。
+
 ### npm でのインストール
 
 Claude Code をグローバル npm パッケージとしてインストールすることもできます。パッケージには [Node.js 18 以上](https://nodejs.org/en/download)が必要です。
@@ -317,7 +372,7 @@ gpg --fingerprint security@anthropic.com
 `VERSION` を検証するリリースに設定します。
 
 ```bash theme={null}
-REPO=https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases
+REPO=https://downloads.claude.ai/claude-code-releases
 VERSION=2.1.89
 curl -fsSLO "$REPO/$VERSION/manifest.json"
 curl -fsSLO "$REPO/$VERSION/manifest.json.sig"
@@ -355,11 +410,11 @@ shasum -a 256 claude
 
 - **macOS**: "Anthropic PBC" によって署名され、Apple によって公証されています。`codesign --verify --verbose ./claude` で検証します。
 - **Windows**: "Anthropic, PBC" によって署名されています。`Get-AuthenticodeSignature .\claude.exe` で検証します。
-- **Linux**: 上記のマニフェスト署名を使用して整合性を検証します。Linux バイナリは個別にコード署名されていません。
+- **Linux**: バイナリは個別にコード署名されていません。`claude-code-releases` バケットから直接ダウンロードするか、ネイティブインストーラーを使用する場合は、上記のマニフェスト署名で整合性を検証します。[apt、dnf、または apk](#install-with-linux-package-managers) でインストールする場合、パッケージマネージャーはリポジトリ署名キーを使用して署名を自動的に検証します。
 
 ## Claude Code をアンインストール
 
-Claude Code を削除するには、インストール方法の指示に従います。
+Claude Code を削除するには、インストール方法の指示に従ってください。
 
 ### ネイティブインストール
 
@@ -377,13 +432,13 @@ Remove-Item -Path "$env:USERPROFILE\.local\share\claude" -Recurse -Force
 
 ### Homebrew インストール
 
-インストールした Homebrew cask を削除します。安定版 cask をインストールした場合:
+インストールした Homebrew cask を削除します。安定版 cask をインストールした場合：
 
 ```bash
 brew uninstall --cask claude-code
 ```
 
-最新版 cask をインストールした場合:
+最新版 cask をインストールした場合：
 
 ```bash
 brew uninstall --cask claude-code@latest
@@ -391,15 +446,35 @@ brew uninstall --cask claude-code@latest
 
 ### WinGet インストール
 
-WinGet パッケージを削除します。
+WinGet パッケージを削除します：
 
 ```powershell
 winget uninstall Anthropic.ClaudeCode
 ```
 
+### apt / dnf / apk
+
+パッケージとリポジトリ構成を削除します：
+
+```bash theme={null}
+sudo apt remove claude-code
+sudo rm /etc/apt/sources.list.d/claude-code.list /etc/apt/keyrings/claude-code.asc
+```
+
+```bash theme={null}
+sudo dnf remove claude-code
+sudo rm /etc/yum.repos.d/claude-code.repo
+```
+
+```sh theme={null}
+apk del claude-code
+sed -i '\|downloads.claude.ai/claude-code/apk|d' /etc/apk/repositories
+rm /etc/apk/keys/claude-code.rsa.pub
+```
+
 ### npm
 
-グローバル npm パッケージを削除します。
+グローバル npm パッケージを削除します：
 
 ```bash
 npm uninstall -g @anthropic-ai/claude-code
@@ -411,7 +486,7 @@ npm uninstall -g @anthropic-ai/claude-code
 
 VS Code 拡張機能、JetBrains プラグイン、および Desktop アプリも `~/.claude/` に書き込みます。それらのいずれかがまだインストールされている場合、ディレクトリは次回実行時に再作成されます。Claude Code を完全に削除するには、これらのファイルを削除する前に、[VS Code 拡張機能](/ja/vs-code#uninstall-the-extension)、JetBrains プラグイン、および Desktop アプリをアンインストールしてください。
 
-Claude Code の設定とキャッシュされたデータを削除するには:
+Claude Code の設定とキャッシュされたデータを削除するには：
 
 ```bash theme={null}
 # ユーザー設定と状態を削除
