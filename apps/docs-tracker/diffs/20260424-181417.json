@@ -1,0 +1,1344 @@
+{
+  "id": "20260424-181417",
+  "timestamp": "2026-04-24T18:14:17.472Z",
+  "aiSummary": "ツール実行時間（duration_ms）やツールID（tool_use_id）などのメタデータがSDKやフック、モニタリング機能に追加され、詳細なパフォーマンス追跡が可能になりました。CLIの--from-prオプションがGitHub以外にGitLabやBitbucket、GitHub Enterpriseにも対応し、プルリクエストのレジューム機能が強化されています。Google Vertex AI環境におけるMCPツール検索の動作仕様や、環境変数CLAUDE_CODE_HIDE_CWDによるパスの非表示設定など、セキュリティと互換性に関する項目が更新されました。設定ファイルの場所や構造が整理され、推論モデルの思考プロセス（Thinking）や努力レベル（Effort）の状態を表示するステータスラインの仕様が追加されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "SDKの型定義にツールの実行時間（duration_ms）やエイリアス（aliases）のフィールドが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1121,6 +1121,7 @@ type PostToolUseHookInput = BaseHookInput & {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  tool_input: unknown;"
+            },
+            {
+              "type": "context",
+              "content": "  tool_response: unknown;"
+            },
+            {
+              "type": "context",
+              "content": "  tool_use_id: string;"
+            },
+            {
+              "type": "added",
+              "content": "  duration_ms?: number;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1134,6 +1135,7 @@ type PostToolUseFailureHookInput = BaseHookInput & {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  tool_use_id: string;"
+            },
+            {
+              "type": "context",
+              "content": "  error: string;"
+            },
+            {
+              "type": "context",
+              "content": "  is_interrupt?: boolean;"
+            },
+            {
+              "type": "added",
+              "content": "  duration_ms?: number;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -2263,6 +2265,7 @@ type SlashCommand = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  name: string;"
+            },
+            {
+              "type": "context",
+              "content": "  description: string;"
+            },
+            {
+              "type": "context",
+              "content": "  argumentHint: string;"
+            },
+            {
+              "type": "added",
+              "content": "  aliases?: string[];"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-teams.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "エージェントチームの表示モード設定（teammateMode）の参照先と、設定ファイルのパスが修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -90,7 +90,7 @@ Agent teams support two display modes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`tmux` has known limitations on certain operating systems and traditionally works best on macOS. Using `tmux -CC` in iTerm2 is the suggested entrypoint into `tmux`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The default is `\"auto\"`, which uses split panes if you're already running inside a tmux session, and in-process otherwise. The `\"tmux\"` setting enables split-pane mode and auto-detects whether to use tmux or iTerm2 based on your terminal. To override, set `teammateMode` in your [global config](/en/settings#global-config-settings) at `~/.claude.json`:"
+            },
+            {
+              "type": "added",
+              "content": "The default is `\"auto\"`, which uses split panes if you're already running inside a tmux session, and in-process otherwise. The `\"tmux\"` setting enables split-pane mode and auto-detects whether to use tmux or iTerm2 based on your terminal. To override, set [`teammateMode`](/en/settings#available-settings) in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "--from-prオプションの対応範囲が広がり、GitLabやBitbucket、GitHub EnterpriseのURLもサポート対象になりました。",
+      "hunks": [
+        {
+          "header": "@@ -63,7 +63,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--exclude-dynamic-system-prompt-sections` | Move per-machine sections from the system prompt (working directory, environment info, memory paths, git status) into the first user message. Improves prompt-cache reuse across different users and machines running the same task. Only applies with the default system prompt; ignored when `--system-prompt` or `--system-prompt-file` is set. Use with `-p` for scripted, multi-user workloads | `claude -p --exclude-dynamic-system-prompt-sections \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--fallback-model` | Enable automatic fallback to specified model when default model is overloaded (print mode only) | `claude -p --fallback-model sonnet \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--fork-session` | When resuming, create a new session ID instead of reusing the original (use with `--resume` or `--continue`) | `claude --resume abc123 --fork-session` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--from-pr` | Resume sessions linked to a specific GitHub PR. Accepts a PR number or URL. Sessions are automatically linked when created via `gh pr create` | `claude --from-pr 123` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--from-pr` | Resume sessions linked to a specific pull request. Accepts a PR number, a GitHub or GitHub Enterprise PR URL, a GitLab merge request URL, or a Bitbucket pull request URL. Sessions are linked automatically when Claude creates the pull request | `claude --from-pr 123` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--ide` | Automatically connect to IDE on startup if exactly one valid IDE is available | `claude --ide` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--init` | Run initialization hooks and start interactive mode | `claude --init` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--init-only` | Run initialization hooks and exit (no interactive session) | `claude --init-only` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "作業ディレクトリを非表示にするCLAUDE_CODE_HIDE_CWD変数が追加され、Vertex AI環境でのMCPツール検索の動作条件が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -100,6 +100,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_HIDDEN` | Set to `false` to exclude dotfiles from results when Claude invokes the [Glob tool](/en/tools-reference). Included by default. Does not affect `@` file autocomplete, `ls`, Grep, or Read |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_NO_IGNORE` | Set to `false` to make the [Glob tool](/en/tools-reference) respect `.gitignore` patterns. By default, Glob returns all matching files including gitignored ones. Does not affect `@` file autocomplete, which has its own [`respectGitignore` setting](/en/settings#available-settings) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_TIMEOUT_SECONDS` | Timeout in seconds for Glob tool file discovery. Defaults to 20 seconds on most platforms and 60 seconds on WSL |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_HIDE_CWD` | Set to `1` to hide the working directory in the startup logo. Useful for screenshares or recordings where the path exposes your OS username |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_IDE_HOST_OVERRIDE` | Override the host address used to connect to the IDE extension. By default Claude Code auto-detects the correct address, including WSL-to-Windows routing |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL` | Skip auto-installation of IDE extensions. Equivalent to setting [`autoInstallIdeExtension`](/en/settings#global-config-settings) to `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_IDE_SKIP_VALID_CHECK` | Set to `1` to skip validation of IDE lockfile entries during connection. Use when auto-connect fails to find your IDE despite it running |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -179,7 +180,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ENABLE_CLAUDEAI_MCP_SERVERS` | Set to `false` to disable [claude.ai MCP servers](/en/mcp#use-mcp-servers-from-claude-ai) in Claude Code. Enabled by default for logged-in users |"
+            },
+            {
+              "type": "context",
+              "content": "| `ENABLE_PROMPT_CACHING_1H` | Set to `1` to request a 1-hour prompt cache TTL instead of the default 5 minutes. Intended for API key, [Bedrock](/en/amazon-bedrock), [Vertex](/en/google-vertex-ai), and [Foundry](/en/microsoft-foundry) users. Subscription users receive 1-hour TTL automatically. 1-hour cache writes are billed at a higher rate |"
+            },
+            {
+              "type": "context",
+              "content": "| `ENABLE_PROMPT_CACHING_1H_BEDROCK` | Deprecated. Use `ENABLE_PROMPT_CACHING_1H` instead |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ENABLE_TOOL_SEARCH` | Controls [MCP tool search](/en/mcp#scale-with-mcp-tool-search). Unset: all MCP tools deferred by default, but loaded upfront when `ANTHROPIC_BASE_URL` points to a non-first-party host. Values: `true` (always defer including proxies), `auto` (threshold mode: load upfront if tools fit within 10% of context), `auto:N` (custom threshold, e.g., `auto:5` for 5%), `false` (load all upfront) |"
+            },
+            {
+              "type": "added",
+              "content": "| `ENABLE_TOOL_SEARCH` | Controls [MCP tool search](/en/mcp#scale-with-mcp-tool-search). Unset: all MCP tools deferred by default, but loaded upfront on Vertex AI or when `ANTHROPIC_BASE_URL` points to a non-first-party host. Values: `true` (always defer including proxies and Vertex AI), `auto` (threshold mode: load upfront if tools fit within 10% of context), `auto:N` (custom threshold, e.g., `auto:5` for 5%), `false` (load all upfront) |"
+            },
+            {
+              "type": "context",
+              "content": "| `FALLBACK_FOR_ALL_PRIMARY_MODELS` | Set to any non-empty value to trigger fallback to [`--fallback-model`](/en/cli-reference#cli-flags) after repeated overload errors on any primary model. By default, only Opus models trigger the fallback |"
+            },
+            {
+              "type": "context",
+              "content": "| `FORCE_AUTOUPDATE_PLUGINS` | Set to `1` to force plugin auto-updates even when the main auto-updater is disabled via `DISABLE_AUTOUPDATER` |"
+            },
+            {
+              "type": "context",
+              "content": "| `FORCE_PROMPT_CACHING_5M` | Set to `1` to force the 5-minute prompt cache TTL even when 1-hour TTL would otherwise apply. Overrides `ENABLE_PROMPT_CACHING_1H` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "google-vertex-ai.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "Vertex AIのAPI制約によりMCPツール検索がデフォルトで無効であることと、有効化するための設定方法が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -170,6 +170,8 @@ Most model versions have a corresponding `VERTEX_REGION_CLAUDE_*` variable. See",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) is enabled automatically. To disable it, set `DISABLE_PROMPT_CACHING=1`. To request a 1-hour cache TTL instead of the 5-minute default, set `ENABLE_PROMPT_CACHING_1H=1`; cache writes with a 1-hour TTL are billed at a higher rate. For heightened rate limits, contact Google Cloud support. When using Vertex AI, the `/login` and `/logout` commands are disabled since authentication is handled through Google Cloud credentials."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "[MCP tool search](/en/mcp#scale-with-mcp-tool-search) is disabled by default on Vertex AI because the endpoint does not accept the required beta header. All MCP tool definitions load upfront instead. To opt in, set `ENABLE_TOOL_SEARCH=true`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### 5. Pin model versions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "<Warning>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 9,
+      "deletions": 2,
+      "explanation": "ツール実行後に取得できるデータとして、ミリ秒単位の実行時間（duration_ms）が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1203,10 +1203,15 @@ Matches on tool name, same values as PreToolUse.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    \"filePath\": \"/path/to/file.txt\","
+            },
+            {
+              "type": "context",
+              "content": "    \"success\": true"
+            },
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "removed",
+              "content": "  \"tool_use_id\": \"toolu_01ABC123...\""
+            },
+            {
+              "type": "added",
+              "content": "  \"tool_use_id\": \"toolu_01ABC123...\","
+            },
+            {
+              "type": "added",
+              "content": "  \"duration_ms\": 12"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `duration_ms` | Optional. Tool execution time in milliseconds. Excludes time spent in permission prompts and PreToolUse hooks |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### PostToolUse decision control"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`PostToolUse` hooks can provide feedback to Claude after tool execution. In addition to the [JSON output fields](#json-output) available to all hooks, your hook script can return these event-specific fields:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1253,7 +1258,8 @@ PostToolUseFailure hooks receive the same `tool_name` and `tool_input` fields as",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"tool_use_id\": \"toolu_01ABC123...\","
+            },
+            {
+              "type": "context",
+              "content": "  \"error\": \"Command exited with non-zero status code 1\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"is_interrupt\": false"
+            },
+            {
+              "type": "added",
+              "content": "  \"is_interrupt\": false,"
+            },
+            {
+              "type": "added",
+              "content": "  \"duration_ms\": 4187"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1261,6 +1267,7 @@ PostToolUseFailure hooks receive the same `tool_name` and `tool_input` fields as",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `error` | String describing what went wrong |"
+            },
+            {
+              "type": "context",
+              "content": "| `is_interrupt` | Optional boolean indicating whether the failure was caused by user interruption |"
+            },
+            {
+              "type": "added",
+              "content": "| `duration_ms` | Optional. Tool execution time in milliseconds. Excludes time spent in permission prompts and PreToolUse hooks |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### PostToolUseFailure decision control"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 3,
+      "deletions": 12,
+      "explanation": "Windows環境でのnpxに関する記述が整理され、Vertex AIやプロキシ環境下でのツール検索のデフォルト挙動が詳しく説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -135,15 +135,6 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Claude Code will display a warning when MCP tool output exceeds 10,000 tokens. To increase this limit, set the `MAX_MCP_OUTPUT_TOKENS` environment variable (for example, `MAX_MCP_OUTPUT_TOKENS=50000`)"
+            },
+            {
+              "type": "context",
+              "content": "- Use `/mcp` to authenticate with remote servers that require OAuth 2.0 authentication"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Windows Users**: On native Windows (not WSL), local MCP servers that use `npx` require the `cmd /c` wrapper to ensure proper execution."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "# This creates command=\"cmd\" which Windows can execute"
+            },
+            {
+              "type": "removed",
+              "content": "claude mcp add --transport stdio my-server -- cmd /c npx -y @some/package"
+            },
+            {
+              "type": "removed",
+              "content": "```"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Without the `cmd /c` wrapper, you'll encounter \"Connection closed\" errors because Windows cannot directly execute `npx`. (See the note above for an explanation of the `--` parameter.)"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Plugin-provided MCP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Plugins](/en/plugins) can bundle MCP servers, automatically providing tools and integrations when the plugin is enabled. Plugin MCP servers work identically to user-configured servers."
+            }
+          ]
+        },
+        {
+          "header": "@@ -829,14 +820,14 @@ Claude Code truncates tool descriptions and server instructions at 2KB each. Kee",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Configure tool search"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tool search is enabled by default: MCP tools are deferred and discovered on demand. When `ANTHROPIC_BASE_URL` points to a non-first-party host, tool search is disabled by default because most proxies do not forward `tool_reference` blocks. Set `ENABLE_TOOL_SEARCH` explicitly if your proxy does. This feature requires models that support `tool_reference` blocks: Sonnet 4 and later, or Opus 4 and later. Haiku models do not support tool search."
+            },
+            {
+              "type": "added",
+              "content": "Tool search is enabled by default: MCP tools are deferred and discovered on demand. It is disabled by default on Vertex AI, which does not accept the tool search beta header, and when `ANTHROPIC_BASE_URL` points to a non-first-party host, since most proxies do not forward `tool_reference` blocks. Set `ENABLE_TOOL_SEARCH` explicitly to opt in. This feature requires models that support `tool_reference` blocks: Sonnet 4 and later, or Opus 4 and later. Haiku models do not support tool search."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Control tool search behavior with the `ENABLE_TOOL_SEARCH` environment variable:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Value | Behavior |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| (unset) | All MCP tools deferred and loaded on demand. Falls back to loading upfront when `ANTHROPIC_BASE_URL` is a non-first-party host |"
+            },
+            {
+              "type": "removed",
+              "content": "| `true` | All MCP tools deferred, including for non-first-party `ANTHROPIC_BASE_URL` |"
+            },
+            {
+              "type": "added",
+              "content": "| (unset) | All MCP tools deferred and loaded on demand. Falls back to loading upfront on Vertex AI or when `ANTHROPIC_BASE_URL` is a non-first-party host |"
+            },
+            {
+              "type": "added",
+              "content": "| `true` | All MCP tools deferred, including on Vertex AI and for non-first-party `ANTHROPIC_BASE_URL` |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | Threshold mode: tools load upfront if they fit within 10% of the context window, deferred otherwise |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto:<N>` | Threshold mode with a custom percentage, where `<N>` is 0-100 (e.g., `auto:5` for 5%) |"
+            },
+            {
+              "type": "context",
+              "content": "| `false` | All MCP tools loaded upfront, no deferral |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "OpenTelemetryイベントとフックを紐付けるためのtool_use_idや、ツール入力サイズ（tool_input_size_bytes）の項目が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -507,12 +507,14 @@ Logged when a tool completes execution.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_name`: Name of the tool"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_use_id`: Unique identifier for this tool invocation. Matches the `tool_use_id` passed to hooks, allowing correlation between OTel events and hook-captured data."
+            },
+            {
+              "type": "context",
+              "content": "- `success`: `\"true\"` or `\"false\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `duration_ms`: Execution time in milliseconds"
+            },
+            {
+              "type": "context",
+              "content": "- `error_type`: Error category string when the tool failed, such as `\"Error:ENOENT\"` or `\"ShellError\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `error` (when `OTEL_LOG_TOOL_DETAILS=1`): Full error message when the tool failed"
+            },
+            {
+              "type": "context",
+              "content": "- `decision_type`: Either `\"accept\"` or `\"reject\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `decision_source`: Decision source - `\"config\"`, `\"hook\"`, `\"user_permanent\"`, `\"user_temporary\"`, `\"user_abort\"`, or `\"user_reject\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_input_size_bytes`: Size of the JSON-serialized tool input in bytes"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_result_size_bytes`: Size of the tool result in bytes"
+            },
+            {
+              "type": "context",
+              "content": "- `mcp_server_scope`: MCP server scope identifier (for MCP tools)"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_parameters` (when `OTEL_LOG_TOOL_DETAILS=1`): JSON string containing tool-specific parameters:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -620,6 +622,7 @@ Logged when a tool permission decision is made (accept/reject).",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_name`: Name of the tool (for example, \"Read\", \"Edit\", \"Write\", \"NotebookEdit\")"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_use_id`: Unique identifier for this tool invocation. Matches the `tool_use_id` passed to hooks, allowing correlation between OTel events and hook-captured data."
+            },
+            {
+              "type": "context",
+              "content": "- `decision`: Either `\"accept\"` or `\"reject\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `source`: Decision source - `\"config\"`, `\"hook\"`, `\"user_permanent\"`, `\"user_temporary\"`, `\"user_abort\"`, or `\"user_reject\"`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "一括許可設定（Blanket Permission）の対象として、Bashに加えてPowerShellが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -192,7 +192,7 @@ Each action goes through a fixed decision order. The first matching step wins:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "On entering auto mode, broad allow rules that grant arbitrary code execution are dropped:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Blanket `Bash(*)`"
+            },
+            {
+              "type": "added",
+              "content": "- Blanket `Bash(*)` or `PowerShell(*)`"
+            },
+            {
+              "type": "context",
+              "content": "- Wildcarded interpreters like `Bash(python*)`"
+            },
+            {
+              "type": "context",
+              "content": "- Package-manager run commands"
+            },
+            {
+              "type": "context",
+              "content": "- `Agent` allow rules"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-dependencies.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "プラグインの依存関係を更新する際、単純な最新版ではなくインストール済みプラグインの制約を満たす最適なバージョンが選択される仕組みに変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -107,7 +107,7 @@ When several installed plugins constrain the same dependency, Claude Code inters",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `~2.1` | `~3.0` | Install of plugin B fails with `range-conflict`. Plugin A and the dependency stay as they were. |"
+            },
+            {
+              "type": "context",
+              "content": "| `=2.1.0` | none | The dependency stays at `2.1.0`. Auto-update skips newer versions while plugin A is installed. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto-update checks each constrained dependency against every installed plugin's range before applying an update. If the marketplace moves a dependency to a version outside any range, the update is skipped and the skip appears in `/doctor` and the `/plugin` Errors tab, naming the constraining plugin."
+            },
+            {
+              "type": "added",
+              "content": "Auto-update fetches a constrained dependency at the highest git tag that satisfies every installed plugin's range, rather than at the marketplace's latest version, so the dependency continues to receive updates within its allowed range. If no tag satisfies all ranges, the update is skipped and the skip appears in `/doctor` and the `/plugin` Errors tab, naming the constraining plugin."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you uninstall the last plugin that constrains a dependency, the dependency is no longer held and resumes tracking its marketplace entry on the next update."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 9,
+      "deletions": 6,
+      "explanation": "PRのバッジ表示用テンプレート設定（prUrlTemplate）などの新オプションが追加され、設定ファイルごとの役割分担が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -111,7 +111,7 @@ Code through hierarchical settings:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "  Managed deployments can also restrict **plugin marketplace additions** using"
+            },
+            {
+              "type": "context",
+              "content": "  `strictKnownMarketplaces`. For more information, see [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions)."
+            },
+            {
+              "type": "removed",
+              "content": "- **Other configuration** is stored in `~/.claude.json`. This file contains your preferences (theme, notification settings, editor mode), OAuth session, [MCP server](/en/mcp) configurations for user and local scopes, per-project state (allowed tools, trust settings), and various caches. Project-scoped MCP servers are stored separately in `.mcp.json`."
+            },
+            {
+              "type": "added",
+              "content": "- **Other configuration** is stored in `~/.claude.json`. This file contains your OAuth session, [MCP server](/en/mcp) configurations for user and local scopes, per-project state (allowed tools, trust settings), and various caches. Project-scoped MCP servers are stored separately in `.mcp.json`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code automatically creates timestamped backups of configuration files and retains the five most recent backups to prevent data loss."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -165,6 +165,7 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `attribution` | Customize attribution for git commits and pull requests. See [Attribution settings](#attribution-settings) | `{\"commit\": \"🤖 Generated with Claude Code\", \"pr\": \"\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoMemoryDirectory` | Custom directory for [auto memory](/en/memory#storage-location) storage. Accepts `~/`-expanded paths. Not accepted in project settings (`.claude/settings.json`) to prevent shared repos from redirecting memory writes to sensitive locations. Accepted from policy, local, and user settings | `\"~/my-memory-dir\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoMode` | Customize what the [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier blocks and allows. Contains `environment`, `allow`, and `soft_deny` arrays of prose rules. Include the literal string `\"$defaults\"` in an array to inherit the built-in rules at that position. See [Configure auto mode](/en/auto-mode-config). Not read from shared project settings | `{\"soft_deny\": [\"$defaults\", \"Never run terraform apply\"]}` |"
+            },
+            {
+              "type": "added",
+              "content": "| `autoScrollEnabled` | In [fullscreen rendering](/en/fullscreen), follow new output to the bottom of the conversation. Default: `true`. Appears in `/config` as **Auto-scroll**. Permission prompts still scroll into view when this is off | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoUpdatesChannel` | Release channel to follow for updates. Use `\"stable\"` for a version that is typically about one week old and skips versions with major regressions, or `\"latest\"` (default) for the most recent release | `\"stable\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `availableModels` | Restrict which models users can select via `/model`, `--model`, or `ANTHROPIC_MODEL`. Does not affect the Default option. See [Restrict model selection](/en/model-config#restrict-model-selection) | `[\"sonnet\", \"haiku\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `awaySummaryEnabled` | Show a one-line session recap when you return to the terminal after a few minutes away. Set to `false` or turn off Session recap in `/config` to disable. Same as [`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/en/env-vars) | `true` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -181,6 +182,7 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `disableDeepLinkRegistration` | Set to `\"disable\"` to prevent Claude Code from registering the `claude-cli://` protocol handler with the operating system on startup. Deep links let external tools open a Claude Code session with a pre-filled prompt via `claude-cli://open?q=...`. The `q` parameter supports multi-line prompts using URL-encoded newlines (`%0A`). Useful in environments where protocol handler registration is restricted or managed separately | `\"disable\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disabledMcpjsonServers` | List of specific MCP servers from `.mcp.json` files to reject | `[\"filesystem\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableSkillShellExecution` | Disable inline shell execution for `` !`...` `` and ` ```! ` blocks in [skills](/en/skills) and custom commands from user, project, plugin, or additional-directory sources. Commands are replaced with `[shell command execution disabled by policy]` instead of being run. Bundled and managed skills are not affected. Most useful in [managed settings](/en/permissions#managed-settings) where users cannot override it | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `editorMode` | Key binding mode for the input prompt: `\"normal\"` or `\"vim\"`. Default: `\"normal\"`. Appears in `/config` as **Editor mode** | `\"vim\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `effortLevel` | Persist the [effort level](/en/model-config#adjust-effort-level) across sessions. Accepts `\"low\"`, `\"medium\"`, `\"high\"`, or `\"xhigh\"`. Written automatically when you run `/effort` with one of those values. See [Adjust effort level](/en/model-config#adjust-effort-level) for supported models | `\"xhigh\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enableAllProjectMcpServers` | Automatically approve all MCP servers defined in project `.mcp.json` files | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enabledMcpjsonServers` | List of specific MCP servers from `.mcp.json` files to approve | `[\"memory\", \"github\"]` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -205,9 +207,11 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `plansDirectory` | Customize where plan files are stored. Path is relative to project root. Default: `~/.claude/plans` | `\"./plans\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `pluginTrustMessage` | (Managed settings only) Custom message appended to the plugin trust warning shown before installation. Use this to add organization-specific context, for example to confirm that plugins from your internal marketplace are vetted. | `\"All plugins from our marketplace are approved by IT\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `prefersReducedMotion` | Reduce or disable UI animations (spinners, shimmer, flash effects) for accessibility | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `prUrlTemplate` | URL template for the PR badge shown in the footer and in tool-result summaries. Substitutes `{host}`, `{owner}`, `{repo}`, `{number}`, and `{url}` from the `gh`-reported PR URL. Use to point PR links at an internal code-review tool instead of `github.com`. Does not affect `#123` autolinks in Claude's prose | `\"https://reviews.example.com/{owner}/{repo}/pull/{number}\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `respectGitignore` | Control whether the `@` file picker respects `.gitignore` patterns. When `true` (default), files matching `.gitignore` patterns are excluded from suggestions | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showClearContextOnPlanAccept` | Show the \"clear context\" option on the plan accept screen. Defaults to `false`. Set to `true` to restore the option | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showThinkingSummaries` | Show [extended thinking](/en/common-workflows#use-extended-thinking-thinking-mode) summaries in interactive sessions. When unset or `false` (default in interactive mode), thinking blocks are redacted by the API and shown as a collapsed stub. Redaction only changes what you see, not what the model generates: to reduce thinking spend, [lower the budget or disable thinking](/en/common-workflows#use-extended-thinking-thinking-mode) instead. Non-interactive mode (`-p`) and SDK callers always receive summaries regardless of this setting | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `showTurnDuration` | Show turn duration messages after responses, e.g. \"Cooked for 1m 6s\". Default: `true`. Appears in `/config` as **Show turn duration** | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `skipWebFetchPreflight` | Skip the [WebFetch domain safety check](/en/data-usage#webfetch-domain-safety-check) that sends each requested hostname to `api.anthropic.com` before fetching. Set to `true` in environments that block traffic to Anthropic, such as Bedrock, Vertex AI, or Foundry deployments with restrictive egress. When skipped, WebFetch attempts any URL without consulting the blocklist | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerTipsEnabled` | Show tips in the spinner while Claude is working. Set to `false` to disable tips (default: `true`) | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerTipsOverride` | Override spinner tips with custom strings. `tips`: array of tip strings. `excludeDefault`: if `true`, only show custom tips; if `false` or absent, custom tips are merged with built-in tips | `{ \"excludeDefault\": true, \"tips\": [\"Use our internal tool X\"] }` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -215,6 +219,8 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `sshConfigs` | SSH connections to show in the [Desktop](/en/desktop#pre-configure-ssh-connections-for-your-team) environment dropdown. Each entry requires `id`, `name`, and `sshHost`; `sshPort`, `sshIdentityFile`, and `startDirectory` are optional. When set in managed settings, connections are read-only for users. Read from managed and user settings only | `[{\"id\": \"dev-vm\", \"name\": \"Dev VM\", \"sshHost\": \"user@dev.example.com\"}]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `statusLine` | Configure a custom status line to display context. See [`statusLine` documentation](/en/statusline) | `{\"type\": \"command\", \"command\": \"~/.claude/statusline.sh\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `strictKnownMarketplaces` | (Managed settings only) Allowlist of plugin marketplace sources. Undefined = no restrictions, empty array = lockdown. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }]` |"
+            },
+            {
+              "type": "added",
+              "content": "| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `auto` (picks split panes in tmux or iTerm2, in-process otherwise), `in-process`, or `tmux`. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `\"in-process\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `tui` | Terminal UI renderer. Use `\"fullscreen\"` for the flicker-free [alt-screen renderer](/en/fullscreen) with virtualized scrollback. Use `\"default\"` for the classic main-screen renderer. Set via `/tui` | `\"fullscreen\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `useAutoModeDuringPlan` | Whether plan mode uses auto mode semantics when auto mode is available. Default: `true`. Not read from shared project settings. Appears in `/config` as \"Use auto mode during plan\" | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `viewMode` | Default transcript view mode on startup: `\"default\"`, `\"verbose\"`, or `\"focus\"`. Overrides the sticky `/focus` selection when set | `\"verbose\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -226,16 +232,13 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These settings are stored in `~/.claude.json` rather than `settings.json`. Adding them to `settings.json` will trigger a schema validation error."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Versions before v2.1.119 also store `autoScrollEnabled`, `editorMode`, `showTurnDuration`, `teammateMode`, and `terminalProgressBarEnabled` here instead of in `settings.json`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Key | Description | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoConnectIde` | Automatically connect to a running IDE when Claude Code starts from an external terminal. Default: `false`. Appears in `/config` as **Auto-connect to IDE (external terminal)** when running outside a VS Code or JetBrains terminal | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoInstallIdeExtension` | Automatically install the Claude Code IDE extension when running from a VS Code terminal. Default: `true`. Appears in `/config` as **Auto-install IDE extension** when running inside a VS Code or JetBrains terminal. You can also set the [`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/en/env-vars) environment variable | `false` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `autoScrollEnabled` | In [fullscreen rendering](/en/fullscreen), follow new output to the bottom of the conversation. Default: `true`. Appears in `/config` as **Auto-scroll**. Permission prompts still scroll into view when this is off | `false` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `editorMode` | Key binding mode for the input prompt: `\"normal\"` or `\"vim\"`. Default: `\"normal\"`. Appears in `/config` as **Editor mode** | `\"vim\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `externalEditorContext` | Prepend Claude's previous response as `#`-commented context when you open the external editor with `Ctrl+G`. Default: `false`. Appears in `/config` as **Show last response in external editor** | `true` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `showTurnDuration` | Show turn duration messages after responses, e.g. \"Cooked for 1m 6s\". Default: `true`. Appears in `/config` as **Show turn duration** | `false` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `auto` (picks split panes in tmux or iTerm2, in-process otherwise), `in-process`, or `tmux`. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `\"in-process\"` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Worktree settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 9,
+      "deletions": 0,
+      "explanation": "モデルの推論努力レベル（effort）や拡張思考機能（thinking）の有効状態を示す新しいフィールドが定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -150,6 +150,8 @@ Claude Code sends the following JSON fields to your script via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `context_window.remaining_percentage` | Pre-calculated percentage of context window remaining |"
+            },
+            {
+              "type": "context",
+              "content": "| `context_window.current_usage` | Token counts from the last API call, described in [context window fields](#context-window-fields) |"
+            },
+            {
+              "type": "context",
+              "content": "| `exceeds_200k_tokens` | Whether the total token count (input, cache, and output tokens combined) from the most recent API response exceeds 200k. This is a fixed threshold regardless of actual context window size. |"
+            },
+            {
+              "type": "added",
+              "content": "| `effort.level` | Current reasoning effort (`low`, `medium`, `high`, `xhigh`, or `max`). Reflects the live session value, including mid-session `/effort` changes. Absent when the current model does not support the effort parameter |"
+            },
+            {
+              "type": "added",
+              "content": "| `thinking.enabled` | Whether extended thinking is enabled for the session |"
+            },
+            {
+              "type": "context",
+              "content": "| `rate_limits.five_hour.used_percentage`, `rate_limits.seven_day.used_percentage` | Percentage of the 5-hour or 7-day rate limit consumed, from 0 to 100 |"
+            },
+            {
+              "type": "context",
+              "content": "| `rate_limits.five_hour.resets_at`, `rate_limits.seven_day.resets_at` | Unix epoch seconds when the 5-hour or 7-day rate limit window resets |"
+            },
+            {
+              "type": "context",
+              "content": "| `session_id` | Unique session identifier |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -208,6 +210,12 @@ Your status line command receives this JSON structure via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"exceeds_200k_tokens\": false,"
+            },
+            {
+              "type": "added",
+              "content": "  \"effort\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"level\": \"high\""
+            },
+            {
+              "type": "added",
+              "content": "  },"
+            },
+            {
+              "type": "added",
+              "content": "  \"thinking\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"enabled\": true"
+            },
+            {
+              "type": "added",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"rate_limits\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"five_hour\": {"
+            },
+            {
+              "type": "context",
+              "content": "      \"used_percentage\": 23.5,"
+            }
+          ]
+        },
+        {
+          "header": "@@ -238,6 +246,7 @@ Your status line command receives this JSON structure via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `session_name`: appears only when a custom name has been set with `--name` or `/rename`"
+            },
+            {
+              "type": "context",
+              "content": "- `workspace.git_worktree`: appears only when the current directory is inside a linked git worktree"
+            },
+            {
+              "type": "added",
+              "content": "- `effort`: appears only when the current model supports the reasoning effort parameter"
+            },
+            {
+              "type": "context",
+              "content": "- `vim`: appears only when vim mode is enabled"
+            },
+            {
+              "type": "context",
+              "content": "- `agent`: appears only when running with the `--agent` flag or agent settings configured"
+            },
+            {
+              "type": "context",
+              "content": "- `worktree`: appears only during `--worktree` sessions. When present, `branch` and `original_branch` may also be absent for hook-based worktrees"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "terminal-config.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Vimモード設定の反映先ファイルパスが更新され、設定画面からの変更方法が案内されています。",
+      "hunks": [
+        {
+          "header": "@@ -82,7 +82,7 @@ The example below plays a system sound on macOS. The linked guide has desktop no",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configure tmux"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When Claude Code runs inside tmux, two things break by default: Shift+Enter submits instead of inserting a newline, and desktop notifications and the [progress bar](/en/settings#global-config-settings) never reach the outer terminal. Add these lines to `~/.tmux.conf`, then run `tmux source-file ~/.tmux.conf` to apply them to the running server:"
+            },
+            {
+              "type": "added",
+              "content": "When Claude Code runs inside tmux, two things break by default: Shift+Enter submits instead of inserting a newline, and desktop notifications and the [progress bar](/en/settings#available-settings) never reach the outer terminal. Add these lines to `~/.tmux.conf`, then run `tmux source-file ~/.tmux.conf` to apply them to the running server:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash ~/.tmux.conf theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "set -g allow-passthrough on"
+            }
+          ]
+        },
+        {
+          "header": "@@ -160,7 +160,7 @@ The VS Code integrated terminal can drop characters from very large pastes befor",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Edit prompts with Vim keybindings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code includes a Vim-style editing mode for the prompt input. Enable it through `/config` → Editor mode, or by setting the [`editorMode`](/en/settings#global-config-settings) global config key to `\"vim\"` in `~/.claude.json`. Set Editor mode back to `normal` to turn it off."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code includes a Vim-style editing mode for the prompt input. Enable it through `/config` → Editor mode, or by setting [`editorMode`](/en/settings#available-settings) to `\"vim\"` in `~/.claude/settings.json`. Set Editor mode back to `normal` to turn it off."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Vim mode supports a subset of NORMAL- and VISUAL-mode motions and operators, such as `hjkl` navigation, `v`/`V` selection, and `d`/`c`/`y` with text objects. See the [Vim editor mode reference](/en/interactive-mode#vim-editor-mode) for the full key table. Vim motions are not remappable through the keybindings file."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 0,
+      "deletions": 1,
+      "explanation": "PowerShellツールにおける自動モードの制限に関する古い記述が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -126,7 +126,6 @@ The same main-session working-directory reset behavior described under the Bash",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The PowerShell tool has the following known limitations during the preview:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Auto mode does not work with the PowerShell tool yet"
+            },
+            {
+              "type": "context",
+              "content": "- PowerShell profiles are not loaded"
+            },
+            {
+              "type": "context",
+              "content": "- On Windows, sandboxing is not supported"
+            },
+            {
+              "type": "context",
+              "content": "- On Windows, Git Bash is still required to start Claude Code"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

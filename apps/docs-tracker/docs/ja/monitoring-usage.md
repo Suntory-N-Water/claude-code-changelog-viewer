@@ -507,12 +507,14 @@ Claude Code は、OpenTelemetry ログ/イベント経由で以下のイベン�
 - `event.timestamp`: ISO 8601 タイムスタンプ
 - `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
 - `tool_name`: ツールの名前
+- `tool_use_id`: このツール呼び出しの一意の識別子。フックに渡される `tool_use_id` と一致し、OTel イベントとフック取得データ間の相関を可能にします。
 - `success`: `"true"` または `"false"`
 - `duration_ms`: 実行時間 (ミリ秒単位)
 - `error_type`: ツールが失敗した場合のエラーカテゴリ文字列。例: `"Error:ENOENT"` または `"ShellError"`
 - `error` (`OTEL_LOG_TOOL_DETAILS=1` の場合): ツールが失敗した場合の完全なエラーメッセージ
 - `decision_type`: `"accept"` または `"reject"`
 - `decision_source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
+- `tool_input_size_bytes`: JSON シリアル化されたツール入力のサイズ (バイト単位)
 - `tool_result_size_bytes`: ツール結果のサイズ (バイト単位)
 - `mcp_server_scope`: MCP サーバースコープ識別子 (MCP ツール用)
 - `tool_parameters` (`OTEL_LOG_TOOL_DETAILS=1` の場合): ツール固有のパラメーターを含む JSON 文字列:
@@ -620,6 +622,7 @@ Claude への API リクエストが失敗するときにログされます。
 - `event.timestamp`: ISO 8601 タイムスタンプ
 - `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
 - `tool_name`: ツールの名前 (例: "Read"、"Edit"、"Write"、"NotebookEdit")
+- `tool_use_id`: このツール呼び出しの一意の識別子。フックに渡される `tool_use_id` と一致し、OTel イベントとフック取得データ間の相関を可能にします。
 - `decision`: `"accept"` または `"reject"`
 - `source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
 

@@ -1200,9 +1200,14 @@ PermissionRequest フックは PreToolUse フックのような `tool_name` と 
     "filePath": "/path/to/file.txt",
     "success": true
   },
-  "tool_use_id": "toolu_01ABC123..."
+  "tool_use_id": "toolu_01ABC123...",
+  "duration_ms": 12
 }
 ```
+
+| フィールド | 説明 |
+| :- | :- |
+| `duration_ms` | オプション。ツール実行時間（ミリ秒）。権限プロンプトと PreToolUse フックに費やされた時間は除外 |
 
 #### PostToolUse 決定制御
 
@@ -1250,7 +1255,8 @@ PostToolUseFailure フックは PostToolUse と同じ `tool_name` と `tool_inpu
   },
   "tool_use_id": "toolu_01ABC123...",
   "error": "Command exited with non-zero status code 1",
-  "is_interrupt": false
+  "is_interrupt": false,
+  "duration_ms": 4187
 }
 ```
 
@@ -1258,6 +1264,7 @@ PostToolUseFailure フックは PostToolUse と同じ `tool_name` と `tool_inpu
 | :- | :- |
 | `error` | 何が悪かったかを説明する文字列 |
 | `is_interrupt` | 失敗がユーザー割り込みによって引き起こされたかどうかを示すオプション ブール値 |
+| `duration_ms` | オプション。ツール実行時間（ミリ秒）。権限プロンプトと PreToolUse フックに費やされた時間は除外 |
 
 #### PostToolUseFailure 決定制御
 

@@ -150,6 +150,8 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `context_window.remaining_percentage` | 事前計算されたコンテキストウィンドウ残り割合 |
 | `context_window.current_usage` | 最後の API 呼び出しからのトークン数。[コンテキストウィンドウフィールド](#context-window-fields) で説明されています |
 | `exceeds_200k_tokens` | 最新の API レスポンスからの総トークン数（入力、キャッシュ、出力トークンの組み合わせ）が 200k を超えるかどうか。これは実際のコンテキストウィンドウサイズに関係なく固定閾値です。 |
+| `effort.level` | 現在の推論努力レベル（`low`、`medium`、`high`、`xhigh`、または `max`）。ライブセッション値を反映しており、セッション中の `/effort` 変更を含みます。現在のモデルが effort パラメータをサポートしていない場合は不在 |
+| `thinking.enabled` | セッションで拡張思考が有効になっているかどうか |
 | `rate_limits.five_hour.used_percentage`、`rate_limits.seven_day.used_percentage` | 5 時間または 7 日のレート制限の消費割合（0～100） |
 | `rate_limits.five_hour.resets_at`、`rate_limits.seven_day.resets_at` | 5 時間または 7 日のレート制限ウィンドウがリセットされる Unix エポック秒 |
 | `session_id` | 一意のセッション識別子 |
@@ -208,6 +210,12 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
     }
   },
   "exceeds_200k_tokens": false,
+  "effort": {
+    "level": "high"
+  },
+  "thinking": {
+    "enabled": true
+  },
   "rate_limits": {
     "five_hour": {
       "used_percentage": 23.5,
@@ -238,6 +246,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 - `session_name`：`--name` または `/rename` でカスタム名が設定されている場合のみ表示
 - `workspace.git_worktree`：現在のディレクトリがリンク git worktree 内にある場合のみ表示
+- `effort`：現在のモデルが推論努力パラメータをサポートしている場合のみ表示
 - `vim`：vim モードが有効な場合のみ表示
 - `agent`：`--agent` フラグまたはエージェント設定が設定されている場合のみ表示
 - `worktree`：`--worktree` セッション中のみ表示。存在する場合、`branch` と `original_branch` もフックベースの worktree では不在の可能性があります

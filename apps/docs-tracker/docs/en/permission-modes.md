@@ -192,7 +192,7 @@ Each action goes through a fixed decision order. The first matching step wins:
 
 On entering auto mode, broad allow rules that grant arbitrary code execution are dropped:
 
-- Blanket `Bash(*)`
+- Blanket `Bash(*)` or `PowerShell(*)`
 - Wildcarded interpreters like `Bash(python*)`
 - Package-manager run commands
 - `Agent` allow rules

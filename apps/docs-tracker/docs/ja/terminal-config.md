@@ -82,7 +82,7 @@ Claude Code はデスクトップ通知を Ghostty、Kitty、および iTerm2 �
 
 ## tmux を設定する
 
-Claude Code が tmux 内で実行されている場合、デフォルトでは 2 つのことが壊れます。Shift+Enter が改行を挿入する代わりに送信し、デスクトップ通知と [プログレスバー](/ja/settings#global-config-settings) が外側のターミナルに到達しません。これらの行を `~/.tmux.conf` に追加し、`tmux source-file ~/.tmux.conf` を実行して実行中のサーバーに適用します。
+Claude Code が tmux 内で実行されている場合、デフォルトでは 2 つのことが壊れます。Shift+Enter が改行を挿入する代わりに送信し、デスクトップ通知と [プログレスバー](/ja/settings#available-settings) が外側のターミナルに到達しません。これらの行を `~/.tmux.conf` に追加し、`tmux source-file ~/.tmux.conf` を実行して実行中のサーバーに適用します。
 
 ```bash ~/.tmux.conf theme={null}
 set -g allow-passthrough on
@@ -160,7 +160,7 @@ VS Code 統合ターミナルは、Claude Code に到達する前に非常に大
 
 ## Vim キーバインディングでプロンプトを編集する
 
-Claude Code には、プロンプト入力用の Vim スタイルの編集モードが含まれています。`/config` → エディタモードを通じて有効にするか、`~/.claude.json` で [`editorMode`](/ja/settings#global-config-settings) グローバル設定キーを `"vim"` に設定します。エディタモードを `normal` に戻してオフにします。
+Claude Code には、プロンプト入力用の Vim スタイルの編集モードが含まれています。`/config` → エディタモードを通じて有効にするか、`~/.claude/settings.json` で [`editorMode`](/ja/settings#available-settings) を `"vim"` に設定します。エディタモードを `normal` に戻してオフにします。
 
 Vim モードは NORMAL モードおよび VISUAL モードのモーションと演算子のサブセットをサポートしています。例えば、`hjkl` ナビゲーション、`v`/`V` 選択、およびテキストオブジェクトを使用した `d`/`c`/`y` などです。完全なキーテーブルについては、[Vim エディタモードリファレンス](/ja/interactive-mode#vim-editor-mode) を参照してください。Vim モーションはキーバインディングファイルを通じて再マップできません。
 

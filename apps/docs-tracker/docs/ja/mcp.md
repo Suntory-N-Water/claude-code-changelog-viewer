@@ -9,6 +9,8 @@ source: https://code.claude.com/docs/ja/mcp.md
 
 Claude Code は、AI ツール統合のためのオープンソース標準である [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) を通じて、数百の外部ツールとデータソースに接続できます。MCP サーバーは Claude Code にツール、データベース、API へのアクセスを提供します。
 
+別のツール（課題追跡ツールや監視ダッシュボードなど）からチャットにデータをコピーしている場合は、サーバーを接続してください。接続すると、Claude は貼り付けたものから作業する代わりに、そのシステムを直接読み取り、操作できます。
+
 ## MCP でできること
 
 MCP サーバーが接続されている場合、Claude Code に以下のことを依頼できます：
@@ -112,6 +114,10 @@ claude mcp remove github
 
 Claude Code は MCP `list_changed` 通知をサポートしており、MCP サーバーが切断して再接続することなく、利用可能なツール、プロンプト、リソースを動的に更新できます。MCP サーバーが `list_changed` 通知を送信すると、Claude Code はそのサーバーから利用可能な機能を自動的に更新します。
 
+### 自動再接続
+
+HTTP または SSE サーバーがセッション中に切断された場合、Claude Code は指数バックオフで自動的に再接続します：最大 5 回の試行、1 秒の遅延から始まり、毎回 2 倍になります。サーバーは再接続が進行中の間、`/mcp` では保留中として表示されます。5 回の失敗した試行の後、サーバーは失敗としてマークされ、`/mcp` から手動で再試行できます。Stdio サーバーはローカルプロセスであり、自動的には再接続されません。
+
 ### チャネルでメッセージをプッシュする
 
 MCP サーバーはセッションに直接メッセージをプッシュすることもでき、Claude が CI 結果、監視アラート、チャットメッセージなどの外部イベントに対応できます。これを有効にするには、サーバーが `claude/channel` 機能を宣言し、起動時に `--channels` フラグでオプトインします。公式にサポートされているチャネルを使用するには [チャネル](/ja/channels) を参照するか、独自に構築するには [チャネルリファレンス](/ja/channels-reference) を参照してください。
@@ -126,15 +132,6 @@ MCP サーバーはセッションに直接メッセージをプッシュする�
 - `MCP_TIMEOUT` 環境変数を使用して MCP サーバーのスタートアップタイムアウトを設定します（例：`MCP_TIMEOUT=10000 claude` は 10 秒のタイムアウトを設定します）
 - Claude Code は MCP ツール出力が 10,000 トークンを超えると警告を表示します。この制限を増やすには、`MAX_MCP_OUTPUT_TOKENS` 環境変数を設定します（例：`MAX_MCP_OUTPUT_TOKENS=50000`）
 - `/mcp` を使用して、OAuth 2.0 認証が必要なリモートサーバーで認証します
-
-**Windows ユーザー向け**：ネイティブ Windows（WSL ではない）では、`npx` を使用するローカル MCP サーバーは適切な実行を確保するために `cmd /c` ラッパーが必要です。
-
-```bash theme={null}
-# これにより、Windows が実行できる command="cmd" が作成されます
-claude mcp add --transport stdio my-server -- cmd /c npx -y @some/package
-```
-
-`cmd /c` ラッパーがないと、Windows は `npx` を直接実行できないため「Connection closed」エラーが発生します。（`--` パラメータの説明については上記のメモを参照してください。）
 
 ### プラグイン提供の MCP サーバー
 
@@ -205,11 +202,17 @@ claude mcp add --transport stdio my-server -- cmd /c npx -y @some/package
 
 ## MCP インストールスコープ
 
-MCP サーバーは 3 つの異なるスコープレベルで設定でき、それぞれサーバーのアクセス可能性と共有を管理するための異なる目的を果たします。これらのスコープを理解することで、特定のニーズに合わせてサーバーを設定する最適な方法を決定するのに役立ちます。
+MCP サーバーは 3 つのスコープで設定できます。選択するスコープは、サーバーがロードされるプロジェクトと、設定がチームと共有されるかどうかを制御します。
+
+| スコープ | ロード対象 | チームと共有 | 保存場所 |
+| - | - | - | - |
+| [ローカル](#local-scope) | 現在のプロジェクトのみ | いいえ | `~/.claude.json` |
+| [プロジェクト](#project-scope) | 現在のプロジェクトのみ | はい、バージョン管理経由 | プロジェクトルートの `.mcp.json` |
+| [ユーザー](#user-scope) | すべてのプロジェクト | いいえ | `~/.claude.json` |
 
 ### ローカルスコープ
 
-ローカルスコープのサーバーはデフォルトの設定レベルを表し、プロジェクトのパスの下の `~/.claude.json` に保存されます。これらのサーバーはプライベートなままで、現在のプロジェクトディレクトリ内で作業する場合にのみアクセス可能です。このスコープは、個人開発サーバー、実験的な設定、または共有すべきでない機密認証情報を含むサーバーに最適です。
+ローカルスコープはデフォルトです。ローカルスコープのサーバーは、追加したプロジェクトでのみロードされ、あなたにプライベートなままです。Claude Code は `~/.claude.json` のそのプロジェクトのパスの下に保存するため、同じサーバーは他のプロジェクトに表示されません。個人開発サーバー、実験的な設定、またはバージョン管理に含めたくない認証情報を持つサーバーにはローカルスコープを使用してください。
 
 MCP サーバーの「ローカルスコープ」という用語は、一般的なローカル設定とは異なります。MCP ローカルスコープのサーバーは `~/.claude.json`（ホームディレクトリ）に保存されますが、一般的なローカル設定は `.claude/settings.local.json`（プロジェクトディレクトリ内）を使用します。設定ファイルの場所の詳細については、[設定](/ja/settings#settings-files)を参照してください。
 
@@ -219,6 +222,23 @@ claude mcp add --transport http stripe https://mcp.stripe.com
 
 # ローカルスコープを明示的に指定する
 claude mcp add --transport http stripe --scope local https://mcp.stripe.com
+```
+
+コマンドは現在のプロジェクトのエントリを `~/.claude.json` に書き込みます。以下の例は、`/path/to/your/project` から実行した場合の結果を示しています：
+
+```json
+{
+  "projects": {
+    "/path/to/your/project": {
+      "mcpServers": {
+        "stripe": {
+          "type": "http",
+          "url": "https://mcp.stripe.com"
+        }
+      }
+    }
+  }
+}
 ```
 
 ### プロジェクトスコープ
@@ -255,25 +275,17 @@ claude mcp add --transport http paypal --scope project https://mcp.paypal.com/mc
 claude mcp add --transport http hubspot --scope user https://mcp.hubspot.com/anthropic
 ```
 
-### 適切なスコープの選択
-
-以下に基づいてスコープを選択してください：
-
-- **ローカルスコープ**：個人サーバー、実験的な設定、または 1 つのプロジェクトに固有の機密認証情報
-- **プロジェクトスコープ**：チーム共有サーバー、プロジェクト固有のツール、またはコラボレーションに必要なサービス
-- **ユーザースコープ**：複数のプロジェクト全体で必要な個人的なユーティリティ、開発ツール、または頻繁に使用されるサービス
-
-**MCP サーバーはどこに保存されていますか？**
-
-- **ユーザーおよびローカルスコープ**：`~/.claude.json`（`mcpServers` フィールドまたはプロジェクトパスの下）
-- **プロジェクトスコープ**：プロジェクトルートの `.mcp.json`（ソース管理にチェックイン）
-- **管理対象**：システムディレクトリの `managed-mcp.json`（[管理対象 MCP 設定](#managed-mcp-configuration)を参照）
-
 ### スコープの階層と優先順位
 
-MCP サーバー設定は明確な優先順位の階層に従います。同じ名前のサーバーが複数のスコープに存在する場合、システムはローカルスコープのサーバーを最初に優先し、次にプロジェクトスコープのサーバー、最後にユーザースコープのサーバーを優先することで競合を解決します。この設計により、必要に応じて個人設定が共有設定をオーバーライドできることが保証されます。
+同じサーバーが複数の場所で定義されている場合、Claude Code はそれに 1 回接続し、最も優先度の高いソースからの定義を使用します：
 
-サーバーがローカルで設定されており、[claude.ai コネクタ](#use-mcp-servers-from-claude-ai)を通じても設定されている場合、ローカル設定が優先され、コネクタエントリはスキップされます。
+1. ローカルスコープ
+2. プロジェクトスコープ
+3. ユーザースコープ
+4. [プラグイン提供サーバー](/ja/plugins)
+5. [claude.ai コネクタ](#use-mcp-servers-from-claude-ai)
+
+3 つのスコープは名前で重複を照合します。プラグインとコネクタはエンドポイントで照合するため、上記のサーバーと同じ URL またはコマンドを指すものは重複として扱われます。
 
 ### `.mcp.json` での環境変数の展開
 
@@ -341,14 +353,11 @@ Sentry アカウントで認証します：
 
 ### 例：コードレビューのために GitHub に接続する
 
+GitHub のリモート MCP サーバーは、ヘッダーとして渡される GitHub 個人アクセストークンで認証します。取得するには、[GitHub トークン設定](https://github.com/settings/personal-access-tokens)を開き、Claude が操作したいリポジトリへのアクセス権を持つ新しいきめ細かいトークンを生成してから、サーバーを追加します：
+
 ```bash
-claude mcp add --transport http github https://api.githubcopilot.com/mcp/
-```
-
-必要に応じて GitHub を選択して認証します：
-
-```text
-/mcp
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/ \
+  --header "Authorization: Bearer YOUR_GITHUB_PAT"
 ```
 
 その後、GitHub で作業します：
@@ -478,7 +487,7 @@ Claude Code で `/mcp` を実行し、ブラウザのログインフローに従
 
 ### OAuth メタデータ検出をオーバーライドする
 
-MCP サーバーが標準 OAuth メタデータエンドポイント（`/.well-known/oauth-authorization-server`）でエラーを返すが、動作する OIDC エンドポイントを公開している場合、Claude Code に指定した URL から OAuth メタデータを直接取得するように指示でき、標準検出チェーンをバイパスできます。
+Claude Code を特定の OAuth 認可サーバーメタデータ URL に指定して、デフォルトの検出チェーンをバイパスします。MCP サーバーの標準エンドポイントがエラーになる場合、または内部プロキシを通じて検出をルーティングしたい場合に設定します。デフォルトでは、Claude Code は最初に RFC 9728 保護リソースメタデータを `/.well-known/oauth-protected-resource` でチェックし、次に RFC 8414 認可サーバーメタデータを `/.well-known/oauth-authorization-server` でフォールバックします。
 
 `.mcp.json` のサーバー設定の `oauth` オブジェクトに `authServerMetadataUrl` を設定します：
 
@@ -496,7 +505,31 @@ MCP サーバーが標準 OAuth メタデータエンドポイント（`/.well-k
 }
 ```
 
-URL は `https://` を使用する必要があります。このオプションには Claude Code v2.1.64 以降が必要です。
+URL は `https://` を使用する必要があります。`authServerMetadataUrl` には Claude Code v2.1.64 以降が必要です。メタデータ URL の `scopes_supported` は、アップストリームサーバーがアドバタイズするスコープをオーバーライドします。
+
+### OAuth スコープを制限する
+
+`oauth.scopes` を設定して、認可フロー中に Claude Code がリクエストするスコープをピン留めします。これは、アップストリーム認可サーバーがより多くのスコープをアドバタイズする場合に、MCP サーバーをセキュリティチームが承認したサブセットに制限するサポートされた方法です。値は RFC 6749 §3.3 の `scope` パラメータ形式と一致する単一のスペース区切り文字列です。
+
+```json
+{
+  "mcpServers": {
+    "slack": {
+      "type": "http",
+      "url": "https://mcp.slack.com/mcp",
+      "oauth": {
+        "scopes": "channels:read chat:write search:read"
+      }
+    }
+  }
+}
+```
+
+`oauth.scopes` は `authServerMetadataUrl` と `/.well-known` でサーバーが検出するスコープの両方に優先します。MCP サーバーがリクエストするスコープセットを決定するようにするには、設定を解除したままにしてください。
+
+認可サーバーが `scopes_supported` で `offline_access` をアドバタイズする場合、Claude Code はそれをピン留めされたスコープに追加して、新しいブラウザサインインなしでアクセストークンを更新できるようにします。
+
+サーバーが後で `insufficient_scope` の 403 を返す場合、Claude Code は同じピン留めされたスコープで再認証します。必要なツールが pin の外側のスコープを必要とする場合は、`oauth.scopes` を拡張してください。
 
 ### カスタム認証用の動的ヘッダーを使用する
 
@@ -602,7 +635,7 @@ claude mcp list
 
 [Claude.ai](https://claude.ai) アカウントで Claude Code にログインしている場合、Claude.ai で追加した MCP サーバーは Claude Code で自動的に利用可能です：
 
-[claude.ai/settings/connectors](https://claude.ai/settings/connectors) でサーバーを追加します。Team および Enterprise プランでは、管理者のみがサーバーを追加できます。
+[claude.ai/customize/connectors](https://claude.ai/customize/connectors) でサーバーを追加します。Team および Enterprise プランでは、管理者のみがサーバーを追加できます。
 
 Claude.ai で必要な認証ステップを完了します。
 
@@ -682,11 +715,11 @@ MCP ツールが大きな出力を生成する場合、Claude Code はトーク�
 - **出力警告閾値**：Claude Code は MCP ツール出力が 10,000 トークンを超えると警告を表示します
 - **設定可能な制限**：`MAX_MCP_OUTPUT_TOKENS` 環境変数を使用して、許可される最大 MCP 出力トークンを調整できます
 - **デフォルト制限**：デフォルトの最大値は 25,000 トークンです
+- **スコープ**：環境変数は独自の制限を宣言しないツールに適用されます。[`anthropic/maxResultSizeChars`](#raise-the-limit-for-a-specific-tool) を設定するツールは、`MAX_MCP_OUTPUT_TOKENS` が何に設定されているかに関わらず、テキストコンテンツにその値を使用します。画像データを返すツールは引き続き `MAX_MCP_OUTPUT_TOKENS` の対象です
 
 大きな出力を生成するツールの制限を増やすには：
 
 ```bash
-# MCP ツール出力の制限を高くする
 export MAX_MCP_OUTPUT_TOKENS=50000
 claude
 ```
@@ -697,7 +730,25 @@ claude
 - 詳細なレポートまたはドキュメントを生成する
 - 広範なログファイルまたはデバッグ情報を処理する
 
-特定の MCP サーバーで出力警告が頻繁に発生する場合は、制限を増やすか、サーバーをページネーションまたはフィルタリング応答するように設定することを検討してください。
+### 特定のツールの制限を引き上げる
+
+MCP サーバーを構築している場合、ツールの `tools/list` 応答エントリで `_meta["anthropic/maxResultSizeChars"]` を設定することで、個々のツールがデフォルトの永続化ディスク閾値より大きい結果を返すことを許可できます。Claude Code はそのツールの閾値を注釈付き値に引き上げます。最大 500,000 文字のハードシーリングまで。
+
+これは、データベーススキーマまたは完全なファイルツリーなど、本質的に大きいが必要な出力を返すツールに役立ちます。注釈がない場合、デフォルト閾値を超える結果はディスクに永続化され、会話内のファイル参照に置き換えられます。
+
+```json
+{
+  "name": "get_schema",
+  "description": "Returns the full database schema",
+  "_meta": {
+    "anthropic/maxResultSizeChars": 200000
+  }
+}
+```
+
+注釈はテキストコンテンツの `MAX_MCP_OUTPUT_TOKENS` とは独立して適用されるため、ユーザーは注釈を宣言するツールのために環境変数を引き上げる必要はありません。画像データを返すツールは引き続きトークン制限の対象です。
+
+特定の MCP サーバーで出力警告が頻繁に発生する場合は、`MAX_MCP_OUTPUT_TOKENS` 制限を増やすことを検討してください。制御していないサーバーの場合は、サーバー作成者に `anthropic/maxResultSizeChars` 注釈を追加するか、応答をページネーションするよう依頼することもできます。注釈は画像コンテンツを返すツールには影響しません。これらの場合、`MAX_MCP_OUTPUT_TOKENS` を引き上げることが唯一のオプションです。
 
 ## MCP 応答要求に対応する
 
@@ -767,14 +818,14 @@ Claude Code はツール説明とサーバー命令を各 2KB で切り詰めま
 
 ### ツール検索を設定する
 
-ツール検索はデフォルトで有効です：MCP ツールは遅延され、オンデマンドで検出されます。`ANTHROPIC_BASE_URL` が非ファーストパーティホストを指している場合、ツール検索はデフォルトで無効です。ほとんどのプロキシは `tool_reference` ブロックを転送しないためです。プロキシが転送する場合は、`ENABLE_TOOL_SEARCH` を明示的に設定してください。この機能には、`tool_reference` ブロックをサポートするモデルが必要です：Sonnet 4 以降、または Opus 4 以降。Haiku モデルはツール検索をサポートしていません。
+ツール検索はデフォルトで有効です：MCP ツールは遅延され、オンデマンドで検出されます。Vertex AI ではデフォルトで無効です。これは `tool_reference` ブロックを受け入れないためです。`ANTHROPIC_BASE_URL` が非ファーストパーティホストを指している場合も無効です。ほとんどのプロキシは `tool_reference` ブロックを転送しないためです。`ENABLE_TOOL_SEARCH` を明示的に設定してオプトインしてください。この機能には、`tool_reference` ブロックをサポートするモデルが必要です：Sonnet 4 以降、または Opus 4 以降。Haiku モデルはツール検索をサポートしていません。
 
 `ENABLE_TOOL_SEARCH` 環境変数でツール検索の動作を制御します：
 
 | 値 | 動作 |
 | :- | :- |
-| （未設定） | すべての MCP ツールが遅延され、オンデマンドでロードされます。`ANTHROPIC_BASE_URL` が非ファーストパーティホストの場合はアップフロントロードにフォールバック |
-| `true` | すべての MCP ツールが遅延。非ファーストパーティ `ANTHROPIC_BASE_URL` を含む |
+| （未設定） | すべての MCP ツールが遅延され、オンデマンドでロードされます。Vertex AI または `ANTHROPIC_BASE_URL` が非ファーストパーティホストの場合はアップフロントロードにフォールバック |
+| `true` | すべての MCP ツールが遅延。Vertex AI および非ファーストパーティ `ANTHROPIC_BASE_URL` を含む |
 | `auto` | しきい値モード：ツールがコンテキストウィンドウの 10% 以内に収まる場合はアップフロントロード、そうでない場合は遅延 |
 | `auto:<N>` | カスタムパーセンテージ付きしきい値モード。`<N>` は 0-100（例：5% の場合は `auto:5`） |
 | `false` | すべての MCP ツールがアップフロントロード、遅延なし |
