@@ -158,6 +158,9 @@ export ANTHROPIC_VERTEX_PROJECT_ID=YOUR-PROJECT-ID
 # オプション：必要に応じてプロンプトキャッシングを無効にする
 export DISABLE_PROMPT_CACHING=1
 
+# オプション：デフォルトの 5 分ではなく 1 時間のプロンプトキャッシュ TTL をリクエストする
+export ENABLE_PROMPT_CACHING_1H=1
+
 # CLOUD_ML_REGION=global の場合、グローバルエンドポイントをサポートしていないモデルのリージョンをオーバーライドする
 export VERTEX_REGION_CLAUDE_HAIKU_4_5=us-east5
 export VERTEX_REGION_CLAUDE_4_6_SONNET=europe-west1
@@ -165,7 +168,7 @@ export VERTEX_REGION_CLAUDE_4_6_SONNET=europe-west1
 
 ほとんどのモデルバージョンには、対応する `VERTEX_REGION_CLAUDE_*` 変数があります。完全なリストについては、[環境変数リファレンス](/ja/env-vars)を参照してください。どのモデルがグローバルエンドポイントをサポートしているか、または地域別のみをサポートしているかを確認するには、[Vertex Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)を確認してください。
 
-[プロンプトキャッシング](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は、`cache_control` エフェメラルフラグを指定すると自動的にサポートされます。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/login` および `/logout` コマンドは無効になります。
+[プロンプトキャッシング](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は自動的に有効になります。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、`ENABLE_PROMPT_CACHING_1H=1` を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/login` および `/logout` コマンドは無効になります。
 
 ### 5. モデルバージョンをピン留めする
 

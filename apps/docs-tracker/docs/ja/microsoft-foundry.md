@@ -5,81 +5,160 @@ source: https://code.claude.com/docs/ja/microsoft-foundry.md
 
 # Claude Code on Microsoft Foundry
 
-> Microsoft Foundryを通じてClaude Codeを構成する方法について学びます。セットアップ、構成、トラブルシューティングを含みます。
+> Microsoft Foundry を通じて Claude Code を構成する方法について学びます。セットアップ、構成、トラブルシューティングを含みます。
+
+.dark .cc-cs {
+  --cs-slate: #f0eee6;
+  --cs-gray-000: #262624;
+  --cs-gray-700: #bfbdb4;
+  --cs-border-default: rgba(240, 238, 230, 0.14);
+}
+.cc-cs-card {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 16px; margin: 0;
+  background: var(--cs-gray-000); border: 0.5px solid var(--cs-border-default);
+  border-radius: 8px; flex-wrap: wrap;
+}
+.cc-cs-text { font-size: 13px; color: var(--cs-gray-700); line-height: 1.5; flex: 1; min-width: 240px; }
+.cc-cs-text strong { font-weight: 550; color: var(--cs-slate); }
+.cc-cs-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.cc-cs-btn-clay {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--cs-clay-deep); color: #fff; border: none;
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 13px; font-weight: 500;
+  transition: background-color 0.15s; white-space: nowrap;
+}
+.cc-cs-btn-clay:hover { background: var(--cs-clay); }
+.cc-cs-btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--cs-gray-700);
+  border: 0.5px solid var(--cs-border-default);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 13px; font-weight: 500;
+}
+.cc-cs-btn-ghost:hover { background: rgba(0, 0, 0, 0.04); }
+.dark .cc-cs-btn-ghost:hover { background: rgba(255, 255, 255, 0.04); }
+@media (max-width: 720px) {
+  .cc-cs-actions { width: 100%; }
+}
+`;
+  return <div className="cc-cs not-prose">
+      <style>{STYLES}</style>
+      <div className="cc-cs-card">
+        <div className="cc-cs-text">
+          <strong>Deploying Claude Code across your organization?</strong> Talk to sales about enterprise plans, SSO, and centralized billing.
+        </div>
+        <div className="cc-cs-actions">
+          <a href={`https://claude.com/pricing?${utm('view_plans')}#plans-business`} className="cc-cs-btn-ghost">
+            View plans
+          </a>
+          <a href={`https://www.anthropic.com/contact-sales?${utm('contact_sales')}`} className="cc-cs-btn-clay">
+            Contact sales {iconArrowRight()}
+          </a>
+        </div>
+      </div>
+    </div>;
+};
+
+<Experiment flag="docs-contact-sales-cta" treatment={<ContactSalesCard surface="foundry" />} />
 
 ## 前提条件
 
-Microsoft FoundryでClaude Codeを構成する前に、以下を確認してください：
+Microsoft Foundry で Claude Code を構成する前に、以下を確認してください：
 
-- Microsoft Foundryへのアクセス権を持つAzureサブスクリプション
-- Microsoft Foundryリソースとデプロイメントを作成するためのRBAC権限
-- Azure CLIがインストールされ、構成されている（オプション - 認証情報を取得する別のメカニズムがない場合のみ必要）
+* Microsoft Foundry へのアクセス権を持つ Azure サブスクリプション
+* Microsoft Foundry リソースとデプロイメントを作成するための RBAC 権限
+* Azure CLI がインストールされ、構成されている（オプション - 認証情報を取得する別のメカニズムがない場合のみ必要）
+
+<Note>
+  Claude Code を複数のユーザーにデプロイする場合は、[モデルバージョンをピン留めして](#4-pin-model-versions)、Anthropic が新しいモデルをリリースしたときの破損を防いでください。
+</Note>
 
 ## セットアップ
 
-### 1. Microsoft Foundryリソースをプロビジョニングする
+### 1. Microsoft Foundry リソースをプロビジョニングする
 
-まず、AzureでClaudeリソースを作成します：
+まず、Azure で Claude リソースを作成します：
 
-1. [Microsoft Foundryポータル](https://ai.azure.com/)に移動します
+1. [Microsoft Foundry ポータル](https://ai.azure.com/)に移動します
 2. 新しいリソースを作成し、リソース名をメモします
-3. Claudeモデルのデプロイメントを作成します：
-   - Claude Opus
-   - Claude Sonnet
-   - Claude Haiku
+3. Claude モデルのデプロイメントを作成します：
+   * Claude Opus
+   * Claude Sonnet
+   * Claude Haiku
 
-### 2. Azure認証情報を構成する
+### 2. Azure 認証情報を構成する
 
-Claude CodeはMicrosoft Foundryの2つの認証方法をサポートしています。セキュリティ要件に最適な方法を選択してください。
+Claude Code は Microsoft Foundry の 2 つの認証方法をサポートしています。セキュリティ要件に最適な方法を選択してください。
 
-**オプションA：APIキー認証**
+**オプション A：API キー認証**
 
-1. Microsoft Foundryポータルでリソースに移動します
+1. Microsoft Foundry ポータルでリソースに移動します
 2. **エンドポイントとキー**セクションに移動します
-3. **APIキー**をコピーします
+3. **API キー**をコピーします
 4. 環境変数を設定します：
 
 ```bash
 export ANTHROPIC_FOUNDRY_API_KEY=your-azure-api-key
 ```
 
-**オプションB：Microsoft Entra ID認証**
+**オプション B：Microsoft Entra ID 認証**
 
-`ANTHROPIC_FOUNDRY_API_KEY`が設定されていない場合、Claude CodeはAzure SDK[デフォルト認証情報チェーン](https://learn.microsoft.com/en-us/azure/developer/javascript/sdk/authentication/credential-chains#defaultazurecredential-overview)を自動的に使用します。
+`ANTHROPIC_FOUNDRY_API_KEY` が設定されていない場合、Claude Code は Azure SDK [デフォルト認証情報チェーン](https://learn.microsoft.com/en-us/azure/developer/javascript/sdk/authentication/credential-chains#defaultazurecredential-overview)を自動的に使用します。
 これは、ローカルおよびリモートワークロードを認証するためのさまざまな方法をサポートしています。
 
-ローカル環境では、一般的にAzure CLIを使用できます：
+ローカル環境では、一般的に Azure CLI を使用できます：
 
 ```bash
 az login
 ```
 
-Microsoft Foundryを使用する場合、認証がAzure認証情報を通じて処理されるため、`/login`および`/logout`コマンドは無効になります。
+<Note>
+  Microsoft Foundry を使用する場合、認証が Azure 認証情報を通じて処理されるため、`/login` および `/logout` コマンドは無効になります。
+</Note>
 
-### 3. Claude Codeを構成する
+### 3. Claude Code を構成する
 
-Microsoft Foundryを有効にするには、以下の環境変数を設定します。デプロイメント名はClaude Codeのモデル識別子として設定されます（推奨されるデプロイメント名を使用している場合はオプションの場合があります）。
+Microsoft Foundry を有効にするには、以下の環境変数を設定します：
 
 ```bash
-# Microsoft Foundry統合を有効にする
+# Microsoft Foundry 統合を有効にする
 export CLAUDE_CODE_USE_FOUNDRY=1
 
-# Azureリソース名（{resource}をリソース名に置き換えます）
+# Azure リソース名（{resource} をリソース名に置き換えます）
 export ANTHROPIC_FOUNDRY_RESOURCE={resource}
-# または完全なベースURLを提供します：
-# export ANTHROPIC_FOUNDRY_BASE_URL=https://{resource}.services.ai.azure.com
-
-# モデルをリソースのデプロイメント名に設定します
-export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-5'
-export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
-export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-1'
+# または完全なベース URL を提供します：
+# export ANTHROPIC_FOUNDRY_BASE_URL=https://{resource}.services.ai.azure.com/anthropic
 ```
 
-モデル構成オプションの詳細については、[モデル構成](/ja/model-config)を参照してください。
+### 4. モデルバージョンをピン留めする
 
-## Azure RBAC構成
+<Warning>
+  すべてのデプロイメントに対して特定のモデルバージョンをピン留めしてください。モデルエイリアス（`sonnet`、`opus`、`haiku`）をピン留めなしで使用する場合、Claude Code は Foundry アカウントで利用できない新しいモデルバージョンを使用しようとする可能性があり、Anthropic がアップデートをリリースしたときに既存のユーザーが破損します。Azure デプロイメントを作成するときは、「最新に自動更新」ではなく、特定のモデルバージョンを選択してください。
+</Warning>
 
-`Azure AI User`および`Cognitive Services User`デフォルトロールには、Claudeモデルを呼び出すために必要なすべての権限が含まれています。
+モデル変数をステップ 1 で作成したデプロイメント名と一致するように設定します。
+
+`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Foundry の `opus` エイリアスは Opus 4.6 に解決されます。最新のモデルを使用するために Opus 4.7 ID に設定します：
+
+```bash
+export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'
+export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'
+export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
+```
+
+現在および従来のモデル ID については、[モデル概要](https://platform.claude.com/docs/en/about-claude/models/overview)を参照してください。環境変数の完全なリストについては、[モデル構成](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
+
+[プロンプトキャッシング](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は自動的に有効になります。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、以下の変数を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます：
+
+```bash
+export ENABLE_PROMPT_CACHING_1H=1
+```
+
+## Azure RBAC 構成
+
+`Azure AI User` および `Cognitive Services User` デフォルトロールには、Claude モデルを呼び出すために必要なすべての権限が含まれています。
 
 より制限的な権限の場合は、以下を含むカスタムロールを作成します：
 
@@ -95,16 +174,16 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-1'
 }
 ```
 
-詳細については、[Microsoft Foundry RBACドキュメント](https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-azure-ai-foundry)を参照してください。
+詳細については、[Microsoft Foundry RBAC ドキュメント](https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-azure-ai-foundry)を参照してください。
 
 ## トラブルシューティング
 
 「Failed to get token from azureADTokenProvider: ChainedTokenCredential authentication failed」というエラーが表示される場合：
 
-- 環境でEntra IDを構成するか、`ANTHROPIC_FOUNDRY_API_KEY`を設定してください。
+* 環境で Entra ID を構成するか、`ANTHROPIC_FOUNDRY_API_KEY` を設定してください。
 
 ## その他のリソース
 
-- [Microsoft Foundryドキュメント](https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-azure-ai-foundry)
-- [Microsoft Foundryモデル](https://ai.azure.com/explore/models)
-- [Microsoft Foundry価格](https://azure.microsoft.com/en-us/pricing/details/ai-foundry/)
+* [Microsoft Foundry ドキュメント](https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-azure-ai-foundry)
+* [Microsoft Foundry モデル](https://ai.azure.com/explore/models)
+* [Microsoft Foundry 価格](https://azure.microsoft.com/en-us/pricing/details/ai-foundry/)
