@@ -1,0 +1,1567 @@
+{
+  "id": "20260425-211257",
+  "timestamp": "2026-04-25T21:12:57.665Z",
+  "aiSummary": "Desktop版でのSSH接続時にClaude Codeが自動インストールされるようになり、セットアップ手順が簡略化されました。これまで「Schedule」と呼ばれていた機能が「Routines」に統合され、ローカル実行とリモート実行の管理UIが刷新されています。プレビュー機能では動画ファイルの表示が新たにサポートされ、Windows環境でのGit導入に関する案内が追加されました。ターミナルの外観を細かくカスタマイズできるカスタムテーマ機能について、具体的な色指定トークンの一覧と設定例が公開されています。",
+  "files": [
+    {
+      "filename": "desktop-quickstart.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "SSH接続時にリモートマシンへClaude Codeを初回自動インストールする機能について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -46,7 +46,7 @@ Start with a small project you know well. It's the fastest way to see what Claud",
+          "lines": [
+            {
+              "type": "context",
+              "content": "You can also select:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Remote**: Run sessions on Anthropic's cloud infrastructure that continue even if you close the app. Remote sessions use the same infrastructure as [Claude Code on the web](/en/claude-code-on-the-web)."
+            },
+            {
+              "type": "removed",
+              "content": "- **SSH**: Connect to a remote machine over SSH (your own servers, cloud VMs, or dev containers). Claude Code must be installed on the remote machine."
+            },
+            {
+              "type": "added",
+              "content": "- **SSH**: Connect to a remote machine over SSH, such as your own servers, cloud VMs, or dev containers. Desktop installs Claude Code on the remote machine automatically the first time you connect."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Select a model from the dropdown next to the send button. See [models](/en/model-config#available-models) for a comparison of Opus, Sonnet, and Haiku. You can change the model later from the same dropdown."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop-scheduled-tasks.md",
+      "additions": 21,
+      "deletions": 26,
+      "explanation": "UI上の名称がScheduleからRoutinesに変更され、ローカルタスクとリモートルーチンの違いや設定手順、実行履歴の確認方法が詳しく整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,9 @@ source: https://code.claude.com/docs/en/desktop-scheduled-tasks.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Set up scheduled tasks in Claude Code Desktop to run Claude automatically on a recurring basis for daily code reviews, dependency audits, or morning briefings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, scheduled tasks start a new session automatically at a time and frequency you choose. Use them for recurring work like daily code reviews, dependency update checks, or morning briefings that pull from your calendar and inbox."
+            },
+            {
+              "type": "added",
+              "content": "Scheduled tasks start a new session automatically at a time and frequency you choose. Use them for recurring work like daily code reviews, dependency update checks, or morning briefings that pull from your calendar and inbox."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The Desktop app's **Routines** page lets you create both local scheduled tasks and remote [routines](/en/routines). A local task runs on your machine with direct access to your files and tools, but only fires while the app is open and your computer is awake. A remote routine runs on Anthropic-managed cloud infrastructure even when your computer is off, and can also fire on API calls or GitHub events. This page covers local scheduled tasks; for remote routines and their trigger options, see [Routines](/en/routines)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Compare scheduling options"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -27,49 +29,42 @@ Claude Code offers three ways to schedule recurring or one-off work:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use **cloud tasks** for work that should run reliably without your machine. Use **Desktop tasks** when you need access to local files and tools. Use **`/loop`** for quick polling during a session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The Schedule page supports two kinds of tasks:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Local tasks**: run on your machine. They have direct access to your local files and tools, but the desktop app must be open and your computer awake for them to run."
+            },
+            {
+              "type": "removed",
+              "content": "- **Remote tasks**: run on Anthropic-managed cloud infrastructure. They keep running even when your computer is off, but work against a fresh clone of your repository rather than your local checkout."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Both kinds appear in the same task grid. Click **New task** to pick which kind to create. The rest of this page covers local tasks; for remote tasks, see [Routines](/en/routines)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "See [How scheduled tasks run](#how-scheduled-tasks-run) for details on missed runs and catch-up behavior for local tasks."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, local scheduled tasks run against whatever state your working directory is in, including uncommitted changes. Enable the worktree toggle in the prompt input to give each run its own isolated Git worktree, the same way [parallel sessions](/en/desktop#work-in-parallel-with-sessions) work."
+            },
+            {
+              "type": "added",
+              "content": "By default, scheduled tasks run against whatever state your working directory is in, including uncommitted changes. Enable the worktree toggle when creating the task to give each run its own isolated Git worktree, the same way [parallel sessions](/en/desktop#work-in-parallel-with-sessions) work."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Create a scheduled task"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To create a local scheduled task, click **Schedule** in the sidebar, click **New task**, and choose **New local task**. Configure these fields:"
+            },
+            {
+              "type": "added",
+              "content": "Click **Routines** in the sidebar, then click **New routine** and choose **Local**. Configure these fields:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| Name | Identifier for the task. Converted to lowercase kebab-case and used as the folder name on disk. Must be unique across your tasks. |"
+            },
+            {
+              "type": "context",
+              "content": "| Description | Short summary shown in the task list. |"
+            },
+            {
+              "type": "removed",
+              "content": "| Prompt | The instructions sent to Claude when the task runs. Write this the same way you'd write any message in the prompt box. The prompt input also includes controls for model, permission mode, working folder, and worktree. |"
+            },
+            {
+              "type": "removed",
+              "content": "| Frequency | How often the task runs. See [frequency options](#frequency-options) below. |"
+            },
+            {
+              "type": "added",
+              "content": "| Instructions | What Claude should do when the task runs. Write this the same way you'd write any message in the prompt box. The instructions input includes pickers for the permission mode and model, and below it you select the working folder and whether to run in an isolated worktree. |"
+            },
+            {
+              "type": "added",
+              "content": "| Schedule | How often the task runs. See [schedule options](#schedule-options) below. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A folder is required before you can save the task. If you haven't trusted that folder yet, Desktop prompts you to trust it before saving."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also create a task by describing what you want in any session. For example, \"set up a daily code review that runs every morning at 9am.\""
+            },
+            {
+              "type": "added",
+              "content": "You can also create a task by describing what you want in any session. For example, \"set up a daily code review that runs every morning at 9am\" creates a recurring task, and \"remind me at 3pm tomorrow to check the deploy\" creates a one-time task that disables itself after it fires."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Frequency options"
+            },
+            {
+              "type": "added",
+              "content": "## Schedule options"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Pick a preset from the frequency dropdown, or ask Claude for anything the picker doesn't cover:"
+            },
+            {
+              "type": "added",
+              "content": "Pick a preset from the Schedule control:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Manual**: no schedule, only runs when you click **Run now**. Useful for saving a prompt you trigger on demand"
+            },
+            {
+              "type": "removed",
+              "content": "- **Hourly**: runs every hour. Each task gets a fixed offset of up to 10 minutes from the top of the hour to stagger API traffic"
+            },
+            {
+              "type": "added",
+              "content": "- **Hourly**: runs every hour"
+            },
+            {
+              "type": "context",
+              "content": "- **Daily**: shows a time picker, defaults to 9:00 AM local time"
+            },
+            {
+              "type": "context",
+              "content": "- **Weekdays**: same as Daily but skips Saturday and Sunday"
+            },
+            {
+              "type": "context",
+              "content": "- **Weekly**: shows a time picker and a day picker"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For intervals the picker doesn't offer (every 15 minutes, first of each month, etc.), ask Claude in any Desktop session to set the schedule. Use plain language; for example, \"schedule a task to run all the tests every 6 hours.\""
+            },
+            {
+              "type": "added",
+              "content": "For intervals the picker doesn't offer, such as every 15 minutes, the first of each month, or a single run at a specific future time, ask Claude in any Desktop session to set the schedule. Use plain language; for example, \"schedule a task to run all the tests every 6 hours.\""
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## How scheduled tasks run"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Local scheduled tasks run on your machine. Desktop checks the schedule every minute while the app is open and starts a fresh session when a task is due, independent of any manual sessions you have open. Each task gets a fixed delay of up to 10 minutes after the scheduled time to stagger API traffic. The delay is deterministic: the same task always starts at the same offset."
+            },
+            {
+              "type": "added",
+              "content": "Scheduled tasks run on your machine. Desktop checks the schedule every minute while the app is open and starts a fresh session when a task is due, independent of any manual sessions you have open. Each task gets a small delay of a few minutes after the scheduled time to stagger API traffic. The delay is deterministic: the same task always starts at the same offset."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When a task fires, you get a desktop notification and a new session appears under a **Scheduled** section in the sidebar. Open it to see what Claude did, review changes, or respond to permission prompts. The session works like any other: Claude can edit files, run commands, create commits, and open pull requests."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tasks only run while the desktop app is running and your computer is awake. If your computer sleeps through a scheduled time, the run is skipped. To prevent idle-sleep, enable **Keep computer awake** in Settings under **Desktop app → General**. Closing the laptop lid still puts it to sleep. For tasks that need to run even when your computer is off, or that should trigger automatically on an API call or GitHub event, use a [routine](/en/routines) instead."
+            },
+            {
+              "type": "added",
+              "content": "Tasks only run while the desktop app is running and your computer is awake. If your computer sleeps through a scheduled time, the run is skipped. To prevent idle-sleep, enable **Keep computer awake** in Settings under **Desktop app → General**. Closing the laptop lid still puts it to sleep. For tasks that need to run even when your computer is off, or that should trigger on an API call or GitHub event, create a remote [routine](/en/routines) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Missed runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -85,16 +80,16 @@ To avoid stalls, click **Run now** after creating a task, watch for permission p",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage scheduled tasks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Click a task in the **Schedule** list to open its detail page. From here you can:"
+            },
+            {
+              "type": "added",
+              "content": "Click a task in the **Routines** list to open its detail page. From here you can:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Run now**: start the task immediately without waiting for the next scheduled time"
+            },
+            {
+              "type": "removed",
+              "content": "- **Toggle repeats**: pause or resume scheduled runs without deleting the task"
+            },
+            {
+              "type": "removed",
+              "content": "- **Edit**: change the prompt, frequency, folder, or other settings"
+            },
+            {
+              "type": "removed",
+              "content": "- **Review history**: see every past run, including ones that were skipped because your computer was asleep"
+            },
+            {
+              "type": "added",
+              "content": "- **Status**: toggle between Active and Paused to pause or resume scheduled runs without deleting the task"
+            },
+            {
+              "type": "added",
+              "content": "- **Edit**: change the instructions, schedule, folder, or other settings"
+            },
+            {
+              "type": "added",
+              "content": "- **Review history**: see every past run, including skipped runs. Hover a skipped entry to see why: your computer was asleep, the previous run was still in progress, or other scheduled tasks were already running. Click **Show more** to load older entries."
+            },
+            {
+              "type": "context",
+              "content": "- **Review allowed permissions**: see and revoke saved tool approvals for this task from the **Always allowed** panel"
+            },
+            {
+              "type": "context",
+              "content": "- **Delete**: remove the task and archive all sessions it created"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also manage tasks by asking Claude in any Desktop session. For example, \"pause my dependency-audit task\", \"delete the standup-prep task\", or \"show me my scheduled tasks.\""
+            },
+            {
+              "type": "added",
+              "content": "You can also list, create, edit, and pause tasks by asking Claude in any Desktop session. For example, \"pause my dependency-audit task\" or \"show me my scheduled tasks.\" To delete a task, use the **Delete** button on its detail page."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To edit a task's prompt on disk, open `~/.claude/scheduled-tasks/<task-name>/SKILL.md` (or under [`CLAUDE_CONFIG_DIR`](/en/env-vars) if set). The file uses YAML frontmatter for `name` and `description`, with the prompt as the body. Changes take effect on the next run. Schedule, folder, model, and enabled state are not in this file: change them through the Edit form or ask Claude."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 25,
+      "deletions": 27,
+      "explanation": "タブ構成の解説が更新され、動画プレビューへの対応やWindows環境でのGit必須化、コネクタ管理用「Customize」ボタンの追加が反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/desktop.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Get more out of Claude Code Desktop: parallel sessions with Git isolation, drag-and-drop pane layout, integrated terminal and file editor, side chats, computer use, Dispatch sessions from your phone, visual diff review, app previews, PR monitoring, connectors, and enterprise configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The Code tab within the Claude Desktop app lets you use Claude Code through a graphical interface instead of the terminal."
+            },
+            {
+              "type": "added",
+              "content": "The Claude Desktop app has three tabs: **Chat** for conversations, **Cowork** for [Dispatch and longer agentic work](https://claude.com/product/cowork), and **Code** for software development. This page is the reference for the Code tab."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Universal build for Intel and Apple Silicon"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -15,25 +15,19 @@ For x64 processors",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For Windows ARM64, download the [ARM64 installer](https://claude.ai/api/desktop/win32/arm64/setup/latest/redirect?utm_source=claude_code\\&utm_medium=docs). Linux is not supported."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After installing, launch Claude, sign in, and click the **Code** tab. See the [Get started guide](/en/desktop-quickstart) for a full walkthrough of your first session."
+            },
+            {
+              "type": "added",
+              "content": "After installing, launch Claude, sign in, and click the **Code** tab. The first time you open it on Windows, you need [Git for Windows](https://git-scm.com/downloads/win) installed; restart the app after installing it. For a walkthrough of your first session, see the [Get started guide](/en/desktop-quickstart)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Desktop adds these capabilities on top of the standard Claude Code experience:"
+            },
+            {
+              "type": "added",
+              "content": "In the Code tab, each conversation is a **session**: it has its own chat history, project folder, and code changes, independent of any other session. The sidebar lists your sessions and lets you run several in parallel. Within a session you can:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [Parallel sessions](#work-in-parallel-with-sessions) with automatic Git worktree isolation"
+            },
+            {
+              "type": "removed",
+              "content": "- [Drag-and-drop layout](#arrange-your-workspace) with an integrated terminal, file editor, and preview pane"
+            },
+            {
+              "type": "removed",
+              "content": "- [Side chats](#ask-a-side-question-without-derailing-the-session) that branch off without affecting the main thread"
+            },
+            {
+              "type": "removed",
+              "content": "- [Visual diff review](#review-changes-with-diff-view) with inline comments"
+            },
+            {
+              "type": "removed",
+              "content": "- [Live app preview](#preview-your-app) with dev servers, HTML files, and PDFs"
+            },
+            {
+              "type": "removed",
+              "content": "- [Computer use](#let-claude-use-your-computer) to open apps and control your screen on macOS and Windows"
+            },
+            {
+              "type": "removed",
+              "content": "- [GitHub PR monitoring](#monitor-pull-request-status) with auto-fix, auto-merge, and auto-archive"
+            },
+            {
+              "type": "removed",
+              "content": "- [Dispatch](#sessions-from-dispatch) integration: send a task from your phone, get a session here"
+            },
+            {
+              "type": "removed",
+              "content": "- [Scheduled tasks](/en/desktop-scheduled-tasks) that run Claude on a recurring schedule"
+            },
+            {
+              "type": "removed",
+              "content": "- [Connectors](#connect-external-tools) for GitHub, Slack, Linear, and more"
+            },
+            {
+              "type": "removed",
+              "content": "- Local, [SSH](#ssh-sessions), and [cloud](#run-long-running-tasks-remotely) environments"
+            },
+            {
+              "type": "added",
+              "content": "- [Review and comment on diffs](#review-changes-with-diff-view), then [watch the resulting PR through CI](#monitor-pull-request-status)"
+            },
+            {
+              "type": "added",
+              "content": "- [Preview your running app](#preview-your-app) in an embedded browser while Claude verifies its own changes"
+            },
+            {
+              "type": "added",
+              "content": "- [Arrange panes](#arrange-your-workspace) for the chat, diff, preview, terminal, and file editor side by side"
+            },
+            {
+              "type": "added",
+              "content": "- Ask a [side question](#ask-a-side-question-without-derailing-the-session) that uses the session's context without derailing it"
+            },
+            {
+              "type": "added",
+              "content": "- [Connect external tools](#connect-external-tools) like GitHub, Slack, and Linear"
+            },
+            {
+              "type": "added",
+              "content": "- Let Claude [open apps and control your screen](#let-claude-use-your-computer)"
+            },
+            {
+              "type": "added",
+              "content": "- Run on your machine, in the [cloud](#run-long-running-tasks-remotely), or over [SSH](#ssh-sessions)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The workspace layout, terminal, file editor, side chats, and view modes described on this page require Claude Desktop v1.2581.0 or later. Open **Claude → Check for Updates** on macOS or **Help → Check for Updates** on Windows to update."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This page covers [working with code](#work-with-code), [arranging your workspace](#arrange-your-workspace), [computer use](#let-claude-use-your-computer), [managing sessions](#manage-sessions), [extending Claude Code](#extend-claude-code), and [configuration](#environment-configuration). It also includes a [CLI comparison](#coming-from-the-cli) and [troubleshooting](#troubleshooting)."
+            },
+            {
+              "type": "added",
+              "content": "For [scheduled recurring work](/en/desktop-scheduled-tasks), [keyboard shortcuts](#keyboard-shortcuts), or [sending tasks from your phone](#sessions-from-dispatch), see the linked pages and sections. If you already use the terminal-based CLI, see the [CLI comparison](#coming-from-the-cli) for what carries over."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Start a session"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -72,11 +66,13 @@ Permission modes control how much autonomy Claude has during a session: whether",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Ask permissions** | `default` | Claude asks before editing files or running commands. You see a diff and can accept or reject each change. Recommended for new users. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Auto accept edits** | `acceptEdits` | Claude auto-accepts file edits and common filesystem commands like `mkdir`, `touch`, and `mv`, but still asks before running other terminal commands. Use this when you trust file changes and want faster iteration. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Plan mode** | `plan` | Claude reads files and runs commands to explore, then proposes a plan without editing your source code. Good for complex tasks where you want to review the approach first. |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Auto** | `auto` | Claude executes all actions with background safety checks that verify alignment with your request. Reduces permission prompts while maintaining oversight. Currently a research preview. Available on Max, Team, Enterprise, and API plans. Requires Claude Sonnet 4.6, Opus 4.6, or Opus 4.7 on Team, Enterprise, and API plans; Claude Opus 4.7 only on Max plans. Not available on Pro plans or third-party providers. Enable in your Settings → Claude Code. |"
+            },
+            {
+              "type": "added",
+              "content": "| **Auto** | `auto` | Claude executes all actions with background safety checks that verify alignment with your request. Reduces permission prompts while maintaining oversight. Enable in your Settings → Claude Code. See [availability requirements](#auto-mode-availability) below. |"
+            },
+            {
+              "type": "context",
+              "content": "| **Bypass permissions** | `bypassPermissions` | Claude runs without any permission prompts, equivalent to `--dangerously-skip-permissions` in the CLI. Enable in your Settings → Claude Code under \"Allow bypass permissions mode\". Only use this in sandboxed containers or VMs. Enterprise admins can disable this option. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `dontAsk` permission mode is available only in the [CLI](/en/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Auto mode is a research preview available on Max, Team, Enterprise, and API plans. It is not available on Pro plans or third-party providers. On Team, Enterprise, and API plans it requires Claude Sonnet 4.6, Opus 4.6, or Opus 4.7. On Max plans it requires Claude Opus 4.7."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Start complex tasks in Plan mode so Claude maps out an approach before making changes. Once you approve the plan, switch to Auto accept edits or Ask permissions to execute it. See [explore first, then plan, then code](/en/best-practices#explore-first-then-plan-then-code) for more on this workflow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Remote sessions support Auto accept edits and Plan mode. Ask permissions is not available because remote sessions auto-accept file edits by default, and Bypass permissions is not available because the remote environment is already sandboxed."
+            }
+          ]
+        },
+        {
+          "header": "@@ -87,7 +83,7 @@ Enterprise admins can restrict which permission modes are available. See [enterp",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude can start a dev server and open an embedded browser to verify its changes. This works for frontend web apps as well as backend servers: Claude can test API endpoints, view server logs, and iterate on issues it finds. In most cases, Claude starts the server automatically after editing project files. You can also ask Claude to preview at any time. By default, Claude [auto-verifies](#auto-verify-changes) changes after every edit."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The preview pane can also open static HTML files, PDFs, and images from your project. Click an HTML, PDF, or image path in the chat to open it in preview."
+            },
+            {
+              "type": "added",
+              "content": "The preview pane can also open static HTML files, PDFs, images, and videos from your project. Click an HTML, PDF, image, or video path in the chat to open it in preview."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "From the preview pane, you can:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -133,7 +129,9 @@ PR monitoring requires the [GitHub CLI (`gh`)](https://cli.github.com/) to be in",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Arrange your workspace"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The desktop app is built around panes you can arrange in any layout: chat, diff, preview, terminal, file, plan, tasks, and subagent. Drag a pane by its header to reposition it, or drag a pane edge to resize it. Press **Cmd+\\\\** on macOS or **Ctrl+\\\\** on Windows to close the focused pane. Open additional panes from the **Views** menu in the session toolbar."
+            },
+            {
+              "type": "added",
+              "content": "The Code tab is built around panes you can arrange in any layout: chat, diff, preview, terminal, file, plan, tasks, and subagent. Drag a pane by its header to reposition it, or drag a pane edge to resize it. Press **Cmd+\\\\** on macOS or **Ctrl+\\\\** on Windows to close the focused pane. Open additional panes from the **Views** menu in the session toolbar."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The pane layout, terminal, file editor, and view modes in this section require Claude Desktop v1.2581.0 or later. Open **Claude → Check for Updates** on macOS or **Help → Check for Updates** on Windows to update."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run commands in the terminal"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -141,7 +139,7 @@ The integrated terminal lets you run commands alongside your session without swi",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Open and edit files"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Click a file path in the chat or diff viewer to open it in the file pane. HTML, PDF, and image paths open in the [preview pane](#preview-your-app) instead. Make spot edits and click **Save** to write them back. If the file changed on disk since you opened it, the pane warns you and lets you override or discard. Click **Discard** to revert your edits, or click the path in the pane header to copy the absolute path."
+            },
+            {
+              "type": "added",
+              "content": "Click a file path in the chat or diff viewer to open it in the file pane. HTML, PDF, image, and video paths open in the [preview pane](#preview-your-app) instead. Make spot edits and click **Save** to write them back. If the file changed on disk since you opened it, the pane warns you and lets you override or discard. Click **Discard** to revert your edits, or click the path in the pane header to copy the absolute path."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The file pane is available in local and SSH sessions. For remote sessions, ask Claude to make the change."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -265,7 +263,7 @@ Worktrees are stored in `<project-root>/.claude/worktrees/` by default. You can",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To include gitignored files like `.env` in new worktrees, create a [`.worktreeinclude` file](/en/common-workflows#copy-gitignored-files-to-worktrees) in your project root."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Session isolation requires [Git](https://git-scm.com/downloads). Most Macs include Git by default. Run `git --version` in Terminal to check. On Windows, Git is required for the Code tab to work: [download Git for Windows](https://git-scm.com/downloads/win), install it, and restart the app. If you run into Git errors, try a Cowork session to help troubleshoot your setup."
+            },
+            {
+              "type": "added",
+              "content": "Session isolation requires [Git](https://git-scm.com/downloads). Most Macs include Git by default. Run `git --version` in Terminal to check. On Windows, Git is required for the Code tab to work: [download Git for Windows](https://git-scm.com/downloads/win), install it, and restart the app. If you run into Git errors, ask Claude in the [Cowork tab](https://claude.com/product/cowork) to help troubleshoot your setup."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use the controls at the top of the sidebar to filter sessions by status, project, or environment, and to group sessions by project. To rename a session, click the session title in the toolbar at the top of the active session. To check context usage, see [Check usage](#check-usage). When context fills up, Claude automatically summarizes the conversation and continues working. You can also type `/compact` to trigger summarization earlier and free up context space. See [the context window](/en/how-claude-code-works#the-context-window) for details on how compaction works."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -312,7 +310,7 @@ Dispatch is one of several ways to work with Claude when you're away from your t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Extend Claude Code"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Connect external services, add reusable workflows, customize Claude's behavior, and configure preview servers."
+            },
+            {
+              "type": "added",
+              "content": "Connect external services, add reusable workflows, customize Claude's behavior, and configure preview servers. To manage connectors, skills, and plugins in one place, click **Customize** in the sidebar."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Connect external tools"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -504,7 +502,7 @@ To add an SSH connection, click the environment dropdown before starting a sessi",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once added, the connection appears in the environment dropdown. Select it to start a session on that machine. Claude runs on the remote machine with access to its files and tools."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The remote machine must run Linux or macOS, and Claude Code must be installed on it. Once connected, SSH sessions support permission modes, connectors, plugins, and MCP servers."
+            },
+            {
+              "type": "added",
+              "content": "The remote machine must run Linux or macOS. Desktop installs Claude Code on the remote machine automatically the first time you connect. Once connected, SSH sessions support permission modes, connectors, plugins, and MCP servers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Pre-configure SSH connections for your team"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -553,9 +551,9 @@ Managed settings override project and user settings and apply when Desktop spawn",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `autoMode` | customize what the auto mode classifier trusts and blocks across your organization. See [Configure auto mode](/en/auto-mode-config). |"
+            },
+            {
+              "type": "context",
+              "content": "| `sshConfigs` | pre-configure [SSH connections](#pre-configure-ssh-connections-for-your-team) that appear in the environment dropdown. Users cannot edit or delete managed connections. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`permissions.disableBypassPermissionsMode` and `disableAutoMode` also work in user and project settings, but placing them in managed settings prevents users from overriding them. `autoMode` is read from user settings, `.claude/settings.local.json`, and managed settings, but not from the checked-in `.claude/settings.json`: a cloned repo cannot inject its own classifier rules. For the complete list of managed-only settings including `allowManagedPermissionRulesOnly` and `allowManagedHooksOnly`, see [managed-only settings](/en/permissions#managed-only-settings)."
+            },
+            {
+              "type": "added",
+              "content": "A managed settings file deployed to disk on each machine applies to Desktop sessions. Managed settings pushed remotely through the admin console currently reach CLI and IDE sessions only, so for Desktop deployments either distribute the file via MDM or use the [admin console controls](#admin-console-controls) above."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Remote managed settings uploaded through the admin console currently apply to CLI and IDE sessions only. For Desktop-specific restrictions, use the admin console controls above."
+            },
+            {
+              "type": "added",
+              "content": "`permissions.disableBypassPermissionsMode` and `disableAutoMode` also work in user and project settings, but placing them in managed settings prevents users from overriding them. `autoMode` is read from user settings, `.claude/settings.local.json`, and managed settings, but not from the checked-in `.claude/settings.json`: a cloned repo cannot inject its own classifier rules. For the complete list of managed-only settings including `allowManagedPermissionRulesOnly` and `allowManagedHooksOnly`, see [managed-only settings](/en/permissions#managed-only-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Device management policies"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -602,7 +600,7 @@ This table shows the desktop app equivalent for common CLI flags. Flags not list",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--permission-mode` | Mode selector next to the send button |"
+            },
+            {
+              "type": "context",
+              "content": "| `--dangerously-skip-permissions` | Bypass permissions mode. Enable in Settings → Claude Code → \"Allow bypass permissions mode\". Enterprise admins can disable this setting. |"
+            },
+            {
+              "type": "context",
+              "content": "| `--add-dir` | Add multiple repos with the **+** button in remote sessions |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--allowedTools`, `--disallowedTools` | Not available in Desktop |"
+            },
+            {
+              "type": "added",
+              "content": "| `--allowedTools`, `--disallowedTools` | No per-session equivalent. Permission rules in [settings files](/en/settings) still apply. |"
+            },
+            {
+              "type": "context",
+              "content": "| `--verbose` | [Verbose view mode](#switch-view-modes) in the Transcript view dropdown |"
+            },
+            {
+              "type": "context",
+              "content": "| `--print`, `--output-format` | Not available. Desktop is interactive only. |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_MODEL` env var | Model dropdown next to the send button |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "routines.md",
+      "additions": 7,
+      "deletions": 7,
+      "explanation": "リモートルーチンの作成場所が整理され、GitHubリポジトリへの書き込み権限やMCPコネクタの設定方法がより具体的に記述されています。",
+      "hunks": [
+        {
+          "header": "@@ -43,7 +43,7 @@ The sections below walk through creating a routine and configuring each of these",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Create a routine"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Create a routine from the web, the Desktop app, or the CLI. All three surfaces write to the same cloud account, so a routine you create in the CLI shows up at claude.ai/code/routines immediately. In the Desktop app, click **New task** and choose **New remote task**; choosing **New local task** instead creates a [local Desktop scheduled task](/en/desktop-scheduled-tasks), which runs on your machine and is not a routine."
+            },
+            {
+              "type": "added",
+              "content": "Create a routine from the web at [claude.ai/code/routines](https://claude.ai/code/routines), from the Desktop app, or from the CLI. All three surfaces write to the same cloud account, so a routine you create in one shows up in the others immediately. In the Desktop app, click **Routines** in the sidebar, then **New routine**, and choose **Remote**; choosing **Local** instead creates a [Desktop scheduled task](/en/desktop-scheduled-tasks), which runs on your machine rather than in the cloud."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The creation form sets up the routine's prompt, repositories, environment, connectors, and triggers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -59,7 +59,7 @@ Give the routine a descriptive name and write the prompt Claude runs each time.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The prompt input includes a model selector. Claude uses the selected model on every run."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Add one or more GitHub repositories for Claude to work in. Each repository is cloned at the start of a run, starting from the default branch. Claude creates `claude/`-prefixed branches for its changes. To allow pushes to any branch, enable **Allow unrestricted branch pushes** for that repository."
+            },
+            {
+              "type": "added",
+              "content": "Add one or more GitHub repositories for Claude to work in. Each repository is cloned at the start of a run, starting from the default branch. Claude creates `claude/`-prefixed branches for its changes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Pick a [cloud environment](/en/claude-code-on-the-web#the-cloud-environment) for the routine. Environments control what the cloud session has access to:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -77,7 +77,11 @@ Select the repository, the event to react to, and optional filters. See [Add a G",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Select **API** here, then save the routine. The URL and token are generated after the routine is saved, since they depend on the routine ID. See [Add an API trigger](#add-an-api-trigger) to copy the URL and generate a token."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "All of your connected [MCP connectors](/en/mcp) are included by default. Remove any that the routine doesn't need. Connectors give Claude access to external services like Slack, Linear, or Google Drive during each run."
+            },
+            {
+              "type": "added",
+              "content": "The **Connectors** and **Permissions** tabs at the bottom of the form control what the routine can reach."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Under Connectors, all of your connected [MCP connectors](/en/mcp) are included by default. Remove any the routine doesn't need. Claude can use every tool from an included connector, including writes, without asking for permission during a run."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Under Permissions, enable **Allow unrestricted branch pushes** for any repository where Claude should be able to push to existing branches instead of only `claude/`-prefixed ones."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Click **Create**. The routine appears in the list and runs the next time one of its triggers matches. To start a run immediately, click **Run now** on the routine's detail page."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -91,10 +95,6 @@ Run `/schedule` in any session to create a scheduled routine conversationally. Y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The CLI also supports managing existing routines. Run `/schedule list` to see all routines, `/schedule update` to change one, or `/schedule run` to trigger it immediately."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Create from the Desktop app"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Open the **Schedule** page in the Desktop app, click **New task**, and choose **New remote task**. The Desktop app shows both local scheduled tasks and routines in the same grid. See [Desktop scheduled tasks](/en/desktop-scheduled-tasks) for details on the local option."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configure triggers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A routine starts when one of its triggers matches. You can attach any combination of schedule, API, and GitHub triggers to the same routine, and add or remove them at any time from the **Select a trigger** section of the routine's edit form."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "terminal-config.md",
+      "additions": 84,
+      "deletions": 0,
+      "explanation": "ターミナルの配色をカスタマイズするためのテーマ設定について、各UI要素に対応する色トークンの詳細なリファレンスが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -130,6 +130,90 @@ The following example defines a theme that keeps the dark preset but recolors th",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code watches `~/.claude/themes/` and reloads when a file changes, so edits made in your editor apply to a running session without a restart."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Below is the full list of customizations you can set in `overrides`. The interactive editor in `/theme` shows the same tokens with a live preview, including a small number of internal tokens not covered here."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The following example combines tokens from several of the groups below: the brand accent, the plan mode border, the diff backgrounds, and the fullscreen message background."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json ~/.claude/themes/midnight.json theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"name\": \"Midnight\","
+            },
+            {
+              "type": "added",
+              "content": "  \"base\": \"dark\","
+            },
+            {
+              "type": "added",
+              "content": "  \"overrides\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"claude\": \"#a78bfa\","
+            },
+            {
+              "type": "added",
+              "content": "    \"planMode\": \"#38bdf8\","
+            },
+            {
+              "type": "added",
+              "content": "    \"diffAdded\": \"#14532d\","
+            },
+            {
+              "type": "added",
+              "content": "    \"diffRemoved\": \"#7f1d1d\","
+            },
+            {
+              "type": "added",
+              "content": "    \"userMessageBackground\": \"#1e1b4b\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Text and accent colors"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Control the primary brand accent and the foreground text shades used throughout the interface."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Token | Controls |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude` | Primary brand accent, used for the spinner and assistant label |"
+            },
+            {
+              "type": "added",
+              "content": "| `text` | Default foreground text |"
+            },
+            {
+              "type": "added",
+              "content": "| `inverseText` | Text drawn on top of a colored background, such as status badges |"
+            },
+            {
+              "type": "added",
+              "content": "| `inactive` | Secondary text such as hints, timestamps, and disabled items |"
+            },
+            {
+              "type": "added",
+              "content": "| `subtle` | Faint borders and de-emphasized secondary text |"
+            },
+            {
+              "type": "added",
+              "content": "| `permission` | Dialog borders, including permission prompts and pickers |"
+            },
+            {
+              "type": "added",
+              "content": "| `remember` | Memory and `CLAUDE.md` indicators |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Status colors"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Signal success, failure, and warning states across messages and indicators."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Token | Controls |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `success` | Success messages and passing checks |"
+            },
+            {
+              "type": "added",
+              "content": "| `error` | Error messages and failures |"
+            },
+            {
+              "type": "added",
+              "content": "| `warning` | Warnings, caution messages, and the auto mode border |"
+            },
+            {
+              "type": "added",
+              "content": "| `merged` | Merged pull request status |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Input box and mode indicators"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Set the input box border color and the accent shown while a permission mode or indicator is active."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Token | Controls |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `promptBorder` | Input box border in the default permission mode |"
+            },
+            {
+              "type": "added",
+              "content": "| `planMode` | Plan mode accent and border |"
+            },
+            {
+              "type": "added",
+              "content": "| `autoAccept` | Accept-edits mode accent and border |"
+            },
+            {
+              "type": "added",
+              "content": "| `bashBorder` | Input box border when entering a `!` shell command |"
+            },
+            {
+              "type": "added",
+              "content": "| `ide` | IDE connection indicator |"
+            },
+            {
+              "type": "added",
+              "content": "| `fastMode` | Fast mode indicator |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Diff rendering"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Color added and removed code in file edits and reviews."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Token | Controls |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `diffAdded` | Background of added lines |"
+            },
+            {
+              "type": "added",
+              "content": "| `diffRemoved` | Background of removed lines |"
+            },
+            {
+              "type": "added",
+              "content": "| `diffAddedDimmed` | Background of unchanged context near added lines |"
+            },
+            {
+              "type": "added",
+              "content": "| `diffRemovedDimmed` | Background of unchanged context near removed lines |"
+            },
+            {
+              "type": "added",
+              "content": "| `diffAddedWord` | Word-level highlight within an added line |"
+            },
+            {
+              "type": "added",
+              "content": "| `diffRemovedWord` | Word-level highlight within a removed line |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Fullscreen mode"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Apply only in [fullscreen rendering mode](/en/fullscreen), where messages have a background fill."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Token | Controls |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `userMessageBackground` | Background behind your messages in the transcript |"
+            },
+            {
+              "type": "added",
+              "content": "| `selectionBg` | Background of text selected with the mouse |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Shimmer variants and subagent colors"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Several tokens have a paired `Shimmer` variant, such as `claudeShimmer` and `warningShimmer`, that supplies the lighter color used in the spinner's animated gradient. Override the shimmer alongside its base token if the animation looks mismatched."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each [subagent](/en/sub-agents) and parallel task is shown in one of eight named colors so you can tell them apart in the transcript. The token names follow the pattern `<color>_FOR_SUBAGENTS_ONLY`, where `<color>` is `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, or `cyan`. Override these to change what each named color looks like. For example, a subagent with `color: blue` in its definition is drawn using the `blue_FOR_SUBAGENTS_ONLY` value."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Switch to fullscreen rendering"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the display flickers or the scroll position jumps while Claude is working, switch to [fullscreen rendering mode](/en/fullscreen). It draws to a separate screen the terminal reserves for full-screen apps instead of appending to your normal scrollback, which keeps memory usage flat and adds mouse support for scrolling and selection. In this mode you scroll with the mouse or PageUp inside Claude Code rather than with your terminal's native scrollback; see the [fullscreen page](/en/fullscreen#search-and-review-the-conversation) for how to search and copy."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
