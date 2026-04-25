@@ -1,6 +1,4 @@
-# =============================================================================
 # Edge Certificates - SSL/TLS 証明書と HTTPS 通信に関する設定
-# =============================================================================
 
 # HTTP アクセスを自動的に HTTPS へ 301 リダイレクトする
 resource "cloudflare_zone_setting" "always_use_https" {
@@ -9,7 +7,7 @@ resource "cloudflare_zone_setting" "always_use_https" {
   value      = "on"
 }
 
-# HSTS（HTTP Strict Transport Security）を有効化
+# HSTS(HTTP Strict Transport Security)を有効化
 # ブラウザレベルで HTTPS を強制する
 # X-Content-Type-Options: nosniff はアプリ側の _headers で管理するため、ここでは無効にする
 resource "cloudflare_zone_setting" "security_header" {
@@ -58,9 +56,7 @@ resource "cloudflare_zone_setting" "automatic_https_rewrites" {
   value      = "on"
 }
 
-# =============================================================================
 # Security - セキュリティ設定
-# =============================================================================
 
 # Browser Integrity Check を有効化
 # 訪問者の HTTP ヘッダーを検査し、不正な User-Agent やスパムボットの異常なヘッダーパターンを検出する
@@ -70,20 +66,18 @@ resource "cloudflare_zone_setting" "browser_check" {
   value      = "on"
 }
 
-# チャレンジ（CAPTCHA 等）クリア後の有効時間を 30 分に設定
+# チャレンジ(CAPTCHA 等)クリア後の有効時間を 30 分に設定
 resource "cloudflare_zone_setting" "challenge_ttl" {
   zone_id    = var.zone_id
   setting_id = "challenge_ttl"
   value      = "1800"
 }
 
-# =============================================================================
 # Speed - パフォーマンス設定
-# =============================================================================
 
 # NOTE: HTTP/2 は Cloudflare で常時有効のため Terraform 管理対象外
 
-# HTTP/3（QUIC）を有効化
+# HTTP/3(QUIC)を有効化
 # TCP の代わりに QUIC プロトコルを使い、接続確立が高速でパケットロス時の劣化も少ない
 resource "cloudflare_zone_setting" "http3" {
   zone_id    = var.zone_id
