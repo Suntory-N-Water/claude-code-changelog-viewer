@@ -1,0 +1,104 @@
+---
+import { getCollection } from 'astro:content';
+import VersionCard from '../../components/changelog/VersionCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import { buildDiffMap } from '../../lib/changelog-diff';
+import { semverCompareDesc } from '../../lib/semver';
+
+const sortedChangelogs = await getCollection('changelog');
+sortedChangelogs.sort((a, b) =>
+  semverCompareDesc(a.data.version, b.data.version),
+);
+
+const diffEntries = await getCollection('diff');
+const diffMap = buildDiffMap(diffEntries);
+
+const versionData = sortedChangelogs.map((entry) => {
+  const events = diffMap.get(`v${entry.data.version}`);
+  const diffStatus = events?.some((e) => e.type === 'version_removed')
+    ? ('removed' as const)
+    : events?.some((e) => e.type === 'items_changed')
+      ? ('changed' as const)
+      : undefined;
+  return {
+    version: entry.data.version,
+    itemCount: entry.data.items.length,
+    summary: entry.data.summary,
+    diffStatus,
+  };
+});
+
+// メジャーバージョンでグループ化
+const groups = new Map<string, typeof versionData>();
+for (const v of versionData) {
+  const major = v.version.split('.')[0];
+  const key = `v${major}.x`;
+  if (!groups.has(key)) {
+    groups.set(key, []);
+  }
+  groups.get(key)?.push(v);
+}
+---
+
+<Layout
+  title='全バージョン一覧 - CCログ超訳: Claude Codeの変更履歴'
+  description={`Claude Codeの全${versionData.length}バージョンの変更履歴一覧。各バージョンの新機能・バグ修正・改善点をAIが日本語で解説します。`}
+  jsonLd={{
+    type: 'collection',
+    title: '全バージョン一覧',
+    description: `Claude Code 全${versionData.length}バージョン変更履歴`,
+  }}
+  breadcrumbs={[
+    { name: 'ホーム', url: 'https://claude-code-log.com/' },
+    { name: '全バージョン一覧', url: 'https://claude-code-log.com/changelog' },
+  ]}
+>
+  <div class='min-h-dvh py-12 sm:py-16 px-4'>
+    <div class='max-w-6xl mx-auto'>
+      <header class='mb-12'>
+        <nav aria-label='パンくずリスト' class='text-sm text-gray-400 mb-6'>
+          <a
+            href='/'
+            class='hover:text-[hsl(var(--cc-main-orange))] transition-colors duration-150'
+            >ホーム</a
+          >
+          <span class='mx-2 select-none'>/</span>
+          <span class='text-[hsl(var(--cc-main-black)/0.7)]'
+            >全バージョン一覧</span
+          >
+        </nav>
+        <h1
+          class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-2'
+        >
+          全バージョン一覧
+        </h1>
+        <p class='text-sm text-gray-500 tabular-nums'>
+          {versionData.length} バージョン
+        </p>
+      </header>
+
+      {
+        [...groups.entries()].map(([groupKey, versions], i) => (
+          <section class={i > 0 ? 'mt-16' : ''}>
+            <div class='flex items-center gap-3 mb-6'>
+              <span class='text-xs font-medium tracking-widest uppercase text-gray-400'>
+                {groupKey}
+              </span>
+              <div class='flex-1 h-px bg-[hsl(var(--cc-gray))]' />
+            </div>
+            <div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'>
+              {versions.map(({ version, itemCount, summary, diffStatus }) => (
+                <VersionCard
+                  version={version}
+                  itemCount={itemCount}
+                  summary={summary}
+                  diffStatus={diffStatus}
+                />
+              ))}
+            </div>
+          </section>
+        ))
+      }
+    </div>
+  </div>
+</Layout>

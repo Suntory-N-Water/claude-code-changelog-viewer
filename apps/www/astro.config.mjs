@@ -15,22 +15,31 @@ async function getReleaseMap() {
   if (releaseMap) {
     return releaseMap;
   }
+  releaseMap = new Map();
   try {
-    const res = await fetch(
-      'https://api.github.com/repos/anthropics/claude-code/releases?per_page=100',
-      { headers: { 'User-Agent': 'claude-code-changelog-viewer' } },
-    );
-    if (!res.ok) {
-      throw new Error(`GitHub API: ${res.status}`);
+    // ページネーションで全リリースを取得(最大300件)
+    for (let page = 1; page <= 3; page += 1) {
+      const res = await fetch(
+        `https://api.github.com/repos/anthropics/claude-code/releases?per_page=100&page=${page}`,
+        { headers: { 'User-Agent': 'claude-code-changelog-viewer' } },
+      );
+      if (!res.ok) {
+        throw new Error(`GitHub API: ${res.status}`);
+      }
+      /** @type {Array<{ tag_name: string; published_at: string }>} */
+      const releases = await res.json();
+      if (releases.length === 0) {
+        break;
+      }
+      for (const r of releases) {
+        releaseMap.set(r.tag_name.replace(/^v/, ''), r.published_at);
+      }
+      if (releases.length < 100) {
+        break;
+      }
     }
-    /** @type {Array<{ tag_name: string; published_at: string }>} */
-    const releases = await res.json();
-    releaseMap = new Map(
-      releases.map((r) => [r.tag_name.replace(/^v/, ''), r.published_at]),
-    );
   } catch (e) {
     console.warn('[sitemap] GitHub API fetch failed:', e);
-    releaseMap = new Map();
   }
   return releaseMap;
 }
@@ -84,6 +93,9 @@ export default defineConfig({
 
         if (path === '/') {
           return { ...item, changefreq: ChangeFreqEnum.DAILY, priority: 1.0 };
+        }
+        if (path === '/changelog') {
+          return { ...item, changefreq: ChangeFreqEnum.DAILY, priority: 0.9 };
         }
         if (path.startsWith('/features')) {
           return { ...item, changefreq: ChangeFreqEnum.WEEKLY, priority: 0.7 };
