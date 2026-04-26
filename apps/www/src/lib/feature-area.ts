@@ -18,15 +18,14 @@ export function toFeatureAreaSlug(area: string): string {
 /** スラッグから元の feature_area 名を逆引き */
 /** 表示ラベル(エリア名と異なる場合のみ定義。一致するものは getFeatureAreaLabel で fallback) */
 const FEATURE_AREA_LABELS: Record<string, string> = {
-  'IDE/VSCode': 'IDE / VSCode',
+  IDE: 'IDE',
 };
 
 /** SEO description */
 const FEATURE_AREA_DESCRIPTIONS: Record<string, string> = {
   Settings:
     'Claude CodeのSettingsに関する変更履歴。CLAUDE.md、環境変数などの設定変更をバージョン横断で確認できます。',
-  'IDE/VSCode':
-    'Claude CodeのIDE/VSCode連携に関する変更履歴。エディタ統合、拡張機能、ワークスペース対応の変更をバージョン横断で確認できます。',
+  IDE: 'Claude CodeのIDE連携に関する変更履歴。エディタ統合、拡張機能、ワークスペース対応の変更をバージョン横断で確認できます。',
   Memory:
     'Claude CodeのMemory機能に関する変更履歴。コンテキスト管理、会話履歴、自動記憶の変更をバージョン横断で確認できます。',
   Skills:
