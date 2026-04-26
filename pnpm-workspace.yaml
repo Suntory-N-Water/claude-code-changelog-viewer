@@ -1,12 +1,16 @@
 packages:
   - 'packages/*'
   - 'apps/*'
-# ビルドスクリプトの実行を許可するパッケージ(pnpm v10 全バージョン対応の構文)
-onlyBuiltDependencies:
-  - '@biomejs/biome'
-  - '@resvg/resvg-js'
-  - better-sqlite3
-  - esbuild
+
+# ワークスペース横断で共通するパッケージバージョンを一元管理する
+# 各 package.json では "zod": "catalog:" と記述することで参照できる
+catalog:
+  '@google/genai': ^1.50.1
+  '@types/node': ^24.12.2
+  p-retry: ^8.0.0
+  typescript: ~5.9.3
+  wrangler: ^4.85.0
+  zod: ^4.3.6
 
 # ビルドスクリプトを持つが実行不要なパッケージ(ERR_PNPM_IGNORED_BUILDS 警告を抑制)
 ignoredBuiltDependencies:
@@ -17,13 +21,9 @@ ignoredBuiltDependencies:
 
 # 公開後 1 日未満のパッケージをインストール拒否(ゼロデイ型サプライチェーン攻撃対策)
 minimumReleaseAge: 1440
-
-# ワークスペース横断で共通するパッケージバージョンを一元管理する
-# 各 package.json では "zod": "catalog:" と記述することで参照できる
-catalog:
-  '@google/genai': ^1.48.0
-  '@types/node': ^24.12.2
-  p-retry: ^8.0.0
-  typescript: ~5.9.3
-  wrangler: ^4.83.0
-  zod: ^4.3.6
+# ビルドスクリプトの実行を許可するパッケージ(pnpm v10 全バージョン対応の構文)
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - '@resvg/resvg-js'
+  - better-sqlite3
+  - esbuild
