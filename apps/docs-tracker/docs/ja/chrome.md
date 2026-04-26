@@ -7,11 +7,11 @@ source: https://code.claude.com/docs/ja/chrome.md
 
 > Claude Code を Chrome ブラウザに接続して、Web アプリをテストし、コンソールログでデバッグし、フォーム入力を自動化し、Web ページからデータを抽出します。
 
-Claude Code は Claude in Chrome ブラウザ拡張機能と統合され、CLI または [VS Code 拡張機能](/ja/vs-code#automate-browser-tasks-with-chrome) からブラウザ自動化機能を提供します。コードをビルドしてから、コンテキストを切り替えることなくブラウザでテストおよびデバッグできます。
+Claude Code は [Claude in Chrome ブラウザ拡張機能](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) と統合され、CLI または [VS Code 拡張機能](/ja/vs-code#automate-browser-tasks-with-chrome) からブラウザ自動化機能を提供します。コードをビルドしてから、コンテキストを切り替えることなくブラウザでテストおよびデバッグできます。
 
 Claude はブラウザタスク用に新しいタブを開き、ブラウザのログイン状態を共有するため、既にサインインしているサイトにアクセスできます。ブラウザアクションはリアルタイムで表示される Chrome ウィンドウで実行されます。Claude がログインページまたは CAPTCHA に遭遇した場合、一時停止して手動で処理するよう求めます。
 
-Chrome 統合はベータ版であり、現在 Google Chrome のみで動作します。Brave、Arc、またはその他の Chromium ベースのブラウザではまだサポートされていません。WSL（Windows Subsystem for Linux）もサポートされていません。
+Chrome 統合はベータ版であり、現在 Google Chrome と Microsoft Edge で動作します。Brave、Arc、またはその他の Chromium ベースのブラウザではまだサポートされていません。WSL（Windows Subsystem for Linux）もサポートされていません。
 
 ## 機能
 
@@ -29,8 +29,8 @@ Chrome が接続されている場合、単一のワークフロー内でブラ�
 
 Claude Code を Chrome で使用する前に、以下が必要です。
 
-- [Google Chrome](https://www.google.com/chrome/) ブラウザ
-- [Claude in Chrome 拡張機能](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) バージョン 1.0.36 以上
+- [Google Chrome](https://www.google.com/chrome/) または [Microsoft Edge](https://www.microsoft.com/edge) ブラウザ
+- [Claude in Chrome 拡張機能](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) バージョン 1.0.36 以上（Chrome Web Store で両方のブラウザで利用可能）
 - [Claude Code](/ja/quickstart#step-1-install-claude-code) バージョン 2.0.73 以上
 - 直接 Anthropic プラン（Pro、Max、Team、または Enterprise）
 
@@ -157,7 +157,7 @@ Claude はインタラクションシーケンスを記録し、GIF ファイル
 
 ### 拡張機能が検出されない
 
-Claude Code が「Chrome extension not detected」を表示する場合。
+Claude Code が「Chrome extension not detected」を表示する場合：
 
 1. Chrome 拡張機能が `chrome://extensions` にインストールされ、有効になっていることを確認します
 2. `claude --version` を実行して Claude Code が最新であることを確認します
@@ -169,13 +169,21 @@ Chrome 統合を初めて有効にすると、Claude Code はネイティブメ�
 
 接続がまだ失敗する場合、ホスト設定ファイルが以下の場所に存在することを確認します。
 
+Chrome の場合：
+
 - **macOS**：`~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json`
 - **Linux**：`~/.config/google-chrome/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json`
 - **Windows**：Windows レジストリで `HKCU\Software\Google\Chrome\NativeMessagingHosts\` を確認します
 
+Edge の場合：
+
+- **macOS**：`~/Library/Application Support/Microsoft Edge/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json`
+- **Linux**：`~/.config/microsoft-edge/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json`
+- **Windows**：Windows レジストリで `HKCU\Software\Microsoft\Edge\NativeMessagingHosts\` を確認します
+
 ### ブラウザが応答しない
 
-Claude のブラウザコマンドが機能しなくなった場合。
+Claude のブラウザコマンドが機能しなくなった場合：
 
 1. モーダルダイアログ（alert、confirm、prompt）がページをブロックしているかどうかを確認します。JavaScript ダイアログはブラウザイベントをブロックし、Claude がコマンドを受け取るのを防ぎます。ダイアログを手動で閉じてから、Claude に続行するよう伝えます。
 2. Claude に新しいタブを作成して再度試すよう依頼します
@@ -205,6 +213,7 @@ Windows では、以下の問題が発生する可能性があります。
 
 ## 関連項目
 
+- [コンピュータ使用](/ja/computer-use)：ブラウザでタスクを実行できない場合にネイティブ macOS アプリを制御します
 - [VS Code で Claude Code を使用する](/ja/vs-code#automate-browser-tasks-with-chrome)：VS Code 拡張機能でのブラウザ自動化
 - [CLI リファレンス](/ja/cli-reference)：`--chrome` を含むコマンドラインフラグ
 - [一般的なワークフロー](/ja/common-workflows)：Claude Code を使用するその他の方法

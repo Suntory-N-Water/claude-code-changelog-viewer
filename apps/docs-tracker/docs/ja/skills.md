@@ -82,7 +82,7 @@ How does this code work?
 | Project | `.claude/skills/<skill-name>/SKILL.md` | このプロジェクトのみ |
 | Plugin | `<plugin>/skills/<skill-name>/SKILL.md` | プラグインが有効な場所 |
 
-スキルがレベル全体で同じ名前を共有する場合、優先度の高い場所が優先されます：enterprise > personal > project。プラグインスキルは `plugin-name:skill-name` 名前空間を使用するため、他のレベルと競合することはできません。`.claude/commands/` にファイルがある場合、それらは同じように機能しますが、スキルとコマンドが同じ名前を共有する場合、スキルが優先されます。
+スキルがレベル全体で同じ名前を共有する場合、enterprise は personal をオーバーライドし、personal はプロジェクトをオーバーライドします。プラグインスキルは `plugin-name:skill-name` 名前空間を使用するため、他のレベルと競合することはできません。`.claude/commands/` にファイルがある場合、それらは同じように機能しますが、スキルとコマンドが同じ名前を共有する場合、スキルが優先されます。
 
 #### ライブ変更検出
 
