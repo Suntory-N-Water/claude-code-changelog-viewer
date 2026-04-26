@@ -13,9 +13,9 @@ changelogs/   analysis/  inferred/
 ## コマンド
 
 ```bash
-bun run fetch              # CHANGELOG 取得
-bun run analyze v2.1.25    # 解析実行
-bun run infer v2.1.25      # AI 推論 (Gemini)
+pnpm run fetch              # CHANGELOG 取得
+pnpm run analyze v2.1.25    # 解析実行
+pnpm run infer v2.1.25      # AI 推論 (Gemini)
 ```
 
 ## Prefix 分類ロジック (`parsers/changelog-parser.ts`)

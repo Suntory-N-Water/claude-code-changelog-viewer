@@ -11,16 +11,16 @@ CHANGELOG.md をパースして JSON 化し、Gemini API で翻訳・推論を�
 
 CHANGELOG 取得 → 解析 → AI 推論
 
-- `changelogs/` - 取得した CHANGELOG（自動生成、手動編集禁止）
-- `analysis/` - 解析結果（自動生成、手動編集禁止）
-- `inferred/` - 推論結果（自動生成、手動編集禁止）
-- `metadata/last_fetch.json` - 取得状況（自動生成、手動編集禁止）
+- `changelogs/` - 取得した CHANGELOG(自動生成、手動編集禁止)
+- `analysis/` - 解析結果(自動生成、手動編集禁止)
+- `inferred/` - 推論結果(自動生成、手動編集禁止)
+- `metadata/last_fetch.json` - 取得状況(自動生成、手動編集禁止)
 
 ## コマンド
 
-- `bun run fetch` - CHANGELOG 取得
-- `bun run analyze v2.1.25` - 解析実行
-- `bun run infer v2.1.25` - AI 推論 (Gemini)
+- `pnpm run fetch` - CHANGELOG 取得
+- `pnpm run analyze v2.1.25` - 解析実行
+- `pnpm run infer v2.1.25` - AI 推論 (Gemini)
 
 ## 解析・推論
 

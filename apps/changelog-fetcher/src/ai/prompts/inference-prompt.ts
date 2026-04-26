@@ -57,7 +57,7 @@ ${snippetsText}`;
   const featureAreaItemsText = indexedItems
     .map(
       ({ item, originalIndex }) =>
-        `- id=${originalIndex}, tags=[${(item.feature_areas ?? []).join(', ')}], content: ${item.content}`,
+        `- id=${originalIndex}, content: ${item.content}`,
     )
     .join('\n');
 
@@ -138,27 +138,28 @@ ${allItemsText}
 
 ---
 
-# タスク4: 機能領域タグの補正 (feature_area_corrections)
+# タスク4: 機能領域タグの付与 (feature_area_corrections)
 
-各項目にはルールベースで仮タグが付与されている。内容を精査し、明らかに誤っているタグのみ補正する。
+各項目のタグは空配列から始まる。内容を精査し、該当する機能領域タグを付与する。
 
 ## 定義済みタグ一覧
-- IDE/VSCode: VSCode 拡張・IDE 連携
-- Hooks: フック機能
-- MCP: Model Context Protocol
-- Skills: スキル機能
-- Agent Teams: エージェントチーム・チームメイト
-- Sub-agents: サブエージェント
-- Plan: プランモード
-- Plugins: プラグイン
-- Settings: 設定
-- Memory: メモリ・CLAUDE.md
-- Permissions: パーミッション
+
+- **IDE**: VS Code・JetBrains など IDE 固有の拡張・連携機能に直接関わる変更(拡張機能の動作・インストール・アップデート・IDE 固有の UI・ステータスバー)。除外: CLI 全般の改善・キーボードショートカット・認証
+- **Hooks**: hooks.md / hooks-guide.md に記載されているフック機能に関わる変更(PreToolUse・PostToolUse・Notification・Stop 等のフックタイプ・フックスクリプトの実行・フック設定)。除外: MCP ツール呼び出し・スキル実行
+- **MCP**: mcp.md に記載されている Model Context Protocol に関わる変更(MCP サーバーの接続・設定・ツール呼び出し・リソース管理・MCP クライアントの動作)。除外: 通常の CLI ツール使用・一般的な API 呼び出し
+- **Skills**: skills.md に記載されているスキル機能に関わる変更(/skill コマンド・スキルの定義・実行・管理)。除外: 一般的なスラッシュコマンド・MCP ツール
+- **Agent Teams**: agent-teams.md に記載されているエージェントチーム・チームメイト機能に関わる変更(複数エージェントの協調・チームメイトへの委譲・並列実行の調整)。除外: 単一エージェントの動作・サブエージェント単体
+- **Sub-agents**: sub-agents.md に記載されているサブエージェント機能に関わる変更(Agent ツールによるサブエージェント起動・委譲・結果取得・サブエージェントの隔離)。除外: メインエージェントの動作・チームメイト機能
+- **Plan**: プランモード(permission-modes.md の "plan" モード)に関わる変更(Shift+Tab・/plan コマンドでの移行・読み取り専用での調査・計画の提示・承認フロー)。除外: UltraPlan(クラウドブラウザプランニング)・一般的なタスク実行
+- **Plugins**: plugins.md / plugins-reference.md に記載されているプラグイン機能に関わる変更(プラグインのインストール・管理・プラグイン API・マーケットプレイス)。除外: MCP サーバー・スキル・組み込みツール
+- **Settings**: settings.json / managed-settings.json の設定項目に直接関わる変更(settings.json のキー・スコープ設定・/config コマンド・管理者によるポリシー設定)。除外: CLAUDE.md(→ Memory)・キーボードショートカット・UI 表示・認証・モデル設定・環境変数
+- **Memory**: memory.md に記載されているメモリ機能に関わる変更(CLAUDE.md の読み込み・管理・メモリの保存・参照・/memory コマンド)。除外: 一般的なコンテキスト管理・会話履歴
+- **Permissions**: permissions.md / permission-modes.md に記載されているパーミッション・権限機能に関わる変更(ツール使用の許可・拒否・許可モード・allowlist/blocklist・承認フロー)。除外: 認証・ログイン・API キー管理
 
 ## 制約
-- 補正が必要な項目のみ返す(全項目を返す必要はない)
+- タグが付与される項目のみ返す(全項目を返す必要はない)
 - 1項目に複数タグを付与してよい
-- 補正不要であれば空配列を返す
+- 該当するタグがなければその項目は返さない
 
 ## 対象項目
 
