@@ -41,14 +41,21 @@ export async function getStaticPaths() {
       entry,
       prevVersion: sorted[i + 1]?.data.version ?? null,
       nextVersion: sorted[i - 1]?.data.version ?? null,
+      latestVersion: sorted[0].data.version,
       linkedAreas,
       diffEvents: diffMap.get(`v${entry.data.version}`) ?? [],
     },
   }));
 }
 
-const { entry, prevVersion, nextVersion, linkedAreas, diffEvents } =
-  Astro.props;
+const {
+  entry,
+  prevVersion,
+  nextVersion,
+  latestVersion,
+  linkedAreas,
+  diffEvents,
+} = Astro.props;
 const { version, items, summary } = entry.data;
 
 // 差分ステータス算出
@@ -153,6 +160,36 @@ const totalItemCount = items.length;
           バージョン一覧に戻る
         </a>
       </nav>
+
+      {
+        version !== latestVersion && (
+          <div class='mb-6 flex items-start gap-2 px-4 py-3 rounded-lg bg-[hsl(var(--cc-gray)/0.5)] border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.85)]'>
+            <svg
+              class='w-4 h-4 shrink-0 mt-0.5'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
+              stroke-width='2'
+              aria-hidden='true'
+            >
+              <path
+                stroke-linecap='round'
+                stroke-linejoin='round'
+                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+              />
+            </svg>
+            <div>
+              <p>このバージョン以降にも更新があります。</p>
+              <a
+                href={`/changelog/v${latestVersion}`}
+                class='font-medium text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+              >
+                最新版 v{latestVersion} を見る →
+              </a>
+            </div>
+          </div>
+        )
+      }
 
       <header class='mb-10'>
         <div class='flex flex-wrap items-center gap-3 mb-3'>

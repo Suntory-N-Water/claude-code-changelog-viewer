@@ -106,6 +106,10 @@ export function setupForm(config: FormConfig) {
         resultMessage.className = successClass;
         resultMessage.textContent =
           '登録が完了しました。テスト通知を送信しました。';
+        window.gtag?.('event', 'notify_signup', {
+          event_category: 'engagement',
+          event_label: channel_type,
+        });
       } else if (response.status === 409) {
         resultMessage.className = errorClass;
         resultMessage.textContent = '既に登録済みです。';
