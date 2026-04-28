@@ -36,6 +36,16 @@ gatewayは、クライアントに対して以下のAPI形式の少なくとも1
 
 Claude Codeは、API形式に基づいて有効にする機能を決定します。Anthropic Messages形式をBedrocまたはVertexで使用する場合、環境変数 `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` を設定する必要があります。
 
+**リクエストヘッダー**
+
+Claude Codeは、すべてのAPI リクエストに以下のヘッダーを含めます：
+
+| ヘッダー | 説明 |
+| :- | :- |
+| `X-Claude-Code-Session-Id` | 現在のClaude Codeセッションの一意の識別子。プロキシはこれを使用して、リクエストボディを解析することなく、単一セッションからのすべてのAPI リクエストを集約できます。 |
+
+Claude Codeはまた、クライアントバージョンと会話から派生したフィンガープリントを含む短い帰属ブロックをシステムプロンプトの前に付加します。Anthropic APIはこのブロックを処理前に削除するため、ファーストパーティプロンプトキャッシングには影響しません。gatewayが完全なリクエストボディをキーとしたプロンプトキャッシュを実装している場合は、[`CLAUDE_CODE_ATTRIBUTION_HEADER=0`](/ja/env-vars)を設定して、それを省略してください。
+
 ## 設定
 
 ### モデル選択
