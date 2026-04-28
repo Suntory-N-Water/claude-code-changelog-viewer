@@ -36,8 +36,8 @@ Claude Code の使用は、[Anthropic 使用ポリシー](https://www.anthropic.
 
 Claude Code は、OAuth トークンまたは API キーを使用して Anthropic のサーバーで認証します。これらの認証方法は異なる目的に対応しています。
 
-- **OAuth 認証**（Free、Pro、および Max プランで使用）は、Claude Code および Claude.ai 専用です。Free、Pro、または Max アカウントを通じて取得した OAuth トークンを、[Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) を含む他の製品、ツール、またはサービスで使用することは許可されておらず、[コンシューマー利用規約](https://www.anthropic.com/legal/consumer-terms)の違反を構成します。
-- **開発者**が Claude の機能と相互作用する製品またはサービスを構築している場合（[Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) を使用している場合を含む）、[Claude Console](https://platform.claude.com/) またはサポートされているクラウドプロバイダーを通じて API キー認証を使用する必要があります。Anthropic は、サードパーティの開発者が Claude.ai ログインを提供したり、ユーザーに代わって Free、Pro、または Max プランの認証情報を通じてリクエストをルーティングしたりすることを許可していません。
+- **OAuth 認証**は、Claude Free、Pro、Max、Team、および Enterprise サブスクリプションプランの購入者専用に設計されており、Claude Code および他のネイティブ Anthropic アプリケーションの通常の使用をサポートするために設計されています。ユーザーが OAuth トークンで認証する方法の詳細については、[Claude アカウントへのログイン](https://support.claude.com/en/articles/13189465-logging-in-to-your-claude-account)を参照してください。
+- **開発者**が Claude の機能と相互作用する製品またはサービスを構築している場合（[Agent SDK](/ja/agent-sdk/overview)を使用している場合を含む）、[Claude Console](https://platform.claude.com/)またはサポートされているクラウドプロバイダーを通じて API キー認証を使用する必要があります。Anthropic は、サードパーティの開発者が Claude.ai ログインを提供したり、ユーザーに代わって Free、Pro、または Max プランの認証情報を通じてリクエストをルーティングしたりすることを許可していません。
 
 Anthropic は、これらの制限を実施するための措置を講じる権利を留保し、事前通知なしにそうする場合があります。
 
@@ -47,11 +47,11 @@ Anthropic は、これらの制限を実施するための措置を講じる権�
 
 ### 信頼とセーフティ
 
-詳細については、[Anthropic Trust Center](https://trust.anthropic.com) および [Transparency Hub](https://www.anthropic.com/transparency) を参照してください。
+詳細については、[Anthropic Trust Center](https://trust.anthropic.com)および [Transparency Hub](https://www.anthropic.com/transparency)を参照してください。
 
 ### セキュリティ脆弱性報告
 
-Anthropic は HackerOne を通じてセキュリティプログラムを管理しています。[このフォームを使用して脆弱性を報告してください](https://hackerone.com/anthropic-vdp/reports/new?type=team\&report_type=vulnerability)。
+Anthropic は HackerOne を通じてセキュリティプログラムを管理しています。[このフォームを使用して脆弱性を報告してください](https://hackerone.com/4f1f16ba-10d3-4d09-9ecc-c721aad90f24/embedded_submissions/new)。
 
 ***
 

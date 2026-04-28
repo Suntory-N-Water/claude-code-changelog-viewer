@@ -23,7 +23,7 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 | `Failed to fetch version` またはダウンロードサーバーに到達できない | [ネットワークとプロキシ設定を確認する](#check-network-connectivity) |
 | `irm is not recognized` または `&& is not valid` | [シェルに適切なコマンドを使用する](#windows-wrong-install-command) |
 | `'bash' is not recognized as the name of a cmdlet` | [Windows インストーラーコマンドを使用する](#windows-wrong-install-command) |
-| `Claude Code on Windows requires git-bash` | [Git Bash をインストールまたは設定する](#windows-claude-code-on-windows-requires-git-bash) |
+| `Claude Code on Windows requires either Git for Windows (for bash) or PowerShell` | [シェルをインストールする](#windows-claude-code-on-windows-requires-either-git-for-windows-for-bash-or-powershell) |
 | `Claude Code does not support 32-bit Windows` | [Windows PowerShell を開く（x86 エントリではなく）](#windows-claude-code-does-not-support-32-bit-windows) |
 | `Error loading shared library` | [システムに適切なバイナリバリアントをインストールする](#linux-wrong-binary-variant-installed-musl/glibc-mismatch) |
 | Linux での `Illegal instruction` | [アーキテクチャの不一致](#illegal-instruction-on-linux) |
@@ -40,15 +40,15 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 
 ### ネットワーク接続を確認する
 
-インストーラーは `storage.googleapis.com` からダウンロードします。到達可能であることを確認します：
+インストーラーは `downloads.claude.ai` からダウンロードします。到達可能であることを確認します：
 
 ```bash
-curl -sI https://storage.googleapis.com
+curl -sI https://downloads.claude.ai
 ```
 
 これが失敗する場合、ネットワークが接続をブロックしている可能性があります。一般的な原因：
 
-- Google Cloud Storage をブロックしている企業ファイアウォールまたはプロキシ
+- `downloads.claude.ai` をブロックしている企業ファイアウォールまたはプロキシ
 - 地域的なネットワーク制限：VPN または別のネットワークを試してください
 - TLS/SSL の問題：システムの CA 証明書を更新するか、`HTTPS_PROXY` が設定されているかどうかを確認してください
 
@@ -264,9 +264,9 @@ Invoke-Expression: Missing argument in parameter list.
 
 **解決策：**
 
-1. **ネットワークの安定性を確認する**：Claude Code バイナリは Google Cloud Storage でホストされています。到達可能であることをテストします：
+1. **ネットワークの安定性を確認する**：Claude Code バイナリは `downloads.claude.ai` でホストされています。到達可能であることをテストします：
    ```bash theme={null}
-   curl -fsSL https://storage.googleapis.com -o /dev/null
+   curl -fsSL https://downloads.claude.ai -o /dev/null
    ```
    コマンドが静かに完了する場合、接続は問題なく、問題は一時的である可能性があります。インストールコマンドを再試行してください。エラーが表示される場合、ネットワークがダウンロードをブロックしている可能性があります。
 
@@ -322,15 +322,15 @@ Invoke-Expression: Missing argument in parameter list.
    ```
    または、`winget install Anthropic.ClaudeCode` でインストールします。これは curl を完全に回避します。
 
-### `Failed to fetch version from storage.googleapis.com`
+### `Failed to fetch version from downloads.claude.ai`
 
-インストーラーがダウンロードサーバーに到達できませんでした。これは通常、`storage.googleapis.com` がネットワークでブロックされていることを意味します。
+インストーラーがダウンロードサーバーに到達できませんでした。これは通常、`downloads.claude.ai` がネットワークでブロックされていることを意味します。
 
 **解決策：**
 
 1. **接続を直接テストする**：
    ```bash theme={null}
-   curl -sI https://storage.googleapis.com
+   curl -sI https://downloads.claude.ai
    ```
 
 2. **プロキシの背後にいる場合**、`HTTPS_PROXY` を設定して、インストーラーがそれを通じてルーティングできるようにします。詳細については、[プロキシ設定](/ja/network-config#proxy-configuration)を参照してください。
@@ -439,11 +439,14 @@ Docker コンテナに Claude Code をインストールする場合、ルート
 
 Claude Desktop を最新バージョンに更新して、この問題を修正します。
 
-### Windows：「Claude Code on Windows requires git-bash」
+### Windows：「Claude Code on Windows requires either Git for Windows (for bash) or PowerShell」
 
-ネイティブ Windows の Claude Code には、Git Bash を含む[Git for Windows](https://git-scm.com/downloads/win)が必要です。
+ネイティブ Windows の Claude Code には、少なくとも 1 つのシェルが必要です：Bash 用の[Git for Windows](https://git-scm.com/downloads/win)、または PowerShell。どちらも見つからない場合、このエラーは起動時に表示されます。PowerShell のみが見つかった場合、Claude Code は Bash ではなく PowerShell ツールを使用します。
 
-**Git がインストールされていない場合**、[git-scm.com/downloads/win](https://git-scm.com/downloads/win)からダウンロードしてインストールします。セットアップ中に「Add to PATH」を選択します。インストール後、ターミナルを再起動します。
+**どちらもインストールされていない場合**、1 つをインストールします：
+
+- Git for Windows：[git-scm.com/downloads/win](https://git-scm.com/downloads/win)からダウンロードします。セットアップ中に「Add to PATH」を選択します。インストール後、ターミナルを再起動します。
+- PowerShell 7：[aka.ms/powershell](https://aka.ms/powershell)からダウンロードします。
 
 **Git が既にインストールされている**が Claude Code がそれを見つけられない場合は、[settings.json ファイル](/ja/settings)でパスを設定します：
 
@@ -487,7 +490,7 @@ Error loading shared library libstdc++.so.6: No such file or directory
    ```
    `linux-vdso.so` または `/lib/x86_64-linux-gnu/` への参照が表示される場合、glibc を使用しています。`musl` が表示される場合、musl を使用しています。
 
-2. **glibc を使用しているが musl バイナリを取得した場合**、インストールを削除して再インストールします。GCS バケット `https://storage.googleapis.com/claude-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/claude-code-releases/{VERSION}/manifest.json` から正しいバイナリを手動でダウンロードすることもできます。`ldd /bin/ls` と `ls /lib/libc.musl*` の出力を含む[GitHub issue](https://github.com/anthropics/claude-code/issues)を提出してください。
+2. **glibc を使用しているが musl バイナリを取得した場合**、インストールを削除して再インストールします。`https://downloads.claude.ai/claude-code-releases/{VERSION}/manifest.json` のマニフェストを使用して正しいバイナリを手動でダウンロードすることもできます。`ldd /bin/ls` と `ls /lib/libc.musl*` の出力を含む[GitHub issue](https://github.com/anthropics/claude-code/issues)を提出してください。
 
 3. **実際に musl を使用している場合**（Alpine Linux）、必要なパッケージをインストールします：
    ```bash theme={null}

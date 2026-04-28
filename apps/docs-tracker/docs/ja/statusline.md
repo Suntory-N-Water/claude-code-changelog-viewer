@@ -61,6 +61,8 @@ source: https://code.claude.com/docs/ja/statusline.md
 
 オプションの `refreshInterval` フィールドは、[イベント駆動更新](#how-status-lines-work) に加えて、N 秒ごとにコマンドを再実行します。最小値は `1` です。ステータスラインが時計などの時間ベースのデータを表示する場合、またはメインセッションがアイドル状態の間にバックグラウンドサブエージェントが git 状態を変更する場合に設定します。イベントのみで実行する場合は設定しないままにします。
 
+オプションの `hideVimModeIndicator` フィールドは、プロンプトの下にある組み込みの `-- INSERT --` テキストを非表示にします。スクリプトが [`vim.mode`](#available-data) 自体をレンダリングする場合は、これを `true` に設定して、モードが 2 回表示されないようにします。
+
 ### ステータスラインを無効にする
 
 `/statusline` を実行し、ステータスラインを削除またはクリアするよう指示します（例：`/statusline delete`、`/statusline clear`、`/statusline remove it`）。settings.json から `statusLine` フィールドを手動で削除することもできます。

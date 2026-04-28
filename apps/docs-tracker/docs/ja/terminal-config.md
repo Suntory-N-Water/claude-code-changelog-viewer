@@ -46,6 +46,8 @@ Claude Code の初回実行プロンプトで'改行と視覚的ベルの場合�
 
 設定 → プロファイル → キー → 一般を開き、左 Option キーと右 Option キーを「Esc+」に設定します。
 
+iTerm2 で `/terminal-setup` を実行すると、設定 → 一般 → 選択の下の「ターミナル内のアプリケーションがクリップボードにアクセスできる」が有効になり、`/copy` コマンドがシステムクリップボードに書き込むことができます。このコマンドは tmux 内から実行された場合でも iTerm2 を検出します。変更を有効にするために iTerm2 を再起動してください。
+
 VS Code 設定に `"terminal.integrated.macOptionIsMeta": true` を追加します。
 
 Ghostty、Kitty、およびその他のターミナルについては、ターミナルの設定ファイルで Option-as-Alt または Option-as-Meta 設定を探してください。

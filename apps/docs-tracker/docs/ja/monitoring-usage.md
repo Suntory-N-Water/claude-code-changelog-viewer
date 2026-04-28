@@ -173,6 +173,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `status_code` | リクエストが失敗した場合の HTTP ステータスコード | |
 | `error` | リクエストが失敗した場合のエラーメッセージ | |
 | `response.has_tool_call` | レスポンスにツール使用ブロックが含まれている場合は `true` | |
+| `stop_reason` | API レスポンス `stop_reason`。例: `end_turn`、`tool_use`、`max_tokens`、`stop_sequence`、`pause_turn`、または `refusal` | |
+| `gen_ai.response.finish_reasons` | `stop_reason` と同じ値。文字列配列でラップされています。OpenTelemetry GenAI セマンティック規約 | |
 
 各再試行試行は、`attempt` および `client_request_id` 属性を持つ `gen_ai.request.attempt` スパンイベントとしても記録されます。
 
@@ -222,7 +224,7 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `num_non_blocking_error` | ブロックなしで失敗したフックの数 | |
 | `num_cancelled` | 完了前にキャンセルされたフックの数 | |
 
-`new_context`、`system_prompt_preview`、`tool_input`、`response.model_output` などの追加のコンテンツを含む属性は、詳細なベータトレースがアクティブな場合にのみ出力されます。これらは安定したスパンスキーマの一部ではありません。
+`new_context`、`system_prompt_preview`、`user_system_prompt`、`tool_input`、`response.model_output` などの追加のコンテンツを含む属性は、詳細なベータトレースがアクティブな場合にのみ出力されます。これらは安定したスパンスキーマの一部ではありません。`user_system_prompt` はさらに `OTEL_LOG_USER_PROMPTS=1` が必要です。これは `systemPrompt` SDK オプションまたは `--system-prompt` および `--append-system-prompt` フラグを通じて提供するシステムプロンプトテキストのみを含み、60 KB で切り詰められ、リクエストごとではなくセッションごとに 1 回出力されます。
 
 ### 動的ヘッダー
 

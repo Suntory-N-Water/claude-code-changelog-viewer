@@ -156,10 +156,13 @@ Be concise and actionable.
 
 | フィールド | タイプ | 説明 |
 | :- | :- | :- |
-| `metadata.description` | string | マーケットプレイスの簡潔な説明 |
-| `metadata.version` | string | マーケットプレイスバージョン |
+| `$schema` | string | エディターのオートコンプリートと検証用の JSON Schema URL。Claude Code はロード時にこのフィールドを無視します。 |
+| `description` | string | マーケットプレイスの簡潔な説明 |
+| `version` | string | マーケットプレイスマニフェストバージョン |
 | `metadata.pluginRoot` | string | 相対プラグインソースパスの前に付加される基本ディレクトリ（例：`"./plugins"` を使用すると、`"source": "./plugins/formatter"` の代わりに `"source": "formatter"` と記述できます） |
 | `allowCrossMarketplaceDependenciesOn` | array | このマーケットプレイス内のプラグインが依存する可能性のある他のマーケットプレイス。ここにリストされていないマーケットプレイスからの依存関係はインストール時にブロックされます。[別のマーケットプレイスからプラグインに依存する](/ja/plugin-dependencies#depend-on-a-plugin-from-another-marketplace)を参照してください。 |
+
+`description` と `version` は後方互換性のため `metadata` の下でも受け入れられます。
 
 ## プラグインエントリ
 
@@ -923,7 +926,7 @@ claude plugin marketplace update [name]
 **警告**（ブロッキングなし）：
 
 - `Marketplace has no plugins defined`：`plugins` 配列に少なくとも 1 つのプラグインを追加します
-- `No marketplace description provided`：ユーザーがマーケットプレイスを理解するのに役立つように `metadata.description` を追加します
+- `No marketplace description provided`：ユーザーがマーケットプレイスを理解するのに役立つように、トップレベルの `description` を追加します
 - `Plugin name "x" is not kebab-case`：プラグイン名に大文字、スペース、または特殊文字が含まれています。小文字、数字、ハイフンのみに名前を変更します（例：`my-plugin`）。Claude Code は他の形式を受け入れますが、Claude.ai マーケットプレイス同期はそれらを拒否します。
 
 ### プラグインインストール失敗
@@ -963,7 +966,7 @@ claude plugin marketplace update [name]
 
 **原因**：デフォルトでは、`git pull` が失敗すると、Claude Code は古いクローンを削除して再クローンを試みます。オフラインまたはエアギャップ環境では、再クローンが同じ方法で失敗し、マーケットプレイスディレクトリが空になります。
 
-**解決策**：`CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` を設定して、プルが失敗したときにワイプする代わりに既存のキャッシュを保持します。
+**解決策**：`CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1` を設定して、プルが失敗したときにワイプする代わりに既存のキャッシュを保持します：
 
 ```bash
 export CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1
@@ -977,7 +980,7 @@ export CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1
 
 **原因**：Claude Code は、プラグインリポジトリのクローンやマーケットプレイス更新のプルを含む、すべての Git 操作に 120 秒のタイムアウトを使用します。大規模なリポジトリまたは遅いネットワーク接続がこの制限を超える可能性があります。
 
-**解決策**：`CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS` 環境変数を使用してタイムアウトを増やします。値はミリ秒単位です。
+**解決策**：`CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS` 環境変数を使用してタイムアウトを増やします。値はミリ秒単位です：
 
 ```bash
 export CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS=300000  # 5 分
@@ -991,7 +994,7 @@ export CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS=300000  # 5 分
 
 **解決策**：
 
-- **外部ソースを使用**：プラグインエントリを相対パスの代わりに GitHub、npm、または Git URL ソースを使用するように変更します。
+- **外部ソースを使用**：プラグインエントリを相対パスの代わりに GitHub、npm、または Git URL ソースを使用するように変更します：
   ```json theme={null}
   { "name": "my-plugin", "source": { "source": "github", "repo": "owner/repo" } }
   ```

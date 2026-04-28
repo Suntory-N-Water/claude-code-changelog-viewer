@@ -138,6 +138,8 @@ Claude Code は標準的な Google Cloud 認証を使用します。
 
 詳細については、[Google Cloud 認証ドキュメント](https://cloud.google.com/docs/authentication)を参照してください。
 
+Claude Code v2.1.121 以降は、同じ Application Default Credentials チェーンを通じて [X.509 証明書ベースのワークロード ID フェデレーション](https://cloud.google.com/iam/docs/workload-identity-federation-with-x509-certificates)をサポートしています。`GOOGLE_APPLICATION_CREDENTIALS` を認証情報設定ファイルのパスに設定します。
+
 <Note>
   認証時に、Claude Code は `ANTHROPIC_VERTEX_PROJECT_ID` 環境変数からプロジェクト ID を自動的に使用します。これをオーバーライドするには、次の環境変数のいずれかを設定します。`GCLOUD_PROJECT`、`GOOGLE_CLOUD_PROJECT`、または `GOOGLE_APPLICATION_CREDENTIALS`。
 </Note>
@@ -168,9 +170,9 @@ export VERTEX_REGION_CLAUDE_4_6_SONNET=europe-west1
 
 ほとんどのモデルバージョンには、対応する `VERTEX_REGION_CLAUDE_*` 変数があります。完全なリストについては、[環境変数リファレンス](/ja/env-vars)を参照してください。どのモデルがグローバルエンドポイントをサポートしているか、または地域別のみをサポートしているかを確認するには、[Vertex Model Garden](https://console.cloud.google.com/vertex-ai/model-garden)を確認してください。
 
-[プロンプトキャッシング](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は自動的に有効になります。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、`ENABLE_PROMPT_CACHING_1H=1` を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/login` および `/logout` コマンドは無効になります。
+[prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は自動的に有効になります。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、`ENABLE_PROMPT_CACHING_1H=1` を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/login` および `/logout` コマンドは無効になります。
 
-[MCP ツール検索](/ja/mcp#scale-with-mcp-tool-search)は、エンドポイントが必要なベータヘッダーを受け入れないため、Vertex AI ではデフォルトで無効になっています。すべての MCP ツール定義は代わりに事前にロードされます。オプトインするには、`ENABLE_TOOL_SEARCH=true` を設定します。
+[MCP tool search](/ja/mcp#scale-with-mcp-tool-search)は、エンドポイントが必要なベータヘッダーを受け入れないため、Vertex AI ではデフォルトで無効になっています。すべての MCP ツール定義は代わりに事前にロードされます。オプトインするには、`ENABLE_TOOL_SEARCH=true` を設定します。
 
 ### 5. モデルバージョンをピン留めする
 

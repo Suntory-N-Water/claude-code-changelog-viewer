@@ -26,9 +26,17 @@ source: https://code.claude.com/docs/ja/data-usage.md
 
 ### セッション品質調査
 
-Claude Code で「How is Claude doing this session?」プロンプトが表示されたときに、この調査に応答する場合（「Dismiss」を選択する場合を含む）、数値評価（1、2、3、または dismiss）のみが記録されます。この調査の一部として、会話トランスクリプト、入力、出力、またはその他のセッションデータは収集または保存されません。サムズアップ/ダウンフィードバックまたは `/feedback` レポートとは異なり、このセッション品質調査は単純な製品満足度メトリックです。この調査への応答は、データトレーニング設定に影響を与えず、AI モデルをトレーニングするために使用することはできません。
+Claude Code で「How is Claude doing this session?」プロンプトが表示されたときに、この調査に応答する場合（「Dismiss」を選択する場合を含む）、数値評価のみが記録されます。この調査の一部として、会話トランスクリプト、入力、出力、またはその他のセッションデータは収集または保存されません。サムズアップ/ダウンフィードバックまたは `/feedback` レポートとは異なり、このセッション品質調査は単純な製品満足度メトリックです。
 
-これらの調査を無効にするには、`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` を設定します。調査は、`DISABLE_TELEMETRY` または `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` が設定されている場合にも無効になります。頻度を制御する代わりに無効にするには、設定ファイルで [`feedbackSurveyRate`](/ja/settings#available-settings) を `0` から `1` の間の確率に設定します。
+数値評価プロンプトの後、「Can Anthropic look at your session transcript to help us improve Claude Code?」と尋ねる別の追加フォローアップが表示される場合があります。これは数値評価とは異なるオプションの 2 番目のステップです。
+
+- **Yes**：会話トランスクリプト、サブエージェントトランスクリプト、ディスクからの生のセッションログファイルを Anthropic にアップロードします。既知の API キーとトークンパターンはアップロード前に削除されます。ソースコード、ファイルコンテンツ、およびその他の会話コンテンツはそのままアップロードされます。共有されたトランスクリプトは最大 6 ヶ月間保持されます。
+- **No**：何も送信せずに拒否します
+- **Don't ask again**：拒否し、今後のセッションでこのフォローアップが表示されなくなります
+
+**Yes** を明示的に選択しない限り、何もアップロードされません。[ゼロデータ保持](/ja/zero-data-retention) を設定している組織、または組織ポリシーで製品フィードバックが無効になっている組織は、このフォローアップを表示しません。数値評価プロンプトの後に送信されたセッショントランスクリプトを含む、この調査への応答は、データトレーニング設定に影響を与えず、AI モデルをトレーニングするために使用することはできません。
+
+これらの調査を無効にするには、`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` を設定します。調査は、`DISABLE_TELEMETRY` または `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` が設定されている場合にも無効になります。無効にする代わりに頻度を制御するには、設定ファイルで [`feedbackSurveyRate`](/ja/settings#available-settings) を `0` から `1` の間の確率に設定します。
 
 ### データ保持
 
@@ -43,7 +51,7 @@ Anthropic は、アカウントタイプと設定に基づいて Claude Code デ
 **商用ユーザー（Team、Enterprise、API）**：
 
 - 標準：30 日間の保持期間
-- [Zero data retention](/ja/zero-data-retention)：Claude for Enterprise の Claude Code で利用可能。ZDR は組織ごとに有効になります。新しい各組織は、アカウントチームによって個別に ZDR を有効にする必要があります
+- [ゼロデータ保持](/ja/zero-data-retention)：Claude for Enterprise の Claude Code で利用可能。ZDR は組織ごとに有効になります。新しい各組織は、アカウントチームによって個別に ZDR を有効にする必要があります
 - ローカルキャッシング：Claude Code クライアントは、セッション再開を有効にするために、`~/.claude/projects/` の下にセッショントランスクリプトをプレーンテキストでローカルに 30 日間保存します。`cleanupPeriodDays` で期間を調整できます。[application data](/ja/claude-directory#application-data) を参照して、何が保存されているか、およびそれをクリアする方法を確認してください。
 
 Web 上の個別の Claude Code セッションはいつでも削除できます。セッションを削除すると、セッションのイベントデータが永久に削除されます。セッションの削除方法については、[Delete sessions](/ja/claude-code-on-the-web#delete-sessions) を参照してください。

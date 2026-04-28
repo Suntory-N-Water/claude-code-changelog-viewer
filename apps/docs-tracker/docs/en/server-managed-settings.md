@@ -197,7 +197,7 @@ Server-managed settings provide centralized policy enforcement, but they operate
 | User deletes the cached settings file | First-launch behavior occurs: settings fetch asynchronously with a brief unenforced window |
 | API is unavailable | Cached settings apply if available, otherwise managed settings are not enforced until the next successful fetch. With `forceRemoteSettingsRefresh: true`, the CLI exits instead of continuing |
 | User authenticates with a different organization | Settings are not delivered for accounts outside the managed organization |
-| User sets a non-default `ANTHROPIC_BASE_URL` | Server-managed settings are bypassed when using third-party API providers |
+| User configures a [third-party model provider](#platform-availability) | Server-managed settings are bypassed. This includes setting `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_MANTLE`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, or a non-default `ANTHROPIC_BASE_URL` |
 
 To detect runtime configuration changes, use [`ConfigChange` hooks](/en/hooks#configchange) to log modifications or block unauthorized changes before they take effect.
 

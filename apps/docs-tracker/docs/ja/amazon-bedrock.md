@@ -292,7 +292,8 @@ Claude Code に必要な権限を持つ IAM ポリシーを作成します。
       "Action": [
         "bedrock:InvokeModel",
         "bedrock:InvokeModelWithResponseStream",
-        "bedrock:ListInferenceProfiles"
+        "bedrock:ListInferenceProfiles",
+        "bedrock:GetInferenceProfile"
       ],
       "Resource": [
         "arn:aws:bedrock:*:*:inference-profile/*",
@@ -319,6 +320,10 @@ Claude Code に必要な権限を持つ IAM ポリシーを作成します。
 ```
 
 より制限的な権限の場合は、リソースを特定の推論プロファイル ARN に制限できます。
+
+`bedrock:GetInferenceProfile` により、Claude Code は[アプリケーション推論プロファイル ARN](#map-each-model-version-to-an-inference-profile) をそのバッキング基盤モデルに解決でき、そのモデルに対して正しいリクエスト形状を選択するために使用されます。
+
+トークンにこの権限がない場合、Claude Code は代替形状で 1 回再試行することで自動的に復旧するため、リクエストは成功しますが、新しいモデルが追加されるたびに追加のラウンドトリップが発生します。権限を付与することで再試行を回避できます。これは `AWS_BEARER_TOKEN_BEDROCK` デプロイメントに最も頻繁に適用され、トークンのポリシーは通常、完全な IAM ロールよりも狭くなります。
 
 詳細については、[Bedrock IAM documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html) を参照してください。
 

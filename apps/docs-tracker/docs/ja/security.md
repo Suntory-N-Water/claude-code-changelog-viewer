@@ -107,25 +107,25 @@ IDE で Claude Code を実行する場合の詳細については、[VS Code sec
 
 ### 機密コードの使用
 
-- 承認前にすべての提案された変更を確認します
-- 機密リポジトリにはプロジェクト固有のパーミッション設定を使用します
-- 追加の分離のために [dev containers](/ja/devcontainer) の使用を検討します
-- `/permissions` で定期的にパーミッション設定を監査します
+- 承認前にすべての提案された変更を確認してください
+- 機密リポジトリにはプロジェクト固有のパーミッション設定を使用してください
+- 追加の分離のために [dev containers](/ja/devcontainer) の使用を検討してください
+- `/permissions` で定期的にパーミッション設定を監査してください
 
 ### チームセキュリティ
 
-- [managed settings](/ja/settings#settings-files) を使用して組織標準を実施します
-- 承認されたパーミッション設定をバージョン管理を通じて共有します
-- チームメンバーにセキュリティベストプラクティスについてトレーニングを行います
-- [OpenTelemetry metrics](/ja/monitoring-usage) を通じて Claude Code の使用を監視します
-- [`ConfigChange` hooks](/ja/hooks#configchange) でセッション中の設定変更を監査またはブロックします
+- [managed settings](/ja/settings#settings-files) を使用して組織標準を実施してください
+- 承認されたパーミッション設定をバージョン管理を通じて共有してください
+- チームメンバーにセキュリティベストプラクティスについてトレーニングを行ってください
+- [OpenTelemetry metrics](/ja/monitoring-usage) を通じて Claude Code の使用を監視してください
+- [`ConfigChange` hooks](/ja/hooks#configchange) でセッション中の設定変更を監査またはブロックしてください
 
 ### セキュリティ問題の報告
 
 Claude Code でセキュリティ脆弱性を発見した場合：
 
 1. 公開で開示しないでください
-2. [HackerOne program](https://hackerone.com/anthropic-vdp/reports/new?type=team\&report_type=vulnerability) を通じて報告してください
+2. [HackerOne program](https://hackerone.com/4f1f16ba-10d3-4d09-9ecc-c721aad90f24/embedded_submissions/new) を通じて報告してください
 3. 詳細な再現手順を含めてください
 4. 公開開示前に問題に対処する時間を与えてください
 

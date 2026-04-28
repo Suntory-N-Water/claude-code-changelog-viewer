@@ -173,6 +173,8 @@ Every span carries the [standard attributes](#standard-attributes) plus a `span.
 | `status_code` | HTTP status code when the request failed | |
 | `error` | Error message when the request failed | |
 | `response.has_tool_call` | `true` when the response contained tool-use blocks | |
+| `stop_reason` | API response `stop_reason`, such as `end_turn`, `tool_use`, `max_tokens`, `stop_sequence`, `pause_turn`, or `refusal` | |
+| `gen_ai.response.finish_reasons` | Same value as `stop_reason`, wrapped in a string array. OpenTelemetry GenAI semantic convention | |
 
 Each retry attempt is also recorded as a `gen_ai.request.attempt` span event with `attempt` and `client_request_id` attributes.
 
@@ -222,7 +224,7 @@ This span is emitted only when detailed beta tracing is active, which requires `
 | `num_non_blocking_error` | Count of hooks that failed without blocking | |
 | `num_cancelled` | Count of hooks cancelled before completion | |
 
-Additional content-bearing attributes such as `new_context`, `system_prompt_preview`, `tool_input`, and `response.model_output` are emitted only when detailed beta tracing is active. They are not part of the stable span schema.
+Additional content-bearing attributes such as `new_context`, `system_prompt_preview`, `user_system_prompt`, `tool_input`, and `response.model_output` are emitted only when detailed beta tracing is active. They are not part of the stable span schema. `user_system_prompt` additionally requires `OTEL_LOG_USER_PROMPTS=1`. It carries only the system prompt text you provide via the `systemPrompt` SDK option or `--system-prompt` and `--append-system-prompt` flags, truncated at 60 KB, and is emitted once per session rather than per request.
 
 ### Dynamic headers
 

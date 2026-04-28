@@ -1218,18 +1218,29 @@ PermissionRequest フックは PreToolUse フックのような `tool_name` と 
 | `decision` | `"block"` は Claude に `reason` でプロンプトを表示。許可するには省略 |
 | `reason` | `decision` が `"block"` のときに Claude に表示される説明 |
 | `additionalContext` | Claude が考慮する追加コンテキスト |
-| `updatedMCPToolOutput` | [MCP ツール](#match-mcp-tools)のみ: ツールの出力を提供された値に置換 |
+| `updatedToolOutput` | ツールの出力を提供された値に置換してから Claude に送信。値はツールの出力形状と一致する必要があります |
+| `updatedMCPToolOutput` | [MCP ツール](#match-mcp-tools)のみ: ツールの出力を置換。すべてのツールで機能する `updatedToolOutput` を優先 |
+
+以下の例は `Bash` 呼び出しの出力を置換します。置換値は `Bash` ツールの出力形状と一致します。
 
 ```json
 {
-  "decision": "block",
-  "reason": "Explanation for decision",
   "hookSpecificOutput": {
     "hookEventName": "PostToolUse",
-    "additionalContext": "Additional information for Claude"
+    "additionalContext": "Additional information for Claude",
+    "updatedToolOutput": {
+      "stdout": "[redacted]",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false
+    }
   }
 }
 ```
+
+`updatedToolOutput` は Claude が見るものだけを変更します。フックが発火するまでにツールはすでに実行されているため、書き込まれたファイル、実行されたコマンド、送信されたネットワーク リクエストはすでに有効になっています。OpenTelemetry ツール スパンやアナリティクス イベントなどのテレメトリも、フックが実行される前に元の出力をキャプチャします。ツール呼び出しを実行前に防止または変更するには、代わりに[PreToolUse](#pretooluse)フックを使用します。
+
+置換値はツールの出力形状と一致する必要があります。組み込みツールは単純な文字列ではなく構造化オブジェクトを返します。例えば、`Bash` は `stdout`、`stderr`、`interrupted`、`isImage` フィールドを持つオブジェクトを返します。組み込みツールの場合、ツールの出力スキーマと一致しない値は無視され、元の出力が使用されます。MCP ツール出力はスキーマ検証なしで渡されます。Claude が必要とするエラー詳細を削除すると、Claude が誤った仮定で進行する可能性があります。
 
 ### PostToolUseFailure
 
