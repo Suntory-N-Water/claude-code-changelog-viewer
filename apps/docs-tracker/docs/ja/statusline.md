@@ -865,7 +865,7 @@ process.stdin.on('end', () => {
 
 ### Windows 設定
 
-Windows では、Claude Code はステータスラインコマンドを Git Bash 経由で実行します。そのシェルから PowerShell を呼び出すことができます：
+Windows では、Claude Code はステータスラインコマンドを Git Bash 経由で実行します。Git Bash がインストールされている場合、または Git Bash がない場合は PowerShell を通じて実行します。PowerShell スクリプトをステータスラインとして実行するには、`powershell` 経由で呼び出します。これはどちらのシェルからでも機能します：
 
 ```json settings.json theme={null}
 {
@@ -890,7 +890,7 @@ if ($used) {
 }
 ```
 
-または Bash スクリプトを直接実行します：
+または、Git Bash がインストールされている場合は、Bash スクリプトを直接実行します：
 
 ```json settings.json theme={null}
 {

@@ -1,0 +1,1237 @@
+{
+  "id": "20260429-041318",
+  "timestamp": "2026-04-29T04:13:18.689Z",
+  "aiSummary": "Windows環境においてGit Bashが不在の場合でもPowerShellを代替シェルとして使用できる機能強化が図られました。Amazon Bedrock利用時のサービスティア（コストとレイテンシの優先度）を選択できる新しい環境変数が導入されています。ターミナル操作においてCtrl+LやCmd+Kの2回押しで会話履歴をクリアできるショートカット機能が追加されました。また、@メンションのログ記録仕様やMCPサーバーの優先順位など、トラブルシューティングやモニタリングに関する詳細が補足されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "PostToolUseフックにおいて、ツールの出力をClaudeに渡す前に完全に置換できるupdatedToolOutputプロパティの説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -216,7 +216,7 @@ Every hook callback receives three arguments:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Your callback returns an object with two categories of fields:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Top-level fields** control the conversation: `systemMessage` injects a message into the conversation visible to the model, and `continue` (`continue_` in Python) determines whether the agent keeps running after this hook."
+            },
+            {
+              "type": "removed",
+              "content": "- **`hookSpecificOutput`** controls the current operation. The fields inside depend on the hook event type. For `PreToolUse` hooks, this is where you set `permissionDecision` (`\"allow\"`, `\"deny\"`, or `\"ask\"`), `permissionDecisionReason`, and `updatedInput`. In the TypeScript SDK, `permissionDecision` also accepts `\"defer\"` to end the query and [resume later](/en/hooks#defer-a-tool-call-for-later); this value is not available in the Python SDK. For `PostToolUse` hooks, you can set `additionalContext` to append information to the tool result."
+            },
+            {
+              "type": "added",
+              "content": "- **`hookSpecificOutput`** controls the current operation. The fields inside depend on the hook event type. For `PreToolUse` hooks, this is where you set `permissionDecision` (`\"allow\"`, `\"deny\"`, or `\"ask\"`), `permissionDecisionReason`, and `updatedInput`. In the TypeScript SDK, `permissionDecision` also accepts `\"defer\"` to end the query and [resume later](/en/hooks#defer-a-tool-call-for-later); this value is not available in the Python SDK. For `PostToolUse` hooks, you can set `additionalContext` to append information to the tool result, or `updatedToolOutput` to replace the tool's output entirely before Claude sees it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Return `{}` to allow the operation without changes. SDK callback hooks use the same JSON output format as [Claude Code shell command hooks](/en/hooks#json-output), which documents every field and event-specific option. For the SDK type definitions, see the [TypeScript](/en/agent-sdk/typescript#sync-hook-json-output) and [Python](/en/agent-sdk/python#sync-hook-json-output) SDK references."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 10,
+      "deletions": 0,
+      "explanation": "Amazon Bedrockのコストとレイテンシを調整するためのサービスティア設定（default、flex、priority）に関するセクションが新設されました。",
+      "hunks": [
+        {
+          "header": "@@ -337,6 +337,16 @@ Claude Opus 4.7, Opus 4.6, and Sonnet 4.6 support the [1M token context window](",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The [setup wizard](#sign-in-with-bedrock) offers a 1M context option when it pins models. To enable it for a manually pinned model instead, append `[1m]` to the model ID. See [Pin models for third-party deployments](/en/model-config#pin-models-for-third-party-deployments) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Service tiers"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "[Amazon Bedrock service tiers](https://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inference.html) let you trade off cost against latency. Set `ANTHROPIC_BEDROCK_SERVICE_TIER` to `default`, `flex`, or `priority`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_BEDROCK_SERVICE_TIER=priority"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code sends this as the `X-Amzn-Bedrock-Service-Tier` header on each request. Tier availability varies by model and region. Reserved capacity uses a [provisioned throughput](https://docs.aws.amazon.com/bedrock/latest/userguide/prov-throughput.html) ARN as the model ID instead of this setting."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## AWS Guardrails"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) let you implement content filtering for Claude Code. Create a Guardrail in the [Amazon Bedrock console](https://console.aws.amazon.com/bedrock/), publish a version, then add the Guardrail headers to your [settings file](/en/settings). Enable Cross-Region inference on your Guardrail if you're using cross-region inference profiles."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "common-workflows.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "GitHubやGitLabなどのPR/MRのURLをセッションピッカーに貼り付けることで、関連するセッションを再開できる機能が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -284,7 +284,7 @@ create a pr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "enhance the PR description with more context about the security improvements"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When you create a PR using `gh pr create`, the session is automatically linked to that PR. You can resume it later with `claude --from-pr <number>`."
+            },
+            {
+              "type": "added",
+              "content": "When you create a PR using `gh pr create`, the session is automatically linked to that PR. To return to it later, run `claude --from-pr <number>` or paste the PR URL into the [`/resume` picker](#use-the-session-picker) search."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Review Claude's generated PR before submitting and ask Claude to highlight potential risks or considerations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -506,7 +506,7 @@ The `/resume` command (or `claude --resume` without arguments) opens an interact",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Enter` | Select and resume the highlighted session |"
+            },
+            {
+              "type": "context",
+              "content": "| `Space` | Preview the session content. `Ctrl+V` also works on terminals that do not capture it as paste |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+R` | Rename the highlighted session |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/` or any printable character other than `Space` | Enter search mode and filter sessions |"
+            },
+            {
+              "type": "added",
+              "content": "| `/` or any printable character other than `Space` | Enter search mode and filter sessions. Paste a GitHub, GitHub Enterprise, GitLab, or Bitbucket pull or merge request URL to find the session that created it |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+A` | Show sessions from all projects on this machine. Press again to restore the current repository |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+W` | Show sessions from all worktrees of the current repository. Press again to restore the current worktree. Only shown in multi-worktree repositories |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+B` | Filter to sessions from your current git branch. Press again to show sessions from all branches |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "Bedrockのサービスティア指定用の環境変数と、WindowsでGit Bashがない場合にPowerShellツールを自動有効化する設定の変更が反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -16,6 +16,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_BASE_URL` | Override the API endpoint to route requests through a proxy or gateway. When set to a non-first-party host, [MCP tool search](/en/mcp#scale-with-mcp-tool-search) is disabled by default. Set `ENABLE_TOOL_SEARCH=true` if your proxy forwards `tool_reference` blocks |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_BEDROCK_BASE_URL` | Override the Bedrock endpoint URL. Use for custom Bedrock endpoints or when routing through an [LLM gateway](/en/llm-gateway). See [Amazon Bedrock](/en/amazon-bedrock) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_BEDROCK_MANTLE_BASE_URL` | Override the Bedrock Mantle endpoint URL. See [Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint) |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_BEDROCK_SERVICE_TIER` | Bedrock [service tier](https://docs.aws.amazon.com/bedrock/latest/userguide/service-tiers-inference.html) (`default`, `flex`, or `priority`). Sent as the `X-Amzn-Bedrock-Service-Tier` header. See [Amazon Bedrock](/en/amazon-bedrock#service-tiers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_BETAS` | Comma-separated list of additional `anthropic-beta` header values to include in API requests. Claude Code already sends the beta headers it needs; use this to opt into an [Anthropic API beta](https://platform.claude.com/docs/en/api/beta-headers) before Claude Code adds native support. Unlike the [`--betas` flag](/en/cli-reference#cli-flags), which requires API key authentication, this variable works with all auth methods including Claude.ai subscription |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_CUSTOM_HEADERS` | Custom headers to add to requests (`Name: Value` format, newline-separated for multiple headers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_CUSTOM_MODEL_OPTION` | Model ID to add as a custom entry in the `/model` picker. Use this to make a non-standard or gateway-specific model selectable without replacing built-in aliases. See [Model configuration](/en/model-config#add-a-custom-model-option) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -154,7 +155,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_FOUNDRY` | Use [Microsoft Foundry](/en/microsoft-foundry) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_MANTLE` | Use the Bedrock [Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_NATIVE_FILE_SEARCH` | Set to `1` to discover custom commands, subagents, and output styles using Node.js file APIs instead of ripgrep. Set this if the bundled ripgrep binary is unavailable or blocked in your environment. Does not affect the Grep or file search tools |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | Controls the PowerShell tool. On Windows, the tool is rolling out progressively: set to `1` to opt in or `0` to opt out. On Linux, macOS, and WSL, set to `1` to enable it, which requires `pwsh` on your `PATH`. When enabled on Windows, Claude can run PowerShell commands natively instead of routing through Git Bash. See [PowerShell tool](/en/tools-reference#powershell-tool) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | Controls the PowerShell tool. On Windows without Git Bash, the tool is enabled automatically; set to `0` to disable it. On Windows with Git Bash installed, the tool is rolling out progressively: set to `1` to opt in or `0` to opt out. On Linux, macOS, and WSL, set to `1` to enable it, which requires `pwsh` on your `PATH`. When enabled on Windows, Claude can run PowerShell commands natively instead of routing through Git Bash. See [PowerShell tool](/en/tools-reference#powershell-tool) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_VERTEX` | Use [Vertex](/en/google-vertex-ai) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CONFIG_DIR` | Override the configuration directory (default: `~/.claude`). All settings, credentials, session history, and plugins are stored under this path. Useful for running multiple accounts side by side: for example, `alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENABLE_BYTE_WATCHDOG` | Set to `1` to force-enable the byte-level streaming idle watchdog, or set to `0` to force-disable it. When unset, the watchdog is enabled by default for Anthropic API connections. The byte watchdog aborts a connection when no bytes arrive on the wire for the duration set by `CLAUDE_STREAM_IDLE_TIMEOUT_MS`, with a minimum of 5 minutes, independent of the event-level watchdog |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "フルスクリーンモードでショートカットキーを2回押すことで会話をクリアする機能と、その操作方法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -113,6 +113,10 @@ Your terminal's `Cmd+f` and tmux search don't see the conversation because it li",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Press `Esc` or `q` to return to the prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Clear the conversation"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Press `Ctrl+L` twice within two seconds to run `/clear` and start a new conversation. The first press clears the input box and shows a hint; the second press clears the conversation. On macOS, double-pressing `Cmd+K` also runs `/clear`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Use with tmux"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fullscreen rendering works inside tmux, with two caveats."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "keybindings.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Ctrl+LまたはCmd+Kの2回押しによる会話クリア機能の割り当てと、Caps Lockキーがターミナルに送られない仕様が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -101,7 +101,8 @@ Actions available in the `Chat` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Action | Default | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:cancel` | Escape | Cancel current input |"
+            },
+            {
+              "type": "removed",
+              "content": "| `chat:clearInput` | Ctrl+L | Clear prompt input and force a full screen redraw |"
+            },
+            {
+              "type": "added",
+              "content": "| `chat:clearInput` | Ctrl+L | Clear prompt input and force a full screen redraw. In [fullscreen rendering](/en/fullscreen#clear-the-conversation), press twice within two seconds to run `/clear` |"
+            },
+            {
+              "type": "added",
+              "content": "| `chat:clearScreen` | Cmd+K | In [fullscreen rendering](/en/fullscreen#clear-the-conversation), press twice within two seconds to run `/clear` |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:killAgents` | Ctrl+X Ctrl+K | Kill all background agents |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:cycleMode` | Shift+Tab\\* | Cycle permission modes |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:modelPicker` | Meta+P | Open model picker |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -425,6 +426,7 @@ These shortcuts cannot be rebound:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Ctrl+C | Hardcoded interrupt/cancel |"
+            },
+            {
+              "type": "context",
+              "content": "| Ctrl+D | Hardcoded exit |"
+            },
+            {
+              "type": "context",
+              "content": "| Ctrl+M | Identical to Enter in terminals (both send CR) |"
+            },
+            {
+              "type": "added",
+              "content": "| Caps Lock | Not delivered to terminal applications |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Terminal conflicts"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "ローカルに追加されたMCPサーバーが、同じURLを指す既存のコネクタよりも優先される仕様について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -651,6 +651,8 @@ In Claude Code, use the command:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude.ai servers appear in the list with indicators showing they come from Claude.ai."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A server you've added in Claude Code takes [precedence](#scope-hierarchy-and-precedence) over a claude.ai connector that points at the same URL. When this happens, `/mcp` lists the connector as hidden and shows how to remove the duplicate if you'd rather use the connector."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To disable claude.ai MCP servers in Claude Code, set the `ENABLE_CLAUDEAI_MCP_SERVERS` environment variable to `false`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 17,
+      "deletions": 2,
+      "explanation": "HTTPステータスコードのデータ型変更や、@メンション解決時のログイベントの属性詳細が定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -564,7 +564,7 @@ Logged when an API request to Claude fails.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `model`: Model used (for example, \"claude-sonnet-4-6\")"
+            },
+            {
+              "type": "context",
+              "content": "- `error`: Error message"
+            },
+            {
+              "type": "removed",
+              "content": "- `status_code`: HTTP status code as a string, or `\"undefined\"` for non-HTTP errors"
+            },
+            {
+              "type": "added",
+              "content": "- `status_code`: HTTP status code as a number. Absent for non-HTTP errors such as connection failures."
+            },
+            {
+              "type": "context",
+              "content": "- `duration_ms`: Request duration in milliseconds"
+            },
+            {
+              "type": "context",
+              "content": "- `attempt`: Total number of attempts made, including the initial request (`1` means no retries occurred)"
+            },
+            {
+              "type": "context",
+              "content": "- `request_id`: Anthropic API request ID from the response's `request-id` header, such as `\"req_011...\"`. Present only when the API returns one."
+            }
+          ]
+        },
+        {
+          "header": "@@ -732,6 +732,21 @@ Logged when a skill is invoked.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `plugin.name` (when `OTEL_LOG_TOOL_DETAILS=1` or the plugin is from an official marketplace): Name of the owning plugin when the skill is provided by a plugin"
+            },
+            {
+              "type": "context",
+              "content": "- `marketplace.name` (when `OTEL_LOG_TOOL_DETAILS=1` or the plugin is from an official marketplace): Marketplace the owning plugin was installed from, when the skill is provided by a plugin"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### At mention event"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Logged when Claude Code resolves an `@`-mention in a prompt. Not every mention emits an event: early-exit paths such as permission denials, oversized files, PDF reference attachments, and directory listing failures return without logging."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Event Name**: `claude_code.at_mention`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Attributes**:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- All [standard attributes](#standard-attributes)"
+            },
+            {
+              "type": "added",
+              "content": "- `event.name`: `\"at_mention\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "added",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "added",
+              "content": "- `mention_type`: Type of mention (`\"file\"`, `\"directory\"`, `\"agent\"`, `\"mcp_resource\"`)"
+            },
+            {
+              "type": "added",
+              "content": "- `success`: Whether the mention resolved successfully (`\"true\"` or `\"false\"`)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### API retries exhausted event"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Logged once when an API request fails after more than one attempt. Emitted alongside the final `api_error` event."
+            }
+          ]
+        },
+        {
+          "header": "@@ -746,7 +761,7 @@ Logged once when an API request fails after more than one attempt. Emitted along",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `model`: Model used"
+            },
+            {
+              "type": "context",
+              "content": "- `error`: Final error message"
+            },
+            {
+              "type": "removed",
+              "content": "- `status_code`: HTTP status code as a string"
+            },
+            {
+              "type": "added",
+              "content": "- `status_code`: HTTP status code as a number. Absent for non-HTTP errors."
+            },
+            {
+              "type": "context",
+              "content": "- `total_attempts`: Total number of attempts made"
+            },
+            {
+              "type": "context",
+              "content": "- `total_retry_duration_ms`: Total wall-clock time across all attempts"
+            },
+            {
+              "type": "context",
+              "content": "- `speed`: `\"fast\"` or `\"normal\"`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "overview.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "Windows環境でのGit Bash利用が必須から推奨に変更され、不在時はPowerShellが使用される旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -324,10 +324,10 @@ source: https://code.claude.com/docs/en/overview.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "      {}"
+            },
+            {
+              "type": "context",
+              "content": "      {target === 'terminal' && <div className=\"cc-ic-below\">"
+            },
+            {
+              "type": "context",
+              "content": "          {isWinInstaller && <span>"
+            },
+            {
+              "type": "removed",
+              "content": "              Requires{' '}"
+            },
+            {
+              "type": "context",
+              "content": "              <a href=\"https://git-scm.com/downloads/win\" target=\"_blank\" rel=\"noopener\">"
+            },
+            {
+              "type": "context",
+              "content": "                Git for Windows"
+            },
+            {
+              "type": "removed",
+              "content": "              </a>."
+            },
+            {
+              "type": "added",
+              "content": "              </a>{' '}"
+            },
+            {
+              "type": "added",
+              "content": "              recommended. PowerShell is used if Git Bash is absent."
+            },
+            {
+              "type": "context",
+              "content": "            </span>}"
+            },
+            {
+              "type": "context",
+              "content": "          {(pkg === 'brew' || pkg === 'winget') && <span>"
+            },
+            {
+              "type": "context",
+              "content": "              Does not auto-update. Run{' '}"
+            }
+          ]
+        },
+        {
+          "header": "@@ -399,7 +399,7 @@ Choose your environment to get started. Most surfaces require a [Claude subscrip",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "        If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "        [Git for Windows](https://git-scm.com/downloads/win) is required on native Windows so Claude Code can use the Bash tool. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "        [Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "        <Info>"
+            },
+            {
+              "type": "context",
+              "content": "          Native installations automatically update in the background to keep you on the latest version."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "クイックスタート手順において、Windowsでのシェル選択に関する優先順位と推奨事項が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -324,10 +324,10 @@ source: https://code.claude.com/docs/en/quickstart.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "      {}"
+            },
+            {
+              "type": "context",
+              "content": "      {target === 'terminal' && <div className=\"cc-ic-below\">"
+            },
+            {
+              "type": "context",
+              "content": "          {isWinInstaller && <span>"
+            },
+            {
+              "type": "removed",
+              "content": "              Requires{' '}"
+            },
+            {
+              "type": "context",
+              "content": "              <a href=\"https://git-scm.com/downloads/win\" target=\"_blank\" rel=\"noopener\">"
+            },
+            {
+              "type": "context",
+              "content": "                Git for Windows"
+            },
+            {
+              "type": "removed",
+              "content": "              </a>."
+            },
+            {
+              "type": "added",
+              "content": "              </a>{' '}"
+            },
+            {
+              "type": "added",
+              "content": "              recommended. PowerShell is used if Git Bash is absent."
+            },
+            {
+              "type": "context",
+              "content": "            </span>}"
+            },
+            {
+              "type": "context",
+              "content": "          {(pkg === 'brew' || pkg === 'winget') && <span>"
+            },
+            {
+              "type": "context",
+              "content": "              Does not auto-update. Run{' '}"
+            }
+          ]
+        },
+        {
+          "header": "@@ -406,7 +406,7 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "    [Git for Windows](https://git-scm.com/downloads/win) is required on native Windows so Claude Code can use the Bash tool. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "    [Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    <Info>"
+            },
+            {
+              "type": "context",
+              "content": "      Native installations automatically update in the background to keep you on the latest version."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 4,
+      "deletions": 4,
+      "explanation": "セットアップ要件が更新され、Git Bashがない環境でのPowerShellへのフォールバック動作について詳しく説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -21,7 +21,7 @@ Claude Code runs on the following platforms and configurations:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - Alpine Linux 3.19+"
+            },
+            {
+              "type": "context",
+              "content": "- **Hardware**: 4 GB+ RAM, x64 or ARM64 processor"
+            },
+            {
+              "type": "context",
+              "content": "- **Network**: internet connection required. See [network configuration](/en/network-config#network-access-requirements)."
+            },
+            {
+              "type": "removed",
+              "content": "- **Shell**: Bash, Zsh, PowerShell, or CMD. Native Windows setups require [Git for Windows](https://git-scm.com/downloads/win) for Git Bash. WSL setups do not require Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "- **Shell**: Bash, Zsh, PowerShell, or CMD. On native Windows, [Git for Windows](https://git-scm.com/downloads/win) is recommended; Claude Code falls back to PowerShell when Git Bash is absent. WSL setups do not require Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": "- **Location**: [Anthropic supported countries](https://www.anthropic.com/supported-countries)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Additional dependencies"
+            }
+          ]
+        },
+        {
+          "header": "@@ -56,7 +56,7 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Git for Windows](https://git-scm.com/downloads/win) is required on native Windows so Claude Code can use the Bash tool. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "[Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -90,7 +90,7 @@ You can run Claude Code natively on Windows or inside WSL. Pick based on where y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Option | Requires | [Sandboxing](/en/sandboxing) | When to use |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| Native Windows | [Git for Windows](https://git-scm.com/downloads/win) required | Not supported | Windows-native projects and tools |"
+            },
+            {
+              "type": "added",
+              "content": "| Native Windows | [Git for Windows](https://git-scm.com/downloads/win) recommended; PowerShell used if absent | Not supported | Windows-native projects and tools |"
+            },
+            {
+              "type": "context",
+              "content": "| WSL 2 | WSL 2 enabled | Supported | Linux toolchains or sandboxed command execution |"
+            },
+            {
+              "type": "context",
+              "content": "| WSL 1 | WSL 1 enabled | Not supported | If WSL 2 is unavailable |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -110,7 +110,7 @@ After installation, launch `claude` from PowerShell, CMD, or Git Bash. When Git",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code can also run PowerShell natively on Windows. The PowerShell tool is rolling out progressively; set `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` to opt in or `0` to opt out. See [PowerShell tool](/en/tools-reference#powershell-tool) for setup and limitations."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code can also run PowerShell natively on Windows. When Git Bash is installed, the PowerShell tool is rolling out progressively as an additional option: set `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` to opt in or `0` to opt out. See [PowerShell tool](/en/tools-reference#powershell-tool) for setup and limitations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Option 2: WSL**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ステータスラインコマンドにおいて、Git Bashの有無に応じた実行シェルの挙動とPowerShellスクリプトの呼び出し方が修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -865,7 +865,7 @@ process.stdin.on('end', () => {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Windows configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Windows, Claude Code runs status line commands through Git Bash. You can invoke PowerShell from that shell:"
+            },
+            {
+              "type": "added",
+              "content": "On Windows, Claude Code runs status line commands through Git Bash when Git Bash is installed, or through PowerShell when Git Bash is absent. To run a PowerShell script as your status line, invoke it via `powershell`; this works from either shell:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json settings.json theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -890,7 +890,7 @@ if ($used) {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Or run a Bash script directly:"
+            },
+            {
+              "type": "added",
+              "content": "Or, when Git Bash is installed, run a Bash script directly:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json settings.json theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "PowerShellツールがGit BashのないWindows環境で自動的に有効化される動作仕様が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -94,7 +94,7 @@ Plugins can declare monitors that start automatically when the plugin is active,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## PowerShell tool"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The PowerShell tool lets Claude run PowerShell commands natively. On Windows, this means commands run in PowerShell instead of routing through Git Bash. The tool is rolling out progressively on Windows and is opt-in on Linux, macOS, and WSL."
+            },
+            {
+              "type": "added",
+              "content": "The PowerShell tool lets Claude run PowerShell commands natively. On Windows, this means commands run in PowerShell instead of routing through Git Bash. On Windows without Git Bash, the tool is enabled automatically. On Windows with Git Bash installed, the tool is rolling out progressively. On Linux, macOS, and WSL, the tool is opt-in."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Enable the PowerShell tool"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshoot-install.md",
+      "additions": 7,
+      "deletions": 4,
+      "explanation": "インストールエラーの解決策が更新され、Git BashだけでなくPowerShell 7も有効なシェルとして認められるようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -23,7 +23,7 @@ Match the error message or symptom you're seeing to a fix:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Failed to fetch version` or can't reach download server | [Check network and proxy settings](#check-network-connectivity) |"
+            },
+            {
+              "type": "context",
+              "content": "| `irm is not recognized` or `&& is not valid` | [Use the right command for your shell](#wrong-install-command-on-windows) |"
+            },
+            {
+              "type": "context",
+              "content": "| `'bash' is not recognized as the name of a cmdlet` | [Use the Windows installer command](#wrong-install-command-on-windows) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Claude Code on Windows requires git-bash` | [Install or configure Git Bash](#claude-code-on-windows-requires-git-bash) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Claude Code on Windows requires either Git for Windows (for bash) or PowerShell` | [Install a shell](#claude-code-on-windows-requires-either-git-for-windows-for-bash-or-powershell) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Claude Code does not support 32-bit Windows` | [Open Windows PowerShell, not the x86 entry](#claude-code-does-not-support-32-bit-windows) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Error loading shared library` | [Wrong binary variant for your system](#linux-musl-or-glibc-binary-mismatch) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Illegal instruction` | [Architecture or CPU instruction set mismatch](#illegal-instruction) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -490,11 +490,14 @@ If you installed an older version of Claude Desktop, it may register a `Claude.e",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Update Claude Desktop to the latest version to fix this issue."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Claude Code on Windows requires Git Bash"
+            },
+            {
+              "type": "added",
+              "content": "### Claude Code on Windows requires either Git for Windows (for bash) or PowerShell"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code on native Windows needs [Git for Windows](https://git-scm.com/downloads/win), which provides Git Bash for running shell commands."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code on native Windows needs at least one shell: either [Git for Windows](https://git-scm.com/downloads/win) for Bash, or PowerShell. When neither is found, this error appears at startup. If only PowerShell is found, Claude Code uses the PowerShell tool instead of Bash."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**If Git is not installed**, download it from [git-scm.com/downloads/win](https://git-scm.com/downloads/win). During setup, select \"Add to PATH.\" Restart your terminal after installing."
+            },
+            {
+              "type": "added",
+              "content": "**If neither is installed**, install one:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Git for Windows: download from [git-scm.com/downloads/win](https://git-scm.com/downloads/win). During setup, select \"Add to PATH.\" Restart your terminal after installing."
+            },
+            {
+              "type": "added",
+              "content": "- PowerShell 7: download from [aka.ms/powershell](https://aka.ms/powershell)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**If Git is already installed** but Claude Code can't find it, set the path in your [settings.json file](/en/settings):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

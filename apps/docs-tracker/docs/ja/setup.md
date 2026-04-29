@@ -56,7 +56,7 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in
 
 If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\` when you're in PowerShell and `C:\` without the `PS` when you're in CMD.
 
-[Git for Windows](https://git-scm.com/downloads/win) is required on native Windows so Claude Code can use the Bash tool. WSL setups do not need Git for Windows.
+[Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows.
 
 Native installations automatically update in the background to keep you on the latest version.
 
@@ -90,7 +90,7 @@ Claude Code をネイティブに Windows で実行することも、WSL 内で�
 
 | オプション | 必須 | [サンドボックス](/ja/sandboxing) | 使用時期 |
 | - | - | - | - |
-| ネイティブ Windows | [Git for Windows](https://git-scm.com/downloads/win)が必須 | サポートされていません | Windows ネイティブプロジェクトとツール |
+| ネイティブ Windows | [Git for Windows](https://git-scm.com/downloads/win)推奨；不在の場合は PowerShell を使用 | サポートされていません | Windows ネイティブプロジェクトとツール |
 | WSL 2 | WSL 2 有効 | サポートされています | Linux ツールチェーンまたはサンドボックス化されたコマンド実行 |
 | WSL 1 | WSL 1 有効 | サポートされていません | WSL 2 が利用できない場合 |
 
@@ -110,7 +110,7 @@ PowerShell または CMD からインストールするかどうかは、実行�
 }
 ```
 
-Claude Code は Windows でネイティブに PowerShell を実行することもできます。PowerShell ツールは段階的にロールアウトされています。オプトインするには `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` を設定するか、オプトアウトするには `0` を設定します。セットアップと制限については、[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください。
+Claude Code は Windows でネイティブに PowerShell を実行することもできます。Git Bash がインストールされている場合、PowerShell ツールは追加オプションとして段階的にロールアウトされています。オプトインするには `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` を設定するか、オプトアウトするには `0` を設定します。セットアップと制限については、[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください。
 
 **オプション 2: WSL**
 

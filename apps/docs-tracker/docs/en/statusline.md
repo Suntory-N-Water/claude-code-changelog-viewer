@@ -865,7 +865,7 @@ process.stdin.on('end', () => {
 
 ### Windows configuration
 
-On Windows, Claude Code runs status line commands through Git Bash. You can invoke PowerShell from that shell:
+On Windows, Claude Code runs status line commands through Git Bash when Git Bash is installed, or through PowerShell when Git Bash is absent. To run a PowerShell script as your status line, invoke it via `powershell`; this works from either shell:
 
 ```json settings.json theme={null}
 {
@@ -890,7 +890,7 @@ if ($used) {
 }
 ```
 
-Or run a Bash script directly:
+Or, when Git Bash is installed, run a Bash script directly:
 
 ```json settings.json theme={null}
 {
