@@ -66,13 +66,13 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--fork-session` | 再開時に、元のセッション ID を再利用する代わりに新しいセッション ID を作成します（`--resume` または `--continue` と一緒に使用） | `claude --resume abc123 --fork-session` |
 | `--from-pr` | 特定のプルリクエストにリンクされたセッションを再開します。PR 番号、GitHub または GitHub Enterprise PR URL、GitLab マージリクエスト URL、または Bitbucket プルリクエスト URL を受け入れます。Claude がプルリクエストを作成するときに、セッションは自動的にリンクされます | `claude --from-pr 123` |
 | `--ide` | 起動時に、正確に 1 つの有効な IDE が利用可能な場合、自動的に IDE に接続します | `claude --ide` |
-| `--init` | 初期化フックを実行してインタラクティブモードを開始 | `claude --init` |
-| `--init-only` | 初期化フックを実行して終了（インタラクティブセッションなし） | `claude --init-only` |
+| `--init` | セッション開始前に `init` マッチャーで [Setup hooks](/ja/hooks#setup) を実行します（プリントモードのみ） | `claude -p --init "query"` |
+| `--init-only` | [Setup](/ja/hooks#setup) および `SessionStart` hooks を実行してから、会話を開始せずに終了します | `claude --init-only` |
 | `--include-hook-events` | すべてのフックライフサイクルイベントを出力ストリームに含めます。`--output-format stream-json` が必要です | `claude -p --output-format stream-json --include-hook-events "query"` |
 | `--include-partial-messages` | 部分的なストリーミングイベントを出力に含めます。`--print` と `--output-format stream-json` が必要です | `claude -p --output-format stream-json --include-partial-messages "query"` |
 | `--input-format` | プリントモードの入力形式を指定します（オプション：`text`、`stream-json`） | `claude -p --output-format json --input-format stream-json` |
 | `--json-schema` | エージェントがワークフローを完了した後、JSON Schema に一致する検証済み JSON 出力を取得します（プリントモードのみ。[構造化出力](/ja/agent-sdk/structured-outputs) を参照） | `claude -p --json-schema '{"type":"object","properties":{...}}' "query"` |
-| `--maintenance` | メンテナンスフックを実行してインタラクティブモードを開始 | `claude --maintenance` |
+| `--maintenance` | セッション開始前に `maintenance` マッチャーで [Setup hooks](/ja/hooks#setup) を実行します（プリントモードのみ） | `claude -p --maintenance "query"` |
 | `--max-budget-usd` | 停止する前に API 呼び出しに費やす最大ドル金額（プリントモードのみ） | `claude -p --max-budget-usd 5.00 "query"` |
 | `--max-turns` | agentic ターンの数を制限します（プリントモードのみ）。制限に達するとエラーで終了します。デフォルトでは制限なし | `claude -p --max-turns 3 "query"` |
 | `--mcp-config` | JSON ファイルまたは文字列から MCP サーバーを読み込みます（スペース区切り） | `claude --mcp-config ./mcp.json` |

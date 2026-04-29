@@ -80,6 +80,10 @@ sudo apt-get install bubblewrap socat
 sudo dnf install bubblewrap socat
 ```
 
+WSL1 は必要な Linux 名前空間プリミティブが不足しているため、サンドボックス化をサポートしていません。`Sandboxing requires WSL2` が表示される場合は、ディストリビューションを WSL2 にアップグレードするか、Claude Code をサンドボックス化なしで実行してください。
+
+WSL2 では、サンドボックス化されたコマンドは `cmd.exe`、`powershell.exe`、または `/mnt/c/` 下のものなどの Windows バイナリを起動できません。WSL はこれらを Unix ソケット経由で Windows ホストに渡しますが、サンドボックスはこれをブロックします。コマンドが Windows バイナリを呼び出す必要がある場合は、[`excludedCommands`](/ja/settings#sandbox-settings) に追加して、サンドボックス外で実行するようにしてください。
+
 ### サンドボックス化を有効化
 
 `/sandbox` コマンドを実行してサンドボックス化を有効化できます。

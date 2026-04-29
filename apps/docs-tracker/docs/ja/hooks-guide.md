@@ -393,6 +393,7 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 | Event | When it fires |
 | :- | :- |
 | `SessionStart` | When a session begins or resumes |
+| `Setup` | When you start Claude Code with `--init-only`, or with `--init` or `--maintenance` in `-p` mode. For one-time preparation in CI or scripts |
 | `UserPromptSubmit` | When you submit a prompt, before Claude processes it |
 | `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |
 | `PreToolUse` | Before a tool call executes. Can block it |
@@ -472,7 +473,7 @@ exit 0  # exit 0 = 続行させる
 終了コードは次に何が起こるかを決定します：
 
 - **終了 0**：アクションが続行されます。`UserPromptSubmit`、`UserPromptExpansion`、および `SessionStart` hooks の場合、stdout に書き込むすべてのものが Claude のコンテキストに追加されます。
-- **終了 2**：アクションがブロックされます。stderr に理由を書き込み、Claude はそれをフィードバックとして受け取るため、調整できます。
+- **終了 2**：アクションがブロックされます。stderr に理由を書き込み、Claude はそれをフィードバックとして受け取るため、調整できます。一部のイベントはブロックできません：`SessionStart`、`Setup`、`Notification` などの場合、終了 2 は stderr をユーザーに表示し、実行は続行されます。[イベントごとの終了コード 2 の動作](/ja/hooks#exit-code-2-behavior-per-event) で完全なリストを参照してください。
 - **その他の終了コード**：アクションが続行されます。トランスクリプトは `<hook name> hook error` 通知を表示し、その後 stderr の最初の行が続きます。完全な stderr は [デバッグログ](/ja/hooks#debug-hooks) に記録されます。
 
 #### 構造化 JSON 出力
@@ -528,15 +529,18 @@ exit 0  # exit 0 = 続行させる
 
 `"Edit|Write"` マッチャーは `Edit` または `Write` ツール呼び出しでのみ発火し、`Bash`、`Read`、または他のツールでは発火しません。[マッチャーパターン](/ja/hooks#matcher-patterns) を参照して、プレーン名と正規表現がどのように評価されるかを確認してください。
 
+Claude はまた、`Bash` ツールを通じてシェルコマンドを実行することでファイルを作成または変更できます。コンプライアンススキャンまたは監査ログなど、hook がすべてのファイル変更を確認する必要がある場合は、ターンごとに 1 回作業ツリーをスキャンする [`Stop`](/ja/hooks#stop) hook を追加してください。呼び出しごとのカバレッジの場合は、`Bash` もマッチさせ、スクリプトで `git status --porcelain` を使用して変更されたファイルと追跡されていないファイルをリストアップしてください。
+
 各イベントタイプは特定のフィールドでマッチします：
 
 | イベント | マッチャーがフィルタリングするもの | マッチャー値の例 |
 | :- | :- | :- |
 | `PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、`PermissionDenied` | ツール名 | `Bash`、`Edit\|Write`、`mcp__.*` |
 | `SessionStart` | セッションがどのように開始されたか | `startup`、`resume`、`clear`、`compact` |
+| `Setup` | どの CLI フラグがセットアップをトリガーしたか | `init`、`maintenance` |
 | `SessionEnd` | セッションが終了した理由 | `clear`、`resume`、`logout`、`prompt_input_exit`、`bypass_permissions_disabled`、`other` |
-| `Notification` | 通知タイプ | `permission_prompt`、`idle_prompt`、`auth_success`、`elicitation_dialog` |
-| `SubagentStart` | エージェントタイプ | `Bash`、`Explore`、`Plan`、またはカスタムエージェント名 |
+| `Notification` | 通知タイプ | `permission_prompt`、`idle_prompt`、`auth_success`、`elicitation_dialog`、`elicitation_complete`、`elicitation_response` |
+| `SubagentStart` | エージェントタイプ | `general-purpose`、`Explore`、`Plan`、またはカスタムエージェント名 |
 | `PreCompact`、`PostCompact` | 圧縮をトリガーしたもの | `manual`、`auto` |
 | `SubagentStop` | エージェントタイプ | `SubagentStart` と同じ値 |
 | `ConfigChange` | 設定ソース | `user_settings`、`project_settings`、`local_settings`、`policy_settings`、`skills` |

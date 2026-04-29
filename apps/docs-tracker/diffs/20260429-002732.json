@@ -1,0 +1,2846 @@
+{
+  "id": "20260429-002732",
+  "timestamp": "2026-04-29T00:27:32.296Z",
+  "aiSummary": "新機能としてSetupフックが導入され、--init-onlyや-pオプション使用時の初期化処理を細かく制御できるようになりました。トラブルシューティング情報が大幅に整理され、インストールとログインに関する専用ページ(troubleshoot-install)が新設されています。環境変数にはCLAUDE_CODE_EXTRA_BODYやCLAUDE_CODE_MCP_ALLOWLIST_ENVなど、APIリクエストやMCPサーバーのセキュリティを細かく設定できる項目が追加されました。また、JetBrains IDEとの連携において、WSL2環境でのネットワーク設定やファイアウォール対応の詳細な手順が拡充されています。",
+  "files": [
+    {
+      "filename": "admin-setup.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ログインに関するトラブルシューティングの参照先を、新設された専用ページに変更しています。",
+      "hunks": [
+        {
+          "header": "@@ -113,7 +113,7 @@ Share these resources to help developers get started:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Common workflows](/en/common-workflows): patterns for everyday tasks like code review, refactoring, and debugging"
+            },
+            {
+              "type": "context",
+              "content": "- [Claude 101](https://anthropic.skilljar.com/claude-101) and [Claude Code in Action](https://anthropic.skilljar.com/claude-code-in-action): self-paced Anthropic Academy courses"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For login issues, point developers to [authentication troubleshooting](/en/troubleshooting#authentication-issues). The most common fixes are:"
+            },
+            {
+              "type": "added",
+              "content": "For login issues, point developers to [authentication troubleshooting](/en/troubleshoot-install#login-and-authentication). The most common fixes are:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Run `/logout` then `/login` to switch accounts"
+            },
+            {
+              "type": "context",
+              "content": "- Run `claude update` if the enterprise auth option is missing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/plugins.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "プラグインの読み込み設定において、typeフィールドにlocalを指定する必要があることを明記しています。",
+      "hunks": [
+        {
+          "header": "@@ -24,7 +24,7 @@ For complete information on plugin structure and how to create plugins, see [Plu",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Loading plugins"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Load plugins by providing their local file system paths in your options configuration. The SDK supports loading multiple plugins from different locations."
+            },
+            {
+              "type": "added",
+              "content": "Load plugins by providing their local file system paths in your options configuration. The `type` field must be `\"local\"`, the only value the SDK accepts. To use a plugin distributed through a [marketplace](/en/plugin-marketplaces) or remote repository, download it first and provide the local directory path. The SDK supports loading multiple plugins from different locations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript TypeScript theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "import { query } from \"@anthropic-ai/claude-agent-sdk\";"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "authentication.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "認証エラー時のヘルプ参照先を、新しく作成されたインストール・ログイン用トラブルシューティングページへ更新しています。",
+      "hunks": [
+        {
+          "header": "@@ -26,7 +26,7 @@ You can authenticate with any of these account types:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To log out and re-authenticate, type `/logout` at the Claude Code prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you're having trouble logging in, see [authentication troubleshooting](/en/troubleshooting#authentication-issues)."
+            },
+            {
+              "type": "added",
+              "content": "If you're having trouble logging in, see [authentication troubleshooting](/en/troubleshoot-install#login-and-authentication)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Set up team authentication"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "--init、--init-only、--maintenanceフラグの動作仕様と、フックとの連携方法が具体化されています。",
+      "hunks": [
+        {
+          "header": "@@ -66,13 +66,13 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--fork-session` | When resuming, create a new session ID instead of reusing the original (use with `--resume` or `--continue`) | `claude --resume abc123 --fork-session` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--from-pr` | Resume sessions linked to a specific pull request. Accepts a PR number, a GitHub or GitHub Enterprise PR URL, a GitLab merge request URL, or a Bitbucket pull request URL. Sessions are linked automatically when Claude creates the pull request | `claude --from-pr 123` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--ide` | Automatically connect to IDE on startup if exactly one valid IDE is available | `claude --ide` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--init` | Run initialization hooks and start interactive mode | `claude --init` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--init-only` | Run initialization hooks and exit (no interactive session) | `claude --init-only` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--init` | Run [Setup hooks](/en/hooks#setup) with the `init` matcher before the session (print mode only) | `claude -p --init \"query\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--init-only` | Run [Setup](/en/hooks#setup) and `SessionStart` hooks, then exit without starting a conversation | `claude --init-only` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--include-hook-events` | Include all hook lifecycle events in the output stream. Requires `--output-format stream-json` | `claude -p --output-format stream-json --include-hook-events \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--include-partial-messages` | Include partial streaming events in output. Requires `--print` and `--output-format stream-json` | `claude -p --output-format stream-json --include-partial-messages \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--input-format` | Specify input format for print mode (options: `text`, `stream-json`) | `claude -p --output-format json --input-format stream-json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--json-schema` | Get validated JSON output matching a JSON Schema after agent completes its workflow (print mode only, see [structured outputs](/en/agent-sdk/structured-outputs)) | `claude -p --json-schema '{\"type\":\"object\",\"properties\":{...}}' \"query\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--maintenance` | Run maintenance hooks and start interactive mode | `claude --maintenance` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--maintenance` | Run [Setup hooks](/en/hooks#setup) with the `maintenance` matcher before the session (print mode only) | `claude -p --maintenance \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--max-budget-usd` | Maximum dollar amount to spend on API calls before stopping (print mode only) | `claude -p --max-budget-usd 5.00 \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--max-turns` | Limit the number of agentic turns (print mode only). Exits with an error when the limit is reached. No limit by default | `claude -p --max-turns 3 \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--mcp-config` | Load MCP servers from JSON files or strings (space-separated) | `claude --mcp-config ./mcp.json` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/heapdumpコマンドの出力先について、デスクトップフォルダがないLinux環境での動作説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -46,7 +46,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/feedback [report]` | Submit feedback about Claude Code. Alias: `/bug` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/fewer-permission-prompts` | **[Skill](/en/skills#bundled-skills).** Scan your transcripts for common read-only Bash and MCP tool calls, then add a prioritized allowlist to project `.claude/settings.json` to reduce permission prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `/focus` | Toggle the focus view, which shows only your last prompt, a one-line tool-call summary with edit diffstats, and the final response. The selection persists across sessions. Only available in [fullscreen rendering](/en/fullscreen) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/heapdump` | Write a JavaScript heap snapshot and a memory breakdown to `~/Desktop` for diagnosing high memory usage. See [troubleshooting](/en/troubleshooting#high-cpu-or-memory-usage) |"
+            },
+            {
+              "type": "added",
+              "content": "| `/heapdump` | Write a JavaScript heap snapshot and a memory breakdown to `~/Desktop`, or your home directory on Linux without a Desktop folder, for diagnosing high memory usage. See [troubleshooting](/en/troubleshooting#high-cpu-or-memory-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/help` | Show help and available commands |"
+            },
+            {
+              "type": "context",
+              "content": "| `/hooks` | View [hook](/en/hooks) configurations for tool events |"
+            },
+            {
+              "type": "context",
+              "content": "| `/ide` | Manage IDE integrations and show status |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "common-workflows.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "MCPサーバーがフォームを開く際のイベント(elicitation_dialog)など、より詳細なワークフローの状態が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -710,7 +710,9 @@ By default the hook fires on all notification types. To fire only for specific e",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `permission_prompt` | Claude needs you to approve a tool use |"
+            },
+            {
+              "type": "context",
+              "content": "| `idle_prompt` | Claude is done and waiting for your next prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `auth_success` | Authentication completes |"
+            },
+            {
+              "type": "removed",
+              "content": "| `elicitation_dialog` | Claude is asking you a question |"
+            },
+            {
+              "type": "added",
+              "content": "| `elicitation_dialog` | An MCP server opens an elicitation form |"
+            },
+            {
+              "type": "added",
+              "content": "| `elicitation_complete` | An MCP elicitation form is submitted or dismissed |"
+            },
+            {
+              "type": "added",
+              "content": "| `elicitation_response` | An MCP elicitation response is sent back to the server |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Type `/hooks` and select `Notification` to confirm the hook appears. Selecting it shows the command that will run. To test it end-to-end, ask Claude to run a command that requires permission and switch away from the terminal, or ask Claude to trigger a notification directly."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "debug-your-config.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "設定デバッグ時の参照先を整理し、インストール関連とパフォーマンス関連で案内するページを分けています。",
+      "hunks": [
+        {
+          "header": "@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/en/debug-your-config.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When Claude ignores an instruction or a feature you configured doesn't appear, the cause is usually that the file didn't load, it loaded from a different location than you expected, or another file overrode it. This guide shows how to inspect what Claude Code actually loaded so you can narrow down which applies."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For installation, authentication, and connectivity problems, see [Troubleshooting](/en/troubleshooting) instead."
+            },
+            {
+              "type": "added",
+              "content": "For installation, authentication, and connectivity problems, see [Troubleshoot installation and login](/en/troubleshoot-install) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## See what loaded into context"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -77,7 +77,7 @@ Most configuration surprises trace back to a small set of location and syntax ru",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Skill appears in `/skills` but Claude never invokes it | Skill has `disable-model-invocation: true` in its frontmatter, or its description doesn't match how you phrase the request | Check the badge in `/skills`: a \"user-only\" label means Claude won't trigger it on its own. See [skill invocation](/en/skills). |"
+            },
+            {
+              "type": "context",
+              "content": "| Subdirectory `CLAUDE.md` instructions seem ignored | Subdirectory files load on demand, not at session start | They load when Claude reads a file in that directory with the Read tool, not at launch and not when writing or creating files there. See [how CLAUDE.md files load](/en/memory#how-claude-md-files-load). |"
+            },
+            {
+              "type": "context",
+              "content": "| Subagent ignores `CLAUDE.md` instructions | Subagents don't always inherit project memory | Put critical rules in the agent file body, which becomes the subagent's system prompt. See [subagent configuration](/en/sub-agents). |"
+            },
+            {
+              "type": "removed",
+              "content": "| Cleanup logic never runs at session end | No `SessionEnd` hook configured | `SessionStart` and `SessionEnd` both exist. See the [hook events list](/en/hooks#hook-events). |"
+            },
+            {
+              "type": "added",
+              "content": "| Cleanup logic never runs at session end | No `SessionEnd` hook configured | Add a `SessionEnd` hook in `settings.json`. See the [hook events list](/en/hooks#hook-events). |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP servers in `.mcp.json` never load | File is under `.claude/` or uses Claude Desktop's config format | Project MCP config goes at the repository root as `.mcp.json`, not inside `.claude/`. See [MCP configuration](/en/mcp). |"
+            },
+            {
+              "type": "context",
+              "content": "| Project MCP server added but doesn't appear | The one-time approval prompt was dismissed | Project-scoped servers require approval. Run `/mcp` to see status and approve. |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP server fails to start from some directories | `command` or `args` uses a relative file path | Use absolute paths for local scripts. Executables on your `PATH` like `npx` or `uvx` work as-is. |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -92,4 +92,5 @@ For full reference on each configuration surface, see the dedicated page:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **[Settings](/en/settings)**: precedence order and the full key list"
+            },
+            {
+              "type": "context",
+              "content": "- **[Hooks reference](/en/hooks)**: event names, payloads, and `--debug hooks` output format"
+            },
+            {
+              "type": "context",
+              "content": "- **[MCP](/en/mcp)**: server configuration, approval, and `/mcp` output"
+            },
+            {
+              "type": "removed",
+              "content": "- **[Troubleshooting](/en/troubleshooting)**: `claude doctor`, platform issues, and installation problems"
+            },
+            {
+              "type": "added",
+              "content": "- **[Troubleshoot installation and login](/en/troubleshoot-install)**: `command not found`, PATH, and authentication problems"
+            },
+            {
+              "type": "added",
+              "content": "- **[Troubleshooting](/en/troubleshooting)**: performance, hangs, and search issues"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 5,
+      "deletions": 1,
+      "explanation": "APIリクエストへのカスタムJSONマージや、MCPサーバーの環境変数分離など、4つの新しい環境変数が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -83,6 +83,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | Equivalent of setting `DISABLE_AUTOUPDATER`, `DISABLE_FEEDBACK_COMMAND`, `DISABLE_ERROR_REPORTING`, and `DISABLE_TELEMETRY` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK` | Set to `1` to disable the non-streaming fallback when a streaming request fails mid-stream. Streaming errors propagate to the retry layer instead. Useful when a proxy or gateway causes the fallback to produce duplicate tool execution |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL` | Set to `1` to skip automatic addition of the official plugin marketplace on first run |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_POLICY_SKILLS` | Set to `1` to skip loading skills from the system-wide managed skills directory. Useful for container or CI sessions that should not load operator-provisioned skills |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` | Set to `1` to disable automatic terminal title updates based on conversation context |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_THINKING` | Set to `1` to force-disable [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) regardless of model support or other settings. More direct than `MAX_THINKING_TOKENS=0` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL` | Set to `1` to disable virtual scrolling in [fullscreen rendering](/en/fullscreen) and render every message in the transcript. Use this if scrolling in fullscreen mode shows blank regions where messages should appear |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -95,6 +96,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TELEMETRY` | Set to `1` to enable OpenTelemetry data collection for metrics and logging. Required before configuring OTel exporters. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EXIT_AFTER_STOP_DELAY` | Time in milliseconds to wait after the query loop becomes idle before automatically exiting. Useful for automated workflows and scripts using SDK mode |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Set to `1` to enable [agent teams](/en/agent-teams). Agent teams are experimental and disabled by default |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_EXTRA_BODY` | JSON object to merge into the top level of every API request body. Useful for passing provider-specific parameters that Claude Code does not expose directly |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` | Override the default token limit for file reads. Useful when you need to read larger files in full |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORK_SUBAGENT` | Set to `1` to enable [forked subagents](/en/sub-agents#fork-the-current-conversation). A forked subagent inherits the full conversation context from the main session instead of starting fresh. When enabled, `/fork` spawns a forked subagent rather than acting as an alias for [`/branch`](/en/commands), and all subagent spawns run in the background. Works in interactive mode and via the SDK or `claude -p` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GIT_BASH_PATH` | Windows only: path to the Git Bash executable (`bash.exe`). Use when Git Bash is installed but not in your PATH. See [Windows setup](/en/setup#set-up-on-windows) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -109,6 +111,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | Set the maximum number of output tokens for most requests. Defaults and caps vary by model; see [max output tokens](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison). Increasing this value reduces the effective context window available before [auto-compaction](/en/costs#reduce-token-usage) triggers. |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_RETRIES` | Override the number of times to retry failed API requests (default: 10) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` | Maximum number of read-only tools and subagents that can execute in parallel (default: 10). Higher values increase parallelism but consume more resources |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_MCP_ALLOWLIST_ENV` | Set to `1` to spawn stdio MCP servers with only a safe baseline environment plus the server's configured `env`, instead of inheriting your shell environment |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_NEW_INIT` | Set to `1` to make `/init` run an interactive setup flow. The flow asks which files to generate, including CLAUDE.md, skills, and hooks, before exploring the codebase and writing them. Without this variable, `/init` generates a CLAUDE.md automatically without prompting. |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_NO_FLICKER` | Set to `1` to enable [fullscreen rendering](/en/fullscreen), a research preview that reduces flicker and keeps memory flat in long conversations. Equivalent to the [`tui`](/en/settings#available-settings) setting; you can also switch with `/tui fullscreen` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OAUTH_REFRESH_TOKEN` | OAuth refresh token for Claude.ai authentication. When set, `claude auth login` exchanges this token directly instead of opening a browser. Requires `CLAUDE_CODE_OAUTH_SCOPES`. Useful for provisioning authentication in automated environments |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -150,12 +153,13 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_BEDROCK` | Use [Bedrock](/en/amazon-bedrock) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_FOUNDRY` | Use [Microsoft Foundry](/en/microsoft-foundry) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_MANTLE` | Use the Bedrock [Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_USE_NATIVE_FILE_SEARCH` | Set to `1` to discover custom commands, subagents, and output styles using Node.js file APIs instead of ripgrep. Set this if the bundled ripgrep binary is unavailable or blocked in your environment. Does not affect the Grep or file search tools |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | Controls the PowerShell tool. On Windows, the tool is rolling out progressively: set to `1` to opt in or `0` to opt out. On Linux, macOS, and WSL, set to `1` to enable it, which requires `pwsh` on your `PATH`. When enabled on Windows, Claude can run PowerShell commands natively instead of routing through Git Bash. See [PowerShell tool](/en/tools-reference#powershell-tool) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_VERTEX` | Use [Vertex](/en/google-vertex-ai) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CONFIG_DIR` | Override the configuration directory (default: `~/.claude`). All settings, credentials, session history, and plugins are stored under this path. Useful for running multiple accounts side by side: for example, `alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENABLE_BYTE_WATCHDOG` | Set to `1` to force-enable the byte-level streaming idle watchdog, or set to `0` to force-disable it. When unset, the watchdog is enabled by default for Anthropic API connections. The byte watchdog aborts a connection when no bytes arrive on the wire for the duration set by `CLAUDE_STREAM_IDLE_TIMEOUT_MS`, with a minimum of 5 minutes, independent of the event-level watchdog |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENABLE_STREAM_WATCHDOG` | Set to `1` to enable the event-level streaming idle watchdog. Off by default. For Bedrock, Vertex, and Foundry, this is the only idle watchdog available. Configure the timeout with `CLAUDE_STREAM_IDLE_TIMEOUT_MS` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_ENV_FILE` | Path to a shell script whose contents Claude Code runs before each Bash command in the same shell process, so exports in the file are visible to the command. Use to persist virtualenv or conda activation across commands. Also populated dynamically by [SessionStart](/en/hooks#persist-environment-variables), [CwdChanged](/en/hooks#cwdchanged), and [FileChanged](/en/hooks#filechanged) hooks |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_ENV_FILE` | Path to a shell script whose contents Claude Code runs before each Bash command in the same shell process, so exports in the file are visible to the command. Use to persist virtualenv or conda activation across commands. Also populated dynamically by [SessionStart](/en/hooks#persist-environment-variables), [Setup](/en/hooks#setup), [CwdChanged](/en/hooks#cwdchanged), and [FileChanged](/en/hooks#filechanged) hooks |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` | Prefix for auto-generated [Remote Control](/en/remote-control) session names when no explicit name is provided. Defaults to your machine's hostname, producing names like `myhost-graceful-unicorn`. The `--remote-control-session-name-prefix` CLI flag sets the same value for a single invocation |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_STREAM_IDLE_TIMEOUT_MS` | Timeout in milliseconds before the streaming idle watchdog closes a stalled connection. For the byte-level watchdog on the Anthropic API: default and minimum `300000` (5 minutes); lower values are silently clamped to absorb extended thinking pauses and proxy buffering. For the event-level watchdog: default `90000` (90 seconds), no minimum. For third-party providers, requires `CLAUDE_ENABLE_STREAM_WATCHDOG=1` |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_AUTOUPDATER` | Set to `1` to disable automatic background updates. Manual `claude update` still works. Use `DISABLE_UPDATES` to block both |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 7,
+      "deletions": 6,
+      "explanation": "モデルが見つからない場合の優先順位の明示や、Vertex AI向けのトラブルシューティング案内が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/errors.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Look up Claude Code runtime error messages with what each one means and how to fix it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This page lists runtime errors Claude Code displays and how to recover from each one, plus what to check when responses seem off without an error. For installation errors such as `command not found` or TLS failures during setup, see [Troubleshooting](/en/troubleshooting)."
+            },
+            {
+              "type": "added",
+              "content": "This page lists runtime errors Claude Code displays and how to recover from each one, plus what to check when responses seem off without an error. For installation errors such as `command not found` or TLS failures during setup, see [Troubleshoot installation and login](/en/troubleshoot-install)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These errors and recovery commands apply across the CLI, the [Desktop app](/en/desktop), and [Claude Code on the web](/en/claude-code-on-the-web), since all three wrap the same Claude Code CLI. For surface-specific issues, see the troubleshooting section on that surface's page."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -215,7 +215,7 @@ Not logged in · Please run /login",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- For CI or automation where interactive login is not possible, configure an [`apiKeyHelper`](/en/settings#available-settings) script that fetches a key at startup"
+            },
+            {
+              "type": "context",
+              "content": "- See [Authentication precedence](/en/authentication#authentication-precedence) to understand which credential wins when several are present"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you are prompted to log in repeatedly, see [Not logged in or token expired](/en/troubleshooting#not-logged-in-or-token-expired) for system clock and macOS Keychain fixes."
+            },
+            {
+              "type": "added",
+              "content": "If you are prompted to log in repeatedly, see [Not logged in or token expired](/en/troubleshoot-install#not-logged-in-or-token-expired) for system clock and macOS Keychain fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Invalid API key"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -264,8 +264,8 @@ API Error: 401 ... authentication_error",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Run `/login` to sign in again"
+            },
+            {
+              "type": "context",
+              "content": "- If the error returns within the same session after re-authenticating, run `/logout` first to fully clear the stored token, then `/login`"
+            },
+            {
+              "type": "removed",
+              "content": "- For repeated prompts to log in across launches, see the system clock and macOS Keychain checks in [Troubleshooting](/en/troubleshooting#not-logged-in-or-token-expired)"
+            },
+            {
+              "type": "removed",
+              "content": "- For other failures including `403 Forbidden` and OAuth browser issues, see [Permissions and authentication](/en/troubleshooting#permissions-and-authentication)"
+            },
+            {
+              "type": "added",
+              "content": "- For repeated prompts to log in across launches, see the system clock and macOS Keychain checks in [Troubleshooting](/en/troubleshoot-install#not-logged-in-or-token-expired)"
+            },
+            {
+              "type": "added",
+              "content": "- For other failures including `403 Forbidden` and OAuth browser issues, see [Login and authentication](/en/troubleshoot-install#login-and-authentication)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### OAuth scope requirement"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -442,7 +442,8 @@ There's an issue with the selected model (claude-...). It may not exist or you m",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Run `/model` to pick from models available to your account"
+            },
+            {
+              "type": "context",
+              "content": "- Use an alias such as `sonnet` or `opus` instead of a full versioned ID. Aliases track the latest release so they do not go stale. See [Model configuration](/en/model-config)."
+            },
+            {
+              "type": "removed",
+              "content": "- See [Model not found](/en/troubleshooting#model-not-found-or-not-accessible) to locate where a stale ID is set across `--model`, `ANTHROPIC_MODEL`, and settings files"
+            },
+            {
+              "type": "added",
+              "content": "- If the wrong model keeps coming back, a stale ID is set somewhere. Check in [priority order](/en/model-config#setting-your-model): the `--model` flag, the `ANTHROPIC_MODEL` environment variable, then the `model` field in `.claude/settings.local.json`, your project's `.claude/settings.json`, and `~/.claude/settings.json`. Remove the stale value and Claude Code falls back to your account default."
+            },
+            {
+              "type": "added",
+              "content": "- For Vertex AI deployments, see [Vertex AI troubleshooting](/en/google-vertex-ai#troubleshooting)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Claude Opus is not available with the Claude Pro plan"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -524,7 +525,7 @@ This page covers errors from the Claude API. For errors from other Claude Code c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- MCP server failed to connect or authenticate: [MCP](/en/mcp)"
+            },
+            {
+              "type": "context",
+              "content": "- Hook script failed or blocked a tool: [Debug hooks](/en/hooks#debug-hooks)"
+            },
+            {
+              "type": "removed",
+              "content": "- Permission denied or filesystem errors during install: [Troubleshooting](/en/troubleshooting)"
+            },
+            {
+              "type": "added",
+              "content": "- Permission denied or filesystem errors during install: [Troubleshoot installation and login](/en/troubleshoot-install)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If an error is not listed here or the suggested fix does not help:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "iTerm2でクリップボードアクセスを自動有効化するための/terminal-setupコマンドの案内が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -131,7 +131,7 @@ Fullscreen rendering is incompatible with iTerm2's tmux integration mode, which",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Mouse capture is the most common friction point, especially over SSH or inside tmux. When Claude Code captures mouse events, your terminal's native copy-on-select stops working. The selection you make with click-and-drag exists inside Claude Code, not in your terminal's selection buffer, so tmux copy mode, Kitty hints, and similar tools don't see it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code tries to write the selection to your clipboard, but the path it uses depends on your setup. Inside tmux it writes to the tmux paste buffer. Over SSH it falls back to OSC 52 escape sequences, which some terminals block by default. iTerm2 blocks them until you turn on Settings → General → Selection → Applications in terminal may access clipboard. Claude Code prints a toast after each copy telling you which path it used."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code tries to write the selection to your clipboard, but the path it uses depends on your setup. Inside tmux it writes to the tmux paste buffer. Over SSH it falls back to OSC 52 escape sequences, which some terminals block by default. iTerm2 blocks them until you turn on Settings → General → Selection → Applications in terminal may access clipboard. Running [`/terminal-setup`](/en/terminal-config) in iTerm2 enables this for you. Claude Code prints a toast after each copy telling you which path it used."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For a one-off native selection, hold your terminal's bypass modifier while you click and drag: `Option` in iTerm2, or `Shift` in most Linux and Windows terminals. The modifier tells your terminal to handle the selection itself instead of forwarding mouse events to Claude Code, so `Cmd+C` and your terminal's other copy shortcuts work on it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 7,
+      "deletions": 3,
+      "explanation": "Setupフックの導入に伴い、イベントの種類やサブエージェントの名称、終了コード2の挙動に関する説明が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -395,6 +395,7 @@ Hook events fire at specific lifecycle points in Claude Code. When an event fire",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Event | When it fires |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionStart` | When a session begins or resumes |"
+            },
+            {
+              "type": "added",
+              "content": "| `Setup` | When you start Claude Code with `--init-only`, or with `--init` or `--maintenance` in `-p` mode. For one-time preparation in CI or scripts |"
+            },
+            {
+              "type": "context",
+              "content": "| `UserPromptSubmit` | When you submit a prompt, before Claude processes it |"
+            },
+            {
+              "type": "context",
+              "content": "| `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |"
+            },
+            {
+              "type": "context",
+              "content": "| `PreToolUse` | Before a tool call executes. Can block it |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -474,7 +475,7 @@ exit 0  # exit 0 = let it proceed",
+          "lines": [
+            {
+              "type": "context",
+              "content": "The exit code determines what happens next:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Exit 0**: the action proceeds. For `UserPromptSubmit`, `UserPromptExpansion`, and `SessionStart` hooks, anything you write to stdout is added to Claude's context."
+            },
+            {
+              "type": "removed",
+              "content": "- **Exit 2**: the action is blocked. Write a reason to stderr, and Claude receives it as feedback so it can adjust."
+            },
+            {
+              "type": "added",
+              "content": "- **Exit 2**: the action is blocked. Write a reason to stderr, and Claude receives it as feedback so it can adjust. Some events cannot be blocked: for `SessionStart`, `Setup`, `Notification`, and others, exit 2 shows stderr to the user and execution continues. See [exit code 2 behavior per event](/en/hooks#exit-code-2-behavior-per-event) for the full list."
+            },
+            {
+              "type": "context",
+              "content": "- **Any other exit code**: the action proceeds. The transcript shows a `<hook name> hook error` notice followed by the first line of stderr; the full stderr goes to the [debug log](/en/hooks#debug-hooks)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Structured JSON output"
+            }
+          ]
+        },
+        {
+          "header": "@@ -530,15 +531,18 @@ Without a matcher, a hook fires on every occurrence of its event. Matchers let y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `\"Edit|Write\"` matcher fires only when Claude uses the `Edit` or `Write` tool, not when it uses `Bash`, `Read`, or any other tool. See [Matcher patterns](/en/hooks#matcher-patterns) for how plain names and regular expressions are evaluated."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude can also create or modify files by running shell commands through the `Bash` tool. If your hook must see every file change, such as for compliance scanning or audit logging, add a [`Stop`](/en/hooks#stop) hook that scans the working tree once per turn. For per-call coverage instead, also match `Bash` and have your script list modified and untracked files with `git status --porcelain`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each event type matches on a specific field:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Event | What the matcher filters | Example matcher values |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, `PermissionDenied` | tool name | `Bash`, `Edit\\|Write`, `mcp__.*` |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionStart` | how the session started | `startup`, `resume`, `clear`, `compact` |"
+            },
+            {
+              "type": "added",
+              "content": "| `Setup` | which CLI flag triggered setup | `init`, `maintenance` |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionEnd` | why the session ended | `clear`, `resume`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `SubagentStart` | agent type | `Bash`, `Explore`, `Plan`, or custom agent names |"
+            },
+            {
+              "type": "added",
+              "content": "| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_complete`, `elicitation_response` |"
+            },
+            {
+              "type": "added",
+              "content": "| `SubagentStart` | agent type | `general-purpose`, `Explore`, `Plan`, or custom agent names |"
+            },
+            {
+              "type": "context",
+              "content": "| `PreCompact`, `PostCompact` | what triggered compaction | `manual`, `auto` |"
+            },
+            {
+              "type": "context",
+              "content": "| `SubagentStop` | agent type | same values as `SubagentStart` |"
+            },
+            {
+              "type": "context",
+              "content": "| `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 58,
+      "deletions": 7,
+      "explanation": "Setupフックの詳細な仕様、matcherの設定値、およびJSON形式の入出力例が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -20,6 +20,7 @@ The table below summarizes when each event fires. The [Hook events](#hook-events",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Event | When it fires |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionStart` | When a session begins or resumes |"
+            },
+            {
+              "type": "added",
+              "content": "| `Setup` | When you start Claude Code with `--init-only`, or with `--init` or `--maintenance` in `-p` mode. For one-time preparation in CI or scripts |"
+            },
+            {
+              "type": "context",
+              "content": "| `UserPromptSubmit` | When you submit a prompt, before Claude processes it |"
+            },
+            {
+              "type": "context",
+              "content": "| `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |"
+            },
+            {
+              "type": "context",
+              "content": "| `PreToolUse` | Before a tool call executes. Can block it |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -166,9 +167,10 @@ Each event type matches on a different field:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, `PermissionDenied` | tool name | `Bash`, `Edit\\|Write`, `mcp__.*` |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionStart` | how the session started | `startup`, `resume`, `clear`, `compact` |"
+            },
+            {
+              "type": "added",
+              "content": "| `Setup` | which CLI flag triggered setup | `init`, `maintenance` |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionEnd` | why the session ended | `clear`, `resume`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `SubagentStart` | agent type | `Bash`, `Explore`, `Plan`, or custom agent names |"
+            },
+            {
+              "type": "added",
+              "content": "| `Notification` | notification type | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_complete`, `elicitation_response` |"
+            },
+            {
+              "type": "added",
+              "content": "| `SubagentStart` | agent type | `general-purpose`, `Explore`, `Plan`, or custom agent names |"
+            },
+            {
+              "type": "context",
+              "content": "| `PreCompact`, `PostCompact` | what triggered compaction | `manual`, `auto` |"
+            },
+            {
+              "type": "context",
+              "content": "| `SubagentStop` | agent type | same values as `SubagentStart` |"
+            },
+            {
+              "type": "context",
+              "content": "| `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -568,6 +570,7 @@ Exit code 2 is the way a hook signals \"stop, don't do this.\" The effect depends",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Notification` | No | Shows stderr to user only |"
+            },
+            {
+              "type": "context",
+              "content": "| `SubagentStart` | No | Shows stderr to user only |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionStart` | No | Shows stderr to user only |"
+            },
+            {
+              "type": "added",
+              "content": "| `Setup` | No | Shows stderr to user only |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionEnd` | No | Shows stderr to user only |"
+            },
+            {
+              "type": "context",
+              "content": "| `CwdChanged` | No | Shows stderr to user only |"
+            },
+            {
+              "type": "context",
+              "content": "| `FileChanged` | No | Shows stderr to user only |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -637,7 +640,7 @@ Return `additionalContext` inside `hookSpecificOutput` alongside the event name:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Where the reminder appears depends on the event:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [SessionStart](#sessionstart) and [SubagentStart](#subagentstart): at the start of the conversation, before the first prompt"
+            },
+            {
+              "type": "added",
+              "content": "- [SessionStart](#sessionstart), [Setup](#setup), and [SubagentStart](#subagentstart): at the start of the conversation, before the first prompt"
+            },
+            {
+              "type": "context",
+              "content": "- [UserPromptSubmit](#userpromptsubmit) and [UserPromptExpansion](#userpromptexpansion): alongside the submitted prompt"
+            },
+            {
+              "type": "context",
+              "content": "- [PreToolUse](#pretooluse), [PostToolUse](#posttooluse), [PostToolUseFailure](#posttoolusefailure), and [PostToolBatch](#posttoolbatch): next to the tool result"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -804,7 +807,55 @@ exit 0",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Any variables written to this file will be available in all subsequent Bash commands that Claude Code executes during the session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`CLAUDE_ENV_FILE` is available for SessionStart, [CwdChanged](#cwdchanged), and [FileChanged](#filechanged) hooks. Other hook types do not have access to this variable."
+            },
+            {
+              "type": "added",
+              "content": "`CLAUDE_ENV_FILE` is available for SessionStart, [Setup](#setup), [CwdChanged](#cwdchanged), and [FileChanged](#filechanged) hooks. Other hook types do not have access to this variable."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Setup"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fires only when you launch Claude Code with `--init-only`, or with `--init` or `--maintenance` in print mode (`-p`). It does not fire on normal startup. Use it for one-time dependency installation or scheduled cleanup that you trigger explicitly from CI or scripts, separate from normal session startup. For per-session initialization, use [SessionStart](#sessionstart) instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The matcher value corresponds to the CLI flag that triggered the hook:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Matcher | When it fires |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `init` | `claude --init-only` or `claude -p --init` |"
+            },
+            {
+              "type": "added",
+              "content": "| `maintenance` | `claude -p --maintenance` |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`--init-only` runs Setup hooks and `SessionStart` hooks with the `startup` matcher, then exits without starting a conversation. `--init` and `--maintenance` fire Setup hooks only when combined with `-p` (print mode); in an interactive session those two flags do not currently fire Setup hooks."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Because Setup does not fire on every launch, a plugin that needs a dependency installed cannot rely on Setup alone. The practical pattern is to check for the dependency on first use and install on miss, for example a hook or skill that tests for `${CLAUDE_PLUGIN_DATA}/node_modules` and runs `npm install` if absent. See the [persistent data directory](/en/plugins-reference#persistent-data-directory) for where to store installed dependencies."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Setup input"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In addition to the [common input fields](#common-input-fields), Setup hooks receive a `trigger` field set to either `\"init\"` or `\"maintenance\"`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"session_id\": \"abc123\","
+            },
+            {
+              "type": "added",
+              "content": "  \"transcript_path\": \"/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl\","
+            },
+            {
+              "type": "added",
+              "content": "  \"cwd\": \"/Users/...\","
+            },
+            {
+              "type": "added",
+              "content": "  \"hook_event_name\": \"Setup\","
+            },
+            {
+              "type": "added",
+              "content": "  \"trigger\": \"init\""
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Setup decision control"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Setup hooks cannot block. On exit code 2, stderr is shown to the user; on any other non-zero exit code, stderr appears only when you launch with `--verbose`. In both cases execution continues. To pass information into Claude's context, return `additionalContext` in JSON output; plain stdout is written to the debug log only. In addition to the [JSON output fields](#json-output) available to all hooks, you can return these event-specific fields:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `additionalContext` | String added to Claude's context. Multiple hooks' values are concatenated |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"hookSpecificOutput\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"hookEventName\": \"Setup\","
+            },
+            {
+              "type": "added",
+              "content": "    \"additionalContext\": \"Dependencies installed: node_modules, .venv\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Setup hooks have access to `CLAUDE_ENV_FILE`. Variables written to that file persist into subsequent Bash commands for the session, just as in [SessionStart hooks](#persist-environment-variables). Only `type: \"command\"` and `type: \"mcp_tool\"` hooks are supported."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### InstructionsLoaded"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1437,7 +1488,7 @@ When `retry` is `true`, Claude Code adds a message to the conversation telling t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Notification"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Runs when Claude Code sends notifications. Matches on notification type: `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`. Omit the matcher to run hooks for all notification types."
+            },
+            {
+              "type": "added",
+              "content": "Runs when Claude Code sends notifications. Matches on notification type: `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`, `elicitation_complete`, `elicitation_response`. Omit the matcher to run hooks for all notification types."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use separate matchers to run different handlers depending on the notification type. This configuration triggers a permission-specific alert script when Claude needs permission approval and a different notification when Claude has been idle:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1488,11 +1539,11 @@ Notification hooks cannot block or modify notifications. They are intended for s",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### SubagentStart"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Runs when a Claude Code subagent is spawned via the Agent tool. Supports matchers to filter by agent type name (built-in agents like `Bash`, `Explore`, `Plan`, or custom agent names from `.claude/agents/`)."
+            },
+            {
+              "type": "added",
+              "content": "Runs when a Claude Code subagent is spawned via the Agent tool. Supports matchers to filter by agent type name (built-in agents like `general-purpose`, `Explore`, `Plan`, or custom agent names from `.claude/agents/`)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### SubagentStart input"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In addition to the [common input fields](#common-input-fields), SubagentStart hooks receive `agent_id` with the unique identifier for the subagent and `agent_type` with the agent name (built-in agents like `\"Bash\"`, `\"Explore\"`, `\"Plan\"`, or custom agent names)."
+            },
+            {
+              "type": "added",
+              "content": "In addition to the [common input fields](#common-input-fields), SubagentStart hooks receive `agent_id` with the unique identifier for the subagent and `agent_type` with the agent name (built-in agents like `\"general-purpose\"`, `\"Explore\"`, `\"Plan\"`, or custom agent names)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "jetbrains.md",
+      "additions": 63,
+      "deletions": 32,
+      "explanation": "WSL2環境でIDEが検出されない問題に対し、ファイアウォール規則の設定やMirrored networkingモードの利用手順が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -22,29 +22,29 @@ The Claude Code plugin works with most JetBrains IDEs, including:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Features"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Quick launch**: Use `Cmd+Esc` (Mac) or `Ctrl+Esc` (Windows/Linux) to open Claude Code directly from your editor, or click the Claude Code button in the UI"
+            },
+            {
+              "type": "removed",
+              "content": "- **Diff viewing**: Code changes can be displayed directly in the IDE diff viewer instead of the terminal"
+            },
+            {
+              "type": "removed",
+              "content": "- **Selection context**: The current selection/tab in the IDE is automatically shared with Claude Code"
+            },
+            {
+              "type": "removed",
+              "content": "- **File reference shortcuts**: Use `Cmd+Option+K` (Mac) or `Alt+Ctrl+K` (Linux/Windows) to insert file references (for example, @File#L1-99)"
+            },
+            {
+              "type": "removed",
+              "content": "- **Diagnostic sharing**: Diagnostic errors (lint, syntax, etc.) from the IDE are automatically shared with Claude as you work"
+            },
+            {
+              "type": "added",
+              "content": "- **Quick launch**: use `Cmd+Esc` (Mac) or `Ctrl+Esc` (Windows/Linux) to open Claude Code directly from your editor, or click the Claude Code button in the UI"
+            },
+            {
+              "type": "added",
+              "content": "- **Diff viewing**: code changes can be displayed directly in the IDE diff viewer instead of the terminal"
+            },
+            {
+              "type": "added",
+              "content": "- **Selection context**: the current selection or tab in the IDE is automatically shared with Claude Code"
+            },
+            {
+              "type": "added",
+              "content": "- **File reference shortcuts**: use `Cmd+Option+K` (Mac) or `Alt+Ctrl+K` (Linux/Windows) to insert file references such as `@src/auth.ts#L1-99`"
+            },
+            {
+              "type": "added",
+              "content": "- **Diagnostic sharing**: diagnostic errors from the IDE, such as lint and syntax errors, are automatically shared with Claude as you work"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Installation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Marketplace Installation"
+            },
+            {
+              "type": "added",
+              "content": "### Marketplace installation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Find and install the [Claude Code plugin](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-) from the JetBrains marketplace and restart your IDE."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you haven't installed Claude Code yet, see [our quickstart guide](/en/quickstart) for installation instructions."
+            },
+            {
+              "type": "added",
+              "content": "If you haven't installed Claude Code yet, see the [quickstart guide](/en/quickstart) for installation instructions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After installing the plugin, you may need to restart your IDE completely for it to take effect."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Usage"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### From Your IDE"
+            },
+            {
+              "type": "added",
+              "content": "### From your IDE"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `claude` from your IDE's integrated terminal, and all integration features will be active."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### From External Terminals"
+            },
+            {
+              "type": "added",
+              "content": "### From external terminals"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use the `/ide` command in any external terminal to connect Claude Code to your JetBrains IDE and activate all features:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -60,7 +60,7 @@ If you want Claude to have access to the same files as your IDE, start Claude Co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Claude Code Settings"
+            },
+            {
+              "type": "added",
+              "content": "### Claude Code settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Configure IDE integration through Claude Code's settings:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -68,20 +68,20 @@ Configure IDE integration through Claude Code's settings:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "2. Enter the `/config` command"
+            },
+            {
+              "type": "context",
+              "content": "3. Set the diff tool to `auto` to show diffs in the IDE, or `terminal` to keep them in the terminal"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Plugin Settings"
+            },
+            {
+              "type": "added",
+              "content": "### Plugin settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Configure the Claude Code plugin by going to **Settings → Tools → Claude Code \\[Beta]**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "#### General Settings"
+            },
+            {
+              "type": "added",
+              "content": "#### General settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Claude command**: Specify a custom command to run Claude (for example, `claude`, `/usr/local/bin/claude`, or `npx @anthropic-ai/claude-code`)"
+            },
+            {
+              "type": "removed",
+              "content": "- **Suppress notification for Claude command not found**: Skip notifications about not finding the Claude command"
+            },
+            {
+              "type": "removed",
+              "content": "- **Enable using Option+Enter for multi-line prompts** (macOS only): When enabled, Option+Enter inserts new lines in Claude Code prompts. Disable if experiencing issues with the Option key being captured unexpectedly (requires terminal restart)"
+            },
+            {
+              "type": "removed",
+              "content": "- **Enable automatic updates**: Automatically check for and install plugin updates (applied on restart)"
+            },
+            {
+              "type": "added",
+              "content": "- **Claude command**: specify a custom command to run Claude, for example `claude`, `/usr/local/bin/claude`, or `npx @anthropic-ai/claude-code`"
+            },
+            {
+              "type": "added",
+              "content": "- **Suppress notification for Claude command not found**: skip notifications about not finding the Claude command"
+            },
+            {
+              "type": "added",
+              "content": "- **Enable using Option+Enter for multi-line prompts**: on macOS only. When enabled, Option+Enter inserts new lines in Claude Code prompts. Disable if the Option key is being captured unexpectedly. Requires a terminal restart."
+            },
+            {
+              "type": "added",
+              "content": "- **Enable automatic updates**: automatically check for and install plugin updates, applied on restart"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For WSL users: Set `wsl -d Ubuntu -- bash -lic \"claude\"` as your Claude command (replace `Ubuntu` with your WSL distribution name)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "#### ESC Key Configuration"
+            },
+            {
+              "type": "added",
+              "content": "#### ESC key configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the ESC key doesn't interrupt Claude Code operations in JetBrains terminals:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -93,49 +93,80 @@ If the ESC key doesn't interrupt Claude Code operations in JetBrains terminals:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This allows the ESC key to properly interrupt Claude Code operations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Special Configurations"
+            },
+            {
+              "type": "added",
+              "content": "## Special configurations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Remote Development"
+            },
+            {
+              "type": "added",
+              "content": "### Remote development"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When using JetBrains Remote Development, you must install the plugin in the remote host via **Settings → Plugin (Host)**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The plugin must be installed on the remote host, not on your local client machine."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### WSL Configuration"
+            },
+            {
+              "type": "added",
+              "content": "### WSL configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "WSL users may need additional configuration for IDE detection to work properly. See our [WSL troubleshooting guide](/en/troubleshooting#jetbrains-ide-not-detected-on-wsl2) for detailed setup instructions."
+            },
+            {
+              "type": "added",
+              "content": "If you're using Claude Code on WSL2 with a JetBrains IDE and see \"No available IDEs detected\", the cause is usually WSL2's NAT networking or Windows Firewall blocking the connection between WSL2 and the IDE running on the Windows host. WSL1 uses the host's network directly and isn't affected."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "WSL configuration may require:"
+            },
+            {
+              "type": "added",
+              "content": "#### Allow WSL2 traffic through Windows Firewall"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Proper terminal configuration"
+            },
+            {
+              "type": "removed",
+              "content": "- Networking mode adjustments"
+            },
+            {
+              "type": "removed",
+              "content": "- Firewall settings updates"
+            },
+            {
+              "type": "added",
+              "content": "This is the recommended fix because it keeps your existing WSL2 networking mode."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "From inside your WSL shell, run:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "hostname -I"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Note the subnet, for example `172.21.123.45` is in `172.21.0.0/16`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Open PowerShell as Administrator and run the following, adjusting the IP range to match your subnet:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "New-NetFirewallRule -DisplayName \"Allow WSL2 Internal Traffic\" -Direction Inbound -Protocol TCP -Action Allow -RemoteAddress 172.21.0.0/16 -LocalAddress 172.21.0.0/16"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Close and reopen both so the new rule takes effect."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Switch WSL2 to mirrored networking"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Mirrored networking requires Windows 11 22H2 or later. If you're on Windows 10, use the firewall rule above instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Add this to `.wslconfig` in your Windows user directory:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```ini"
+            },
+            {
+              "type": "added",
+              "content": "[wsl2]"
+            },
+            {
+              "type": "added",
+              "content": "networkingMode=mirrored"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Then restart WSL with `wsl --shutdown` from PowerShell."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Plugin Not Working"
+            },
+            {
+              "type": "added",
+              "content": "### Plugin not working"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the plugin is installed but Claude Code features don't appear in your IDE:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Ensure you're running Claude Code from the project root directory"
+            },
+            {
+              "type": "context",
+              "content": "- Check that the JetBrains plugin is enabled in the IDE settings"
+            },
+            {
+              "type": "context",
+              "content": "- Completely restart the IDE (you may need to do this multiple times)"
+            },
+            {
+              "type": "context",
+              "content": "- For Remote Development, ensure the plugin is installed in the remote host"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### IDE Not Detected"
+            },
+            {
+              "type": "added",
+              "content": "### IDE not detected"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If running `claude` shows \"No available IDEs detected\":"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Verify the plugin is installed and enabled"
+            },
+            {
+              "type": "context",
+              "content": "- Restart the IDE completely"
+            },
+            {
+              "type": "context",
+              "content": "- Check that you're running Claude Code from the integrated terminal"
+            },
+            {
+              "type": "removed",
+              "content": "- For WSL users, see the [WSL troubleshooting guide](/en/troubleshooting#jetbrains-ide-not-detected-on-wsl2)"
+            },
+            {
+              "type": "added",
+              "content": "- For WSL users, see [WSL configuration](#wsl-configuration) above"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Command Not Found"
+            },
+            {
+              "type": "added",
+              "content": "### Command not found"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If clicking the Claude icon shows \"command not found\":"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "1. Verify Claude Code is installed: `npm list -g @anthropic-ai/claude-code`"
+            },
+            {
+              "type": "added",
+              "content": "1. Verify Claude Code is installed by running `claude --version` in a terminal"
+            },
+            {
+              "type": "context",
+              "content": "2. Configure the Claude command path in plugin settings"
+            },
+            {
+              "type": "context",
+              "content": "3. For WSL users, use the WSL command format mentioned in the configuration section"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Security Considerations"
+            },
+            {
+              "type": "added",
+              "content": "## Security considerations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When Claude Code runs in a JetBrains IDE with auto-edit permissions enabled, it may be able to modify IDE configuration files that can be automatically executed by your IDE. This may increase the risk of running Claude Code in auto-edit mode and allow bypassing Claude Code's permission prompts for bash execution."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -145,4 +176,4 @@ When running in JetBrains IDEs, consider:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Taking extra care to ensure Claude is only used with trusted prompts"
+            },
+            {
+              "type": "context",
+              "content": "- Being aware of which files Claude Code has access to modify"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For additional help, see our [troubleshooting guide](/en/troubleshooting)."
+            },
+            {
+              "type": "added",
+              "content": "For Claude Code installation or login problems outside the IDE, see [Troubleshoot installation and login](/en/troubleshoot-install)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ドキュメント内のリンク構造の微調整が行われています。",
+      "hunks": [
+        {
+          "header": "@@ -909,7 +909,7 @@ For a comprehensive guide on measuring return on investment for Claude Code, inc",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Security and privacy"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Telemetry is opt-in and requires explicit configuration"
+            },
+            {
+              "type": "added",
+              "content": "- OpenTelemetry export to your backend is opt-in and requires explicit configuration. For Anthropic's separate operational telemetry and how to disable it, see [Data usage](/en/data-usage#telemetry-services)"
+            },
+            {
+              "type": "context",
+              "content": "- Raw file contents and code snippets are not included in metrics or events. Trace spans are a separate data path: see the `OTEL_LOG_TOOL_CONTENT` bullet below"
+            },
+            {
+              "type": "context",
+              "content": "- When authenticated via OAuth, `user.email` is included in telemetry attributes. If this is a concern for your organization, work with your telemetry backend to filter or redact this field"
+            },
+            {
+              "type": "context",
+              "content": "- User prompt content is not collected by default. Only prompt length is recorded. To include prompt content, set `OTEL_LOG_USER_PROMPTS=1`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "overview.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "ドキュメント全体の一貫性を保つための微細なテキスト修正が実施されました。",
+      "hunks": [
+        {
+          "header": "@@ -334,7 +334,7 @@ source: https://code.claude.com/docs/en/overview.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "              <code>{pkg === 'brew' ? 'brew upgrade claude-code' : 'winget upgrade Anthropic.ClaudeCode'}</code>{' '}"
+            },
+            {
+              "type": "context",
+              "content": "              periodically."
+            },
+            {
+              "type": "context",
+              "content": "            </span>}"
+            },
+            {
+              "type": "removed",
+              "content": "          <a href=\"/en/troubleshooting\">Troubleshooting</a>"
+            },
+            {
+              "type": "added",
+              "content": "          <a href=\"/en/troubleshoot-install\">Installation troubleshooting</a>"
+            },
+            {
+              "type": "context",
+              "content": "        </div>}"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "      {alt && <div className=\"cc-ic-handoff\">"
+            }
+          ]
+        },
+        {
+          "header": "@@ -399,7 +399,7 @@ Choose your environment to get started. Most surfaces require a [Claude subscrip",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "        If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "        [Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "        [Git for Windows](https://git-scm.com/downloads/win) is required on native Windows so Claude Code can use the Bash tool. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "        <Info>"
+            },
+            {
+              "type": "context",
+              "content": "          Native installations automatically update in the background to keep you on the latest version."
+            }
+          ]
+        },
+        {
+          "header": "@@ -441,7 +441,7 @@ Choose your environment to get started. Most surfaces require a [Claude subscrip",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    You'll be prompted to log in on first use. That's it! [Continue with the Quickstart →](/en/quickstart)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    <Tip>"
+            },
+            {
+              "type": "removed",
+              "content": "      See [advanced setup](/en/setup) for installation options, manual updates, or uninstallation instructions. Visit [troubleshooting](/en/troubleshooting) if you hit issues."
+            },
+            {
+              "type": "added",
+              "content": "      See [advanced setup](/en/setup) for installation options, manual updates, or uninstallation instructions. Visit [installation troubleshooting](/en/troubleshoot-install) if you hit issues."
+            },
+            {
+              "type": "context",
+              "content": "    </Tip>"
+            },
+            {
+              "type": "context",
+              "content": "  </Tab>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "プラグイン参照に関するドキュメント構造が一部整理されています。",
+      "hunks": [
+        {
+          "header": "@@ -110,6 +110,7 @@ Plugin hooks respond to the same lifecycle events as [user-defined hooks](/en/ho",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Event | When it fires |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `SessionStart` | When a session begins or resumes |"
+            },
+            {
+              "type": "added",
+              "content": "| `Setup` | When you start Claude Code with `--init-only`, or with `--init` or `--maintenance` in `-p` mode. For one-time preparation in CI or scripts |"
+            },
+            {
+              "type": "context",
+              "content": "| `UserPromptSubmit` | When you submit a prompt, before Claude processes it |"
+            },
+            {
+              "type": "context",
+              "content": "| `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |"
+            },
+            {
+              "type": "context",
+              "content": "| `PreToolUse` | Before a tool call executes. Can block it |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "クイックスタートガイド内のリンクと表現が最新のドキュメント構成に合わせて修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -334,7 +334,7 @@ source: https://code.claude.com/docs/en/quickstart.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "              <code>{pkg === 'brew' ? 'brew upgrade claude-code' : 'winget upgrade Anthropic.ClaudeCode'}</code>{' '}"
+            },
+            {
+              "type": "context",
+              "content": "              periodically."
+            },
+            {
+              "type": "context",
+              "content": "            </span>}"
+            },
+            {
+              "type": "removed",
+              "content": "          <a href=\"/en/troubleshooting\">Troubleshooting</a>"
+            },
+            {
+              "type": "added",
+              "content": "          <a href=\"/en/troubleshoot-install\">Installation troubleshooting</a>"
+            },
+            {
+              "type": "context",
+              "content": "        </div>}"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "      {alt && <div className=\"cc-ic-handoff\">"
+            }
+          ]
+        },
+        {
+          "header": "@@ -406,7 +406,7 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "    [Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "    [Git for Windows](https://git-scm.com/downloads/win) is required on native Windows so Claude Code can use the Bash tool. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    <Info>"
+            },
+            {
+              "type": "context",
+              "content": "      Native installations automatically update in the background to keep you on the latest version."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "サンドボックス環境に関する記述に補足情報が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -80,6 +80,10 @@ sudo apt-get install bubblewrap socat",
+          "lines": [
+            {
+              "type": "context",
+              "content": "sudo dnf install bubblewrap socat"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "WSL1 does not support sandboxing because it lacks the required Linux namespace primitives. If you see `Sandboxing requires WSL2`, upgrade your distribution to WSL2 or run Claude Code without sandboxing."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On WSL2, sandboxed commands cannot launch Windows binaries such as `cmd.exe`, `powershell.exe`, or anything under `/mnt/c/`. WSL hands these off to the Windows host over a Unix socket, which the sandbox blocks. If a command needs to invoke a Windows binary, add it to [`excludedCommands`](/en/settings#sandbox-settings) so it runs outside the sandbox."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Enable sandboxing"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can enable sandboxing by running the `/sandbox` command:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "設定項目に関するドキュメント内のリンクが最新化されています。",
+      "hunks": [
+        {
+          "header": "@@ -900,4 +900,4 @@ See the [tools reference](/en/tools-reference) for the full list and Bash tool b",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Permissions](/en/permissions): permission system, rule syntax, tool-specific patterns, and managed policies"
+            },
+            {
+              "type": "context",
+              "content": "- [Authentication](/en/authentication): set up user access to Claude Code"
+            },
+            {
+              "type": "context",
+              "content": "- [Debug your configuration](/en/debug-your-config): diagnose why a setting, hook, or MCP server isn't taking effect"
+            },
+            {
+              "type": "removed",
+              "content": "- [Troubleshooting](/en/troubleshooting): installation, authentication, and platform issues"
+            },
+            {
+              "type": "added",
+              "content": "- [Troubleshoot installation and login](/en/troubleshoot-install): installation, authentication, and platform issues"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 8,
+      "deletions": 6,
+      "explanation": "初期セットアップ手順におけるエラー発生時の案内先が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -21,7 +21,7 @@ Claude Code runs on the following platforms and configurations:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - Alpine Linux 3.19+"
+            },
+            {
+              "type": "context",
+              "content": "- **Hardware**: 4 GB+ RAM, x64 or ARM64 processor"
+            },
+            {
+              "type": "context",
+              "content": "- **Network**: internet connection required. See [network configuration](/en/network-config#network-access-requirements)."
+            },
+            {
+              "type": "removed",
+              "content": "- **Shell**: Bash, Zsh, PowerShell, or CMD. Native Windows setups recommend [Git for Windows](https://git-scm.com/downloads/win); PowerShell is used as a fallback when Git Bash is absent. WSL setups do not require Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "- **Shell**: Bash, Zsh, PowerShell, or CMD. Native Windows setups require [Git for Windows](https://git-scm.com/downloads/win) for Git Bash. WSL setups do not require Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": "- **Location**: [Anthropic supported countries](https://www.anthropic.com/supported-countries)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Additional dependencies"
+            }
+          ]
+        },
+        {
+          "header": "@@ -56,7 +56,7 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del in",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\\` when you're in PowerShell and `C:\\` without the `PS` when you're in CMD."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "added",
+              "content": "[Git for Windows](https://git-scm.com/downloads/win) is required on native Windows so Claude Code can use the Bash tool. WSL setups do not need Git for Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -82,7 +82,7 @@ After installation completes, open a terminal in the project you want to work in",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you encounter any issues during installation, see the [troubleshooting guide](/en/troubleshooting)."
+            },
+            {
+              "type": "added",
+              "content": "If you encounter any issues during installation, see [Troubleshoot installation and login](/en/troubleshoot-install)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Set up on Windows"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -90,7 +90,7 @@ You can run Claude Code natively on Windows or inside WSL. Pick based on where y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Option | Requires | [Sandboxing](/en/sandboxing) | When to use |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| Native Windows | [Git for Windows](https://git-scm.com/downloads/win) recommended; PowerShell used if absent | Not supported | Windows-native projects and tools |"
+            },
+            {
+              "type": "added",
+              "content": "| Native Windows | [Git for Windows](https://git-scm.com/downloads/win) required | Not supported | Windows-native projects and tools |"
+            },
+            {
+              "type": "context",
+              "content": "| WSL 2 | WSL 2 enabled | Supported | Linux toolchains or sandboxed command execution |"
+            },
+            {
+              "type": "context",
+              "content": "| WSL 1 | WSL 1 enabled | Not supported | If WSL 2 is unavailable |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -144,6 +144,8 @@ After installing, confirm Claude Code is working:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude --version"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If this fails with `command not found` or another error, see [Troubleshoot installation and login](/en/troubleshoot-install)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For a more detailed check of your installation and configuration, run [`claude doctor`](/en/troubleshooting#get-more-help):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            }
+          ]
+        },
+        {
+          "header": "@@ -341,9 +343,9 @@ npm install -g @anthropic-ai/claude-code",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The npm package installs the same native binary as the standalone installer. npm pulls the binary in through a per-platform optional dependency such as `@anthropic-ai/claude-code-darwin-arm64`, and a postinstall step links it into place. The installed `claude` binary does not itself invoke Node."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Supported npm install platforms are `darwin-arm64`, `darwin-x64`, `linux-x64`, `linux-arm64`, `linux-x64-musl`, `linux-arm64-musl`, `win32-x64`, and `win32-arm64`. Your package manager must allow optional dependencies. See [troubleshooting](/en/troubleshooting#native-binary-not-found-after-npm-install) if the binary is missing after install."
+            },
+            {
+              "type": "added",
+              "content": "Supported npm install platforms are `darwin-arm64`, `darwin-x64`, `linux-x64`, `linux-arm64`, `linux-x64-musl`, `linux-arm64-musl`, `win32-x64`, and `win32-arm64`. Your package manager must allow optional dependencies. See [troubleshooting](/en/troubleshoot-install#native-binary-not-found-after-npm-install) if the binary is missing after install."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Do NOT use `sudo npm install -g` as this can lead to permission issues and security risks. If you encounter permission errors, see [troubleshooting permission errors](/en/troubleshooting#permission-errors-during-installation)."
+            },
+            {
+              "type": "added",
+              "content": "Do NOT use `sudo npm install -g` as this can lead to permission issues and security risks. If you encounter permission errors, see [troubleshooting permission errors](/en/troubleshoot-install#permission-errors-during-installation)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Binary integrity and code signing"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshoot-install.md",
+      "additions": 759,
+      "deletions": 0,
+      "explanation": "新規作成されたページで、PATHの設定や認証エラー、TLSの問題などインストールに特化した解決策を網羅しています。",
+      "hunks": []
+    },
+    {
+      "filename": "troubleshooting.md",
+      "additions": 31,
+      "deletions": 877,
+      "explanation": "既存のトラブルシューティングページからインストール・ログイン情報を分離し、パフォーマンスやハングアップの対策に内容を絞り込んでいます。",
+      "hunks": []
+    }
+  ]
+}

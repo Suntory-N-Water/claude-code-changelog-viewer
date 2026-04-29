@@ -897,4 +897,4 @@ Claude Code は、ファイルの読み取り、編集、検索、コマンド�
 - [権限](/ja/permissions)：権限システム、ルール構文、ツール固有パターン、および managed ポリシー
 - [認証](/ja/authentication)：Claude Code へのユーザーアクセスをセットアップ
 - [設定をデバッグする](/ja/debug-your-config)：設定、hook、または MCP サーバーが有効にならない理由を診断
-- [トラブルシューティング](/ja/troubleshooting)：インストール、認証、およびプラットフォームの問題
+- [インストールとログインのトラブルシューティング](/ja/troubleshoot-install)：インストール、認証、およびプラットフォームの問題

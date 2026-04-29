@@ -110,6 +110,7 @@ disallowedTools: Write, Edit
 | Event | When it fires |
 | :- | :- |
 | `SessionStart` | When a session begins or resumes |
+| `Setup` | When you start Claude Code with `--init-only`, or with `--init` or `--maintenance` in `-p` mode. For one-time preparation in CI or scripts |
 | `UserPromptSubmit` | When you submit a prompt, before Claude processes it |
 | `UserPromptExpansion` | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion |
 | `PreToolUse` | Before a tool call executes. Can block it |
