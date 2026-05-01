@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/headless.md
 
 > Agent SDK を使用して、CLI、Python、または TypeScript からプログラムで Claude Code を実行します。
 
-[Agent SDK](https://platform.claude.com/docs/ja/agent-sdk/overview) は、Claude Code を支える同じツール、エージェントループ、およびコンテキスト管理を提供します。スクリプトと CI/CD 用の CLI として、または完全なプログラムによる制御のための [Python](https://platform.claude.com/docs/ja/agent-sdk/python) および [TypeScript](https://platform.claude.com/docs/ja/agent-sdk/typescript) パッケージとして利用できます。
+[Agent SDK](/ja/agent-sdk/overview) は、Claude Code を支える同じツール、エージェントループ、およびコンテキスト管理を提供します。スクリプトと CI/CD 用の CLI として、または完全なプログラムによる制御のための [Python](/ja/agent-sdk/python) および [TypeScript](/ja/agent-sdk/typescript) パッケージとして利用できます。
 
 CLI は以前「headless mode」と呼ばれていました。`-p` フラグとすべての CLI オプションは同じように機能します。
 
@@ -17,7 +17,7 @@ CLI からプログラムで Claude Code を実行するには、プロンプト
 claude -p "Find and fix the bug in auth.py" --allowedTools "Read,Edit,Bash"
 ```
 
-このページでは、CLI（`claude -p`）経由で Agent SDK を使用することについて説明しています。構造化された出力、ツール承認コールバック、およびネイティブメッセージオブジェクトを備えた Python および TypeScript SDK パッケージについては、[完全な Agent SDK ドキュメント](https://platform.claude.com/docs/ja/agent-sdk/overview) を参照してください。
+このページでは、CLI（`claude -p`）経由で Agent SDK を使用することについて説明しています。構造化された出力、ツール承認コールバック、およびネイティブメッセージオブジェクトを備えた Python および TypeScript SDK パッケージについては、[完全な Agent SDK ドキュメント](/ja/agent-sdk/overview) を参照してください。
 
 ## 基本的な使用方法
 
@@ -33,9 +33,35 @@ claude -p "Find and fix the bug in auth.py" --allowedTools "Read,Edit,Bash"
 claude -p "What does the auth module do?"
 ```
 
+### ベアモードでより高速に開始する
+
+`--bare` を追加して、hooks、skills、plugins、MCP サーバー、auto memory、および CLAUDE.md の自動検出をスキップすることで、起動時間を短縮します。これがない場合、`claude -p` は対話型セッションと同じ [コンテキスト](/ja/how-claude-code-works#the-context-window) を読み込みます。これには、作業ディレクトリまたは `~/.claude` で設定されたすべてのものが含まれます。
+
+ベアモードは、すべてのマシンで同じ結果が必要な CI とスクリプトに役立ちます。チームメイトの `~/.claude` のフック、またはプロジェクトの `.mcp.json` の MCP サーバーは実行されません。ベアモードはそれらを読み込まないためです。明示的に渡すフラグのみが有効になります。
+
+この例は、ベアモードで 1 回限りの要約タスクを実行し、Read ツールを事前承認して、呼び出しが許可プロンプトなしで完了するようにします。
+
+```bash
+claude --bare -p "Summarize this file" --allowedTools "Read"
+```
+
+ベアモードでは、Claude は Bash、ファイル読み取り、およびファイル編集ツールにアクセスできます。フラグを使用して必要なコンテキストを渡します。
+
+| 読み込むもの | 使用するもの |
+| - | - |
+| システムプロンプト追加 | `--append-system-prompt`、`--append-system-prompt-file` |
+| 設定 | `--settings <file-or-json>` |
+| MCP サーバー | `--mcp-config <file-or-json>` |
+| カスタムエージェント | `--agents <json>` |
+| プラグインディレクトリ | `--plugin-dir <path>` |
+
+ベアモードは OAuth とキーチェーン読み取りをスキップします。Anthropic 認証は `ANTHROPIC_API_KEY` または `--settings` に渡される JSON の `apiKeyHelper` から取得する必要があります。Bedrock、Vertex、および Foundry は通常のプロバイダー認証情報を使用します。
+
+`--bare` はスクリプトおよび SDK 呼び出しの推奨モードであり、将来のリリースで `-p` のデフォルトになります。
+
 ## 例
 
-これらの例は、一般的な CLI パターンを強調しています。
+これらの例は、一般的な CLI パターンを強調しています。CI およびその他のスクリプト呼び出しの場合は、[`--bare`](#start-faster-with-bare-mode) を追加して、ローカルで設定されているものを取得しないようにします。
 
 ### 構造化された出力を取得する
 
@@ -89,7 +115,40 @@ claude -p "Write a poem" --output-format stream-json --verbose --include-partial
   jq -rj 'select(.type == "stream_event" and .event.delta.type? == "text_delta") | .event.delta.text'
 ```
 
-コールバックとメッセージオブジェクトを使用したプログラムによるストリーミングについては、Agent SDK ドキュメントの [リアルタイムでレスポンスをストリーミングする](https://platform.claude.com/docs/ja/agent-sdk/streaming-output) を参照してください。
+API リクエストが再試行可能なエラーで失敗すると、Claude Code は再試行前に `system/api_retry` イベントを発行します。これを使用して、再試行の進行状況を表示したり、カスタムバックオフロジックを実装したりできます。
+
+| フィールド | 型 | 説明 |
+| - | - | - |
+| `type` | `"system"` | メッセージタイプ |
+| `subtype` | `"api_retry"` | これが再試行イベントであることを識別します |
+| `attempt` | 整数 | 現在の試行番号（1 から開始） |
+| `max_retries` | 整数 | 許可される再試行の合計 |
+| `retry_delay_ms` | 整数 | 次の試行までのミリ秒 |
+| `error_status` | 整数または null | HTTP ステータスコード、または HTTP レスポンスのない接続エラーの場合は `null` |
+| `error` | 文字列 | エラーカテゴリ：`authentication_failed`、`oauth_org_not_allowed`、`billing_error`、`rate_limit`、`invalid_request`、`server_error`、`max_output_tokens`、または `unknown` |
+| `uuid` | 文字列 | 一意のイベント識別子 |
+| `session_id` | 文字列 | イベントが属するセッション |
+
+`system/init` イベントは、モデル、ツール、MCP サーバー、および読み込まれたプラグインを含むセッションメタデータを報告します。[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されていない限り、ストリームの最初のイベントです。その場合、`plugin_install` イベントがそれより前にあります。プラグインフィールドを使用して、プラグインが読み込まれなかった場合に CI を失敗させます。
+
+| フィールド | 型 | 説明 |
+| - | - | - |
+| `plugins` | 配列 | 正常に読み込まれたプラグイン。各プラグインは `name` と `path` を持ちます |
+| `plugin_errors` | 配列 | 満たされていない依存関係バージョンなどのプラグイン読み込み時エラー。各エラーは `plugin`、`type`、および `message` を持ちます。影響を受けたプラグインは降格され、`plugins` から削除されます。エラーがない場合、キーは省略されます |
+
+[`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されている場合、Claude Code は最初のターンの前にマーケットプレイスプラグインがインストールされている間、`system/plugin_install` イベントを発行します。これらを使用して、独自の UI にインストール進行状況を表示します。
+
+| フィールド | 型 | 説明 |
+| - | - | - |
+| `type` | `"system"` | メッセージタイプ |
+| `subtype` | `"plugin_install"` | これがプラグインインストールイベントであることを識別します |
+| `status` | `"started"`、`"installed"`、`"failed"`、または `"completed"` | `started` と `completed` は全体的なインストールを囲みます。`installed` と `failed` は個別のマーケットプレイスを報告します |
+| `name` | 文字列（オプション） | マーケットプレイス名。`installed` と `failed` に存在します |
+| `error` | 文字列（オプション） | 失敗メッセージ。`failed` に存在します |
+| `uuid` | 文字列 | 一意のイベント識別子 |
+| `session_id` | 文字列 | イベントが属するセッション |
+
+コールバックとメッセージオブジェクトを使用したプログラムによるストリーミングについては、Agent SDK ドキュメントの [リアルタイムでレスポンスをストリーミングする](/ja/agent-sdk/streaming-output) を参照してください。
 
 ### ツールを自動承認する
 
@@ -98,6 +157,12 @@ claude -p "Write a poem" --output-format stream-json --verbose --include-partial
 ```bash
 claude -p "Run the test suite and fix any failures" \
   --allowedTools "Bash,Read,Edit"
+```
+
+セッション全体のベースラインを設定する代わりに個別のツールをリストするには、[パーミッションモード](/ja/permission-modes) を渡します。`dontAsk` は `permissions.allow` ルールまたは [読み取り専用コマンドセット](/ja/permissions#read-only-commands) にないものをすべて拒否します。これはロックダウンされた CI 実行に役立ちます。`acceptEdits` を使用すると、Claude はプロンプトなしでファイルを書き込むことができ、`mkdir`、`touch`、`mv`、`cp` などの一般的なファイルシステムコマンドも自動承認します。その他のシェルコマンドとネットワークリクエストは、`--allowedTools` エントリまたは `permissions.allow` ルールが必要です。そうでない場合、実行が試みられると実行が中止されます。
+
+```bash
+claude -p "Apply the lint fixes" --permission-mode acceptEdits
 ```
 
 ### コミットを作成する
@@ -147,7 +212,7 @@ claude -p "Continue that review" --resume "$session_id"
 
 ## 次のステップ
 
-- [Agent SDK クイックスタート](https://platform.claude.com/docs/ja/agent-sdk/quickstart)：Python または TypeScript で最初のエージェントを構築します
+- [Agent SDK クイックスタート](/ja/agent-sdk/quickstart)：Python または TypeScript で最初のエージェントを構築します
 - [CLI リファレンス](/ja/cli-reference)：すべての CLI フラグとオプション
 - [GitHub Actions](/ja/github-actions)：GitHub ワークフローで Agent SDK を使用します
 - [GitLab CI/CD](/ja/gitlab-ci-cd)：GitLab パイプラインで Agent SDK を使用します

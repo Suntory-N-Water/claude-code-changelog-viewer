@@ -40,9 +40,9 @@ Claude Code は、ツールの承認方法を制御するいくつかの権限�
 | `plan` | Plan Mode。Claude はファイルを分析できますが、ファイルを変更したりコマンドを実行したりすることはできません |
 | `auto` | バックグラウンド安全チェック付きでツール呼び出しを自動承認し、アクションがリクエストと一致することを確認します。現在は研究プレビューです |
 | `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します |
-| `bypassPermissions` | 保護されたディレクトリへの書き込みを除くすべての権限プロンプトをスキップします（以下の警告を参照してください） |
+| `bypassPermissions` | ファイルシステムルートまたはホームディレクトリの削除（`rm -rf /` など）は回路遮断器として引き続きプロンプトを表示しますが、その他すべての権限プロンプトをスキップします |
 
-`bypassPermissions` モードは権限プロンプトをスキップします。`.git`、`.claude`、`.vscode`、`.idea`、`.husky` ディレクトリへの書き込みは、リポジトリ状態、エディタ設定、git フックの偶発的な破損を防ぐために、確認を促すままです。`.claude/commands`、`.claude/agents`、`.claude/skills` への書き込みは除外され、プロンプトを表示しません。Claude はスキル、サブエージェント、コマンドを作成するときにそこに定期的に書き込むためです。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
+`bypassPermissions` モードはすべての権限プロンプトをスキップします。`.git`、`.claude`、`.vscode`、`.idea`、`.husky` への書き込みを含みます。ファイルシステムルートまたはホームディレクトリを対象とした削除（`rm -rf /` や `rm -rf ~` など）は、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
 
 `bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `permissions.disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
 
@@ -139,19 +139,41 @@ Claude Code は、Bash コマンドの組み込みセットを読み取り専用
 
 コマンド引数を制約しようとする Bash 権限パターンは脆弱です。たとえば、`Bash(curl http://github.com/ *)` は curl を GitHub URL に制限することを意図していますが、次のようなバリエーションにはマッチしません。
 
-- URL の前のオプション。`curl -X GET http://github.com/...`
-- 異なるプロトコル。`curl https://github.com/...`
-- リダイレクト。`curl -L http://bit.ly/xyz`（github にリダイレクト）
-- 変数。`URL=http://github.com && curl $URL`
-- 余分なスペース。`curl  http://github.com`
+- URL の前のオプション：`curl -X GET http://github.com/...`
+- 異なるプロトコル：`curl https://github.com/...`
+- リダイレクト：`curl -L http://bit.ly/xyz`（github にリダイレクト）
+- 変数：`URL=http://github.com && curl $URL`
+- 余分なスペース：`curl  http://github.com`
 
 より信頼性の高い URL フィルタリングについては、以下を検討してください。
 
-- **Bash ネットワークツールを制限する**。deny ルールを使用して `curl`、`wget` などのコマンドをブロックし、許可されたドメインに対して `WebFetch(domain:github.com)` 権限で WebFetch ツールを使用します
-- **PreToolUse フックを使用する**。Bash コマンドの URL を検証し、許可されていないドメインをブロックするフックを実装します
+- **Bash ネットワークツールを制限する**：deny ルールを使用して `curl`、`wget` などのコマンドをブロックし、許可されたドメインに対して `WebFetch(domain:github.com)` 権限で WebFetch ツールを使用します
+- **PreToolUse フックを使用する**：Bash コマンドの URL を検証し、許可されていないドメインをブロックするフックを実装します
 - CLAUDE.md を通じて Claude Code に許可された curl パターンについて指示します
 
 WebFetch のみを使用しても、ネットワークアクセスは防止されません。Bash が許可されている場合、Claude は `curl`、`wget` または他のツールを使用して任意の URL に到達できます。
+
+### PowerShell
+
+PowerShell 権限ルールは Bash ルールと同じ形式を使用しています。`*` を使用したワイルドカードは任意の位置でマッチし、`:*` サフィックスは末尾の ` *` と同等であり、ベア `PowerShell` または `PowerShell(*)` はすべてのコマンドをマッチさせます。この設定により、`Get-ChildItem` および `git commit` コマンドが許可され、`Remove-Item` がブロックされます。
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(git commit *)"
+    ],
+    "deny": [
+      "PowerShell(Remove-Item *)"
+    ]
+  }
+}
+```
+
+一般的なエイリアスはマッチング前に正規化されます。コマンドレット名用に記述されたルールはそのエイリアスもマッチさせるため、`PowerShell(Get-ChildItem *)` は `gci`、`ls`、`dir` もマッチさせます。マッチングは大文字と小文字を区別しません。
+
+Claude Code は PowerShell AST を解析し、複合コマンド内の各コマンドを独立してチェックします。パイプオペレータ `|`、ステートメント区切り文字 `;`、および PowerShell 7 以降のチェーンオペレータ `&&` と `||` は複合コマンドをサブコマンドに分割します。複合コマンドが許可されるには、ルールがすべてのサブコマンドをマッチさせる必要があります。
 
 ### Read と Edit
 
@@ -172,7 +194,7 @@ Read と Edit ルールの両方は、[gitignore](https://git-scm.com/docs/gitig
 
 Windows では、パスはマッチング前に POSIX 形式に正規化されます。`C:\Users\alice` は `/c/Users/alice` になるため、`//c/**/.env` を使用してそのドライブ上の `.env` ファイルをマッチさせます。すべてのドライブ全体でマッチさせるには、`//**/.env` を使用します。
 
-例。
+例：
 
 - `Edit(/docs/**)`: `<project>/docs/` での編集（`/docs/` ではなく、`<project>/.claude/docs/` でもありません）
 - `Read(~/.zshrc)`: ホームディレクトリの `.zshrc` を読み取ります
@@ -183,8 +205,8 @@ gitignore パターンでは、`*` は単一のディレクトリ内のファイ
 
 Claude がシンボリックリンクにアクセスするとき、権限ルールは 2 つのパスをチェックします。シンボリックリンク自体と、それが解決するファイルです。Allow ルールと deny ルールはそのペアを異なる方法で扱います。allow ルールはプロンプトにフォールバックし、deny ルールは完全にブロックします。
 
-- **Allow ルール**。シンボリックリンクパスとそのターゲットの両方がマッチする場合にのみ適用されます。許可されたディレクトリ内のシンボリックリンクがそれの外を指している場合でも、プロンプトが表示されます。
-- **Deny ルール**。シンボリックリンクパスまたはそのターゲットのいずれかがマッチする場合に適用されます。拒否されたファイルを指すシンボリックリンク自体が拒否されます。
+- **Allow ルール**：シンボリックリンクパスとそのターゲットの両方がマッチする場合にのみ適用されます。許可されたディレクトリ内のシンボリックリンクがそれの外を指している場合でも、プロンプトが表示されます。
+- **Deny ルール**：シンボリックリンクパスまたはそのターゲットのいずれかがマッチする場合に適用されます。拒否されたファイルを指すシンボリックリンク自体が拒否されます。
 
 たとえば、`Read(./project/**)` が許可され、`Read(~/.ssh/**)` が拒否されている場合、`./project/key` にあるシンボリックリンクが `~/.ssh/id_rsa` を指している場合、ターゲットが allow ルールに失敗し、deny ルールにマッチするため、ブロックされます。
 
@@ -206,7 +228,7 @@ Claude がシンボリックリンクにアクセスするとき、権限ルー�
 - `Agent(Plan)` は Plan subagent をマッチさせます
 - `Agent(my-custom-agent)` は `my-custom-agent` という名前のカスタム subagent をマッチさせます
 
-これらのルールを設定の `deny` 配列に追加するか、`--disallowedTools` CLI フラグを使用して特定のエージェントを無効にします。Explore エージェントを無効にするには。
+これらのルールを設定の `deny` 配列に追加するか、`--disallowedTools` CLI フラグを使用して特定のエージェントを無効にします。Explore エージェントを無効にするには：
 
 ```json
 {

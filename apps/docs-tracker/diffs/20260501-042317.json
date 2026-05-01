@@ -1,0 +1,2237 @@
+{
+  "id": "20260501-042317",
+  "timestamp": "2026-05-01T04:23:17.643Z",
+  "aiSummary": "プロジェクトごとのデータを一括削除する claude project purge コマンドが追加されました。Anthropic Messages 形式のゲートウェイ使用時に、モデル一覧を自動取得するディスカバリ機能が導入されています。powershell ツールが Windows 環境でプライマリシェルとして扱われるようになり、詳細なアクセス許可ルールも設定可能になりました。bypassPermissions モードの挙動が変更され、保護されたパスへの書き込みもプロンプトなしで実行されるようになっています。",
+  "files": [
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 28,
+      "deletions": 1,
+      "explanation": "SDKAssistantMessageError に新しいエラー型が追加され、メッセージの発生源を特定するための SDKMessageOrigin フィールドと定義が導入されました。",
+      "hunks": [
+        {
+          "header": "@@ -830,7 +830,7 @@ type SDKAssistantMessage = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `message` field is a [`BetaMessage`](https://platform.claude.com/docs/en/api/messages/create) from the Anthropic SDK. It includes fields like `id`, `content`, `model`, `stop_reason`, and `usage`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`SDKAssistantMessageError` is one of: `'authentication_failed'`, `'billing_error'`, `'rate_limit'`, `'invalid_request'`, `'server_error'`, `'max_output_tokens'`, or `'unknown'`."
+            },
+            {
+              "type": "added",
+              "content": "`SDKAssistantMessageError` is one of: `'authentication_failed'`, `'oauth_org_not_allowed'`, `'billing_error'`, `'rate_limit'`, `'invalid_request'`, `'server_error'`, `'max_output_tokens'`, or `'unknown'`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SDKUserMessage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -846,6 +846,7 @@ type SDKUserMessage = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  isSynthetic?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  shouldQuery?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  tool_use_result?: unknown;"
+            },
+            {
+              "type": "added",
+              "content": "  origin?: SDKMessageOrigin;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -864,6 +865,7 @@ type SDKUserMessageReplay = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  parent_tool_use_id: string | null;"
+            },
+            {
+              "type": "context",
+              "content": "  isSynthetic?: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  tool_use_result?: unknown;"
+            },
+            {
+              "type": "added",
+              "content": "  origin?: SDKMessageOrigin;"
+            },
+            {
+              "type": "context",
+              "content": "  isReplay: true;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -891,6 +893,7 @@ type SDKResultMessage =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "      permission_denials: SDKPermissionDenial[];"
+            },
+            {
+              "type": "context",
+              "content": "      structured_output?: unknown;"
+            },
+            {
+              "type": "context",
+              "content": "      deferred_tool_use?: { id: string; name: string; input: Record<string, unknown> };"
+            },
+            {
+              "type": "added",
+              "content": "      origin?: SDKMessageOrigin;"
+            },
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  | {"
+            },
+            {
+              "type": "context",
+              "content": "      type: \"result\";"
+            }
+          ]
+        },
+        {
+          "header": "@@ -911,9 +914,12 @@ type SDKResultMessage =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "      modelUsage: { [modelName: string]: ModelUsage };"
+            },
+            {
+              "type": "context",
+              "content": "      permission_denials: SDKPermissionDenial[];"
+            },
+            {
+              "type": "context",
+              "content": "      errors: string[];"
+            },
+            {
+              "type": "added",
+              "content": "      origin?: SDKMessageOrigin;"
+            },
+            {
+              "type": "context",
+              "content": "    };"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `origin` field forwards the [`SDKMessageOrigin`](#sdkmessageorigin) of the user message that triggered this result. When a background task finishes and the SDK injects a synthetic follow-up turn, the resulting `SDKResultMessage` carries `origin: { kind: \"task-notification\" }`. Check this field to distinguish results that answer your prompt from results emitted for background-task follow-ups, so you can route or suppress the latter. The field is absent for results emitted before any user turn, such as startup errors."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When a `PreToolUse` hook returns `permissionDecision: \"defer\"`, the result has `stop_reason: \"tool_deferred\"` and `deferred_tool_use` carries the pending tool's `id`, `name`, and `input`. Read this field to surface the request in your own UI, then resume with the same `session_id` to continue. See [Defer a tool call for later](/en/hooks#defer-a-tool-call-for-later) for the full round trip."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SDKSystemMessage`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1004,6 +1010,27 @@ type SDKPermissionDenial = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### `SDKMessageOrigin`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Provenance of a user-role message. This appears as `origin` on [`SDKUserMessage`](#sdkusermessage) and is forwarded onto the corresponding [`SDKResultMessage`](#sdkresultmessage) so you can tell what triggered a given turn."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```typescript"
+            },
+            {
+              "type": "added",
+              "content": "type SDKMessageOrigin ="
+            },
+            {
+              "type": "added",
+              "content": "  | { kind: \"human\" }"
+            },
+            {
+              "type": "added",
+              "content": "  | { kind: \"channel\"; server: string }"
+            },
+            {
+              "type": "added",
+              "content": "  | { kind: \"peer\"; from: string; name?: string }"
+            },
+            {
+              "type": "added",
+              "content": "  | { kind: \"task-notification\" }"
+            },
+            {
+              "type": "added",
+              "content": "  | { kind: \"coordinator\" };"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| `kind` | Meaning |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `human` | Direct input from the end user. On user messages, an absent `origin` also means human input. |"
+            },
+            {
+              "type": "added",
+              "content": "| `channel` | Message arriving on a [channel](/en/channels). `server` is the source MCP server name. |"
+            },
+            {
+              "type": "added",
+              "content": "| `peer` | Message from another agent session via `SendMessage`. `from` is the sender address; `name` is the sender's display name when available. |"
+            },
+            {
+              "type": "added",
+              "content": "| `task-notification` | Synthetic turn injected after a background task finished. See [`SDKTaskNotificationMessage`](#sdktasknotificationmessage). |"
+            },
+            {
+              "type": "added",
+              "content": "| `coordinator` | Message from a team coordinator in an [agent team](/en/agent-teams). |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Hook Types"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For a comprehensive guide on using hooks with examples and common patterns, see the [Hooks guide](/en/agent-sdk/hooks)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "analytics.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "ユーザーごとのトークン数やコスト見積もりを確認するために、OpenTelemetry エクスポートを設定するよう案内が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -25,6 +25,8 @@ The Team and Enterprise dashboard includes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Leaderboard**: top contributors ranked by Claude Code usage"
+            },
+            {
+              "type": "context",
+              "content": "- **Data export**: download contribution data as CSV for custom reporting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For per-user token counts and cost estimates, configure [OpenTelemetry export](/en/monitoring-usage)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Enable contribution metrics"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Contribution metrics are in public beta and available on Claude for Teams and Claude for Enterprise plans. These metrics only cover users within your claude.ai organization. Usage through the Claude Console API or third-party integrations is not included."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "authentication.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "WSL2やSSH環境などでブラウザのリダイレクトが機能しない場合に、手動でログインコードを貼り付ける必要がある理由が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,7 +15,7 @@ After [installing Claude Code](/en/setup#install-claude-code), run `claude` in y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the browser doesn't open automatically, press `c` to copy the login URL to your clipboard, then paste it into your browser."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If your browser shows a login code instead of redirecting back after you sign in, paste it into the terminal at the `Paste code here if prompted` prompt."
+            },
+            {
+              "type": "added",
+              "content": "If your browser shows a login code instead of redirecting back after you sign in, paste it into the terminal at the `Paste code here if prompted` prompt. This happens when the browser can't reach Claude Code's local callback server, which is common in WSL2, SSH sessions, and containers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can authenticate with any of these account types:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-directory.md",
+      "additions": 34,
+      "deletions": 1,
+      "explanation": "プロジェクトの履歴やメモリなどのローカル状態を削除するための新コマンド claude project purge の詳細な使い方が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -124,7 +124,40 @@ Transcripts and history are not encrypted at rest. OS file permissions are the o",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Clear local data"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can delete any of the application-data paths above at any time. New sessions are unaffected. The table below shows what you lose for past sessions."
+            },
+            {
+              "type": "added",
+              "content": "Run `claude project purge` to delete the state Claude Code holds for one project:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Transcripts and auto memory under `projects/`"
+            },
+            {
+              "type": "added",
+              "content": "- Per-session `tasks/`, `debug/`, and `file-history/` entries"
+            },
+            {
+              "type": "added",
+              "content": "- Matching prompt lines in `history.jsonl`"
+            },
+            {
+              "type": "added",
+              "content": "- The project's entry in `~/.claude.json`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The command prints the full deletion plan and asks for confirmation before removing anything."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Preview the plan without deleting anything:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude project purge ~/work/my-repo --dry-run"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Delete with a single confirmation prompt:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude project purge ~/work/my-repo"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Omit the path to pick a project from an interactive list."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Skip the confirmation prompt for use in scripts:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude project purge ~/work/my-repo --yes"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Pass `--all` instead of a path to purge state for every project at once, which deletes `history.jsonl` outright rather than filtering it. Pass `-i` to step through the deletion plan one item at a time."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The command leaves `shell-snapshots/` and `backups/` alone because those are not project-scoped, and warns about them in the plan output. It exits with status 1 if no state matches the given path."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can also delete any of the application-data paths above by hand. New sessions are unaffected. The table below shows what you lose for past sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Delete | You lose |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "プロジェクトデータをクリーンアップする claude project purge コマンドのリファレンスが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -29,6 +29,7 @@ You can start sessions, pipe content, resume conversations, and manage updates w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude auto-mode defaults` | Print the built-in [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier rules as JSON. Use `claude auto-mode config` to see your effective config with settings applied | `claude auto-mode defaults > rules.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude mcp` | Configure Model Context Protocol (MCP) servers | See the [Claude Code MCP documentation](/en/mcp). |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude plugin` | Manage Claude Code [plugins](/en/plugins). Alias: `claude plugins`. See [plugin reference](/en/plugins-reference#cli-commands-reference) for subcommands | `claude plugin install code-review@claude-plugins-official` |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude project purge [path]` | Delete all local Claude Code state for a project: transcripts, task lists, debug logs, file-edit history, prompt history lines, and the project's entry in `~/.claude.json`. Omit `[path]` to pick from an interactive list. Flags: `--dry-run` to preview, `-y`/`--yes` to skip confirmation, `-i`/`--interactive` to confirm each item, `--all` for every project. See [Clear local data](/en/claude-directory#clear-local-data) | `claude project purge ~/work/repo --dry-run` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude remote-control` | Start a [Remote Control](/en/remote-control) server to control Claude Code from Claude.ai or the Claude app. Runs in server mode (no local interactive session). See [Server mode flags](/en/remote-control#start-a-remote-control-session) | `claude remote-control --name \"My Project\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude setup-token` | Generate a long-lived OAuth token for CI and scripts. Prints the token to the terminal without saving it. Requires a Claude subscription. See [Generate a long-lived token](/en/authentication#generate-a-long-lived-token) | `claude setup-token` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude ultrareview [target]` | Run [ultrareview](/en/ultrareview#run-ultrareview-non-interactively) non-interactively. Prints findings to stdout and exits 0 on success or 1 on failure. Use `--json` for the raw payload and `--timeout <minutes>` to override the 30-minute default | `claude ultrareview 1234 --json` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "コマンドはメッセージの先頭でのみ認識され、その後のテキストは引数として渡されるという仕様が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,6 +11,8 @@ Commands control Claude Code from inside a session. They provide a quick way to",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Type `/` to see every command available to you, or type `/` followed by letters to filter."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A command is only recognized at the start of your message. Text that follows the command name is passed to it as arguments."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The table below lists all the commands included in Claude Code. Entries marked **[Skill](/en/skills#bundled-skills)** are bundled skills. They use the same mechanism as skills you write yourself: a prompt handed to Claude, which Claude can also invoke automatically when relevant. Everything else is a built-in command whose behavior is coded into the CLI. To add your own commands, see [skills](/en/skills)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Not every command appears for every user. Availability depends on your platform, plan, and environment. For example, `/desktop` only shows on macOS and Windows, and `/upgrade` only shows on Pro and Max plans."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "data-usage.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "特定のホストプラットフォーム環境下における、各プロバイダーごとの統計データ送信のデフォルト挙動について記述が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -114,6 +114,8 @@ By default, error reporting, telemetry, and bug reporting are disabled when usin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "All environment variables can be checked into `settings.json` (see [settings reference](/en/settings))."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.126, when a host platform sets `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST`, Statsig metrics default to on for Vertex, Bedrock, and Foundry, and follow the standard `DISABLE_TELEMETRY` opt-out. Sentry error reporting and `/feedback` reports remain off by default on those providers."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### WebFetch domain safety check"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before fetching a URL, the WebFetch tool sends the requested hostname to `api.anthropic.com` to check it against a safety blocklist maintained by Anthropic. Only the hostname is sent, not the full URL, path, or page contents. Results are cached per hostname for five minutes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "ホスト管理用の新しい環境変数や、GrowthBook の無効化、ストリームタイムアウト設定の最小値に関する情報が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -126,6 +126,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS` | Timeout in milliseconds for git operations when installing or updating plugins (default: 120000). Increase this value for large repositories or slow network connections. See [Git operations time out](/en/plugin-marketplaces#git-operations-time-out) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE` | Set to `1` to keep the existing marketplace cache when a `git pull` fails instead of wiping and re-cloning. Useful in offline or airgapped environments where re-cloning would fail the same way. See [Marketplace updates fail in offline environments](/en/plugin-marketplaces#marketplace-updates-fail-in-offline-environments) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PLUGIN_SEED_DIR` | Path to one or more read-only plugin seed directories, separated by `:` on Unix or `;` on Windows. Use this to bundle a pre-populated plugins directory into a container image. Claude Code registers marketplaces from these directories at startup and uses pre-cached plugins without re-cloning. See [Pre-populate plugins for containers](/en/plugin-marketplaces#pre-populate-plugins-for-containers) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` | Set by host platforms that embed Claude Code and manage model provider routing on its behalf. When set, provider-selection, endpoint, and authentication variables such as `CLAUDE_CODE_USE_BEDROCK`, `ANTHROPIC_BASE_URL`, and `ANTHROPIC_API_KEY` in settings files are ignored so user settings cannot override the host's routing. The automatic telemetry opt-out for Bedrock, Vertex, and Foundry is also skipped, so telemetry follows the standard `DISABLE_TELEMETRY` opt-out. See [Default behaviors by API provider](/en/data-usage#default-behaviors-by-api-provider) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PROXY_RESOLVES_HOSTS` | Set to `1` to allow the proxy to perform DNS resolution instead of the caller. Opt-in for environments where the proxy should handle hostname resolution |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_REMOTE` | Set automatically to `true` when Claude Code is running as a [cloud session](/en/claude-code-on-the-web). Read this from a hook or setup script to detect whether you are in a cloud environment |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_REMOTE_SESSION_ID` | Set automatically in [cloud sessions](/en/claude-code-on-the-web) to the current session's ID. Read this to construct a link back to the session transcript. See [Link artifacts back to the session](/en/claude-code-on-the-web#link-artifacts-back-to-the-session) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -162,7 +163,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENABLE_STREAM_WATCHDOG` | Set to `1` to enable the event-level streaming idle watchdog. Off by default. For Bedrock, Vertex, and Foundry, this is the only idle watchdog available. Configure the timeout with `CLAUDE_STREAM_IDLE_TIMEOUT_MS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENV_FILE` | Path to a shell script whose contents Claude Code runs before each Bash command in the same shell process, so exports in the file are visible to the command. Use to persist virtualenv or conda activation across commands. Also populated dynamically by [SessionStart](/en/hooks#persist-environment-variables), [Setup](/en/hooks#setup), [CwdChanged](/en/hooks#cwdchanged), and [FileChanged](/en/hooks#filechanged) hooks |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` | Prefix for auto-generated [Remote Control](/en/remote-control) session names when no explicit name is provided. Defaults to your machine's hostname, producing names like `myhost-graceful-unicorn`. The `--remote-control-session-name-prefix` CLI flag sets the same value for a single invocation |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_STREAM_IDLE_TIMEOUT_MS` | Timeout in milliseconds before the streaming idle watchdog closes a stalled connection. For the byte-level watchdog on the Anthropic API: default and minimum `300000` (5 minutes); lower values are silently clamped to absorb extended thinking pauses and proxy buffering. For the event-level watchdog: default `90000` (90 seconds), no minimum. For third-party providers, requires `CLAUDE_ENABLE_STREAM_WATCHDOG=1` |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_STREAM_IDLE_TIMEOUT_MS` | Timeout in milliseconds before the streaming idle watchdog closes a stalled connection. Default and minimum `300000` (5 minutes) for both the byte-level and event-level watchdogs; lower values are silently clamped to absorb extended thinking pauses and proxy buffering. For third-party providers, requires `CLAUDE_ENABLE_STREAM_WATCHDOG=1` |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_AUTOUPDATER` | Set to `1` to disable automatic background updates. Manual `claude update` still works. Use `DISABLE_UPDATES` to block both |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_AUTO_COMPACT` | Set to `1` to disable automatic compaction when approaching the context limit. The manual `/compact` command remains available. Use when you want explicit control over when compaction occurs |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_COMPACT` | Set to `1` to disable all compaction: both automatic compaction and the manual `/compact` command |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -171,6 +172,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `DISABLE_ERROR_REPORTING` | Set to `1` to opt out of Sentry error reporting |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_EXTRA_USAGE_COMMAND` | Set to `1` to hide the `/extra-usage` command that lets users purchase additional usage beyond rate limits |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_FEEDBACK_COMMAND` | Set to `1` to disable the `/feedback` command. The older name `DISABLE_BUG_COMMAND` is also accepted |"
+            },
+            {
+              "type": "added",
+              "content": "| `DISABLE_GROWTHBOOK` | Set to `1` to disable GrowthBook feature-flag fetching and use code defaults for every flag. Telemetry event logging stays on unless `DISABLE_TELEMETRY` is also set |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_INSTALLATION_CHECKS` | Set to `1` to disable installation warnings. Use only when manually managing the installation location, as this can mask issues with standard installations |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_INSTALL_GITHUB_APP_COMMAND` | Set to `1` to hide the `/install-github-app` command. Already hidden when using third-party providers (Bedrock, Vertex, or Foundry) |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_INTERLEAVED_THINKING` | Set to `1` to prevent sending the interleaved-thinking beta header. Useful when your LLM gateway or provider does not support [interleaved thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#interleaved-thinking) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Ctrl+L の 1 回目の入力による挙動の説明が「入力ボックスのクリア」から「画面の再描画」に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -115,7 +115,7 @@ Press `Esc` or `q` to return to the prompt.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Clear the conversation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Press `Ctrl+L` twice within two seconds to run `/clear` and start a new conversation. The first press clears the input box and shows a hint; the second press clears the conversation. On macOS, double-pressing `Cmd+K` also runs `/clear`."
+            },
+            {
+              "type": "added",
+              "content": "Press `Ctrl+L` twice within two seconds to run `/clear` and start a new conversation. The first press redraws the screen and shows a hint; the second press clears the conversation. On macOS, double-pressing `Cmd+K` also runs `/clear`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Use with tmux"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "headless.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "エラーカテゴリのリストに oauth_org_not_allowed が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -125,7 +125,7 @@ When an API request fails with a retryable error, Claude Code emits a `system/ap",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `max_retries` | integer | total retries permitted |"
+            },
+            {
+              "type": "context",
+              "content": "| `retry_delay_ms` | integer | milliseconds until the next attempt |"
+            },
+            {
+              "type": "context",
+              "content": "| `error_status` | integer or null | HTTP status code, or `null` for connection errors with no HTTP response |"
+            },
+            {
+              "type": "removed",
+              "content": "| `error` | string | error category: `authentication_failed`, `billing_error`, `rate_limit`, `invalid_request`, `server_error`, `max_output_tokens`, or `unknown` |"
+            },
+            {
+              "type": "added",
+              "content": "| `error` | string | error category: `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `rate_limit`, `invalid_request`, `server_error`, `max_output_tokens`, or `unknown` |"
+            },
+            {
+              "type": "context",
+              "content": "| `uuid` | string | unique event identifier |"
+            },
+            {
+              "type": "context",
+              "content": "| `session_id` | string | session the event belongs to |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "StopFailure エラー型に oauth_org_not_allowed が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -546,7 +546,7 @@ Each event type matches on a specific field:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `PreCompact`, `PostCompact` | what triggered compaction | `manual`, `auto` |"
+            },
+            {
+              "type": "context",
+              "content": "| `SubagentStop` | agent type | same values as `SubagentStart` |"
+            },
+            {
+              "type": "context",
+              "content": "| `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, `unknown` |"
+            },
+            {
+              "type": "added",
+              "content": "| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, `unknown` |"
+            },
+            {
+              "type": "context",
+              "content": "| `InstructionsLoaded` | load reason | `session_start`, `nested_traversal`, `path_glob_match`, `include`, `compact` |"
+            },
+            {
+              "type": "context",
+              "content": "| `Elicitation` | MCP server name | your configured MCP server names |"
+            },
+            {
+              "type": "context",
+              "content": "| `ElicitationResult` | MCP server name | same values as `Elicitation` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "フックで使用されるエラー型の一覧に oauth_org_not_allowed が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -176,7 +176,7 @@ Each event type matches on a different field:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CwdChanged` | no matcher support | always fires on every directory change |"
+            },
+            {
+              "type": "context",
+              "content": "| `FileChanged` | literal filenames to watch (see [FileChanged](#filechanged)) | `.envrc\\|.env` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, `unknown` |"
+            },
+            {
+              "type": "added",
+              "content": "| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, `unknown` |"
+            },
+            {
+              "type": "context",
+              "content": "| `InstructionsLoaded` | load reason | `session_start`, `nested_traversal`, `path_glob_match`, `include`, `compact` |"
+            },
+            {
+              "type": "context",
+              "content": "| `UserPromptExpansion` | command name | your skill or command names |"
+            },
+            {
+              "type": "context",
+              "content": "| `Elicitation` | MCP server name | your configured MCP server names |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1755,7 +1755,7 @@ In addition to the [common input fields](#common-input-fields), StopFailure hook",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `error` | Error type: `rate_limit`, `authentication_failed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, or `unknown` |"
+            },
+            {
+              "type": "added",
+              "content": "| `error` | Error type: `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, or `unknown` |"
+            },
+            {
+              "type": "context",
+              "content": "| `error_details` | Additional details about the error, when available |"
+            },
+            {
+              "type": "context",
+              "content": "| `last_assistant_message` | The rendered error text shown in the conversation. Unlike `Stop` and `SubagentStop`, where this field holds Claude's conversational output, for `StopFailure` it contains the API error string itself, such as `\"API Error: Rate limit reached\"` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "履歴検索のスコープをセッション、プロジェクト、全体で切り替える Ctrl+S キーの説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -27,7 +27,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+X Ctrl+K` | Kill all background agents. Press twice within 3 seconds to confirm | Background agent control |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+D` | Exit Claude Code session | EOF signal |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding. Turn on Show last response in external editor in `/config` to prepend Claude's previous reply as `#`-commented context above your prompt; the comment block is stripped when you save |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+L` | Clear prompt input and redraw screen | Clears typed text and forces a full terminal redraw. Conversation history is kept. Use this to recover if the display becomes garbled or partially blank |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+L` | Redraw screen | Forces a full terminal redraw. Input and conversation history are kept. Use this to recover if the display becomes garbled or partially blank |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+O` | Toggle transcript viewer | Shows detailed tool usage and execution. Also expands MCP calls, which collapse to a single line like \"Called slack 3 times\" by default |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+R` | Reverse search command history | Search through previous commands interactively |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -215,10 +215,11 @@ Press `Ctrl+R` to interactively search through your command history:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "1. **Start search**: press `Ctrl+R` to activate reverse history search"
+            },
+            {
+              "type": "context",
+              "content": "2. **Type query**: enter text to search for in previous commands. The search term is highlighted in matching results"
+            },
+            {
+              "type": "context",
+              "content": "3. **Navigate matches**: press `Ctrl+R` again to cycle through older matches"
+            },
+            {
+              "type": "removed",
+              "content": "4. **Accept match**:"
+            },
+            {
+              "type": "added",
+              "content": "4. **Change scope**: press `Ctrl+S` to cycle between this session, this project, and all projects"
+            },
+            {
+              "type": "added",
+              "content": "5. **Accept match**:"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Tab` or `Esc` to accept the current match and continue editing"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Enter` to accept and execute the command immediately"
+            },
+            {
+              "type": "removed",
+              "content": "5. **Cancel search**:"
+            },
+            {
+              "type": "added",
+              "content": "6. **Cancel search**:"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Ctrl+C` to cancel and restore your original input"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Backspace` on empty search to cancel"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "keybindings.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "Ctrl+L の再描画機能の正確な説明への修正と、履歴検索スコープを切り替える Ctrl+S キーの定義が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -101,7 +101,7 @@ Actions available in the `Chat` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Action | Default | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:cancel` | Escape | Cancel current input |"
+            },
+            {
+              "type": "removed",
+              "content": "| `chat:clearInput` | Ctrl+L | Clear prompt input and force a full screen redraw. In [fullscreen rendering](/en/fullscreen#clear-the-conversation), press twice within two seconds to run `/clear` |"
+            },
+            {
+              "type": "added",
+              "content": "| `chat:clearInput` | Ctrl+L | Force a full screen redraw, preserving input. In [fullscreen rendering](/en/fullscreen#clear-the-conversation), press twice within two seconds to run `/clear` |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:clearScreen` | Cmd+K | In [fullscreen rendering](/en/fullscreen#clear-the-conversation), press twice within two seconds to run `/clear` |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:killAgents` | Ctrl+X Ctrl+K | Kill all background agents |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:cycleMode` | Shift+Tab\\* | Cycle permission modes |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -171,6 +171,7 @@ Actions available in the `HistorySearch` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `historySearch:accept` | Escape, Tab | Accept selection |"
+            },
+            {
+              "type": "context",
+              "content": "| `historySearch:cancel` | Ctrl+C | Cancel search |"
+            },
+            {
+              "type": "context",
+              "content": "| `historySearch:execute` | Enter | Execute selected command |"
+            },
+            {
+              "type": "added",
+              "content": "| `historySearch:cycleScope` | Ctrl+S | Cycle scope: session, project, everywhere |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Task actions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway.md",
+      "additions": 8,
+      "deletions": 2,
+      "explanation": "ゲートウェイの /v1/models エンドポイントから利用可能なモデルを自動取得し、選択メニューに表示する機能が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -50,9 +50,15 @@ Claude Code also prepends a short attribution block to the system prompt contain",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Model selection"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, Claude Code will use standard model names for the selected API format."
+            },
+            {
+              "type": "added",
+              "content": "By default, Claude Code uses standard model names for the selected API format."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you have configured custom model names in your gateway, use the environment variables documented in [Model configuration](/en/model-config) to match your custom names."
+            },
+            {
+              "type": "added",
+              "content": "When `ANTHROPIC_BASE_URL` points at a gateway that exposes the Anthropic Messages format, Claude Code queries the gateway's `/v1/models` endpoint at startup and adds the returned models to the `/model` picker. Each discovered entry is labeled \"From gateway\" and uses the `display_name` field from the response when one is provided. This requires Claude Code v2.1.126 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Discovery applies only to the Anthropic Messages format. It does not run for Bedrock or Vertex pass-through endpoints, and it does not run when `ANTHROPIC_BASE_URL` is unset or points at `api.anthropic.com`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The discovery request authenticates the same way as inference requests: it sends `ANTHROPIC_AUTH_TOKEN` as a bearer token, or `ANTHROPIC_API_KEY` as the `x-api-key` header when no auth token is set, along with any headers from `ANTHROPIC_CUSTOM_HEADERS`. Only models whose ID begins with `claude` or `anthropic` are added to the picker. Results are cached to `~/.claude/cache/gateway-models.json` and refreshed on each startup. If the request fails or the gateway does not implement `/v1/models`, the picker falls back to the cached list from the previous startup or to the built-in model list."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If your gateway uses model names that do not match the discovery filter, use the environment variables documented in [Model configuration](/en/model-config) to add them manually."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## LiteLLM configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ゲートウェイからのモデル自動取得機能の導入に伴い、カスタムモデルの個別設定変数の用途が補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -249,7 +249,7 @@ You can see which model you're currently using in several ways:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Add a custom model option"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `ANTHROPIC_CUSTOM_MODEL_OPTION` to add a single custom entry to the `/model` picker without replacing the built-in aliases. This is useful for LLM gateway deployments or testing model IDs that Claude Code does not list by default."
+            },
+            {
+              "type": "added",
+              "content": "Use `ANTHROPIC_CUSTOM_MODEL_OPTION` to add a single custom entry to the `/model` picker without replacing the built-in aliases. This is useful for testing model IDs that Claude Code does not list by default. For LLM gateway deployments, Claude Code populates the picker automatically from the gateway's `/v1/models` endpoint, so this variable is needed only when discovery does not return the model you want. See [LLM gateway model selection](/en/llm-gateway#model-selection)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example sets all three variables to make a gateway-routed Opus deployment selectable:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "スキルの呼び出しトリガーを識別するための invocation_trigger フィールドの説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -717,7 +717,7 @@ Logged when a plugin finishes installing, from both the `claude plugin install`",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Skill activated event"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Logged when a skill is invoked."
+            },
+            {
+              "type": "added",
+              "content": "Logged when a skill is invoked, whether Claude calls it through the Skill tool or you run it as a `/` command."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Event Name**: `claude_code.skill_activated`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -728,6 +728,7 @@ Logged when a skill is invoked.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `skill.name`: Name of the skill. For user-defined and third-party plugin skills the value is the placeholder `\"custom_skill\"` unless `OTEL_LOG_TOOL_DETAILS=1`"
+            },
+            {
+              "type": "added",
+              "content": "- `invocation_trigger`: How the skill was triggered (`\"user-slash\"`, `\"claude-proactive\"`, or `\"nested-skill\"`)"
+            },
+            {
+              "type": "context",
+              "content": "- `skill.source`: Where the skill was loaded from (for example, `\"bundled\"`, `\"userSettings\"`, `\"projectSettings\"`, `\"plugin\"`)"
+            },
+            {
+              "type": "context",
+              "content": "- `plugin.name` (when `OTEL_LOG_TOOL_DETAILS=1` or the plugin is from an official marketplace): Name of the owning plugin when the skill is provided by a plugin"
+            },
+            {
+              "type": "context",
+              "content": "- `marketplace.name` (when `OTEL_LOG_TOOL_DETAILS=1` or the plugin is from an official marketplace): Marketplace the owning plugin was installed from, when the skill is provided by a plugin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 6,
+      "deletions": 4,
+      "explanation": "bypassPermissions モードにおいて、保護されたパスへの書き込みも自動承認されるよう挙動が変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -20,9 +20,9 @@ Each mode makes a different tradeoff between convenience and oversight. The tabl",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [`plan`](#analyze-before-you-edit-with-plan-mode) | Reads only | Exploring a codebase before changing it |"
+            },
+            {
+              "type": "context",
+              "content": "| [`auto`](#eliminate-prompts-with-auto-mode) | Everything, with background safety checks | Long tasks, reducing prompt fatigue |"
+            },
+            {
+              "type": "context",
+              "content": "| [`dontAsk`](#allow-only-pre-approved-tools-with-dontask-mode) | Only pre-approved tools | Locked-down CI and scripts |"
+            },
+            {
+              "type": "removed",
+              "content": "| [`bypassPermissions`](#skip-all-checks-with-bypasspermissions-mode) | Everything except protected paths | Isolated containers and VMs only |"
+            },
+            {
+              "type": "added",
+              "content": "| [`bypassPermissions`](#skip-all-checks-with-bypasspermissions-mode) | Everything | Isolated containers and VMs only |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Regardless of mode, writes to [protected paths](#protected-paths) are never auto-approved, guarding repository state and Claude's own configuration against accidental corruption."
+            },
+            {
+              "type": "added",
+              "content": "In every mode except `bypassPermissions`, writes to [protected paths](#protected-paths) are never auto-approved, guarding repository state and Claude's own configuration against accidental corruption."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Modes set the baseline. Layer [permission rules](/en/permissions#manage-permissions) on top to pre-approve or block specific tools in any mode except `bypassPermissions`, which skips the permission layer entirely."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -97,6 +97,8 @@ claude remote-control --permission-mode acceptEdits",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In addition to file edits, `acceptEdits` mode auto-approves common filesystem Bash commands: `mkdir`, `touch`, `rm`, `rmdir`, `mv`, `cp`, and `sed`. These commands are also auto-approved when prefixed with safe environment variables such as `LANG=C` or `NO_COLOR=1`, or process wrappers such as `timeout`, `nice`, or `nohup`. Like file edits, auto-approval applies only to paths inside your working directory or `additionalDirectories`. Paths outside that scope, writes to [protected paths](#protected-paths), and all other Bash commands still prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the [PowerShell tool](/en/tools-reference#powershell-tool) is enabled, `acceptEdits` mode also auto-approves `Set-Content`, `Add-Content`, `Clear-Content`, and `Remove-Item` on in-scope paths, along with their common aliases. The same scope and protected-path rules apply."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use `acceptEdits` when you want to review changes in your editor or via `git diff` after the fact rather than approving each edit inline. Press `Shift+Tab` once from default mode to enter it, or start with it directly:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            }
+          ]
+        },
+        {
+          "header": "@@ -221,7 +223,7 @@ claude --permission-mode dontAsk",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Skip all checks with bypassPermissions mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`bypassPermissions` mode disables permission prompts and safety checks so tool calls execute immediately. Writes to [protected paths](#protected-paths) are the only actions that still prompt. Only use this mode in isolated environments like containers, VMs, or dev containers without internet access, where Claude Code cannot damage your host system."
+            },
+            {
+              "type": "added",
+              "content": "`bypassPermissions` mode disables permission prompts and safety checks so tool calls execute immediately. As of v2.1.126 this includes writes to [protected paths](#protected-paths), which earlier versions still prompted for. Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. Only use this mode in isolated environments like containers, VMs, or dev containers without internet access, where Claude Code cannot damage your host system."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You cannot enter `bypassPermissions` from a session that was started without one of the enabling flags; restart with one to enable it:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -235,7 +237,7 @@ The `--dangerously-skip-permissions` flag is equivalent.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Protected paths"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Writes to a small set of paths are never auto-approved, in every mode. This prevents accidental corruption of repository state and Claude's own configuration. In `default`, `acceptEdits`, `plan`, and `bypassPermissions` these writes prompt; in `auto` they route to the classifier; in `dontAsk` they are denied."
+            },
+            {
+              "type": "added",
+              "content": "Writes to a small set of paths are never auto-approved, in every mode except `bypassPermissions`. This prevents accidental corruption of repository state and Claude's own configuration. In `default`, `acceptEdits`, and `plan` these writes prompt; in `auto` they route to the classifier; in `dontAsk` they are denied; in `bypassPermissions` they are allowed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Protected directories:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 24,
+      "deletions": 2,
+      "explanation": "PowerShell の AST 解析による高度な権限チェックルールの設定方法と、エイリアスの解決方法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -40,9 +40,9 @@ Claude Code supports several permission modes that control how tools are approve",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `plan` | Plan Mode: Claude can analyze but not modify files or execute commands |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | Auto-approves tool calls with background safety checks that verify actions align with your request. Currently a research preview |"
+            },
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules |"
+            },
+            {
+              "type": "removed",
+              "content": "| `bypassPermissions` | Skips permission prompts except for writes to protected directories (see warning below) |"
+            },
+            {
+              "type": "added",
+              "content": "| `bypassPermissions` | Skips all permission prompts. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`bypassPermissions` mode skips permission prompts. Writes to `.git`, `.claude`, `.vscode`, `.idea`, and `.husky` directories still prompt for confirmation to prevent accidental corruption of repository state, editor configuration, and git hooks. Writes to `.claude/commands`, `.claude/agents`, and `.claude/skills` are exempt and do not prompt, because Claude routinely writes there when creating skills, subagents, and commands. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `permissions.disableBypassPermissionsMode` to `\"disable\"` in [managed settings](#managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "`bypassPermissions` mode skips all permission prompts, including writes to `.git`, `.claude`, `.vscode`, `.idea`, and `.husky`. Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `permissions.disableBypassPermissionsMode` to `\"disable\"` in [managed settings](#managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To prevent `bypassPermissions` or `auto` mode from being used, set `permissions.disableBypassPermissionsMode` or `permissions.disableAutoMode` to `\"disable\"` in any [settings file](/en/settings#settings-files). These are most useful in [managed settings](#managed-settings) where they cannot be overridden."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -153,6 +153,28 @@ For more reliable URL filtering, consider:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Note that using WebFetch alone does not prevent network access. If Bash is allowed, Claude can still use `curl`, `wget`, or other tools to reach any URL."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### PowerShell"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "PowerShell permission rules use the same shape as Bash rules. Wildcards with `*` match at any position, the `:*` suffix is equivalent to a trailing ` *`, and a bare `PowerShell` or `PowerShell(*)` matches every command. This configuration allows `Get-ChildItem` and `git commit` commands while blocking `Remove-Item`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"permissions\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"allow\": ["
+            },
+            {
+              "type": "added",
+              "content": "      \"PowerShell(Get-ChildItem *)\","
+            },
+            {
+              "type": "added",
+              "content": "      \"PowerShell(git commit *)\""
+            },
+            {
+              "type": "added",
+              "content": "    ],"
+            },
+            {
+              "type": "added",
+              "content": "    \"deny\": ["
+            },
+            {
+              "type": "added",
+              "content": "      \"PowerShell(Remove-Item *)\""
+            },
+            {
+              "type": "added",
+              "content": "    ]"
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Common aliases are canonicalized before matching. A rule written for the cmdlet name also matches its aliases, so `PowerShell(Get-ChildItem *)` matches `gci`, `ls`, and `dir` as well. Matching is case-insensitive."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code parses the PowerShell AST and checks each command in a compound command independently. Pipeline operators `|`, statement separators `;`, and on PowerShell 7+ the chain operators `&&` and `||` split a compound command into subcommands. A rule must match every subcommand for the compound command to be allowed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Read and Edit"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`Edit` rules apply to all built-in tools that edit files. Claude makes a best-effort attempt to apply `Read` rules to all built-in tools that read files like Grep and Glob."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "通知方法を端末のベルや特定のターミナル向けに設定できる preferredNotifChannel オプションが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -206,6 +206,7 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `permissions` | See table below for structure of permissions. | |"
+            },
+            {
+              "type": "context",
+              "content": "| `plansDirectory` | Customize where plan files are stored. Path is relative to project root. Default: `~/.claude/plans` | `\"./plans\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `pluginTrustMessage` | (Managed settings only) Custom message appended to the plugin trust warning shown before installation. Use this to add organization-specific context, for example to confirm that plugins from your internal marketplace are vetted. | `\"All plugins from our marketplace are approved by IT\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `preferredNotifChannel` | Method for task-complete and permission-prompt notifications: `\"auto\"`, `\"terminal_bell\"`, `\"iterm2\"`, `\"iterm2_with_bell\"`, `\"kitty\"`, `\"ghostty\"`, or `\"notifications_disabled\"`. Default: `\"auto\"`, which sends a desktop notification in iTerm2, Ghostty, and Kitty and does nothing in other terminals. Set `\"terminal_bell\"` to ring the bell character in any terminal. Appears in `/config` as **Notifications**. See [Get a terminal bell or notification](/en/terminal-config#get-a-terminal-bell-or-notification) | `\"terminal_bell\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `prefersReducedMotion` | Reduce or disable UI animations (spinners, shimmer, flash effects) for accessibility | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `prUrlTemplate` | URL template for the PR badge shown in the footer and in tool-result summaries. Substitutes `{host}`, `{owner}`, `{repo}`, `{number}`, and `{url}` from the `gh`-reported PR URL. Use to point PR links at an internal code-review tool instead of `github.com`. Does not affect `#123` autolinks in Claude's prose | `\"https://reviews.example.com/{owner}/{repo}/pull/{number}\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `respectGitignore` | Control whether the `@` file picker respects `.gitignore` patterns. When `true` (default), files matching `.gitignore` patterns are excluded from suggestions | `false` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "アンインストール後もコマンドが残る場合に、古いインストールやエイリアスの競合を確認する手順へのリンクが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -418,7 +418,7 @@ In addition to the signed manifest, individual binaries carry platform-native co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Uninstall Claude Code"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To remove Claude Code, follow the instructions for your installation method."
+            },
+            {
+              "type": "added",
+              "content": "To remove Claude Code, follow the instructions for your installation method. If `claude` still runs afterward, you likely have a second installation or a leftover shell alias from an older installer. See [Check for conflicting installations](/en/troubleshoot-install#check-for-conflicting-installations) to find and remove it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Native installation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 4,
+      "deletions": 4,
+      "explanation": "プラグイン形式のサブエージェントでは一部の設定が無視される点と、bypassPermissions モードの制限緩和が反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -209,11 +209,11 @@ The following fields can be used in the YAML frontmatter. Only `name` and `descr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `tools` | No | [Tools](#available-tools) the subagent can use. Inherits all tools if omitted |"
+            },
+            {
+              "type": "context",
+              "content": "| `disallowedTools` | No | Tools to deny, removed from inherited or specified list |"
+            },
+            {
+              "type": "context",
+              "content": "| `model` | No | [Model](#choose-a-model) to use: `sonnet`, `opus`, `haiku`, a full model ID (for example, `claude-opus-4-7`), or `inherit`. Defaults to `inherit` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `permissionMode` | No | [Permission mode](#permission-modes): `default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, or `plan` |"
+            },
+            {
+              "type": "added",
+              "content": "| `permissionMode` | No | [Permission mode](#permission-modes): `default`, `acceptEdits`, `auto`, `dontAsk`, `bypassPermissions`, or `plan`. Ignored for [plugin subagents](#choose-the-subagent-scope) |"
+            },
+            {
+              "type": "context",
+              "content": "| `maxTurns` | No | Maximum number of agentic turns before the subagent stops |"
+            },
+            {
+              "type": "context",
+              "content": "| `skills` | No | [Skills](/en/skills) to load into the subagent's context at startup. The full skill content is injected, not just made available for invocation. Subagents don't inherit skills from the parent conversation |"
+            },
+            {
+              "type": "removed",
+              "content": "| `mcpServers` | No | [MCP servers](/en/mcp) available to this subagent. Each entry is either a server name referencing an already-configured server (e.g., `\"slack\"`) or an inline definition with the server name as key and a full [MCP server config](/en/mcp#installing-mcp-servers) as value |"
+            },
+            {
+              "type": "removed",
+              "content": "| `hooks` | No | [Lifecycle hooks](#define-hooks-for-subagents) scoped to this subagent |"
+            },
+            {
+              "type": "added",
+              "content": "| `mcpServers` | No | [MCP servers](/en/mcp) available to this subagent. Each entry is either a server name referencing an already-configured server (e.g., `\"slack\"`) or an inline definition with the server name as key and a full [MCP server config](/en/mcp#installing-mcp-servers) as value. Ignored for [plugin subagents](#choose-the-subagent-scope) |"
+            },
+            {
+              "type": "added",
+              "content": "| `hooks` | No | [Lifecycle hooks](#define-hooks-for-subagents) scoped to this subagent. Ignored for [plugin subagents](#choose-the-subagent-scope) |"
+            },
+            {
+              "type": "context",
+              "content": "| `memory` | No | [Persistent memory scope](#enable-persistent-memory): `user`, `project`, or `local`. Enables cross-session learning |"
+            },
+            {
+              "type": "context",
+              "content": "| `background` | No | Set to `true` to always run this subagent as a [background task](#run-subagents-in-foreground-or-background). Default: `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `effort` | No | Effort level when this subagent is active. Overrides the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -338,7 +338,7 @@ The `permissionMode` field controls how the subagent handles permission prompts.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skip permission prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Plan mode (read-only exploration) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `bypassPermissions` with caution. It skips permission prompts, allowing the subagent to execute operations without approval. Writes to `.git`, `.claude`, `.vscode`, `.idea`, and `.husky` directories still prompt for confirmation, except for `.claude/commands`, `.claude/agents`, and `.claude/skills`. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "added",
+              "content": "Use `bypassPermissions` with caution. It skips all permission prompts, allowing the subagent to execute operations without approval, including writes to `.git`, `.claude`, `.vscode`, `.idea`, and `.husky`. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the parent uses `bypassPermissions` or `acceptEdits`, this takes precedence and cannot be overridden. If the parent uses [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode), the subagent inherits auto mode and any `permissionMode` in its frontmatter is ignored: the classifier evaluates the subagent's tool calls with the same block and allow rules as the parent session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "terminal-config.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "通知を端末ベルで鳴らす設定や、VS Code 等の通知に対応していないターミナルでの代替手段について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -56,7 +56,9 @@ For Ghostty, Kitty, and other terminals, look for an Option-as-Alt or Option-as-",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When Claude finishes a task or pauses for a permission prompt, it fires a notification event. Surfacing this as a terminal bell or desktop notification lets you switch to other work while a long task runs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code sends a desktop notification only in Ghostty, Kitty, and iTerm2; every other terminal needs a [Notification hook](#play-a-sound-with-a-notification-hook) instead. The notification also reaches your local machine over SSH, so a remote session can still alert you. Ghostty and Kitty forward it to your OS notification center without further setup. iTerm2 requires you to enable forwarding:"
+            },
+            {
+              "type": "added",
+              "content": "By default Claude Code sends a desktop notification only in Ghostty, Kitty, and iTerm2. In other terminals, set [`preferredNotifChannel`](/en/settings#available-settings) to `\"terminal_bell\"` to ring the terminal bell instead, or configure a [Notification hook](#play-a-sound-with-a-notification-hook) for a custom sound or command."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The desktop notification reaches your local machine over SSH, so a remote session can still alert you. Ghostty and Kitty forward it to your OS notification center without further setup. iTerm2 requires you to enable forwarding:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Go to Settings → Profiles → Terminal."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -66,7 +68,7 @@ If notifications still do not appear, confirm that your terminal application has",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Play a sound with a Notification hook"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In any terminal you can configure a [Notification hook](/en/hooks-guide#get-notified-when-claude-needs-input) to play a sound or run a custom command when Claude needs your attention. Hooks run alongside the desktop notification rather than replacing it. Terminals such as Warp or Apple Terminal rely on a hook alone since Claude Code does not send them a desktop notification."
+            },
+            {
+              "type": "added",
+              "content": "In any terminal you can configure a [Notification hook](/en/hooks-guide#get-notified-when-claude-needs-input) to play a sound or run a custom command when Claude needs your attention. Hooks run alongside the built-in notification rather than replacing it, so terminals that do not receive a desktop notification, such as Warp or the VS Code integrated terminal, can use a hook or set `preferredNotifChannel` to `\"terminal_bell\"` instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example below plays a system sound on macOS. The linked guide has desktop notification commands for macOS, Linux, and Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Windows 環境において PowerShell がプライマリシェルとして優先的に使用される挙動が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -110,7 +110,7 @@ Set `CLAUDE_CODE_USE_POWERSHELL_TOOL=1` in your environment or in `settings.json",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "On Windows, set the variable to `0` to opt out of the rollout. On Linux, macOS, and WSL, the tool requires PowerShell 7 or later: install `pwsh` and ensure it is on your `PATH`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Windows, Claude Code auto-detects `pwsh.exe` for PowerShell 7+ with a fallback to `powershell.exe` for PowerShell 5.1. The Bash tool remains registered alongside the PowerShell tool, so you may need to ask Claude to use PowerShell."
+            },
+            {
+              "type": "added",
+              "content": "On Windows, Claude Code auto-detects `pwsh.exe` for PowerShell 7+ with a fallback to `powershell.exe` for PowerShell 5.1. When the tool is enabled, Claude treats PowerShell as the primary shell. The Bash tool remains available for POSIX scripts when Git Bash is installed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Shell selection in settings, hooks, and skills"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshoot-install.md",
+      "additions": 6,
+      "deletions": 6,
+      "explanation": "WSL2 だけでなく、SSH やコンテナ環境におけるログイン時のトラブルシューティングと、コードの手動入力方法が拡充されました。",
+      "hunks": [
+        {
+          "header": "@@ -712,26 +712,26 @@ claude",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Check `~/.zshrc`, `~/.bashrc`, or `~/.profile` for `export ANTHROPIC_API_KEY=...` lines and remove them to make the change permanent. On Windows, check your PowerShell profile at `$PROFILE` and your User environment variables for `ANTHROPIC_API_KEY`. Run `/status` inside Claude Code to confirm which authentication method is active."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### OAuth login fails in WSL2"
+            },
+            {
+              "type": "added",
+              "content": "### OAuth login fails in WSL2, SSH, or containers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Browser-based login in WSL2 can fail in two ways: WSL can't open your Windows browser, or the terminal won't accept the pasted authorization code."
+            },
+            {
+              "type": "added",
+              "content": "When Claude Code runs in WSL2, on a remote machine over SSH, or inside a container, the browser usually opens on a different host and its redirect can't reach Claude Code's local callback server. After you sign in, the browser shows a login code instead of redirecting back automatically. Paste that code into the terminal at the `Paste code here if prompted` prompt to complete login."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If the browser doesn't open, set the `BROWSER` environment variable to your Windows browser path:"
+            },
+            {
+              "type": "added",
+              "content": "If the browser doesn't open at all from WSL2, set the `BROWSER` environment variable to your Windows browser path:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export BROWSER=\"/mnt/c/Program Files/Google/Chrome/Application/chrome.exe\""
+            },
+            {
+              "type": "context",
+              "content": "claude"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Or press `c` at the login prompt to copy the OAuth URL and paste it into your Windows browser yourself."
+            },
+            {
+              "type": "added",
+              "content": "Alternatively, press `c` at the interactive login prompt to copy the OAuth URL, or copy the URL that `claude auth login` prints, and open it in a browser on your local machine."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If the browser opens but pasting the code back into the terminal does nothing, your terminal's paste binding likely isn't reaching the prompt. Try your terminal's alternate paste shortcut, often right-click or Shift+Insert in Windows Terminal, or run login outside the interactive UI:"
+            },
+            {
+              "type": "added",
+              "content": "If pasting the code into the interactive prompt does nothing, your terminal's paste binding likely isn't reaching the input field. Try your terminal's alternate paste shortcut, often right-click or Shift+Insert in Windows Terminal, or use `claude auth login` instead, which reads the pasted code from standard input:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "claude auth login"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This fallback also applies on native Windows or any terminal where pasting the code into the interactive prompt fails."
+            },
+            {
+              "type": "added",
+              "content": "This fallback also applies on native Windows or any terminal where pasting into the interactive prompt fails."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Not logged in or token expired"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

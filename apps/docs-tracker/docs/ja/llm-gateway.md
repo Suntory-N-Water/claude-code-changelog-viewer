@@ -50,9 +50,15 @@ Claude Codeはまた、クライアントバージョンと会話から派生し
 
 ### モデル選択
 
-デフォルトでは、Claude Codeは選択したAPI形式の標準モデル名を使用します。
+デフォルトでは、Claude Code は選択したAPI形式の標準モデル名を使用します。
 
-gatewayでカスタムモデル名を設定している場合は、[モデル設定](/ja/model-config)に記載されている環境変数を使用して、カスタム名と一致させてください。
+`ANTHROPIC_BASE_URL` が Anthropic Messages 形式を公開するゲートウェイを指している場合、Claude Code はスタートアップ時にゲートウェイの `/v1/models` エンドポイントをクエリし、返されたモデルを `/model` ピッカーに追加します。検出された各エントリは「From gateway」というラベルが付けられ、レスポンスから提供されている場合は `display_name` フィールドを使用します。これには Claude Code v2.1.126 以降が必要です。
+
+検出は Anthropic Messages 形式にのみ適用されます。Bedrock または Vertex パススルーエンドポイントでは実行されず、`ANTHROPIC_BASE_URL` が設定されていない場合または `api.anthropic.com` を指している場合にも実行されません。
+
+検出リクエストは推論リクエストと同じ方法で認証されます。認証トークンが設定されていない場合は、`ANTHROPIC_AUTH_TOKEN` をベアラートークンとして、または `ANTHROPIC_API_KEY` を `x-api-key` ヘッダーとして送信し、`ANTHROPIC_CUSTOM_HEADERS` からのヘッダーと共に送信されます。ID が `claude` または `anthropic` で始まるモデルのみがピッカーに追加されます。結果は `~/.claude/cache/gateway-models.json` にキャッシュされ、スタートアップのたびに更新されます。リクエストが失敗するか、ゲートウェイが `/v1/models` を実装していない場合、ピッカーは前回のスタートアップからのキャッシュリストまたは組み込みモデルリストにフォールバックします。
+
+ゲートウェイが検出フィルターと一致しないモデル名を使用している場合は、[モデル設定](/ja/model-config)に記載されている環境変数を使用して、手動で追加してください。
 
 ## LiteLLM設定
 

@@ -176,7 +176,7 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 | `ConfigChange` | 設定ソース | `user_settings`、`project_settings`、`local_settings`、`policy_settings`、`skills` |
 | `CwdChanged` | マッチャー サポートなし | すべてのディレクトリ変更で常に発火 |
 | `FileChanged` | 監視するリテラル ファイル名（[FileChanged](#filechanged)を参照） | `.envrc\|.env` |
-| `StopFailure` | エラー タイプ | `rate_limit`、`authentication_failed`、`billing_error`、`invalid_request`、`server_error`、`max_output_tokens`、`unknown` |
+| `StopFailure` | エラー タイプ | `rate_limit`、`authentication_failed`、`oauth_org_not_allowed`、`billing_error`、`invalid_request`、`server_error`、`max_output_tokens`、`unknown` |
 | `InstructionsLoaded` | ロード理由 | `session_start`、`nested_traversal`、`path_glob_match`、`include`、`compact` |
 | `UserPromptExpansion` | コマンド名 | スキルまたはコマンド名 |
 | `Elicitation` | MCP サーバー名 | 設定された MCP サーバー名 |
@@ -1750,7 +1750,7 @@ exit 0
 
 | フィールド | 説明 |
 | :- | :- |
-| `error` | エラー タイプ: `rate_limit`、`authentication_failed`、`billing_error`、`invalid_request`、`server_error`、`max_output_tokens`、または `unknown` |
+| `error` | エラー タイプ: `rate_limit`、`authentication_failed`、`oauth_org_not_allowed`、`billing_error`、`invalid_request`、`server_error`、`max_output_tokens`、または `unknown` |
 | `error_details` | 利用可能な場合、エラーに関する追加詳細 |
 | `last_assistant_message` | 会話に表示されるレンダリングされたエラー テキスト。`Stop` と `SubagentStop` とは異なり、このフィールドは Claude の会話出力ではなく、`"API Error: Rate limit reached"` などの API エラー文字列を含みます |
 

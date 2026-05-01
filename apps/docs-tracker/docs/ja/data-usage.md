@@ -114,6 +114,8 @@ Claude Code は、ユーザーのマシンから Sentry に接続して、運用
 
 すべての環境変数は `settings.json` にチェックインできます（[settings reference](/ja/settings) を参照）。
 
+v2.1.126 以降、ホストプラットフォームが `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` を設定する場合、Statsig メトリクスは Vertex、Bedrock、および Foundry でデフォルトでオンになり、標準の `DISABLE_TELEMETRY` オプトアウトに従います。Sentry エラーレポートと `/feedback` レポートは、これらのプロバイダーではデフォルトでオフのままです。
+
 ### WebFetch ドメインセーフティチェック
 
 URL をフェッチする前に、WebFetch ツールは要求されたホスト名を `api.anthropic.com` に送信して、Anthropic が管理するセーフティブロックリストに対してチェックします。ホスト名のみが送信され、完全な URL、パス、またはページコンテンツは送信されません。結果はホスト名ごとに 5 分間キャッシュされます。

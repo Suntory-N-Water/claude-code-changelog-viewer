@@ -101,12 +101,13 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
 | `chat:cancel` | Escape | 現在の入力をキャンセル |
-| `chat:clearInput` | Ctrl+L | プロンプト入力をクリアして全画面再描画を強制 |
+| `chat:clearInput` | Ctrl+L | 入力を保持したまま全画面再描画を強制します。[フルスクリーンレンダリング](/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
+| `chat:clearScreen` | Cmd+K | [フルスクリーンレンダリング](/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
 | `chat:killAgents` | Ctrl+X Ctrl+K | すべてのバックグラウンドエージェントを終了 |
 | `chat:cycleMode` | Shift+Tab\* | 権限モードをサイクル |
-| `chat:modelPicker` | Cmd+P / Meta+P | モデルピッカーを開く |
+| `chat:modelPicker` | Meta+P | モデルピッカーを開く |
 | `chat:fastMode` | Meta+O | 高速モードを切り替え |
-| `chat:thinkingToggle` | Cmd+T / Meta+T | 拡張思考を切り替え |
+| `chat:thinkingToggle` | Meta+T | 拡張思考を切り替え |
 | `chat:submit` | Enter | メッセージを送信 |
 | `chat:newline` | Ctrl+J | 送信せずに改行を挿入 |
 | `chat:undo` | Ctrl+\_、Ctrl+Shift+- | 最後のアクションを元に戻す |
@@ -170,6 +171,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `historySearch:accept` | Escape、Tab | 選択を受け入れ |
 | `historySearch:cancel` | Ctrl+C | 検索をキャンセル |
 | `historySearch:execute` | Enter | 選択したコマンドを実行 |
+| `historySearch:cycleScope` | Ctrl+S | スコープをサイクル：セッション、プロジェクト、すべて |
 
 ### タスクアクション
 
@@ -308,7 +310,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
-| `voice:pushToTalk` | Space | プロンプトをディクテートするために押し続ける |
+| `voice:pushToTalk` | Space | プロンプトをディクテートします。`/voice` モードに応じて押し続けるか、タップします |
 
 ### スクロールアクション
 
@@ -342,16 +344,18 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 `+` セパレータでモディファイアキーを使用します。
 
 - `ctrl` または `control` - Control キー
-- `alt`、`opt`、または `option` - Alt/Option キー
 - `shift` - Shift キー
-- `meta`、`cmd`、または `command` - Meta/Command キー
+- `alt`、`opt`、`option`、または `meta` - Windows と Linux の Alt キー、macOS の Option キー
+- `cmd`、`command`、`super`、または `win` - macOS の Command キー、Windows の Windows キー、Linux の Super キー
+
+`cmd` グループは Super モディファイアを報告するターミナル（Kitty キーボードプロトコルまたは xterm の `modifyOtherKeys` モードをサポートするターミナルなど）でのみ検出されます。ほとんどのターミナルはこれを送信しないため、すべての場所で機能するバインディングには `ctrl` または `meta` を使用してください。
 
 例えば：
 
 ```text
-ctrl+k          単一キーとモディファイア
+ctrl+k          Ctrl + K
 shift+tab       Shift + Tab
-meta+p          Command/Meta + P
+meta+p          macOS の Option + P、その他の場所では Alt + P
 ctrl+shift+c    複数のモディファイア
 ```
 
@@ -423,6 +427,7 @@ ctrl+k ctrl+s   Ctrl+K を押して、リリースしてから Ctrl+S
 | Ctrl+C | ハードコードされた割り込み/キャンセル |
 | Ctrl+D | ハードコードされた終了 |
 | Ctrl+M | ターミナルの Enter と同じ（どちらも CR を送信） |
+| Caps Lock | ターミナルアプリケーションに配信されない |
 
 ## ターミナルの競合
 
