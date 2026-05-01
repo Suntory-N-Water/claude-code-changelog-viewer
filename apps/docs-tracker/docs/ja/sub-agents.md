@@ -209,11 +209,11 @@ specific, actionable feedback on quality, security, and best practices.
 | `tools` | いいえ | サブエージェントが使用できる[ツール](#available-tools)。省略した場合はすべてのツールを継承 |
 | `disallowedTools` | いいえ | 拒否するツール。継承または指定されたリストから削除 |
 | `model` | いいえ | 使用する[モデル](#choose-a-model)：`sonnet`、`opus`、`haiku`、完全なモデル ID（例：`claude-opus-4-7`）、または `inherit`。デフォルトは `inherit` |
-| `permissionMode` | いいえ | [権限モード](#permission-modes)：`default`、`acceptEdits`、`auto`、`dontAsk`、`bypassPermissions`、または `plan` |
-| `maxTurns` | いいえ | サブエージェントが停止する前の最大エージェントターン数 |
+| `permissionMode` | いいえ | [権限モード](#permission-modes)：`default`、`acceptEdits`、`auto`、`dontAsk`、`bypassPermissions`、または `plan`。[プラグインサブエージェント](#choose-the-subagent-scope)では無視されます |
+| `maxTurns` | いいえ | サブエージェントが停止する前の最大 agentic ターン数 |
 | `skills` | いいえ | スタートアップ時にサブエージェントのコンテキストに読み込む[スキル](/ja/skills)。呼び出しのために利用可能にするだけでなく、完全なスキルコンテンツが注入されます。サブエージェントは親の会話からスキルを継承しません |
-| `mcpServers` | いいえ | このサブエージェントで利用可能な[MCP サーバー](/ja/mcp)。各エントリは、既に設定されたサーバーを参照するサーバー名（例：`"slack"`）または、サーバー名をキーとし、完全な[MCP サーバー設定](/ja/mcp#installing-mcp-servers)を値とするインライン定義のいずれかです |
-| `hooks` | いいえ | このサブエージェントにスコープされた[ライフサイクルフック](#define-hooks-for-subagents) |
+| `mcpServers` | いいえ | このサブエージェントで利用可能な[MCP サーバー](/ja/mcp)。各エントリは、既に設定されたサーバーを参照するサーバー名（例：`"slack"`）または、サーバー名をキーとし、完全な[MCP サーバー設定](/ja/mcp#installing-mcp-servers)を値とするインライン定義のいずれかです。[プラグインサブエージェント](#choose-the-subagent-scope)では無視されます |
+| `hooks` | いいえ | このサブエージェントにスコープされた[ライフサイクルフック](#define-hooks-for-subagents)。[プラグインサブエージェント](#choose-the-subagent-scope)では無視されます |
 | `memory` | いいえ | [永続メモリスコープ](#enable-persistent-memory)：`user`、`project`、または `local`。クロスセッション学習を有効にします |
 | `background` | いいえ | `true` に設定して、このサブエージェントを常に[バックグラウンドタスク](#run-subagents-in-foreground-or-background)として実行します。デフォルト：`false` |
 | `effort` | いいえ | このサブエージェントがアクティブな場合の努力レベル。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`xhigh`、`max`。利用可能なレベルはモデルに依存します |
