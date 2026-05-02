@@ -209,15 +209,29 @@ Claude はブラウザタスク用に新しいタブを開き、ブラウザの�
 
 拡張機能は `vscode://anthropic.claude-code/open` で URI ハンドラーを登録します。これを使用して、独自のツーリングから新しい Claude Code タブを開きます。シェルエイリアス、ブラウザブックマークレット、または URL を開くことができるスクリプト。VS Code がまだ実行されていない場合、URL を開くと最初に起動します。VS Code が既に実行されている場合、URL は現在フォーカスされているウィンドウで開きます。
 
-オペレーティングシステムの URL オープナーでハンドラーを呼び出します。macOS では：
+オペレーティングシステムの URL オープナーでハンドラーを呼び出します。
 
-```bash
+```bash theme={null}
 open "vscode://anthropic.claude-code/open"
 ```
 
-Linux で `xdg-open` を使用するか、Windows で `start` を使用します。
+```bash theme={null}
+xdg-open "vscode://anthropic.claude-code/open"
+```
 
-ハンドラーは 2 つのオプションのクエリパラメーターを受け入れます。
+PowerShell で：
+
+```powershell theme={null}
+Start-Process "vscode://anthropic.claude-code/open"
+```
+
+`cmd.exe` では、`start` はその最初の引用符付き引数をウィンドウタイトルとして扱うため、URL の前に空のタイトルを渡します：
+
+```cmd theme={null}
+start "" "vscode://anthropic.claude-code/open"
+```
+
+ハンドラーは 2 つのオプションのクエリパラメーターを受け入れます：
 
 | パラメーター | 説明 |
 | - | - |
@@ -229,6 +243,8 @@ Linux で `xdg-open` を使用するか、Windows で `start` を使用します
 ```text
 vscode://anthropic.claude-code/open?prompt=review%20my%20changes
 ```
+
+ターミナルセッションを VS Code タブの代わりに起動するには、CLI の `claude-cli://` ハンドラーを使用します。[Launch sessions from links](/ja/deep-links) を参照してください。
 
 ## 設定を構成する
 
@@ -301,10 +317,11 @@ Claude が長時間実行されるコマンドを実行すると、拡張機能�
 
 MCP（Model Context Protocol）サーバーは Claude に外部ツール、データベース、API へのアクセスを提供します。
 
-MCP サーバーを追加するには、統合ターミナル（`` Ctrl+` `` または `` Cmd+` ``）を開き、以下を実行します。
+MCP サーバーを追加するには、統合ターミナル（`` Ctrl+` `` または `` Cmd+` ``）を開き、`claude mcp add` を実行します。以下の例は GitHub のリモート MCP サーバーを追加します。このサーバーはヘッダーとして渡される[個人用アクセストークン](https://github.com/settings/personal-access-tokens)で認証します。
 
 ```bash
-claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/ \
+  --header "Authorization: Bearer YOUR_GITHUB_PAT"
 ```
 
 設定されたら、Claude にツールを使用するよう依頼します（例：「Review PR #456」）。

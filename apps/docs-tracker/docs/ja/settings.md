@@ -176,7 +176,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `deniedMcpServers` | managed-settings.json で設定されている場合、明示的にブロックされた MCP サーバーの拒否リスト。managed サーバーを含むすべてのスコープに適用されます。拒否リストがホワイトリストよりも優先されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `[{ "serverName": "filesystem" }]` |
 | `disableAllHooks` | すべての [hooks](/ja/hooks) とカスタム [ステータスライン](/ja/statusline)を無効にします | `true` |
 | `disableAutoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)の有効化を防ぐために `"disable"` に設定します。`Shift+Tab` サイクルから `auto` を削除し、起動時に `--permission-mode auto` を拒否します。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `"disable"` |
-| `disableDeepLinkRegistration` | Claude Code が起動時にオペレーティングシステムで `claude-cli://` プロトコルハンドラーを登録するのを防ぐために `"disable"` に設定します。ディープリンクを使用すると、外部ツールは `claude-cli://open?q=...` を通じて事前入力されたプロンプトで Claude Code セッションを開くことができます。`q` パラメータは URL エンコードされた改行（`%0A`）を使用した複数行プロンプトをサポートしています。プロトコルハンドラー登録が制限されているか、別途管理されている環境で役立ちます | `"disable"` |
+| `disableDeepLinkRegistration` | Claude Code が起動時にオペレーティングシステムで `claude-cli://` プロトコルハンドラーを登録するのを防ぐために `"disable"` に設定します。[ディープリンク](/ja/deep-links)を使用すると、外部ツールは事前入力されたプロンプトで Claude Code セッションを開くことができます。プロトコルハンドラー登録が制限されているか、別途管理されている環境で役立ちます | `"disable"` |
 | `disabledMcpjsonServers` | `.mcp.json` ファイルから拒否する特定の MCP サーバーのリスト | `["filesystem"]` |
 | `disableSkillShellExecution` | [skills](/ja/skills) およびユーザー、プロジェクト、プラグイン、または追加ディレクトリソースからのカスタムコマンド内の `` !`...` `` および ` ```! ` ブロックのインラインシェル実行を無効にします。コマンドは実行される代わりに `[shell command execution disabled by policy]` に置き換えられます。バンドルされた skills および managed skills は影響を受けません。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `true` |
 | `editorMode` | 入力プロンプトのキーバインディングモード：`"normal"` または `"vim"`。デフォルト：`"normal"`。`/config` に**エディターモード**として表示されます | `"vim"` |
@@ -203,6 +203,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `permissions` | 権限の構造については、以下の表を参照してください。 | |
 | `plansDirectory` | プランファイルが保存される場所をカスタマイズします。パスはプロジェクトルートに相対的です。デフォルト：`~/.claude/plans` | `"./plans"` |
 | `pluginTrustMessage` | （Managed 設定のみ）インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ。これを使用して、組織固有のコンテキストを追加します。たとえば、内部マーケットプレイスからのプラグインが検証されていることを確認します。 | `"All plugins from our marketplace are approved by IT"` |
+| `preferredNotifChannel` | タスク完了および権限プロンプト通知の方法：`"auto"`、`"terminal_bell"`、`"iterm2"`、`"iterm2_with_bell"`、`"kitty"`、`"ghostty"`、または `"notifications_disabled"`。デフォルト：`"auto"`。iTerm2、Ghostty、Kitty ではデスクトップ通知を送信し、他のターミナルでは何もしません。任意のターミナルでベル文字を鳴らすには `"terminal_bell"` を設定します。`/config` に**通知**として表示されます。[ターミナルベルまたは通知を取得](/ja/terminal-config#get-a-terminal-bell-or-notification)を参照してください | `"terminal_bell"` |
 | `prefersReducedMotion` | アクセシビリティのために UI アニメーション（スピナー、シマー、フラッシュエフェクト）を削減または無効にします | `true` |
 | `prUrlTemplate` | フッターおよびツール結果サマリーに表示される PR バッジの URL テンプレート。`gh` レポートされた PR URL から `{host}`、`{owner}`、`{repo}`、`{number}`、および `{url}` を置き換えます。PR リンクを `github.com` の代わりに内部コードレビューツールにポイントするために使用します。Claude の散文の `#123` オートリンクには影響しません | `"https://reviews.example.com/{owner}/{repo}/pull/{number}"` |
 | `respectGitignore` | `@` ファイルピッカーが `.gitignore` パターンを尊重するかどうかを制御します。`true`（デフォルト）の場合、`.gitignore` パターンに一致するファイルは提案から除外されます | `false` |
