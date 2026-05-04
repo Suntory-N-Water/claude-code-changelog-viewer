@@ -1,0 +1,30 @@
+{
+  "key": "CLAUDE_CODE_ENABLE_AWAY_SUMMARY",
+  "slug": "claude-code-enable-away-summary",
+  "source": "env",
+  "description_en": "Override [session recap](/en/interactive-mode#session-recap) availability. Set to `0` to force recaps off regardless of the `/config` toggle. Set to `1` to force recaps on when [`awaySummaryEnabled`](/en/settings#available-settings) is `false`. Takes precedence over the setting and `/config` toggle",
+  "description_ja": "セッション再開時の概要表示(Session Recap)の有効・無効を、他の設定より優先して強制的に切り替えます。",
+  "use_case_ja": "- 数分間席を外した後の再開時に、それまでの経緯を1行で要約表示し、文脈把握のオーバーヘッドを削減します。\n- テレメトリが無効な環境でも、ローカル生成される要約機能だけを明示的に有効化して利便性を高めたい場合に使用します。",
+  "related_changelog": [
+    {
+      "version": "2.1.108",
+      "content": "- Added recap feature to provide context when returning to a session, configurable in `/config` and manually invocable with `/recap`; force with `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` if telemetry disabled.",
+      "content_ja": "セッション再開時に、離席中の変更内容や文脈を要約して提供する「recap」機能を追加",
+      "inference": {
+        "before": "以前のセッションを再開した際、前回の議論の最後がどのような状態だったかを自力で思い出す必要がありました。",
+        "after": "`/recap`コマンドや設定により、再開時にこれまでの経緯が要約表示されるようになり、テレメトリ無効時も環境変数で強制有効化できます。",
+        "benefit": "中断した作業にスムーズに戻ることができ、文脈を再確認するための思考のオーバーヘッドを削減できます。"
+      }
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Session recap is now enabled for users with telemetry disabled (Bedrock, Vertex, Foundry, `DISABLE_TELEMETRY`). Opt out via `/config` or `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0`.",
+      "content_ja": "テレメトリ無効設定(Bedrock, Vertex, Foundry, `DISABLE_TELEMETRY`)のユーザーでも、セッション再開時の概要表示(Session recap)が利用可能に",
+      "inference": {
+        "before": "テレメトリをオフにしている環境では、席を外した間にAIが行った作業の要約(Session recap)が表示されず、何が起きたかを把握するためにログを読み解く必要がありました。",
+        "after": "データの送信を制限しているユーザーでも、ローカルで生成されるセッション概要を利用できるようになりました。必要に応じて`/config`から無効化も可能です。",
+        "benefit": "セキュリティ制約の厳しい環境でも、中断後の再開時に「AIがどこまで進めたか」を瞬時に把握でき、スムーズに作業に戻ることができます。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,388 @@
+{
+  "key": "worktree",
+  "slug": "worktree",
+  "source": "settings",
+  "schema_type": "object",
+  "description_en": "Configuration for --worktree sessions. See https://code.claude.com/docs/en/settings#worktree-settings",
+  "description_ja": "`--worktree` フラグを使用したセッションの動作や、チェックアウトするパスなどを設定します。",
+  "use_case_ja": "- 既存の作業ブランチを汚さずに、独立した一時的なディレクトリ(Git worktree)でAIにタスクを依頼する場合に使用します。\n- `sparsePaths` を設定することで、大規模なモノレポでも必要なディレクトリのみを疎にチェックアウトし、ディスク容量と起動時間を節約できます。",
+  "related_changelog": [
+    {
+      "version": "1.0.120",
+      "content": "- Fixed IDE compatibility issue by removing worktree support check"
+    },
+    {
+      "version": "2.1.105",
+      "content": "- Added `path` parameter to the `EnterWorktree` tool to switch into an existing worktree of the current repository",
+      "content_ja": "EnterWorktreeツールにpathパラメータを追加し、既存のワークツリーへの切り替えを可能にしました",
+      "inference": {
+        "before": "ワークツリー機能を利用する際、既に存在するワークツリーディレクトリへの直接的な切り替えや再利用が容易ではありませんでした。",
+        "after": "EnterWorktreeツールでpathパラメータを指定できるようになり、既存のワークツリーへの移動がスムーズに行えるようになりました。",
+        "benefit": "複数の作業ブランチをワークツリーで並行管理している場合に、既存の環境を即座に再利用できるため、作業の切り替えが高速化されます。"
+      }
+    },
+    {
+      "version": "2.1.105",
+      "content": "- Improved stale agent worktree cleanup to remove worktrees whose PR was squash-merged instead of keeping them indefinitely",
+      "content_ja": "エージェントの古いワークツリーのクリーンアップ処理を改善し、スカッシュマージされたPRに関連するワークツリーも削除されるようになりました",
+      "inference": {
+        "before": "PRがスカッシュマージされた後、サブエージェントが使用していた一時的なワークツリーが削除されずに残り続け、ディスク容量を圧迫することがありました。",
+        "after": "マージの形式を問わず、役割を終えたワークツリーがより正確に検出・削除されるようになりました。",
+        "benefit": "開発マシンのストレージ容量が無駄な一時ファイルで枯渇するのを防ぎ、環境を常にクリーンに保てます。"
+      }
+    },
+    {
+      "version": "2.1.105",
+      "content": "- Fixed duplicate \"Creating worktree\" text in EnterWorktree/ExitWorktree tool display",
+      "content_ja": "EnterWorktree/ExitWorktreeツールの表示において、「Creating worktree」というテキストが重複して表示される問題を修正しました。"
+    },
+    {
+      "version": "2.1.105",
+      "content": "- Fixed \"Resume this session with...\" hint not printing on exit after `/resume`, `--worktree`, or `/branch`",
+      "content_ja": "/resume や --worktree などの後にセッションを終了しても、再開用のヒントが表示されない問題を修正しました",
+      "inference": {
+        "before": "セッションを閉じる際、次にどのようにコマンドを叩けば同じ会話を再開できるかの案内(Resume this session with...)が表示されない場合がありました。",
+        "after": "セッションの終了方法に関わらず、再開用のコマンド案内が確実に出力されるようになりました。",
+        "benefit": "複雑な作業の続きを再開する際のコマンドを覚えたりメモしたりする必要がなくなり、スムーズに作業に戻れます。"
+      }
+    },
+    {
+      "version": "2.1.116",
+      "content": "- Fixed `/update` and `/tui` not working after entering a worktree mid-session",
+      "content_ja": "セッションの途中で worktree に入った後、`/update` や `/tui` が機能しなくなる問題を修正",
+      "inference": {
+        "before": "セッション実行中に git worktree を作成して移動すると、その後のアップデート操作や UI モードの変更(`/tui`)が正常に動作しなくなる不当な挙動がありました。",
+        "after": "worktree への移動後も、カレントディレクトリやセッション状態が正しく維持され、すべてのコマンドが継続して利用できるよう修正されました。",
+        "benefit": "作業ディレクトリの切り替えを伴う柔軟な開発ワークフローの中でも、Claude Code のすべての機能を一貫して利用し続けることができます。"
+      }
+    },
+    {
+      "version": "2.1.19",
+      "content": "- Fixed `/rename` and `/tag` not updating the correct session when resuming from a different directory (e.g., git worktrees)",
+      "content_ja": "git worktree などの異なるディレクトリからセッションを再開した際に、`/rename` や `/tag` が正しいセッションを更新しない問題を修正しました。",
+      "inference": {
+        "before": "git worktree を使用して複数のディレクトリで作業している場合、過去のセッションを再開して名前を変更しようとしても、意図しない別のセッションが更新されることがありました。",
+        "after": "ディレクトリの場所に関わらず、現在アクティブなセッションを正確に特定して名前やタグの変更が適用されるようになりました。",
+        "benefit": "複数の作業ブランチや worktree を行き来しながら開発する際、セッション管理がより正確になり、プロジェクトの整理が容易になります。"
+      }
+    },
+    {
+      "version": "2.1.50",
+      "content": "- Added `WorktreeCreate` and `WorktreeRemove` hook events, enabling custom VCS setup and teardown when agent worktree isolation creates or removes worktrees.",
+      "content_ja": "`WorktreeCreate`および`WorktreeRemove`フックイベントが追加され、エージェントのワークツリー分離がワークツリーを作成または削除する際にカスタムVCSのセットアップとティアダウンが可能になりました。",
+      "inference": {
+        "before": "ワークツリーの作成・削除時にカスタムVCSのセットアップ/ティアダウンを行う機能がありませんでした。VCSの初期化やクリーンアップを自動化したい場合に、手動での対応が必要でした。",
+        "after": "ワークツリーの作成・削除時にカスタムVCSのセットアップ/ティアダウンを行えるようになりました。これにより、VCSの初期化やクリーンアップといった定型作業を自動化できます。",
+        "benefit": "VCSのセットアップとティアダウンを自動化することで、開発者はワークツリーのライフサイクル管理にかかる手間を省き、より効率的に開発を進めることができます。"
+      }
+    },
+    {
+      "version": "2.1.50",
+      "content": "- Added support for `isolation: worktree` in agent definitions, allowing agents to declaratively run in isolated git worktrees.",
+      "content_ja": "エージェント定義で `isolation: worktree` をサポートし、エージェントが宣言的に分離されたgitワークツリーで実行できるようになりました。",
+      "inference": {
+        "before": "エージェントが実行される環境を宣言的に指定する手段がなく、各エージェントの実行環境を個別に管理する必要がありました。",
+        "after": "エージェント定義内で `isolation: worktree` を指定することで、エージェントを独立したGitワークツリーで実行できるようになりました。これにより、プロジェクトの分離が容易になります。",
+        "benefit": "エージェントごとに独立した実行環境を用意できるため、依存関係の競合を防ぎ、よりクリーンで予測可能な開発フローを実現できます。"
+      }
+    },
+    {
+      "version": "2.1.53",
+      "content": "- Fixed `--worktree` sometimes being ignored on first launch",
+      "content_ja": "`--worktree` オプションが初回起動時に無視されることがある問題を修正しました。",
+      "inference": {
+        "before": "`--worktree` オプションを指定しても、初回起動時に正しく認識されず、意図した通りにworktreeが作成されない場合がありました。",
+        "after": "`--worktree` オプションが初回起動時から確実に機能するようになり、期待通りのworktreeが作成されるようになりました。",
+        "benefit": "開発者は初回起動時から意図したworktree環境を確実に利用でき、作業の準備時間を短縮し、ワークフローをスムーズに進めることができます。"
+      }
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Added `--worktree` (`-w`) flag to start Claude in an isolated git worktree",
+      "content_ja": "隔離されたGitワークツリーでClaude Codeを開始するための`--worktree` (`-w`) フラグが追加されました。",
+      "inference": {
+        "before": "これまでは、Claude Codeで複数のタスクを並行して作業する場合、Gitリポジトリの異なる状態を扱うために手動でGit操作を行う必要がありました。これにより、作業間の切り替えが複雑になり、意図しない変更が他の作業に影響を与えるリスクがありました。",
+        "after": "`--worktree` (`-w`) フラグを使用することで、Claude Codeのセッションを独立したGitワークツリーで開始できるようになりました。これにより、各セッションが自身の分離されたプロジェクトコピーを持つため、あるセッションでの変更がコミットされるまで他のセッションに影響を与えることがなくなります。",
+        "benefit": "開発者は、メインブランチを汚すことなく、複数の機能開発やバグ修正を並行して安全に進めることができます。作業間のコンテキスト切り替えが容易になり、実験的な変更も気軽に試せるため、開発の効率と安全性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Subagents support `isolation: \"worktree\"` for working in a temporary git worktree",
+      "content_ja": "サブエージェントが一時的なGitワークツリーで作業するための`isolation: \"worktree\"`をサポートするようになりました。",
+      "inference": {
+        "before": "以前は、サブエージェントがコードベースに変更を加える際、メインの作業ディレクトリに直接変更が適用される可能性がありました。これにより、サブエージェントが意図しない変更を加えたり、実験的な作業が他の開発者の作業と衝突したりするリスクがありました。",
+        "after": "サブエージェントの設定で`isolation: \"worktree\"`を指定することで、サブエージェントが独立したGitワークツリー内で作業を行うことができるようになりました。これにより、サブエージェントが行うすべての変更はそのワークツリー内に隔離され、メインのコードベースや他のサブエージェントの作業に影響を与えません。",
+        "benefit": "サブエージェントを使用した大規模な変更や実験的なタスクを、より安全かつ独立して実行できるようになります。メインプロジェクトへの意図しない変更のリスクが低減され、サブエージェントは自信を持ってコードを変更・テストできるため、開発者は安心してAIにタスクを任せられるようになります。"
+      }
+    },
+    {
+      "version": "2.1.63",
+      "content": "- Project configs & auto memory now shared across git worktrees of the same repository",
+      "content_ja": "プロジェクト設定と自動メモリが、同じリポジトリのgit worktree間で共有されるようになりました。"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed worktree isolation issues: Task tool resume not restoring cwd, and background task notifications missing `worktreePath` and `worktreeBranch`",
+      "content_ja": "ワークツリーの隔離に関する問題(Task ツールのレジューム時のディレクトリ復元ミスなど)を修正"
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Fixed a race condition where stale-worktree cleanup could delete an agent worktree just resumed from a previous crash",
+      "content_ja": "クラッシュから再開した直後のエージェント用ワークツリーが、クリーンアップ処理によって誤って削除される競合状態を修正しました"
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Added `worktree.sparsePaths` setting for `claude --worktree` in large monorepos to check out only the directories you need via git sparse-checkout",
+      "content_ja": "`worktree.sparsePaths`設定を追加 — 大規模なモノレポにおいて、git sparse-checkoutを使用して必要なディレクトリのみをチェックアウトできるようになりました",
+      "inference": {
+        "before": "`--worktree`フラグを使用するとリポジトリ全体がチェックアウトされるため、超大規模なリポジトリではディスク容量の消費や初期化に時間がかかっていました。",
+        "after": "この設定により、特定のパスのみを対象とする「疎なチェックアウト(sparse-checkout)」が可能になり、必要なファイルだけを作業ツリーに含めることができます。",
+        "benefit": "モノレポでの開発効率が大幅に向上し、不必要なファイルの取得を避けることでセットアップ時間の短縮とディスク容量の節約が実現します。"
+      }
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Improved `--worktree` startup performance by reading git refs directly and skipping redundant `git fetch` when the remote branch is already available locally",
+      "content_ja": "`--worktree`起動時のパフォーマンスを改善 — git refsを直接読み込むことで不要な`git fetch`をスキップするように変更",
+      "inference": {
+        "before": "ワークツリーの作成時に毎回リモートとの通信(git fetch)が発生していたため、ネットワーク環境によっては起動に時間がかかることがありました。",
+        "after": "ローカルの情報を優先的に参照するように最適化され、リモートブランチが既に手元にある場合は即座にセッションを開始できます。",
+        "benefit": "並列作業を始めたい時に待たされる時間が短縮され、より軽快に作業環境を切り替えられます。"
+      }
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Improved stale worktree cleanup — worktrees left behind after an interrupted parallel run are now automatically cleaned up",
+      "content_ja": "並列実行が中断された後に残った古いワークツリーを、自動的にクリーンアップするように改善しました。"
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed `--worktree` flag not loading skills and hooks from the worktree directory",
+      "content_ja": "`--worktree` フラグ使用時に、ワークツリーディレクトリ内のスキルやフックが読み込まれない問題を修正",
+      "inference": {
+        "before": "Git ワークツリーを利用した並行作業中に、そのワークツリー独自の自動化スクリプトやカスタムスキルが認識されませんでした。",
+        "after": "ワークツリー環境からでも正しく設定ファイルが読み込まれ、メイン環境と同じ自動化機能が利用可能になりました。",
+        "benefit": "複数の機能を並行して開発する際も、一貫した開発体験と自動化ツールを維持できます。"
+      }
+    },
+    {
+      "version": "2.1.81",
+      "content": "- Resuming a session that was in a worktree now switches back to that worktree",
+      "content_ja": "Worktree 内で実行されていたセッションを再開する際、自動的にその Worktree に切り替わるよう変更しました。"
+    },
+    {
+      "version": "2.1.85",
+      "content": "- Fixed `--worktree` exiting with an error in non-git repositories before the `WorktreeCreate` hook could run",
+      "content_ja": "非Gitリポジトリで--worktreeを使用した場合、WorktreeCreateフックが実行される前にエラーで終了してしまう問題を修正",
+      "inference": {
+        "before": "Git以外のVCS(SVN等)をフックでサポートしようとしても、起動時のGitチェックで処理が止まってしまい、フックによるカスタム処理が実行できませんでした。",
+        "after": "--worktree起動時のチェック順序が見直され、Gitがない環境でもフックによる独自のワークツリー作成処理を正しく開始できるようになりました。",
+        "benefit": "Git以外のプロジェクト管理ツールを使用している開発者も、Claude Codeの強力な並行作業機能を活用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.84",
+      "content": "- Added `WorktreeCreate` hook support for `type: \"http\"` — return the created worktree path via `hookSpecificOutput.worktreePath` in the response JSON",
+      "content_ja": "HTTPタイプの `WorktreeCreate` フックで作成されたパスの返却に対応",
+      "inference": {
+        "before": "`WorktreeCreate` フックをHTTP経由で実行した際、フックによって作成されたgitワークツリーのパスをClaude Code側に正確に伝える標準的な方法がありませんでした。",
+        "after": "HTTPフックのレスポンスJSON内の `hookSpecificOutput.worktreePath` フィールドを通じて、作成されたパスを返せるようになりました。",
+        "benefit": "独自のサーバーで管理している複雑なワークツリー作成フローをClaude Codeとシームレスに統合でき、並行作業の自動化がより強固になります。"
+      }
+    },
+    {
+      "version": "2.1.94",
+      "content": "- Improved `--resume` to resume sessions from other worktrees of the same repo directly instead of printing a `cd` command",
+      "content_ja": "`--resume` で同じリポジトリの別ワークツリーにあるセッションを直接再開できるよう改善",
+      "inference": {
+        "before": "git worktreeを使用している環境で別のワークツリーのセッションを再開しようとすると、手動で `cd` するよう指示されるだけで、手間がかかっていました。",
+        "after": "セッション再開時にワークツリーの切り替えをより直接的に扱えるようになり、作業場所を問わず過去のコンテキストにアクセスしやすくなりました。",
+        "benefit": "複数の機能開発を並行して行っている際に、ワークツリー間をまたいだコンテキストの復元が迅速に行えます。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed `claude -w <name>` failing with \"already exists\" after a previous session's worktree cleanup left a stale directory",
+      "content_ja": "`claude -w <name>` で、過去のセッションのクリーンアップ失敗によりディレクトリが残っていると「already exists」エラーで失敗する問題を修正",
+      "inference": {
+        "before": "前回のセッションが正常に終了せず、一時的な作業ツリー(ワークツリー)のディレクトリが残っていると、同じ名前で作業を開始できないことがありました。",
+        "after": "古い残存ディレクトリを適切に処理し、新しいセッションをスムーズに開始できるようになります。",
+        "benefit": "クラッシュ後の再開や、同一名での繰り返し作業におけるワークフローの停止を防げます。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed sub-agents running in isolated worktrees being denied Read/Edit access to files inside their own worktree",
+      "content_ja": "孤立したワークツリーで実行されているサブエージェントが、自身のワークツリー内のファイルへの読み書きアクセスを拒否される問題を修正しました。"
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed several `/resume` picker issues: narrow default view hiding sessions from other projects, unreachable preview on Windows Terminal, incorrect cwd in worktrees, session-not-found errors not surfacing in stderr, terminal title not being set, and resume hint overlapping the prompt input",
+      "content_ja": "`/resume` ピッカーにおける多数の不具合(他プロジェクトのセッションが表示されない、Windows Terminalでの表示崩れ、ワークツリーでのパス異常など)を修正",
+      "inference": {
+        "before": "過去のセッションを視覚的に選んで再開するピッカーにおいて、特定の環境や操作で表示が欠けたり、誤ったディレクトリで再開されるなどの不便がありました。",
+        "after": "多岐にわたるUI・ロジックの修正により、どのようなターミナルやプロジェクト構造でも直感的にセッションを再開できるようになりました。",
+        "benefit": "プロジェクトをまたいだ並行作業や、作業の中断・再開がより確実かつ快適になります。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed several Remote Control issues: worktrees removed on session crash, connection failures not persisting in the transcript, spurious \"Disconnected\" indicator in brief mode for local sessions, and `/remote-control` failing over SSH when only `CLAUDE_CODE_ORGANIZATION_UUID` is set",
+      "content_ja": "セッションクラッシュ時のワークツリー残留や接続失敗の記録漏れなど、Remote Controlに関する複数の問題を修正",
+      "inference": {
+        "before": "リモート操作中にエラーが発生すると、背後で作成された作業ディレクトリが消えずに残ったり、エラー内容がログに残らず原因究明が難しいことがありました。",
+        "after": "Remote Controlの安定性とトレーサビリティが向上し、予期せぬ切断時の後処理も自動化されました。",
+        "benefit": "外出先からスマートフォン等で作業を依頼する際、より安定してセッションを維持・復旧できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed Agent tool with `isolation: \"worktree\"` reusing stale worktrees from prior sessions",
+      "content_ja": "エージェントツールの `isolation: \"worktree\"` モードにおいて、以前のセッションの古いワークツリーが再利用されてしまう問題を修正しました",
+      "inference": {
+        "before": "サブエージェントに git ワークツリーによる分離環境を与えた際、過去のセッションで残っていた古い環境が完全にクリーンアップされず、状態が引き継がれてしまうことがありました。",
+        "after": "各セッションで常にクリーンなワークツリーが作成・使用されるよう、分離の完全性が担保されます。",
+        "benefit": "前の作業の影響を受けない独立した環境でサブエージェントが動作するため、コード生成やテストの再現性が向上し、予期せぬ副作用を防げます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed PR not linked to session when working in a git worktree",
+      "content_ja": "Git の作業ツリー(worktree)内で作業している際、プルリクエストが現在のセッションに正しくリンクされない問題を修正しました",
+      "inference": {
+        "before": "`--worktree` フラグで生成された環境で、PR リンクの表示や PR 情報に基づいたコンテキストの読み込みが機能しないことがありました。",
+        "after": "作業ツリー環境下でも Git リモート情報が正しく追跡され、PR とセッションが正しく紐付けられます。",
+        "benefit": "並行して複数のブランチを独立したディレクトリで作業するワークフローにおいても、Claude が PR の文脈を完全に理解して支援を継続できます。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Windows: fixed worktree session matching when drive letter casing differs (anthropics/claude-code#26123)",
+      "content_ja": "Windows: ドライブレターの大文字/小文字が異なる場合のワークツリーセッションマッチングを修正しました(anthropics/claude-code#26123)。",
+      "inference": {
+        "before": "Windows環境において、ワークツリーセッションのマッチングが、ドライブレターの大文字・小文字の違いによって正しく行われない場合がありました。",
+        "after": "Windows環境でのワークツリーセッションマッチングが修正され、ドライブレターの大文字・小文字の違いを吸収するようになりました。",
+        "benefit": "Windows環境でのワークツリーセッションの利用が改善され、ドライブレターの大文字・小文字の違いを気にすることなく、セッションを正しくマッチングできるようになりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed custom agents and skills not being discovered when running from a git worktree — project-level `.claude/agents/` and `.claude/skills/` from the main repository are now included (anthropics/claude-code#25816)",
+      "content_ja": "gitワークツリーから実行した場合にカスタムエージェントとスキルが検出されない問題を修正しました。メインリポジトリのプロジェクトレベルの`.claude/agents/`および`.claude/skills/`が含まれるようになりました(anthropics/claude-code#25816)。",
+      "inference": {
+        "before": "gitワークツリーからClaude Codeを実行する際、プロジェクトレベルの`.claude/agents/`および`.claude/skills/`ディレクトリにあるカスタムエージェントやスキルが検出されない問題がありました。",
+        "after": "gitワークツリーから実行した場合でも、プロジェクトレベルの`.claude/agents/`および`.claude/skills/`が正しく検出されるようになりました。",
+        "benefit": "gitワークツリー環境でのカスタムエージェントとスキルの利用が改善され、開発者はワークツリー内でもプロジェクト固有の設定を正しく利用できるようになりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed background tasks failing in git worktrees due to remote URL resolution reading from worktree-specific gitdir instead of the main repository config (anthropics/claude-code#26065)",
+      "content_ja": "gitワークツリーでバックグラウンドタスクが失敗する問題を修正しました。これは、リモートURL解決がメインリポジトリの設定ではなく、ワークツリー固有のgitdirから読み取っていたことが原因でした(anthropics/claude-code#26065)。",
+      "inference": {
+        "before": "gitワークツリー内でバックグラウンドタスクを実行する際、リモートURLの解決がワークツリー固有のgitdirから行われるため、メインリポジトリの設定が正しく読み取られず、タスクが失敗する問題がありました。",
+        "after": "gitワークツリーでのバックグラウンドタスク実行時のリモートURL解決が修正されました。ワークツリー固有のgitdirではなく、メインリポジトリの設定から読み取るようになり、タスクが失敗しなくなりました。",
+        "benefit": "gitワークツリー環境でのバックグラウンドタスクの実行が安定し、リモートURL解決の正確性が向上しました。これにより、開発者はワークツリー内でもバックグラウンドタスクを確実に実行できます。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Added `claude remote-control server` for hosting multiple concurrent sessions with worktree or same-dir isolation",
+      "content_ja": "複数の同時セッションをホストするための `claude remote-control server` を追加しました。Git ワークツリーまたは同一ディレクトリによる分離をサポートします。",
+      "inference": {
+        "before": "リモートコントロール機能は単一のセッションに限定されており、複数の異なるタスクを同時にリモートから並行して進めるための仕組みが不足していました。",
+        "after": "サーバーモードが追加されたことで、複数のセッションを同時に立ち上げ、それぞれを Git ワークツリーなどで分離して実行・管理できるようになりました。",
+        "benefit": "複数のプロジェクトやブランチにまたがる作業を、リモートデバイスから並行して効率的に進めることができるようになります。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Added `worktree` field to status line hook commands with name, path, branch, and original repo directory when running in a `--worktree` session",
+      "content_ja": "ステータスラインのフックコマンドに `worktree` フィールドを追加しました。`--worktree` セッション実行時に、名前、パス、ブランチ、元のリポジトリパスが表示可能です。",
+      "inference": {
+        "before": "Git ワークツリーを使用して並行セッションを実行している際、ステータスバーなどのカスタム表示において、現在のワークツリーに関する詳細情報を表示する直接的な手段がありませんでした。",
+        "after": "ステータスライン構築用の JSON データにワークツリーの詳細が含まれるようになり、現在の作業環境がどのブランチ・どのディレクトリなのかを常に画面下に表示できるようになりました。",
+        "benefit": "複数のワークツリーを使い分けて並行開発を行う際に、自分が今どこで作業しているのかを混同するリスクを大幅に減らせます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Added `worktree` field to status line hook commands with name, path, branch, and original repo directory when running in a `--worktree` session",
+      "content_ja": "ステータスラインのフックコマンドに `worktree` フィールドを追加。ワークツリー名、パス、ブランチ等の情報を表示可能に",
+      "inference": {
+        "before": "並行作業のためにGitワークツリー(`--worktree`)を使用している際、ステータスバーからは現在の作業場所の詳細が分かりませんでした。",
+        "after": "ステータスラインをカスタマイズして、どのワークツリーで作業中かを常に表示できるようになりました。",
+        "benefit": "複数のワークツリーを使い分けている時に、誤った場所で変更を行ってしまうミスを防ぎ、コンテキストの把握を助けます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed duplicate CLAUDE.md, slash commands, agents, and rules when running from a worktree nested inside its main repo (e.g. `claude -w`)"
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed worktree file copy on Windows",
+      "content_ja": "Windows環境でのワークツリー間のファイルコピーに関する問題を修正"
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Improved `--worktree` startup by eliminating a git subprocess on the startup path"
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed `--worktree` hanging silently when the worktree name contained a forward slash",
+      "content_ja": "ワークツリー名にフォワードスラッシュ(/)が含まれていると、`--worktree` が無言で停止する問題を修正しました",
+      "inference": {
+        "before": "「feature/login-fix」のようなスラッシュを含む名前でワークツリーを作成しようとすると、ディレクトリ作成や Git の制限に引っかかり、何の説明もなく処理が中断されていました。",
+        "after": "名前に含まれるスラッシュが適切に処理(置換またはエラー通知)され、プロセスが途中で止まることがなくなりました。",
+        "benefit": "標準的なブランチ命名規則をそのままワークツリー名に使用してもトラブルが発生せず、並行作業がスムーズに行えます。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Added `workspace.git_worktree` to the status line JSON input, set when the current directory is inside a linked git worktree",
+      "content_ja": "ステータスラインのJSON入力に`workspace.git_worktree`を追加しました。カレントディレクトリがリンクされたgit worktree内にある場合に設定されます。",
+      "inference": {
+        "before": "カスタムステータスラインを作成する際、現在の環境が通常のレポジトリなのか、Claudeが作業用に作成した独立したworktree内なのかをスクリプト側で判別する標準的な方法がありませんでした。",
+        "after": "ステータスラインスクリプトに渡されるJSONデータから、worktree内での作業中かどうかを直接判定できるようになりました。",
+        "benefit": "並行して複数のタスクを進めている際に、今どの作業ブランチ(worktree)にいるかをステータスラインに正確に表示できるようになり、誤操作を防げます。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed subagents with worktree isolation or `cwd:` override leaking their working directory back to the parent session's Bash tool",
+      "content_ja": "ワークツリー隔離や`cwd:`オーバーライドを使用しているサブエージェントが、親セッションのBashツールに作業ディレクトリ情報を漏洩させてしまう問題を修正しました。",
+      "inference": {
+        "before": "サブエージェントが独立した場所で作業していても、その影響でメインセッションのディレクトリ情報が混乱し、後続のコマンドが意図しない場所で実行されるリスクがありました。",
+        "after": "サブエージェントの作業環境が完全に隔離され、親セッションの環境に影響を及ぼさないようになりました。",
+        "benefit": "複数のディレクトリをまたぐ複雑な並行作業を、メイン環境を汚すことなく安全に実行できます。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Added `workspace.git_worktree` to the status line JSON input, set whenever the current directory is inside a linked git worktree",
+      "content_ja": "ステータスラインの JSON 入力に `workspace.git_worktree` フィールドを追加しました。現在のディレクトリが git worktree 内にある場合に値がセットされます。",
+      "inference": {
+        "before": "カスタムステータスラインを作成する際、現在のセッションが通常のディレクトリなのか、git worktree による隔離環境なのかを判別する標準的な方法がありませんでした。",
+        "after": "JSONデータから直接 worktree 名を取得できるため、ステータスラインに現在の作業ブランチや worktree 情報を表示しやすくなります。",
+        "benefit": "複数の worktree を使って並行作業をしている開発者が、ターミナルの最下部を見るだけで「今どの作業空間にいるか」を一目で把握できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed stale subagent worktree cleanup removing worktrees that contain untracked files",
+      "content_ja": "古いサブエージェント用ワークツリーのクリーンアップ時に、未追跡ファイルを含むワークツリーまで削除されてしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Improved `/resume` filter hint labels and added project/worktree/branch names in the filter indicator",
+      "content_ja": "`/resume` のフィルターヒントを改善し、フィルターインジケーターにプロジェクト名、ワークツリー名、ブランチ名を表示するようにしました。",
+      "inference": {
+        "before": "複数のプロジェクトやブランチを切り替えて作業している際、今どの条件でセッションを絞り込んでいるのかが分かりにくい状態でした。",
+        "after": "絞り込み条件(コンテキスト)が詳細に表示されるようになり、迷わず目的のセッションを選択できます。",
+        "benefit": "膨大なセッション履歴の中から、特定のプロジェクトや作業単位の記録を瞬時に見つけ出せるようになります。"
+      }
+    }
+  ]
+}

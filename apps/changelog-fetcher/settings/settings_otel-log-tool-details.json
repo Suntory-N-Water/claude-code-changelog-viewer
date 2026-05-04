@@ -1,0 +1,40 @@
+{
+  "key": "OTEL_LOG_TOOL_DETAILS",
+  "slug": "otel-log-tool-details",
+  "source": "env",
+  "description_en": "Set to `1` to include tool input arguments, MCP server names, raw error strings on tool failures, and other tool details in OpenTelemetry traces and logs. Disabled by default to protect PII. See [Monitoring](/en/monitoring-usage)",
+  "description_ja": "OpenTelemetryのトレースやログに、ツールの引数、MCPサーバー名、エラー詳細などの情報を含めるには1を設定します。",
+  "use_case_ja": "- 組織レベルでの利用状況の可視化や、どのコマンドがコストにどう影響しているかの詳細な分析を可能にします。\n- セキュリティポリシーに合わせて、ツールの引数などの機密情報を含む詳細ログの出力を個別に制御できます。",
+  "related_changelog": [
+    {
+      "version": "2.1.117",
+      "content": "- OpenTelemetry: `user_prompt` events now include `command_name` and `command_source` for slash commands; `cost.usage`, `token.usage`, `api_request`, and `api_error` now include an `effort` attribute when the model supports effort levels. Custom/MCP command names are redacted unless `OTEL_LOG_TOOL_DETAILS=1` is set",
+      "content_ja": "OpenTelemetry の拡張：スラッシュコマンドのソース情報や、モデルの思考(Effort)レベルごとのコスト・使用量、API リクエスト情報の取得に対応しました",
+      "inference": {
+        "before": "テレメトリデータにおいて、どのコマンドから実行されたかや、モデルの「思考の深さ(Effort)」がコストにどう影響しているかを詳細に分析することが困難でした。",
+        "after": "コマンド名やソース、および `effort` 属性が各イベントに付与され、組織レベルでの詳細な利用状況の可視化が可能になります。",
+        "benefit": "開発チーム全体での Claude Code の利用効率やコストパフォーマンスを、より正確なデータに基づいて最適化できます。"
+      }
+    },
+    {
+      "version": "2.1.85",
+      "content": "- `tool_parameters` in OpenTelemetry tool_result events are now gated behind `OTEL_LOG_TOOL_DETAILS=1`",
+      "content_ja": "OpenTelemetryのtool_resultイベントに含まれるtool_parametersを、環境変数OTEL_LOG_TOOL_DETAILS=1による制御対象に変更",
+      "inference": {
+        "before": "OpenTelemetry経由でログを収集する際、ツールの引数などの詳細なパラメータが常に送信され、機密情報の漏洩やログサイズの増大が懸念されていました。",
+        "after": "デフォルトではパラメータが伏せられるようになり、詳細なログが必要な場合にのみ明示的な設定で有効化できるようになりました。",
+        "benefit": "テレメトリ収集のプライバシー制御が強化され、組織のセキュリティポリシーに合わせた柔軟な運用が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Improved beta tracing to honor `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, and `OTEL_LOG_TOOL_CONTENT`; sensitive span attributes are no longer emitted unless opted in",
+      "content_ja": "ベータ版のトレーシング機能で、プロンプトやツールの詳細・内容を記録する各設定(OTEL_LOG_*)を尊重するように改善",
+      "inference": {
+        "before": "OpenTelemetryによるトレース情報の出力時、秘匿すべき情報が設定に関わらず出力されてしまうリスクがありました。",
+        "after": "ユーザーが明示的に許可した情報(プロンプトやツールの引数など)のみがトレースに含まれるようになり、機密情報の保護が強化されました。",
+        "benefit": "組織のセキュリティポリシーに合わせて、安心して利用状況のモニタリングを行えるようになります。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1235 @@
+{
+  "key": "agent",
+  "slug": "agent",
+  "source": "settings",
+  "schema_type": "string",
+  "description_en": "Name of an agent (built-in or custom) to use for the main thread. Applies the agent's system prompt, tool restrictions, and model. See https://code.claude.com/docs/en/sub-agents",
+  "description_ja": "メインスレッドで使用する組み込みまたはカスタムエージェントの名前を指定します。",
+  "use_case_ja": "- 特定の役割(コードレビュアーやセキュリティ担当など)に特化したエージェントでセッションを開始したい場合に使用します。\n- `--agent`フラグで指定した場合は設定を上書きでき、ターミナルのタイトルバーで稼働中のエージェントを確認可能です。\n- エージェントごとに定義された専用のモデル、ツール制限、MCPサーバー、およびフックが自動的に適用されます。",
+  "related_changelog": [
+    {
+      "version": "1.0.41",
+      "content": "- Hooks: Split Stop hook triggering into Stop and SubagentStop"
+    },
+    {
+      "version": "1.0.60",
+      "content": "- You can now create custom subagents for specialized tasks! Run /agents to get started"
+    },
+    {
+      "version": "1.0.62",
+      "content": "- Added @-mention support with typeahead for custom agents. @<your-custom-agent> to invoke it"
+    },
+    {
+      "version": "1.0.63",
+      "content": "- Windows: Fixed file search, @agent mentions, and custom slash commands functionality"
+    },
+    {
+      "version": "1.0.64",
+      "content": "- Agents: Added model customization support - you can now specify which model an agent should use"
+    },
+    {
+      "version": "1.0.64",
+      "content": "- Agents: Fixed unintended access to the recursive agent tool"
+    },
+    {
+      "version": "1.0.70",
+      "content": "- Windows: Fixed native file search, ripgrep, and subagent functionality"
+    },
+    {
+      "version": "1.0.81",
+      "content": "- Agents: Fix custom agent loading when agent files are unparsable"
+    },
+    {
+      "version": "1.0.80",
+      "content": "- UI improvements: Fix text contrast for custom subagent colors and spinner rendering issues"
+    },
+    {
+      "version": "1.0.84",
+      "content": "- @-mention: Add ~/.claude/\\* files to suggestions for easier agent, output style, and slash command editing"
+    },
+    {
+      "version": "2.0.0",
+      "content": "- Add subagents dynamically with `--agents` flag"
+    },
+    {
+      "version": "2.0.12",
+      "content": "- **Plugin System Released**: Extend Claude Code with custom commands, agents, hooks, and MCP servers from marketplaces"
+    },
+    {
+      "version": "2.0.17",
+      "content": "- Introducing the Explore subagent. Powered by Haiku it'll search through your codebase efficiently to save context!"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Plan mode: introduced new Plan subagent"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Subagents: claude can now choose to resume subagents"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Subagents: claude can dynamically choose the model used by its subagents"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Discovery of custom slash commands, subagents, and output styles no longer respects .gitignore"
+    },
+    {
+      "version": "2.0.31",
+      "content": "- Fixed a bug with subagents and MCP servers related to \"Tool names must be unique\" error"
+    },
+    {
+      "version": "2.0.25",
+      "content": "- Removed legacy SDK entrypoint. Please migrate to @anthropic-ai/claude-agent-sdk for future SDK updates: https://platform.claude.com/docs/en/agent-sdk/migration-guide"
+    },
+    {
+      "version": "2.0.30",
+      "content": "- Added `disallowedTools` field to custom agent definitions for explicit tool blocking"
+    },
+    {
+      "version": "2.0.30",
+      "content": "- Fixed Explore agent creating unwanted .md investigation files during codebase exploration"
+    },
+    {
+      "version": "2.0.30",
+      "content": "- Fixed MCP tools not being available to sub-agents"
+    },
+    {
+      "version": "2.0.42",
+      "content": "- Added `agent_id` and `agent_transcript_path` fields to `SubagentStop` hooks."
+    },
+    {
+      "version": "2.0.43",
+      "content": "- Added `permissionMode` field for custom agents"
+    },
+    {
+      "version": "2.0.43",
+      "content": "- Added skills frontmatter field to declare skills to auto-load for subagents"
+    },
+    {
+      "version": "2.0.43",
+      "content": "- Added the `SubagentStart` hook event"
+    },
+    {
+      "version": "2.0.49",
+      "content": "- Fixed handling of subagent permissions"
+    },
+    {
+      "version": "2.0.60",
+      "content": "- Added background agent support. Agents run in the background while you work"
+    },
+    {
+      "version": "2.0.68",
+      "content": "- Fixed an issue where steering messages could be lost while a subagent is working"
+    },
+    {
+      "version": "2.0.59",
+      "content": "- Added --agent CLI flag to override the agent setting for the current session"
+    },
+    {
+      "version": "2.0.59",
+      "content": "- Added `agent` setting to configure main thread with a specific agent's system prompt, tool restrictions, and model"
+    },
+    {
+      "version": "2.0.64",
+      "content": "- Agents and bash commands can run asynchronously and send messages to wake up the main agent"
+    },
+    {
+      "version": "2.0.74",
+      "content": "- Improved `/context` command visualization with grouped skills and agents by source, slash commands, and sorted token count"
+    },
+    {
+      "version": "2.1.105",
+      "content": "- Improved stale agent worktree cleanup to remove worktrees whose PR was squash-merged instead of keeping them indefinitely",
+      "content_ja": "エージェントの古いワークツリーのクリーンアップ処理を改善し、スカッシュマージされたPRに関連するワークツリーも削除されるようになりました",
+      "inference": {
+        "before": "PRがスカッシュマージされた後、サブエージェントが使用していた一時的なワークツリーが削除されずに残り続け、ディスク容量を圧迫することがありました。",
+        "after": "マージの形式を問わず、役割を終えたワークツリーがより正確に検出・削除されるようになりました。",
+        "benefit": "開発マシンのストレージ容量が無駄な一時ファイルで枯渇するのを防ぎ、環境を常にクリーンに保てます。"
+      }
+    },
+    {
+      "version": "2.1.114",
+      "content": "- Fixed a crash in the permission dialog when an agent teams teammate requested tool permission",
+      "content_ja": "Agent Teamsのチームメイトがツールの実行許可をリクエストした際に、パーミッションダイアログでクラッシュが発生する問題を修正しました。"
+    },
+    {
+      "version": "2.1.116",
+      "content": "- Bash tool now surfaces a hint when `gh` commands hit GitHub's API rate limit, so agents can back off instead of retrying",
+      "content_ja": "Bash ツールにおいて `gh` コマンドが GitHub API のレート制限に達した際にヒントを表示し、エージェントが無意味な再試行を避けて待機できるように改善",
+      "inference": {
+        "before": "GitHub CLI (`gh`) を使用して PR 作成などを行う際、レート制限に達するとエージェントがエラーの原因を正しく理解できず、リトライを繰り返して制限をさらに悪化させることがありました。",
+        "after": "レート制限エラーが発生した際、Bash ツールがエージェントに対して「レート制限に達した」という具体的なヒントを返すようになりました。これにより、AI は賢く「待機」を選択できるようになります。",
+        "benefit": "API 制限による予期せぬエラーで作業が中断されるのを防ぎ、AI が自律的に適切なタイミングでリトライを行うため、GitHub 連携の信頼性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.116",
+      "content": "- Agent frontmatter `hooks:` now fire when running as a main-thread agent via `--agent`",
+      "content_ja": "エージェントの frontmatter 内の `hooks:` が、`--agent` フラグを使用したメインスレッド・エージェント実行時にも発火するように修正",
+      "inference": {
+        "before": "サブエージェントの設定ファイルで定義したフック (`hooks:`) は、サブエージェントとして呼び出された時しか機能せず、`--agent` で直接起動した場合には実行されませんでした。",
+        "after": "`--agent` を使って特定のロールでセッションを開始した場合でも、そのエージェントの定義に含まれるフックが正しくトリガーされるようになりました。",
+        "benefit": "特定の役割(セキュリティ担当やレビュアーなど)を担うエージェントを直接起動した際も、自動フォーマットなどのカスタムワークフローが期待通りに動作します。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Forked subagents can now be enabled on external builds by setting `CLAUDE_CODE_FORK_SUBAGENT=1`",
+      "content_ja": "外部ビルドにおいて `CLAUDE_CODE_FORK_SUBAGENT=1` を設定することで、フォークされたサブエージェントを有効化できるようになりました",
+      "inference": {
+        "before": "特定の外部環境やカスタムビルドにおいて、並列タスクを実行するためのフォークされたサブエージェントがデフォルトで制限されていた可能性があります。",
+        "after": "環境変数 `CLAUDE_CODE_FORK_SUBAGENT=1` を指定するだけで、メインスレッドのコンテキストを汚さずにサブエージェントを活用した並列処理が実行可能になります。",
+        "benefit": "重い探索やログ解析をサブエージェントに分離できるため、メイン会話のコンテキストを節約し、作業効率を向上させられます。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Agent frontmatter `mcpServers` are now loaded for main-thread agent sessions via `--agent`",
+      "content_ja": "`--agent` フラグを使用したメインスレッドのエージェントセッションで、エージェント定義(フロントマター)の `mcpServers` が読み込まれるようになりました",
+      "inference": {
+        "before": "カスタムエージェントをメインスレッドとして直接起動した際、そのエージェント専用の MCP サーバー設定が反映されない場合がありました。",
+        "after": "エージェントファイル内に定義された MCP サーバーが自動的に起動するため、エージェントごとに必要な外部ツールへのアクセスが確実に行われます。",
+        "benefit": "特定のタスクに特化したツール(GitHub、Jira など)を持つエージェントを、個別のセッションとして即座に活用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Fixed subagents running a different model than the main agent incorrectly flagging file reads with a malware warning",
+      "content_ja": "メインエージェントと異なるモデルを使用するサブエージェントが、ファイル読み取り時に誤ってマルウェア警告を出してしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.113",
+      "content": "- Subagents that stall mid-stream now fail with a clear error after 10 minutes instead of hanging silently",
+      "content_ja": "ストリーミング中に停止したサブエージェントが、無反応のままにならず、10分後に明確なエラーで終了するようになりました。"
+    },
+    {
+      "version": "2.1.113",
+      "content": "- Fixed messages typed while viewing a running subagent being hidden from its transcript and misattributed to the parent AI",
+      "content_ja": "サブエージェントの動作中にユーザーが入力したメッセージが、トランスクリプトでAIの発言と誤認されたり非表示になったりする問題を修正しました",
+      "inference": {
+        "before": "サブエージェントが実行されている間にユーザーが追記した内容が、履歴上で正しく記録されない不具合がありました。",
+        "after": "実行中の入力を正しくユーザーの発言として分離・記録するように改善されました。",
+        "benefit": "会話の前後関係が正確に保存されるため、後から振り返った際の混乱がなくなります。"
+      }
+    },
+    {
+      "version": "2.1.113",
+      "content": "- Fixed `CLAUDE_CODE_EXTRA_BODY` `output_config.effort` causing 400 errors on subagent calls to models that don't support effort and on Vertex AI",
+      "content_ja": "思考負荷(Effort)設定をサポートしていないモデルやVertex AIを使用している際に発生していた400エラーを修正しました",
+      "inference": {
+        "before": "特定のプロバイダーや古いモデルで、新しい機能であるEffort設定が不適切に送信され、通信エラーが発生することがありました。",
+        "after": "接続先のモデルがサポートしている機能を自動判別し、適切なパラメータのみを送信するように改善されました。",
+        "benefit": "Google Vertex AIなどの外部プラットフォーム利用時でも、予期せぬエラーで作業が止まることがなくなります。"
+      }
+    },
+    {
+      "version": "2.1.113",
+      "content": "- Fixed Remote Control sessions not streaming subagent transcripts",
+      "content_ja": "リモートコントロールセッションにおいて、サブエージェントの途中経過(transcript)がリアルタイムに表示されない問題を修正しました。"
+    },
+    {
+      "version": "2.1.14",
+      "content": "- Fixed memory issues that could cause crashes when running parallel subagents",
+      "content_ja": "並列でサブエージェントを実行した際にクラッシュを引き起こす可能性があったメモリの問題を修正しました。"
+    },
+    {
+      "version": "2.1.16",
+      "content": "- Fixed out-of-memory crashes when resuming sessions with heavy subagent usage",
+      "content_ja": "サブエージェントを多用したセッションを再開する際に、メモリ不足でクラッシュする問題を修正しました。"
+    },
+    {
+      "version": "2.1.19",
+      "content": "- Fixed agent list displaying \"Sonnet (default)\" instead of \"Inherit (default)\" for agents without an explicit model setting",
+      "content_ja": "明示的なモデル設定がないエージェントのリスト表示において、「Sonnet (default)」ではなく「Inherit (default)」と正しく表示されるよう修正しました。"
+    },
+    {
+      "version": "2.1.126",
+      "content": "- Fixed deferred tools (WebSearch, WebFetch, etc.) not being available to skills with `context: fork` and other subagents on their first turn",
+      "content_ja": "context: fork を使用するスキルやサブエージェントの最初のターンで、WebSearch や WebFetch などの遅延ツールが利用できなかった問題を修正",
+      "inference": {
+        "before": "スキルを context: fork (フォークされたコンテキスト) で実行したり、新しいサブエージェントを起動したりした際、その最初のターンで Web 検索などの一部のツールが認識されず、呼び出しに失敗することがありました。",
+        "after": "サブエージェントやスキルの実行開始直後から、WebSearch や WebFetch を含むすべての遅延ロードツールが正しく利用可能になります。",
+        "benefit": "複雑な調査タスクをサブエージェントに任せる際、最初からスムーズに外部情報の検索を開始できるため、作業の停滞がなくなります。"
+      }
+    },
+    {
+      "version": "2.1.120",
+      "content": "- Spinner tips that recommend installing the desktop app or creating skills/agents are now hidden when you already have them",
+      "content_ja": "デスクトップアプリの導入やスキル作成を促すスピナー内のヒントが、すでに導入済みの場合は表示されないよう改善されました。"
+    },
+    {
+      "version": "2.1.2",
+      "content": "- Added `agent_type` to SessionStart hook input, populated if `--agent` is specified",
+      "content_ja": "SessionStart フックの入力に agent_type を追加し、--agent 指定時にその値を格納するように変更",
+      "inference": {
+        "before": "フックの実行時にどのエージェントが使用されているかの情報が不足しており、特定のカスタムエージェントが起動した際に連動した処理を行うことが困難でした。",
+        "after": "SessionStart イベントの JSON コンテキストに agent_type フィールドが含まれるようになり、--agent フラグで指定されたエージェント名をフック内で識別できるようになります。",
+        "benefit": "カスタムエージェントの種類に応じた初期化処理や環境設定をフックで自動化できるようになり、ワークフローの柔軟性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.3",
+      "content": "- Fixed sub-agents using the wrong model during conversation compaction",
+      "content_ja": "会話のコンパクション中にサブエージェントが誤ったモデルを使用していた問題を修正しました。"
+    },
+    {
+      "version": "2.1.3",
+      "content": "- Fixed web search in sub-agents using incorrect model",
+      "content_ja": "サブエージェントのウェブ検索で誤ったモデルが使用されていた問題を修正しました。"
+    },
+    {
+      "version": "2.1.20",
+      "content": "- Fixed agents sometimes ignoring user messages sent while actively working on a task",
+      "content_ja": "エージェントがアクティブにタスクに取り組んでいる間にユーザーが送信したメッセージを無視することがあった問題が修正されました。"
+    },
+    {
+      "version": "2.1.20",
+      "content": "- Changed background agents to prompt for tool permissions before launching",
+      "content_ja": "バックグラウンドエージェントが起動前にツールのパーミッションを要求するように変更されました。"
+    },
+    {
+      "version": "2.1.34",
+      "content": "- Fixed a crash when agent teams setting changed between renders",
+      "content_ja": "エージェントチームの設定がレンダリング間で変更されたときに発生するクラッシュを修正しました。"
+    },
+    {
+      "version": "2.1.32",
+      "content": "- Added research preview agent teams feature for multi-agent collaboration (token-intensive feature, requires setting CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)",
+      "content_ja": "マルチエージェントコラボレーションのための研究プレビュー版エージェントチーム機能が追加されました(トークンを多く消費する機能で、`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`の設定が必要です)。"
+    },
+    {
+      "version": "2.1.32",
+      "content": "- Updated --resume to re-use --agent value specified in previous conversation by default.",
+      "content_ja": "`--resume`コマンドが、以前の会話で指定された`--agent`値をデフォルトで再利用するようになりました。"
+    },
+    {
+      "version": "2.1.33",
+      "content": "- Fixed agent teammate sessions in tmux to send and receive messages",
+      "content_ja": "tmuxでのエージェントチームメイトセッションが、メッセージの送受信を行えるように修正されました。"
+    },
+    {
+      "version": "2.1.33",
+      "content": "- Fixed warnings about agent teams not being available on your current plan",
+      "content_ja": "現在のプランではエージェントチームが利用できないという警告が修正されました。"
+    },
+    {
+      "version": "2.1.33",
+      "content": "- Added `TeammateIdle` and `TaskCompleted` hook events for multi-agent workflows",
+      "content_ja": "マルチエージェントワークフロー向けに、`TeammateIdle`と`TaskCompleted`のフックイベントが追加されました。",
+      "inference": {
+        "before": "以前は、エージェントチームのメンバーがアイドル状態になる前や、タスクが完了とマークされる前に、カスタムロジックを挿入してワークフローを制御する仕組みがありませんでした。これにより、特定の条件下でチームメイトの作業を継続させたり、タスクの完了を阻止してフィードバックを提供したりするなどの、高度なワークフローの自動化が困難でした。",
+        "after": "`TeammateIdle`と`TaskCompleted`フックイベントが追加されたことで、エージェントチームのメンバーがアイドル状態になる直前や、タスクが完了とマークされる直前に、カスタムスクリプトやHTTPエンドポイントを実行できるようになりました。これにより、例えば、チームメイトがアイドル状態になるのを防ぎ作業を継続させたり、特定の条件が満たされない限りタスクの完了を阻止して詳細なフィードバックを要求したりすることが可能になります。",
+        "benefit": "これらの新しいフックイベントにより、マルチエージェントワークフローの自動化と制御が大幅に強化されます。チームメイトの振る舞いやタスクの完了プロセスをより細かくカスタマイズできるため、複雑なプロジェクト管理や品質保証のシナリオにおいて、より堅牢でインテリジェントなエージェントチームを構築できます。これにより、開発者はワークフローの柔軟性が向上し、生産性が高まることを実感できます。"
+      }
+    },
+    {
+      "version": "2.1.33",
+      "content": "- Added support for restricting which sub-agents can be spawned via `Task(agent_type)` syntax in agent \"tools\" frontmatter",
+      "content_ja": "エージェントの「ツール」フロントマターにおいて、`Task(agent_type)`構文を介してスポーンできるサブエージェントを制限する機能が追加されました。",
+      "inference": {
+        "before": "以前は、エージェントがサブエージェントを起動する際に、どのサブエージェントタイプでも自由にスポーンできるため、特定のワークフローにおいて意図しないサブエージェントが起動される可能性がありました。これにより、セキュリティポリシーの適用や、特定のタスクに特化したエージェントの利用を強制することが困難でした。",
+        "after": "今回、エージェントのツール設定において`Agent(agent_type)`という構文を使用することで、メインスレッドとして実行されているエージェントがスポーンできるサブエージェントの種類を明示的に制限できるようになりました。例えば、`tools: Agent(worker, researcher)`と設定すれば、`worker`と`researcher`サブエージェントのみが起動可能となり、その他のサブエージェントの起動は失敗します。",
+        "benefit": "この機能により、サブエージェントの利用に関してより厳密な制御が可能になります。特定の役割を持つエージェントが、その役割に必要なサブエージェントのみを起動するように制限できるため、ワークフローの予測可能性とセキュリティが向上します。これにより、開発者はより安全で効率的なマルチエージェントシステムを構築できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.33",
+      "content": "- Added `memory` frontmatter field support for agents, enabling persistent memory with `user`, `project`, or `local` scope",
+      "content_ja": "エージェントのフロントマターフィールドに`memory`が追加され、`user`、`project`、`local`スコープでの永続的なメモリが可能になりました。",
+      "inference": {
+        "before": "以前のClaude Codeでは、エージェントのセッション間で特定の情報を永続的に記憶させる標準的なメカニズムが不足していました。特に、サブエージェントは親会話からスキルを継承せず、セッション終了後に学習内容を保持する機能がなかったため、同じタスクを繰り返す際に過去のコンテキストを失うという非効率性がありました。",
+        "after": "エージェントのフロントマターに`memory`フィールドが追加され、`user`、`project`、`local`の3つのスコープでエージェントに永続的な記憶機能を持たせることが可能になりました。これにより、エージェントはセッションを跨いで学習し、過去の経験に基づいて振る舞いを改善できるようになります。例えば、`project`スコープを設定すれば、そのプロジェクト固有の知識をエージェントが長期的に保持できます。",
+        "benefit": "この改善により、エージェントはより賢く、より効率的に作業できるようになります。セッションを跨いで知識やコンテキストを保持できるため、反復的なタスクや長期にわたるプロジェクトにおいて、エージェントが毎回ゼロから学習し直す必要がなくなります。これにより、開発者はエージェントのパフォーマンスと生産性の向上を享受できます。"
+      }
+    },
+    {
+      "version": "2.1.30",
+      "content": "- Fixed subagents not being able to access SDK-provided MCP tools because they were not synced to the shared application state",
+      "content_ja": "サブエージェントがSDK提供のMCPツールにアクセスできなかった問題を修正しました。これらのツールが共有アプリケーションステートに同期されていなかったためです。",
+      "inference": {
+        "before": "サブエージェントからSDK提供のMCPツールを利用しようとすると、ツールが利用できない、または同期されておらずアクセスできない問題が発生していました。",
+        "after": "サブエージェントからSDK提供のMCPツールへアクセスできるよう、共有アプリケーションステートとの同期が修正されました。",
+        "benefit": "サブエージェントがMCPツールをより効果的に利用できるようになり、機能拡張性が向上しました。"
+      }
+    },
+    {
+      "version": "2.1.43",
+      "content": "- Fixed spurious warnings for non-agent markdown files in `.claude/agents/` directory",
+      "content_ja": "`.claude/agents/`ディレクトリ内のエージェント以外のMarkdownファイルに対して発生していた誤った警告が修正されました。",
+      "inference": {
+        "before": "以前は、`.claude/agents/`ディレクトリにエージェントではない通常のMarkdownファイルを配置すると、不必要な警告が表示されることがありました。これにより、ユーザーはこれらの警告に煩わされ、重要な情報を見落とす可能性がありました。",
+        "after": "今回の修正により、`.claude/agents/`ディレクトリ内にあるMarkdownファイルがエージェントに関連しない場合でも、誤った警告が表示されなくなりました。システムは正しくエージェント関連ファイルとそれ以外のファイルを区別します。",
+        "benefit": "ユーザーは、`.claude/agents/`ディレクトリをより柔軟に利用できるようになり、開発環境が警告で煩雑になることがなくなります。これにより、よりクリーンで集中しやすい作業環境が提供され、生産性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.41",
+      "content": "- Fixed permission wait time being included in subagent elapsed time display",
+      "content_ja": "サブエージェントの経過時間表示にパーミッション待機時間が含まれる問題を修正しました。"
+    },
+    {
+      "version": "2.1.45",
+      "content": "- Fixed Task tool (backgrounded agents) crashing with a `ReferenceError` on completion (anthropics/claude-code#22087)",
+      "content_ja": "Task tool(バックグラウンドエージェント)が完了時に `ReferenceError` でクラッシュする問題を修正しました (anthropics/claude-code#22087)。"
+    },
+    {
+      "version": "2.1.45",
+      "content": "- Fixed skills invoked by subagents incorrectly appearing in main session context after compaction",
+      "content_ja": "サブエージェントによって呼び出されたスキルが、コンパクション後にメインセッションコンテキストに誤って表示される問題を修正しました。"
+    },
+    {
+      "version": "2.1.45",
+      "content": "- Fixed plugin-provided commands, agents, and hooks not being available immediately after installation without requiring a restart",
+      "content_ja": "プラグイン提供のコマンド、エージェント、フックが、再起動なしでインストール直後から利用可能になりました。",
+      "inference": {
+        "before": "プラグインをインストールしても、そのプラグインが提供するコマンド、エージェント、フックがすぐに利用できず、Claude Code の再起動が必要でした。",
+        "after": "プラグインのインストール後、再起動することなく、提供されたコマンド、エージェント、フックが即座に利用可能になりました。",
+        "benefit": "プラグインの追加や更新がよりスムーズになり、開発者はツールのセットアップ時間を短縮して、すぐに作業を開始できます。"
+      }
+    },
+    {
+      "version": "2.1.50",
+      "content": "- Added `WorktreeCreate` and `WorktreeRemove` hook events, enabling custom VCS setup and teardown when agent worktree isolation creates or removes worktrees.",
+      "content_ja": "`WorktreeCreate`および`WorktreeRemove`フックイベントが追加され、エージェントのワークツリー分離がワークツリーを作成または削除する際にカスタムVCSのセットアップとティアダウンが可能になりました。",
+      "inference": {
+        "before": "ワークツリーの作成・削除時にカスタムVCSのセットアップ/ティアダウンを行う機能がありませんでした。VCSの初期化やクリーンアップを自動化したい場合に、手動での対応が必要でした。",
+        "after": "ワークツリーの作成・削除時にカスタムVCSのセットアップ/ティアダウンを行えるようになりました。これにより、VCSの初期化やクリーンアップといった定型作業を自動化できます。",
+        "benefit": "VCSのセットアップとティアダウンを自動化することで、開発者はワークツリーのライフサイクル管理にかかる手間を省き、より効率的に開発を進めることができます。"
+      }
+    },
+    {
+      "version": "2.1.50",
+      "content": "- Fixed memory leak in agent teams where completed teammate tasks were never garbage collected from session state",
+      "content_ja": "エージェントチームにおいて、完了したチームメイトのタスクがセッション状態からガベージコレクションされないメモリリークを修正しました。"
+    },
+    {
+      "version": "2.1.50",
+      "content": "- Fixed `CLAUDE_CODE_SIMPLE` to fully strip down skills, session memory, custom agents, and CLAUDE.md token counting",
+      "content_ja": "`CLAUDE_CODE_SIMPLE`がスキル、セッションメモリ、カスタムエージェント、CLAUDE.mdのトークンカウントを完全に削除するように修正しました。"
+    },
+    {
+      "version": "2.1.50",
+      "content": "- Added support for `isolation: worktree` in agent definitions, allowing agents to declaratively run in isolated git worktrees.",
+      "content_ja": "エージェント定義で `isolation: worktree` をサポートし、エージェントが宣言的に分離されたgitワークツリーで実行できるようになりました。",
+      "inference": {
+        "before": "エージェントが実行される環境を宣言的に指定する手段がなく、各エージェントの実行環境を個別に管理する必要がありました。",
+        "after": "エージェント定義内で `isolation: worktree` を指定することで、エージェントを独立したGitワークツリーで実行できるようになりました。これにより、プロジェクトの分離が容易になります。",
+        "benefit": "エージェントごとに独立した実行環境を用意できるため、依存関係の競合を防ぎ、よりクリーンで予測可能な開発フローを実現できます。"
+      }
+    },
+    {
+      "version": "2.1.50",
+      "content": "- Added `claude agents` CLI command to list all configured agents",
+      "content_ja": "設定済みの全エージェントを一覧表示する `claude agents` CLIコマンドが追加されました。",
+      "inference": {
+        "before": "設定されているエージェントを一覧表示するコマンドがなく、どのエージェントが利用可能か確認するのが困難でした。",
+        "after": "`claude agents` コマンドで、設定済みの全エージェントを簡単に一覧表示できるようになりました。",
+        "benefit": "ユーザーは現在利用可能なエージェントを容易に把握でき、目的に合ったエージェントを迅速に選択・活用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.53",
+      "content": "- Fixed bulk agent kill (ctrl+f) to send a single aggregate notification instead of one per agent, and to properly clear the command queue",
+      "content_ja": "一括エージェントキル(Ctrl+F)で、エージェントごとに通知するのではなく、単一の集計通知を送信し、コマンドキューを適切にクリアするように修正しました。"
+    },
+    {
+      "version": "2.1.59",
+      "content": "- Improved memory usage in multi-agent sessions by releasing completed subagent task state",
+      "content_ja": "完了したサブエージェントタスクの状態を解放することで、マルチエージェントセッションでのメモリ使用量が改善されました。"
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Subagents support `isolation: \"worktree\"` for working in a temporary git worktree",
+      "content_ja": "サブエージェントが一時的なGitワークツリーで作業するための`isolation: \"worktree\"`をサポートするようになりました。",
+      "inference": {
+        "before": "以前は、サブエージェントがコードベースに変更を加える際、メインの作業ディレクトリに直接変更が適用される可能性がありました。これにより、サブエージェントが意図しない変更を加えたり、実験的な作業が他の開発者の作業と衝突したりするリスクがありました。",
+        "after": "サブエージェントの設定で`isolation: \"worktree\"`を指定することで、サブエージェントが独立したGitワークツリー内で作業を行うことができるようになりました。これにより、サブエージェントが行うすべての変更はそのワークツリー内に隔離され、メインのコードベースや他のサブエージェントの作業に影響を与えません。",
+        "benefit": "サブエージェントを使用した大規模な変更や実験的なタスクを、より安全かつ独立して実行できるようになります。メインプロジェクトへの意図しない変更のリスクが低減され、サブエージェントは自信を持ってコードを変更・テストできるため、開発者は安心してAIにタスクを任せられるようになります。"
+      }
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Added Ctrl+F keybinding to kill background agents (two-press confirmation)",
+      "content_ja": "バックグラウンドエージェントを強制終了するためのCtrl+Fキーバインディングが追加されました(2回押しで確認)。"
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Fixed Ctrl+C and ESC being silently ignored when background agents are running and the main thread is idle. Pressing twice within 3 seconds now kills all background agents.",
+      "content_ja": "バックグラウンドエージェントが実行中でメインスレッドがアイドル状態の際に、Ctrl+CとESCが黙って無視される問題を修正しました。3秒以内に2回押すと、すべてのバックグラウンドエージェントが強制終了されるようになりました。",
+      "inference": {
+        "before": "バックグラウンドでエージェントが動作している間、開発者がCtrl+CやESCを押しても、それらの入力が無視され、エージェントを停止させることができませんでした。これにより、エージェントが予期せず動作し続けたり、ユーザーがコントロールを取り戻せなくなったりする不便さがありました。",
+        "after": "今回の修正により、Ctrl+CまたはESCを3秒以内に2回連続して押すことで、すべてのバックグラウンドエージェントが強制終了されるようになりました。これにより、ユーザーはより確実に、そして直感的にバックグラウンドプロセスを停止させることができるようになります。",
+        "benefit": "開発者は、意図しないバックグラウンドエージェントの実行を迅速かつ簡単に停止できるようになります。これにより、システムリソースの無駄な消費を防ぎ、予期せぬ動作を回避できるため、より安定した開発環境で作業を行えます。"
+      }
+    },
+    {
+      "version": "2.1.63",
+      "content": "- Improved memory usage in long sessions with subagents by stripping heavy progress message payloads during context compaction",
+      "content_ja": "サブエージェントを使用する長時間セッションでのメモリ使用量が改善されました。コンテキスト圧縮中に重いプログレスメッセージペイロードが除去されます。",
+      "inference": {
+        "before": "サブエージェントを使用する長時間セッションで、プログレスメッセージのペイロードがメモリを圧迫し、メモリ使用量が増加していました。",
+        "after": "コンテキスト圧縮時に重いプログレスメッセージペイロードが除去されるようになり、サブエージェント利用時のメモリ効率が向上しました。",
+        "benefit": "長時間にわたるサブエージェントの使用におけるメモリ効率が大幅に改善され、パフォーマンスが向上します。"
+      }
+    },
+    {
+      "version": "2.1.7",
+      "content": "- Added inline display of agent's final response in task notifications, making it easier to see results without reading the full transcript file",
+      "content_ja": "タスク通知にエージェントの最終応答をインライン表示できるようになり、トランスクリプトファイル全体を読まなくても結果を確認しやすくなりました。"
+    },
+    {
+      "version": "2.1.71",
+      "content": "- Fixed background agent completion notifications missing the output file path, which made it difficult for parent agents to recover agent results after context compaction",
+      "content_ja": "バックグラウンドエージェントの完了通知に出力ファイルパスが含まれておらず、コンテキスト圧縮後に親エージェントが結果を復元できない問題を修正しました。"
+    },
+    {
+      "version": "2.1.71",
+      "content": "- Fixed `--print` hanging forever when team agents are configured — the exit loop no longer waits on long-lived `in_process_teammate` tasks",
+      "content_ja": "エージェントチームが構成されている場合に、終了ループが長時間実行される `in_process_teammate` タスクの完了を待たなくなったことで、`--print` モードが永久にハングする問題を修正しました。",
+      "inference": {
+        "before": "チームメイトエージェントを利用してスクリプト出力を行う際、バックグラウンドタスクが終了しないためにコマンド全体が応答しなくなることがありました。",
+        "after": "出力が完了した時点で適切に終了処理が行われるようになり、自動化ワークフロー内での実行が安定しました。",
+        "benefit": "CI/CD などの非対話的な自動化処理において、Claude Code を確実に終了させることができ、パイプラインの停止を防げます。"
+      }
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Fixed subagents with `model: opus`/`sonnet`/`haiku` being silently downgraded to older model versions on Bedrock, Vertex, and Microsoft Foundry",
+      "content_ja": "Bedrock、Vertex、Foundryにおいて、サブエージェントのモデルが古いバージョンに自動的にダウングレードされる問題を修正",
+      "inference": {
+        "before": "サブエージェントに `opus` や `sonnet` を指定しても、クラウドプラットフォームの制約により意図せず古いモデルが使用されることがありました。",
+        "after": "各プロバイダーでのモデルエイリアス解決が修正され、常に最新の Claude 4.6 (Sonnet/Opus) などの指定したスペックが正しく適用されます。",
+        "benefit": "サブエージェントが本来の推論能力をフルに発揮できるため、複雑なタスクの解決精度が向上します。"
+      }
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Fixed background bash processes spawned by subagents not being cleaned up when the agent exits",
+      "content_ja": "サブエージェントが終了した際に、そのエージェントが起動したバックグラウンドのBashプロセスが残ってしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed agent task progress stuck on \"Initializing…\"",
+      "content_ja": "エージェントタスクの進捗が「Initializing…」のまま停止する不具合を修正"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed `/clear` killing background agent/bash tasks — only foreground tasks are now cleared",
+      "content_ja": "/clear コマンドがバックグラウンドのエージェントや Bash タスクを終了させないよう変更",
+      "inference": {
+        "before": "会話履歴を消去する際、まだ完了していないバックグラウンドタスクまで強制終了されてしまい、作業が中断される不便がありました。",
+        "after": "/clear はフォアグラウンドの会話のみを対象とし、バックグラウンドで動作するタスクには干渉しないようになりました。",
+        "benefit": "コンテキスト整理のための履歴消去と、長時間実行されるタスクの管理を切り離して行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed double Ctrl+C not exiting when background agents or tasks are running",
+      "content_ja": "バックグラウンドでエージェントやタスクが動作中に Ctrl+C 二回押しで終了できない問題を修正"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed team agents to inherit the leader's model",
+      "content_ja": "チームエージェントがリーダーのモデル設定を継承するよう修正"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed several hooks issues: `transcript_path` pointing to the wrong directory for resumed/forked sessions, agent `prompt` being silently deleted from settings.json on every settings write, PostToolUse block reason displaying twice, async hooks not receiving stdin with bash `read -r`, and validation error message showing an example that fails validation",
+      "content_ja": "transcript_path の不備や設定保存時の prompt 消失、async フックの stdin 問題など、フック機能の複数の不具合を修正",
+      "inference": {
+        "before": "レジュームしたセッションで履歴パスが誤っていたり、非同期フックで `read -r` が動作しないなど、高度なカスタマイズを行うフック機能においていくつかの不安定な挙動がありました。",
+        "after": "セッション管理とフック実行エンジンの修正により、自作の自動化スクリプトがより正確に動作するようになりました。",
+        "benefit": "自作のフックを用いた高度なワークフロー自動化を、予期せぬエラーに悩まされることなく構築できます。"
+      }
+    },
+    {
+      "version": "2.1.74",
+      "content": "- Fixed full model IDs (e.g., `claude-opus-4-5`) being silently ignored in agent frontmatter `model:` field and `--agents` JSON config — agents now accept the same model values as `--model`",
+      "content_ja": "エージェントのフロントマターや `--agents` JSON設定で、フルモデルID(例: `claude-opus-4-5`)が無視されていた問題を修正し、`--model` と同じ値を指定可能に改善",
+      "inference": {
+        "before": "サブエージェントの設定で詳細なモデルバージョンを指定しても無視されることがあり、期待した性能のモデルが起動しない場合がありました。",
+        "after": "サブエージェントの設定で、メインセッションと同じように正確なモデルIDを使用して、特定の用途に最適なモデルを確実に割り当てられるようになります。",
+        "benefit": "タスクごとに最適なモデルを確実に使い分けることができ、精度の向上やコストの最適化を正確に制御できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.75",
+      "content": "- Fixed footer hint in agent teams showing \"↓ to expand\" instead of the correct \"shift + ↓ to expand\"",
+      "content_ja": "エージェントチームのフッターヒントを、正しいショートカットである「shift + ↓」に修正しました。"
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Fixed a race condition where stale-worktree cleanup could delete an agent worktree just resumed from a previous crash",
+      "content_ja": "クラッシュから再開した直後のエージェント用ワークツリーが、クリーンアップ処理によって誤って削除される競合状態を修正しました"
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Fixed input deadlock when opening `/mcp` or similar dialogs while the agent is running",
+      "content_ja": "エージェントの実行中に `/mcp` などのダイアログを開くと入力がデッドロックする問題を修正しました",
+      "inference": {
+        "before": "Claude がバックグラウンドで動作している最中に設定ダイアログを操作しようとすると、入力待ちが重なり操作不能になることがありました。",
+        "after": "UI のスレッド制御が改善され、エージェントの動作状況に関わらずダイアログ操作が安定して行えるようになりました。",
+        "benefit": "Claude の作業を待つことなく、いつでも設定確認や MCP サーバーの管理を安全に行えます。"
+      }
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Improved `claude plugin validate` to check skill, agent, and command frontmatter plus `hooks/hooks.json`, catching YAML parse errors and schema violations",
+      "content_ja": "`claude plugin validate` でスキルやエージェントのフロントマター、およびフックの設定ファイルを検証できるようになりました",
+      "inference": {
+        "before": "プラグイン開発時に YAML のパースエラーやスキーマ違反があっても、実行するまで気づけないことがありました。",
+        "after": "バリデーションコマンドで事前に構文エラーや設定の誤りを網羅的にチェックできるようになりました。",
+        "benefit": "プラグイン開発のデバッグ効率が上がり、より高品質な拡張機能を短時間で作成できます。"
+      }
+    },
+    {
+      "version": "2.1.77",
+      "content": "- The Agent tool no longer accepts a `resume` parameter — use `SendMessage({to: agentId})` to continue a previously spawned agent",
+      "content_ja": "Agent ツールで `resume` パラメータを廃止しました。代わりに `SendMessage` を使用して既存エージェントを継続してください"
+    },
+    {
+      "version": "2.1.77",
+      "content": "- `SendMessage` now auto-resumes stopped agents in the background instead of returning an error",
+      "content_ja": "停止中のエージェントにメッセージを送った際、エラーを返すのではなくバックグラウンドで自動再開するようにしました"
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Improved background agent behavior — killing a background agent now preserves its partial results in the conversation context",
+      "content_ja": "バックグラウンドエージェントを強制終了した際、それまでの途中経過を会話コンテキストに保持するように改善しました。"
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Added `effort`, `maxTurns`, and `disallowedTools` frontmatter support for plugin-shipped agents",
+      "content_ja": "プラグイン提供のサブエージェント向けに frontmatter での `effort`、`maxTurns`、`disallowedTools` 設定をサポート",
+      "inference": {
+        "before": "プラグインに含まれるサブエージェントの思考レベルや最大ターン数、使用禁止ツールの制限を詳細に制御することが困難でした。",
+        "after": "サブエージェントの定義ファイル(frontmatter)から、これら高度なパラメーターを直接指定できるようになりました。",
+        "benefit": "開発者はエージェントの挙動をより精密にチューニングしたプラグインを配布・利用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed `cc log` and `--resume` silently truncating conversation history on large sessions (>5 MB) that used subagents",
+      "content_ja": "サブエージェントを使用した 5MB を超える大規模セッションにおいて、履歴が警告なく切り捨てられる問題を修正",
+      "inference": {
+        "before": "会話履歴が非常に長いセッションで、以前のやり取りがいつの間にか消えてしまい、コンテキストが失われるリスクがありました。",
+        "after": "大規模なセッションデータの処理が改善され、サブエージェントを含む複雑な履歴も正しく保持・再開できるようになりました。",
+        "benefit": "長期間にわたる複雑な開発タスクでも、Claude が過去の経緯を忘れずにサポートし続けられます。"
+      }
+    },
+    {
+      "version": "2.1.81",
+      "content": "- Fixed a race condition where background agent task output could hang indefinitely when the task completed between polling intervals",
+      "content_ja": "バックグラウンドでのエージェントタスク完了時に、ポーリング間隔のタイミングによって出力が停止したままになるレースコンディションを修正しました。"
+    },
+    {
+      "version": "2.1.79",
+      "content": "- Fixed `/btw` returning the main agent's output instead of answering the side question when triggered during streaming",
+      "content_ja": "ストリーミング応答中に実行された `/btw` が、寄り道の質問に答えずメインエージェントの出力を返してしまう問題を修正",
+      "inference": {
+        "before": "Claudeが回答を出力している最中に `/btw` でちょっとした質問を投げると、期待した回答ではなくメインの回答内容が混ざって表示されることがありました。",
+        "after": "メインの処理と並行して `/btw` の回答が正しく独立して処理・表示されるようになりました。",
+        "benefit": "Claudeの作業を中断させることなく、現在のコンテキストに基づいたちょっとした確認をいつでも正確に行えます。"
+      }
+    },
+    {
+      "version": "2.1.84",
+      "content": "- Fixed workflow subagents failing with API 400 when the outer session uses `--json-schema` and the subagent also specifies a schema",
+      "content_ja": "JSONスキーマ指定時のサブエージェント呼び出しエラーを修正",
+      "inference": {
+        "before": "メインセッションで `--json-schema` を使用している際、ワークフロー内で起動されるサブエージェントもスキーマを指定しようとすると、APIリクエストの競合により400エラーが発生していました。",
+        "after": "ネストされたエージェント呼び出しにおけるスキーマの処理が適正化され、エラーなく実行できるようになりました。",
+        "benefit": "構造化出力が必要な複雑なタスクをサブエージェントに分担させる高度な自動化スクリプトが安定して動作します。"
+      }
+    },
+    {
+      "version": "2.1.84",
+      "content": "- Improved interactive startup by ~30ms by running `setup()` in parallel with slash command and agent loading",
+      "content_ja": "起動プロセスを並列化し、対話モードの開始を約30ms高速化",
+      "inference": {
+        "before": "起動時に「セットアップ」「スラッシュコマンドのロード」「エージェントのロード」を順番に行っていたため、入力が可能になるまでわずかな待ち時間がありました。",
+        "after": "これらの準備処理を並列で実行するように改善され、起動時間が約30ms短縮されました。",
+        "benefit": "`claude` と打ち込んでから入力できるようになるまでのレスポンスがより機敏になり、開発のリズムを崩しません。"
+      }
+    },
+    {
+      "version": "2.1.91",
+      "content": "- Improved `/claude-api` skill guidance for agent design patterns including tool surface decisions, context management, and caching strategy",
+      "content_ja": "`/claude-api` スキルのガイダンスを強化。ツールのインターフェース設計、コンテキスト管理、キャッシュ戦略などのエージェント設計パターンが追加されました。",
+      "inference": {
+        "before": "`/claude-api` スキルで提供される情報は基本的なAPIリファレンスが中心で、高度なエージェントを構築するための具体的な設計ノウハウまではカバーしきれていませんでした。",
+        "after": "最新のAgent SDKを最大限に活用するための、ツール設計やキャッシュ効率化といった実践的なベストプラクティスが提供されるようになりました。",
+        "benefit": "Anthropicのモデル特性を活かした、より高性能でコスト効率の良いAIエージェントを迅速に開発できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.88",
+      "content": "- Added named subagents to `@` mention typeahead suggestions",
+      "content_ja": "`@` メンションの入力候補に名前付きサブエージェントを追加しました",
+      "inference": {
+        "before": "特定の役割を持つサブエージェントを呼び出す際、名前を正確に覚えている必要があり、入力の手間がかかっていました。",
+        "after": "`@` を入力するだけでファイルやMCPリソースと同様にサブエージェントも候補に表示されるようになり、素早く選択できます。",
+        "benefit": "特定のタスクに特化したサブエージェント(コードレビュアーなど)を即座に呼び出せるようになり、マルチエージェントを活用したワークフローがよりスムーズになります。"
+      }
+    },
+    {
+      "version": "2.1.88",
+      "content": "- Fixed `/stats` undercounting tokens by excluding subagent/fork usage",
+      "content_ja": "`/stats` において、サブエージェントやフォークされたセッションのトークン使用量がカウントされていない問題を修正しました",
+      "inference": {
+        "before": "メインの会話以外の、サブエージェントが実行したタスクや分岐したセッションでのAI利用量が統計に反映されず、実際の負荷より少なく表示されていました。",
+        "after": "全ての関連セッションのトークン使用量が統合して集計されるようになり、正確な利用統計が表示されます。",
+        "benefit": "プロジェクト全体での正確なAI利用量とコストを把握できるようになり、リソース管理や予算計画が立てやすくなります。"
+      }
+    },
+    {
+      "version": "2.1.94",
+      "content": "- Fixed agents appearing stuck after a 429 rate-limit response with a long Retry-After header — the error now surfaces immediately instead of silently waiting",
+      "content_ja": "レート制限(429エラー)のRetry-Afterヘッダーが長い場合にエージェントが固まって見える問題を修正し、待機せずに即座にエラーを表示するように変更しました。"
+    },
+    {
+      "version": "2.1.90",
+      "content": "- Fixed `--resume` causing a full prompt-cache miss on the first request for users with deferred tools, MCP servers, or custom agents (regression since v2.1.69)",
+      "content_ja": "遅延読み込みされるツール、MCPサーバー、またはカスタムエージェントを使用しているユーザーにおいて、`--resume` 実行時に最初のセッションでプロンプトキャッシュが完全にミスヒットする問題を修正しました(v2.1.69以降のデグレ)。",
+      "inference": {
+        "before": "以前のセッションを再開する際、特定の構成(MCPなど)を利用しているとキャッシュが効かず、最初の応答に時間がかかったりトークン消費が増えたりしていました。",
+        "after": "セッション再開時の内部的な読み込みフローが改善され、以前のコンテキストが正しくキャッシュから再利用されます。",
+        "benefit": "レジューム直後のレスポンスが高速化され、APIコストの節約にも繋がります。"
+      }
+    },
+    {
+      "version": "2.1.92",
+      "content": "- Fixed subagent spawning permanently failing with \"Could not determine pane count\" after tmux windows are killed or renumbered during a long-running session",
+      "content_ja": "tmux セッション中にウィンドウが削除・再番号付けされた際、サブエージェントの生成が失敗し続ける問題を修正。"
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed `--resume` chain recovery bridging into an unrelated subagent conversation when a subagent message landed near a main-chain write gap",
+      "content_ja": "`--resume` 実行時、特定の書き込みギャップの近くでサブエージェントが動作すると無関係な会話が混ざってしまう問題を修正",
+      "inference": {
+        "before": "稀に、セッションの復元ロジックが誤って無関係なサブエージェントの会話履歴をメインの会話に繋げてしまうことがありました。",
+        "after": "セッション履歴の復元精度が向上し、会話の文脈が正しく分離・保持されるようになります。",
+        "benefit": "会話が混濁することによるClaudeの混乱を防ぎ、一貫した回答を得られるようになります。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed subagents not inheriting MCP tools from dynamically-injected servers",
+      "content_ja": "動的に注入されたサーバーからサブエージェントがMCPツールを継承できない問題を修正",
+      "inference": {
+        "before": "メインの会話に追加された新しいMCPツールを、サブエージェントが利用できない制約がありました。",
+        "after": "サブエージェントも親セッションと同じMCPサーバーおよびツールに正しくアクセスできるようになります。",
+        "benefit": "サブエージェントに調査や実行を依頼する際、連携している外部ツールの全機能を引き続き利用できます。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed sub-agents running in isolated worktrees being denied Read/Edit access to files inside their own worktree",
+      "content_ja": "孤立したワークツリーで実行されているサブエージェントが、自身のワークツリー内のファイルへの読み書きアクセスを拒否される問題を修正しました。"
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed several plugin issues: slash commands resolving to the wrong plugin with duplicate `name:` frontmatter, `/plugin update` failing with `ENAMETOOLONG`, Discover showing already-installed plugins, directory-source plugins loading from a stale version cache, and skills not honoring `context: fork` and `agent` frontmatter fields",
+      "content_ja": "重複した名前のスラッシュコマンドや、プラグイン更新時のエラー、スキルの `context: fork` 設定が無視される問題など、複数のプラグイン関連の不具合を修正",
+      "inference": {
+        "before": "プラグインの管理やカスタムスキルの実行において、特定の高度な設定が正しく反映されなかったり、更新処理がOSの制限に抵触することがありました。",
+        "after": "プラグイン・スキルの読み込みと実行エンジンが刷新され、複雑なカスタマイズも意図通りに動作するようになります。",
+        "benefit": "独自のワークフローをプラグインとして構築・配布する際の信頼性と柔軟性が大幅に向上しました。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added support for running skills and slash commands in a forked sub-agent context using `context: fork` in skill frontmatter",
+      "content_ja": "スキルのフロントマターに `context: fork` を指定することで、スキルやスラッシュコマンドをフォークされたサブエージェントのコンテキストで実行できる機能を追加しました。",
+      "inference": {
+        "before": "スキルやコマンドを実行するとメインの会話コンテキストに履歴が蓄積され、トークン消費の増大や、メインエージェントの思考へのノイズ発生が避けられませんでした。",
+        "after": "実行環境を独立したサブエージェントとして切り出せるようになり、大量のファイル読み込みや複雑な調査をメインの履歴を汚さずに行えます。",
+        "benefit": "メインの会話履歴(コンテキスト)を節約しつつ、特定のタスクのみを専門のワーカーに任せるような高度な自動化フローを構築できます。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added support for `agent` field in skills to specify agent type for execution",
+      "content_ja": "スキルの `agent` フィールドをサポートし、`context: fork` 設定時に実行に使用するエージェントの種類(Explore, Plan など)を指定できるようになりました。",
+      "inference": {
+        "before": "フォークされたコンテキストでスキルを実行する際、どの方針(読み取り専用か、書き込み許可かなど)を持つエージェントが担当するかを詳細に制御できませんでした。",
+        "after": "タスクの性質に合わせて適切なビルトインエージェントやカスタムエージェントを選択し、スキルを実行できるようになります。",
+        "benefit": "例えば、調査タスクには `Explore` エージェントを、複雑な修正には `Bash` エージェントを割り当てるなど、安全かつ効率的な役割分担が可能です。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added unified Ctrl+B backgrounding for both bash commands and agents - pressing Ctrl+B now backgrounds all running foreground tasks simultaneously",
+      "content_ja": "Bash コマンドとエージェントの両方を一括でバックグラウンド化できる Ctrl+B 機能を追加しました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added support for disabling specific agents using `Task(AgentName)` syntax in settings.json permissions or the `--disallowedTools` CLI flag",
+      "content_ja": "特定のサブエージェントを無効化するための `Task(AgentName)` 構文を、設定のパーミッションおよび `--disallowedTools` フラグでサポートしました。",
+      "inference": {
+        "before": "特定のサブエージェント(例：Explore や Plan)の使用を制限したい場合、ツール全体の実行を止めるしかなく、個別に禁止することができませんでした。",
+        "after": "特定の性質を持つエージェント(エージェントがエージェントを呼ぶ挙動など)を名前指定で明示的に禁止できるようになりました。",
+        "benefit": "企業ポリシーに合わせた制約の適用や、コスト管理のために特定の高負荷なサブタスクを制限するといった制御が可能です。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added hooks support to agent frontmatter, allowing agents to define PreToolUse, PostToolUse, and Stop hooks scoped to the agent's lifecycle",
+      "content_ja": "エージェントのフロントマターでフック設定が可能になり、エージェントの生存期間に限定したフックを定義できるようになりました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added support for prompt and agent hook types from plugins (previously only command hooks were supported)",
+      "content_ja": "プラグインからのフックで、コマンド形式に加えてプロンプト形式およびエージェント形式をサポートしました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Fixed AWS Bedrock subagents not inheriting EU/APAC cross-region inference model configuration, causing 403 errors when IAM permissions are scoped to specific regions",
+      "content_ja": "AWS Bedrock 利用時にサブエージェントが EU/APAC のクロスリージョン推論設定を継承せず、IAM 権限エラー(403)が発生する問題を修正しました。",
+      "inference": {
+        "before": "メインセッションで設定したクロスリージョン推論のオプションが、新しく起動したサブエージェントに正しく引き継がれず、特定のリージョンに制限された権限環境でエラーになっていました。",
+        "after": "すべてのサブエージェントが親セッションの推論設定を正しく共有するようになり、分散リージョン環境でも安定して動作します。",
+        "benefit": "グローバルな AWS インフラを利用しているエンタープライズユーザーも、サブエージェント機能を確実に利用できます。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Fixed subagents sometimes not inheriting the parent's model by default",
+      "content_ja": "サブエージェントが親セッションのモデルをデフォルトで継承しない場合がある問題を修正しました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Fixed spinner token counter to properly accumulate tokens from subagents during execution",
+      "content_ja": "実行中のスピナーに表示されるトークン数に、サブエージェントが消費したトークンが正しく加算されるよう修正しました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Improved subagents (Task tool) to continue working after permission denial, allowing them to try alternative approaches",
+      "content_ja": "サブエージェントが権限拒否に遭っても、代替手段を試行して作業を継続できるように改善しました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Improved token count display in spinner to include tokens from background agents",
+      "content_ja": "スピナーのトークン数表示に、バックグラウンドエージェントの消費分を含めるようにしました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Improved incremental output for async agents to give the main thread more control and visibility",
+      "content_ja": "非同期エージェントの出力を逐次表示し、メインプロセスからの視認性と制御性を向上させました。"
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Fixed session cleanup not removing the full session directory including subagent transcripts",
+      "content_ja": "クリーンアップの修正 — セッション削除時にサブエージェントのログを含むディレクトリ全体を完全に削除するように変更"
+    },
+    {
+      "version": "2.1.111",
+      "content": "- Added `/ultrareview` for running comprehensive code review in the cloud using parallel multi-agent analysis and critique — invoke with no arguments to review your current branch, or `/ultrareview <PR#>` to fetch and review a specific GitHub PR",
+      "content_ja": "クラウド上の複数のエージェントが並列で分析と批評を行う高度なコードレビュー機能`/ultrareview`を追加しました。引数なしで現在のブランチを、`/ultrareview <PR番号>`で特定のGitHub PRをレビューできます。",
+      "inference": {
+        "before": "これまでのコードレビューは単一のパスで行われることが多く、複雑なバグの発見や誤検知の排除において精度に限界がありました。",
+        "after": "複数のエージェントが「バグハンター」として並列に問題を探索し、さらにお互いの指摘を検証して信頼性の高い問題リストをランク付けして提示します。",
+        "benefit": "PRを作成する前に、人間によるレビューに近い多角的な視点でのチェックを自動で受けられるため、重大なバグの流出を防ぎ、チーム全体のレビュー負荷を軽減できます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- `--print` mode now honors the agent's `tools:` and `disallowedTools:` frontmatter, matching interactive-mode behavior",
+      "content_ja": "`--print` モード(非対話モード)において、エージェント定義の `tools:` および `disallowedTools:` フロントマターが適用され、対話モードの動作と一致するようになりました",
+      "inference": {
+        "before": "スクリプトなどから `-p` フラグで実行する際、カスタムエージェントの設定で禁止したツールが無視されて使用されてしまう可能性がありました。",
+        "after": "非対話モードでもフロントマターの設定が厳密に守られ、エージェントが使用できるツールの制限が対話モードと完全に同期されました。",
+        "benefit": "CI/CD パイプラインなどの自動実行環境においても、意図しないツールの実行を防ぎ、セキュリティと動作の予測可能性を高めることができます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- `--agent <name>` now honors the agent definition's `permissionMode` for built-in agents",
+      "content_ja": "`--agent <name>` 指定時、組み込みエージェントの定義に含まれる `permissionMode` 設定が適用されるようになりました",
+      "inference": {
+        "before": "組み込みエージェント(Explore や Plan など)を明示的に呼び出した際、そのエージェントに定義されている推奨パーミッションモードが反映されないことがありました。",
+        "after": "エージェントごとに設定された最適なパーミッションモード(例：読み取り専用、または自動承認)が自動的に適用されます。",
+        "benefit": "タスクに合わせて最適な安全レベルや自動化レベルが設定済みのエージェントを、手間なく安全に利用開始できます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Subagent and SDK MCP server reconfiguration now connects servers in parallel instead of serially",
+      "content_ja": "サブエージェントおよび SDK における MCP サーバーの再構成時に、サーバーへの接続を直列ではなく並列で行うように変更しました",
+      "inference": {
+        "before": "複数の MCP サーバーを接続している場合、一つずつ順番に接続処理が行われていたため、接続完了まで待機時間が発生していました。",
+        "after": "接続処理が並列化され、複数のサーバーを同時に初期化するようになりました。",
+        "benefit": "サブエージェントの起動や大規模なコンテキスト再構成が大幅に高速化され、作業の中断時間が短縮されます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed spinner staying on when a subagent task notification is orphaned in the queue",
+      "content_ja": "サブエージェントのタスク通知がキューに残されたままになった際、スピナー(読み込み中表示)が消えずに残り続ける問題を修正しました。"
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed `/agents` detail view mislabeling built-in tools unavailable to subagents as \"Unrecognized\"",
+      "content_ja": "`/agents` の詳細表示で、サブエージェントが使用できない組み込みツールが誤って \"Unrecognized(未認識)\" と表示される問題を修正しました",
+      "inference": {
+        "before": "エージェントの権限制限によって無効化されているツールが、あたかも存在しないツールであるかのような不正確な表示になっていました。",
+        "after": "制限されたツールであることが正しく表示されるようになります。",
+        "benefit": "設定が正しく反映されているかを正確に確認でき、エージェントの挙動把握が容易になります。"
+      }
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Fixed agent-type hooks failing with \"Messages are required for agent hooks\" when configured for events other than `Stop` or `SubagentStop`",
+      "content_ja": "エージェント型フックが `Stop` 等の特定のイベント以外で「メッセージが必要」というエラーで失敗する問題を修正",
+      "inference": {
+        "before": "`SubagentStart` などのイベントに対してエージェント型フックを適用しようとすると、必要なデータ構造が不足しているというエラーで動作しませんでした。",
+        "after": "より多くのイベントに対してエージェント型フックを正しく設定・実行できるようになりました。",
+        "benefit": "特定のライフサイクルイベントにおいて、エージェントによる高度な自動検証を柔軟に組み込めるようになります。"
+      }
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Fixed `prompt` hooks re-firing on tool calls made by an agent-hook verifier subagent",
+      "content_ja": "エージェントフック内の検証用サブエージェントが実行したツール呼び出しで、再度 `prompt` フックが発火する問題を修正",
+      "inference": {
+        "before": "フックの中で動くエージェントの動作そのものがフックを再発火させてしまい、無限ループのような不要な処理が発生していました。",
+        "after": "検証用のサブエージェントによるアクションは、外部のフック発火対象から適切に除外されるようになりました。",
+        "benefit": "フックの実行コスト(トークン使用量)が最適化され、意図しないフックの連鎖を防げます。"
+      }
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Fixed subagents resumed via `SendMessage` not restoring the explicit `cwd` they were spawned with",
+      "content_ja": "再開されたサブエージェントが、最初に生成された際の作業ディレクトリを正しく復元できない問題を修正",
+      "inference": {
+        "before": "中断したサブエージェントを再開した際、カレントディレクトリがリセットされてしまい、相対パスでのファイル操作などが失敗することがありました。",
+        "after": "サブエージェントが起動した際の正しい作業ディレクトリが維持されるようになりました。",
+        "benefit": "複雑なディレクトリ構造を持つプロジェクトでも、サブエージェントを安心して中断・再開できます。"
+      }
+    },
+    {
+      "version": "2.1.121",
+      "content": "- `--dangerously-skip-permissions` no longer prompts for writes to `.claude/skills/`, `.claude/agents/`, and `.claude/commands/`",
+      "content_ja": "`--dangerously-skip-permissions` モード使用時、`.claude/skills/`、`.claude/agents/`、`.claude/commands/` への書き込みに対して確認プロンプトを表示しないようにしました。",
+      "inference": {
+        "before": "「パーミッション確認をスキップする」設定にしていても、Claude Code 自身の構成ファイルが格納される特定のディレクトリへの書き込みには、安全上の理由から追加の確認が求められていました。",
+        "after": "スキルやエージェントの定義ディレクトリへの書き込みが自動承認の対象に含まれました。これにより、Claude に自身のスキルを自律的に追加・修正させる際のフローが中断されなくなります。",
+        "benefit": "Claude に自身の機能を拡張させる自動化タスクにおいて、ユーザーが手動で承認ボタンを押す手間が省け、完全な自律動作を実現できます。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Improved memory usage in long-running sessions by releasing API stream buffers, agent context, and skill state after use",
+      "content_ja": "APIストリームバッファ、エージェントコンテキスト、スキル状態を使用後に解放することで、長期間実行されるセッションのメモリ使用量を改善しました。",
+      "inference": {
+        "before": "長期間実行されるセッションでは、APIストリームバッファ、エージェントコンテキスト、スキル状態などのリソースが解放されずに蓄積され、メモリ使用量が増加する問題がありました。",
+        "after": "長期間実行されるセッションにおけるメモリ使用量が改善されました。APIストリームバッファ、エージェントコンテキスト、スキル状態などのリソースが、使用後に適切に解放されるようになりました。",
+        "benefit": "長時間のセッションでもメモリ使用量が抑えられるため、Claude Codeのパフォーマンスが安定し、メモリ不足による予期せぬ終了や遅延を防ぐことができます。これにより、ユーザーはより快適に長時間の作業に取り組めます。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Improved memory usage by trimming agent task message history after tasks complete"
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Improved memory usage during long agent sessions by eliminating O(n²) message accumulation in progress updates",
+      "content_ja": "プログレスアップデートにおけるO(n²)メッセージ蓄積を排除することで、長期間実行されるエージェントセッション中のメモリ使用量を改善しました。",
+      "inference": {
+        "before": "長期間実行されるエージェントセッションにおいて、プログレスアップデートの処理でメッセージがO(n²)で蓄積され、メモリ使用量が増大していました。",
+        "after": "長期間実行されるエージェントセッションのメモリ使用量が改善されました。プログレスアップデートにおけるメッセージのO(n²)での蓄積がなくなり、メモリ効率が向上しました。",
+        "benefit": "長時間のセッションでもメモリ使用量が最適化され、Claude Codeの安定性とパフォーマンスが向上しました。これにより、複雑なタスクや長時間の分析でも、メモリ不足による影響を受けにくくなりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed user-defined agents only loading one file on NFS/FUSE filesystems that report zero inodes (anthropics/claude-code#26044)",
+      "content_ja": "NFS/FUSEファイルシステムでゼロinodeを報告するものにおいて、ユーザー定義エージェントが1つのファイルしかロードしない問題を修正しました(anthropics/claude-code#26044)。",
+      "inference": {
+        "before": "NFSやFUSEといった特定のファイルシステム(inode数がゼロと報告するもの)上で、ユーザー定義エージェントが複数のファイルではなく、1つのファイルしか正しくロードできない問題がありました。",
+        "after": "NFS/FUSEファイルシステム(inode数がゼロのものを報告)上でのユーザー定義エージェントのファイルロードに関する問題が修正されました。これにより、これらのファイルシステム上でも、エージェントが複数のファイルを正しくロードできるようになりました。",
+        "benefit": "NFS/FUSEファイルシステムを利用する環境でのエージェントの利用が改善され、より多くのプロジェクトでカスタムエージェントが期待通りに動作するようになりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed plugin agent skills silently failing to load when referenced by bare name instead of fully-qualified plugin name (anthropics/claude-code#25834)",
+      "content_ja": "プラグインエージェントスキルが、完全修飾プラグイン名ではなく、ベア名で参照された場合にサイレントにロードに失敗する問題を修正しました(anthropics/claude-code#25834)。",
+      "inference": {
+        "before": "プラグインに含まれるエージェントスキルが、完全なプラグイン名ではなく、単純なスキル名(ベア名)で参照された場合、エラーなくロードに失敗し、スキルが利用できない状態になっていました。",
+        "after": "プラグインエージェントスキルのロードに関する問題が修正されました。ベア名で参照された場合でも、サイレントなロード失敗がなくなり、スキルが正しくロードされるようになりました。",
+        "benefit": "プラグイン内のエージェントスキルが、より柔軟な参照方法で利用できるようになり、開発者はプラグインの連携を容易にしました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Use `ctrl+f` to kill all background agents instead of double-pressing ESC. Background agents now continue running when you press ESC to cancel the main thread, giving you more control over agent lifecycle.",
+      "content_ja": "Ctrl+Fを使用してすべてのバックグラウンドエージェントを終了できるようになりました。ESCキーをダブルプレスする代わりに、ESCキーでメインスレッドをキャンセルしてもバックグラウンドエージェントは実行を継続するため、エージェントライフサイクルに対する制御が向上しました。",
+      "inference": {
+        "before": "バックグラウンドエージェントを終了するには、ESCキーを2回押す必要がありました。また、ESCキーでメインスレッドをキャンセルすると、バックグラウンドエージェントも停止してしまうことがありました。",
+        "after": "Ctrl+Fショートカットキーでバックグラウンドエージェントを簡単に終了できるようになりました。ESCキーでのメインスレッドキャンセル時にもバックグラウンドエージェントは継続実行されるようになり、エージェントのライフサイクル管理がより柔軟になりました。",
+        "benefit": "バックグラウンドエージェントの制御が容易になり、開発者は意図した通りにエージェントの実行を管理できるようになりました。これにより、作業効率と柔軟性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed API 400 errors (\"thinking blocks cannot be modified\") that occurred in sessions with concurrent agents, caused by interleaved streaming content blocks preventing proper message merging.",
+      "content_ja": "同時実行エージェントが存在するセッションで発生していた、ストリーミングコンテンツブロックのインターリーブがメッセージのマージを妨げていたことが原因のAPI 400エラー(「thinking blocks cannot be modified」)を修正しました。",
+      "inference": {
+        "before": "複数のエージェントが同時に動作するセッションにおいて、ストリーミングコンテンツブロックがインターリーブ(混在)し、メッセージのマージ処理を妨げた結果、APIから「thinking blocks cannot be modified」という400エラーが発生していました。",
+        "after": "同時実行エージェントがいるセッションでのAPI 400エラー(「thinking blocks cannot be modified」)が修正されました。ストリーミングコンテンツブロックのインターリーブ問題が解決され、メッセージのマージが正しく行われるようになりました。",
+        "benefit": "複数のエージェントを同時に使用する際のAPIエラーが解消され、Claude Codeの安定性が向上しました。これにより、複雑なタスクでも安心して実行できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Added `last_assistant_message` field to Stop and SubagentStop hook inputs, providing the final assistant response text so hooks can access it without parsing transcript files.",
+      "content_ja": "StopおよびSubagentStopフック入力に `last_assistant_message` フィールドを追加しました。これにより、フックはトランスクリプトファイルを解析することなく、最終的なアシスタントの応答テキストにアクセスできるようになります。",
+      "inference": {
+        "before": "StopおよびSubagentStopフックでは、アシスタントの最終応答テキストにアクセスするためにトランスクリプトファイルを解析する必要がありました。これは手間がかかるだけでなく、エラーが発生しやすいプロセスでした。",
+        "after": "StopおよびSubagentStopフック入力に `last_assistant_message` フィールドが追加されました。これにより、フックはトランスクリプトファイルを解析することなく、アシスタントの最終応答テキストに直接アクセスできます。",
+        "benefit": "フック開発者がアシスタントの最終応答に簡単にアクセスできるようになり、より効率的で堅牢なフックの作成が可能になりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed agent progress indicator showing inflated tool use count (anthropics/claude-code#26023)",
+      "content_ja": "エージェントのプログレスインジケータが、ツールの使用回数を過剰にカウントしていた問題を修正しました(anthropics/claude-code#26023)。",
+      "inference": {
+        "before": "エージェントの進捗状況を示すインジケータが、実際よりも多くのツール使用回数を表示してしまうバグがありました。",
+        "after": "エージェントのプログレスインジケータのツール使用回数カウントが修正されました。これにより、表示される回数が実際の使用回数と一致するようになりました。",
+        "benefit": "エージェントの進捗状況の表示が正確になり、ユーザーはエージェントの動作をより正確に把握できるようになりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed background agent results returning raw transcript data instead of the agent's final answer (anthropics/claude-code#26012)",
+      "content_ja": "バックグラウンドエージェントの結果が、エージェントの最終的な回答ではなく、生のトランスクリプトデータとして返される問題を修正しました(anthropics/claude-code#26012)。",
+      "inference": {
+        "before": "バックグラウンドエージェントがタスクを完了した際、その結果としてエージェントの最終的な回答ではなく、生のトランスクリプトデータが返却される問題がありました。",
+        "after": "バックグラウンドエージェントの結果が、生のトランスクリプトデータではなく、エージェントの最終的な回答として返却されるようになりました。",
+        "benefit": "バックグラウンドエージェントの出力がより有用になり、開発者はエージェントの最終結果を直接確認できるようになりました。これにより、タスクの管理と理解が容易になります。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed custom agent `model` field in `.claude/agents/*.md` being ignored when spawning team teammates (anthropics/claude-code#26064)",
+      "content_ja": "チームメイトをスポーンする際に、`.claude/agents/*.md` のカスタムエージェント `model` フィールドが無視される問題を修正しました(anthropics/claude-code#26064)。",
+      "inference": {
+        "before": "チームメイトをスポーンする際、`.claude/agents/*.md` に定義されたカスタムエージェントの `model` フィールドが無視され、意図したモデルが使用されない問題がありました。",
+        "after": "チームメイトスポーン時にカスタムエージェントの `model` フィールドが正しく適用されるようになりました。",
+        "benefit": "カスタムエージェントのモデル設定がチームメイトのスポーン時に反映されるようになり、エージェントチームの挙動をより細かく制御できるようになりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed custom agents and skills not being discovered when running from a git worktree — project-level `.claude/agents/` and `.claude/skills/` from the main repository are now included (anthropics/claude-code#25816)",
+      "content_ja": "gitワークツリーから実行した場合にカスタムエージェントとスキルが検出されない問題を修正しました。メインリポジトリのプロジェクトレベルの`.claude/agents/`および`.claude/skills/`が含まれるようになりました(anthropics/claude-code#25816)。",
+      "inference": {
+        "before": "gitワークツリーからClaude Codeを実行する際、プロジェクトレベルの`.claude/agents/`および`.claude/skills/`ディレクトリにあるカスタムエージェントやスキルが検出されない問題がありました。",
+        "after": "gitワークツリーから実行した場合でも、プロジェクトレベルの`.claude/agents/`および`.claude/skills/`が正しく検出されるようになりました。",
+        "benefit": "gitワークツリー環境でのカスタムエージェントとスキルの利用が改善され、開発者はワークツリー内でもプロジェクト固有の設定を正しく利用できるようになりました。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Added agent name display in terminal title when using `claude --agent`",
+      "content_ja": "`claude --agent` を使用して特定のサブエージェントを起動した際、ターミナルのタイトルバーにエージェント名が表示されるようになりました。",
+      "inference": {
+        "before": "複数のターミナルウィンドウで異なる専門エージェントを実行している場合、ウィンドウを見ただけではどのエージェントがアクティブなのかを即座に判断できませんでした。",
+        "after": "起動中のエージェント名がターミナルのタイトルに反映されるため、ウィンドウを切り替える際に現在どの役割の AI と対話しているのかが一目でわかります。",
+        "benefit": "多数のウィンドウを使い分ける複雑なマルチタスク環境において、作業ミスを防ぎ、コンテキストの把握が容易になります。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Added `agent_id` (for subagents) and `agent_type` (for subagents and `--agent`) to hook events",
+      "content_ja": "フックイベントのコンテキスト情報に `agent_id`(サブエージェント用)と `agent_type`(サブエージェントおよび `--agent` 指定時用)を追加しました。",
+      "inference": {
+        "before": "フック内で、現在実行中のアクションがメインスレッドによるものか、それとも特定のサブエージェントによるものかを判別して処理を分けることが困難でした。",
+        "after": "フックハンドラーに渡される JSON にエージェントの情報が含まれるようになったため、「このエージェントが実行するときだけは特定の処理をスキップする」といったきめ細やかな制御が可能になりました。",
+        "benefit": "サブエージェントを活用した複雑な自動化において、フックの挙動を意図通りに制御できるようになり、より高度な開発支援環境を構築できます。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Fixed extra blank lines appearing below each tool call in the expanded subagent transcript view (Ctrl+O)",
+      "content_ja": "サブエージェントの詳細表示(Ctrl+O)において、各ツール呼び出しの下に余分な空行が表示される問題を修正しました。"
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Added agent name display in terminal title when using `claude --agent`",
+      "content_ja": "`claude --agent` 使用時にターミナルのタイトルにエージェント名を表示するように変更",
+      "inference": {
+        "before": "特定のエージェントを指定して起動している際、複数のターミナルを開いているとどのアシスタントが稼働中か一目で把握できませんでした。",
+        "after": "ターミナルのタイトルバーにエージェント名が表示されるようになり、コンテキストの識別が容易になりました。",
+        "benefit": "複数の並列タスクを異なるエージェントで実行している場合に、ウィンドウの切り替えミスを防ぎ、作業効率を向上させます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Added `agent_id` (for subagents) and `agent_type` (for subagents and `--agent`) to hook events",
+      "content_ja": "フックイベントに、サブエージェントを識別するための `agent_id` および `agent_type` フィールドを追加",
+      "inference": {
+        "before": "フックが実行された際、それがメインセッションによるものか、どの種類のサブエージェントによるものかをプログラムで判断できませんでした。",
+        "after": "エージェントの種類に応じた条件分岐がフック内で可能になり、サブエージェント専用の制御フローを実装できるようになりました。",
+        "benefit": "サブエージェントごとの権限制限や通知内容の変更など、より高度で精緻な自動化が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed duplicate CLAUDE.md, slash commands, agents, and rules when running from a worktree nested inside its main repo (e.g. `claude -w`)"
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed API 400 errors in forked agents (autocompact, summarization) when resuming sessions that were interrupted mid-tool-batch"
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed extra blank lines appearing below each tool call in the expanded subagent transcript view (Ctrl+O)",
+      "content_ja": "サブエージェントの書き起こし詳細表示(Ctrl+O)で、各ツール呼び出しの下に余計な空行が表示される問題を修正"
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Reduced token usage on multi-agent tasks with more concise subagent final reports",
+      "content_ja": "マルチエージェントタスクにおいて、サブエージェントの最終報告を簡潔にすることでトークン使用量を削減"
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed background subagents becoming invisible after context compaction, which could cause duplicate agents to be spawned",
+      "content_ja": "コンテキストの圧縮後にバックグラウンドエージェントが表示されなくなり、同じエージェントが重複して作成されてしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed background agent tasks staying stuck in \"running\" state when git or API calls hang during cleanup",
+      "content_ja": "クリーンアップ中の Git 操作や API 呼び出しがハングした際に、バックグラウンドエージェントが「実行中」のまま止まってしまう問題を修正しました",
+      "inference": {
+        "before": "バックグラウンドで動かしていたエージェントが終了処理を行う際、Git の通信エラーなどで処理が止まると、実際には動いていないのに UI 上は「実行中」と表示され続け、強制終了も困難になることがありました。",
+        "after": "終了時のタイムアウト処理や状態監視が強化され、ハングアップが発生しても正しくエラーとして終了状態に移行するようになりました。",
+        "benefit": "不具合でスタックしたエージェントにリソースを占有されることがなくなり、複数のタスクを並行して進める際の信頼性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Improved plugin startup — commands, skills, and agents now load from disk cache without re-fetching",
+      "content_ja": "プラグインの起動速度を改善しました。コマンド、スキル、エージェントが再取得なしでディスクキャッシュから読み込まれるようになります。"
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Changed \"stop all background agents\" keybinding from `Ctrl+F` to `Ctrl+X Ctrl+K` to stop shadowing readline forward-char",
+      "content_ja": "「全バックグラウンドエージェントを停止」のキーバインドを `Ctrl+F` から `Ctrl+X Ctrl+K` に変更し、Readlineのフォワード移動との衝突を解消しました。",
+      "inference": {
+        "before": "`Ctrl+F` がエージェントの停止に割り当てられていたため、多くのターミナルで標準的な「一文字右に移動」というReadline操作が使えませんでした。",
+        "after": "キーバインドが `Ctrl+X Ctrl+K` に変更され、標準的なカーソル移動操作を妨げることなくバックグラウンドタスクを管理できるようになりました。",
+        "benefit": "ターミナルの操作感がより標準的なUNIXシェルに近づき、入力時のストレスが軽減されます。"
+      }
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed Remote Control session titles showing raw XML when a background agent completed before the first user message",
+      "content_ja": "ユーザーの最初のメッセージより前にバックグラウンドエージェントが完了した場合、リモートコントロールのセッション名が生の XML で表示される問題を修正しました。"
+    },
+    {
+      "version": "2.1.89",
+      "content": "- Added named subagents to `@` mention typeahead suggestions",
+      "content_ja": "名前付きサブエージェントを `@` メンションの入力候補に追加しました。",
+      "inference": {
+        "before": "@メンションの入力候補には主にファイルやMCPリソースが表示されており、特定の役割を持つサブエージェントを呼び出す際に名前を正確に覚えている必要がありました。",
+        "after": "@を入力した際の候補にサブエージェントも含まれるようになり、プロジェクト固有のカスタムエージェントなどを素早く選択できるようになりました。",
+        "benefit": "タスクの委任がスムーズになり、特定の専門知識を持つサブエージェントをより直感的にワークフローに組み込めます。"
+      }
+    },
+    {
+      "version": "2.1.89",
+      "content": "- Fixed `/stats` undercounting tokens by excluding subagent usage, and losing historical data beyond 30 days when the stats cache format changes",
+      "content_ja": "`/stats` において、サブエージェントの使用量が含まれずトークン数が過小評価される問題と、統計キャッシュの形式変更時に30日より前の履歴データが失われる問題を修正しました。",
+      "inference": {
+        "before": "表示されるトークン使用量が実際よりも少なく、正確な利用状況の把握が困難でした。また、アップデートに伴い過去の統計が消えてしまうことがありました。",
+        "after": "サブエージェントの利用分も含めた正確な集計が行われ、かつバージョンアップ時も過去の履歴が適切に維持されるようになりました。",
+        "benefit": "コスト管理や利用傾向の分析を、長期にわたってより信頼性の高いデータに基づいて行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Added `● N running` indicator in `/agents` next to agent types with live subagent instances",
+      "content_ja": "`/agents`メニューにて、実行中のサブエージェントインスタンスが存在するエージェント種別の横に「● N running」インジケーターを表示するようにしました。",
+      "inference": {
+        "before": "複数のバックグラウンドタスクやサブエージェントが並行動作している際、どの種類のエージェントがいくつアクティブなのかを一覧で確認する手段が不足していました。",
+        "after": "`/agents`コマンドで表示されるリストから、現在どのアビリティを持つエージェントが稼働中であるかが一目で分かるようになりました。",
+        "benefit": "並行処理の進行状況を把握しやすくなり、リソースの管理やタスクの完了待ちを直感的に確認できます。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed prompt-type `Stop`/`SubagentStop` hooks failing on long sessions, and hook evaluator API errors displaying \"JSON validation failed\" instead of the actual message",
+      "content_ja": "長いセッションでプロンプトタイプの`Stop`/`SubagentStop`フックが失敗する問題、およびフック評価時のAPIエラーが具体的なメッセージではなく「JSON validation failed」と表示される問題を修正しました。",
+      "inference": {
+        "before": "セッションが長くなると終了時の自動処理(フック)が動かなくなったり、フックの不具合時に原因が分からないエラーメッセージが表示されることがありました。",
+        "after": "長大セッションでもフックが安定動作し、エラー発生時も具体的な原因が表示されるようになったため、デバッグが容易になりました。",
+        "benefit": "自動化された後処理や通知が確実に実行されるようになり、開発ワークフローの信頼性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed subagents with worktree isolation or `cwd:` override leaking their working directory back to the parent session's Bash tool",
+      "content_ja": "ワークツリー隔離や`cwd:`オーバーライドを使用しているサブエージェントが、親セッションのBashツールに作業ディレクトリ情報を漏洩させてしまう問題を修正しました。",
+      "inference": {
+        "before": "サブエージェントが独立した場所で作業していても、その影響でメインセッションのディレクトリ情報が混乱し、後続のコマンドが意図しない場所で実行されるリスクがありました。",
+        "after": "サブエージェントの作業環境が完全に隔離され、親セッションの環境に影響を及ぼさないようになりました。",
+        "benefit": "複数のディレクトリをまたぐ複雑な並行作業を、メイン環境を汚すことなく安全に実行できます。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed compaction writing duplicate multi-MB subagent transcript files on prompt-too-long retries",
+      "content_ja": "プロンプトが長すぎてリトライが発生した際、コンパクション処理が数MBに及ぶサブエージェントの文字起こしファイルを重複して書き込んでしまう問題を修正しました。",
+      "inference": {
+        "before": "特定のエラー条件下で、ディスク容量を無駄に消費する巨大な一時ファイルが生成され、マシンのストレージを圧迫する可能性がありました。",
+        "after": "不要なファイルの重複書き込みが防止され、ディスク使用量が最適化されました。",
+        "benefit": "長時間の利用でもディスク容量を心配する必要がなくなり、ツール全体のクリーンな動作が維持されます。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed agent team members not inheriting the leader's permission mode when using `--dangerously-skip-permissions`",
+      "content_ja": "`--dangerously-skip-permissions` 使用時に、エージェントチームのメンバーがリーダーのパーミッションモードを継承しない問題を修正しました。",
+      "inference": {
+        "before": "リーダー(親エージェント)を全許可モードにしても、チームメイト(子エージェント)が毎回許可を求めてきてしまい、並行作業の自動化が妨げられていました。",
+        "after": "チーム全体で一貫したパーミッション設定が適用されるようになり、完全な自動実行が可能になりました。",
+        "benefit": "大規模なリファクタリングなど、エージェントチームを活用した自動化ワークフローが途切れることなく完了します。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed background subagents that fail with an error not reporting partial progress to the parent agent",
+      "content_ja": "エラーで失敗したバックグラウンド・サブエージェントが、親エージェントに途中経過を報告しない問題を修正しました。"
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed prompt-type Stop/SubagentStop hooks failing on long sessions, and hook evaluator API errors showing \"JSON validation failed\" instead of the real message",
+      "content_ja": "長時間セッションでのプロンプト型 Stop/SubagentStop フックの失敗、およびフック評価時の API エラーが不正確に表示される問題を修正しました。",
+      "inference": {
+        "before": "会話が長くなるとフックが動かなくなったり、エラーが発生しても原因が分からず「JSONバリデーション失敗」という曖昧な表示が出るだけでした。",
+        "after": "長時間のセッションでもフックが安定して動作し、エラー発生時には API からの実際のメッセージが表示されるため、自己診断が可能になりました。",
+        "benefit": "ワークフローの自動化や検証をフックで行っている場合、その信頼性とメンテナンス性が大幅に向上します。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed stale subagent worktree cleanup removing worktrees that contain untracked files",
+      "content_ja": "古いサブエージェント用ワークツリーのクリーンアップ時に、未追跡ファイルを含むワークツリーまで削除されてしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Improved `/agents` with a tabbed layout: a Running tab shows live subagents, and the Library tab adds Run agent and View running instance actions",
+      "content_ja": "`/agents` コマンドをタブ形式のレイアウトに改善しました。「実行中(Running)」タブでライブ状態のサブエージェントを確認でき、「ライブラリ(Library)」タブからエージェントの実行やインスタンスの表示が可能です。",
+      "inference": {
+        "before": "多くのサブエージェントを使い始めると、今どれが動いていて、どのような設定になっているかを一覧で管理するのが困難でした。",
+        "after": "動いているエージェントと利用可能なエージェントが整理され、直感的に管理・呼び出しができるようになりました。",
+        "benefit": "複雑な並行タスクの進捗状況を整理して把握でき、エージェントを司令塔のように操る体験が向上します。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "key": "CLAUDE_STREAM_IDLE_TIMEOUT_MS",
+  "slug": "claude-stream-idle-timeout-ms",
+  "source": "env",
+  "description_en": "Timeout in milliseconds before the streaming idle watchdog closes a stalled connection. Default and minimum `300000` (5 minutes) for both the byte-level and event-level watchdogs; lower values are silently clamped to absorb extended thinking pauses and proxy buffering. For third-party providers, requires `CLAUDE_ENABLE_STREAM_WATCHDOG=1`",
+  "description_ja": "ストリーミングレスポンスが停滞した際に接続を遮断するウォッチドッグのタイムアウト時間をミリ秒で設定します。",
+  "use_case_ja": "- 不安定なネットワーク環境や、モデルの複雑な思考プロセスによって応答間隔が長くなる場合に、不意の切断を防ぐために延長します。\n- デフォルトは5分となっており、プロキシ等によるバッファリングの影響を吸収するための調整弁として機能します。",
+  "related_changelog": [
+    {
+      "version": "2.1.84",
+      "content": "- Added `CLAUDE_STREAM_IDLE_TIMEOUT_MS` env var to configure the streaming idle watchdog threshold (default 90s)",
+      "content_ja": "ストリーミングのアイドルタイムアウトしきい値を設定する環境変数を追加",
+      "inference": {
+        "before": "APIからのレスポンスストリーミングが長時間停止した場合、一律のタイムアウト(90秒)が適用されていました。ネットワーク環境や複雑な思考プロセスによってこれ以上の時間が必要な場合でも、調整が困難でした。",
+        "after": "環境変数 `CLAUDE_STREAM_IDLE_TIMEOUT_MS` を使用して、ストリーミング停止時のウォッチドッグのしきい値をミリ秒単位で設定できるようになりました。",
+        "benefit": "不安定なネットワーク環境や非常に長い思考を伴うタスクにおいて、セッションが不意に切断されるのを防ぎ、開発作業の中断を最小限に抑えることができます。"
+      }
+    }
+  ]
+}

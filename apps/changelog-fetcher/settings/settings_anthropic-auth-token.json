@@ -1,0 +1,24 @@
+{
+  "key": "ANTHROPIC_AUTH_TOKEN",
+  "slug": "anthropic-auth-token",
+  "source": "env",
+  "description_en": "Custom value for the `Authorization` header (the value you set here will be prefixed with `Bearer `)",
+  "description_ja": "APIリクエストのAuthorizationヘッダーに使用する、カスタムのベアラートークンを指定します。",
+  "use_case_ja": "- 直接Anthropic APIに繋ぐのではなく、ベアラートークン認証を必要とするLLMゲートウェイやプロキシを経由する場合に使用します。\n- `ANTHROPIC_API_KEY`よりも優先度が高く、社内共有のAIハブなどを利用する際の認証手段となります。\n- Bedrock利用時は署名プロセスとの干渉を避けるため、未設定であることを確認する必要があります。",
+  "related_changelog": [
+    {
+      "version": "1.0.37",
+      "content": "- Remove ability to set `Proxy-Authorization` header via ANTHROPIC_AUTH_TOKEN or apiKeyHelper"
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed Bedrock SigV4 authentication failing with 403 when `ANTHROPIC_AUTH_TOKEN`, `apiKeyHelper`, or `ANTHROPIC_CUSTOM_HEADERS` set an Authorization header",
+      "content_ja": "Amazon BedrockのSigV4認証において、`ANTHROPIC_AUTH_TOKEN` 等でAuthorizationヘッダーが設定されていると403エラーになる問題を修正",
+      "inference": {
+        "before": "Bedrock環境で利用する際、無関係な認証用環境変数が残っていると、AWS側の認証と干渉して接続に失敗することがありました。",
+        "after": "Bedrock固有の署名付きヘッダーの生成が他の認証設定と干渉しないよう改善されました。",
+        "benefit": "AWS Bedrockを利用した開発環境のセットアップにおける不透明な認証エラーが解消されます。"
+      }
+    }
+  ]
+}

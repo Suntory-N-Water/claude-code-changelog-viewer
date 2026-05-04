@@ -1,0 +1,20 @@
+{
+  "key": "API_TIMEOUT_MS",
+  "slug": "api-timeout-ms",
+  "source": "env",
+  "description_en": "Timeout for API requests in milliseconds (default: 600000, or 10 minutes; maximum: 2147483647). Increase this when requests time out on slow networks or when routing through a proxy. Values above the maximum overflow the underlying timer and cause requests to fail immediately",
+  "description_ja": "APIリクエストのタイムアウト時間をミリ秒単位で設定します(デフォルト：10分)。",
+  "use_case_ja": "- 低速なネットワーク環境やプロキシ経由で利用する際、タイムアウトによる通信切断を回避するために時間を延長します。\n- Opusモデルが複雑な課題に対して長時間思考を継続する場合でも、接続が途切れることなく結果を待てるようになります。",
+  "related_changelog": [
+    {
+      "version": "2.1.101",
+      "content": "- Fixed a hardcoded 5-minute request timeout that aborted slow backends (local LLMs, extended thinking, slow gateways) regardless of `API_TIMEOUT_MS`",
+      "content_ja": "APIリクエストのハードコードされた5分間のタイムアウトを撤廃し、`API_TIMEOUT_MS` がすべてのバックエンドで尊重されるよう修正",
+      "inference": {
+        "before": "設定ファイルで長いタイムアウトを指定していても、内部的な5分制限により、思考時間の長いOpusモデルや遅いゲートウェイ環境で通信が切断されていました。",
+        "after": "設定した通りのタイムアウト時間が適用されるため、大規模な推論や時間のかかる処理も最後まで完了できます。",
+        "benefit": "複雑な課題に対してClaudeが長時間考え抜く必要がある場合でも、中断されることなく結果を待てるようになります。"
+      }
+    }
+  ]
+}

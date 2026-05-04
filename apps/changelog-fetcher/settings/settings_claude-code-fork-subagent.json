@@ -1,0 +1,30 @@
+{
+  "key": "CLAUDE_CODE_FORK_SUBAGENT",
+  "slug": "claude-code-fork-subagent",
+  "source": "env",
+  "description_en": "Set to `1` to enable [forked subagents](/en/sub-agents#fork-the-current-conversation). A forked subagent inherits the full conversation context from the main session instead of starting fresh. When enabled, `/fork` spawns a forked subagent rather than acting as an alias for [`/branch`](/en/commands), and all subagent spawns run in the background. Works in interactive mode and via the SDK or `claude -p`",
+  "description_ja": "メインセッションの会話コンテキストをすべて引き継ぐ「フォーク型サブエージェント」を有効にするには `1` に設定します。",
+  "use_case_ja": "- 状況を再説明することなく、現在の議論の流れを保持したまま重い調査やログ解析をバックグラウンドの並列処理として分離できます。\n- SDKや非対話型実行時でも、メインスレッドのコンテキストを汚さずに高度な並列ワークフローを実行したい場合に有用です。",
+  "related_changelog": [
+    {
+      "version": "2.1.117",
+      "content": "- Forked subagents can now be enabled on external builds by setting `CLAUDE_CODE_FORK_SUBAGENT=1`",
+      "content_ja": "外部ビルドにおいて `CLAUDE_CODE_FORK_SUBAGENT=1` を設定することで、フォークされたサブエージェントを有効化できるようになりました",
+      "inference": {
+        "before": "特定の外部環境やカスタムビルドにおいて、並列タスクを実行するためのフォークされたサブエージェントがデフォルトで制限されていた可能性があります。",
+        "after": "環境変数 `CLAUDE_CODE_FORK_SUBAGENT=1` を指定するだけで、メインスレッドのコンテキストを汚さずにサブエージェントを活用した並列処理が実行可能になります。",
+        "benefit": "重い探索やログ解析をサブエージェントに分離できるため、メイン会話のコンテキストを節約し、作業効率を向上させられます。"
+      }
+    },
+    {
+      "version": "2.1.121",
+      "content": "- SDK and `claude -p`: `CLAUDE_CODE_FORK_SUBAGENT=1` now works in non-interactive sessions",
+      "content_ja": "SDK および `claude -p` において、非対話型セッションでも `CLAUDE_CODE_FORK_SUBAGENT=1` が動作するようになりました。",
+      "inference": {
+        "before": "対話的な会話の文脈を引き継いでバックグラウンドで処理を行う「フォークサブエージェント」機能は、主にインタラクティブな CLI モードでの使用を想定しており、SDK やスクリプト経由の非対話実行では制限がありました。",
+        "after": "非対話型の自動化シナリオでも、現在のコンテキストを維持したままサブエージェントを分岐させることが可能になりました。環境変数でこの機能を有効化できます。",
+        "benefit": "複雑なワークフローの自動化スクリプトにおいて、コンテキストの継承を活用した高度な並列処理が可能になります。"
+      }
+    }
+  ]
+}

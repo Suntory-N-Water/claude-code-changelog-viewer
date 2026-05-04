@@ -1,0 +1,31 @@
+{
+  "key": "enabledPlugins",
+  "slug": "enabled-plugins",
+  "source": "settings",
+  "schema_type": "object",
+  "description_en": "Enabled plugins using plugin-id@marketplace-id format. Example: { \"formatter@anthropic-tools\": true }. See https://code.claude.com/docs/en/plugins",
+  "description_ja": "plugin-id@marketplace-id の形式で、有効化するプラグインを指定します。",
+  "use_case_ja": "- 組織やプロジェクトで推奨されるコードフォーマッターやデプロイツールなどのプラグインを自動的に有効化するために使用します。\n- 管理設定(Managed Settings)で指定することで、各セッションの起動時に必要なツールが確実にロードされる環境を維持します。",
+  "related_changelog": [
+    {
+      "version": "2.1.45",
+      "content": "- Added support for reading `enabledPlugins` and `extraKnownMarketplaces` from `--add-dir` directories",
+      "content_ja": "コンテキストディレクトリから `enabledPlugins` および `extraKnownMarketplaces` の読み込みをサポートしました。",
+      "inference": {
+        "before": "Claude Code は、`--add-dir` オプションで指定されたディレクトリ内のプラグインやマーケットプレイスに関する設定を自動的に読み込むことができませんでした。",
+        "after": "Claude Code は、`--add-dir` オプションで指定されたディレクトリ内に `enabledPlugins` および `extraKnownMarketplaces` の設定ファイルが存在する場合、それらを認識し、プラグインの有効化やマーケットプレイスの追加を自動的に行えるようになりました。",
+        "benefit": "開発者は、プロジェクト固有のプラグインやマーケットプレイスを `--add-dir` オプションで簡単に指定できるようになり、開発環境のセットアップが容易になりました。これにより、より迅速にプロジェクト固有のツールや機能を活用できます。"
+      }
+    },
+    {
+      "version": "2.1.80",
+      "content": "- Fixed managed settings (`enabledPlugins`, `permissions.defaultMode`, policy-set env vars) not being applied at startup when `remote-settings.json` was cached from a prior session",
+      "content_ja": "前回のセッションのキャッシュがある場合に、起動時に一部の管理設定(有効なプラグイン、パーミッション等)が適用されないバグを修正",
+      "inference": {
+        "before": "組織で管理されている設定(Managed Settings)を使用していても、過去のセッション情報がキャッシュされていると、起動直後に最新の制限や環境変数が反映されない場合がありました。",
+        "after": "キャッシュの有無に関わらず、起動時に管理ポリシーが確実に最優先で読み込まれるよう修正されました。",
+        "benefit": "企業のセキュリティポリシーや共有設定が常に正しく適用されるため、コンプライアンスを維持したまま安心して作業を開始できます。"
+      }
+    }
+  ]
+}

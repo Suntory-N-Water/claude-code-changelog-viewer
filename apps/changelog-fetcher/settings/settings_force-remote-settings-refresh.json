@@ -1,0 +1,21 @@
+{
+  "key": "forceRemoteSettingsRefresh",
+  "slug": "force-remote-settings-refresh",
+  "source": "settings",
+  "schema_type": "boolean",
+  "description_en": "(Managed settings only) Block CLI startup until remote managed settings are freshly fetched from the server. If the fetch fails, the CLI exits (fail-closed) rather than continuing with cached settings. When not set, startup continues without waiting for remote settings. See https://code.claude.com/docs/en/server-managed-settings",
+  "description_ja": "リモート管理設定の取得が完了するまでCLIの起動をブロックし、失敗した場合は終了します。",
+  "use_case_ja": "- 常に最新の組織ポリシーやセキュリティ制限が適用されていることを保証するために使用します。\n- キャッシュされた古い設定で動作し始めるのを防ぎ、ネットワークエラー時は「fail-closed」として起動自体を停止させます。\n- 企業のガバナンス要件が厳しく、設定の強制適用が必須である環境で推奨されます。",
+  "related_changelog": [
+    {
+      "version": "2.1.92",
+      "content": "- Added `forceRemoteSettingsRefresh` policy setting: when set, the CLI blocks startup until remote managed settings are freshly fetched, and exits if the fetch fails (fail-closed)",
+      "content_ja": "ポリシー設定に `forceRemoteSettingsRefresh` を追加。有効にするとリモート管理設定の取得が完了するまで起動をブロックし、失敗した場合は終了します。",
+      "inference": {
+        "before": "CLI起動時にリモートの設定同期が間に合わない可能性があり、古い設定のまま動作し始めるリスクがありました。",
+        "after": "設定取得が完了するまで起動を待機(fail-closed)させるため、常に最新の組織ポリシーや制限が適用された状態でツールを開始できます。",
+        "benefit": "セキュリティポリシーの強制適用が確実になり、企業環境などでのガバナンスと安全性が向上します。"
+      }
+    }
+  ]
+}

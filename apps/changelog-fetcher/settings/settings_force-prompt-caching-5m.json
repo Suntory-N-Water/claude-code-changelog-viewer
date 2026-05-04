@@ -1,0 +1,20 @@
+{
+  "key": "FORCE_PROMPT_CACHING_5M",
+  "slug": "force-prompt-caching-5m",
+  "source": "env",
+  "description_en": "Set to `1` to force the 5-minute prompt cache TTL even when 1-hour TTL would otherwise apply. Overrides `ENABLE_PROMPT_CACHING_1H`",
+  "description_ja": "1を設定すると、1時間のTTLが適用される条件であっても、プロンプトキャッシュの保持期間を強制的に5分に固定します。",
+  "use_case_ja": "- キャッシュ保持によるコスト増(1時間キャッシュは単価が高い場合がある)を避けたい場合に、明示的に短期間の保持へ上書きします。\n- `ENABLE_PROMPT_CACHING_1H` の設定よりも優先され、一時的なコスト抑制を優先したいシーンで有効です。",
+  "related_changelog": [
+    {
+      "version": "2.1.108",
+      "content": "- Added `ENABLE_PROMPT_CACHING_1H` env var to opt into 1-hour prompt cache TTL on API key, Bedrock, Vertex, and Foundry (`ENABLE_PROMPT_CACHING_1H_BEDROCK` is deprecated but still honored), and `FORCE_PROMPT_CACHING_5M` to force 5-minute TTL",
+      "content_ja": "APIキーやBedrock、Vertex、Foundryにおいて、プロンプトキャッシュの保持期間(TTL)を1時間に延長できる環境変数を追加",
+      "inference": {
+        "before": "プロンプトキャッシュの有効期間が短く、頻繁なやり取りを行う長いセッションにおいて、キャッシュがすぐに無効化されて計算コストや遅延が増加していました。",
+        "after": "`ENABLE_PROMPT_CACHING_1H`環境変数を使用してキャッシュTTLを1時間に設定できるほか、`FORCE_PROMPT_CACHING_5M`で5分間に固定することも可能になりました。",
+        "benefit": "キャッシュのヒット率が向上し、長時間の開発セッションにおけるAPIコストの削減とレスポンスの高速化が期待できます。"
+      }
+    }
+  ]
+}

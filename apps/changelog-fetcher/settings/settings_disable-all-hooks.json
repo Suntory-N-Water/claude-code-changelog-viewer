@@ -1,0 +1,25 @@
+{
+  "key": "disableAllHooks",
+  "slug": "disable-all-hooks",
+  "source": "settings",
+  "schema_type": "boolean",
+  "description_en": "Disable all hooks and statusLine execution. When true in managed settings, user and project-level disableAllHooks cannot override it. See https://code.claude.com/docs/en/hooks#disable-or-remove-hooks",
+  "description_ja": "すべてのフックとステータスラインの実行を無効にします。",
+  "use_case_ja": "- 組織の管理者がセキュリティ上の理由でユーザー定義のスクリプト実行を一律禁止したい場合に、管理設定で強制適用するのに役立ちます。",
+  "related_changelog": [
+    {
+      "version": "1.0.68",
+      "content": "- Added `disableAllHooks` setting"
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Fixed `disableAllHooks` setting to respect managed settings hierarchy — non-managed settings can no longer disable managed hooks set by policy (#26637)",
+      "content_ja": "`disableAllHooks`設定が管理対象設定の階層を尊重するように修正されました。非管理対象設定では、ポリシーによって設定された管理対象フックを無効化できなくなりました。(#26637)",
+      "inference": {
+        "before": "以前は、ユーザーやプロジェクトの設定で`disableAllHooks: true`を設定すると、組織のポリシーによって管理対象として設定された重要なフックも無効化されてしまう可能性がありました。これにより、意図せずセキュリティやコンプライアンスに関わるフックが無効化され、ポリシーの一貫性が損なわれるリスクがありました。",
+        "after": "今回の修正により、`disableAllHooks`設定が管理対象設定の階層を正しく尊重するようになりました。具体的には、ユーザーやプロジェクトレベルの設定で`disableAllHooks`を`true`にしても、管理者によって設定された管理対象(マネージド)フックは無効化されなくなります。これにより、ポリシーによるフックの強制力が高まります。",
+        "benefit": "エンタープライズ環境でClaude Codeを利用する管理者は、組織のセキュリティポリシーやワークフローに必要なフックが常に有効であることを保証できるようになります。ユーザーが誤って重要なフックを無効化する心配がなくなり、より安全で統制の取れた開発環境を維持できます。"
+      }
+    }
+  ]
+}

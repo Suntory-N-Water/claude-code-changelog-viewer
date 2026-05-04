@@ -1,0 +1,20 @@
+{
+  "key": "MCP_CONNECTION_NONBLOCKING",
+  "slug": "mcp-connection-nonblocking",
+  "source": "env",
+  "description_en": "Set to `true` in non-interactive mode (`-p`) to skip the MCP connection wait entirely. Useful for scripted pipelines where MCP tools are not needed. Without this variable, the first query waits up to 5 seconds for `--mcp-config` server connections",
+  "description_ja": "非インタラクティブモード(-p)において、MCP接続の待機を完全にスキップして処理を開始します。",
+  "use_case_ja": "- CI/CDパイプラインやスクリプト実行において、MCPツールを使用しない場合に起動のオーバーヘッドを削減し、実行時間を短縮します。\n- 応答の遅いMCPサーバーがある環境でも、処理の開始がブロックされるのを防ぎます。",
+  "related_changelog": [
+    {
+      "version": "2.1.89",
+      "content": "- Added `MCP_CONNECTION_NONBLOCKING=true` for `-p` mode to skip the MCP connection wait entirely, and bounded `--mcp-config` server connections at 5s instead of blocking on the slowest server",
+      "content_ja": "`-p` モード用に `MCP_CONNECTION_NONBLOCKING=true` を追加し、MCP接続の待機を完全にスキップできるようになりました。また、`--mcp-config` による接続時間を最大5秒に制限しました。",
+      "inference": {
+        "before": "ヘッドレスモードで起動する際、応答の遅いMCPサーバーがあると接続完了まで長時間待機させられ、スクリプトの実行効率が低下していました。",
+        "after": "非ブロッキング接続を選択可能になり、またタイムアウト制限が設けられたことで、低速なサーバーに引きずられることなく素早く処理を開始できるようになりました。",
+        "benefit": "CI/CDや自動化ツールでの利用において、起動のオーバーヘッドが削減され、全体の実行時間が短縮されます。"
+      }
+    }
+  ]
+}

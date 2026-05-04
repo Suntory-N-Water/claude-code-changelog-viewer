@@ -1,0 +1,31 @@
+{
+  "key": "blockedMarketplaces",
+  "slug": "blocked-marketplaces",
+  "source": "settings",
+  "schema_type": "array",
+  "description_en": "(Managed settings only) Blocklist of marketplace sources. These exact sources are blocked from being added as marketplaces. The check happens before downloading, so blocked sources never touch the filesystem.",
+  "description_ja": "マーケットプレイスのソースを個別に拒否する、管理設定専用のブロックリスト。",
+  "use_case_ja": "- 組織内で許可されていない、または信頼できないリポジトリからのプラグイン取得を防止するために使用します。\n- ファイルシステムへの保存やネットワーク通信が発生する前の段階で、正規表現パターンを用いて厳格にブロックします。\n- インストール時だけでなく、自動更新などの全ライフサイクルにおいてセキュリティガバナンスを強化できます。",
+  "related_changelog": [
+    {
+      "version": "2.1.117",
+      "content": "- Managed-settings `blockedMarketplaces` and `strictKnownMarketplaces` are now enforced on plugin install, update, refresh, and autoupdate",
+      "content_ja": "管理設定の `blockedMarketplaces` と `strictKnownMarketplaces` が、プラグインのインストールや更新、自動アップデート時にも強制適用されるようになりました",
+      "inference": {
+        "before": "一部のプラグイン操作において、管理者によって制限された未承認のマーケットプレイスからの取得が完全に防げない可能性がありました。",
+        "after": "インストールから自動更新に至るすべてのライフサイクルにおいて、承認済みのソースのみが許可されるよう厳格にチェックされます。",
+        "benefit": "企業環境などにおいて、セキュリティポリシーに基づいた安全なプラグインのみが利用されることを保証します。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Security: `blockedMarketplaces` now correctly enforces `hostPattern` and `pathPattern` entries",
+      "content_ja": "セキュリティの向上: `blockedMarketplaces` 設定において、`hostPattern` および `pathPattern` エントリが正しく適用されるようになりました",
+      "inference": {
+        "before": "管理設定で特定のマーケットプレイスをブロックするために `hostPattern` や `pathPattern` を指定しても、一部の条件下で強制力が不十分であったり、正しく評価されなかったりする可能性がありました。",
+        "after": "設定された正規表現パターンに基づいてホストやファイルパスが厳密にチェックされ、ネットワーク通信やファイル操作の前にブロック対象かどうかが正しく判断されるようになりました。",
+        "benefit": "組織の管理者が信頼できないプラグインソースをより確実に制限できるようになり、開発環境のセキュリティガバナンスを強化できます。"
+      }
+    }
+  ]
+}

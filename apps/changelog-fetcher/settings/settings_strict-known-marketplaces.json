@@ -1,0 +1,51 @@
+{
+  "key": "strictKnownMarketplaces",
+  "slug": "strict-known-marketplaces",
+  "source": "settings",
+  "schema_type": "array",
+  "description_en": "(Managed settings only) Allowlist of plugin marketplaces users can add. Undefined = no restrictions, empty array = lockdown. Uses exact matching for source specifications. See https://code.claude.com/docs/en/settings#strictknownmarketplaces",
+  "description_ja": "ユーザーが追加できるプラグインマーケットプレイスのソースを厳格に制限する許可リストです。",
+  "use_case_ja": "- 承認された内部リポジトリや信頼できるホスト以外からのプラグイン導入を禁止し、サプライチェーン攻撃のリスクを低減します。\n- 正規表現を用いたホスト名やファイルパスのパターンマッチングにより、きめ細かなアクセス制御が可能です。",
+  "related_changelog": [
+    {
+      "version": "2.1.117",
+      "content": "- Managed-settings `blockedMarketplaces` and `strictKnownMarketplaces` are now enforced on plugin install, update, refresh, and autoupdate",
+      "content_ja": "管理設定の `blockedMarketplaces` と `strictKnownMarketplaces` が、プラグインのインストールや更新、自動アップデート時にも強制適用されるようになりました",
+      "inference": {
+        "before": "一部のプラグイン操作において、管理者によって制限された未承認のマーケットプレイスからの取得が完全に防げない可能性がありました。",
+        "after": "インストールから自動更新に至るすべてのライフサイクルにおいて、承認済みのソースのみが許可されるよう厳格にチェックされます。",
+        "benefit": "企業環境などにおいて、セキュリティポリシーに基づいた安全なプラグインのみが利用されることを保証します。"
+      }
+    },
+    {
+      "version": "2.1.71",
+      "content": "- Fixed `/plugin marketplace add owner/repo@ref` incorrectly parsing `@` — previously only `#` worked as a ref separator, causing undiagnosable errors with `strictKnownMarketplaces`",
+      "content_ja": "`/plugin marketplace add owner/repo@ref` において、`@` 記号が正しく解析されない問題を修正しました。以前は `#` のみがリファレンス区切りとして機能しており、厳格なマーケットプレイス制限下で診断困難なエラーが発生していました。",
+      "inference": {
+        "before": "GitHub リポジトリなどを追加する際、一般的な慣習である `@` を使ったバージョン指定が認識されず、設定ミスによるエラーに繋がることがありました。",
+        "after": "`@` と `#` の両方がリファレンス区切りとして正しくサポートされ、柔軟な指定が可能になりました。",
+        "benefit": "特定のバージョンやブランチのプラグインを導入する際の手順が分かりやすくなり、導入時のトラブルが減少します。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Added `pathPattern` to `strictKnownMarketplaces` for regex-matching file/directory marketplace sources alongside `hostPattern` restrictions",
+      "content_ja": "`strictKnownMarketplaces` 設定に `pathPattern` を追加しました。`hostPattern` と併用して、ファイルやディレクトリベースのプラグインソースを正規表現で制限できます。",
+      "inference": {
+        "before": "組織で管理設定(Managed Settings)を導入している場合、特定のディレクトリにあるプラグインのみを許可するといった、ファイルパスに基づいた厳格な制限をかけることができませんでした。",
+        "after": "正規表現によるパスのパターンマッチングが可能になったため、社内の承認済みディレクトリからのみプラグインのインストールを許可するといった運用が可能になりました。",
+        "benefit": "企業利用におけるセキュリティガバナンスが強化され、信頼できない場所からの意図しないコード実行を未然に防ぐことができます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Added `pathPattern` to `strictKnownMarketplaces` for regex-matching file/directory marketplace sources alongside `hostPattern` restrictions",
+      "content_ja": "`strictKnownMarketplaces` に `pathPattern` を追加。ファイル・ディレクトリ形式のプラグインソースを正規表現で制限可能に",
+      "inference": {
+        "before": "ローカルディレクトリからプラグインを読み込む際、許可された特定のディレクトリ以外からの読み込みを厳格に制限することができませんでした。",
+        "after": "ネットワーク経由のホスト制限だけでなく、ファイルシステム上のパスに基づいた読み込み制限が可能になりました。",
+        "benefit": "管理者側で、社内の標準ディレクトリ以外からのプラグインインストールを禁止するなど、より強力なセキュリティ制御が可能になります。"
+      }
+    }
+  ]
+}

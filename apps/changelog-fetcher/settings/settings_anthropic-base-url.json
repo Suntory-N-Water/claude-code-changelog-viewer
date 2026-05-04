@@ -1,0 +1,50 @@
+{
+  "key": "ANTHROPIC_BASE_URL",
+  "slug": "anthropic-base-url",
+  "source": "env",
+  "description_en": "Override the API endpoint to route requests through a proxy or gateway. When set to a non-first-party host, [MCP tool search](/en/mcp#scale-with-mcp-tool-search) is disabled by default. Set `ENABLE_TOOL_SEARCH=true` if your proxy forwards `tool_reference` blocks",
+  "description_ja": "APIエンドポイントをプロキシやゲートウェイのアドレスに上書きします。",
+  "use_case_ja": "- 独自のLLMゲートウェイやプロキシサーバーを介してリクエストをルーティングしたい場合に使用します。\n- 互換ゲートウェイを指している場合、`/model`コマンドでゲートウェイ側が提供する独自のモデル一覧を取得・表示できます。\n- 社内ガバナンスやフィルタリング、利用統計取得のために中央サーバーを経由させる構成で必須となります。",
+  "related_changelog": [
+    {
+      "version": "2.1.126",
+      "content": "- The `/model` picker now lists models from your gateway's `/v1/models` endpoint when `ANTHROPIC_BASE_URL` points at an Anthropic-compatible gateway",
+      "content_ja": "ANTHROPIC_BASE_URLが互換ゲートウェイを指している場合、/modelピッカーにゲートウェイの/v1/modelsエンドポイントから取得したモデル一覧が表示されるようになりました",
+      "inference": {
+        "before": "Anthropic互換のゲートウェイを使用している場合でも、/modelコマンドのピッカーには組み込みのモデルエイリアスやデフォルトのモデルしか表示されませんでした。",
+        "after": "ゲートウェイが提供する/v1/modelsエンドポイントからモデルリストを動的に取得し、ピッカーに表示できるようになりました。",
+        "benefit": "プロキシやカスタムゲートウェイ経由で利用可能な特定のモデルを、モデル名を手入力することなく選択メニューから簡単に選べるようになります。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed tool search to activate even with `ANTHROPIC_BASE_URL` as long as `ENABLE_TOOL_SEARCH` is set.",
+      "content_ja": "ANTHROPIC_BASE_URL 使用時でも ENABLE_TOOL_SEARCH が設定されていればツール検索が有効になるよう修正",
+      "inference": {
+        "before": "LLM ゲートウェイ構成などで ANTHROPIC_BASE_URL を設定している場合、ENABLE_TOOL_SEARCH を明示的に設定していてもツール検索機能が正常に動作しないことがありました。",
+        "after": "ANTHROPIC_BASE_URL の設定有無にかかわらず、ENABLE_TOOL_SEARCH 環境変数が設定されていればツール検索機能がアクティブになります。",
+        "benefit": "カスタムプロキシやゲートウェイを経由するエンタープライズ環境でも、Claude Code の強力なツール検索機能を確実に利用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.70",
+      "content": "- Fixed API 400 errors when using `ANTHROPIC_BASE_URL` with a third-party gateway — tool search now correctly detects proxy endpoints and disables `tool_reference` blocks",
+      "content_ja": "サードパーティ製ゲートウェイを介して `ANTHROPIC_BASE_URL` を使用した際の API 400 エラーを修正しました。ツール検索機能がプロキシエンドポイントを正しく検出し、`tool_reference` ブロックを無効化するようになりました。",
+      "inference": {
+        "before": "サードパーティのプロキシやゲートウェイを経由して API を利用する際、ツール検索機能がエンドポイントの性質を正しく認識できず、互換性のない形式でリクエストを送信して API 400 エラーが発生する場合がありました。",
+        "after": "ツール検索機能がプロキシエンドポイントをインテリジェントに検出し、必要に応じて `tool_reference` ブロックを適切に無効化するように改善されました。",
+        "benefit": "特定のネットワーク環境やカスタムゲートウェイを利用している開発者でも、接続エラーに悩まされることなく安定してツール機能を利用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.118",
+      "content": "- The `/model` picker now honors `ANTHROPIC_DEFAULT_*_MODEL_NAME`/`_DESCRIPTION` overrides when using a custom `ANTHROPIC_BASE_URL` gateway",
+      "content_ja": "カスタムゲートウェイ使用時、`/model` の選択肢に環境変数によるモデル名・説明のオーバーライドが適用されるよう改善",
+      "inference": {
+        "before": "カスタムの `ANTHROPIC_BASE_URL` を使用している際、モデルピッカーに表示される内容が Anthropic 標準のままになり、組織独自のモデル設定が反映されないことがありました。",
+        "after": "`ANTHROPIC_DEFAULT_*_MODEL_NAME` などの環境変数で指定したカスタムの名称や説明が、モデル選択画面に正しく表示されるようになりました。",
+        "benefit": "社内プロキシやゲートウェイを介して特定のモデル構成を運用している開発者が、自分たちの環境に適した正しいモデル情報を確認して選択できます。"
+      }
+    }
+  ]
+}

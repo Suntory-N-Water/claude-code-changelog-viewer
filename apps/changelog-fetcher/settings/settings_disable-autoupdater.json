@@ -1,0 +1,34 @@
+{
+  "key": "DISABLE_AUTOUPDATER",
+  "slug": "disable-autoupdater",
+  "source": "env",
+  "description_en": "Set to `1` to disable automatic background updates. Manual `claude update` still works. Use `DISABLE_UPDATES` to block both",
+  "description_ja": "バックグラウンドでの自動アップデート確認を無効化します。",
+  "use_case_ja": "- 開発環境のツールバージョンを厳密に固定し、意図しない挙動の変化や不具合の混入を防ぎたい場合に設定します。\n- 自動更新は停止しますが、「claude update」コマンドによる手動更新は引き続き可能です。",
+  "related_changelog": [
+    {
+      "version": "2.0.36",
+      "content": "- Fixed: DISABLE_AUTOUPDATER environment variable now properly disables package manager update notifications"
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Added `DISABLE_UPDATES` env var to completely block all update paths including manual `claude update` — stricter than `DISABLE_AUTOUPDATER`",
+      "content_ja": "手動の `claude update` を含むすべての更新経路を完全にブロックする `DISABLE_UPDATES` 環境変数を追加しました(`DISABLE_AUTOUPDATER` よりも厳格な設定です)。",
+      "inference": {
+        "before": "自動更新は `DISABLE_AUTOUPDATER` でオフにできましたが、手動コマンドによる更新を完全に制限することはできず、特定のバージョンを厳格に固定したいエンタープライズ環境などで意図しない更新が防げない可能性がありました。",
+        "after": "`DISABLE_UPDATES` を設定することで、バックグラウンドでの自動チェックだけでなく、明示的な手動更新コマンドも拒否されるようになり、管理者が承認した特定のバージョンを確実に使い続けることができます。",
+        "benefit": "企業のIT管理者は、検証済みの安定版からユーザーが勝手にアップデートすることを防げるため、開発チーム全体でツールの一貫性とセキュリティを保証しやすくなります。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed `DISABLE_AUTOUPDATER` not fully suppressing the npm registry version check and symlink modification on npm-based installs",
+      "content_ja": "npm ベースのインストール環境において、`DISABLE_AUTOUPDATER` が npm レジストリのバージョン確認やシンボリックリンクの変更を完全に抑制できていなかった問題を修正しました。",
+      "inference": {
+        "before": "自動更新をオフにしていても、バックグラウンドでネットワーク通信やファイル操作が発生し、意図したバージョンの固定が不完全でした。",
+        "after": "自動更新の無効化設定が厳密に守られるようになり、不意のバージョン変動がなくなります。",
+        "benefit": "特定のバージョンで動作を安定させたい環境において、信頼性が向上します。"
+      }
+    }
+  ]
+}

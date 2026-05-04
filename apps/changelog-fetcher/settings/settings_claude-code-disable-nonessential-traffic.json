@@ -1,0 +1,44 @@
+{
+  "key": "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+  "slug": "claude-code-disable-nonessential-traffic",
+  "source": "env",
+  "description_en": "Equivalent of setting `DISABLE_AUTOUPDATER`, `DISABLE_FEEDBACK_COMMAND`, `DISABLE_ERROR_REPORTING`, and `DISABLE_TELEMETRY`",
+  "description_ja": "自動更新、フィードバック、エラーレポート、テレメトリの各無効化フラグを一括で有効にするのと同等の効果を持ちます。",
+  "use_case_ja": "- 機密性の高い開発環境や、インターネット通信を最小限に抑えたいエンタープライズ環境での利用に最適です。\n- テレメトリの送信を厳密に遮断し、プライバシーポリシーやセキュリティ要件への準拠を容易にします。",
+  "related_changelog": [
+    {
+      "version": "2.0.17",
+      "content": "- `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` now disables release notes fetching"
+    },
+    {
+      "version": "2.1.105",
+      "content": "- Fixed `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` in one project's settings permanently disabling usage metrics for all projects on the machine",
+      "content_ja": "特定のプロジェクトで非必須トラフィックを無効にすると、マシン上の全プロジェクトでメトリクスが無効化されてしまう問題を修正しました",
+      "inference": {
+        "before": "一つのリポジトリの設定でトラフィック制限(テレメトリ無効化など)を行うと、その設定が他の無関係なプロジェクトにまで波及してしまうバグがありました。",
+        "after": "設定の影響範囲が適切にプロジェクト単位に制限されるようになりました。",
+        "benefit": "プロジェクトごとのプライバシー・セキュリティ要件に応じた柔軟な設定が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.120",
+      "content": "- Fixed `DISABLE_TELEMETRY` / `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` not suppressing usage metrics telemetry for API and enterprise users",
+      "content_ja": "テレメトリ無効化設定(`DISABLE_TELEMETRY` 等)が、API およびエンタープライズユーザーの利用統計送信を抑制していなかった問題を修正",
+      "inference": {
+        "before": "プライバシー設定でテレメトリを無効にしていても、特定のライセンス形態において一部の利用状況データが送信され続けてしまうバグがありました。",
+        "after": "設定された無効化フラグがすべてのユーザー環境で厳密に適用され、不要な通信を完全に遮断します。",
+        "benefit": "機密性の高い開発環境において、セキュリティポリシーに基づいた厳格なデータ保護と通信制御が保証されます。"
+      }
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Fixed headless/SDK session auto-title firing an extra Haiku request when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` or `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` is set",
+      "content_ja": "ヘッドレス/SDKセッションにおいて、特定の無効化設定時にセッションタイトルの自動生成が不要なAPIリクエスト(Haikuモデル)を発生させる問題を修正",
+      "inference": {
+        "before": "非対話型の自動化処理などで、本来不要なはずの「タイトル生成」のために余計なAPIコールが発生し、わずかですがコストと時間が浪費されていました。",
+        "after": "端末タイトルの更新や非必須トラフィックが制限されている場合、タイトル生成のリクエストを賢くスキップするようになりました。",
+        "benefit": "大規模な自動実行スクリプトなどでAPIトークンの消費を極限まで抑え、処理速度の向上にも寄与します。"
+      }
+    }
+  ]
+}

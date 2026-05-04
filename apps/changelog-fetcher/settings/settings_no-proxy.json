@@ -1,0 +1,34 @@
+{
+  "key": "NO_PROXY",
+  "slug": "no-proxy",
+  "source": "env",
+  "description_en": "List of domains and IPs to which requests will be directly issued, bypassing proxy",
+  "description_ja": "プロキシを介さず直接リクエストを送信するドメインやIPアドレスのリストを指定します。",
+  "use_case_ja": "- 複雑なエンタープライズネットワーク環境において、社内APIなどプロキシを除外すべき接続先を正しく運用するために使用します。\n- 社内リソースへのアクセス失敗を防ぎ、すべての内部通信コンポーネントが管理設定に従って正しく通信できるようにします。",
+  "related_changelog": [
+    {
+      "version": "1.0.93",
+      "content": "- Support NO_PROXY environment variable to bypass proxy for specified hostnames and IPs"
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Fixed `NO_PROXY` not being respected for remote API requests when running under Bun",
+      "content_ja": "Bun 環境で動作している際、リモート API リクエストにおいて `NO_PROXY` 設定が無視される問題を修正しました",
+      "inference": {
+        "before": "特定の環境下でプロキシ除外設定(NO_PROXY)を行っていても、すべての通信がプロキシを経由してしまい、社内 API などに接続できないことがありました。",
+        "after": "標準的なネットワーク設定に従い、除外されたドメインには直接接続が行われるようになります。",
+        "benefit": "複雑なネットワーク構成を持つエンタープライズ環境でも、Claude Code を正しく運用できます。"
+      }
+    },
+    {
+      "version": "2.1.121",
+      "content": "- Fixed `NO_PROXY` not being respected for all HTTP clients when set via `managed-settings.json` under the native build",
+      "content_ja": "ネイティブビルド版において、`managed-settings.json` で設定された `NO_PROXY` が一部の HTTP クライアントで無視されていた問題を修正しました。",
+      "inference": {
+        "before": "管理者がプロキシ除外設定(`NO_PROXY`)をポリシーファイルで指定していても、ツールの一部の通信が強制的にプロキシを経由してしまい、社内リソースへのアクセスに失敗することがありました。",
+        "after": "すべての内部通信コンポーネントが管理設定のプロキシルールを正しく参照するように統一されました。",
+        "benefit": "企業の複雑なネットワーク環境下でも、設定通りに正しく社内外のリソースと通信できるようになります。"
+      }
+    }
+  ]
+}

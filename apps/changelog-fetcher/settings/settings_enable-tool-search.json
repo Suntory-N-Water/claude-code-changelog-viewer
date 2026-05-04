@@ -1,0 +1,25 @@
+{
+  "key": "ENABLE_TOOL_SEARCH",
+  "slug": "enable-tool-search",
+  "source": "env",
+  "description_en": "Controls [MCP tool search](/en/mcp#scale-with-mcp-tool-search). Unset: all MCP tools deferred by default, but loaded upfront on Vertex AI or when `ANTHROPIC_BASE_URL` points to a non-first-party host. Values: `true` (always defer including proxies and Vertex AI), `auto` (threshold mode: load upfront if tools fit within 10% of context), `auto:N` (custom threshold, e.g., `auto:5` for 5%), `false` (load all upfront)",
+  "description_ja": "MCPツール検索の動作を制御し、大量のツールをコンテキストを消費せずに必要に応じて発見・利用できるようにします。",
+  "use_case_ja": "- デフォルトでは必要な時に検索して読み込むため、大量のMCPツールを登録していてもコンテキストウィンドウを圧迫しません。\n- Vertex AIやカスタムプロキシ環境(ANTHROPIC_BASE_URL使用時)でツール検索を強制的に有効化したい場合に設定します。",
+  "related_changelog": [
+    {
+      "version": "2.1.72",
+      "content": "- Fixed tool search to activate even with `ANTHROPIC_BASE_URL` as long as `ENABLE_TOOL_SEARCH` is set.",
+      "content_ja": "ANTHROPIC_BASE_URL 使用時でも ENABLE_TOOL_SEARCH が設定されていればツール検索が有効になるよう修正",
+      "inference": {
+        "before": "LLM ゲートウェイ構成などで ANTHROPIC_BASE_URL を設定している場合、ENABLE_TOOL_SEARCH を明示的に設定していてもツール検索機能が正常に動作しないことがありました。",
+        "after": "ANTHROPIC_BASE_URL の設定有無にかかわらず、ENABLE_TOOL_SEARCH 環境変数が設定されていればツール検索機能がアクティブになります。",
+        "benefit": "カスタムプロキシやゲートウェイを経由するエンタープライズ環境でも、Claude Code の強力なツール検索機能を確実に利用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Tool search is now disabled by default on Vertex AI to avoid an unsupported beta header error (opt in with `ENABLE_TOOL_SEARCH`)",
+      "content_ja": "Vertex AI でのサポートされていないベータヘッダーエラーを避けるため、ツール検索をデフォルトで無効にしました(ENABLE_TOOL_SEARCH で有効化可能)。"
+    }
+  ]
+}

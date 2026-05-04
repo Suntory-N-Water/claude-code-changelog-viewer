@@ -1,0 +1,20 @@
+{
+  "key": "CLAUDE_CODE_SCRIPT_CAPS",
+  "slug": "claude-code-script-caps",
+  "source": "env",
+  "description_en": "JSON object limiting how many times specific scripts may be invoked per session when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set. Keys are substrings matched against the command text; values are integer call limits. For example, `{\"deploy.sh\": 2}` allows `deploy.sh` to be called at most twice. Matching is substring-based so shell-expansion tricks like `./scripts/deploy.sh $(evil)` still count against the cap. Runtime fan-out via `xargs` or `find -exec` is not detected; this is a defense-in-depth control",
+  "description_ja": "1セッションあたりの特定のスクリプト実行回数を制限するJSONオブジェクトを指定します。",
+  "use_case_ja": "- AIによる意図しない無限ループや、プロンプトインジェクション等によるリソースの過剰消費を防ぐためのセキュリティ制限として使用します。\n- 例えば `{\"deploy.sh\": 1}` と設定することで、デプロイスクリプトが1セッション中に何度も誤実行されるリスクを低減できます。",
+  "related_changelog": [
+    {
+      "version": "2.1.98",
+      "content": "- Added subprocess sandboxing with PID namespace isolation on Linux when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set, and `CLAUDE_CODE_SCRIPT_CAPS` env var to limit per-session script invocations",
+      "content_ja": "Linux 環境において `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 有効時の PID ネームスペース隔離によるサブプロセス・サンドボックス機能、およびセッションごとのスクリプト実行回数を制限する `CLAUDE_CODE_SCRIPT_CAPS` 環境変数を追加しました。",
+      "inference": {
+        "before": "AIが実行するサブプロセスからホスト側のプロセス情報が見えてしまったり、悪意のあるプロンプトによって無限にスクリプトが実行されたりするセキュリティ上の懸念がありました。",
+        "after": "OSレベルでのプロセス隔離が強化され、また1セッション内でのスクリプト実行回数に上限を設けることができるようになりました。",
+        "benefit": "AIにコマンド実行権限を与える際の安全性が高まり、プロンプトインジェクション等による情報の漏洩やリソースの枯渇リスクを大幅に低減できます。"
+      }
+    }
+  ]
+}
