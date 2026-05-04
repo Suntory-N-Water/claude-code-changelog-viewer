@@ -6,6 +6,14 @@ import {
 import { ApiError, GoogleGenAI, Type } from '@google/genai';
 import pRetry, { AbortError } from 'p-retry';
 
+export type SettingsTranslateResult = {
+  results: {
+    id: number;
+    description_ja: string;
+    use_case_ja: string;
+  }[];
+};
+
 const RETRY_DELAY_MS = 60 * 1000;
 const MAX_RETRIES_PER_MODEL = 3;
 
@@ -317,6 +325,113 @@ export class GeminiClient {
     }
     throw new Error(
       `All models failed for text generation task. Last error: ${lastError?.message}`,
+    );
+  }
+
+  /**
+   * 設定・環境変数の翻訳と用途解説を一括生成(フォールバック対応)
+   *
+   * @param prompt - 翻訳・解説プロンプト
+   * @returns 各エントリの description_ja / use_case_ja
+   */
+  async translateSettings(prompt: string): Promise<SettingsTranslateResult> {
+    let lastError: Error | null = null;
+
+    for (const model of INFERENCE_FALLBACK_MODELS) {
+      try {
+        return await pRetry(
+          async () => {
+            this.log.info(`モデルを試行: ${model}`, {
+              method: 'translateSettings',
+            });
+            await this.waitForRateLimit(model);
+
+            const response = await this.ai.models.generateContent({
+              model,
+              contents: prompt,
+              config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                  type: Type.OBJECT,
+                  properties: {
+                    results: {
+                      type: Type.ARRAY,
+                      description: '各設定エントリの翻訳・用途解説結果',
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: {
+                            type: Type.NUMBER,
+                            description: '入力エントリのid',
+                          },
+                          description_ja: {
+                            type: Type.STRING,
+                            description: '英語説明の日本語訳(1文)',
+                          },
+                          use_case_ja: {
+                            type: Type.STRING,
+                            description:
+                              '用途解説(2〜3行の箇条書き)。コンテキストなしの場合は空文字',
+                          },
+                        },
+                        propertyOrdering: [
+                          'id',
+                          'description_ja',
+                          'use_case_ja',
+                        ],
+                        required: ['id', 'description_ja', 'use_case_ja'],
+                      },
+                    },
+                  },
+                  propertyOrdering: ['results'],
+                  required: ['results'],
+                },
+                thinkingConfig: {
+                  thinkingBudget: 0,
+                },
+              },
+            });
+
+            if (!response.text) {
+              throw new Error('Gemini APIからの応答が空です');
+            }
+
+            const usage = response.usageMetadata;
+            this.log.info(
+              `トークン消費: ↑${usage?.promptTokenCount ?? 0} ↓${usage?.candidatesTokenCount ?? 0} (thinking: ${usage?.thoughtsTokenCount ?? 0})`,
+              { method: 'translateSettings', model },
+            );
+
+            const result = JSON.parse(response.text) as SettingsTranslateResult;
+            this.log.info(`モデル成功: ${model}`, {
+              method: 'translateSettings',
+            });
+            return result;
+          },
+          {
+            retries: MAX_RETRIES_PER_MODEL,
+            onFailedAttempt: async ({ error, attemptNumber }) => {
+              if (!this.isRetryableError(error)) {
+                throw new AbortError(error.message);
+              }
+              this.log.warn(
+                `リトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${model}, ${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
+                { method: 'translateSettings' },
+              );
+              await new Promise((resolve) =>
+                setTimeout(resolve, RETRY_DELAY_MS),
+              );
+            },
+          },
+        );
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        this.log.msg('APLG0024', { params: [model] });
+      }
+    }
+
+    throw new Error(
+      `All models failed for settings translate task. Last error: ${lastError?.message}`,
     );
   }
 }

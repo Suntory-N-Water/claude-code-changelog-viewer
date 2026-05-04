@@ -10,8 +10,8 @@ import pRetry, { AbortError } from 'p-retry';
 import { GeminiClient } from './ai/gemini-client';
 import { loadModelContext } from './ai/model-context';
 import {
-  type IndexedItem,
   buildBatchInferencePrompt,
+  type IndexedItem,
 } from './ai/prompts/inference-prompt';
 
 const log = getLogger({ name: 'benefit-inferrer' });
