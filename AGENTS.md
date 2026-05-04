@@ -12,6 +12,7 @@ pnpm workspace モノレポ / TypeScript / Astro + Cloudflare Workers
 | テスト | `pnpm run --filter <app> test` |
 
 - GitHub の情報取得には `gh` コマンドを使用する
+  - カレントディレクトリからの自動解決するので、特定のリポジトリを指示しない限りは`--repo`オプションは使用しない
 - ライブラリの仕様は Context7 MCP サーバーを使用する
 - GitHub Actions 関連ファイルを変更後は `/actions-check` で静的解析を実施する
 - `lint` エラー時は `unsafe-fix` を使用してから個別に修正する
