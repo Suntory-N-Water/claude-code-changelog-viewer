@@ -37,6 +37,7 @@ type Props = {
 const { title, description, image, jsonLd, breadcrumbs, faqItems } =
   Astro.props;
 const isDocsPage = Astro.url.pathname.startsWith('/docs');
+const isReferencePage = Astro.url.pathname.startsWith('/reference');
 const defaultDescription =
   'Claude Codeの変更履歴をAIが分析。各アップデートの新機能・バグ修正・改善点を日本語で分かりやすく解説し、ユーザーへの具体的な恩恵をまとめています。';
 const pageDescription = description || defaultDescription;
@@ -224,9 +225,19 @@ if (jsonLd?.type === 'website') {
           >
             Docs 更新履歴
           </a>
+          <a
+            href='/reference/settings'
+            class={`hidden sm:inline text-sm transition-colors ${isReferencePage ? 'text-[hsl(var(--cc-main-orange))] font-medium' : 'text-[hsl(var(--cc-main-black)/0.7)] hover:text-[hsl(var(--cc-main-orange))]'}`}
+            aria-current={isReferencePage ? 'page' : undefined}
+          >
+            設定リファレンス
+          </a>
 
           <SearchModal />
-          <MobileMenu isDocsPage={isDocsPage} />
+          <MobileMenu
+            isDocsPage={isDocsPage}
+            isReferencePage={isReferencePage}
+          />
         </div>
       </nav>
     </header>

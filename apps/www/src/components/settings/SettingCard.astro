@@ -1,0 +1,52 @@
+---
+import { formatSettingDescription } from '../../lib/format-changelog-content';
+import { getSourceLabel } from '../../lib/settings-reference';
+
+type Props = {
+  slug: string;
+  keyName: string;
+  source: 'settings' | 'env';
+  descriptionJa: string;
+};
+
+const { slug, keyName, source, descriptionJa } = Astro.props;
+const sourceLabel = getSourceLabel(source);
+const descriptionHtml = formatSettingDescription(descriptionJa);
+---
+
+<a
+  href={`/reference/settings/${slug}`}
+  class='block bg-card text-card-foreground rounded-xl border shadow-sm hover:shadow-lg hover:border-[hsl(var(--cc-main-orange))] transition-[box-shadow,border-color,transform] duration-200 overflow-hidden group cursor-pointer active:scale-[0.98]'
+>
+  <div class='p-5'>
+    <div class='flex items-start justify-between gap-2 mb-2'>
+      <h2
+        class='text-sm font-bold font-mono break-all text-[hsl(var(--cc-main-orange))] group-hover:text-[hsl(var(--cc-orange-hover))] transition-[color]'
+      >
+        {keyName}
+      </h2>
+      <svg
+        class='w-4 h-4 text-[hsl(var(--cc-gray))] group-hover:text-[hsl(var(--cc-main-orange))] group-hover:translate-x-1 transition-[color,transform] duration-200 shrink-0 mt-0.5'
+        fill='none'
+        viewBox='0 0 24 24'
+        stroke='currentColor'
+        stroke-width='2'
+        aria-hidden='true'
+      >
+        <path stroke-linecap='round' stroke-linejoin='round' d='M9 5l7 7-7 7'
+        ></path>
+      </svg>
+    </div>
+    <div class='mb-2'>
+      <span
+        class='inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-[hsl(var(--cc-gray)/0.5)] text-[hsl(var(--cc-main-black)/0.7)]'
+      >
+        {sourceLabel}
+      </span>
+    </div>
+    <div
+      class='text-sm text-gray-600 leading-relaxed line-clamp-2 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-[hsl(var(--cc-main-black))] [&_code]:text-xs [&_code]:font-mono'
+      set:html={descriptionHtml}
+    />
+  </div>
+</a>
