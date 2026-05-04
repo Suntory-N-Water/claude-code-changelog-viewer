@@ -1,0 +1,141 @@
+{
+  "id": "20260504-212348",
+  "timestamp": "2026-05-04T21:23:48.349Z",
+  "aiSummary": "フック設定におけるok: false（アクションのブロック）を指定した際の動作が、イベント種別ごとに詳細化されました。PreToolUseイベントでブロックした際にツールエラーとしてClaudeへ理由が返され、動作を継続できるよう改善されています。一方で、UserPromptSubmitなどの特定のイベントでは、従来通り警告を表示してターンを終了する仕様であることが明記されました。全体として、自動化プロセスにおけるエラーハンドリングと継続性の制御がより緻密に定義されています。",
+  "files": [
+    {
+      "filename": "hooks-guide.md",
+      "additions": 4,
+      "deletions": 1,
+      "explanation": "フックがアクションをブロックした際の挙動について、PreToolUseなどのイベント種別ごとの詳細な分岐条件が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -688,7 +688,10 @@ For decisions that require judgment rather than deterministic rules, use `type:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "The model's only job is to return a yes/no decision as JSON:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `\"ok\": true`: the action proceeds"
+            },
+            {
+              "type": "removed",
+              "content": "- `\"ok\": false`: the action is blocked. For `Stop` and `SubagentStop` hooks, the `reason` is fed back to Claude so it keeps working. For other events, the turn ends and the `reason` appears in the chat as a warning line. Claude does not see it."
+            },
+            {
+              "type": "added",
+              "content": "- `\"ok\": false`: what happens depends on the event:"
+            },
+            {
+              "type": "added",
+              "content": "  - `Stop` and `SubagentStop`: the `reason` is fed back to Claude so it keeps working"
+            },
+            {
+              "type": "added",
+              "content": "  - `PreToolUse`: the tool call is denied and the `reason` is returned to Claude as the tool error, so it can adjust and continue"
+            },
+            {
+              "type": "added",
+              "content": "  - `PostToolUse`, `PostToolBatch`, `UserPromptSubmit`, and `UserPromptExpansion`: the turn ends and the `reason` appears in the chat as a warning line"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example uses a `Stop` hook to ask the model whether all requested tasks are complete. If the model returns `\"ok\": false`, Claude keeps working and uses the `reason` as its next instruction:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 9,
+      "deletions": 1,
+      "explanation": "ok: falseを返した際の影響をイベントごとに整理し、PermissionRequestでの挙動やコマンドフックとの対応関係が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -2358,7 +2358,15 @@ The LLM must respond with JSON containing:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ok` | `true` allows the action, `false` blocks it |"
+            },
+            {
+              "type": "context",
+              "content": "| `reason` | Required when `ok` is `false`. Explanation for the block |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For `Stop` and `SubagentStop`, an `ok: false` reason is fed back to Claude as its next instruction and the turn continues. For all other supported events, the turn ends and the reason appears in the chat as a warning line; Claude does not see it. This is equivalent to returning `\"continue\": false` from a command hook. If you need different blocking semantics on those events, use a [command hook](#command-hook-fields) with the per-event fields described in [Decision control](#decision-control)."
+            },
+            {
+              "type": "added",
+              "content": "What happens on `ok: false` depends on the event:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `Stop` and `SubagentStop`: the reason is fed back to Claude as its next instruction and the turn continues"
+            },
+            {
+              "type": "added",
+              "content": "- `PreToolUse`: the tool call is denied and the reason is returned to Claude as the tool error, equivalent to a command hook's `permissionDecision: \"deny\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `PostToolUse`, `PostToolBatch`, `UserPromptSubmit`, and `UserPromptExpansion`: the turn ends and the reason appears in the chat as a warning line, equivalent to returning `\"continue\": false` from a command hook"
+            },
+            {
+              "type": "added",
+              "content": "- `PostToolUseFailure`, `TaskCreated`, and `TaskCompleted`: the reason is returned to Claude as a tool error, similar to `PreToolUse`"
+            },
+            {
+              "type": "added",
+              "content": "- `PermissionRequest`: `ok: false` has no effect. To deny an approval from a hook, use a [command hook](#command-hook-fields) returning `hookSpecificOutput.decision.behavior: \"deny\"`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you need finer control on any event, use a [command hook](#command-hook-fields) with the per-event fields described in [Decision control](#decision-control)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Example: Multi-criteria Stop hook"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

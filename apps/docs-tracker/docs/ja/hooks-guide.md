@@ -688,7 +688,10 @@ Claude Code が実行中に設定ファイルを直接編集する場合、フ�
 モデルの唯一の仕事は、yes/no 決定を JSON として返すことです：
 
 - `"ok": true`：アクションが続行されます
-- `"ok": false`：アクションがブロックされます。`Stop` および `SubagentStop` hooks の場合、`reason` は Claude にフィードバックとして返されるため、作業を続けます。その他のイベントの場合、ターンが終了し、`reason` は警告行としてチャットに表示されます。Claude はそれを見ません。
+- `"ok": false`：何が起こるかはイベントによって異なります：
+  - `Stop` および `SubagentStop`：`reason` は Claude にフィードバックとして返されるため、作業を続けます
+  - `PreToolUse`：ツール呼び出しが拒否され、`reason` はツールエラーとして Claude に返されるため、調整して続行できます
+  - `PostToolUse`、`PostToolBatch`、`UserPromptSubmit`、および `UserPromptExpansion`：ターンが終了し、`reason` は警告行としてチャットに表示されます
 
 この例は `Stop` hook を使用して、要求されたすべてのタスクが完了しているかどうかをモデルに尋ねます。モデルが `"ok": false` を返す場合、Claude は作業を続け、`reason` を次の指示として使用します：
 

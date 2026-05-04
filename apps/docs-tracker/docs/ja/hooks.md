@@ -2352,7 +2352,15 @@ LLM は以下を含む JSON で応答する必要があります：
 | `ok` | `true` はアクションを許可、`false` は防止 |
 | `reason` | `ok` が `false` のときに必須。ブロックの説明 |
 
-`Stop` と `SubagentStop` の場合、`ok: false` の理由は Claude の次の指示としてフィードバックされ、ターンが続行されます。その他のサポートされているすべてのイベントの場合、ターンが終了し、理由は警告行としてチャットに表示されます。Claude はそれを見ません。これは、コマンド フックから `"continue": false` を返すことと同等です。これらのイベントで異なるブロック セマンティクスが必要な場合は、[決定制御](#decision-control)で説明されているイベント ごとのフィールドを使用して、[コマンド フック](#command-hook-fields)を使用してください。
+`ok: false` で何が起こるかはイベントによって異なります：
+
+- `Stop` と `SubagentStop`：理由は Claude の次の指示としてフィードバックされ、ターンが続行されます
+- `PreToolUse`：ツール呼び出しが拒否され、理由は Claude にツール エラーとして返されます。これはコマンド フックの `permissionDecision: "deny"` と同等です
+- `PostToolUse`、`PostToolBatch`、`UserPromptSubmit`、`UserPromptExpansion`：ターンが終了し、理由は警告行としてチャットに表示されます。これはコマンド フックから `"continue": false` を返すことと同等です
+- `PostToolUseFailure`、`TaskCreated`、`TaskCompleted`：理由は Claude にツール エラーとして返されます。`PreToolUse` と同様です
+- `PermissionRequest`：`ok: false` は効果がありません。フックから承認を拒否するには、[コマンド フック](#command-hook-fields)を使用して `hookSpecificOutput.decision.behavior: "deny"` を返します
+
+任意のイベントでより細かい制御が必要な場合は、[決定制御](#decision-control)で説明されているイベント ごとのフィールドを使用して、[コマンド フック](#command-hook-fields)を使用してください。
 
 ### 例：マルチ基準 Stop フック
 
