@@ -3,7 +3,7 @@ import { glob } from 'astro/loaders';
 import { defineCollection } from 'astro:content';
 
 const changelogCollection = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: './src/content/changelog' }),
+  loader: glob({ pattern: 'inferred_v*.json', base: './src/content/changelog' }),
   schema: z.object({
     version: z.string(),
     summary: z.string().optional(), // バージョン全体のサマリー(日本語)
