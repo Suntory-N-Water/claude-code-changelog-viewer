@@ -198,7 +198,7 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | - | - | - |
 | `duration_ms` | 権限決定の待機に費やされた時間 | |
 | `decision` | `accept` または `reject` | |
-| `source` | 決定ソース。`tool_decision` イベントと一致 | |
+| `source` | 決定ソース。[Tool decision event](#tool-decision-event) と一致 | |
 
 **`claude_code.tool.execution`**
 
@@ -451,7 +451,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - すべての[標準属性](#standard-attributes)
 - `tool_name`: ツール名 (`"Edit"`、`"Write"`、`"NotebookEdit"`)
 - `decision`: ユーザーの決定 (`"accept"`、`"reject"`)
-- `source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
+- `source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`。詳細は [ツール決定イベント](#tool-decision-event)を参照してください。
 - `language`: 編集されたファイルのプログラミング言語。例: `"TypeScript"`、`"Python"`、`"JavaScript"`、`"Markdown"`。認識されないファイル拡張子の場合は `"unknown"` を返します。
 
 #### アクティブ時間カウンター
@@ -515,7 +515,7 @@ Claude Code は、OpenTelemetry ログ/イベント経由で以下のイベン�
 - `error_type`: ツールが失敗した場合のエラーカテゴリ文字列。例: `"Error:ENOENT"` または `"ShellError"`
 - `error` (`OTEL_LOG_TOOL_DETAILS=1` の場合): ツールが失敗した場合の完全なエラーメッセージ
 - `decision_type`: `"accept"` または `"reject"`
-- `decision_source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
+- `decision_source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`。詳細は [ツール決定イベント](#tool-decision-event)を参照してください。
 - `tool_input_size_bytes`: JSON シリアル化されたツール入力のサイズ (バイト単位)
 - `tool_result_size_bytes`: ツール結果のサイズ (バイト単位)
 - `mcp_server_scope`: MCP サーバースコープ識別子 (MCP ツール用)
@@ -626,7 +626,13 @@ Claude への API リクエストが失敗するときにログされます。
 - `tool_name`: ツールの名前 (例: "Read"、"Edit"、"Write"、"NotebookEdit")
 - `tool_use_id`: このツール呼び出しの一意の識別子。フックに渡される `tool_use_id` と一致し、OTel イベントとフック取得データ間の相関を可能にします。
 - `decision`: `"accept"` または `"reject"`
-- `source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`
+- `source`: 決定ソース:
+  - `"config"`: プロジェクト設定、エンタープライズ管理ポリシー、`--allowedTools` または `--disallowedTools` フラグ、アクティブな権限モード、またはツールが本質的に安全であるため、プロンプトなしで自動的に決定されました。
+  - `"hook"`: `PreToolUse` または `PermissionRequest` フックが決定を返しました。
+  - `"user_permanent"`: ユーザーがプロンプトされたときに「常に許可」を選択し、個人設定にルールを保存した場合に出力されます。また、そのルールに一致する後の呼び出しに対しても出力されます。受け入れとして扱われます。
+  - `"user_temporary"`: ユーザーがプロンプトされたときに「はい」または「このセッションのみはい」を選択し、ルールを保存しなかった場合に出力されます。また、そのセッションスコープの許可に一致する同じセッション内の後の呼び出しに対しても出力されます。受け入れとして扱われます。
+  - `"user_abort"`: ユーザーが権限プロンプトを回答なしで閉じた場合に出力されます。拒否として扱われます。
+  - `"user_reject"`: ユーザーがプロンプトされたときに「いいえ」を選択した場合、または呼び出しが個人設定内の拒否ルールに一致した場合に出力されます。拒否として扱われます。
 
 #### 権限モード変更イベント
 

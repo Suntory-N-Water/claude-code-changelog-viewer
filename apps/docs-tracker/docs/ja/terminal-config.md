@@ -56,7 +56,9 @@ Ghostty、Kitty、およびその他のターミナルについては、ター�
 
 Claude がタスクを完了するか、権限プロンプトで一時停止すると、通知イベントが発火します。これをターミナルベルまたはデスクトップ通知として表示すると、長いタスクが実行されている間に他の作業に切り替えることができます。
 
-Claude Code はデスクトップ通知を Ghostty、Kitty、および iTerm2 でのみ送信します。他のすべてのターミナルには [通知フック](#play-a-sound-with-a-notification-hook) が必要です。通知は SSH 経由でローカルマシンにも到達するため、リモートセッションでもアラートを表示できます。Ghostty と Kitty はさらなるセットアップなしで OS 通知センターに転送します。iTerm2 では転送を有効にする必要があります。
+デフォルトでは Claude Code はデスクトップ通知を Ghostty、Kitty、および iTerm2 でのみ送信します。他のターミナルでは、[`preferredNotifChannel`](/ja/settings#available-settings) を `"terminal_bell"` に設定してターミナルベルを鳴らすか、カスタムサウンドまたはコマンド用に [通知フック](#play-a-sound-with-a-notification-hook) を設定してください。
+
+デスクトップ通知は SSH 経由でローカルマシンに到達するため、リモートセッションでもアラートを表示できます。Ghostty と Kitty はさらなるセットアップなしで OS 通知センターに転送します。iTerm2 では転送を有効にする必要があります。
 
 設定 → プロファイル → ターミナルに移動します。
 
@@ -66,9 +68,9 @@ Claude Code はデスクトップ通知を Ghostty、Kitty、および iTerm2 �
 
 ### 通知フックでサウンドを再生する
 
-任意のターミナルで [通知フック](/ja/hooks-guide#get-notified-when-claude-needs-input) を設定して、Claude があなたの注意が必要なときにサウンドを再生するか、カスタムコマンドを実行できます。フックはデスクトップ通知の代わりではなく、並行して実行されます。Warp や Apple Terminal などのターミナルは Claude Code がデスクトップ通知を送信しないため、フックのみに依存しています。
+任意のターミナルで [通知フック](/ja/hooks-guide#get-notified-when-claude-needs-input) を設定して、Claude があなたの注意が必要なときにサウンドを再生するか、カスタムコマンドを実行できます。フックはデスクトップ通知の代わりではなく、並行して実行されるため、Warp や VS Code 統合ターミナルなどのデスクトップ通知を受け取らないターミナルは、フックを使用するか、`preferredNotifChannel` を `"terminal_bell"` に設定できます。
 
-以下の例は macOS でシステムサウンドを再生します。リンクされたガイドには macOS、Linux、Windows のデスクトップ通知コマンドがあります。
+以下の例は macOS でシステムサウンドを再生します。リンクされたガイドには macOS、Linux、および Windows のデスクトップ通知コマンドがあります。
 
 ```json ~/.claude/settings.json theme={null}
 {
@@ -132,7 +134,7 @@ set -as terminal-features 'xterm*:extkeys'
 
 Claude Code は `~/.claude/themes/` を監視し、ファイルが変更されるとリロードするため、エディターで行われた編集は再起動なしで実行中のセッションに適用されます。
 
-以下は、`overrides` で設定できるカスタマイズの完全なリストです。`/theme` の対話的エディターは、ここでカバーされていない少数の内部トークンを含む、ライブプレビュー付きの同じトークンを表示します。
+以下は、`overrides` で設定できるトークンをカバーしています。`/theme` の対話的エディターは、ここでカバーされていない少数の単一目的のアクセント（オンボーディング画面の色など）を含む、ライブプレビュー付きの同じトークンを表示します。
 
 次の例は、複数のグループからのトークンを組み合わせています。ブランドアクセント、プランモードボーダー、diff 背景、および全画面メッセージ背景です。
 
@@ -161,6 +163,7 @@ Claude Code は `~/.claude/themes/` を監視し、ファイルが変更され�
 | `inverseText` | ステータスバッジなど、色付き背景の上に描画されるテキスト |
 | `inactive` | ヒント、タイムスタンプ、無効化されたアイテムなどのセカンダリテキスト |
 | `subtle` | 薄いボーダーと強調されていないセカンダリテキスト |
+| `suggestion` | オートコンプリート候補とピッカーの選択ハイライト |
 | `permission` | パーミッションプロンプトとピッカーを含むダイアログボーダー |
 | `remember` | メモリと `CLAUDE.md` インジケーター |
 
@@ -208,13 +211,37 @@ Claude Code は `~/.claude/themes/` を監視し、ファイルが変更され�
 | トークン | 制御対象 |
 | :- | :- |
 | `userMessageBackground` | トランスクリプト内のメッセージの背後の背景 |
+| `userMessageBackgroundHover` | ホバーまたは展開中のメッセージの背後の背景 |
+| `messageActionsBackground` | アクションバーが開いているときの選択されたメッセージの背後の背景 |
+| `bashMessageBackgroundColor` | トランスクリプト内の `!` シェルコマンドエントリの背後の背景 |
+| `memoryBackgroundColor` | トランスクリプト内の `#` メモリエントリの背後の背景 |
 | `selectionBg` | マウスで選択されたテキストの背景 |
+
+#### 使用量メーターとスピーカーラベル
+
+`/usage` ビューに表示されるバーと、メッセージを区別するラベルを調整します。
+
+| トークン | 制御対象 |
+| :- | :- |
+| `rate_limit_fill` | 使用量メーターの塗りつぶされた部分 |
+| `rate_limit_empty` | 使用量メーターの塗りつぶされていない部分 |
+| `briefLabelYou` | メッセージの `You` ラベルの色 |
+| `briefLabelClaude` | アシスタントメッセージの `Claude` ラベルの色 |
 
 #### シマー変種とサブエージェントカラー
 
-`claudeShimmer` や `warningShimmer` など、複数のトークンにはペアになった `Shimmer` 変種があり、スピナーのアニメーション化されたグラデーションで使用される明るい色を提供します。アニメーションが一致しないように見える場合は、ベーストークンと一緒にシマーをオーバーライドします。
+複数のトークンにはペアになったシマー変種があり、スピナーのアニメーション化されたグラデーションで使用される明るい色を提供します。アニメーションが一致しないように見える場合は、ベーストークンと一緒にシマーをオーバーライドします。
+
+- `claude` と `claudeShimmer`
+- `warning` と `warningShimmer`
+- `permission` と `permissionShimmer`
+- `promptBorder` と `promptBorderShimmer`
+- `inactive` と `inactiveShimmer`
+- `fastMode` と `fastModeShimmer`
 
 各 [サブエージェント](/ja/sub-agents) と並列タスクは、トランスクリプト内で区別できるように、8 つの名前付きカラーの 1 つで表示されます。トークン名は `<color>_FOR_SUBAGENTS_ONLY` パターンに従います。ここで `<color>` は `red`、`blue`、`green`、`yellow`、`purple`、`orange`、`pink`、または `cyan` です。これらをオーバーライドして、各名前付きカラーの外観を変更します。たとえば、定義に `color: blue` を持つサブエージェントは、`blue_FOR_SUBAGENTS_ONLY` 値を使用して描画されます。
+
+[`ultrathink`](/ja/model-config#use-ultrathink-for-one-off-deep-reasoning) と [`ultraplan`](/ja/ultraplan) キーワードはプロンプト入力で 7 色のレインボーグラデーションでレンダリングされます。トークン名は `rainbow_<color>` と `rainbow_<color>_shimmer` パターンに従います。ここで `<color>` は `red`、`orange`、`yellow`、`green`、`blue`、`indigo`、または `violet` です。
 
 ## フルスクリーンレンダリングに切り替える
 
