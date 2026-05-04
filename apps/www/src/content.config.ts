@@ -1,9 +1,12 @@
-import { z } from 'astro/zod';
-import { glob } from 'astro/loaders';
 import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const changelogCollection = defineCollection({
-  loader: glob({ pattern: 'inferred_v*.json', base: './src/content/changelog' }),
+  loader: glob({
+    pattern: 'inferred_v*.json',
+    base: './src/content/changelog',
+  }),
   schema: z.object({
     version: z.string(),
     summary: z.string().optional(), // バージョン全体のサマリー(日本語)

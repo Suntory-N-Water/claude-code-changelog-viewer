@@ -1,6 +1,10 @@
-import { Resvg } from '@resvg/resvg-js';
+import { initWasm, Resvg } from '@resvg/resvg-wasm';
+// @ts-expect-error - .wasm は @astrojs/cloudflare が WebAssembly.Module として扱う
+import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
 import type { ReactElement } from 'react';
-import satori from 'satori';
+import satori, { init as initSatori } from 'satori/standalone';
+// @ts-expect-error
+import yogaWasm from 'satori/yoga.wasm';
 
 // CC-Vault カラーテーマ
 const colors = {
@@ -10,6 +14,19 @@ const colors = {
   gray: '#E0DFDA',
   orangeHover: '#D97757',
 };
+
+// WASM 初期化 Promise(モジュール全体で1回のみ)
+let wasmInitPromise: Promise<void> | null = null;
+
+function ensureWasmInit(): Promise<void> {
+  if (!wasmInitPromise) {
+    wasmInitPromise = Promise.all([
+      initSatori(yogaWasm),
+      initWasm(resvgWasm),
+    ]).then(() => undefined);
+  }
+  return wasmInitPromise;
+}
 
 // フォントデータをPromiseでキャッシュ(並行呼び出し時のレースコンディション防止)
 let fontPromise: Promise<ArrayBuffer> | null = null;
@@ -189,9 +206,8 @@ function InfoPageOgp({
  * PNG バイナリから画像レスポンスを生成
  */
 export function createPngResponse(png: Uint8Array): Response {
-  return new Response(Buffer.from(png), {
+  return new Response(new Blob([new Uint8Array(png)], { type: 'image/png' }), {
     headers: {
-      'Content-Type': 'image/png',
       'Cache-Control': 'public, max-age=31536000, immutable',
     },
   });
@@ -204,6 +220,8 @@ async function renderOgpImage(
 ): Promise<Uint8Array> {
   const width = options?.width ?? 1200;
   const height = options?.height ?? 630;
+
+  await ensureWasmInit();
   const fontData = await loadFont();
 
   const svg = await satori(element, {
@@ -215,7 +233,11 @@ async function renderOgpImage(
   });
 
   const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: width } });
-  return resvg.render().asPng();
+  const pngData = resvg.render();
+  const png = pngData.asPng();
+  pngData.free();
+  resvg.free();
+  return png;
 }
 
 /**

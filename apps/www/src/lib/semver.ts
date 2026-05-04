@@ -13,11 +13,3 @@ export function semverCompareDesc(a: string, b: string): number {
   }
   return 0;
 }
-
-/**
- * v2.1.0 より古いバージョンかどうかを判定する
- * v0.x.x / v1.x.x / v2.0.x は AI 要約未対応のレガシーバージョン
- */
-export function isLegacyVersion(version: string): boolean {
-  return semverCompareDesc(version, '2.1.0') > 0;
-}
