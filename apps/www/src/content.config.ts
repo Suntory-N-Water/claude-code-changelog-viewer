@@ -87,7 +87,6 @@ const settingsReferenceCollection = defineCollection({
     key: z.string(),
     slug: z.string(),
     source: z.enum(['settings', 'env']),
-    schema_type: z.string().optional(),
     description_en: z.string(),
     description_ja: z.string(),
     use_case_ja: z.string().optional(),

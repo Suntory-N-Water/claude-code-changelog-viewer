@@ -1,0 +1,75 @@
+name: Generate Settings Reference
+
+on:
+  schedule:
+    # 毎日 JST 6:00 (UTC 21:00) に実行
+    - cron: "0 21 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: generate-settings-reference
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  generate-settings-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      TZ: Asia/Tokyo
+
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - uses: ./.github/actions/setup
+
+      - name: Generate settings reference
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: pnpm run generate:settings
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push
+        run: |
+          git add -A
+          CHANGED_FILES=$(git diff --staged --name-only | wc -l)
+
+          if [ "$CHANGED_FILES" -eq 0 ]; then
+            echo "ℹ️ 新規生成ファイルなし"
+            exit 0
+          fi
+
+          TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S JST')
+          git commit -m "chore: 設定リファレンスを更新" -m "Automated update at $TIMESTAMP"
+
+          git pull --rebase origin main
+          git push
+
+          echo "✓ 変更をプッシュしました"
+
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `[自動] 設定リファレンス生成に失敗 (${new Date().toISOString()})`,
+              body: `## エラー詳細\n\nワークフロー実行: [${context.runId}](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n手動で確認してください。`,
+              labels: ['bug'],
+            });

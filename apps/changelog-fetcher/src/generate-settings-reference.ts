@@ -1,4 +1,4 @@
-import { globSync, mkdirSync } from 'node:fs';
+import { globSync, mkdirSync, readFileSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
@@ -39,7 +39,6 @@ type RawEntry = {
   key: string;
   source: SettingSource;
   description_en: string;
-  schema_type?: string;
 };
 
 type RelatedChangelog = {
@@ -57,7 +56,6 @@ type SettingReference = {
   key: string;
   slug: string;
   source: SettingSource;
-  schema_type?: string;
   description_en: string;
   description_ja: string;
   use_case_ja?: string;
@@ -123,9 +121,6 @@ async function parseSettingsSchema(): Promise<RawEntry[]> {
           key: envKey,
           source: 'env',
           description_en: envValue.description ?? '',
-          ...(envValue.type !== undefined
-            ? { schema_type: envValue.type }
-            : {}),
         });
       }
       continue;
@@ -135,7 +130,6 @@ async function parseSettingsSchema(): Promise<RawEntry[]> {
       key,
       source: 'settings',
       description_en: value.description ?? '',
-      ...(value.type !== undefined ? { schema_type: value.type } : {}),
     });
   }
 
@@ -338,7 +332,7 @@ async function main() {
     process.exit(1);
   }
 
-  // 1. データ源をパース
+  // データ源をパース
   log.info('settings.json スキーマを解析中...');
   const schemaEntries = await parseSettingsSchema();
   const schemaSettings = schemaEntries.filter((e) => e.source === 'settings');
@@ -353,18 +347,38 @@ async function main() {
     `設定: ${schemaSettings.length}件, 環境変数: ${mergedEnvEntries.length}件, 合計: ${allEntries.length}件`,
   );
 
-  // 2. inferred_*.json を全件読み込み
+  // 生成済みファイルのキーを収集してスキップ対象を決定
+  mkdirSync(OUTPUT_DIR, { recursive: true });
+  const existingKeys = new Set(
+    globSync('settings_*.json', { cwd: OUTPUT_DIR })
+      .map(String)
+      .map((f) => {
+        const raw = readFileSync(path.join(OUTPUT_DIR, f), 'utf-8');
+        return (JSON.parse(raw) as { key: string }).key;
+      }),
+  );
+  const newEntries = allEntries.filter((e) => !existingKeys.has(e.key));
+  log.info(
+    `生成済みスキップ: ${existingKeys.size}件, 新規生成対象: ${newEntries.length}件`,
+  );
+
+  if (newEntries.length === 0) {
+    log.info('新規生成対象なし。処理を終了します');
+    return;
+  }
+
+  // inferred_*.json を全件読み込み
   log.info('更新履歴を読み込み中...');
   const allInferred = await loadAllInferred();
   log.info(`更新履歴アイテム: ${allInferred.length}件`);
 
-  // 3. 各エントリの関連 changelog と docs スニペットを収集
+  // 各エントリの関連 changelog と docs スニペットを収集
   log.info('関連情報を収集中...');
   const changelogsMap = new Map<string, RelatedChangelog[]>();
   const docSnippetsMap = new Map<string, string[]>();
 
   await Promise.all(
-    allEntries.map(async (entry) => {
+    newEntries.map(async (entry) => {
       changelogsMap.set(
         entry.key,
         findRelatedChangelogs(entry.key, allInferred),
@@ -373,23 +387,23 @@ async function main() {
     }),
   );
 
-  const withContextCount = allEntries.filter(
+  const withContextCount = newEntries.filter(
     (e) =>
       (docSnippetsMap.get(e.key)?.length ?? 0) > 0 ||
       (changelogsMap.get(e.key)?.length ?? 0) > 0,
   ).length;
   log.info(
-    `コンテキストあり: ${withContextCount}件, コンテキストなし: ${allEntries.length - withContextCount}件`,
+    `コンテキストあり: ${withContextCount}件, コンテキストなし: ${newEntries.length - withContextCount}件`,
   );
 
-  // 4. Gemini API でバッチ翻訳・用途解説生成
+  // Gemini API でバッチ翻訳・用途解説生成
   const geminiClient = new GeminiClient(apiKey, log);
   let translationMap: Map<
     number,
     { description_ja: string; use_case_ja: string }
   >;
   try {
-    translationMap = await translateInBatches(allEntries, {
+    translationMap = await translateInBatches(newEntries, {
       docSnippetsMap,
       changelogsMap,
       geminiClient,
@@ -399,13 +413,10 @@ async function main() {
     process.exit(1);
   }
 
-  // 5. 出力ディレクトリを作成
-  mkdirSync(OUTPUT_DIR, { recursive: true });
-
-  // 6. 各設定・環境変数の JSON ファイルを出力
+  // 各設定・環境変数の JSON ファイルを出力
   let writtenCount = 0;
   await Promise.all(
-    allEntries.map(async (entry, index) => {
+    newEntries.map(async (entry, index) => {
       const translation = translationMap.get(index);
       if (!translation) {
         return;
@@ -418,7 +429,6 @@ async function main() {
         key: entry.key,
         slug,
         source: entry.source,
-        ...(entry.schema_type ? { schema_type: entry.schema_type } : {}),
         description_en: entry.description_en,
         description_ja: translation.description_ja,
         ...(translation.use_case_ja
