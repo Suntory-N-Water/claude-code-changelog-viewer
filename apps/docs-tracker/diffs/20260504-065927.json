@@ -1,0 +1,113 @@
+{
+  "id": "20260504-065927",
+  "timestamp": "2026-05-04T06:59:27.486Z",
+  "aiSummary": "フック設定におけるアクションブロック時の動作が、イベントの種類に応じて明確に定義されました。StopおよびSubagentStopイベントでは、理由がClaudeにフィードバックされ処理が継続されますが、その他のイベントではチャットに警告が表示されターンが終了します。この変更により、ユーザーに対する警告表示とモデルへの指示フィードバックの使い分けが具体化されています。",
+  "files": [
+    {
+      "filename": "hooks-guide.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "アクションをブロックした際の理由（reason）がClaudeにフィードバックされる条件と、チャットに警告として表示される条件の使い分けが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -688,7 +688,7 @@ For decisions that require judgment rather than deterministic rules, use `type:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "The model's only job is to return a yes/no decision as JSON:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `\"ok\": true`: the action proceeds"
+            },
+            {
+              "type": "removed",
+              "content": "- `\"ok\": false`: the action is blocked. The model's `\"reason\"` is fed back to Claude so it can adjust."
+            },
+            {
+              "type": "added",
+              "content": "- `\"ok\": false`: the action is blocked. For `Stop` and `SubagentStop` hooks, the `reason` is fed back to Claude so it keeps working. For other events, the turn ends and the `reason` appears in the chat as a warning line. Claude does not see it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example uses a `Stop` hook to ask the model whether all requested tasks are complete. If the model returns `\"ok\": false`, Claude keeps working and uses the `reason` as its next instruction:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "okプロパティがfalseの場合の挙動について、特定のイベントでは継続フラグと同様の動作になり、それ以外ではターンが終了する仕様が詳しく説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -2355,8 +2355,10 @@ The LLM must respond with JSON containing:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ok` | `true` allows the action, `false` prevents it |"
+            },
+            {
+              "type": "removed",
+              "content": "| `reason` | Required when `ok` is `false`. Explanation shown to Claude |"
+            },
+            {
+              "type": "added",
+              "content": "| `ok` | `true` allows the action, `false` blocks it |"
+            },
+            {
+              "type": "added",
+              "content": "| `reason` | Required when `ok` is `false`. Explanation for the block |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For `Stop` and `SubagentStop`, an `ok: false` reason is fed back to Claude as its next instruction and the turn continues. For all other supported events, the turn ends and the reason appears in the chat as a warning line; Claude does not see it. This is equivalent to returning `\"continue\": false` from a command hook. If you need different blocking semantics on those events, use a [command hook](#command-hook-fields) with the per-event fields described in [Decision control](#decision-control)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Example: Multi-criteria Stop hook"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

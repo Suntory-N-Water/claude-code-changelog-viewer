@@ -150,6 +150,19 @@ osascript -e 'display notification "test"'
 }
 ```
 
+空の `matcher` はすべての通知タイプで発火します。特定のイベントでのみ発火させるには、次のいずれかの値に設定します：
+
+| Matcher | 発火するタイミング |
+| :- | :- |
+| `permission_prompt` | Claude がツール使用を承認する必要があるとき |
+| `idle_prompt` | Claude が完了し、次のプロンプトを待っているとき |
+| `auth_success` | 認証が完了したとき |
+| `elicitation_dialog` | MCP サーバーが引き出しフォームを開くとき |
+| `elicitation_complete` | MCP 引き出しフォームが送信または却下されたとき |
+| `elicitation_response` | MCP 引き出し応答がサーバーに送り返されたとき |
+
+`/hooks` と入力して `Notification` を選択し、hook が登録されていることを確認します。完全なイベントスキーマについては、[Notification リファレンス](/ja/hooks#notification) を参照してください。
+
 ### 編集後にコードを自動フォーマットする
 
 Claude が編集するすべてのファイルで [Prettier](https://prettier.io/) を自動的に実行し、手動操作なしでフォーマットの一貫性を保ちます。
@@ -313,6 +326,8 @@ Claude のコンテキストウィンドウがいっぱいになると、圧縮�
   }
 }
 ```
+
+`direnv allow` をすべてのディレクトリで 1 回実行して、direnv が `.envrc` をロードすることが許可されるようにします。direnv の代わりに devbox または nix を使用する場合、同じパターンは `direnv export bash` の代わりに `devbox shellenv` または `devbox global shellenv` で機能します。
 
 すべてのディレクトリ変更ではなく、特定のファイルに反応するには、`FileChanged` を `matcher` で使用して、監視するファイル名をリストします（パイプで区切られています）。ウォッチリストを構築するために、この値は正規表現として評価されるのではなく、リテラルファイル名に分割されます。[FileChanged](/ja/hooks#filechanged) を参照して、同じ値がファイルが変更されたときにどの hook グループが実行されるかをフィルタリングする方法を確認してください。この例は現在のディレクトリの `.envrc` と `.env` を監視します：
 
@@ -673,7 +688,7 @@ Claude Code が実行中に設定ファイルを直接編集する場合、フ�
 モデルの唯一の仕事は、yes/no 決定を JSON として返すことです：
 
 - `"ok": true`：アクションが続行されます
-- `"ok": false`：アクションがブロックされます。モデルの `"reason"` は Claude にフィードバックとして返されるため、調整できます。
+- `"ok": false`：アクションがブロックされます。`Stop` および `SubagentStop` hooks の場合、`reason` は Claude にフィードバックとして返されるため、作業を続けます。その他のイベントの場合、ターンが終了し、`reason` は警告行としてチャットに表示されます。Claude はそれを見ません。
 
 この例は `Stop` hook を使用して、要求されたすべてのタスクが完了しているかどうかをモデルに尋ねます。モデルが `"ok": false` を返す場合、Claude は作業を続け、`reason` を次の指示として使用します：
 

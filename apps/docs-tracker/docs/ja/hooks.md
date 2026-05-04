@@ -1963,7 +1963,7 @@ FileChanged フックは決定制御がありません。ファイル変更を�
 
 フックは作成されたワークツリー ディレクトリへの絶対パスを返す必要があります。Claude Code はこのパスを分離されたセッションの作業ディレクトリとして使用します。コマンド フックは stdout にパスを出力します。HTTP フックは `hookSpecificOutput.worktreePath` 経由で返します。
 
-フックはデフォルトの git 動作を完全に置き換えるため、[`.worktreeinclude`](/ja/common-workflows#copy-gitignored-files-to-worktrees)は処理されません。`.env` などのローカル設定ファイルを新しいワークツリーにコピーする必要がある場合は、フック スクリプト内で実行してください。
+フックはデフォルトの git 動作を完全に置き換えるため、[`.worktreeinclude`](/ja/worktrees#copy-gitignored-files-into-worktrees)は処理されません。`.env` などのローカル設定ファイルを新しいワークツリーにコピーする必要がある場合は、フック スクリプト内で実行してください。
 
 この例は SVN 作業コピーを作成し、Claude Code が使用するパスを出力します。リポジトリ URL を自分のものに置き換えます。
 
@@ -2350,7 +2350,9 @@ LLM は以下を含む JSON で応答する必要があります：
 | フィールド | 説明 |
 | :- | :- |
 | `ok` | `true` はアクションを許可、`false` は防止 |
-| `reason` | `ok` が `false` のときに必須。Claude に表示される説明 |
+| `reason` | `ok` が `false` のときに必須。ブロックの説明 |
+
+`Stop` と `SubagentStop` の場合、`ok: false` の理由は Claude の次の指示としてフィードバックされ、ターンが続行されます。その他のサポートされているすべてのイベントの場合、ターンが終了し、理由は警告行としてチャットに表示されます。Claude はそれを見ません。これは、コマンド フックから `"continue": false` を返すことと同等です。これらのイベントで異なるブロック セマンティクスが必要な場合は、[決定制御](#decision-control)で説明されているイベント ごとのフィールドを使用して、[コマンド フック](#command-hook-fields)を使用してください。
 
 ### 例：マルチ基準 Stop フック
 
