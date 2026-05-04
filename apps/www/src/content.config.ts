@@ -78,8 +78,23 @@ const docsDiffCollection = defineCollection({
   }),
 });
 
+const settingsReferenceCollection = defineCollection({
+  loader: glob({ pattern: '**/*.json', base: './src/content/settings' }),
+  schema: z.object({
+    key: z.string(),
+    slug: z.string(),
+    source: z.enum(['settings', 'env']),
+    schema_type: z.string().optional(),
+    description_en: z.string(),
+    description_ja: z.string(),
+    use_case_ja: z.string().optional(),
+    related_changelog: z.array(z.unknown()),
+  }),
+});
+
 export const collections = {
   changelog: changelogCollection,
   diff: diffCollection,
   docsDiff: docsDiffCollection,
+  settingsReference: settingsReferenceCollection,
 };

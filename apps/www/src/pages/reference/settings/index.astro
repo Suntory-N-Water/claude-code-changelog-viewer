@@ -1,0 +1,394 @@
+---
+import { getCollection } from 'astro:content';
+import SettingCard from '../../../components/settings/SettingCard.astro';
+import Layout from '../../../layouts/Layout.astro';
+
+const allSettings = await getCollection('settingsReference');
+
+const settingsItems = allSettings
+  .filter((e) => e.data.source === 'settings')
+  .sort((a, b) => a.data.key.localeCompare(b.data.key));
+
+const envItems = allSettings
+  .filter((e) => e.data.source === 'env')
+  .sort((a, b) => a.data.key.localeCompare(b.data.key));
+
+const siteUrl = import.meta.env.SITE;
+const pageTitle =
+  'Claude Code 設定・環境変数リファレンス - 設定名から挙動を調べる';
+const pageDescription =
+  'Claude Codeの全設定項目・環境変数を日本語で解説。settings.jsonのプロパティ名や環境変数名から挙動を調べられます。';
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  jsonLd={{
+    type: 'collection',
+    title: pageTitle,
+    description: pageDescription,
+  }}
+  breadcrumbs={[
+    { name: 'トップ', url: siteUrl },
+    { name: '設定リファレンス', url: `${siteUrl}/reference/settings` },
+  ]}
+>
+  <!-- ちらつき防止: URL パラメータで表示グループを初期化 -->
+  <script is:inline>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      const type = params.get('type');
+      const q = params.get('q') ?? '';
+      const style = document.createElement('style');
+      style.id = 'filter-init-style';
+      let css = '';
+      if (type === 'settings') {
+        css +=
+          '#group-env{display:none!important}' +
+          '#tab-all{border-color:transparent!important;color:hsl(var(--cc-main-black)/0.5)!important}' +
+          '#tab-env{border-color:transparent!important;color:hsl(var(--cc-main-black)/0.5)!important}' +
+          '#tab-settings{border-color:hsl(var(--cc-main-orange))!important;color:hsl(var(--cc-main-orange))!important}';
+      } else if (type === 'env') {
+        css +=
+          '#group-settings{display:none!important}' +
+          '#tab-all{border-color:transparent!important;color:hsl(var(--cc-main-black)/0.5)!important}' +
+          '#tab-settings{border-color:transparent!important;color:hsl(var(--cc-main-black)/0.5)!important}' +
+          '#tab-env{border-color:hsl(var(--cc-main-orange))!important;color:hsl(var(--cc-main-orange))!important}';
+      }
+      if (css) {
+        style.textContent = css;
+        document.head.appendChild(style);
+      }
+      // 検索クエリの初期化はJSで行う
+      if (q) {
+        document.addEventListener('DOMContentLoaded', () => {
+          const input = document.getElementById('search-input');
+          if (input instanceof HTMLInputElement) {
+            input.value = q;
+          }
+        });
+      }
+    })();
+  </script>
+
+  <div class='min-h-dvh py-12 sm:py-16 px-4'>
+    <div class='max-w-6xl mx-auto'>
+      <nav class='mb-8' aria-label='パンくずリスト'>
+        <a
+          href='/'
+          data-direction='back'
+          class='text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] hover:underline inline-flex items-center gap-1 transition-colors'
+        >
+          <svg
+            class='w-4 h-4'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            stroke-width='2'
+            aria-hidden='true'
+          >
+            <path
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              d='M15 19l-7-7 7-7'></path>
+          </svg>
+          トップに戻る
+        </a>
+      </nav>
+
+      <header class='mb-8 max-w-4xl'>
+        <h1
+          class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          設定・環境変数リファレンス
+        </h1>
+        <p class='text-base sm:text-lg text-gray-600 leading-relaxed'>
+          Claude
+          Codeの全設定項目・環境変数を日本語で解説しています。設定名から挙動を調べたり、関連する変更履歴を確認できます。
+        </p>
+      </header>
+
+      <!-- 検索ボックス -->
+      <div class='mb-6 max-w-md'>
+        <label for='search-input' class='sr-only'>設定名で検索</label>
+        <div class='relative'>
+          <svg
+            class='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400'
+            fill='none'
+            viewBox='0 0 24 24'
+            stroke='currentColor'
+            stroke-width='2'
+            aria-hidden='true'
+          >
+            <path
+              stroke-linecap='round'
+              stroke-linejoin='round'
+              d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z'></path>
+          </svg>
+          <input
+            id='search-input'
+            type='search'
+            placeholder='設定名で絞り込む(例: memory, MCP)'
+            autocomplete='off'
+            class='w-full pl-9 pr-4 py-2.5 text-sm border border-[hsl(var(--cc-gray))] rounded-lg bg-white focus:outline-none focus:border-[hsl(var(--cc-main-orange))] focus:ring-1 focus:ring-[hsl(var(--cc-main-orange)/0.3)] transition-colors placeholder:text-gray-400'
+          />
+        </div>
+      </div>
+
+      <!-- フィルタタブ -->
+      <div
+        class='flex border-b border-[hsl(var(--cc-gray))] mb-8'
+        role='tablist'
+        aria-label='表示フィルタ'
+      >
+        <button
+          type='button'
+          id='tab-all'
+          role='tab'
+          aria-selected='true'
+          class='px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]'
+        >
+          すべて <span class='tabular-nums text-xs ml-1'
+            >({allSettings.length})</span
+          >
+        </button>
+        <button
+          type='button'
+          id='tab-settings'
+          role='tab'
+          aria-selected='false'
+          class='px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]'
+        >
+          settings.json <span class='tabular-nums text-xs ml-1'
+            >({settingsItems.length})</span
+          >
+        </button>
+        <button
+          type='button'
+          id='tab-env'
+          role='tab'
+          aria-selected='false'
+          class='px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]'
+        >
+          環境変数 <span class='tabular-nums text-xs ml-1'
+            >({envItems.length})</span
+          >
+        </button>
+      </div>
+
+      <!-- 検索結果なし -->
+      <div
+        id='empty-search'
+        class='hidden py-16 text-center text-gray-400'
+        aria-live='polite'
+      >
+        <svg
+          class='w-10 h-10 mx-auto mb-3 opacity-40'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+          stroke-width='1.5'
+          aria-hidden='true'
+        >
+          <path
+            stroke-linecap='round'
+            stroke-linejoin='round'
+            d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z'></path>
+        </svg>
+        <p class='text-sm'>該当する設定が見つかりません</p>
+      </div>
+
+      <!-- settings.json グループ -->
+      <section id='group-settings' class='mb-12'>
+        <h2
+          class='text-base font-semibold text-[hsl(var(--cc-main-black)/0.5)] mb-4 flex items-center gap-2'
+        >
+          <span
+            class='inline-block px-2 py-0.5 rounded text-xs font-mono bg-[hsl(var(--cc-gray)/0.5)]'
+            >settings.json</span
+          >
+          <span class='tabular-nums text-sm'>{settingsItems.length}件</span>
+        </h2>
+        <div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+          {
+            settingsItems.map((entry) => (
+              <div data-key={entry.data.key.toLowerCase()}>
+                <SettingCard
+                  slug={entry.data.slug}
+                  keyName={entry.data.key}
+                  source={entry.data.source}
+                  descriptionJa={entry.data.description_ja}
+                />
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- 環境変数グループ -->
+      <section id='group-env'>
+        <h2
+          class='text-base font-semibold text-[hsl(var(--cc-main-black)/0.5)] mb-4 flex items-center gap-2'
+        >
+          <span
+            class='inline-block px-2 py-0.5 rounded text-xs font-mono bg-[hsl(var(--cc-gray)/0.5)]'
+            >環境変数</span
+          >
+          <span class='tabular-nums text-sm'>{envItems.length}件</span>
+        </h2>
+        <div class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+          {
+            envItems.map((entry) => (
+              <div data-key={entry.data.key.toLowerCase()}>
+                <SettingCard
+                  slug={entry.data.slug}
+                  keyName={entry.data.key}
+                  source={entry.data.source}
+                  descriptionJa={entry.data.description_ja}
+                />
+              </div>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  const ACTIVE_STYLE =
+    'border-[hsl(var(--cc-main-orange))] text-[hsl(var(--cc-main-orange))]';
+  const INACTIVE_STYLE =
+    'border-transparent text-[hsl(var(--cc-main-black)/0.5)] hover:text-[hsl(var(--cc-main-black)/0.8)]';
+
+  let currentType: 'all' | 'settings' | 'env' = 'all';
+  let currentQuery = '';
+  let debounceTimer: ReturnType<typeof setTimeout>;
+
+  function initSettingsPage() {
+    const tabAll = document.getElementById('tab-all');
+    const tabSettings = document.getElementById('tab-settings');
+    const tabEnv = document.getElementById('tab-env');
+    const groupSettings = document.getElementById('group-settings');
+    const groupEnv = document.getElementById('group-env');
+    const searchInput = document.getElementById('search-input');
+    const emptySearch = document.getElementById('empty-search');
+
+    // このページ以外では要素が存在しないので早期リターン
+    if (
+      !tabAll ||
+      !tabSettings ||
+      !tabEnv ||
+      !groupSettings ||
+      !groupEnv ||
+      !searchInput ||
+      !emptySearch
+    ) {
+      return;
+    }
+
+    const tabs = { all: tabAll, settings: tabSettings, env: tabEnv };
+    const groups = { settings: groupSettings, env: groupEnv };
+
+    // URL から初期状態を復元
+    const params = new URLSearchParams(location.search);
+    const initType = params.get('type');
+    currentType =
+      initType === 'settings' || initType === 'env' ? initType : 'all';
+    currentQuery = '';
+
+    if (searchInput instanceof HTMLInputElement) {
+      const initQ = params.get('q') ?? '';
+      searchInput.value = initQ;
+      currentQuery = initQ;
+    }
+
+    function applyFilters() {
+      const q = currentQuery.toLowerCase();
+      let totalVisible = 0;
+
+      for (const [groupKey, group] of Object.entries(groups)) {
+        const isTypeVisible = currentType === 'all' || currentType === groupKey;
+        (group as HTMLElement).style.display = isTypeVisible ? '' : 'none';
+        if (!isTypeVisible) {
+          continue;
+        }
+
+        const cards = (group as HTMLElement).querySelectorAll<HTMLElement>(
+          '[data-key]',
+        );
+        let groupVisible = 0;
+        for (const card of cards) {
+          const key = card.dataset.key ?? '';
+          const visible = q === '' || key.includes(q);
+          card.style.display = visible ? '' : 'none';
+          if (visible) {
+            groupVisible += 1;
+          }
+        }
+        totalVisible += groupVisible;
+
+        const heading = (group as HTMLElement).querySelector('h2');
+        if (heading instanceof HTMLElement) {
+          heading.style.display = groupVisible === 0 && q !== '' ? 'none' : '';
+        }
+      }
+
+      if (emptySearch instanceof HTMLElement) {
+        emptySearch.classList.toggle('hidden', totalVisible > 0 || q === '');
+      }
+    }
+
+    function setTypeTab(type: 'all' | 'settings' | 'env') {
+      currentType = type;
+      for (const [key, tab] of Object.entries(tabs)) {
+        const isActive = key === type;
+        (tab as HTMLElement).className = (tab as HTMLElement).className
+          .replace(ACTIVE_STYLE, '')
+          .replace(INACTIVE_STYLE, '')
+          .trim();
+        (tab as HTMLElement).className +=
+          ` ${isActive ? ACTIVE_STYLE : INACTIVE_STYLE}`;
+        (tab as HTMLElement).setAttribute('aria-selected', String(isActive));
+      }
+      const url = new URL(location.href);
+      if (type === 'all') {
+        url.searchParams.delete('type');
+      } else {
+        url.searchParams.set('type', type);
+      }
+      history.pushState({}, '', url.toString());
+      document.getElementById('filter-init-style')?.remove();
+      applyFilters();
+    }
+
+    tabAll.addEventListener('click', () => setTypeTab('all'));
+    tabSettings.addEventListener('click', () => setTypeTab('settings'));
+    tabEnv.addEventListener('click', () => setTypeTab('env'));
+
+    if (searchInput instanceof HTMLInputElement) {
+      searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          currentQuery = (searchInput as HTMLInputElement).value.trim();
+          const url = new URL(location.href);
+          if (currentQuery) {
+            url.searchParams.set('q', currentQuery);
+          } else {
+            url.searchParams.delete('q');
+          }
+          history.replaceState({}, '', url.toString());
+          applyFilters();
+        }, 150);
+      });
+    }
+
+    // 初期フィルタ適用
+    if (currentQuery || currentType !== 'all') {
+      applyFilters();
+    }
+  }
+
+  initSettingsPage();
+  document.addEventListener('astro:after-swap', initSettingsPage);
+</script>
