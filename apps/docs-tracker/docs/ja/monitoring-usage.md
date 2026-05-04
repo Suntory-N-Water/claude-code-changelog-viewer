@@ -849,7 +849,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - チームまたは個人全体の使用トレンドを追跡する
 - 最適化のための高使用セッションを特定する
 
-コストメトリクスは概算です。公式な請求データについては、API プロバイダー (Claude Console、AWS Bedrock、または Google Cloud Vertex) を参照してください。
+コストメトリクスは概算です。公式な請求データについては、API プロバイダー (Claude Console、Amazon Bedrock、または Google Cloud Vertex) を参照してください。
 
 ### アラートとセグメンテーション
 

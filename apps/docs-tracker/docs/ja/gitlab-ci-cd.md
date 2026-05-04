@@ -11,7 +11,7 @@ Claude Code for GitLab CI/CD は現在ベータ版です。機能と機能性は
 
 この統合は GitLab によって保守されています。サポートについては、以下の [GitLab issue](https://gitlab.com/gitlab-org/gitlab/-/issues/573776) を参照してください。
 
-この統合は [Claude Code CLI and Agent SDK](https://platform.claude.com/docs/ja/agent-sdk/overview) の上に構築されており、CI/CD ジョブとカスタム自動化ワークフローで Claude をプログラム的に使用できます。
+この統合は [Claude Code CLI and Agent SDK](/ja/agent-sdk/overview) の上に構築されており、CI/CD ジョブとカスタム自動化ワークフローで Claude をプログラム的に使用できます。
 
 ## GitLab で Claude Code を使用する理由
 
@@ -19,7 +19,7 @@ Claude Code for GitLab CI/CD は現在ベータ版です。機能と機能性は
 - **自動実装**: 単一のコマンドまたはメンションで issue を実行可能なコードに変換します
 - **プロジェクト対応**: Claude は `CLAUDE.md` ガイドラインと既存のコードパターンに従います
 - **シンプルなセットアップ**: `.gitlab-ci.yml` に 1 つのジョブとマスクされた CI/CD 変数を追加します
-- **エンタープライズ対応**: Claude API、AWS Bedrock、または Google Vertex AI を選択して、データレジデンシーと調達のニーズを満たします
+- **エンタープライズ対応**: Claude API、Amazon Bedrock、または Google Vertex AI を選択して、データレジデンシーと調達のニーズを満たします
 - **デフォルトでセキュア**: GitLab ランナーで実行され、ブランチ保護と承認が適用されます
 
 ## 仕組み
@@ -30,7 +30,7 @@ Claude Code は GitLab CI/CD を使用して AI タスクを分離されたジ�
 
 2. **プロバイダー抽象化**: 環境に適したプロバイダーを使用します。
    - Claude API（SaaS）
-   - AWS Bedrock（IAM ベースのアクセス、クロスリージョンオプション）
+   - Amazon Bedrock（IAM ベースのアクセス、クロスリージョンオプション）
    - Google Vertex AI（GCP ネイティブ、Workload Identity Federation）
 
 3. **サンドボックス実行**: 各インタラクションは厳密なネットワークとファイルシステムルールを持つコンテナで実行されます。Claude Code はワークスペーススコープの権限を適用して書き込みを制限します。すべての変更は MR を通じてフローするため、レビュアーは diff を確認でき、承認が引き続き適用されます。
@@ -94,7 +94,7 @@ claude:
 
 ジョブと `ANTHROPIC_API_KEY` 変数を追加した後、**CI/CD** → **Pipelines** からジョブを手動で実行してテストするか、MR からトリガーして Claude が変更を提案し、必要に応じて MR を開くようにします。
 
-Claude API の代わりに AWS Bedrock または Google Vertex AI で実行するには、以下の [Using with AWS Bedrock & Google Vertex AI](#using-with-aws-bedrock--google-vertex-ai) セクションを参照して、認証と環境セットアップを確認してください。
+Claude API の代わりに Amazon Bedrock または Google Vertex AI で実行するには、以下の [Using with Amazon Bedrock & Google Vertex AI](#using-with-amazon-bedrock--google-vertex-ai) セクションを参照して、認証と環境セットアップを確認してください。
 
 ### 手動セットアップ（本番環境に推奨）
 
@@ -102,7 +102,7 @@ Claude API の代わりに AWS Bedrock または Google Vertex AI で実行す�
 
 1. **プロバイダーアクセスを構成します**。
    - **Claude API**: `ANTHROPIC_API_KEY` を作成してマスクされた CI/CD 変数として保存します
-   - **AWS Bedrock**: **Configure GitLab** → **AWS OIDC** を実行し、Bedrock 用の IAM ロールを作成します
+   - **Amazon Bedrock**: **Configure GitLab** → **AWS OIDC** を実行し、Bedrock 用の IAM ロールを作成します
    - **Google Vertex AI**: **Configure Workload Identity Federation for GitLab** → **GCP** を実行します
 
 2. **GitLab API 操作用のプロジェクト認証情報を追加します**。
@@ -147,13 +147,13 @@ issue または MR コメント内：
 
 Claude はバグを特定し、修正を実装し、ブランチを更新するか新しい MR を開きます。
 
-## AWS Bedrock & Google Vertex AI での使用
+## Amazon Bedrock & Google Vertex AI での使用
 
 エンタープライズ環境では、同じ開発者エクスペリエンスで Claude Code をクラウドインフラストラクチャ全体で実行できます。
 
 ### 前提条件
 
-AWS Bedrock で Claude Code をセットアップする前に、以下が必要です。
+Amazon Bedrock で Claude Code をセットアップする前に、以下が必要です。
 
 1. 目的の Claude モデルへのアクセス権を持つ Amazon Bedrock を備えた AWS アカウント
 2. AWS IAM で OIDC ID プロバイダーとして構成された GitLab
@@ -181,12 +181,12 @@ GitLab CI ジョブが OIDC 経由で IAM ロールを仮定できるように A
 Settings → CI/CD → Variables で変数を追加します。
 
 ```yaml theme={null}
-# AWS Bedrock の場合：
+# Amazon Bedrock の場合：
 - AWS_ROLE_TO_ASSUME
 - AWS_REGION
 ```
 
-上記の AWS Bedrock ジョブの例を使用して、GitLab ジョブトークンを実行時に一時的な AWS 認証情報と交換します。
+上記の Amazon Bedrock ジョブの例を使用して、GitLab ジョブトークンを実行時に一時的な AWS 認証情報と交換します。
 
 ### 前提条件
 
@@ -260,7 +260,7 @@ claude:
   # Claude Code は CI/CD 変数から ANTHROPIC_API_KEY を使用します
 ```
 
-### AWS Bedrock ジョブの例（OIDC）
+### Amazon Bedrock ジョブの例（OIDC）
 
 **前提条件：**
 

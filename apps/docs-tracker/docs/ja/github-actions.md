@@ -9,9 +9,9 @@ source: https://code.claude.com/docs/ja/github-actions.md
 
 Claude Code GitHub Actions は、GitHub ワークフローに AI を活用した自動化をもたらします。任意の PR またはイシューで `@claude` とメンションするだけで、Claude はコードを分析し、プルリクエストを作成し、機能を実装し、バグを修正できます。すべてプロジェクトの標準に従いながら実行されます。すべての PR に自動的に投稿されるレビューについては、[GitHub Code Review](/ja/code-review) を参照してください。
 
-Claude Code GitHub Actions は [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/overview) の上に構築されており、Claude Code をアプリケーションにプログラム的に統合できます。SDK を使用して、GitHub Actions を超えたカスタム自動化ワークフローを構築できます。
+Claude Code GitHub Actions は [Claude Agent SDK](/ja/agent-sdk/overview) の上に構築されており、Claude Code をアプリケーションにプログラム的に統合できます。SDK を使用して、GitHub Actions を超えたカスタム自動化ワークフローを構築できます。
 
-**Claude Opus 4.6 が利用可能になりました。** Claude Code GitHub Actions はデフォルトで Sonnet を使用します。Opus 4.6 を使用するには、[model パラメータ](#breaking-changes-reference) を `claude-opus-4-6` に設定してください。
+**Claude Opus 4.7 が利用可能になりました。** Claude Code GitHub Actions はデフォルトで Sonnet を使用します。Opus 4.7 を使用するには、[model パラメータ](#breaking-changes-reference) を `claude-opus-4-7` に設定してください。
 
 ## Claude Code GitHub Actions を使用する理由
 
@@ -41,7 +41,7 @@ Claude Code は、コードの操作方法を変える強力な GitHub Action �
 
 - GitHub アプリをインストールしてシークレットを追加するには、リポジトリ管理者である必要があります
 - GitHub アプリは、Contents、Issues、Pull requests に対する読み取りと書き込みのアクセス許可をリクエストします
-- このクイックスタート方法は、直接 Claude API ユーザーのみが利用できます。AWS Bedrock または Google Vertex AI を使用している場合は、[AWS Bedrock と Google Vertex AI での使用](#using-with-aws-bedrock-%26-google-vertex-ai) セクションを参照してください。
+- このクイックスタート方法は、直接 Claude API ユーザーのみが利用できます。Amazon Bedrock または Google Vertex AI を使用している場合は、[Amazon Bedrock と Google Vertex AI での使用](#using-with-amazon-bedrock-%26-google-vertex-ai) セクションを参照してください。
 
 ## 手動セットアップ
 
@@ -261,7 +261,7 @@ Claude Code Action v1 は、統一されたパラメータで設定を簡素化�
 
 イシューまたは PR コメントに応答する場合、Claude は自動的に @claude メンションに応答します。その他のイベントについては、`prompt` パラメータを使用して指示を提供します。
 
-## AWS Bedrock と Google Vertex AI での使用
+## Amazon Bedrock と Google Vertex AI での使用
 
 エンタープライズ環境では、Claude Code GitHub Actions を独自のクラウドインフラストラクチャで使用できます。このアプローチにより、データレジデンシーと請求を制御しながら、同じ機能を維持できます。
 
@@ -276,7 +276,7 @@ Claude Code Action v1 は、統一されたパラメータで設定を簡素化�
 3. 必要なアクセス許可を持つサービスアカウント
 4. GitHub App（推奨）または デフォルトの GITHUB\_TOKEN を使用
 
-#### AWS Bedrock の場合：
+#### Amazon Bedrock の場合：
 
 1. Amazon Bedrock が有効な AWS アカウント
 2. AWS で設定された GitHub OIDC Identity Provider
