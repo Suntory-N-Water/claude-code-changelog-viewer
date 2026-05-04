@@ -1,0 +1,20 @@
+{
+  "key": "ANTHROPIC_CUSTOM_HEADERS",
+  "slug": "anthropic-custom-headers",
+  "source": "env",
+  "description_en": "Custom headers to add to requests (`Name: Value` format, newline-separated for multiple headers)",
+  "description_ja": "APIリクエストに追加するカスタムヘッダーを「名前: 値」の形式(複数行可)で指定します。",
+  "use_case_ja": "- 独自のプロキシや社内ゲートウェイが要求する、特定の認証用ヘッダーや追跡用IDを各リクエストに付与するために使用します。\n- Bedrock等のサードパーティプロバイダー利用時でも、必要に応じて追加のメタデータを送信できます。\n- 標準の認証フローとは別に、環境固有の要求仕様を満たすために利用されます。",
+  "related_changelog": [
+    {
+      "version": "2.1.101",
+      "content": "- Fixed Bedrock SigV4 authentication failing with 403 when `ANTHROPIC_AUTH_TOKEN`, `apiKeyHelper`, or `ANTHROPIC_CUSTOM_HEADERS` set an Authorization header",
+      "content_ja": "Amazon BedrockのSigV4認証において、`ANTHROPIC_AUTH_TOKEN` 等でAuthorizationヘッダーが設定されていると403エラーになる問題を修正",
+      "inference": {
+        "before": "Bedrock環境で利用する際、無関係な認証用環境変数が残っていると、AWS側の認証と干渉して接続に失敗することがありました。",
+        "after": "Bedrock固有の署名付きヘッダーの生成が他の認証設定と干渉しないよう改善されました。",
+        "benefit": "AWS Bedrockを利用した開発環境のセットアップにおける不透明な認証エラーが解消されます。"
+      }
+    }
+  ]
+}

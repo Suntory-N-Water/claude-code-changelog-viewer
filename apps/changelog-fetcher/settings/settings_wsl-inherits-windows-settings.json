@@ -1,0 +1,21 @@
+{
+  "key": "wslInheritsWindowsSettings",
+  "slug": "wsl-inherits-windows-settings",
+  "source": "settings",
+  "schema_type": "boolean",
+  "description_en": "(Windows managed settings only) When true, Claude Code on WSL reads managed settings from the Windows policy chain in addition to /etc/claude-code, with Windows sources taking priority. Only honored when set in the HKLM registry key or C:\\Program Files\\ClaudeCode\\managed-settings.json, both of which require Windows admin to write. For HKCU policy to also apply on WSL, the flag must additionally be set in HKCU itself. Has no effect on native Windows. See https://code.claude.com/docs/en/settings#available-settings",
+  "description_ja": "WSL上のClaude Codeが、Windows側のポリシー設定を自動的に引き継ぐかどうかを設定します。",
+  "use_case_ja": "- WindowsホストとWSL環境の両方で、組織のセキュリティポリシーや管理設定を二重管理せずに適用したい場合に使用します。\n- Windowsのレジストリや管理ファイルに設定された内容を優先的に読み込み、OSを跨いだ一貫したガバナンスを実現します。\n- 企業環境のWindows管理者が、WSLユーザーに対しても共通の制限を課す際に必要となります。",
+  "related_changelog": [
+    {
+      "version": "2.1.118",
+      "content": "- WSL on Windows can now inherit Windows-side managed settings via the `wslInheritsWindowsSettings` policy key",
+      "content_ja": "Windows上のWSLにおいて、`wslInheritsWindowsSettings` ポリシーキーを通じて、Windows側のマネージド設定を継承できるようになりました。",
+      "inference": {
+        "before": "WSL内で動作する Claude Code は、Windowsホスト側に適用されているエンタープライズ向けのマネージド設定を認識できず、OSを跨いで設定を二重に管理する必要がありました。",
+        "after": "WSLがWindows側のポリシーを自動で引き継ぐようになり、組織全体のセキュリティ設定やパーミッション制限がWSL環境にも一貫して適用されます。",
+        "benefit": "WindowsとWSLを併用するユーザーや管理者は、一度の設定で両環境をカバーできるため、設定漏れのリスクが減り、管理工数が大幅に削減されます。"
+      }
+    }
+  ]
+}

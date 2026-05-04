@@ -1,0 +1,31 @@
+{
+  "key": "deniedMcpServers",
+  "slug": "denied-mcp-servers",
+  "source": "settings",
+  "schema_type": "array",
+  "description_en": "Enterprise denylist of MCP servers that are explicitly blocked. If a server is on the denylist, it will be blocked across all scopes including enterprise. Denylist takes precedence over allowlist - if a server is on both lists, it is denied. See https://code.claude.com/docs/en/mcp#restriction-options",
+  "description_ja": "明示的にブロックする MCP サーバーのエンタープライズ向け拒否リストを指定します。",
+  "use_case_ja": "- セキュリティ懸念のある特定の MCP サーバーやバイナリを、ユーザーやプロジェクトの設定に関わらず組織全体で確実に禁止したい場合に使用します。許可リストよりも優先されます。",
+  "related_changelog": [
+    {
+      "version": "2.1.85",
+      "content": "- Fixed `deniedMcpServers` setting not blocking claude.ai MCP servers",
+      "content_ja": "deniedMcpServers設定がclaude.ai上のMCPサーバーを正しくブロックできていなかった問題を修正",
+      "inference": {
+        "before": "設定ファイルで特定のMCPサーバーを拒否リストに追加していても、クラウド経由で提供される一部のサーバーにはその制限が適用されない場合がありました。",
+        "after": "拒否リストのチェックがクラウド接続のサーバーにも一貫して適用されるようになり、管理が徹底されました。",
+        "benefit": "利用したくないツールやセキュリティ上の懸念がある外部サーバーを、確実にセッションから排除できる安心感が得られます。"
+      }
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed `--mcp-config` CLI flag bypassing `allowedMcpServers`/`deniedMcpServers` managed policy enforcement",
+      "content_ja": "CLI フラグ `--mcp-config` を使用した際に、管理ポリシーによる MCP サーバーの許可/拒否リストが無視される問題を修正しました",
+      "inference": {
+        "before": "組織の管理者が特定の MCP サーバーのみを利用許可するように設定していても、ユーザーがコマンドライン引数で設定ファイルを指定すると、その制限を回避して任意のサーバーを動かせてしまう不備がありました。",
+        "after": "引数で指定された MCP サーバーに対しても、組織の管理ポリシー(`allowedMcpServers` 等)が厳格に適用されるように修正されました。",
+        "benefit": "企業の管理者が設定したセキュリティ基準が確実に守られるようになり、組織全体での安全な AI 利用が保証されます。"
+      }
+    }
+  ]
+}

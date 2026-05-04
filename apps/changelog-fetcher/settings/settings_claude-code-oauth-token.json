@@ -1,0 +1,30 @@
+{
+  "key": "CLAUDE_CODE_OAUTH_TOKEN",
+  "slug": "claude-code-oauth-token",
+  "source": "env",
+  "description_en": "OAuth access token for Claude.ai authentication. Alternative to `/login` for SDK and automated environments. Takes precedence over keychain-stored credentials. Generate one with [`claude setup-token`](/en/authentication#generate-a-long-lived-token)",
+  "description_ja": "Claude.ai認証用のOAuthアクセストークンを指定し、自動化環境などで/loginの代わりに使用できます。",
+  "use_case_ja": "- ブラウザによるログインができないCI/CDパイプラインや自動化スクリプトで認証を自動化したい場合に利用します。\n- `claude setup-token`で生成した長期トークンを環境変数に設定することで、手動操作なしでClaudeのサブスクリプション権限を利用できます。\n- キーチェーンに保存された資格情報よりも優先されますが、リモートコントロール機能などの一部の機能には制限があります。",
+  "related_changelog": [
+    {
+      "version": "2.1.117",
+      "content": "- Fixed `/login` having no effect when launched with `CLAUDE_CODE_OAUTH_TOKEN` env var and that token expires",
+      "content_ja": "環境変数 `CLAUDE_CODE_OAUTH_TOKEN` を使用して起動した際、トークンの期限が切れると `/login` コマンドが効かなくなる問題を修正しました",
+      "inference": {
+        "before": "自動化された環境などでトークンを渡している際、そのトークンが無効になると通常のログインコマンドでも復旧できなくなるケースがありました。",
+        "after": "期限切れのトークンが存在しても、`/login` による手動ログインや再認証が正しく受け付けられるようになります。",
+        "benefit": "CI/CD や特殊な認証環境でのトラブルからの復旧が迅速に行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Fixed `/login` having no effect in a session launched with `CLAUDE_CODE_OAUTH_TOKEN` — the env token is now cleared so disk credentials take effect",
+      "content_ja": "`CLAUDE_CODE_OAUTH_TOKEN` で起動したセッションで `/login` が機能しない問題を修正",
+      "inference": {
+        "before": "環境変数でトークンを渡して起動すると、その後の `/login` コマンドが無視され、ディスク上の資格情報に切り替えることができませんでした。",
+        "after": "`/login` 実行時に環境変数のトークンが適切にクリアされ、永続的な資格情報を優先して使用できるようになりました。",
+        "benefit": "一時的なトークンと常設のログインアカウントを状況に合わせて柔軟に使い分けられます。"
+      }
+    }
+  ]
+}

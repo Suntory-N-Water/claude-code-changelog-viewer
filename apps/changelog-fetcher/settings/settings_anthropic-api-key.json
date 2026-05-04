@@ -1,0 +1,20 @@
+{
+  "key": "ANTHROPIC_API_KEY",
+  "slug": "anthropic-api-key",
+  "source": "env",
+  "description_en": "API key sent as `X-Api-Key` header. When set, this key is used instead of your Claude Pro, Max, Team, or Enterprise subscription even if you are logged in. In non-interactive mode (`-p`), the key is always used when present. In interactive mode, you are prompted to approve the key once before it overrides your subscription. To use your subscription instead, run `unset ANTHROPIC_API_KEY`",
+  "description_ja": "APIリクエストに使用するキー(X-Api-Keyヘッダー)を指定し、サブスクリプションよりも優先して使用します。",
+  "use_case_ja": "- 自分のClaude Pro/Team等のサブスクリプションではなく、特定のAPIキーで従量課金して利用したい場合に使用します。\n- 非対話モード(-p)では常に優先され、対話モードでは初回の適用時にユーザーの承認を求めます。\n- 複数の組織やプロジェクトで異なるAPIキーを使い分けたい開発者に適しています。",
+  "related_changelog": [
+    {
+      "version": "2.1.81",
+      "content": "- Added `--bare` flag for scripted `-p` calls — skips hooks, LSP, plugin sync, and skill directory walks; requires `ANTHROPIC_API_KEY` or an `apiKeyHelper` via `--settings` (OAuth and keychain auth disabled); auto-memory fully disabled",
+      "content_ja": "スクリプト実行用の `--bare` フラグを追加しました。フック、LSP、プラグイン同期、スキルディレクトリの走査をスキップし、自動メモリ機能も完全に無効化されます。",
+      "inference": {
+        "before": "非インタラクティブモード(`-p`)でスクリプトを実行する際も、通常のセッションと同様にフックの実行やプラグインの同期、メモリの読み込みが行われていました。",
+        "after": "`--bare` フラグを使用することで、純粋にモデルの推論のみを高速に実行できるようになります。このモードでは OAuth 認証等がバイパスされるため、API キーの設定が必須となります。",
+        "benefit": "CI/CD パイプラインや自動化スクリプトにおいて、不要なオーバーヘッドを削減し、起動速度の向上と実行の安定性を確保できます。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "key": "ANTHROPIC_BEDROCK_BASE_URL",
+  "slug": "anthropic-bedrock-base-url",
+  "source": "env",
+  "description_en": "Override the Bedrock endpoint URL. Use for custom Bedrock endpoints or when routing through an [LLM gateway](/en/llm-gateway). See [Amazon Bedrock](/en/amazon-bedrock)",
+  "description_ja": "Amazon BedrockのカスタムエンドポイントURLを指定します。",
+  "use_case_ja": "- Amazon Bedrockを直接ではなく、LLMゲートウェイなどを介して利用する際に、接続先URLを書き換えるために使用します。\n- AWSのデフォルトリージョンから構築されるURLを上書きし、特定のバックエンドにリクエストを誘導できます。\n- CI環境などで未設定の入力が空文字列として渡された場合に発生する認証エラーを防ぐ修正も含まれています。",
+  "related_changelog": [
+    {
+      "version": "2.0.71",
+      "content": "- Bedrock: Environment variable `ANTHROPIC_BEDROCK_BASE_URL` is now respected for token counting and inference profile listing"
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed Bedrock SigV4 authentication failing when `AWS_BEARER_TOKEN_BEDROCK` or `ANTHROPIC_BEDROCK_BASE_URL` are set to empty strings (as GitHub Actions does for unset inputs)",
+      "content_ja": "Bedrock SigV4認証において、`AWS_BEARER_TOKEN_BEDROCK`や`ANTHROPIC_BEDROCK_BASE_URL`が空文字列の場合に認証が失敗する問題を修正しました。",
+      "inference": {
+        "before": "GitHub ActionsなどのCI環境では、未設定の入力が空文字列として渡されることがあり、これが原因でBedrockへの接続エラーが発生していました。",
+        "after": "空文字列を「未設定」と正しく解釈するようになり、CI環境などでの自動連携がより堅牢になりました。",
+        "benefit": "クラウド環境でのセットアップ時のはまりどころが減り、デプロイやテストの自動化がスムーズになります。"
+      }
+    }
+  ]
+}

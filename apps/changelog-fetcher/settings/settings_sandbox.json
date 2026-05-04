@@ -1,0 +1,323 @@
+{
+  "key": "sandbox",
+  "slug": "sandbox",
+  "source": "settings",
+  "schema_type": "object",
+  "description_en": "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing",
+  "description_ja": "Bashコマンドの実行をOSレベルで隔離するサンドボックスの動作設定を行います。",
+  "use_case_ja": "- AIが実行するコマンドによる意図しないファイル書き換えや外部通信を制限し、安全な自律実行環境を構築します。\n- macOSのSeatbeltやLinuxのbubblewrapを利用し、特定のディレクトリのみ書き込みを許可するといった詳細な隔離ルールを適用できます。",
+  "related_changelog": [
+    {
+      "version": "2.0.24",
+      "content": "- Sandbox: Releasing a sandbox mode for the BashTool on Linux & Mac"
+    },
+    {
+      "version": "2.0.30",
+      "content": "- Added `allowUnsandboxedCommands` sandbox setting to disable the dangerouslyDisableSandbox escape hatch at policy level"
+    },
+    {
+      "version": "2.1.116",
+      "content": "- Security: sandbox auto-allow no longer bypasses the dangerous-path safety check for `rm`/`rmdir` targeting `/`, `$HOME`, or other critical system directories",
+      "content_ja": "セキュリティ改善：サンドボックスの自動承認が `/`、`$HOME`、およびその他の重要なシステムディレクトリに対する `rm`/`rmdir` の危険なパスチェックをバイパスしないよう修正",
+      "inference": {
+        "before": "サンドボックス環境で動作している際、本来保護されるべきルートディレクトリやホームディレクトリへの削除操作が、自動承認設定によって誤って許可されてしまう可能性がありました。",
+        "after": "重要なシステムディレクトリに対する破壊的なコマンド操作については、たとえ自動承認設定であっても、既存の厳格な危険パスチェックを必ず通るようにセキュリティが強化されました。",
+        "benefit": "意図しないファイル削除やシステムへの致命的な損傷のリスクが軽減され、AI へのコマンド実行許可をより安全に管理できます。"
+      }
+    },
+    {
+      "version": "2.1.113",
+      "content": "- Added `sandbox.network.deniedDomains` setting to block specific domains even when a broader `allowedDomains` wildcard would otherwise permit them",
+      "content_ja": "特定のドメインを個別にブロックするための `sandbox.network.deniedDomains` 設定を追加しました",
+      "inference": {
+        "before": "ワイルドカードを使用した広範な `allowedDomains` 設定を行っている場合、その範囲内の特定のドメインだけを拒否することが困難でした。",
+        "after": "拒否リスト(deniedDomains)が許可リストより優先されるようになり、細かいネットワーク制御が可能になりました。",
+        "benefit": "広域な許可を与えつつ、特定の機密ドメインや不要なドメインへのアクセスを確実に遮断できるため、セキュリティが向上します。"
+      }
+    },
+    {
+      "version": "2.1.113",
+      "content": "- Fixed Bash `dangerouslyDisableSandbox` running commands outside the sandbox without a permission prompt",
+      "content_ja": "Bashの `dangerouslyDisableSandbox` を使用した際、許可プロンプトが表示されずにコマンドが実行される脆弱性を修正しました",
+      "inference": {
+        "before": "サンドボックスを無効化して実行する(危険な)操作が、ユーザーの最終確認なしに行われてしまう可能性がありました。",
+        "after": "サンドボックス無効化時には、通常のパーミッションフローが強制され、必ず明示的な許可を求めるようになりました。",
+        "benefit": "システムの保護層を外す重要な操作に対して常に監視の目が届くようになり、安全性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.126",
+      "content": "- **Security:** Fixed `allowManagedDomainsOnly` / `allowManagedReadPathsOnly` being ignored when a higher-priority managed-settings source lacked a `sandbox` block",
+      "content_ja": "優先度の高い管理設定にsandboxブロックがない場合、低い優先度の管理設定のドメイン/読み取り制限が無視されるセキュリティ上の問題を修正しました",
+      "inference": {
+        "before": "複数の管理設定ファイルがある際、最優先のソースに`sandbox`設定の記述がないと、他の設定ファイルで定義されたドメイン制限や読み取り制限が適用されない不備がありました。",
+        "after": "設定の優先順位に関わらず、複数の管理設定ソースから提供されるサンドボックスの制限が正しくマージされ、適用されるようになりました。",
+        "benefit": "組織の管理者によって定義されたセキュリティ制限が漏れなく適用されるようになり、意図しないドメインへのアクセスやファイル読み取りをより確実に防止できます。"
+      }
+    },
+    {
+      "version": "2.1.20",
+      "content": "- Improved `/sandbox` command UI to show dependency status with installation instructions when dependencies are missing",
+      "content_ja": "依存関係が不足している場合にインストール手順と共に依存関係のステータスを表示するように、`/sandbox`コマンドのUIが改善されました。",
+      "inference": {
+        "before": "LinuxやWSL2環境でサンドボックス機能を有効にする際、`bubblewrap`や`socat`といった必要な依存関係が不足している場合、ユーザーは手動でそれらのインストール方法を調べて設定する必要がありました。`/sandbox`コマンドのUIは、このプロセスを明確にガイドするものではありませんでした。",
+        "after": "`/sandbox`コマンドを実行した際に、必要な依存関係が不足している場合は、そのステータスとプラットフォームに応じた具体的なインストール手順がUIに表示されるようになりました。これにより、ユーザーはスムーズにサンドボックス機能を設定できるようになります。",
+        "benefit": "これにより、LinuxやWSL2ユーザーはサンドボックスのセットアップが大幅に簡素化されます。不足している依存関係を特定し、インストール方法を調べる手間が省け、Claude Codeのサンドボックス環境を迅速かつ容易に利用開始できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.34",
+      "content": "- Fixed a bug where commands excluded from sandboxing (via `sandbox.excludedCommands` or `dangerouslyDisableSandbox`) could bypass the Bash ask permission rule when `autoAllowBashIfSandboxed` was enabled",
+      "content_ja": "サンドボックスから除外されたコマンド(`sandbox.excludedCommands` または `dangerouslyDisableSandbox` 経由)が、`autoAllowBashIfSandboxed` が有効な場合に Bash の権限要求ルールを迂回するバグを修正しました。",
+      "inference": {
+        "before": "以前は、サンドボックス機能を使って自動承認されるように設定されたBashコマンドの一部が、意図せず権限の要求なしに実行される可能性がありました。これは、特定のコマンドがサンドボックスから除外されるように設定されている場合に発生し、セキュリティ上の脆弱性となる恐れがありました。",
+        "after": "今回の修正により、`autoAllowBashIfSandboxed` 設定が有効な環境でも、サンドボックスから除外されたコマンドは適切にBashの権限要求ルールに従うようになりました。これにより、除外設定されたコマンドであっても、ユーザーの許可なく勝手に実行されることはありません。",
+        "benefit": "この修正により、サンドボックスのセキュリティモデルが強化され、より安心してClaude Codeを利用できるようになります。意図しないコマンドの実行を防ぎ、システムへのアクセスを厳密に制御できるため、セキュリティリスクが低減されます。"
+      }
+    },
+    {
+      "version": "2.1.31",
+      "content": "- Fixed bash commands incorrectly reporting failure with \"Read-only file system\" errors when sandbox mode was enabled",
+      "content_ja": "サンドボックスモードが有効な場合に、bashコマンドが「Read-only file system」エラーを誤って報告する問題を修正しました。"
+    },
+    {
+      "version": "2.1.38",
+      "content": "- Blocked writes to `.claude/skills` directory in sandbox mode",
+      "content_ja": "サンドボックスモードにおいて、`.claude/skills` ディレクトリへの書き込みがブロックされるようになりました。",
+      "inference": {
+        "before": "以前は、サンドボックスモードで動作しているClaude Codeが、許可なく`.claude/skills` ディレクトリにファイルを書き込む可能性がありました。これにより、セキュリティ上の懸念や、予期せぬ変更が発生するリスクがありました。",
+        "after": "今回の変更により、サンドボックスモードでは、Claude Codeが`.claude/skills` ディレクトリにファイルを書き込むことができなくなりました。これにより、サンドボックスの隔離性が強化され、不必要なファイル操作が防がれます。",
+        "benefit": "ユーザーは、サンドボックス環境でのセキュリティが向上し、Claude Codeが意図しないスキルファイルを作成・変更するリスクがなくなります。これにより、より安全で予測可能な開発環境を維持できます。"
+      }
+    },
+    {
+      "version": "2.1.45",
+      "content": "- Fixed sandbox \"operation not permitted\" errors when writing temporary files on macOS by using the correct per-user temp directory (anthropics/claude-code#21654)",
+      "content_ja": "macOS で一時ファイルを書き込む際のサンドボックス「操作が許可されない」エラーを、正しいユーザーごとの一時ディレクトリを使用することで修正しました (anthropics/claude-code#21654)。"
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Fixed Linux sandbox failing to start with \"ripgrep (rg) not found\" on native builds",
+      "content_ja": "ネイティブビルドのLinux版で「ripgrep (rg) が見つからない」というエラーによりサンドボックスが起動しない問題を修正しました。"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed sandbox permission issues: certain file write operations incorrectly allowed without prompting, and output redirections to allowlisted directories (like `/tmp/claude/`) prompting unnecessarily",
+      "content_ja": "サンドボックス内での特定のファイル書き込みや /tmp/ への出力リダイレクトが不要にプロンプトを出す問題を修正",
+      "inference": {
+        "before": "安全な場所(/tmp/claude/ など)への書き込みや、サンドボックス内で完結するはずの操作において、不必要な承認プロンプトが表示されることがありました。",
+        "after": "サンドボックスの権限判定が最適化され、許可されたディレクトリ内でのファイル操作やリダイレクトがよりスムーズに行えるようになりました。",
+        "benefit": "セキュリティを維持したまま、細かなファイル操作に伴う承認プロンプトの回数が減り、作業効率が向上します。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed several permission rule matching issues: wildcard rules not matching commands with heredocs, embedded newlines, or no arguments; `sandbox.excludedCommands` failing with env var prefixes; \"always allow\" suggesting overly broad prefixes for nested CLI tools; and deny rules not applying to all command forms",
+      "content_ja": "ワイルドカードルールのマッチング精度やサンドボックス除外コマンド、拒否ルールの適用範囲など、パーミッション周りの不具合を修正",
+      "inference": {
+        "before": "ヒアドキュメントを含むコマンドや環境変数プレフィックス付きのコマンドなど、特定のパターンにおいてパーミッション設定が正しく適用されない場合がありました。",
+        "after": "コマンドラインの解析ロジックが強化され、複雑な形式のコマンドに対しても設定した許可・拒否ルールが正確に機能するようになりました。",
+        "benefit": "「常に許可」や「常に拒否」の設定が期待通りに働くようになり、セキュリティ設定の信頼性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Added `allowRead` sandbox filesystem setting to re-allow read access within `denyRead` regions",
+      "content_ja": "サンドボックスのファイルシステム設定に、`denyRead` 領域内での読み取りを再許可する `allowRead` を追加しました",
+      "inference": {
+        "before": "特定のディレクトリへのアクセスを `denyRead` で制限した場合、そのサブディレクトリを個別に読み取り許可する手段がありませんでした。",
+        "after": "`allowRead` 設定を使用することで、読み取り拒否された広範なパスの中から特定のサブパスだけを安全に許可できるようになりました。",
+        "benefit": "サンドボックスのセキュリティ制限を維持しつつ、必要なファイルへのアクセスだけをピンポイントで許可できるため、柔軟な環境構築が可能です。"
+      }
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Fixed `←`/`→` accidentally switching tabs in settings, permissions, and sandbox dialogs while navigating lists",
+      "content_ja": "設定やパーミッションのダイアログでリスト移動中に `←`/`→` キーを押すと、誤ってタブが切り替わってしまう問題を修正しました",
+      "inference": {
+        "before": "リスト項目内のカーソル移動や展開を行おうとすると、意図せず画面上部のタブが移動してしまう操作の競合がありました。",
+        "after": "リスト操作とタブ切り替えのキーバインドが整理され、意図した通りのナビゲーションが可能になりました。",
+        "benefit": "設定画面での誤操作が減り、必要な項目を素早く探し出して変更できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed `git log HEAD` failing with \"ambiguous argument\" inside sandboxed Bash on Linux, and stub files polluting `git status` in the working directory",
+      "content_ja": "Linuxのサンドボックス内での `git log HEAD` のエラー、およびスタブファイルによる `git status` の汚染を修正",
+      "inference": {
+        "before": "Linux のサンドボックス環境で Git 操作を行うと、「引数が曖昧」というエラーが出たり、不要なファイルが Git ステータスに表示されたりしていました。",
+        "after": "サンドボックス内での Git コマンドの互換性が修正され、作業ディレクトリを汚さずに正確なログ確認やステータス表示が可能になりました。",
+        "benefit": "Linux ユーザーがセキュリティ機能を有効にしたままでも、ストレスなく Git ワークフローを継続できます。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed `sandbox.filesystem.allowWrite` not working with absolute paths (previously required `//` prefix)",
+      "content_ja": "サンドボックスの書き込み許可設定で、絶対パスが正しく動作しない不具合を修正",
+      "inference": {
+        "before": "サンドボックス環境での書き込み許可パスを指定する際、常に `//` 接頭辞が必要であり、通常の絶対パス指定が機能しませんでした。",
+        "after": "標準的な絶対パスによる指定が可能になり、設定ファイルの記述がより直感的になりました。",
+        "benefit": "環境構築時の設定ミスが減り、サンドボックス機能をより簡単に導入できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed `/sandbox` Dependencies tab showing Linux prerequisites on macOS instead of macOS-specific info",
+      "content_ja": "macOS 上の `/sandbox` 依存関係タブに、誤って Linux 向けの要件が表示される問題を修正",
+      "inference": {
+        "before": "macOS でサンドボックス設定を確認した際、不要な Linux 用パッケージ(bubblewrap など)のインストールを促される混乱がありました。",
+        "after": "OS を正しく判別し、macOS では標準の Seatbelt フレームワークが使用されることが正しく表示されるようになりました。",
+        "benefit": "ユーザーが自分の環境に合った正しい情報を得られるようになり、セットアップの迷いが解消されます。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- **Security:** Fixed silent sandbox disable when `sandbox.enabled: true` is set but dependencies are missing — now shows a visible startup warning",
+      "content_ja": "セキュリティ：サンドボックス依存関係が不足している場合に警告なしで無効化される問題を修正し、起動時に警告を表示",
+      "inference": {
+        "before": "サンドボックス設定が有効でも、必要なツールがない場合に無言で機能がオフになっており、セキュリティ上の死角となっていました。",
+        "after": "起動時に依存関係の不足を明示的に警告するようになり、安全な状態であるかどうかを確実に把握できるようになりました。",
+        "benefit": "設定したセキュリティ境界が機能していないことに気づかないまま作業を続けるリスクを回避できます。"
+      }
+    },
+    {
+      "version": "2.1.80",
+      "content": "- Fixed `/sandbox` tab switching not responding to Tab or arrow keys",
+      "content_ja": "`/sandbox` メニュー内のタブ切り替えが Tab キーや矢印キーに反応しなかった問題を修正",
+      "inference": {
+        "before": "サンドボックス設定画面において、キーボード操作で設定項目やタブ間を移動しようとしてもフォーカスが正しく切り替わりませんでした。",
+        "after": "標準的なキーボードショートカット(Tab や矢印キー)によるタブ移動や項目の選択が、意図通りに動作するようになります。",
+        "benefit": "マウスを使わずにキーボードだけでサンドボックス構成を素早く変更でき、開発の流れを止めずにセキュリティ設定を管理できます。"
+      }
+    },
+    {
+      "version": "2.1.92",
+      "content": "- Linux sandbox now ships the `apply-seccomp` helper in both npm and native builds, restoring unix-socket blocking for sandboxed commands",
+      "content_ja": "Linux サンドボックスにおいて `apply-seccomp` ヘルパーを同梱し、Unix ドメインソケットのブロック機能を復元。",
+      "inference": {
+        "before": "一部の環境でサンドボックスの制約が不十分になり、本来制限すべき Unix ソケット通信が許可されてしまうケースがありました。",
+        "after": "セキュリティ機能が強化され、サンドボックス内で実行されるコマンドの通信制限がより厳密に適用されます。",
+        "benefit": "悪意のあるスクリプトや予期せぬ挙動からローカルシステムを保護する能力が高まり、安全性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed sandboxed Bash commands failing with `mktemp: No such file or directory` after a fresh boot",
+      "content_ja": "PCの再起動直後の初回起動時、サンドボックス環境でのBashコマンドが `mktemp` エラーで失敗する問題を修正",
+      "inference": {
+        "before": "システム起動直後など、サンドボックスが必要とする一時ディレクトリが準備できていない状態でコマンドを実行するとエラーが発生することがありました。",
+        "after": "サンドボックスの初期化処理が改善され、再起動後でも最初のコマンドから安定して動作します。",
+        "benefit": "サンドボックスの利用に伴う不安定さが解消され、安全な実行環境を意識せずに使い続けられます。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed zsh heredoc failing with \"read-only file system\" error in sandboxed commands (anthropics/claude-code#25990)",
+      "content_ja": "サンドボックス化されたコマンドで「read-only file system」エラーが発生するzsh heredocの問題を修正しました(anthropics/claude-code#25990)。",
+      "inference": {
+        "before": "サンドボックス化された環境でzsh heredocを使用すると、「read-only file system」エラーが発生し、コマンドが失敗する問題がありました。",
+        "after": "サンドボックス化されたコマンドでzsh heredocが「read-only file system」エラーを起こす問題が修正されました。",
+        "benefit": "サンドボックス環境でのzsh heredocの利用が改善され、より多くのシナリオでシェルコマンドの実行が容易になりました。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Added `sandbox.enableWeakerNetworkIsolation` setting (macOS only) to allow Go programs like `gh`, `gcloud`, and `terraform` to verify TLS certificates when using a custom MITM proxy with `httpProxyPort`",
+      "content_ja": "macOS 限定で `sandbox.enableWeakerNetworkIsolation` 設定を追加しました。`httpProxyPort` を使用したカスタムプロキシ環境下で、`gh` や `terraform` などの Go 製プログラムが TLS 証明書を検証できるようになります。",
+      "inference": {
+        "before": "macOS のサンドボックス環境でカスタムプロキシを使用すると、Go 言語で書かれたツールが証明書の検証に失敗し、ネットワーク通信が必要なコマンドが実行できないことがありました。",
+        "after": "ネットワークの隔離レベルをわずかに調整するオプションが提供され、セキュリティを維持しつつ、企業内プロキシ環境などでも Go 製のツールが正しく動作するようになりました。",
+        "benefit": "企業独自のネットワーク環境下でも、`gh` コマンドによる PR 作成や `terraform` によるインフラ操作を Claude に安全に実行させることができます。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Fixed sandbox prompting users to approve non-allowed domains when `allowManagedDomainsOnly` is enabled in managed settings — non-allowed domains are now blocked automatically with no bypass",
+      "content_ja": "管理設定で `allowManagedDomainsOnly` が有効な場合、未許可ドメインへの承認プロンプトを抑制し、自動的にブロックするように修正しました。",
+      "inference": {
+        "before": "組織レベルで許可ドメインを制限している場合でも、制限外のサイトへアクセスしようとするとユーザーに承認を求めるプロンプトが出てしまい、管理ポリシーをバイパスできてしまう余地がありました。",
+        "after": "ポリシーで制限されている場合はプロンプトすら出さずに即座に遮断されるようになり、管理者の意図通りの厳格な制限が適用されるようになりました。",
+        "benefit": "企業におけるセキュリティポリシーの強制力が向上し、ヒューマンエラーによる機密情報の流出リスクを低減できます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Added `sandbox.enableWeakerNetworkIsolation` setting (macOS only) to allow Go programs like `gh`, `gcloud`, and `terraform` to verify TLS certificates when using a custom MITM proxy with `httpProxyPort`",
+      "content_ja": "macOS限定の `sandbox.enableWeakerNetworkIsolation` 設定を追加。カスタムプロキシ使用時に `gh` や `terraform` 等のGoプログラムでのTLS検証を許可",
+      "inference": {
+        "before": "サンドボックスのネットワーク隔離が厳格すぎて、Go言語で書かれたCLIツールがカスタムCA証明書を介したプロキシ環境で証明書エラーを起こすことがありました。",
+        "after": "macOSの信頼された証明書サービスへのアクセスを許可するオプションが追加され、企業プロキシ環境下でもこれらのツールが正常に動作するようになります。",
+        "benefit": "社内ネットワーク制限がある環境でも、`terraform` や `gcloud` といった必須のインフラ操作ツールをClaude Codeから安全に実行できます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed ghost dotfiles (`.bashrc`, `HEAD`, etc.) appearing as untracked files in the working directory after sandboxed Bash commands on Linux",
+      "content_ja": "Linuxでのサンドボックス内bashコマンド実行後に、`.bashrc` 等のドットファイルが未追跡ファイルとして現れる問題を修正",
+      "inference": {
+        "before": "サンドボックスが環境設定を読み込む際、作業ディレクトリに実体のないゴーストファイルが生成され、Gitのクリーンな状態を乱していました。",
+        "after": "ファイルの分離が適切に行われるようになり、開発環境のGit状態に不要なファイルが混入しなくなりました。",
+        "benefit": "Gitステータスを汚すことなくサンドボックスの安全な実行環境を利用でき、コミット時の混乱を防げます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed sandbox prompting users to approve non-allowed domains when `allowManagedDomainsOnly` is enabled in managed settings — non-allowed domains are now blocked automatically with no bypass"
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Added `sandbox.failIfUnavailable` setting to exit with an error when sandbox is enabled but cannot start, instead of running unsandboxed",
+      "content_ja": "サンドボックスが有効な場合に起動できない時は、サンドボックスなしで実行せずエラーで終了する `sandbox.failIfUnavailable` 設定を追加しました",
+      "inference": {
+        "before": "サンドボックスが有効に設定されていても、依存関係の不足やプラットフォームの制限で起動できない場合、Claude Code は警告を表示した上でサンドボックスなし(保護なし)の状態でコマンドを実行してしました。",
+        "after": "`sandbox.failIfUnavailable` を `true` に設定することで、サンドボックスを起動できない場合にプロセスをエラーで停止させることができるようになりました。これにより、意図しない非保護状態での実行を防げます。",
+        "benefit": "厳格なセキュリティポリシーを必要とするエンタープライズ環境において、安全性が確認できない状態でのコマンド実行を確実に阻止できるようになり、セキュリティガバナンスが強化されます。"
+      }
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed `rg ... | wc -l` and similar piped commands hanging and returning `0` in sandbox mode on Linux",
+      "content_ja": "Linux のサンドボックスモードにおいて、`rg ... | wc -l` などのパイプを使ったコマンドが停止し、常に `0` を返す問題を修正しました",
+      "inference": {
+        "before": "サンドボックス保護下で複数のコマンドをパイプでつなぐと、プロセスの通信制御の問題によりデータが正しく流れず、検索結果が正しくカウントされないなどの不具合がありました。",
+        "after": "サンドボックス内のプロセス間通信(パイプ処理)のハンドリングが修正され、通常のシェルと同じように複雑なコマンド列を実行できるようになりました。",
+        "benefit": "安全なサンドボックスを利用しながらも、パワフルなシェルコマンドを制限なく活用したコード分析が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Improved auto mode and bypass-permissions mode to auto-approve sandbox network access prompts",
+      "content_ja": "「自動モード(auto mode)」および「全承認モード(bypass-permissions)」において、サンドボックスのネットワークアクセスプロンプトを自動的に承認するように改善しました。"
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Improved sandbox: `sandbox.network.allowMachLookup` now takes effect on macOS",
+      "content_ja": "macOSにおいて、サンドボックス設定の`sandbox.network.allowMachLookup`が有効に機能するように改善しました。",
+      "inference": {
+        "before": "macOS特有のサンドボックス機構(Seatbelt)において、一部のネットワーク関連のルックアップ制限が設定通りに適用されないケースがありました。",
+        "after": "OSレベルのセキュリティ設定がより厳密に制御され、設定した隔離ポリシーが確実に反映されるようになりました。",
+        "benefit": "macOS上でのエージェントの動作をより安全に、かつ意図した範囲内に制限でき、セキュリティリスクを低減できます。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Added subprocess sandboxing with PID namespace isolation on Linux when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set, and `CLAUDE_CODE_SCRIPT_CAPS` env var to limit per-session script invocations",
+      "content_ja": "Linux 環境において `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` 有効時の PID ネームスペース隔離によるサブプロセス・サンドボックス機能、およびセッションごとのスクリプト実行回数を制限する `CLAUDE_CODE_SCRIPT_CAPS` 環境変数を追加しました。",
+      "inference": {
+        "before": "AIが実行するサブプロセスからホスト側のプロセス情報が見えてしまったり、悪意のあるプロンプトによって無限にスクリプトが実行されたりするセキュリティ上の懸念がありました。",
+        "after": "OSレベルでのプロセス隔離が強化され、また1セッション内でのスクリプト実行回数に上限を設けることができるようになりました。",
+        "benefit": "AIにコマンド実行権限を与える際の安全性が高まり、プロンプトインジェクション等による情報の漏洩やリソースの枯渇リスクを大幅に低減できます。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed `sandbox.network.allowMachLookup` not taking effect on macOS",
+      "content_ja": "macOS において `sandbox.network.allowMachLookup` の設定が有効に機能していなかった問題を修正しました。",
+      "inference": {
+        "before": "サンドボックス環境下で特定の macOS 固有サービス(iOSシミュレータなど)と連携させるための設定が、実質的に無視されていました。",
+        "after": "設定したMachサービスへのアクセスが正しく許可され、サンドボックス内から高度なシステム連携が可能になりました。",
+        "benefit": "安全性を保ちつつ、シミュレータの操作やOS機能を利用したテストなどの開発作業をサンドボックス内で完結できます。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "key": "allowedMcpServers",
+  "slug": "allowed-mcp-servers",
+  "source": "settings",
+  "schema_type": "array",
+  "description_en": "Enterprise allowlist of MCP servers that can be used. Applies to all scopes including enterprise servers from managed-mcp.json. If undefined, all servers are allowed. If empty array, no servers are allowed. Denylist takes precedence - if a server is on both lists, it is denied. See https://code.claude.com/docs/en/mcp#restriction-options",
+  "description_ja": "使用を許可する MCP サーバーのエンタープライズ向け許可リストを指定します。",
+  "use_case_ja": "- 管理者が承認した特定のパッケージや URL パターンの MCP サーバーのみをユーザーに利用させ、勝手な MCP サーバーの追加を制限して安全性を確保したい場合に設定します。",
+  "related_changelog": [
+    {
+      "version": "2.1.83",
+      "content": "- Fixed `--mcp-config` CLI flag bypassing `allowedMcpServers`/`deniedMcpServers` managed policy enforcement",
+      "content_ja": "CLI フラグ `--mcp-config` を使用した際に、管理ポリシーによる MCP サーバーの許可/拒否リストが無視される問題を修正しました",
+      "inference": {
+        "before": "組織の管理者が特定の MCP サーバーのみを利用許可するように設定していても、ユーザーがコマンドライン引数で設定ファイルを指定すると、その制限を回避して任意のサーバーを動かせてしまう不備がありました。",
+        "after": "引数で指定された MCP サーバーに対しても、組織の管理ポリシー(`allowedMcpServers` 等)が厳格に適用されるように修正されました。",
+        "benefit": "企業の管理者が設定したセキュリティ基準が確実に守られるようになり、組織全体での安全な AI 利用が保証されます。"
+      }
+    }
+  ]
+}

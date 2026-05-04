@@ -1,0 +1,20 @@
+{
+  "key": "CLAUDE_CODE_MAX_CONTEXT_TOKENS",
+  "slug": "claude-code-max-context-tokens",
+  "source": "env",
+  "description_en": "Override the context window size Claude Code assumes for the active model. Only takes effect when `DISABLE_COMPACT` is also set. Use this when routing to a model through `ANTHROPIC_BASE_URL` whose context window does not match the built-in size for its name",
+  "description_ja": "アクティブなモデルに対してClaude Codeが想定するコンテキストウィンドウのサイズを強制的に上書きします。",
+  "use_case_ja": "- `ANTHROPIC_BASE_URL` を経由して独自のプロキシや互換モデルを利用する際、組み込みのモデル定義と実際のウィンドウサイズが異なる場合の不整合を解消します。\n- `DISABLE_COMPACT` と併用することで、意図しない自動圧縮を防ぎつつ、特定のトークン制限まで会話履歴を保持できます。",
+  "related_changelog": [
+    {
+      "version": "2.1.98",
+      "content": "- Fixed `CLAUDE_CODE_MAX_CONTEXT_TOKENS` to honor `DISABLE_COMPACT` when it is set.",
+      "content_ja": "`DISABLE_COMPACT` が設定されている場合に、`CLAUDE_CODE_MAX_CONTEXT_TOKENS` による制限がコンテキストの圧縮無効化設定を正しく尊重するよう修正",
+      "inference": {
+        "before": "コンテキストの自動圧縮を無効化する `DISABLE_COMPACT` を設定していても、最大トークン数を指定する変数との組み合わせにより、意図せず圧縮ロジックが干渉する可能性がありました。",
+        "after": "設定間の優先順位が整理され、ユーザーが明示的に自動圧縮をオフにしている場合は、トークン制限に達しても勝手に要約や圧縮が行われないよう挙動が統一されました。",
+        "benefit": "特定のデバッグや長文の解析など、会話履歴を一切改変・圧縮せずに保持したい高度なユースケースにおいて、ツールの挙動がより予測可能になります。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "key": "tui",
+  "slug": "tui",
+  "source": "settings",
+  "schema_type": "string",
+  "description_en": "TUI rendering mode. Use \"fullscreen\" for the flicker-free alt-screen renderer with virtualized scrollback; \"default\" for the classic main-screen renderer. Corresponds to the /tui command. See https://code.claude.com/docs/en/settings#available-settings",
+  "description_ja": "TUI(ターミナルUI)の描画モードを「fullscreen(ちらつきなし)」または「default」から選択します。",
+  "use_case_ja": "- 長い会話で画面がちらついたり、スクロールが不安定になったりするのを防ぐために`fullscreen`を使用します。\n- `fullscreen`モードではvimやhtopのように代替画面バッファを使用し、マウス操作や効率的なメモリ管理を実現します。\n- インタラクティブな操作感を向上させ、特にVS Codeの統合ターミナルなどでの表示を安定させたい場合に最適です。",
+  "related_changelog": [
+    {
+      "version": "2.1.116",
+      "content": "- Fixed `/update` and `/tui` not working after entering a worktree mid-session",
+      "content_ja": "セッションの途中で worktree に入った後、`/update` や `/tui` が機能しなくなる問題を修正",
+      "inference": {
+        "before": "セッション実行中に git worktree を作成して移動すると、その後のアップデート操作や UI モードの変更(`/tui`)が正常に動作しなくなる不当な挙動がありました。",
+        "after": "worktree への移動後も、カレントディレクトリやセッション状態が正しく維持され、すべてのコマンドが継続して利用できるよう修正されました。",
+        "benefit": "作業ディレクトリの切り替えを伴う柔軟な開発ワークフローの中でも、Claude Code のすべての機能を一貫して利用し続けることができます。"
+      }
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Added `/tui` command and `tui` setting — run `/tui fullscreen` to switch to flicker-free rendering in the same conversation",
+      "content_ja": "`/tui`コマンドと`tui`設定の追加 — 同一の会話内で`/tui fullscreen`を実行することで、チラつきのないレンダリングモードに切り替え可能に",
+      "inference": {
+        "before": "長い会話になると画面がチラついたり、VS Codeの統合ターミナルなどでスクロール位置が勝手にジャンプしたりすることがありました。また、メモリ使用量も会話の長さに応じて増加する傾向がありました。",
+        "after": "`/tui fullscreen`を実行すると、vimのように端末の代替画面バッファを使用して描画を行うモードに切り替わります。現在見えているメッセージのみをレンダリングするためチラつきが抑えられ、メモリ使用量も一定に保たれます。",
+        "benefit": "長時間にわたる複雑な開発作業でも、画面の乱れや動作の重さを気にせず、マウスサポートも含めた快適な操作感でAIとの対話を継続できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Fixed dropped keystrokes after the CLI relaunches (e.g. `/tui`, provider setup wizards)",
+      "content_ja": "CLIの再起動後(`/tui`への切り替えやプロバイダ設定時など)に、キー入力がこぼれる問題を修正",
+      "inference": {
+        "before": "内部的なCLIの再起動が発生した直後、最初に入力した数文字が無視されてしまい、コマンドを打ち直す必要がありました。",
+        "after": "再起動後の入力受け付けが即座に、かつ正確に行われるように改善されました。",
+        "benefit": "モードの切り替えや設定変更の際、操作を遮られることなくスムーズに入力を続けられるようになります。"
+      }
+    }
+  ]
+}

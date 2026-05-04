@@ -1,0 +1,30 @@
+{
+  "key": "CLAUDE_ENV_FILE",
+  "slug": "claude-env-file",
+  "source": "env",
+  "description_en": "Path to a shell script whose contents Claude Code runs before each Bash command in the same shell process, so exports in the file are visible to the command. Use to persist virtualenv or conda activation across commands. Also populated dynamically by [SessionStart](/en/hooks#persist-environment-variables), [Setup](/en/hooks#setup), [CwdChanged](/en/hooks#cwdchanged), and [FileChanged](/en/hooks#filechanged) hooks",
+  "description_ja": "Bashツールの各コマンド実行前に読み込まれるシェルスクリプトのパスを指定し、環境変数を永続化させます。",
+  "use_case_ja": "- direnv等のツールと連携し、ディレクトリ移動時(CwdChanged)に環境変数を自動で再ロード・保持させるために使用します。\n- 仮想環境(virtualenv/conda)のアクティベート状態をセッション内の連続するコマンド間で維持したい場合に必須の設定です。",
+  "related_changelog": [
+    {
+      "version": "2.1.108",
+      "content": "- Fixed Bash tool producing no output when `CLAUDE_ENV_FILE` (e.g. `~/.zprofile`) ends with a `#` comment line",
+      "content_ja": "`CLAUDE_ENV_FILE`(例：`~/.zprofile`)が末尾に「#」コメント行で終わる場合にBashツールの出力が空になる問題を修正",
+      "inference": {
+        "before": "環境設定ファイルの末尾にコメントがあると、Claudeが実行するBashコマンドの結果が正常に捕捉されないバグがありました。",
+        "after": "設定ファイルの記述内容に左右されず、Bashツールのコマンド実行結果が常に正しく取得されるようになりました。",
+        "benefit": "特定のシェル設定環境下でツールが故障する原因が解消され、シェル環境の自由度が向上します。"
+      }
+    },
+    {
+      "version": "2.1.111",
+      "content": "- Windows: `CLAUDE_ENV_FILE` and SessionStart hook environment files now apply (previously a no-op)",
+      "content_ja": "Windowsにおいて `CLAUDE_ENV_FILE` および SessionStart フックで生成された環境変数が正しく適用されるようになりました。",
+      "inference": {
+        "before": "Windows環境ではこれらが機能しておらず、仮想環境の自動有効化やカスタム環境変数の永続化が動作していませんでした。",
+        "after": "Linux/macOSと同様の動作がサポートされ、フックを利用した高度なワークフロー構築が可能になりました。",
+        "benefit": "Windows開発者も、プロジェクト開始時にPythonの仮想環境を自動でアクティベートするといった効率化の恩恵を受けられます。"
+      }
+    }
+  ]
+}

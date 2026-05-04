@@ -1,0 +1,30 @@
+{
+  "key": "OTEL_LOG_USER_PROMPTS",
+  "slug": "otel-log-user-prompts",
+  "source": "env",
+  "description_en": "Set to `1` to include user prompt text in OpenTelemetry traces and logs. Disabled by default (prompts are redacted). See [Monitoring](/en/monitoring-usage)",
+  "description_ja": "OpenTelemetryのトレースやログにユーザーのプロンプト・テキストを含めるには1を設定します。",
+  "use_case_ja": "- AIの挙動最適化や監査のために、実際にどのようなプロンプトやシステムプロンプトが使用されたかを詳細に分析したい場合に使用します。\n- デフォルトでは伏せられているプロンプト内容を、セキュリティ設定で許可された場合にのみ記録するように制御します。",
+  "related_changelog": [
+    {
+      "version": "2.1.101",
+      "content": "- Improved beta tracing to honor `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, and `OTEL_LOG_TOOL_CONTENT`; sensitive span attributes are no longer emitted unless opted in",
+      "content_ja": "ベータ版のトレーシング機能で、プロンプトやツールの詳細・内容を記録する各設定(OTEL_LOG_*)を尊重するように改善",
+      "inference": {
+        "before": "OpenTelemetryによるトレース情報の出力時、秘匿すべき情報が設定に関わらず出力されてしまうリスクがありました。",
+        "after": "ユーザーが明示的に許可した情報(プロンプトやツールの引数など)のみがトレースに含まれるようになり、機密情報の保護が強化されました。",
+        "benefit": "組織のセキュリティポリシーに合わせて、安心して利用状況のモニタリングを行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.121",
+      "content": "- OpenTelemetry: added `stop_reason`, `gen_ai.response.finish_reasons`, and `user_system_prompt` (gated behind `OTEL_LOG_USER_PROMPTS`) to LLM request spans",
+      "content_ja": "OpenTelemetry において、LLM リクエストのスパンに `stop_reason`、`gen_ai.response.finish_reasons`、および `user_system_prompt`(`OTEL_LOG_USER_PROMPTS` で保護)を追加しました。",
+      "inference": {
+        "before": "OpenTelemetry によるモニタリング機能で、AI が回答を中断した理由や、実際にどのようなシステムプロンプトが使用されたかを詳細に分析するデータが不足していました。",
+        "after": "LLM の挙動を深く理解するためのメタデータがスパンに追加されました。セキュリティ設定で許可されている場合、システムプロンプトの内容も記録されます。",
+        "benefit": "組織内での Claude Code の利用状況をより詳細に可視化し、モデルの挙動の最適化やトラブルシューティング、監査を容易にします。"
+      }
+    }
+  ]
+}

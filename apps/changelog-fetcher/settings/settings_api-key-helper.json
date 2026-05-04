@@ -1,0 +1,44 @@
+{
+  "key": "apiKeyHelper",
+  "slug": "api-key-helper",
+  "source": "settings",
+  "schema_type": "string",
+  "description_en": "Path to a script that outputs authentication values. See https://code.claude.com/docs/en/settings#available-settings",
+  "description_ja": "認証値を出力するスクリプトへのパスを指定します。",
+  "use_case_ja": "- 外部のパスワードマネージャーやvaultからAPIキーを動的に取得したい場合に設定します。\n- CI環境などでシークレットを直接環境変数に持たせず、実行時にスクリプトで解決させたいときに役立ちます。\n- 10秒以上かかる場合は警告が表示されるため、認証スクリプトのパフォーマンス監視にも利用されます。",
+  "related_changelog": [
+    {
+      "version": "0.2.74",
+      "content": "- Added support for refreshing dynamically generated API keys (via apiKeyHelper), with a 5 minute TTL"
+    },
+    {
+      "version": "1.0.37",
+      "content": "- Remove ability to set `Proxy-Authorization` header via ANTHROPIC_AUTH_TOKEN or apiKeyHelper"
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Show a notice when `apiKeyHelper` takes longer than 10s, preventing it from blocking the main loop",
+      "content_ja": "API キー取得ヘルパーが 10 秒以上かかる場合に通知を表示し、メインループがブロックされないよう改善しました"
+    },
+    {
+      "version": "2.1.81",
+      "content": "- Added `--bare` flag for scripted `-p` calls — skips hooks, LSP, plugin sync, and skill directory walks; requires `ANTHROPIC_API_KEY` or an `apiKeyHelper` via `--settings` (OAuth and keychain auth disabled); auto-memory fully disabled",
+      "content_ja": "スクリプト実行用の `--bare` フラグを追加しました。フック、LSP、プラグイン同期、スキルディレクトリの走査をスキップし、自動メモリ機能も完全に無効化されます。",
+      "inference": {
+        "before": "非インタラクティブモード(`-p`)でスクリプトを実行する際も、通常のセッションと同様にフックの実行やプラグインの同期、メモリの読み込みが行われていました。",
+        "after": "`--bare` フラグを使用することで、純粋にモデルの推論のみを高速に実行できるようになります。このモードでは OAuth 認証等がバイパスされるため、API キーの設定が必須となります。",
+        "benefit": "CI/CD パイプラインや自動化スクリプトにおいて、不要なオーバーヘッドを削減し、起動速度の向上と実行の安定性を確保できます。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Fixed Bedrock SigV4 authentication failing with 403 when `ANTHROPIC_AUTH_TOKEN`, `apiKeyHelper`, or `ANTHROPIC_CUSTOM_HEADERS` set an Authorization header",
+      "content_ja": "Amazon BedrockのSigV4認証において、`ANTHROPIC_AUTH_TOKEN` 等でAuthorizationヘッダーが設定されていると403エラーになる問題を修正",
+      "inference": {
+        "before": "Bedrock環境で利用する際、無関係な認証用環境変数が残っていると、AWS側の認証と干渉して接続に失敗することがありました。",
+        "after": "Bedrock固有の署名付きヘッダーの生成が他の認証設定と干渉しないよう改善されました。",
+        "benefit": "AWS Bedrockを利用した開発環境のセットアップにおける不透明な認証エラーが解消されます。"
+      }
+    }
+  ]
+}

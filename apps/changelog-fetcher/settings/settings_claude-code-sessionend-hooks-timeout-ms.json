@@ -1,0 +1,20 @@
+{
+  "key": "CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS",
+  "slug": "claude-code-sessionend-hooks-timeout-ms",
+  "source": "env",
+  "description_en": "Override the time budget in milliseconds for [SessionEnd](/en/hooks#sessionend) hooks. Applies to session exit, `/clear`, and switching sessions via interactive `/resume`. By default the budget is 1.5 seconds, automatically raised to the highest per-hook `timeout` configured in settings files, up to 60 seconds. Timeouts on plugin-provided hooks do not raise the budget",
+  "description_ja": "SessionEndフックの実行制限時間をミリ秒単位で上書きします(デフォルトは1.5秒、最大60秒)。",
+  "use_case_ja": "- セッション終了時のクリーンアップやログの転送など、完了までに1.5秒以上かかる処理を確実に行いたい場合に設定します。\n- 個別のフック設定で `timeout` を指定しても反映されない終了時の強制終了を回避し、自動化ワークフローをより堅牢にします。",
+  "related_changelog": [
+    {
+      "version": "2.1.74",
+      "content": "- Fixed `SessionEnd` hooks being killed after 1.5 s on exit regardless of `hook.timeout` — now configurable via `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS`",
+      "content_ja": "終了時の `SessionEnd` フックが `hook.timeout` 設定にかかわらず1.5秒で強制終了される問題を修正 — `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` で設定可能に",
+      "inference": {
+        "before": "セッション終了時に実行したいクリーンアップ処理やログ保存などのフック処理が、設定したタイムアウト時間に達する前に強制的に打ち切られていました。",
+        "after": "環境変数で終了時の待機時間をカスタマイズできるようになり、時間のかかる終了後処理も確実に完了させることができます。",
+        "benefit": "大切な後処理や自動化スクリプトが途中で途切れる心配がなくなり、開発ワークフローの自動化がより堅牢になります。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "key": "DISABLE_TELEMETRY",
+  "slug": "disable-telemetry",
+  "source": "env",
+  "description_en": "Set to `1` to opt out of Statsig telemetry (note that Statsig events do not include user data like code, file paths, or bash commands)",
+  "description_ja": "1を設定すると、運用メトリクスを収集するStatsigテレメトリの送信を停止します。",
+  "use_case_ja": "- セキュリティポリシーが厳しい環境で、コードやファイルパスを含まない運用データであっても外部送信を完全に遮断したい場合に必須です。\n- テレメトリをオフにした状態でも、セッション概要(Session recap)のローカル表示やサブスクリプション特典のキャッシュTTLが維持されるよう改善されています。",
+  "related_changelog": [
+    {
+      "version": "2.1.108",
+      "content": "- Fixed subscribers who set `DISABLE_TELEMETRY` falling back to 5-minute prompt cache TTL instead of 1 hour",
+      "content_ja": "`DISABLE_TELEMETRY`を設定しているサブスクライバーのキャッシュTTLが5分に制限されていた問題を修正",
+      "inference": {
+        "before": "テレメトリを無効化すると、有料プランであってもキャッシュTTLが1時間から5分へ意図せず短縮されていました。",
+        "after": "テレメトリ設定に関わらず、サブスクリプション状況に基づいた適切な1時間のキャッシュTTLが適用されるよう修正されました。",
+        "benefit": "プライバシー保護のためにテレメトリをオフにしているユーザーも、プロンプトキャッシュによる恩恵を最大限に受けられます。"
+      }
+    },
+    {
+      "version": "2.1.120",
+      "content": "- Fixed `DISABLE_TELEMETRY` / `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` not suppressing usage metrics telemetry for API and enterprise users",
+      "content_ja": "テレメトリ無効化設定(`DISABLE_TELEMETRY` 等)が、API およびエンタープライズユーザーの利用統計送信を抑制していなかった問題を修正",
+      "inference": {
+        "before": "プライバシー設定でテレメトリを無効にしていても、特定のライセンス形態において一部の利用状況データが送信され続けてしまうバグがありました。",
+        "after": "設定された無効化フラグがすべてのユーザー環境で厳密に適用され、不要な通信を完全に遮断します。",
+        "benefit": "機密性の高い開発環境において、セキュリティポリシーに基づいた厳格なデータ保護と通信制御が保証されます。"
+      }
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Session recap is now enabled for users with telemetry disabled (Bedrock, Vertex, Foundry, `DISABLE_TELEMETRY`). Opt out via `/config` or `CLAUDE_CODE_ENABLE_AWAY_SUMMARY=0`.",
+      "content_ja": "テレメトリ無効設定(Bedrock, Vertex, Foundry, `DISABLE_TELEMETRY`)のユーザーでも、セッション再開時の概要表示(Session recap)が利用可能に",
+      "inference": {
+        "before": "テレメトリをオフにしている環境では、席を外した間にAIが行った作業の要約(Session recap)が表示されず、何が起きたかを把握するためにログを読み解く必要がありました。",
+        "after": "データの送信を制限しているユーザーでも、ローカルで生成されるセッション概要を利用できるようになりました。必要に応じて`/config`から無効化も可能です。",
+        "benefit": "セキュリティ制約の厳しい環境でも、中断後の再開時に「AIがどこまで進めたか」を瞬時に把握でき、スムーズに作業に戻ることができます。"
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "key": "CLAUDE_CODE_PERFORCE_MODE",
+  "slug": "claude-code-perforce-mode",
+  "source": "env",
+  "description_en": "Set to `1` to enable Perforce-aware write protection. When set, Edit, Write, and NotebookEdit fail with a `p4 edit <file>` hint if the target file lacks the owner-write bit, which Perforce clears on synced files until `p4 edit` opens them. This prevents Claude Code from bypassing Perforce change tracking",
+  "description_ja": "1に設定するとPerforceを認識した書き込み保護を有効にし、読み取り専用ファイルへの編集時にp4 editの実行を促すようになります。",
+  "use_case_ja": "- Perforce管理下の環境で、AIが読み取り専用属性を無視してファイルを上書きし、ソース管理との不整合が発生するのを防ぎます。\n- 編集が必要な際、AIが自動で上書きする代わりに「p4 edit <file>」が必要であることを検知し、安全に処理を中断させます。",
+  "related_changelog": [
+    {
+      "version": "2.1.98",
+      "content": "- Added `CLAUDE_CODE_PERFORCE_MODE` env var: when set, Edit/Write/NotebookEdit fail on read-only files with a `p4 edit` hint instead of silently overwriting them",
+      "content_ja": "環境変数 `CLAUDE_CODE_PERFORCE_MODE` を追加しました。これが有効な場合、読み取り専用ファイルへの編集時に警告なしで上書きするのではなく、`p4 edit`(チェックアウト)のヒントを表示して処理を失敗させます。",
+      "inference": {
+        "before": "Perforce などのVCS環境下でファイルが読み取り専用属性になっている場合、AIがそれを無視して強制的に上書きしてしまい、ソース管理との整合性が取れなくなるリスクがありました。",
+        "after": "読み取り専用ファイルへの書き込みが制限され、ユーザーに適切な Perforce コマンドの実行を促すようになります。",
+        "benefit": "エンタープライズ開発環境において、意図しないファイル上書きを防ぎ、既存のワークフローに沿った安全なコード編集が可能になります。"
+      }
+    }
+  ]
+}

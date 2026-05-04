@@ -1,0 +1,902 @@
+{
+  "key": "model",
+  "slug": "model",
+  "source": "settings",
+  "schema_type": "string",
+  "description_en": "Override the default model used by Claude Code. For finer control, use environment variables: ANTHROPIC_MODEL (runtime override), ANTHROPIC_DEFAULT_OPUS_MODEL, ANTHROPIC_DEFAULT_SONNET_MODEL, ANTHROPIC_DEFAULT_HAIKU_MODEL (per-class pinning), CLAUDE_CODE_SUBAGENT_MODEL (subagent model). See https://code.claude.com/docs/en/model-config",
+  "description_ja": "Claude Code で使用されるデフォルトモデルを上書きします。",
+  "use_case_ja": "- 複雑な推論が必要なプロジェクトでは `opus`、高速なレスポンスが重要な場合は `sonnet` など、プロジェクトや環境変数の用途に合わせてモデルを固定します。\n- `opusplan`(計画は Opus、実行は Sonnet)などのハイブリッドな動作を指定して、コストと精度の最適化を図ることも可能です。",
+  "related_changelog": [
+    {
+      "version": "1.0.0",
+      "content": "- Introducing Sonnet 4 and Opus 4 models"
+    },
+    {
+      "version": "1.0.1",
+      "content": "- Improved model references to show provider-specific names (Sonnet 3.7 for Bedrock, Sonnet 4 for Console)"
+    },
+    {
+      "version": "1.0.111",
+      "content": "- /model now validates provided model names"
+    },
+    {
+      "version": "1.0.112",
+      "content": "- Transcript mode (Ctrl+R): Added the model used to generate each assistant message"
+    },
+    {
+      "version": "1.0.55",
+      "content": "- Clarified knowledge cutoff for Opus 4 and Sonnet 4 models"
+    },
+    {
+      "version": "1.0.57",
+      "content": "- Added support for specifying a model in slash commands"
+    },
+    {
+      "version": "1.0.68",
+      "content": "- Fix incorrect model names being used for certain commands like `/pr-comments`"
+    },
+    {
+      "version": "1.0.64",
+      "content": "- Agents: Added model customization support - you can now specify which model an agent should use"
+    },
+    {
+      "version": "1.0.77",
+      "content": "- Opus Plan Mode: New setting in `/model` to run Opus only in plan mode, Sonnet otherwise"
+    },
+    {
+      "version": "2.0.1",
+      "content": "- Skip Sonnet 4.5 default model setting change for Bedrock and Vertex"
+    },
+    {
+      "version": "2.0.12",
+      "content": "- Avoid flickering in `/model` selector"
+    },
+    {
+      "version": "1.0.94",
+      "content": "- Vertex: add support for global endpoints for supported models"
+    },
+    {
+      "version": "1.0.88",
+      "content": "- Introduced `ANTHROPIC_DEFAULT_SONNET_MODEL` and `ANTHROPIC_DEFAULT_OPUS_MODEL` for controlling model aliases opusplan, opus, and sonnet."
+    },
+    {
+      "version": "1.0.88",
+      "content": "- Bedrock: Updated default Sonnet model to Sonnet 4"
+    },
+    {
+      "version": "2.0.21",
+      "content": "- Added Haiku 4.5 as a model option for Pro users"
+    },
+    {
+      "version": "2.0.17",
+      "content": "- Added Haiku 4.5 to model selector!"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Subagents: claude can dynamically choose the model used by its subagents"
+    },
+    {
+      "version": "2.0.31",
+      "content": "- Vertex: add support for Web Search on supported models"
+    },
+    {
+      "version": "2.0.41",
+      "content": "- Added `model` parameter to prompt-based stop hooks, allowing users to specify a custom model for hook evaluation"
+    },
+    {
+      "version": "2.0.41",
+      "content": "- Fixed: Bedrock users no longer see duplicate Opus entries in the /model picker when using `--model haiku`"
+    },
+    {
+      "version": "2.0.41",
+      "content": "- Fixed issue where pressing ESC to close the diff modal would also interrupt the model"
+    },
+    {
+      "version": "2.0.51",
+      "content": "- To give you room to try out our new model, we've updated usage limits for Claude Code users. See the Claude Opus 4.5 blog for full details"
+    },
+    {
+      "version": "2.0.60",
+      "content": "- Added model name to \"Co-Authored-By\" commit messages"
+    },
+    {
+      "version": "2.0.68",
+      "content": "- Fixed a bug where disallowed MCP tools were visible to the model"
+    },
+    {
+      "version": "2.0.59",
+      "content": "- Added `agent` setting to configure main thread with a specific agent's system prompt, tool restrictions, and model"
+    },
+    {
+      "version": "2.0.65",
+      "content": "- Added ability to switch models while writing a prompt using alt+p (linux, windows), option+p (macos)."
+    },
+    {
+      "version": "2.0.64",
+      "content": "- /stats now provides users with interesting CC stats, such as favorite model, usage graph, usage streak"
+    },
+    {
+      "version": "2.0.8",
+      "content": "- Update Bedrock default Sonnet model to `global.anthropic.claude-sonnet-4-5-20250929-v1:0`"
+    },
+    {
+      "version": "2.1.105",
+      "content": "- Fixed `/model` picker on AWS Bedrock in non-US regions persisting invalid `us.*` model IDs to `settings.json` when inference profile discovery is still in-flight",
+      "content_ja": "AWS Bedrockを米国以外のリージョンで利用する際、無効なモデルIDがsettings.jsonに保存されてしまう問題を修正しました",
+      "inference": {
+        "before": "インフェレンスプロファイルの検出中に、リージョンに合わない不正なモデルID(us.*など)が設定ファイルに書き込まれてしまうことがありました。",
+        "after": "プロファイル検出の完了を適切に待機し、正しいモデルIDが永続化されるようになりました。",
+        "benefit": "AWS環境でのリージョン設定に関するトラブルが減り、安定してBedrock上のモデルを利用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.108",
+      "content": "- The model can now discover and invoke built-in slash commands like `/init`, `/review`, and `/security-review` via the Skill tool",
+      "content_ja": "モデルが`/init`や`/review`などのビルトイン・スラッシュコマンドを自ら発見し、Skillツール経由で実行可能に改善",
+      "inference": {
+        "before": "モデルはビルトインの特殊なワークフローコマンドを直接認識できず、ユーザーが手動でコマンドを入力して指示する必要がありました。",
+        "after": "エージェントがSkillツールを通じて自律的に適切なスラッシュコマンド(`/init`、`/security-review`等)を選択し、実行できるようになりました。",
+        "benefit": "プロジェクトの初期化やコードレビューなどの定型的な高度なタスクを、Claudeに任せるだけで自動的に最適なツールを使って完遂してくれます。"
+      }
+    },
+    {
+      "version": "2.1.108",
+      "content": "- Improved `/model` to warn before switching models mid-conversation, since the next response re-reads the full history uncached",
+      "content_ja": "会話の途中でモデルを切り替える際、キャッシュが無効化され履歴の再読み込みが発生することを警告するよう改善",
+      "inference": {
+        "before": "セッション途中で`/model`を使用して切り替えると、意図せず全履歴のトークンが再消費され、コストや時間がかかることが分かりにくい状態でした。",
+        "after": "モデル切り替え時に、次のレスポンスがフルヒストリーの読み込み(アンキャッシュ状態)になる旨の警告が表示されるようになりました。",
+        "benefit": "予期せぬトークン消費や待ち時間の増加を事前に把握し、モデル切り替えのタイミングを適切に判断できます。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Improved `/model`: selections now persist across restarts even when the project pins a different model, and the startup header shows when the active model comes from a project or managed-settings pin",
+      "content_ja": "`/model` コマンドを改善し、プロジェクト設定でモデルが固定されている場合でもユーザーの選択が再起動後も保持されるようになり、起動時のヘッダーで設定の適用元が表示されるようになりました",
+      "inference": {
+        "before": "プロジェクト側でモデルが指定されていると、ユーザーが `/model` で変更しても再起動時にリセットされてしまうことがあり、また現在のモデルがどこで定義されたものか不明確でした。",
+        "after": "手動で選択したモデルが優先的に保持され、さらに「プロジェクト設定による固定」か「管理設定による固定」かが明示的に表示されます。",
+        "benefit": "好みのモデルを使い続けるための再設定の手間が省け、現在の動作環境がどの設定に基づいているかを一目で把握できます。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- OpenTelemetry: `user_prompt` events now include `command_name` and `command_source` for slash commands; `cost.usage`, `token.usage`, `api_request`, and `api_error` now include an `effort` attribute when the model supports effort levels. Custom/MCP command names are redacted unless `OTEL_LOG_TOOL_DETAILS=1` is set",
+      "content_ja": "OpenTelemetry の拡張：スラッシュコマンドのソース情報や、モデルの思考(Effort)レベルごとのコスト・使用量、API リクエスト情報の取得に対応しました",
+      "inference": {
+        "before": "テレメトリデータにおいて、どのコマンドから実行されたかや、モデルの「思考の深さ(Effort)」がコストにどう影響しているかを詳細に分析することが困難でした。",
+        "after": "コマンド名やソース、および `effort` 属性が各イベントに付与され、組織レベルでの詳細な利用状況の可視化が可能になります。",
+        "benefit": "開発チーム全体での Claude Code の利用効率やコストパフォーマンスを、より正確なデータに基づいて最適化できます。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Fixed subagents running a different model than the main agent incorrectly flagging file reads with a malware warning",
+      "content_ja": "メインエージェントと異なるモデルを使用するサブエージェントが、ファイル読み取り時に誤ってマルウェア警告を出してしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.113",
+      "content": "- Fixed `CLAUDE_CODE_EXTRA_BODY` `output_config.effort` causing 400 errors on subagent calls to models that don't support effort and on Vertex AI",
+      "content_ja": "思考負荷(Effort)設定をサポートしていないモデルやVertex AIを使用している際に発生していた400エラーを修正しました",
+      "inference": {
+        "before": "特定のプロバイダーや古いモデルで、新しい機能であるEffort設定が不適切に送信され、通信エラーが発生することがありました。",
+        "after": "接続先のモデルがサポートしている機能を自動判別し、適切なパラメータのみを送信するように改善されました。",
+        "benefit": "Google Vertex AIなどの外部プラットフォーム利用時でも、予期せぬエラーで作業が止まることがなくなります。"
+      }
+    },
+    {
+      "version": "2.1.14",
+      "content": "- Fixed an issue where `/config`, `/context`, `/model`, and `/todos` command overlays could close unexpectedly",
+      "content_ja": "/config、/context、/model、/todosの各コマンドオーバーレイが予期せず閉じる問題を修正",
+      "inference": {
+        "before": "設定やコンテキスト確認のためのオーバーレイ画面を表示している際、操作中にウィンドウが意図せず閉じてしまうことがありました。",
+        "after": "各コマンドのオーバーレイ画面の表示安定性が向上し、操作中に不意に閉じることがなくなりました。",
+        "benefit": "設定変更やステータス確認の作業を中断されることなく、確実に行うことができます。"
+      }
+    },
+    {
+      "version": "2.1.19",
+      "content": "- Fixed agent list displaying \"Sonnet (default)\" instead of \"Inherit (default)\" for agents without an explicit model setting",
+      "content_ja": "明示的なモデル設定がないエージェントのリスト表示において、「Sonnet (default)」ではなく「Inherit (default)」と正しく表示されるよう修正しました。"
+    },
+    {
+      "version": "2.1.21",
+      "content": "- Fixed auto-compact triggering too early on models with large output token limits",
+      "content_ja": "出力トークン制限の大きいモデルで、自動コンパクションが早すぎるタイミングでトリガーされる問題を修正しました。"
+    },
+    {
+      "version": "2.1.126",
+      "content": "- The `/model` picker now lists models from your gateway's `/v1/models` endpoint when `ANTHROPIC_BASE_URL` points at an Anthropic-compatible gateway",
+      "content_ja": "ANTHROPIC_BASE_URLが互換ゲートウェイを指している場合、/modelピッカーにゲートウェイの/v1/modelsエンドポイントから取得したモデル一覧が表示されるようになりました",
+      "inference": {
+        "before": "Anthropic互換のゲートウェイを使用している場合でも、/modelコマンドのピッカーには組み込みのモデルエイリアスやデフォルトのモデルしか表示されませんでした。",
+        "after": "ゲートウェイが提供する/v1/modelsエンドポイントからモデルリストを動的に取得し、ピッカーに表示できるようになりました。",
+        "benefit": "プロキシやカスタムゲートウェイ経由で利用可能な特定のモデルを、モデル名を手入力することなく選択メニューから簡単に選べるようになります。"
+      }
+    },
+    {
+      "version": "2.1.126",
+      "content": "- Read tool: removed the per-file malware-assessment reminder that could cause spurious refusals and \"this is not malware\" commentary on legacy models",
+      "content_ja": "Readツールにおいて、旧モデルで不要な拒否を招いていたファイルごとのマルウェア評価リマインダーを削除しました"
+    },
+    {
+      "version": "2.1.126",
+      "content": "- Fixed background and remote sessions falsely aborting with \"Stream idle timeout\" during long model thinking pauses",
+      "content_ja": "モデルの長い思考中、バックグラウンドやリモートセッションが「Stream idle timeout」で誤って中断される問題を修正しました"
+    },
+    {
+      "version": "2.1.126",
+      "content": "- Fixed Agent SDK hang when the model emits a malformed tool name in a parallel tool call batch",
+      "content_ja": "モデルが並列ツール呼び出しで不正なツール名を生成した際にAgent SDKがハングする問題を修正しました",
+      "inference": {
+        "before": "モデルが並列実行のレスポンスとして存在しないツール名を返した場合、Agent SDKが適切にエラー処理できず、そのまま処理が停止してしまうことがありました。",
+        "after": "不正なツール名が含まれている場合でもハングせず、適切にエラーを検知して制御を維持できるようになりました。",
+        "benefit": "モデルの予期せぬ出力に対する堅牢性が向上し、自動化スクリプトやツール開発においてAgent SDKをより安定して利用できます。"
+      }
+    },
+    {
+      "version": "2.1.122",
+      "content": "- Fixed `/model` not showing the Effort option for Bedrock application inference profile ARNs, and those ARNs not receiving `output_config.effort`",
+      "content_ja": "Bedrockのアプリケーション推論プロファイルARNを使用する際に、/model で思考(Effort)オプションが表示されない、および出力設定に反映されない問題を修正しました",
+      "inference": {
+        "before": "Bedrockの推論プロファイル機能を使用している場合、モデルが思考(reasoning)に対応していても、その強度を調整するインターフェースが表示されませんでした。",
+        "after": "ARN指定時でも適切に思考レベルの設定オプションが表示され、APIリクエストにも output_config.effort が正しく含まれるようになりました。",
+        "benefit": "AWS環境でBedrockを利用しているユーザーも、タスクの複雑さに応じてモデルの思考の深さを柔軟に調整できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.122",
+      "content": "- Fixed images sent to newer models being resized to 2576px per side instead of the correct 2000px maximum",
+      "content_ja": "新しいモデルへ送信される画像が、正しい最大値である2000pxではなく2576pxにリサイズされていた問題を修正しました。"
+    },
+    {
+      "version": "2.1.3",
+      "content": "- Merged slash commands and skills, simplifying the mental model with no change in behavior",
+      "content_ja": "スラッシュコマンドとスキルが統合され、動作に変更はありませんが、メンタルモデルが簡略化されました。"
+    },
+    {
+      "version": "2.1.3",
+      "content": "- Fixed sub-agents using the wrong model during conversation compaction",
+      "content_ja": "会話のコンパクション中にサブエージェントが誤ったモデルを使用していた問題を修正しました。"
+    },
+    {
+      "version": "2.1.3",
+      "content": "- Fixed web search in sub-agents using incorrect model",
+      "content_ja": "サブエージェントのウェブ検索で誤ったモデルが使用されていた問題を修正しました。"
+    },
+    {
+      "version": "2.1.23",
+      "content": "- [IDE] Fixed model options displaying incorrect region strings for Bedrock users in headless mode",
+      "content_ja": "[IDE] ヘッドレスモードでBedrockユーザーのモデルオプションが誤ったリージョン文字列を表示する問題が修正されました。"
+    },
+    {
+      "version": "2.1.33",
+      "content": "- Fixed an issue where submitting a new message while the model was in extended thinking would interrupt the thinking phase",
+      "content_ja": "モデルが長時間思考している間に新しいメッセージを送信すると、思考フェーズが中断される問題が修正されました。"
+    },
+    {
+      "version": "2.1.30",
+      "content": "- Fixed phantom \"(no content)\" text blocks appearing in API conversation history, reducing token waste and potential model confusion",
+      "content_ja": "API会話履歴に、トークンの無駄遣いやモデルの混乱を招く可能性のある、ファントムの「(no content)」テキストブロックが表示される問題を修正しました。",
+      "inference": {
+        "before": "API会話履歴に予期しない「(no content)」というテキストブロックが表示され、トークンが無駄に消費されたり、モデルが混乱したりする可能性がありました。",
+        "after": "API会話履歴に表示される不要な「(no content)」テキストブロックの問題が修正されました。",
+        "benefit": "トークンの無駄遣いがなくなり、モデルの応答の精度が向上し、会話履歴がクリーンになりました。"
+      }
+    },
+    {
+      "version": "2.1.30",
+      "content": "- Changed `/model` to execute immediately instead of being queued",
+      "content_ja": "キューに入れられるのではなく、`/model`コマンドが即座に実行されるようになりました。",
+      "inference": {
+        "before": "セッション中に`/model`コマンドを実行しても、すぐにモデルが切り替わらず、キューに入れられて実行されるまで待機する必要がありました。",
+        "after": "`/model`コマンドは実行キューに入れられず、即座にモデルが切り替わるようになりました。",
+        "benefit": "モデルの切り替えが迅速になり、対話的な作業中にスムーズにモデルを変更できるようになりました。"
+      }
+    },
+    {
+      "version": "2.1.31",
+      "content": "- Improved system prompts to more clearly guide the model toward using dedicated tools (Read, Edit, Glob, Grep) instead of bash equivalents (`cat`, `sed`, `grep`, `find`), reducing unnecessary bash command usage",
+      "content_ja": "専用ツール(Read、Edit、Glob、Grep)を使用するようにモデルをより明確にガイドするようシステムプロンプトを改善し、bashの同等コマンド(`cat`、`sed`、`grep`、`find`)の不必要な使用を削減しました。"
+    },
+    {
+      "version": "2.1.31",
+      "content": "- Removed misleading Anthropic API pricing from model selector for third-party provider (Bedrock, Vertex, Foundry) users",
+      "content_ja": "サードパーティプロバイダー(Bedrock、Vertex、Foundry)のユーザー向けに、モデルセレクターから誤解を招くAnthropic APIの料金表示を削除しました。",
+      "inference": {
+        "before": "サードパーティのLLMプロバイダー(AWS Bedrock, Google Vertex AIなど)経由でClaude Codeを利用しているユーザーも、モデルセレクターにAnthropic APIの料金情報が表示され、実際の利用料金と異なる誤解を招く可能性がありました。",
+        "after": "サードパーティプロバイダーを利用するユーザーのモデルセレクターから、Anthropic APIの料金表示が削除されました。これにより、ユーザーは自身の契約しているプロバイダーの料金体系に基づいた正確な情報を確認できるようになります。",
+        "benefit": "自身の利用環境に応じた正確な情報のみが表示されるようになり、料金に関する混乱がなくなります。これにより、ユーザーは安心してClaude Codeの費用を管理できます。"
+      }
+    },
+    {
+      "version": "2.1.41",
+      "content": "- Fixed Agent Teams using wrong model identifier for Bedrock, Vertex, and Foundry customers",
+      "content_ja": "Bedrock、Vertex、Foundryの顧客がAgent Teamsで誤ったモデル識別子を使用する問題を修正しました。"
+    },
+    {
+      "version": "2.1.41",
+      "content": "- Improved model error messages for Bedrock/Vertex/Foundry users with fallback suggestions",
+      "content_ja": "Bedrock/Vertex/Foundryユーザー向けに、モデルのエラーメッセージと代替提案を改善しました。"
+    },
+    {
+      "version": "2.1.51",
+      "content": "- The `/model` picker now shows human-readable labels (e.g., \"Sonnet 4.5\") instead of raw model IDs for pinned model versions, with an upgrade hint when a newer version is available.",
+      "content_ja": "ピン留めされたモデルバージョンの `/model` ピッカーに、モデルIDの代わりに人間が読めるラベル(例：「Sonnet 4.5」)が表示されるようになり、新しいバージョンが利用可能な場合はアップグレードのヒントが表示されるようになりました。",
+      "inference": {
+        "before": "モデルピッカーでは、モデルID(例: `claude-sonnet-4-6`)が表示されていましたが、どのバージョンか分かりにくい場合がありました。",
+        "after": "モデルピッカーに「Sonnet 4.5」のような分かりやすいラベルが表示され、新しいバージョンへのアップグレードが促されるようになりました。",
+        "benefit": "モデルの選択が容易になり、常に最新または推奨されるモデルバージョンを利用しやすくなります。"
+      }
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Fixed file-not-found errors to suggest corrected paths when the model drops the repo folder",
+      "content_ja": "モデルがリポジトリフォルダをドロップした際に、ファイルが見つからないエラーに対して修正されたパスを提案するように修正されました。"
+    },
+    {
+      "version": "2.1.49",
+      "content": "- Sonnet 4.5 with 1M context is being removed from the Max plan in favor of our frontier Sonnet 4.6 model, which now has 1M context. Please switch in /model.",
+      "content_ja": "MaxプランからSonnet 4.5(1Mコンテキスト)が削除され、フロンティアモデルであるSonnet 4.6(現在1Mコンテキスト)に置き換えられます。`/model`で切り替えてください。"
+    },
+    {
+      "version": "2.1.49",
+      "content": "- SDK model info now includes `supportsEffort`, `supportedEffortLevels`, and `supportsAdaptiveThinking` fields so consumers can discover model capabilities.",
+      "content_ja": "SDKモデル情報に`supportsEffort`、`supportedEffortLevels`、`supportsAdaptiveThinking`フィールドが含まれるようになり、SDK利用者がモデルの機能を発見できるようになりました。",
+      "inference": {
+        "before": "以前は、Claude Code SDKの利用者は、どのモデルが「エフォートレベル」の調整をサポートしているか、どのようなエフォートレベルが利用可能か、またはアダプティブシンキングをサポートしているかといった情報をプログラム的に検出できませんでした。これにより、モデルの機能を最大限に活用するためのカスタムアプリケーション開発が困難でした。",
+        "after": "今回の追加により、SDKモデル情報に`supportsEffort`(エフォートレベルサポートの有無)、`supportedEffortLevels`(サポートされるエフォートレベルのリスト)、および`supportsAdaptiveThinking`(アダプティブシンキングサポートの有無)といったフィールドが提供されるようになりました。これにより、SDK利用者はプログラム的にモデルの推論能力に関する詳細な情報を取得できます。",
+        "benefit": "SDKを利用してClaude Codeを統合する開発者は、各AIモデルの推論機能に関する情報を取得し、ユーザーインターフェースや自動化ロジックに動的に反映できるようになります。これにより、より高度でモデルの特性を活かしたアプリケーションを構築し、ユーザーに最適なモデル選択肢を提供できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.68",
+      "content": "- Opus 4.6 now defaults to medium effort for Max and Team subscribers. Medium effort works well for most tasks — it's the sweet spot between speed and thoroughness. You can change this anytime with `/model`",
+      "content_ja": "MaxおよびTeamプランの購読者において、Opus 4.6のデフォルトの思考レベル(effort)が「medium」に変更されました。mediumレベルは速度と丁寧さのバランスに優れており、ほとんどのタスクに最適です。この設定は `/model` コマンドでいつでも変更可能です。",
+      "inference": {
+        "before": "これまでは、プランに関わらずデフォルトの思考レベルが一律であったか、あるいは詳細な調整が明示的に行われていませんでした。",
+        "after": "Max/Teamユーザーのデフォルトがmediumに設定され、標準的なタスクにおいて十分な推論品質を維持しつつ、より迅速な応答が得られるようになります。",
+        "benefit": "速度と精度の「スイートスポット」がデフォルトになることで、ユーザーは設定を意識することなく、効率的に高品質なコード生成や問題解決を行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.68",
+      "content": "- Removed Opus 4 and 4.1 from Claude Code on the first-party API — users with these models pinned are automatically moved to Opus 4.6",
+      "content_ja": "Anthropic API経由のClaude CodeからOpus 4および4.1を削除しました。これらの旧モデルを固定(ピン留め)して使用していたユーザーは、自動的にOpus 4.6へ移行されます。",
+      "inference": {
+        "before": "Opus 4や4.1といった旧バージョンのモデルが利用可能で、特定の環境ではこれらが固定して使用されていました。",
+        "after": "旧バージョンが廃止され、より高性能なOpus 4.6へ集約されます。",
+        "benefit": "最新の推論能力と「思考レベル」調整機能を備えたOpus 4.6へ自動でアップグレードされるため、手動で設定を更新する手間なく、常に最高性能のOpusモデルを利用できます。"
+      }
+    },
+    {
+      "version": "2.1.63",
+      "content": "- Improved `/model` command to show the currently active model in the slash command menu",
+      "content_ja": "「/model」コマンドが、スラッシュコマンドメニュー内で現在アクティブなモデルを表示するように改善されました。",
+      "inference": {
+        "before": "「/model」コマンドを実行しても、現在どのモデルがアクティブになっているかがメニュー上で明確に示されていませんでした。",
+        "after": "「/model」コマンドのメニューに、現在選択されているモデルが表示されるようになりました。",
+        "benefit": "現在アクティブなモデルを簡単に確認できるようになり、モデルの切り替えや管理が容易になります。"
+      }
+    },
+    {
+      "version": "2.1.7",
+      "content": "- Fixed spinner briefly flashing when running local slash commands like `/model` or `/theme`",
+      "content_ja": "ローカルスラッシュコマンド(例: `/model` や `/theme`)実行時に、スパイナーが短時間表示される問題を修正しました。",
+      "inference": {
+        "before": "ローカルスラッシュコマンドを実行する際、`/model` や `/theme` などで、モデルやテーマの選択 UI が一瞬表示されて消えることがありました。",
+        "after": "ローカルスラッシュコマンド実行時に、モデルやテーマの選択 UI が一瞬表示されて消える現象を修正しました。",
+        "benefit": "コマンド実行時の UI のちらつきがなくなり、よりスムーズで快適な操作感を提供します。"
+      }
+    },
+    {
+      "version": "2.1.71",
+      "content": "- Fixed prompting for `cd <cwd> && git ...` on Windows when the model uses a mingw-style path",
+      "content_ja": "Windows において、モデルが MinGW スタイルのパスを使用した場合に `cd <cwd> && git ...` の許可を求めるプロンプトが表示される問題を修正しました。",
+      "inference": {
+        "before": "Windows の Git Bash などを使用している際、パス形式の差異によって Claude が自身のカレントディレクトリを誤認し、既に許可済みのコマンドでも再確認を求めてくることがありました。",
+        "after": "OS ごとのパス形式の差異が吸収され、不要なパーミッション確認が行われなくなりました。",
+        "benefit": "Windows 環境での開発体験が向上し、無意味なプロンプトによる中断がなくなります。"
+      }
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Added `modelOverrides` setting to map model picker entries to custom provider model IDs (e.g. Bedrock inference profile ARNs)",
+      "content_ja": "モデル選択肢をBedrockのARNなどカスタムプロバイダーのモデルIDにマッピングする `modelOverrides` 設定を追加しました。"
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Fixed subagents with `model: opus`/`sonnet`/`haiku` being silently downgraded to older model versions on Bedrock, Vertex, and Microsoft Foundry",
+      "content_ja": "Bedrock、Vertex、Foundryにおいて、サブエージェントのモデルが古いバージョンに自動的にダウングレードされる問題を修正",
+      "inference": {
+        "before": "サブエージェントに `opus` や `sonnet` を指定しても、クラウドプラットフォームの制約により意図せず古いモデルが使用されることがありました。",
+        "after": "各プロバイダーでのモデルエイリアス解決が修正され、常に最新の Claude 4.6 (Sonnet/Opus) などの指定したスペックが正しく適用されます。",
+        "benefit": "サブエージェントが本来の推論能力をフルに発揮できるため、複雑なタスクの解決精度が向上します。"
+      }
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Fixed JSON-output hooks injecting no-op system-reminder messages into the model's context on every turn",
+      "content_ja": "JSON出力形式のフックが、モデルのコンテキストに不要なシステムリマインダーを毎ターン挿入していた問題を修正",
+      "inference": {
+        "before": "フックを使用するたびに余分なメッセージがコンテキストに蓄積され、トークン消費が増大したりモデルの精度に影響したりしていました。",
+        "after": "内部的なリマインダー挿入ロジックが改善され、コンテキストがクリーンに保たれるようになりました。",
+        "benefit": "フックを多用してもコンテキストウィンドウが圧迫されにくくなり、長時間の対話でも一貫した性能が維持されます。"
+      }
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Improved `/effort` to work while Claude is responding, matching `/model` behavior",
+      "content_ja": "Claudeが回答中であっても `/effort` コマンドで思考レベルを変更できるように改善",
+      "inference": {
+        "before": "回答の生成が始まった後は思考レベルの調整ができず、意図に合わない場合は一度中断してやり直す必要がありました。",
+        "after": "`/model` コマンドと同様に生成中でも動的に変更可能になり、思考プロセスをリアルタイムに制御できます。",
+        "benefit": "回答の詳しさに応じて柔軟に思考の深さを切り替えられるため、効率的に最適な出力を得られます。"
+      }
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Changed default Opus model on Bedrock, Vertex, and Microsoft Foundry to Opus 4.6 (was Opus 4.1)",
+      "content_ja": "Bedrock、Vertex、FoundryにおけるデフォルトのOpusモデルを、最新の Opus 4.6 に更新しました。"
+    },
+    {
+      "version": "2.1.73",
+      "content": "- VSCode: Fixed HTTP 400 errors for users behind proxies or on Bedrock/Vertex with Claude 4.5 models",
+      "content_ja": "VS Code: プロキシ経由や Claude 4.5 モデルを使用している場合に発生していた HTTP 400 エラーを修正",
+      "inference": {
+        "before": "特定の企業プロキシ環境や一部の最新モデルの組み合わせにおいて、リクエストが不正と判定され通信できないことがありました。",
+        "after": "VS Code拡張機能の通信リクエストヘッダーが修正され、ネットワーク制限のある環境でも安定して利用可能です。",
+        "benefit": "利用環境を選ばず、常に最新モデルの能力をVS Code上でフルに活用できます。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Restored the `model` parameter on the Agent tool for per-invocation model overrides",
+      "content_ja": "Agent ツールで呼び出しごとのモデル上書きを可能にする model パラメータを復元",
+      "inference": {
+        "before": "サブエージェントを呼び出す際、特定の呼び出しにおいて一時的に異なるモデル(例：推論に優れた Opus など)を使用する柔軟性が欠けていました。",
+        "after": "Agent ツールの引数として model パラメータが再び利用可能になり、呼び出しごとに最適なモデルを指定できるようになりました。",
+        "benefit": "基本は高速な Sonnet を使いつつ、難解なタスクのサブタスクのみ Opus に任せるといった、コストと精度の細かな調整が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed skill hooks firing twice per event when a hooks-enabled skill is invoked by the model",
+      "content_ja": "フックが有効なスキルがモデルから呼び出された際、1つのイベントに対してスキルフックが2回実行される問題を修正"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed `/model` not displaying results when run while Claude is working",
+      "content_ja": "Claude が回答生成中に /model コマンドを実行しても結果が表示されない問題を修正",
+      "inference": {
+        "before": "Claude が処理を実行している最中に現在のモデルを確認しようと /model を入力しても、応答が返ってこない状態でした。",
+        "after": "Claude の動作状況に関わらず、/model コマンドによるモデル情報の表示が即座に反映されるようになりました。",
+        "benefit": "回答を待っている間でも、現在どのモデルが使用されているかをいつでも確認できるため、モデル切り替えの判断がスムーズになります。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed team agents to inherit the leader's model",
+      "content_ja": "チームエージェントがリーダーのモデル設定を継承するよう修正"
+    },
+    {
+      "version": "2.1.74",
+      "content": "- Fixed full model IDs (e.g., `claude-opus-4-5`) being silently ignored in agent frontmatter `model:` field and `--agents` JSON config — agents now accept the same model values as `--model`",
+      "content_ja": "エージェントのフロントマターや `--agents` JSON設定で、フルモデルID(例: `claude-opus-4-5`)が無視されていた問題を修正し、`--model` と同じ値を指定可能に改善",
+      "inference": {
+        "before": "サブエージェントの設定で詳細なモデルバージョンを指定しても無視されることがあり、期待した性能のモデルが起動しない場合がありました。",
+        "after": "サブエージェントの設定で、メインセッションと同じように正確なモデルIDを使用して、特定の用途に最適なモデルを確実に割り当てられるようになります。",
+        "benefit": "タスクごとに最適なモデルを確実に使い分けることができ、精度の向上やコストの最適化を正確に制御できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.75",
+      "content": "- Fixed the Claude Code header not updating the displayed model name after switching models with `/model` or Option+P",
+      "content_ja": "`/model` やショートカットキー(Option+P)でモデルを切り替えた際、ヘッダーのモデル名表示が更新されない問題を修正",
+      "inference": {
+        "before": "モデルを切り替えても画面上部の表示が変わらないため、実際にどのモデル(Sonnet 4.6 や Opus 4.6 など)が動作しているか不安になることがありました。",
+        "after": "モデル変更が即座にヘッダー表示へ反映され、現在アクティブなモデルを正確に把握できるようになりました。",
+        "benefit": "意図したモデルが正しく選択されていることを視覚的に確信できるため、安心して作業を継続できます。"
+      }
+    },
+    {
+      "version": "2.1.77",
+      "content": "- Increased default maximum output token limits for Claude Opus 4.6 to 64k tokens, and the upper bound for Opus 4.6 and Sonnet 4.6 models to 128k tokens",
+      "content_ja": "Claude Opus 4.6 のデフォルト出力トークン制限を 64k に引き上げ、Opus 4.6 および Sonnet 4.6 の上限を 128k トークンに拡大しました"
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Added `/effort` slash command to set model effort level",
+      "content_ja": "モデルの思考レベル(Effort Level)を設定するための`/effort`スラッシュコマンドを追加",
+      "inference": {
+        "before": "モデルの思考の深さ(努力量)を調整するには、環境変数の設定や設定ファイルの編集、あるいは`/model`コマンドの奥にある設定を変更する必要がありました。",
+        "after": "`/effort`コマンドを使用して、チャットインターフェースから直接「low」「medium」「high」のレベルを切り替えられるようになりました。",
+        "benefit": "単純な作業には低い努力量で高速に、複雑な設計には高い努力量でじっくりと考えさせるなど、タスクの性質に合わせてパフォーマンスとコストを瞬時に最適化できます。"
+      }
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Fixed spurious \"Context limit reached\" when invoking a skill with `model:` frontmatter on a 1M-context session",
+      "content_ja": "100万トークン対応セッションにおいて、`model:`フロントマターを持つスキルを呼び出す際に、誤って「コンテキスト制限に達しました」と表示される不具合を修正",
+      "inference": {
+        "before": "モデル拡張コンテキストを使用している非常に長いセッションで特定のスキルを実行しようとすると、実際には余裕があるにもかかわらずコンテキスト不足のエラーが発生する場合がありました。",
+        "after": "スキルの呼び出しにおけるコンテキスト計算ロジックが修正され、大規模なコードベースを対象にした作業でも安定してスキルを実行できるようになりました。",
+        "benefit": "超巨大なプロジェクト全体をコンテキストに入れながら、カスタムスキルを制限なく活用した開発が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Fixed \"adaptive thinking is not supported on this model\" error when using non-standard model strings",
+      "content_ja": "標準的でないモデル名を使用した場合に「このモデルは適応的思考(adaptive thinking)をサポートしていません」という誤エラーが出る問題を修正しました。"
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Improved model fallback notifications — now always visible instead of hidden behind verbose mode, with human-friendly model names",
+      "content_ja": "モデルのフォールバック通知を常に表示するようにし、モデル名を分かりやすく改善しました。"
+    },
+    {
+      "version": "2.1.70",
+      "content": "- Fixed `API Error: 400 This model does not support the effort parameter` when using custom Bedrock inference profiles or other model identifiers not matching standard Claude naming patterns",
+      "content_ja": "カスタムの Bedrock 推論プロファイルや標準の Claude 命名規則に一致しないモデル識別子を使用した場合に、`effort` パラメータが原因で発生していた API 400 エラーを修正しました。",
+      "inference": {
+        "before": "Amazon Bedrock のカスタム推論プロファイルなど、標準的な命名パターンから外れるモデル識別子を使用すると、モデルが対応していない `effort` (推論の試行回数) パラメータが送信され、API エラーが発生していました。",
+        "after": "モデル識別子が標準的な Claude の命名規則に一致しない場合は、互換性のないパラメータの送信を避けるようロジックが修正されました。",
+        "benefit": "Bedrock などのクラウドプロバイダー経由で Claude を利用する際、カスタム設定や特定のプロファイルを使用しても、予期せぬパラメータエラーで作業が中断されることがなくなります。"
+      }
+    },
+    {
+      "version": "2.1.70",
+      "content": "- Fixed empty model responses immediately after `ToolSearch` — the server renders tool schemas with system-prompt-style tags at the prompt tail, which could confuse models into stopping early",
+      "content_ja": "`ToolSearch` 直後にモデルの応答が空になる問題を修正しました。プロンプト末尾のツールスキーマがモデルを混乱させ、早期終了を招くケースに対処しました。"
+    },
+    {
+      "version": "2.1.70",
+      "content": "- Fixed repeated \"Model updated to Opus 4.6\" notification when a project's `.claude/settings.json` has a legacy Opus model string pinned",
+      "content_ja": "プロジェクトの `.claude/settings.json` に古い形式の Opus モデル文字列が固定されている場合に、繰り返し表示されていた「モデルが Opus 4.6 に更新されました」という通知を抑制しました。",
+      "inference": {
+        "before": "設定ファイルに旧バージョンのモデル名が記載されていると、起動するたびに「最新モデルへの更新」通知が表示され、ユーザーにとってノイズになっていました。",
+        "after": "モデルの自動アップグレード処理と通知ロジックが整理され、不必要な繰り返し通知が表示されないようになりました。",
+        "benefit": "起動時の不要な通知に邪魔されることなく、常に最新モデル(Opus 4.6)を最適な状態で利用できます。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed infinite loop when API errors triggered stop hooks that re-fed blocking errors to the model",
+      "content_ja": "APIエラーが stop フックを誘発し、モデルにエラーを再入力し続けてしまう無限ループを修正",
+      "inference": {
+        "before": "特定の API エラーが発生した際、エラー処理のフック自体が新たなエラーを引き起こし、処理が止まらなくなる不具合がありました。",
+        "after": "エラー発生時のループ検知と処理フローが改善され、無限ループに陥ることなく安全に停止するようになりました。",
+        "benefit": "予期せぬエラー発生時でもリソースやトークンの浪費を防ぎ、安定した動作が保証されます。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed `deny: [\"mcp__servername\"]` permission rules not removing MCP server tools before sending to the model, allowing it to see and attempt blocked tools",
+      "content_ja": "MCPサーバーを拒否設定にしても、モデルにツールが表示され実行を試みてしまう問題を修正",
+      "inference": {
+        "before": "特定の MCP サーバーをパーミッションで `deny` に設定していても、Claude がその存在を認識してしまい、実行に失敗する無駄な試行をしていました。",
+        "after": "拒否されたツールはモデルに送られる前に完全に削除されるようになり、Claude は許可されたツールのみを認識します。",
+        "benefit": "無駄なツール呼び出しが減り、モデルの判断の正確性とレスポンス速度が向上します。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Added `ANTHROPIC_CUSTOM_MODEL_OPTION` env var to add a custom entry to the `/model` picker, with optional `_NAME` and `_DESCRIPTION` suffixed vars for display",
+      "content_ja": "環境変数 `ANTHROPIC_CUSTOM_MODEL_OPTION` により、モデル選択メニューにカスタム項目を追加可能に",
+      "inference": {
+        "before": "社内プロキシや独自のゲートウェイ経由でモデルを利用している場合、標準のメニューからそれらを選択できるように設定するのが困難でした。",
+        "after": "環境変数を通じて、自分たちのインフラに合わせた任意のモデル名と説明をメニューに追加できるようになりました。",
+        "benefit": "企業独自のモデルエンドポイントなどを Claude Code から直接選びやすくなり、社内標準としての展開が容易になります。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Fixed `ANTHROPIC_BETAS` environment variable being silently ignored when using Haiku models",
+      "content_ja": "Haikuモデルの使用時に `ANTHROPIC_BETAS` 環境変数が無視される問題を修正しました",
+      "inference": {
+        "before": "Haikuモデル(Claude 3 Haikuや3.5 Haikuなど)を使用してClaude Codeを実行する際、ベータ機能を利用するための `ANTHROPIC_BETAS` 環境変数を設定しても、システム側でサイレントに無視されていました。",
+        "after": "Haikuモデルを使用する場合でも `ANTHROPIC_BETAS` ヘッダーが正しくAPIリクエストに反映されるようになりました。",
+        "benefit": "軽量で高速なHaikuモデルをメインまたはサブエージェントとして利用している環境でも、最新のベータ機能や実験的なプロンプトキャッシュ機能を確実に有効化できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- [VSCode] Fixed \"API Error: Rate limit reached\" when selecting Opus — model dropdown no longer offers 1M context variant to subscribers whose plan tier is unknown",
+      "content_ja": "[VSCode] Opus 選択時のレート制限エラーを修正。プランが不明なユーザーには、1Mコンテキストの選択肢を表示しないように変更しました。"
+    },
+    {
+      "version": "2.1.80",
+      "content": "- Added `effort` frontmatter support for skills and slash commands to override the model effort level when invoked",
+      "content_ja": "スキルやスラッシュコマンドのフロントマターで `effort` を指定し、呼び出し時にモデルの思考レベル(エフォートレベル)を上書き可能に",
+      "inference": {
+        "before": "スキルを実行する際、セッション全体の思考レベル設定がそのまま適用されるため、特定の高度なタスクを実行するたびに手動でレベルを切り替える必要がありました。",
+        "after": "スキルの定義ファイル(SKILL.md など)のフロントマターで `effort` レベルを事前に設定できるようになり、実行時に自動で最適な思考深さが選択されます。",
+        "benefit": "「コードレビューは high」、「簡単な挨拶は low」のように、タスクの性質に合わせて最適な推論リソースを自動配分でき、速度と精度のバランスを最適化できます。"
+      }
+    },
+    {
+      "version": "2.1.84",
+      "content": "- Added `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL_SUPPORTS` env vars to override effort/thinking capability detection for pinned default models for 3p (Bedrock, Vertex, Foundry), and `_MODEL_NAME`/`_DESCRIPTION` to customize the `/model` picker label",
+      "content_ja": "サードパーティプロバイダーにおける思考能力検出の上書きと、モデル選択ラベルのカスタマイズ機能を追加",
+      "inference": {
+        "before": "BedrockやVertex AIなどの外部プロバイダーを利用する際、特定のモデルバージョンを固定すると、Claude Codeがそのモデルの思考(Thinking)能力や推論レベルを正しく認識できない場合がありました。また、モデル選択画面での表示名を変更することもできませんでした。",
+        "after": "環境変数 `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL_SUPPORTS` でモデルの能力を明示的に上書きできるようになりました。また、`_MODEL_NAME` や `_DESCRIPTION` 変数を使用して、`/model` ピッカーに表示される名前や説明を自由にカスタマイズ可能です。",
+        "benefit": "社内のLLMゲートウェイ経由や特定の推論プロファイルを使用している場合でも、Claudeの高度な推論機能を確実に有効化でき、かつユーザーが識別しやすい名前を付けて運用効率を高めることができます。"
+      }
+    },
+    {
+      "version": "2.1.86",
+      "content": "- Fixed statusline showing another session's model when running multiple Claude Code instances and using `/model` in one of them",
+      "content_ja": "複数の Claude Code インスタンスを起動中に `/model` を変更すると、ステータスラインに別セッションのモデル名が表示される問題を修正",
+      "inference": {
+        "before": "複数のプロジェクトで同時に Claude Code を開いている際、片方のモデル変更がもう一方の表示に影響を与え、実際に使用しているモデルを誤認するリスクがありました。",
+        "after": "セッションごとの状態管理が厳密になり、現在操作しているインスタンスのモデル情報が常に正しく表示されます。",
+        "benefit": "並行作業中でも「どのAIモデルに指示を出しているか」を正確に把握でき、意図しないモデル使用を防止できます。"
+      }
+    },
+    {
+      "version": "2.1.9",
+      "content": "- Added support for `PreToolUse` hooks to return `additionalContext` to the model",
+      "content_ja": "`PreToolUse` フックがモデルに追加のコンテキストを返すサポートを追加しました。",
+      "inference": {
+        "before": "ツール実行前の`PreToolUse`フックは、モデルに渡す追加情報を提供できませんでした。",
+        "after": "`PreToolUse`フックは、ツールの実行前にモデルに`additionalContext`として追加情報を提供できるようになりました。",
+        "benefit": "これにより、フックはツールの実行前にモデルに追加のコンテキストを提供できるようになり、よりインテリジェントな意思決定や、フックによるツール実行の制御が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.88",
+      "content": "- Added `PermissionDenied` hook that fires after auto mode classifier denials — return `{retry: true}` to tell the model it can retry",
+      "content_ja": "Autoモードの判定で拒否された際に実行される `PermissionDenied` フックを追加しました。`{retry: true}` を返すことでモデルに再試行を促せます",
+      "inference": {
+        "before": "Autoモード(研究プレビュー)において、AIの操作がセキュリティポリシー等で拒否された場合、AIがその理由を理解して別の方法でリトライすることが困難でした。",
+        "after": "このフックを利用して `{retry: true}` を返すと、AIに操作が拒否されたことを伝え、安全な代替案を自律的に考案させることが可能になります。",
+        "benefit": "AIが一度の拒否で止まってしまうことを防ぎ、ユーザーが手動で指示し直す手間を省きながら、タスクの完了率を高めることができます。"
+      }
+    },
+    {
+      "version": "2.1.90",
+      "content": "- Fixed headers disappearing when scrolling `/model`, `/config`, and other selection screens",
+      "content_ja": "`/model` や `/config` などの選択画面をスクロールした際、ヘッダーが消えてしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.92",
+      "content": "- Added interactive Bedrock setup wizard accessible from the login screen when selecting \"3rd-party platform\" — guides you through AWS authentication, region configuration, credential verification, and model pinning",
+      "content_ja": "Amazon Bedrock向けの対話型セットアップウィザードを追加。AWS認証、リージョン、モデル固定などの設定をガイドします。",
+      "inference": {
+        "before": "Amazon Bedrockを使用する場合、AWS SDK向けの認証情報やリージョンの環境変数などを手動で設定する必要がありました。",
+        "after": "ログイン画面からウィザード形式でAWS認証、リージョン選択、資格情報の検証、モデルのピン留めまでを一貫して設定可能になりました。",
+        "benefit": "AWS環境でのセットアップが大幅に簡略化され、複雑な設定ミスを防いでスムーズに開発を開始できます。"
+      }
+    },
+    {
+      "version": "2.1.92",
+      "content": "- Added per-model and cache-hit breakdown to `/cost` for subscription users",
+      "content_ja": "`/cost` コマンドにおいて、サブスクリプションユーザー向けにモデル別およびキャッシュヒットの内訳表示を追加。",
+      "inference": {
+        "before": "`/cost` コマンドの出力は主にAPIユーザー向けで、サブスクリプションユーザーにとっては詳細な利用傾向を把握しにくい状態でした。",
+        "after": "モデルごとの使用量やプロンプトキャッシュの効果が詳細に表示されるようになり、トークンの消費パターンが可視化されます。",
+        "benefit": "どのモデルでどれだけ効率的にキャッシュが効いているかを確認でき、作業スタイルの最適化やコスト管理に役立ちます。"
+      }
+    },
+    {
+      "version": "2.1.92",
+      "content": "- Fixed prompt-type Stop hooks incorrectly failing when the small fast model returns `ok:false`, and restored `preventContinuation:true` semantics for non-Stop prompt-type hooks",
+      "content_ja": "Stopイベントのプロンプト型フックが特定の応答で誤って失敗する問題を修正し、継続防止セマンティクスを復元。",
+      "inference": {
+        "before": "モデルが `ok:false` を返した際にフックが予期せずエラーになったり、ツール実行をブロックすべき場面で継続されてしまう不具合がありました。",
+        "after": "Stopイベントの判定が正確になり、プロンプト型フックによるワークフローの中断制御が意図通りに機能するようになります。",
+        "benefit": "フックを利用した自動化プロセスの信頼性が向上し、特定の条件下で処理を確実に停止させることが可能になります。"
+      }
+    },
+    {
+      "version": "2.1.101",
+      "content": "- Improved tool-not-available errors to explain why and how to proceed when the model calls a tool that exists but isn't available in the current context",
+      "content_ja": "「ツールが利用不可」のエラー内容を改善しました。ツールが存在するものの現在の文脈では使えない場合に、その理由と対処法を説明するようになりました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Fixed AWS Bedrock subagents not inheriting EU/APAC cross-region inference model configuration, causing 403 errors when IAM permissions are scoped to specific regions",
+      "content_ja": "AWS Bedrock 利用時にサブエージェントが EU/APAC のクロスリージョン推論設定を継承せず、IAM 権限エラー(403)が発生する問題を修正しました。",
+      "inference": {
+        "before": "メインセッションで設定したクロスリージョン推論のオプションが、新しく起動したサブエージェントに正しく引き継がれず、特定のリージョンに制限された権限環境でエラーになっていました。",
+        "after": "すべてのサブエージェントが親セッションの推論設定を正しく共有するようになり、分散リージョン環境でも安定して動作します。",
+        "benefit": "グローバルな AWS インフラを利用しているエンタープライズユーザーも、サブエージェント機能を確実に利用できます。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Fixed subagents sometimes not inheriting the parent's model by default",
+      "content_ja": "サブエージェントが親セッションのモデルをデフォルトで継承しない場合がある問題を修正しました。"
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Fixed model picker showing incorrect selection for Bedrock/Vertex users using `--model haiku`",
+      "content_ja": "Bedrock/Vertex ユーザーが `--model haiku` を使用した際に、モデルピッカーの選択表示が不正確になる問題を修正しました。",
+      "inference": {
+        "before": "サードパーティプロバイダー経由で軽量モデルを指定した際、UI 上でどのモデルが現在アクティブであるかが正しく表示されない混乱がありました。",
+        "after": "すべてのプロバイダーにおいて、指定されたモデル別名と実際の表示が一致するようになりました。",
+        "benefit": "自分がどのモデルを使用しているかを常に確信を持って確認でき、意図しない高コストなモデルの使用などを防げます。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- [VSCode] Added currently selected model name to the context menu",
+      "content_ja": "[VSCode] コンテキストメニューに現在選択されているモデル名を表示するようにしました。"
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Write tool now informs the model when you edit the proposed content in the IDE diff before accepting",
+      "content_ja": "Writeツールによる提案内容をIDEの差分表示上で編集した場合、その修正内容が確定前にモデルへ通知されるように改善",
+      "inference": {
+        "before": "AIが提案したコードをIDEのdiff画面でユーザーが手動で微調整しても、その「修正後の内容」がAI側に正しく伝わらず、会話の文脈に齟齬が生じることがありました。",
+        "after": "IDE上で行われた編集内容をWriteツールが検知し、ユーザーによる変更が含まれていることをモデルにフィードバックしてから最終的な適用が行われます。",
+        "benefit": "人間とAIが協力してコードを作り上げるプロセスがより正確になり、AIがユーザーの意図を汲み取った上で次の提案を行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Fixed skills with `disable-model-invocation: true` failing when invoked via `/<skill>` mid-message",
+      "content_ja": "`disable-model-invocation: true`が設定されたスキルを、メッセージの途中で`/`コマンドにより呼び出した際に失敗する問題を修正",
+      "inference": {
+        "before": "AIによる自動実行を禁止している特定のスキル(デプロイなど)を、チャットの入力途中で手動呼び出ししようとすると正しく認識されないバグがありました。",
+        "after": "どのような入力タイミングでも、明示的なスキル呼び出しが確実に実行されるように修正されました。",
+        "benefit": "「特定の操作は必ず自分の手で実行したい」というルールが徹底され、AIとの連携における信頼性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.111",
+      "content": "- Added `xhigh` effort level for Opus 4.7, sitting between `high` and `max`. Available via `/effort`, `--effort`, and the model picker; other models fall back to `high`",
+      "content_ja": "Opus 4.7において、`high`と`max`の中間に位置する新しい思考レベル`xhigh`を追加しました。`/effort`コマンド、`--effort`フラグ、またはモデル選択メニューから指定でき、未対応モデルでは自動的に`high`にフォールバックされます。",
+      "inference": {
+        "before": "以前のモデル(Sonnet 4.6など)では思考レベルの選択肢が限られており、Opus 4.7のデフォルトかつ推奨される思考の深さを指定する専用のレベルが存在しませんでした。",
+        "after": "Opus 4.7専用の`xhigh`レベルが追加され、コーディングやエージェントとしてのタスクに最適な、速度と推論能力の高度なバランスを簡単に選択できるようになりました。",
+        "benefit": "Opus 4.7の能力を最大限に引き出す設定がデフォルトとなり、複雑な開発タスクにおいて、過剰なトークン消費を抑えつつ最も精度の高い推論結果を得られるようになります。"
+      }
+    },
+    {
+      "version": "2.1.111",
+      "content": "- Improved `/setup-vertex` and `/setup-bedrock` to show the actual `settings.json` path when `CLAUDE_CONFIG_DIR` is set, seed model candidates from existing pins on re-run, and offer a \"with 1M context\" option for supported models",
+      "content_ja": "`/setup-vertex`と`/setup-bedrock`において、`CLAUDE_CONFIG_DIR`設定時のパス表示の正確化、既存設定の再利用、および100万トークンのコンテキストオプションの提示といった改善を行いました。",
+      "inference": {
+        "before": "カスタム設定ディレクトリを使用している場合にパス表示が正しくなかったり、再設定時に以前選択したモデルが引き継がれず、設定の手間が大きくなっていました。",
+        "after": "設定ウィザードが現在の環境をより正確に反映し、大規模なコードベースに必要な1Mコンテキストの有効化も簡単に行えるようになりました。",
+        "benefit": "クラウドプロバイダー経由での利用開始や設定変更がより迅速かつ確実になり、特に大規模プロジェクトでのセットアップが楽になります。"
+      }
+    },
+    {
+      "version": "2.1.111",
+      "content": "- Fixed LSP diagnostics from before an edit appearing after it, causing the model to re-read files it just edited",
+      "content_ja": "編集前の古いLSP診断結果が編集後に残り、モデルが編集済みのファイルを読み直してしまう問題を修正しました。",
+      "inference": {
+        "before": "Claudeがファイルを修正した直後に「古いエラー情報」を参照してしまい、既に解決したはずの問題をもう一度調査しようとする無駄な思考が発生していました。",
+        "after": "編集後は最新のコードに基づいた診断結果が正しくモデルに渡されるようになり、無駄な再読み込みや重複した修正作業がなくなりました。",
+        "benefit": "タスクの進行が早くなり、無駄なトークン消費を抑えながらより正確な修正が行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed `/export` showing the current default model instead of the model the conversation actually used",
+      "content_ja": "`/export` コマンドで、実際の会話で使用されたモデルではなく、現在のデフォルトモデルが表示される問題を修正しました",
+      "inference": {
+        "before": "会話中にモデルを切り替えていたとしても、履歴をエクスポートする際に、出力結果には現在設定されているデフォルトのモデル名が誤って記載されていました。",
+        "after": "エクスポートされた履歴に、各ターンで実際に推論に使用されたモデルが正確に反映されるようになります。",
+        "benefit": "過去のやり取りを振り返る際やトークン使用量を分析する際に、どのモデルによる回答だったのかを正確に把握できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.118",
+      "content": "- The `/model` picker now honors `ANTHROPIC_DEFAULT_*_MODEL_NAME`/`_DESCRIPTION` overrides when using a custom `ANTHROPIC_BASE_URL` gateway",
+      "content_ja": "カスタムゲートウェイ使用時、`/model` の選択肢に環境変数によるモデル名・説明のオーバーライドが適用されるよう改善",
+      "inference": {
+        "before": "カスタムの `ANTHROPIC_BASE_URL` を使用している際、モデルピッカーに表示される内容が Anthropic 標準のままになり、組織独自のモデル設定が反映されないことがありました。",
+        "after": "`ANTHROPIC_DEFAULT_*_MODEL_NAME` などの環境変数で指定したカスタムの名称や説明が、モデル選択画面に正しく表示されるようになりました。",
+        "benefit": "社内プロキシやゲートウェイを介して特定のモデル構成を運用している開発者が、自分たちの環境に適した正しいモデル情報を確認して選択できます。"
+      }
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Fixed connecting to a remote session overwriting your local `model` setting in `~/.claude/settings.json`",
+      "content_ja": "リモートセッションへの接続時に、ローカルの `settings.json` にあるモデル設定が上書きされる問題を修正",
+      "inference": {
+        "before": "クラウド上のリモート環境に接続すると、自分のPC側のデフォルトモデル設定が接続先の設定で書き換えられてしまうことがありました。",
+        "after": "リモート接続がローカルの永続的な設定に干渉しないように保護されました。",
+        "benefit": "リモートとローカルの作業を切り替えても、好みのモデル設定が維持されます。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed built-in slash commands (`/help`, `/model`, `/compact`, etc.) being hidden from the autocomplete dropdown when many user skills are installed (anthropics/claude-code#22020)",
+      "content_ja": "多数のユーザー定義スキルがインストールされている場合でも、` /help`、`/model`、`/compact`などの組み込みスラッシュコマンドが、オートコンプリートドロップダウンから非表示になる問題を修正しました(anthropics/claude-code#22020)。",
+      "inference": {
+        "before": "多数のカスタムスキルをインストールすると、Claude Codeの組み込みスラッシュコマンド(`/help`、`/model`など)がオートコンプリートの候補リストから消えてしまい、発見や利用が困難になっていました。",
+        "after": "多数のユーザー定義スキルがインストールされている場合でも、組み込みスラッシュコマンドがオートコンプリートドロップダウンに正しく表示されるようになりました。",
+        "benefit": "組み込みコマンドの発見性が向上し、ユーザーはClaude Codeの基本機能をより容易に利用できるようになりました。これにより、ツールの使い勝手が向上しました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed custom agent `model` field in `.claude/agents/*.md` being ignored when spawning team teammates (anthropics/claude-code#26064)",
+      "content_ja": "チームメイトをスポーンする際に、`.claude/agents/*.md` のカスタムエージェント `model` フィールドが無視される問題を修正しました(anthropics/claude-code#26064)。",
+      "inference": {
+        "before": "チームメイトをスポーンする際、`.claude/agents/*.md` に定義されたカスタムエージェントの `model` フィールドが無視され、意図したモデルが使用されない問題がありました。",
+        "after": "チームメイトスポーン時にカスタムエージェントの `model` フィールドが正しく適用されるようになりました。",
+        "benefit": "カスタムエージェントのモデル設定がチームメイトのスポーン時に反映されるようになり、エージェントチームの挙動をより細かく制御できるようになりました。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed plan mode being lost after context compaction, causing the model to switch from planning to implementation mode (anthropics/claude-code#26061)",
+      "content_ja": "コンパクション後にプランモードが失われ、モデルがプランニングから実装モードに切り替わる問題を修正しました(anthropics/claude-code#26061)。",
+      "inference": {
+        "before": "会話のコンパクションが発生すると、プランモードの設定が失われ、モデルが実装モードに移行してしまう問題がありました。これにより、プランに基づいた正確な実装が妨げられていました。",
+        "after": "コンパクション後もプランモードが維持されるようになりました。これにより、モデルはプランニングモードから実装モードへ切り替わることなく、プランに基づいた作業を継続できます。",
+        "benefit": "コンパクション後もプランモードが維持されるため、開発者は計画に基づいた作業を中断なく進めることができ、コード生成の正確性と効率が向上しました。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Fixed literal `nul` file creation on Windows when the model uses CMD-style `2>nul` redirection in Git Bash",
+      "content_ja": "Windows の Git Bash 環境において、Claude が CMD スタイルの `2>nul` リダイレクトを使用した際に、実際に `nul` という名前のファイルが生成されてしまう問題を修正しました。",
+      "inference": {
+        "before": "エラー出力を捨てる意図で実行されたコマンドによって、意図せず `nul` という不要なファイルがカレントディレクトリに作成され、リポジトリが汚れる不都合がありました。",
+        "after": "環境に応じた適切なヌルデバイスへのリダイレクトが行われるように修正され、余計なファイルが作られることはなくなりました。",
+        "benefit": "Windows 環境での開発時に、AI が生成する「ゴミファイル」に悩まされることなく、クリーンな作業環境を維持できます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed `--model claude-opus-4-0` and `--model claude-opus-4-1` resolving to deprecated Opus versions instead of current",
+      "content_ja": "`--model` で指定したOpusの旧バージョン(4-0, 4-1)が、現行の推奨バージョンではなく非推奨バージョンに解決されていた問題を修正",
+      "inference": {
+        "before": "最新のモデル性能を期待してバージョンを指定しても、実際には古いバージョンのモデルが呼び出されていました。",
+        "after": "モデル名の解決ロジックが更新され、指定に応じて適切な現行モデルが使用されるようになりました。",
+        "benefit": "Claudeの最新かつ最高性能の推論能力を、混乱なく確実に活用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed literal `nul` file creation on Windows when the model uses CMD-style `2>nul` redirection in Git Bash"
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed slash commands being sent to the model as text when submitted while a message is processing",
+      "content_ja": "メッセージの処理中にスラッシュコマンドを入力すると、コマンドとして認識されず単なるテキストとしてモデルに送られてしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.83",
+      "content": "- Fixed scrollback jumping to top when the model starts or stops thinking",
+      "content_ja": "モデルが思考(Thinking)を開始または停止した際に、表示が最上部まで勝手にスクロールする問題を修正しました。"
+    },
+    {
+      "version": "2.1.89",
+      "content": "- Added `PermissionDenied` hook that fires after auto mode classifier denials — return `{retry: true}` to tell the model it can retry",
+      "content_ja": "オートモードの分類器による拒否の後に実行される `PermissionDenied` フックを追加しました。`{retry: true}` を返すことで、モデルに再試行を促すことができます。",
+      "inference": {
+        "before": "オートモード(auto mode)で操作が拒否された際、プログラム的に介入して修正を促したり、特定の条件下で再試行を許可したりする柔軟な手段がありませんでした。",
+        "after": "拒否イベントをトリガーにフックを実行できるようになり、拒否理由に基づいてモデルに指示を出し直すなどの動的な制御が可能になりました。",
+        "benefit": "安全性を保ちつつ、誤検知による中断を自動でリカバーさせることができ、オートモードでの作業の自律性が高まります。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Added interactive Google Vertex AI setup wizard accessible from the login screen when selecting \"3rd-party platform\", guiding you through GCP authentication, project and region configuration, credential verification, and model pinning",
+      "content_ja": "ログイン画面の「サードパーティ・プラットフォーム」選択時からアクセス可能な、Google Vertex AI 用の対話型セットアップウィザードを追加しました。GCP認証、プロジェクトとリージョンの設定、認証情報の検証、およびモデルの固定(ピン留め)をガイドします。",
+      "inference": {
+        "before": "Vertex AI を使用する場合、環境変数や設定ファイルをユーザー自身が手動で構成する必要があり、初期セットアップのハードルが高くなっていました。",
+        "after": "CLIの初期画面からウィザード形式で設定を進められるようになり、GCPプロジェクトの選択からモデルの固定までを対話的に完了できます。",
+        "benefit": "複雑な環境変数の知識がなくても、Google Cloud 環境で Claude Code を素早く確実に使い始めることができます。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed `/effort max` being denied for unknown or future model IDs",
+      "content_ja": "未知のモデル ID や将来追加されるモデル ID に対して、`/effort max`(推論思考の最大化)が拒否される問題を修正しました。",
+      "inference": {
+        "before": "新しくリリースされたモデルやカスタムモデルを使用している際、最大思考レベルの設定ができない制限がありました。",
+        "after": "モデルの種類に関わらず、対応している場合には常に最大の思考リソースを割り当てられるようになりました。",
+        "benefit": "常に最新のモデル性能を引き出し、より複雑な問題解決に AI を活用できます。"
+      }
+    }
+  ]
+}
