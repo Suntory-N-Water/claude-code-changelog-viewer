@@ -1,10 +1,17 @@
 // @ts-check
 
+import { readFileSync } from 'node:fs';
 import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
 import pagefind from 'astro-pagefind';
 import { seoValidate } from './src/integrations/seo-validate.ts';
+
+// ルート package.json からアプリバージョンを取得
+const rootPkg = JSON.parse(
+  readFileSync(new URL('../../package.json', import.meta.url), 'utf-8'),
+);
+const appVersion = rootPkg.version;
 
 // GitHub Releases の公開日時キャッシュ(ビルド中に1回だけ fetch)
 /** @type {Map<string, string> | null} */
@@ -52,6 +59,9 @@ export default defineConfig({
   cacheDir: './node_modules/.astro',
   vite: {
     plugins: [tailwindcss()],
+    define: {
+      __APP_VERSION__: JSON.stringify(appVersion),
+    },
     optimizeDeps: {
       exclude: ['@resvg/resvg-js'],
     },
