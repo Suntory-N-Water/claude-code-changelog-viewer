@@ -12,10 +12,16 @@ import { createPngResponse, generateFeatureAreaOgp } from '@/lib/ogp';
 
 export const prerender = false;
 
-export async function GET({ params }: APIContext) {
+export async function GET({ params, request, locals }: APIContext) {
   const areaParam = params.area;
   if (!areaParam) {
     return new Response('Bad Request', { status: 400 });
+  }
+
+  const cache = caches.default;
+  const cached = await cache.match(request);
+  if (cached) {
+    return cached;
   }
 
   const allChangelogs = await getCollection('changelog');
@@ -38,5 +44,9 @@ export async function GET({ params }: APIContext) {
     itemCount,
     versionCount,
   });
-  return createPngResponse(png);
+  const response = createPngResponse(png);
+
+  locals.cfContext.waitUntil(cache.put(request, response.clone()));
+
+  return response;
 }

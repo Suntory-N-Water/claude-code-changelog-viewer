@@ -5,10 +5,16 @@ import { createPngResponse, generateVersionPageOgp } from '@/lib/ogp';
 
 export const prerender = false;
 
-export async function GET({ params }: APIContext) {
+export async function GET({ params, request, locals }: APIContext) {
   const versionParam = params.version;
   if (!versionParam) {
     return new Response('Bad Request', { status: 400 });
+  }
+
+  const cache = caches.default;
+  const cached = await cache.match(request);
+  if (cached) {
+    return cached;
   }
 
   const versionNumber = versionParam.replace(/^v/, '');
@@ -25,5 +31,9 @@ export async function GET({ params }: APIContext) {
     `v${entry.data.version}`,
     entry.data.items.length,
   );
-  return createPngResponse(png);
+  const response = createPngResponse(png);
+
+  locals.cfContext.waitUntil(cache.put(request, response.clone()));
+
+  return response;
 }
