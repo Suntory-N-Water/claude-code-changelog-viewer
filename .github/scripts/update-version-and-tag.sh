@@ -45,40 +45,47 @@ LATEST_VERSION=$(select_latest_version "${VERSIONS[@]}")
 echo "📦 Versions detected: ${VERSIONS[*]}"
 echo "🎯 Latest version selected: $LATEST_VERSION"
 
-# package.jsonのバージョン更新
-PACKAGE_JSON="package.json"
+# claude-version.json の更新
+CLAUDE_VERSION_JSON="claude-version.json"
 
-if [ ! -f "$PACKAGE_JSON" ]; then
-  echo "❌ Error: $PACKAGE_JSON not found"
+if [ ! -f "$CLAUDE_VERSION_JSON" ]; then
+  echo "❌ Error: $CLAUDE_VERSION_JSON not found"
   exit 1
 fi
 
-# vプレフィックスを除去してpackage.jsonに設定
+# vプレフィックスを除去して設定
 CLEAN_VERSION="${LATEST_VERSION#v}"
 
-# jqを使ってバージョンを更新
-if command -v jq >/dev/null 2>&1; then
-  TMP_FILE=$(mktemp)
-  jq --arg version "$CLEAN_VERSION" '.version = $version' "$PACKAGE_JSON" > "$TMP_FILE"
-  mv "$TMP_FILE" "$PACKAGE_JSON"
-  echo "✅ Updated $PACKAGE_JSON to version $CLEAN_VERSION"
-else
-  # jqがない場合はsedで更新(フォールバック)
-  sed -i.bak "s/\"version\": \".*\"/\"version\": \"$CLEAN_VERSION\"/" "$PACKAGE_JSON"
-  rm -f "${PACKAGE_JSON}.bak"
-  echo "✅ Updated $PACKAGE_JSON to version $CLEAN_VERSION (using sed)"
-fi
+TMP_FILE=$(mktemp)
+jq --arg version "$CLEAN_VERSION" '.version = $version' "$CLAUDE_VERSION_JSON" > "$TMP_FILE"
+mv "$TMP_FILE" "$CLAUDE_VERSION_JSON"
+echo "✅ Updated $CLAUDE_VERSION_JSON to version $CLEAN_VERSION"
 
 # 変更をステージング
-git add "$PACKAGE_JSON"
+git add "$CLAUDE_VERSION_JSON"
 
 # Gitタグの作成(既存タグがある場合は上書き)
-if git rev-parse "$LATEST_VERSION" >/dev/null 2>&1; then
-  echo "⚠️  Tag $LATEST_VERSION already exists, overwriting..."
-  git tag -d "$LATEST_VERSION"
+CLAUDE_TAG="claude-${LATEST_VERSION}"
+
+if git rev-parse "$CLAUDE_TAG" >/dev/null 2>&1; then
+  echo "⚠️  Tag $CLAUDE_TAG already exists, overwriting..."
+  git tag -d "$CLAUDE_TAG"
 fi
 
-git tag -a "$LATEST_VERSION" -m "Release $LATEST_VERSION
+git tag -a "$CLAUDE_TAG" -m "Claude Code $LATEST_VERSION
 
 Synced with Claude Code $LATEST_VERSION"
-echo "✅ Created tag: $LATEST_VERSION"
+echo "✅ Created tag: $CLAUDE_TAG"
+
+# アプリバージョンタグの作成
+APP_VERSION=$(jq -r '.version' package.json)
+APP_TAG="app-v${APP_VERSION}"
+
+if git rev-parse "$APP_TAG" >/dev/null 2>&1; then
+  echo "ℹ️  App tag $APP_TAG already exists, skipping..."
+else
+  git tag -a "$APP_TAG" -m "App v${APP_VERSION}
+
+Application version at time of Claude Code $LATEST_VERSION sync"
+  echo "✅ Created tag: $APP_TAG"
+fi

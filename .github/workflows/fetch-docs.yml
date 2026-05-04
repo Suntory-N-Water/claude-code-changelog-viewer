@@ -47,6 +47,11 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Fetch settings schema
+        run: pnpm run fetch:schema
+        env:
+          NODE_ENV: production
+
       - name: Check for changes
         id: git-check
         run: |
@@ -56,13 +61,23 @@ jobs:
           DOC_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/docs/en/' | grep -c '\.md$' || true)
           echo "doc_changes=$DOC_CHANGES" >> "$GITHUB_OUTPUT"
 
-          # 英語ドキュメントに変更がある場合のみ should_push=true
-          if [ "$DOC_CHANGES" -gt 0 ]; then
+          # スキーマの変更を確認
+          SCHEMA_CHANGES=$(git diff --staged --name-only -- 'apps/docs-tracker/schema/' | grep -c '\.json$' || true)
+          echo "schema_changes=$SCHEMA_CHANGES" >> "$GITHUB_OUTPUT"
+
+          # 英語ドキュメントまたはスキーマに変更がある場合のみ should_push=true
+          if [ "$DOC_CHANGES" -gt 0 ] || [ "$SCHEMA_CHANGES" -gt 0 ]; then
             echo "should_push=true" >> "$GITHUB_OUTPUT"
-            echo "✅ 英語ドキュメントに更新あり: $DOC_CHANGES ファイル"
-            git diff --staged --name-only -- 'apps/docs-tracker/docs/en/' | grep '\.md$'
+            if [ "$DOC_CHANGES" -gt 0 ]; then
+              echo "✅ 英語ドキュメントに更新あり: $DOC_CHANGES ファイル"
+              git diff --staged --name-only -- 'apps/docs-tracker/docs/en/' | grep '\.md$'
+            fi
+            if [ "$SCHEMA_CHANGES" -gt 0 ]; then
+              echo "✅ スキーマに更新あり: $SCHEMA_CHANGES ファイル"
+              git diff --staged --name-only -- 'apps/docs-tracker/schema/'
+            fi
           else
-            echo "ℹ️ 英語ドキュメントに更新なし(日本語ドキュメントのみの変更はスキップ)"
+            echo "ℹ️ 英語ドキュメント・スキーマに更新なし(日本語ドキュメントのみの変更はスキップ)"
           fi
 
           # 全変更ファイル数(コミットメッセージ用)
@@ -150,6 +165,13 @@ jobs:
             echo ""
             echo "📈 Fetch Summary:"
             cat apps/docs-tracker/metadata/last_update.json
+          fi
+
+          # Show schema metadata summary if it exists
+          if [ -f "apps/docs-tracker/metadata/last_schema_update.json" ]; then
+            echo ""
+            echo "📋 Schema Summary:"
+            cat apps/docs-tracker/metadata/last_schema_update.json
           fi
         env:
           HAS_CHANGES: ${{ steps.git-check.outputs.changed }}
