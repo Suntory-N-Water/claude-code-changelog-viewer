@@ -99,7 +99,7 @@ function createMockEnv() {
 function setupFetchSuccess() {
   const impl: typeof fetch = Object.assign(
     () => Promise.resolve(Response.json(validAnalysis)),
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    // biome-ignore lint/suspicious/noExplicitAny: mock
     { preconnect: (globalThis.fetch as any).preconnect },
   );
   mockFetch.mockImplementation(impl);
