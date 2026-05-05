@@ -34,6 +34,7 @@ To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reu
 | `Read` | Reads the contents of files | No |
 | `ReadMcpResourceTool` | Reads a specific MCP resource by URI | No |
 | `SendMessage` | Sends a message to an [agent team](/en/agent-teams) teammate, or [resumes a subagent](/en/sub-agents#resume-subagents) by its agent ID. Stopped subagents auto-resume in the background. Only available when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set | No |
+| `ShareOnboardingGuide` | Uploads `ONBOARDING.md` and returns a share link teammates can open in Claude Code. Called from `/team-onboarding` after the guide is written. Available to claude.ai subscribers on Pro, Max, Team, and Enterprise plans | Yes |
 | `Skill` | Executes a [skill](/en/skills#control-who-invokes-a-skill) within the main conversation | Yes |
 | `TaskCreate` | Creates a new task in the task list | No |
 | `TaskGet` | Retrieves full details for a specific task | No |

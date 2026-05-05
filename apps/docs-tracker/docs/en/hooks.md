@@ -1306,7 +1306,7 @@ Matches on tool name, same values as PreToolUse.
 
 | Field | Description |
 | :- | :- |
-| `decision` | `"block"` prompts Claude with the `reason`. Omit to allow the action to proceed |
+| `decision` | `"block"` adds the `reason` next to the tool result. Claude still sees the original output; to replace it, use `updatedToolOutput` |
 | `reason` | Explanation shown to Claude when `decision` is `"block"` |
 | `additionalContext` | String added to Claude's context alongside the tool result. See [Add context for Claude](#add-context-for-claude) |
 | `updatedToolOutput` | Replaces the tool's output with the provided value before it is sent to Claude. The value must match the tool's output shape |
