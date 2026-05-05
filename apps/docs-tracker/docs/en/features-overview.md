@@ -71,6 +71,7 @@ Skills and subagents solve different problems:
 | - | - | - |
 | **What it is** | Reusable instructions, knowledge, or workflows | Isolated worker with its own context |
 | **Key benefit** | Share content across contexts | Context isolation. Work happens separately, only summary returns |
+| **[Context window](/en/context-window) impact** | Adds to your main window | Uses a separate window with its own input and output tokens |
 | **Best for** | Reference material, invocable workflows | Tasks that read many files, parallel work, specialized workers |
 
 **Skills can be reference or action.** Reference skills provide knowledge Claude uses throughout your session (like your API style guide). Action skills tell Claude to do something specific (like `/deploy` that runs your deployment workflow).

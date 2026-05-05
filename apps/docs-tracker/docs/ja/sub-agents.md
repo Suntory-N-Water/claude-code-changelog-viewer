@@ -46,7 +46,7 @@ Claude は、変更を加えずにコードベースを検索または理解す�
 
 Explore を呼び出すときに、Claude は徹底度レベルを指定します：ターゲット検索の場合は **quick**、バランスの取れた探索の場合は **medium**、包括的な分析の場合は **very thorough**。
 
-[プランモード](/ja/common-workflows#use-plan-mode-for-safe-code-analysis)中にプランを提示する前にコンテキストを収集するために使用される研究エージェント。
+[プランモード](/ja/permission-modes#analyze-before-you-edit-with-plan-mode)中にプランを提示する前にコンテキストを収集するために使用される研究エージェント。
 
 - **モデル**：メイン会話から継承
 - **ツール**：読み取り専用ツール（Write および Edit ツールへのアクセスは拒否）
@@ -67,7 +67,7 @@ Claude Code には、特定のタスク向けの追加のヘルパーエージ�
 | エージェント | モデル | Claude が使用する場合 |
 | :- | :- | :- |
 | statusline-setup | Sonnet | `/statusline` を実行してステータスラインを設定する場合 |
-| Claude Code Guide | Haiku | Claude Code 機能について質問する場合 |
+| claude-code-guide | Haiku | Claude Code 機能について質問する場合 |
 
 これらの組み込みサブエージェント以外に、カスタムプロンプト、ツール制限、権限モード、hooks、および skills を使用して独自のサブエージェントを作成できます。以下のセクションでは、開始方法とサブエージェントのカスタマイズ方法を示します。
 
@@ -151,7 +151,7 @@ Markdown ファイルとして手動でサブエージェントを作成した�
 
 **CLI で定義されたサブエージェント** は、Claude Code を起動するときに JSON として渡されます。これらはそのセッションのみに存在し、ディスクに保存されないため、クイックテストまたは自動化スクリプトに役立ちます。単一の `--agents` 呼び出しで複数のサブエージェントを定義できます：
 
-```bash
+```bash theme={null}
 claude --agents '{
   "code-reviewer": {
     "description": "Expert code reviewer. Use proactively after code changes.",
@@ -164,6 +164,23 @@ claude --agents '{
     "prompt": "You are an expert debugger. Analyze errors, identify root causes, and provide fixes."
   }
 }'
+```
+
+```powershell theme={null}
+claude --agents @'
+{
+  "code-reviewer": {
+    "description": "Expert code reviewer. Use proactively after code changes.",
+    "prompt": "You are a senior code reviewer. Focus on code quality, security, and best practices.",
+    "tools": ["Read", "Grep", "Glob", "Bash"],
+    "model": "sonnet"
+  },
+  "debugger": {
+    "description": "Debugging specialist for errors and test failures.",
+    "prompt": "You are an expert debugger. Analyze errors, identify root causes, and provide fixes."
+  }
+}
+'@
 ```
 
 `--agents` フラグは、ファイルベースのサブエージェントと同じ[フロントマター](#supported-frontmatter-fields)フィールドを持つ JSON を受け入れます：`description`、`prompt`、`tools`、`disallowedTools`、`model`、`permissionMode`、`mcpServers`、`hooks`、`maxTurns`、`skills`、`initialPrompt`、`memory`、`effort`、`background`、`isolation`、および `color`。システムプロンプトには `prompt` を使用します。これはファイルベースのサブエージェントの markdown 本体と同等です。
@@ -180,7 +197,7 @@ claude --agents '{
 
 サブエージェントファイルは、YAML フロントマターを使用して設定を行い、その後に Markdown でシステムプロンプトを続けます：
 
-サブエージェントはセッション開始時に読み込まれます。ファイルを手動で追加してサブエージェントを作成する場合は、セッションを再起動するか、`/agents` を使用してすぐに読み込みます。
+サブエージェントはセッション開始時に読み込まれます。ディスク上でサブエージェントファイルを直接追加または編集する場合は、セッションを再起動してそれを読み込みます。`/agents` インターフェースを通じて作成されたサブエージェントは、再起動なしで即座に有効になります。
 
 ```markdown
 ---
@@ -217,7 +234,7 @@ specific, actionable feedback on quality, security, and best practices.
 | `memory` | いいえ | [永続メモリスコープ](#enable-persistent-memory)：`user`、`project`、または `local`。クロスセッション学習を有効にします |
 | `background` | いいえ | `true` に設定して、このサブエージェントを常に[バックグラウンドタスク](#run-subagents-in-foreground-or-background)として実行します。デフォルト：`false` |
 | `effort` | いいえ | このサブエージェントがアクティブな場合の努力レベル。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`xhigh`、`max`。利用可能なレベルはモデルに依存します |
-| `isolation` | いいえ | `worktree` に設定して、サブエージェントを一時的な[git worktree](/ja/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees)で実行し、リポジトリの分離されたコピーを提供します。サブエージェントが変更を加えない場合、worktree は自動的にクリーンアップされます |
+| `isolation` | いいえ | `worktree` に設定して、サブエージェントを一時的な[git worktree](/ja/worktrees)で実行し、リポジトリの分離されたコピーを提供します。サブエージェントが変更を加えない場合、worktree は自動的にクリーンアップされます |
 | `color` | いいえ | タスクリストとトランスクリプトでサブエージェントの表示色。`red`、`blue`、`green`、`yellow`、`purple`、`orange`、`pink`、または `cyan` を受け入れます |
 | `initialPrompt` | いいえ | このエージェントがメインセッションエージェント（`--agent` または `agent` 設定を通じて）として実行される場合、最初のユーザーターンとして自動送信されます。[コマンド](/ja/commands)および[スキル](/ja/skills)が処理されます。ユーザーが提供するプロンプトの前に付加されます |
 
@@ -338,7 +355,7 @@ MCP サーバーをメイン会話から完全に除外し、そのツール説�
 | `bypassPermissions` | すべての権限チェックをスキップ |
 | `plan` | プランモード（読み取り専用探索） |
 
-`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.claude`、`.vscode`、`.idea`、および `.husky` ディレクトリへの書き込みを含む、承認なしで操作を実行できるようにします。`/` や `/root` などのルートおよびホームディレクトリの削除は、サーキットブレーカーとしてプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
+`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.claude`、`.vscode`、`.idea`、および `.husky` ディレクトリへの書き込みを含みます。`rm -rf /` などのルートおよびホームディレクトリの削除は、サーキットブレーカーとしてプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
 
 親が `bypassPermissions` または `acceptEdits` を使用する場合、これが優先され、オーバーライドできません。親が[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)を使用する場合、サブエージェントは自動モードを継承し、フロントマター内の `permissionMode` は無視されます：分類器は、親セッションと同じブロックおよび許可ルールを使用してサブエージェントのツール呼び出しを評価します。
 
@@ -445,7 +462,7 @@ fi
 exit 0
 ```
 
-完全な入力スキーマについては[Hook 入力](/ja/hooks#pretooluse-input)を参照し、終了コードが動作に与える影響については[終了コード](/ja/hooks#exit-code-output)を参照してください。
+完全な入力スキーマについては[Hook 入力](/ja/hooks#pretooluse-input)を参照し、終了コードが動作に与える影響については[終了コード](/ja/hooks#exit-code-output)を参照してください。Windows では、PowerShell で hook スクリプトを記述し、[PowerShell で hooks を実行する](/ja/hooks#windows-powershell-tool)に示されているように hook エントリに `shell: powershell` を追加します。
 
 #### 特定のサブエージェントを無効にする
 
@@ -945,13 +962,15 @@ fi
 exit 0
 ```
 
-スクリプトを実行可能にします：
+macOS と Linux では、スクリプトを実行可能にします：
 
 ```bash
 chmod +x ./scripts/validate-readonly-query.sh
 ```
 
-hook は stdin を通じて JSON を受け取り、Bash コマンドは `tool_input.command` にあります。終了コード 2 は操作をブロックし、エラーメッセージを Claude にフィードバックします。終了コードと[Hook 入力](/ja/hooks#pretooluse-input)の詳細については、[Hooks](/ja/hooks#exit-code-output)を参照してください。
+Windows では、検証スクリプトを PowerShell で記述し、hook エントリに `shell: powershell` を追加します。[PowerShell で hooks を実行する](/ja/hooks#windows-powershell-tool)を参照してください。
+
+hook は stdin を通じて JSON を受け取り、Bash コマンドは `tool_input.command` にあります。終了コード 2 は操作をブロックし、エラーメッセージを Claude にフィードバックします。終了コードと出力の詳細については[Hooks](/ja/hooks#exit-code-output)を参照し、完全な入力スキーマについては[Hook 入力](/ja/hooks#pretooluse-input)を参照してください。
 
 ## 次のステップ
 

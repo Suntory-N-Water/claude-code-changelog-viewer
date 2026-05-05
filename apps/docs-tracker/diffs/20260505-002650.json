@@ -1,0 +1,541 @@
+{
+  "id": "20260505-002650",
+  "timestamp": "2026-05-05T00:26:50.051Z",
+  "aiSummary": "サブエージェントの設定方法に具体的なJSON例とWindowsでのPowerShell利用手順が追加され、利便性が向上しました。VS Code拡張機能でmacOSのシステムショートカットと競合する場合の対処法が新たに明記されています。音声入力のキーバインド制限や、コンテキストウィンドウの消費に関する比較表の更新など、実用的な詳細仕様が拡充されました。",
+  "files": [
+    {
+      "filename": "features-overview.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "コンテキストウィンドウの消費への影響について、メインウィンドウと別ウィンドウでの入力・出力トークンの扱いを比較する項目が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -71,6 +71,7 @@ Skills and subagents solve different problems:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| **What it is** | Reusable instructions, knowledge, or workflows | Isolated worker with its own context |"
+            },
+            {
+              "type": "context",
+              "content": "| **Key benefit** | Share content across contexts | Context isolation. Work happens separately, only summary returns |"
+            },
+            {
+              "type": "added",
+              "content": "| **[Context window](/en/context-window) impact** | Adds to your main window | Uses a separate window with its own input and output tokens |"
+            },
+            {
+              "type": "context",
+              "content": "| **Best for** | Reference material, invocable workflows | Tasks that read many files, parallel work, specialized workers |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Skills can be reference or action.** Reference skills provide knowledge Claude uses throughout your session (like your API style guide). Action skills tell Claude to do something specific (like `/deploy` that runs your deployment workflow)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "sessionTitleの設定説明から冗長な記述を削除し、プロンプト内容に基づき自動的にセッション名を命名する用途であることを簡潔に整理しています。",
+      "hunks": [
+        {
+          "header": "@@ -931,7 +931,7 @@ To block a prompt, return a JSON object with `decision` set to `\"block\"`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `decision` | `\"block\"` prevents the prompt from being processed and erases it from context. Omit to allow the prompt to proceed |"
+            },
+            {
+              "type": "context",
+              "content": "| `reason` | Shown to the user when `decision` is `\"block\"`. Not added to context |"
+            },
+            {
+              "type": "context",
+              "content": "| `additionalContext` | String added to Claude's context alongside the submitted prompt. See [Add context for Claude](#add-context-for-claude) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `sessionTitle` | Sets the session title, same effect as `/rename`. Use to name sessions automatically based on the prompt content |"
+            },
+            {
+              "type": "added",
+              "content": "| `sessionTitle` | Sets the session title. Use to name sessions automatically based on the prompt content |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 24,
+      "deletions": 5,
+      "explanation": "サブエージェントの設定例に具体的なJSON構成案が追加され、Windows環境でのPowerShell実行手順や設定反映のタイミングが詳細に解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -67,7 +67,7 @@ Claude Code includes additional helper agents for specific tasks. These are typi",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Agent | Model | When Claude uses it |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| statusline-setup | Sonnet | When you run `/statusline` to configure your status line |"
+            },
+            {
+              "type": "removed",
+              "content": "| Claude Code Guide | Haiku | When you ask questions about Claude Code features |"
+            },
+            {
+              "type": "added",
+              "content": "| claude-code-guide | Haiku | When you ask questions about Claude Code features |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Beyond these built-in subagents, you can create your own with custom prompts, tool restrictions, permission modes, hooks, and skills. The following sections show how to get started and customize subagents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -151,7 +151,7 @@ Project subagents are discovered by walking up from the current working director",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**CLI-defined subagents** are passed as JSON when launching Claude Code. They exist only for that session and aren't saved to disk, making them useful for quick testing or automation scripts. You can define multiple subagents in a single `--agents` call:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "claude --agents '{"
+            },
+            {
+              "type": "context",
+              "content": "  \"code-reviewer\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"description\": \"Expert code reviewer. Use proactively after code changes.\","
+            }
+          ]
+        },
+        {
+          "header": "@@ -166,6 +166,23 @@ claude --agents '{",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "claude --agents @'"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"code-reviewer\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"description\": \"Expert code reviewer. Use proactively after code changes.\","
+            },
+            {
+              "type": "added",
+              "content": "    \"prompt\": \"You are a senior code reviewer. Focus on code quality, security, and best practices.\","
+            },
+            {
+              "type": "added",
+              "content": "    \"tools\": [\"Read\", \"Grep\", \"Glob\", \"Bash\"],"
+            },
+            {
+              "type": "added",
+              "content": "    \"model\": \"sonnet\""
+            },
+            {
+              "type": "added",
+              "content": "  },"
+            },
+            {
+              "type": "added",
+              "content": "  \"debugger\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"description\": \"Debugging specialist for errors and test failures.\","
+            },
+            {
+              "type": "added",
+              "content": "    \"prompt\": \"You are an expert debugger. Analyze errors, identify root causes, and provide fixes.\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "'@"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `--agents` flag accepts JSON with the same [frontmatter](#supported-frontmatter-fields) fields as file-based subagents: `description`, `prompt`, `tools`, `disallowedTools`, `model`, `permissionMode`, `mcpServers`, `hooks`, `maxTurns`, `skills`, `initialPrompt`, `memory`, `effort`, `background`, `isolation`, and `color`. Use `prompt` for the system prompt, equivalent to the markdown body in file-based subagents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Managed subagents** are deployed by organization administrators. Place markdown files in `.claude/agents/` inside the [managed settings directory](/en/settings#settings-files), using the same frontmatter format as project and user subagents. Managed definitions take precedence over project and user subagents with the same name."
+            }
+          ]
+        },
+        {
+          "header": "@@ -180,7 +197,7 @@ Subagent definitions from any of these scopes are also available to [agent teams",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Subagent files use YAML frontmatter for configuration, followed by the system prompt in Markdown:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Subagents are loaded at session start. If you create a subagent by manually adding a file, restart your session or use `/agents` to load it immediately."
+            },
+            {
+              "type": "added",
+              "content": "Subagents are loaded at session start. If you add or edit a subagent file directly on disk, restart your session to load it. Subagents created through the `/agents` interface take effect immediately without a restart."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```markdown"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            }
+          ]
+        },
+        {
+          "header": "@@ -445,7 +462,7 @@ fi",
+          "lines": [
+            {
+              "type": "context",
+              "content": "exit 0"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "See [Hook input](/en/hooks#pretooluse-input) for the complete input schema and [exit codes](/en/hooks#exit-code-output) for how exit codes affect behavior."
+            },
+            {
+              "type": "added",
+              "content": "See [Hook input](/en/hooks#pretooluse-input) for the complete input schema and [exit codes](/en/hooks#exit-code-output) for how exit codes affect behavior. On Windows, write hook scripts in PowerShell and add `shell: powershell` to the hook entry as shown in [running hooks in PowerShell](/en/hooks#windows-powershell-tool)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Disable specific subagents"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -945,12 +962,14 @@ fi",
+          "lines": [
+            {
+              "type": "context",
+              "content": "exit 0"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Make the script executable:"
+            },
+            {
+              "type": "added",
+              "content": "On macOS and Linux, make the script executable:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "chmod +x ./scripts/validate-readonly-query.sh"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Windows, write the validation script in PowerShell and add `shell: powershell` to the hook entry. See [running hooks in PowerShell](/en/hooks#windows-powershell-tool)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The hook receives JSON via stdin with the Bash command in `tool_input.command`. Exit code 2 blocks the operation and feeds the error message back to Claude. See [Hooks](/en/hooks#exit-code-output) for details on exit codes and [Hook input](/en/hooks#pretooluse-input) for the complete input schema."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Next steps"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "voice-dictation.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "音声入力のホールドモードで使用を避けるべきキーや、Caps Lockなどターミナルに渡されずバインド不可能なキーに関する注意点が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -139,7 +139,9 @@ The dictation key is bound to `voice:pushToTalk` in the `Chat` context and defau",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Setting `\"space\": null` removes the default binding. Omit it if you want both keys active."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In hold mode, avoid binding a bare letter key like `v` since hold detection relies on key-repeat and the letter types into the prompt during warmup. Use `Space`, or use a modifier combination like `meta+k` to start recording on the first keypress with no warmup. Tap mode has no warmup, so any key works. See [customize keyboard shortcuts](/en/keybindings) for the full keybinding syntax."
+            },
+            {
+              "type": "added",
+              "content": "In hold mode, avoid binding a bare letter key like `v` since hold detection relies on key-repeat and the letter types into the prompt during warmup. Use `Space`, or use a modifier combination like `meta+k` to start recording on the first keypress with no warmup. Tap mode has no warmup, so most keys work."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Some keys are not delivered to terminal applications and cannot be bound at all. For example, `Caps Lock` shows an error if you try to bind it. See [customize keyboard shortcuts](/en/keybindings) for the full keybinding syntax and the list of reserved shortcuts."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "vs-code.md",
+      "additions": 10,
+      "deletions": 0,
+      "explanation": "macOS Tahoe以降でCmd+Escがゲームオーバーレイと競合する問題の解決策と、キーバインドの再割り当て手順が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -419,6 +419,16 @@ The Spark icon appears in the **Editor Toolbar** (top-right of editor) when you",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Alternatively, click \"✱ Claude Code\" in the **Status Bar** (bottom-right corner). This works even without a file open. You can also use the **Command Palette** (`Cmd+Shift+P` / `Ctrl+Shift+P`) and type \"Claude Code\"."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Cmd+Esc does nothing on macOS"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On macOS Tahoe and later, the system Game Overlay shortcut is bound to `Cmd+Esc` by default and intercepts the keypress before it reaches VS Code. To free the shortcut:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "1. Open System Settings"
+            },
+            {
+              "type": "added",
+              "content": "2. Go to Keyboard, then Keyboard Shortcuts, then Game Controllers"
+            },
+            {
+              "type": "added",
+              "content": "3. Clear the Game Overlay checkbox"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Alternatively, rebind the extension to a different key: open the VS Code [Keyboard Shortcuts editor](https://code.visualstudio.com/docs/configure/keybindings) (`Cmd+K Cmd+S`), search for `Claude Code: Focus input`, and assign a new binding."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Claude Code never responds"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code isn't responding to your prompts:"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

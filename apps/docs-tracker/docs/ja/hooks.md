@@ -929,7 +929,7 @@ InstructionsLoaded フックは決定制御がありません。命令ロード�
 | `decision` | `"block"` はプロンプトが処理されるのを防ぎ、コンテキストから消去します。許可するには省略 |
 | `reason` | `decision` が `"block"` のときにユーザーに表示されます。コンテキストに追加されません |
 | `additionalContext` | Claude のコンテキストに追加される文字列。[Claude のコンテキストを追加](#add-context-for-claude)を参照してください |
-| `sessionTitle` | セッション タイトルを設定します。`/rename` と同じ効果。プロンプト コンテンツに基づいてセッションを自動的に名前付けするのに使用 |
+| `sessionTitle` | セッション タイトルを設定します。プロンプト コンテンツに基づいてセッションを自動的に名前付けするのに使用 |
 
 ```json
 {
