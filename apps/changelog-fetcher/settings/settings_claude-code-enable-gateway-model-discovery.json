@@ -1,0 +1,20 @@
+{
+  "key": "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY",
+  "slug": "claude-code-enable-gateway-model-discovery",
+  "source": "env",
+  "description_en": "Set to `1` to populate the `/model` picker from your gateway's `/v1/models` endpoint when `ANTHROPIC_BASE_URL` points at an Anthropic-compatible gateway such as LiteLLM, Kong, or an internal proxy. Off by default because gateways backed by a shared API key would otherwise show every user every model the key can access. Discovered models are still filtered by the [`availableModels`](/en/settings#available-settings) allowlist",
+  "description_ja": "ANTHROPIC_BASE_URLがLiteLLMやKong、内部プロキシなどのAnthropic互換ゲートウェイを指している場合に、ゲートウェイの/v1/modelsエンドポイントからモデル選択リストを生成します。",
+  "use_case_ja": "- 独自のLLMゲートウェイを利用している環境で、利用可能なモデル一覧を自動的に取得しモデルピッカーに表示できます。\n- 共有APIキーを使用している場合に全ユーザーに全モデルが見えてしまうのを防ぐため、デフォルトではオフになっています。\n- セキュリティやネットワーク要件に合わせて、明示的なオプトインによるモデル検出を可能にします。",
+  "related_changelog": [
+    {
+      "version": "2.1.129",
+      "content": "- Gateway `/v1/models` discovery for the `/model` picker is now opt-in via `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` (was automatic in 2.1.126–2.1.128)",
+      "content_ja": "モデルピッカーでのゲートウェイ`/v1/models`によるモデル自動検出が、`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`によるオプトイン方式に変更されました",
+      "inference": {
+        "before": "独自のLLMゲートウェイを使用している場合、モデルの一覧取得が常に自動で行われていました。",
+        "after": "環境変数を明示的に設定した場合のみ、ゲートウェイのエンドポイントから利用可能なモデルの一覧を取得するようになります。",
+        "benefit": "意図しないエンドポイントへのリクエストを防ぎ、セキュリティやネットワーク要件に合わせた柔軟な設定が可能になります。"
+      }
+    }
+  ]
+}
