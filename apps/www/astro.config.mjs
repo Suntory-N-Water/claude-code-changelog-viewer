@@ -1,7 +1,6 @@
 // @ts-check
 
 import { readFileSync } from 'node:fs';
-import cloudflare from '@astrojs/cloudflare';
 import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'astro/config';
@@ -63,12 +62,8 @@ export default defineConfig({
     define: {
       __APP_VERSION__: JSON.stringify(appVersion),
     },
-    ssr: {
-      noExternal: ['satori'],
-    },
   },
   output: 'static',
-  adapter: cloudflare(),
   integrations: [
     sitemap({
       // OG 画像・RSS・llms.txt・robots.txt 等を除外
