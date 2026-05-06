@@ -84,7 +84,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--output-format` | プリントモードの出力形式を指定します（オプション：`text`、`json`、`stream-json`） | `claude -p "query" --output-format json` |
 | `--permission-mode` | 指定された [権限モード](/ja/permission-modes) で開始します。`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、または `bypassPermissions` を受け入れます。設定ファイルの `defaultMode` をオーバーライドします | `claude --permission-mode plan` |
 | `--permission-prompt-tool` | 非インタラクティブモードで権限プロンプトを処理する MCP ツールを指定します | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
-| `--plugin-dir` | このセッションのみのプラグインをディレクトリから読み込みます。各フラグは 1 つのパスを取ります。複数のディレクトリの場合はフラグを繰り返します：`--plugin-dir A --plugin-dir B` | `claude --plugin-dir ./my-plugins` |
+| `--plugin-dir` | このセッションのみのプラグインをディレクトリまたは `.zip` アーカイブから読み込みます。各フラグは 1 つのパスを取ります。複数のプラグインの場合はフラグを繰り返します：`--plugin-dir A --plugin-dir B.zip` | `claude --plugin-dir ./my-plugin` |
 | `--print`, `-p` | インタラクティブモードなしで応答を出力します（プログラムによる使用の詳細については [Agent SDK ドキュメント](/ja/agent-sdk/overview) を参照） | `claude -p "query"` |
 | `--remote` | 提供されたタスク説明で claude.ai に新しい [Web セッション](/ja/claude-code-on-the-web) を作成します | `claude --remote "Fix the login bug"` |
 | `--remote-control`, `--rc` | [Remote Control](/ja/remote-control#start-a-remote-control-session) を有効にしてインタラクティブセッションを開始し、claude.ai または Claude アプリからも制御できるようにします。オプションでセッションの名前を渡すことができます | `claude --remote-control "My Project"` |
@@ -93,7 +93,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--resume`, `-r` | ID または名前で特定のセッションを再開するか、セッションを選択するためのインタラクティブピッカーを表示します。このディレクトリを `/add-dir` で追加したセッションを含みます | `claude --resume auth-refactor` |
 | `--session-id` | 会話に特定のセッション ID を使用します（有効な UUID である必要があります） | `claude --session-id "550e8400-e29b-41d4-a716-446655440000"` |
 | `--setting-sources` | 読み込む設定ソースのカンマ区切りリスト（`user`、`project`、`local`） | `claude --setting-sources user,project` |
-| `--settings` | 追加の設定を読み込むための設定 JSON ファイルまたは JSON 文字列へのパス | `claude --settings ./settings.json` |
+| `--settings` | 設定 JSON ファイルまたはインライン JSON 文字列へのパス。ここで設定した値は、このセッションの `settings.json` ファイル内の同じキーをオーバーライドします。省略したキーはファイルベースの値を保持します。[設定の優先順位](/ja/settings#settings-precedence) を参照してください | `claude --settings ./settings.json` |
 | `--strict-mcp-config` | `--mcp-config` からのみ MCP サーバーを使用し、他のすべての MCP 設定を無視します | `claude --strict-mcp-config --mcp-config ./mcp.json` |
 | `--system-prompt` | デフォルトシステムプロンプト全体をカスタムテキストで置き換え | `claude --system-prompt "You are a Python expert"` |
 | `--system-prompt-file` | ファイルからシステムプロンプトを読み込み、デフォルトプロンプトを置き換え | `claude --system-prompt-file ./custom-prompt.txt` |
@@ -103,7 +103,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--tools` | Claude が使用できる組み込みツールを制限します。`""` を使用してすべてを無効にし、`"default"` を使用してすべてを有効にするか、`"Bash,Edit,Read"` のようなツール名を使用します | `claude --tools "Bash,Edit,Read"` |
 | `--verbose` | 詳細ログを有効にし、ターンごとの完全な出力を表示 | `claude --verbose` |
 | `--version`, `-v` | バージョン番号を出力 | `claude -v` |
-| `--worktree`, `-w` | Claude を `<repo>/.claude/worktrees/<name>` の分離された [git worktree](/ja/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees) で開始します。名前が指定されていない場合は、自動生成されます | `claude -w feature-auth` |
+| `--worktree`, `-w` | Claude を `<repo>/.claude/worktrees/<name>` の分離された [git worktree](/ja/worktrees) で開始します。名前が指定されていない場合は、自動生成されます | `claude -w feature-auth` |
 
 ### システムプロンプトフラグ
 
