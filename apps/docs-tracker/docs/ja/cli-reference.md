@@ -85,6 +85,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--permission-mode` | 指定された [権限モード](/ja/permission-modes) で開始します。`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、または `bypassPermissions` を受け入れます。設定ファイルの `defaultMode` をオーバーライドします | `claude --permission-mode plan` |
 | `--permission-prompt-tool` | 非インタラクティブモードで権限プロンプトを処理する MCP ツールを指定します | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
 | `--plugin-dir` | このセッションのみのプラグインをディレクトリまたは `.zip` アーカイブから読み込みます。各フラグは 1 つのパスを取ります。複数のプラグインの場合はフラグを繰り返します：`--plugin-dir A --plugin-dir B.zip` | `claude --plugin-dir ./my-plugin` |
+| `--plugin-url` | このセッションのみのプラグイン `.zip` アーカイブを URL から取得します。各フラグは 1 つの URL を取ります。複数のプラグインの場合はフラグを繰り返します | `claude --plugin-url https://example.com/plugin.zip` |
 | `--print`, `-p` | インタラクティブモードなしで応答を出力します（プログラムによる使用の詳細については [Agent SDK ドキュメント](/ja/agent-sdk/overview) を参照） | `claude -p "query"` |
 | `--remote` | 提供されたタスク説明で claude.ai に新しい [Web セッション](/ja/claude-code-on-the-web) を作成します | `claude --remote "Fix the login bug"` |
 | `--remote-control`, `--rc` | [Remote Control](/ja/remote-control#start-a-remote-control-session) を有効にしてインタラクティブセッションを開始し、claude.ai または Claude アプリからも制御できるようにします。オプションでセッションの名前を渡すことができます | `claude --remote-control "My Project"` |

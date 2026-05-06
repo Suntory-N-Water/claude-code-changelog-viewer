@@ -294,7 +294,7 @@ LSP 統合は以下を提供します:
 ]
 ```
 
-monitors をインラインで宣言するには、`plugin.json` の `monitors` キーを同じ配列に設定します。デフォルト以外のパスから読み込むには、`monitors` を `"./config/monitors.json"` などの相対パス文字列に設定します。
+monitors をインラインで宣言するには、`plugin.json` の `experimental.monitors` を同じ配列に設定します。デフォルト以外のパスから読み込むには、`experimental.monitors` を `"./config/monitors.json"` などの相対パス文字列に設定します。Monitors は[実験的コンポーネント](#experimental-components)です。
 
 **必須フィールド:**
 
@@ -316,7 +316,7 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 
 ### Themes
 
-プラグインは、`/theme` に組み込みプリセットおよびユーザーのローカルテーマと一緒に表示される色テーマを配布できます。テーマは `themes/` 内の JSON ファイルで、`base` プリセットと色トークンのスパース `overrides` マップを持ちます。
+プラグインは、`/theme` に組み込みプリセットおよびユーザーのローカルテーマと一緒に表示される色テーマを配布できます。テーマは `themes/` 内の JSON ファイルで、`base` プリセットと色トークンのスパース `overrides` マップを持ちます。Themes は[実験的コンポーネント](#experimental-components)です。
 
 ```json
 {
@@ -377,9 +377,11 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
   "hooks": "./config/hooks.json",
   "mcpServers": "./mcp-config.json",
   "outputStyles": "./styles/",
-  "themes": "./themes/",
   "lspServers": "./.lsp.json",
-  "monitors": "./monitors.json",
+  "experimental": {
+    "themes": "./themes/",
+    "monitors": "./monitors.json"
+  },
   "dependencies": [
     "helper-lib",
     { "name": "secrets-vault", "version": "~2.1.0" }
@@ -420,12 +422,16 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 | `hooks` | string\|array\|object | Hook 設定パスまたはインライン設定 | `"./my-extra-hooks.json"` |
 | `mcpServers` | string\|array\|object | MCP 設定パスまたはインライン設定 | `"./my-extra-mcp-config.json"` |
 | `outputStyles` | string\|array | カスタム出力スタイルファイル/ディレクトリ（デフォルト `output-styles/` を置き換え） | `"./styles/"` |
-| `themes` | string\|array | カラーテーマファイル/ディレクトリ（デフォルト `themes/` を置き換え）。[テーマ](#themes)を参照してください | `"./themes/"` |
 | `lspServers` | string\|array\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/)コード インテリジェンス用の設定（定義へのジャンプ、参照の検索など） | `"./.lsp.json"` |
-| `monitors` | string\|array | プラグインがアクティブな場合に自動的に開始されるバックグラウンド[Monitor](/ja/tools-reference#monitor-tool)設定。[Monitors](#monitors)を参照してください | `"./monitors.json"` |
+| `experimental.themes` | string\|array | カラーテーマファイル/ディレクトリ（デフォルト `themes/` を置き換え）。[テーマ](#themes)を参照してください | `"./themes/"` |
+| `experimental.monitors` | string\|array | プラグインがアクティブな場合に自動的に開始されるバックグラウンド[Monitor](/ja/tools-reference#monitor-tool)設定。[Monitors](#monitors)を参照してください | `"./monitors.json"` |
 | `userConfig` | object | ユーザー設定可能な値は有効化時にプロンプトされます。[ユーザー設定](#user-configuration)を参照してください | 下記を参照 |
 | `channels` | array | メッセージ注入用のチャネル宣言（Telegram、Slack、Discord スタイル）。[チャネル](#channels)を参照してください | 下記を参照 |
 | `dependencies` | array | このプラグインが必要とする他のプラグイン。オプションで semver バージョン制約付き。[プラグイン依存関係バージョンを制約](/ja/plugin-dependencies)を参照してください | `[{ "name": "secrets-vault", "version": "~2.1.0" }]` |
+
+### 実験的コンポーネント
+
+`experimental` キーの下のコンポーネント、`themes` と `monitors` は、安定化する間にリリース間でマニフェストスキーマが変更される可能性があります。それらを宣言する場所は別の移行です。トップレベルはまだ機能し、`claude plugin validate` は警告を表示し、将来のリリースでは `experimental.*` が必要になります。
 
 ### ユーザー設定
 
@@ -497,7 +503,7 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 
 ### パス動作ルール
 
-`skills`、`commands`、`agents`、`outputStyles`、`themes`、`monitors` の場合、カスタムパスはデフォルトを置き換えます。マニフェストが `skills` を指定する場合、デフォルト `skills/` ディレクトリはスキャンされません。`monitors` を指定する場合、デフォルト `monitors/monitors.json` は読み込まれません。[Hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)は複数のソースを処理するための異なるセマンティクスを持ちます。
+`skills`、`commands`、`agents`、`outputStyles`、`experimental.themes`、`experimental.monitors` の場合、カスタムパスはデフォルトを置き換えます。マニフェストが `skills` を指定する場合、デフォルト `skills/` ディレクトリはスキャンされません。`experimental.monitors` を指定する場合、デフォルト `monitors/monitors.json` は読み込まれません。[Hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)は複数のソースを処理するための異なるセマンティクスを持ちます。
 
 - すべてのパスはプラグインルートに相対的で、`./` で始まる必要があります
 - カスタムパスからのコンポーネントは同じ命名と名前空間ルールを使用します
@@ -598,7 +604,7 @@ Claude Code は、プラグインパスを参照するための 2 つの変数�
 
 プラグインは 2 つの方法で指定されます:
 
-- `claude --plugin-dir` を通じて、セッションの期間。
+- `claude --plugin-dir` または `claude --plugin-url` を通じて、セッションの期間。
 - マーケットプレイスを通じて、将来のセッション用にインストール。
 
 セキュリティと検証の目的で、Claude Code は\_マーケットプレイス\_プラグインをユーザーのローカル**プラグインキャッシュ**（`~/.claude/plugins/cache`）にコピーします。これらを所定の場所で使用するのではなく。この動作を理解することは、外部ファイルを参照するプラグインを開発する際に重要です。

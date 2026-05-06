@@ -50,9 +50,9 @@ Claude Codeはまた、クライアントバージョンと会話から派生し
 
 ### モデル選択
 
-デフォルトでは、Claude Code は選択したAPI形式の標準モデル名を使用します。
+デフォルトでは、Claude Code は選択した API 形式の標準モデル名を使用します。
 
-`ANTHROPIC_BASE_URL` が Anthropic Messages 形式を公開するゲートウェイを指している場合、Claude Code はスタートアップ時にゲートウェイの `/v1/models` エンドポイントをクエリし、返されたモデルを `/model` ピッカーに追加します。検出された各エントリは「From gateway」というラベルが付けられ、レスポンスから提供されている場合は `display_name` フィールドを使用します。これには Claude Code v2.1.126 以降が必要です。
+`ANTHROPIC_BASE_URL` が Anthropic Messages 形式を公開するゲートウェイを指している場合、Claude Code はスタートアップ時にゲートウェイの `/v1/models` エンドポイントをクエリし、返されたモデルを `/model` ピッカーに追加できます。`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` を設定して、この機能を有効にしてください。検出はデフォルトでオフになっており、共有 API キーでバックアップされたゲートウェイが、キーがアクセスできるすべてのモデルをすべてのユーザーに表示しないようにします。検出された各エントリは「From gateway」というラベルが付けられ、レスポンスから提供されている場合は `display_name` フィールドを使用します。これには Claude Code v2.1.129 以降が必要です。
 
 検出は Anthropic Messages 形式にのみ適用されます。Bedrock または Vertex パススルーエンドポイントでは実行されず、`ANTHROPIC_BASE_URL` が設定されていない場合または `api.anthropic.com` を指している場合にも実行されません。
 

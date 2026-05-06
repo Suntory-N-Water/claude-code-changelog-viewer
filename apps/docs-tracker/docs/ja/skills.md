@@ -19,56 +19,57 @@ Claude Code スキルは [Agent Skills](https://agentskills.io) オープンス�
 
 ## バンドルされたスキル
 
-Claude Code には、すべてのセッションで利用可能な一連のバンドルされたスキルが含まれています。これには `/simplify`、`/batch`、`/debug`、`/loop`、および `/claude-api` が含まれます。固定ロジックを直接実行する組み込みコマンドとは異なり、バンドルされたスキルはプロンプトベースです。Claude に詳細なプレイブックを提供し、ツールを使用して作業を調整させます。他のスキルと同じ方法で呼び出します。`/` の後にスキル名を入力します。
+Claude Code には、すべてのセッションで利用可能な一連のバンドルされたスキルが含まれています。これには `/simplify`、`/batch`、`/debug`、`/loop`、および `/claude-api` が含まれます。固定ロジックを直接実行する組み込みコマンドとは異なり、バンドルされたスキルはプロンプトベースです。Claude に詳細な指示を提供し、ツールを使用して作業を調整させます。他のスキルと同じ方法で呼び出します。`/` の後にスキル名を入力します。
 
-バンドルされたスキルは [コマンドリファレンス](/ja/commands)に組み込みコマンドと一緒にリストされており、目的列に**スキル**とマークされています。
+バンドルされたスキルは [コマンドリファレンス](/ja/commands) に組み込みコマンドと一緒にリストされており、目的列に**スキル**とマークされています。
 
 ## はじめに
 
 ### 最初のスキルを作成する
 
-この例は、Claude に視覚的な図と類推を使用してコードを説明するように教えるスキルを作成します。デフォルトのフロントマターを使用するため、何かの仕組みを尋ねるときに Claude が自動的にスキルを読み込むか、`/explain-code` で直接呼び出すことができます。
+この例は、git リポジトリ内のコミットされていない変更を要約し、危険な点にフラグを付けるスキルを作成します。プロンプトにライブ diff を取り込むため、Claude が開いているファイルから推測できるものではなく、実際の作業ツリーに基づいた応答が得られます。Claude は変更について尋ねるときにスキルを自動的に読み込むか、`/summarize-changes` で直接呼び出すことができます。
 
 個人用スキルフォルダにスキル用のディレクトリを作成します。個人用スキルはすべてのプロジェクト全体で利用可能です。
 
 ```bash theme={null}
-mkdir -p ~/.claude/skills/explain-code
+mkdir -p ~/.claude/skills/summarize-changes
 ```
 
-すべてのスキルには `SKILL.md` ファイルが必要です。2 つの部分があります。YAML フロントマター（`---` マーカー間）は Claude にスキルをいつ使用するかを伝え、マークダウンコンテンツはスキルが呼び出されるときに Claude が従う指示です。ディレクトリ名は `/slash-command` になり、`description` は Claude がスキルを自動的に読み込むかどうかを決定するのに役立ちます。
+すべてのスキルには `SKILL.md` ファイルが必要です。2 つの部分があります。YAML フロントマター（`---` マーカー間）は Claude にスキルをいつ使用するかを伝え、マークダウンコンテンツはスキルが実行されるときに Claude が従う指示です。ディレクトリ名はコマンドになり、`description` は Claude がスキルを自動的に読み込むかどうかを決定するのに役立ちます。
 
-`~/.claude/skills/explain-code/SKILL.md` を作成します：
+`~/.claude/skills/summarize-changes/SKILL.md` に保存します：
 
 ```yaml theme={null}
 ---
-description: Explains code with visual diagrams and analogies. Use when explaining how code works, teaching about a codebase, or when the user asks "how does this work?"
+description: Summarizes uncommitted changes and flags anything risky. Use when the user asks what changed, wants a commit message, or asks to review their diff.
 ---
 
-When explaining code, always include:
+## Current changes
 
-1. **Start with an analogy**: Compare the code to something from everyday life
-2. **Draw a diagram**: Use ASCII art to show the flow, structure, or relationships
-3. **Walk through the code**: Explain step-by-step what happens
-4. **Highlight a gotcha**: What's a common mistake or misconception?
+!`git diff HEAD`
 
-Keep explanations conversational. For complex concepts, use multiple analogies.
+## Instructions
+
+Summarize the changes above in two or three bullet points, then list any risks you notice such as missing error handling, hardcoded values, or tests that need updating. If the diff is empty, say there are no uncommitted changes.
 ```
 
-2 つの方法でテストできます：
+`` !`git diff HEAD` `` 行は[動的コンテキスト注入](#inject-dynamic-context)を使用します。Claude Code はコマンドを実行し、Claude がスキルコンテンツを見る前に行を出力に置き換えるため、指示は現在の diff がすでにインライン化された状態で到着します。
+
+git プロジェクトを開き、任意のファイルに小さな編集を加え、`claude` を実行して Claude Code を起動します。2 つの方法でスキルをテストできます。
 
 **説明に一致するものを尋ねることで Claude に自動的に呼び出させます：**
 
 ```text theme={null}
-How does this code work?
+What did I change?
 ```
 
 **またはスキル名で直接呼び出します：**
 
 ```text theme={null}
-/explain-code src/auth/login.ts
+/summarize-changes
 ```
 
-どちらの方法でも、Claude の説明に類推と ASCII 図が含まれるはずです。
+どちらの方法でも、Claude は編集の短い要約とリスク一覧で応答するはずです。
 
 ### スキルが存在する場所
 
@@ -115,6 +116,12 @@ my-skill/
 
 `--add-dir` ディレクトリの CLAUDE.md ファイルはデフォルトでは読み込まれません。読み込むには、`CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` を設定します。[追加ディレクトリから読み込む](/ja/memory#load-from-additional-directories)を参照してください。
 
+***
+
+title: "スキルを設定する"
+description: "YAML フロントマターとマークダウンコンテンツを使用してスキルを設定し、カスタマイズする方法"
+--------------------------------------------------------------
+
 ## スキルを設定する
 
 スキルは `SKILL.md` の上部の YAML フロントマターと、その後に続くマークダウンコンテンツを通じて設定されます。
@@ -154,6 +161,8 @@ Deploy the application:
 ```
 
 `SKILL.md` には何でも含めることができますが、スキルを呼び出す方法（ユーザー、Claude、またはその両方）と実行場所（インラインまたはサブエージェント）を考えることは、含める内容をガイドするのに役立ちます。複雑なスキルの場合、[サポートファイルを追加する](#add-supporting-files)ことで、メインスキルに焦点を当てることもできます。
+
+本体自体は簡潔に保ちます。スキルが読み込まれると、そのコンテンツは[ターン全体でコンテキストに留まり](#skill-content-lifecycle)、すべての行が繰り返されるトークンコストになります。実行内容を述べ、方法や理由を説明するのではなく、[CLAUDE.md コンテンツ](/ja/best-practices#write-an-effective-claude-md)に適用するのと同じ簡潔性テストを適用します。
 
 ### フロントマターリファレンス
 
@@ -290,6 +299,8 @@ Deploy $ARGUMENTS to production:
 
 `allowed-tools` フィールドは、スキルがアクティブな場合、リストされたツールの権限を付与するため、Claude はあなたに承認を求めることなくそれらを使用できます。これは利用可能なツールを制限しません。すべてのツールは呼び出し可能なままであり、[権限設定](/ja/permissions)は引き続き、リストされていないツールのツール承認を管理します。
 
+プロジェクトの `.claude/skills/` ディレクトリにチェックインされたスキルの場合、`allowed-tools` はそのフォルダーのワークスペーストラストダイアログを受け入れた後に有効になります。これは `.claude/settings.json` の権限ルールと同じです。スキルが広範なツールアクセスを許可できるため、リポジトリを信頼する前にプロジェクトスキルを確認してください。
+
 このスキルは、スキルを呼び出すときはいつでも、Claude が git コマンドを実行できるようにします：
 
 ```yaml
@@ -400,7 +411,7 @@ git status --short
 
 ユーザー、プロジェクト、プラグイン、または[追加ディレクトリ](#skills-from-additional-directories)ソースからのスキルとカスタムコマンドについて、この動作を無効にするには、[設定](/ja/settings)で `"disableSkillShellExecution": true` を設定します。各コマンドは `[shell command execution disabled by policy]` に置き換えられます。バンドルされたスキルと管理スキルは影響を受けません。この設定は[管理設定](/ja/permissions#managed-settings)で最も有用です。ユーザーはそれをオーバーライドできません。
 
-スキルで[拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode)を有効にするには、スキルコンテンツのどこかに「ultrathink」という単語を含めます。
+スキルで深い推論をリクエストするには、スキルコンテンツのどこかに `ultrathink` を含めます。[ワンオフの深い推論に ultrathink を使用する](/ja/model-config#use-ultrathink-for-one-off-deep-reasoning)を参照してください。
 
 ### スキルをサブエージェントで実行する
 
@@ -475,6 +486,32 @@ Skill(deploy *)
 
 `user-invocable` フィールドはメニューの可視性のみを制御し、Skill ツールアクセスは制御しません。プログラムによる呼び出しをブロックするには `disable-model-invocation: true` を使用します。
 
+### 設定からスキルの可視性をオーバーライドする
+
+`skillOverrides` 設定は、スキル自体のフロントマターではなく、[設定](/ja/settings)からスキルの可視性を制御します。共有プロジェクトリポジトリにチェックインされたスキルや MCP サーバーによって提供されるスキルなど、SKILL.md を編集したくないスキルに使用します。`/skills` メニューはあなたのために書きます：スキルをハイライトして `Space` を押して状態をサイクルし、`Enter` を押して `.claude/settings.local.json` に保存します。
+
+各キーはスキル名で、各値は 4 つの状態のいずれかです：
+
+| 値 | Claude にリストされている | `/` メニューで |
+| :- | :- | :- |
+| `"on"` | 名前と説明 | はい |
+| `"name-only"` | 名前のみ | はい |
+| `"user-invocable-only"` | 非表示 | はい |
+| `"off"` | 非表示 | 非表示 |
+
+`skillOverrides` に存在しないスキルは `"on"` として扱われます。以下の例は 1 つのスキルを名前に折りたたみ、別のスキルを完全にオフにします：
+
+```json
+{
+  "skillOverrides": {
+    "legacy-context": "name-only",
+    "deploy": "off"
+  }
+}
+```
+
+プラグインスキルは `skillOverrides` の影響を受けません。代わりに `/plugin` を通じてそれらを管理します。
+
 ## スキルを共有する
 
 スキルはオーディエンスに応じて異なるスコープで配布できます：
@@ -495,13 +532,13 @@ Skill(deploy *)
 mkdir -p ~/.claude/skills/codebase-visualizer/scripts
 ```
 
-`~/.claude/skills/codebase-visualizer/SKILL.md` を作成します。説明は Claude にこのスキルをいつアクティブにするかを伝え、指示は Claude にバンドルされたスクリプトを実行するよう伝えます：
+`~/.claude/skills/codebase-visualizer/SKILL.md` に保存します。説明は Claude にこのスキルをいつアクティブにするかを伝え、指示は Claude にバンドルされたスクリプトを実行するよう伝えます。スクリプトパスは [`${CLAUDE_SKILL_DIR}`](#available-string-substitutions) を使用するため、スキルが個人、プロジェクト、またはプラグインレベルでインストールされているかどうかに関わらず、正しく解決されます：
 
 ````yaml theme={null}
 ---
 name: codebase-visualizer
 description: Generate an interactive collapsible tree visualization of your codebase. Use when exploring a new repo, understanding project structure, or identifying large files.
-allowed-tools: Bash(python *)
+allowed-tools: Bash(python3 *)
 ---
 
 # Codebase Visualizer
@@ -513,7 +550,7 @@ Generate an interactive HTML tree view that shows your project's file structure 
 Run the visualization script from your project root:
 
 ```bash
-python ~/.claude/skills/codebase-visualizer/scripts/visualize.py .
+python3 ${CLAUDE_SKILL_DIR}/scripts/visualize.py .
 ```
 
 This creates `codebase-map.html` in the current directory and opens it in your default browser.
@@ -526,13 +563,13 @@ This creates `codebase-map.html` in the current directory and opens it in your d
 - **Directory totals**: Shows aggregate size of each folder
 ````
 
-`~/.claude/skills/codebase-visualizer/scripts/visualize.py` を作成します。このスクリプトはディレクトリツリーをスキャンし、以下を含む自己完結型の HTML ファイルを生成します：
+`~/.claude/skills/codebase-visualizer/scripts/visualize.py` に保存します。このスクリプトはディレクトリツリーをスキャンし、以下を含む自己完結型の HTML ファイルを生成します：
 
 - ファイル数、ディレクトリ数、合計サイズ、ファイルタイプ数を示す**サマリーサイドバー**
 - コードベースをファイルタイプ別に分類する**棒グラフ**（サイズ別トップ 8）
 - ディレクトリを展開および折りたたむことができる**折りたたみ可能なツリー**（色分けされたファイルタイプインジケーター付き）
 
-スクリプトは Python が必要ですが、組み込みライブラリのみを使用するため、インストールするパッケージはありません：
+スクリプトは Python 3 が必要ですが、組み込みライブラリのみを使用するため、インストールするパッケージはありません：
 
 ```python expandable
 #!/usr/bin/env python3
@@ -541,6 +578,7 @@ This creates `codebase-map.html` in the current directory and opens it in your d
 import json
 import sys
 import webbrowser
+from html import escape
 from pathlib import Path
 from collections import Counter
 
@@ -629,7 +667,7 @@ def generate_html(data: dict, stats: dict, output: Path) -> None:
       {lang_bars}
     </div>
     <div class="main">
-      <h1>📁 {data["name"]}</h1>
+      <h1>📁 {escape(data["name"])}</h1>
       <ul class="tree" id="root"></ul>
     </div>
   </div>
@@ -637,11 +675,12 @@ def generate_html(data: dict, stats: dict, output: Path) -> None:
     const data = {json.dumps(data)};
     const colors = {json.dumps(colors)};
     function fmt(b) {{ if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(1) + ' MB'; }}
+    function esc(s) {{ return s.replace(/[&<>"']/g, c => ({{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}}[c])); }}
     function render(node, parent) {{
       if (node.children) {{
         const det = document.createElement('details');
         det.open = parent === document.getElementById('root');
-        det.innerHTML = `<summary><span class="folder">📁 ${{node.name}}</span><span class="size">${{fmt(node.size)}}</span></summary>`;
+        det.innerHTML = `<summary><span class="folder">📁 ${{esc(node.name)}}</span><span class="size">${{fmt(node.size)}}</span></summary>`;
         const ul = document.createElement('ul'); ul.className = 'tree';
         node.children.sort((a,b) => (b.children?1:0)-(a.children?1:0) || a.name.localeCompare(b.name));
         node.children.forEach(c => render(c, ul));
@@ -649,7 +688,7 @@ def generate_html(data: dict, stats: dict, output: Path) -> None:
         const li = document.createElement('li'); li.appendChild(det); parent.appendChild(li);
       }} else {{
         const li = document.createElement('li'); li.className = 'file';
-        li.innerHTML = `<span class="dot" style="background:${{colors[node.ext]||'#6b7280'}}"></span>${{node.name}}<span class="size">${{fmt(node.size)}}</span>`;
+        li.innerHTML = `<span class="dot" style="background:${{colors[node.ext]||'#6b7280'}}"></span>${{esc(node.name)}}<span class="size">${{fmt(node.size)}}</span>`;
         parent.appendChild(li);
       }}
     }}
@@ -688,13 +727,13 @@ Claude がスキルを期待どおりに使用しない場合：
 Claude がスキルを使用したくない場合：
 
 1. 説明をより具体的にします
-2. スキルを手動で呼び出したい場合のみ `disable-model-invocation: true` を追加します
+2. 手動呼び出しのみを希望する場合は、`disable-model-invocation: true` を追加します
 
 ### スキルの説明が短縮される
 
 スキルの説明がコンテキストに読み込まれるため、Claude は利用可能なものを知っています。すべてのスキル名は常に含まれていますが、多くのスキルがある場合、説明は文字予算に合わせて短縮される可能性があり、Claude が一致するために必要なキーワードを削除できます。予算はコンテキストウィンドウの 1% で動的にスケーリングされ、8,000 文字のフォールバックがあります。
 
-制限を上げるには、`SLASH_COMMAND_TOOL_CHAR_BUDGET` 環境変数を設定します。またはソースで `description` と `when_to_use` テキストをトリミングします。各エントリの組み合わせテキストは予算に関係なく 1,536 文字でキャップされているため、主要なユースケースを前置きしてください。
+制限を上げるには、`SLASH_COMMAND_TOOL_CHAR_BUDGET` 環境変数を設定します。他のスキルの予算を解放するには、[`skillOverrides`](#override-skill-visibility-from-settings) で低優先度のエントリを `"name-only"` に設定して、説明なしでリストアップします。ソースで `description` と `when_to_use` テキストをトリミングすることもできます。各エントリの組み合わせテキストは予算に関係なく 1,536 文字でキャップされているため、主要なユースケースを前置きしてください。
 
 ## 関連リソース
 

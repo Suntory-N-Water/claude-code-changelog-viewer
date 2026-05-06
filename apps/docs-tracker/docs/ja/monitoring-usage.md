@@ -61,6 +61,8 @@ claude
 
 管理設定は MDM (Mobile Device Management) または他のデバイス管理ソリューションを通じて配布できます。管理設定ファイルで定義された環境変数は優先度が高く、ユーザーによってオーバーライドすることはできません。
 
+Claude Code は、Bash ツール、フック、MCP サーバー、言語サーバーを含む、生成するサブプロセスに `OTEL_*` 環境変数を渡しません。OpenTelemetry でインストルメント化されたアプリケーションを Bash ツール経由で実行する場合、Claude Code のエクスポーターエンドポイントまたはヘッダーを継承しないため、そのアプリケーションが独自のテレメトリをエクスポートする必要がある場合は、コマンド内でこれらの変数を直接設定してください。
+
 ## 設定の詳細
 
 ### 一般的な設定変数
@@ -77,8 +79,6 @@ claude
 | `OTEL_EXPORTER_OTLP_LOGS_PROTOCOL` | ログのプロトコル (一般的な設定をオーバーライド) | `grpc`、`http/json`、`http/protobuf` |
 | `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` | OTLP ログエンドポイント (一般的な設定をオーバーライド) | `http://localhost:4318/v1/logs` |
 | `OTEL_EXPORTER_OTLP_HEADERS` | OTLP の認証ヘッダー | `Authorization=Bearer token` |
-| `OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY` | mTLS 認証用のクライアントキー | クライアントキーファイルへのパス |
-| `OTEL_EXPORTER_OTLP_METRICS_CLIENT_CERTIFICATE` | mTLS 認証用のクライアント証明書 | クライアント証明書ファイルへのパス |
 | `OTEL_METRIC_EXPORT_INTERVAL` | エクスポート間隔 (ミリ秒単位、デフォルト: 60000) | `5000`、`60000` |
 | `OTEL_LOGS_EXPORT_INTERVAL` | ログエクスポート間隔 (ミリ秒単位、デフォルト: 5000) | `1000`、`10000` |
 | `OTEL_LOG_USER_PROMPTS` | ユーザープロンプトコンテンツのログを有効にする (デフォルト: 無効) | `1` で有効化 |
@@ -87,6 +87,17 @@ claude
 | `OTEL_LOG_RAW_API_BODIES` | Anthropic Messages API リクエストとレスポンス JSON 全体を `api_request_body` / `api_response_body` ログイベントとして出力します (デフォルト: 無効)。ボディには会話履歴全体が含まれます。これを有効にすることは、`OTEL_LOG_USER_PROMPTS`、`OTEL_LOG_TOOL_DETAILS`、および `OTEL_LOG_TOOL_CONTENT` が明かすすべてのものに同意することを意味します | `1` で 60 KB で切り詰められたインラインボディ、または `file:<dir>` でディスク上の切り詰められていないボディと、イベント内の `body_ref` ポインター |
 | `OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE` | メトリクスの時間性設定 (デフォルト: `delta`)。バックエンドが累積時間性を期待する場合は `cumulative` に設定 | `delta`、`cumulative` |
 | `CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS` | 動的ヘッダーを更新するための間隔 (デフォルト: 1740000ms / 29 分) | `900000` |
+
+### mTLS 認証
+
+OTLP エクスポーターのクライアント証明書を設定する方法は、そのシグナルに使用されている OTLP プロトコルに依存し、`OTEL_EXPORTER_OTLP_PROTOCOL` またはシグナルごとのオーバーライドで設定されます。同じ設定がメトリクス、ログ、トレースに適用されます。
+
+| プロトコル | クライアント証明書変数 | コレクターの CA を信頼する方法 |
+| :- | :- | :- |
+| `http/protobuf`、`http/json` | `CLAUDE_CODE_CLIENT_CERT`、`CLAUDE_CODE_CLIENT_KEY`、およびオプションで `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE`。[ネットワーク設定](/ja/network-config#mtls-authentication)を参照 | `NODE_EXTRA_CA_CERTS` |
+| `grpc` | `OTEL_EXPORTER_OTLP_CLIENT_KEY` および `OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE`、またはシグナルごとに異なる証明書を使用するための `OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY` などのシグナルごとのバリアント | `OTEL_EXPORTER_OTLP_CERTIFICATE` |
+
+`grpc` の場合、OpenTelemetry SDK は標準 OTLP 変数を直接読み取るため、シグナルごとのメトリクス変数を設定する既存の設定は引き続き機能します。
 
 ### メトリクスカーディナリティ制御
 
@@ -104,7 +115,7 @@ claude
 
 分散トレースは、各ユーザープロンプトをそれがトリガーする API リクエストとツール実行にリンクするスパンをエクスポートします。これにより、トレーシングバックエンドで完全なリクエストを単一のトレースとして表示できます。
 
-トレースはデフォルトでオフです。有効にするには、`CLAUDE_CODE_ENABLE_TELEMETRY=1` と `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1` の両方を設定してから、`OTEL_TRACES_EXPORTER` を設定してスパンの送信先を選択します。トレースは、エンドポイント、プロトコル、ヘッダーについて [一般的な OTLP 設定](#common-configuration-variables)を再利用します。
+トレースはデフォルトでオフです。有効にするには、`CLAUDE_CODE_ENABLE_TELEMETRY=1` と `CLAUDE_CODE_ENHANCED_TELEMETRY_BETA=1` の両方を設定してから、`OTEL_TRACES_EXPORTER` を設定してスパンの送信先を選択します。トレースは、エンドポイント、プロトコル、ヘッダー、および [mTLS](#mtls-authentication)について [一般的な OTLP 設定](#common-configuration-variables)を再利用します。
 
 | 環境変数 | 説明 | 例の値 |
 | - | - | - |
@@ -228,7 +239,7 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 
 ### 動的ヘッダー
 
-動的認証が必要なエンタープライズ環境では、ヘッダーを動的に生成するスクリプトを設定できます:
+動的認証が必要なエンタープライズ環境では、ヘッダーを動的に生成するスクリプトを設定できます。動的ヘッダーは `http/protobuf` および `http/json` プロトコルにのみ適用されます。`grpc` エクスポーターは静的な `OTEL_EXPORTER_OTLP_HEADERS` 値のみを使用します。
 
 #### 設定ファイルの設定
 
@@ -888,6 +899,67 @@ Claude Code は失敗した API リクエストを内部的に再試行し、あ
 
 **パフォーマンス監視**: API リクエスト期間とツール実行時間を追跡して、パフォーマンスボトルネックを特定します。
 
+## 監査セキュリティイベント
+
+OpenTelemetry イベントは Claude Code アクティビティの監査データソースです。すべてのイベントは、ツール呼び出し、MCP アクティビティ、権限決定をそれらをトリガーしたユーザーに結び付ける ID 属性を持ち、OTLP ログエクスポーターは、これらのイベントを OTLP レシーバーを持つセキュリティ情報およびイベント管理 (SIEM) プラットフォーム、または SIEM にフォワードする OpenTelemetry Collector に配信できます。
+
+### 属性アクションをユーザーに関連付ける
+
+各イベントの [標準属性](#standard-attributes)には、認証されたユーザーの ID が含まれます: Claude アカウントでサインインしている場合は `user.email`、`user.account_uuid`、`user.account_id`、および `organization.id`、さらにインストールスコープの `user.id` とセッションごとの `session.id`。
+
+MCP ツール呼び出し、Bash コマンド、ファイル編集は、セッションを開始した開発者に属性付けられます。Claude Code は個別のサービスアカウントの下では機能しません。各イベントに記録される ID は、開発者自身の Claude アカウントです。
+
+Claude Code が直接 API キーで認証する場合、または Bedrock、Vertex AI、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration)ファイルまたはローンチラッパーを通じてユーザーごとに設定します:
+
+```bash
+export OTEL_RESOURCE_ATTRIBUTES="enduser.id=jdoe@example.com,enduser.directory_id=S-1-5-21-..."
+```
+
+### MCP アクティビティを監査する
+
+完全なコール詳細で MCP サーバーアクティビティをキャプチャするには、ログエクスポーターを有効にし、`OTEL_LOG_TOOL_DETAILS=1` を設定します。その後、各 MCP 操作は、標準 ID 属性と共にサーバー名、ツール名、呼び出し引数を含む構造化イベントを生成します:
+
+| イベント | MCP に対して記録するもの |
+| - | - |
+| `mcp_server_connection` | `server_name`、`transport_type`、`server_scope`、およびエラー詳細を含むサーバー接続、切断、接続失敗 |
+| `tool_result` | `tool_name` および `mcp_server_scope` を含む各 MCP ツール呼び出し、`mcp_server_name` および `mcp_tool_name` を含む `tool_parameters` ペイロード、および呼び出し引数を含む `tool_input` ペイロード |
+| `tool_decision` | 呼び出しが許可されたか拒否されたか、および決定が設定、フック、またはユーザーから来たかどうか |
+
+`OTEL_LOG_TOOL_DETAILS` がない場合、`tool_result` イベントは依然として `tool_name` および `mcp_server_scope` を持ちますが、`mcp_server_name`/`mcp_tool_name` の分類と引数を省略し、`mcp_server_connection` イベントは `server_name` とエラーメッセージを省略します。
+
+### セキュリティの質問をイベントにマップする
+
+検出ルールを構築する場合、監視したいシグナルを検索し、対応するイベントと属性についてバックエンドをクエリします:
+
+| シグナル | イベント | キー属性 |
+| - | - | - |
+| ツール呼び出しが許可または拒否され、何によって | `tool_decision` | `decision`、`source`、`tool_name` |
+| 権限モードのエスカレーション | `permission_mode_changed` | `from_mode`、`to_mode`、`trigger` |
+| ポリシーフックがアクションをブロック | `hook_execution_complete` | `hook_event`、`num_blocking` |
+| ログイン、ログアウト、認証失敗 | `auth` | `action`、`success`、`error_category` |
+| MCP サーバー接続または失敗 | `mcp_server_connection` | `status`、`server_name`、`error_code` |
+| プラグインがインストールされ、そのソース | `plugin_installed` | `plugin.name`、`marketplace.name`、`marketplace.is_official` |
+| 実行されたコマンドとタッチされたファイル | `tool_result` with `OTEL_LOG_TOOL_DETAILS=1` | `tool_parameters`、`tool_input` |
+
+Claude Code は生のイベントストリームのみを出力します。異常検出、ベースライン化、セッション間の相関、アラートは SIEM または可観測性バックエンドの責任です。
+
+### SIEM にイベントを送信する
+
+`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` を SIEM の OTLP レシーバーに、または SIEM のネイティブ取り込み API にフォワードする OpenTelemetry Collector に指定します。以下の管理設定の例は、MCP および Bash 監査のための完全なツール詳細を有効にして、イベントのみをエクスポートします:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "1",
+    "OTEL_LOGS_EXPORTER": "otlp",
+    "OTEL_LOG_TOOL_DETAILS": "1",
+    "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": "https://siem.example.com:4318/v1/logs",
+    "OTEL_EXPORTER_OTLP_HEADERS": "Authorization=Bearer your-siem-token"
+  }
+}
+```
+
 ## バックエンドに関する考慮事項
 
 メトリクス、ログ、トレースバックエンドの選択により、実行できる分析のタイプが決まります:
@@ -937,7 +1009,7 @@ Claude Code は失敗した API リクエストを内部的に再試行し、あ
 - ユーザープロンプトコンテンツはデフォルトでは収集されません。プロンプト長のみが記録されます。プロンプトコンテンツを含めるには、`OTEL_LOG_USER_PROMPTS=1` を設定します
 - ツール入力引数とパラメーターはデフォルトではログされません。これらを含めるには、`OTEL_LOG_TOOL_DETAILS=1` を設定します。有効にすると、`tool_result` イベントには Bash コマンド、MCP サーバーとツール名、スキル名を含む `tool_parameters` 属性、およびファイルパス、URL、検索パターン、その他の引数を含む `tool_input` 属性が含まれます。`user_prompt` イベントには、カスタム、プラグイン、MCP コマンドの逐語的な `command_name` が含まれます。トレーススパンには同じ `tool_input` 属性と `file_path` などの入力派生属性が含まれます。512 文字を超える個別の値は切り詰められ、合計は約 4 K 文字に制限されますが、引数には機密値が含まれる可能性があります。必要に応じてこれらの属性をフィルタリングまたはマスクするようにテレメトリバックエンドを設定してください
 - ツール入力と出力コンテンツはデフォルトではトレーススパンでログされません。これを含めるには、`OTEL_LOG_TOOL_CONTENT=1` を設定します。有効にすると、スパンイベントには 60 KB で切り詰められたツール入力と出力コンテンツが含まれます。これには Read ツール結果からの生のファイルコンテンツと Bash コマンド出力が含まれる可能性があります。必要に応じてこれらの属性をフィルタリングまたはマスクするようにテレメトリバックエンドを設定してください
-- 生の Anthropic Messages API リクエストとレスポンスボディはデフォルトではログされません。これらを含めるには、`OTEL_LOG_RAW_API_BODIES` を設定します。`=1` の場合、各 API 呼び出しは `api_request_body` および `api_response_body` ログイベントを出力し、その `body` 属性は JSON シリアル化されたペイロードで、60 KB で切り詰められます。`=file:<dir>` の場合、切り詰められていないボディはそのディレクトリの下の `.request.json` および `.response.json` ファイルに書き込まれ、イベントはテレメトリストリームではなくログコレクターまたはサイドカーで配信されるディレクトリを含む `body_ref` パスを持ちます。両方のモードで、ボディには完全な会話履歴（システムプロンプト、すべての前のユーザーとアシスタントターン、ツール結果）が含まれるため、これを有効にすることは他の `OTEL_LOG_*` コンテンツフラグが明かすすべてのものに同意することを意味します。Claude の拡張思考コンテンツは、他の設定に関係なく、これらのボディから常にマスクされます
+- 生の Anthropic Messages API リクエストとレスポンスボディはデフォルトではログされません。これらを含めるには、`OTEL_LOG_RAW_API_BODIES` を設定します。`=1` の場合、各 API 呼び出しは `api_request_body` および `api_response_body` ログイベントを出力し、その `body` 属性は JSON シリアル化されたペイロードで、60 KB で切り詰められます。`=file:<dir>` の場合、切り詰められていないボディはそのディレクトリの下の `.request.json` および `.response.json` ファイルに書き込まれ、イベントはテレメトリストリームではなくログコレクターまたはサイドカーで配信されるディレクトリを含む `body_ref` パスを持ちます。両方のモードで、ボディには完全な会話履歴 (システムプロンプト、すべての前のユーザーとアシスタントターン、ツール結果) が含まれるため、これを有効にすることは他の `OTEL_LOG_*` コンテンツフラグが明かすすべてのものに同意することを意味します。Claude の拡張思考コンテンツは、他の設定に関係なく、これらのボディから常にマスクされます
 
 ## Amazon Bedrock での Claude Code の監視
 
