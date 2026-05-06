@@ -57,11 +57,11 @@ for await (const message of query({
 ```
 
 ```python Python theme={null}
-from claude_agent_sdk import query, AssistantMessage, ToolUseBlock
+from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ToolUseBlock
 
 async for message in query(
     prompt="Optimize my React app performance and track progress with todos",
-    options={"max_turns": 15},
+    options=ClaudeAgentOptions(max_turns=15),
 ):
     # Todo updates are reflected in the message stream
     if isinstance(message, AssistantMessage):
@@ -130,7 +130,7 @@ await tracker.trackQuery("Build a complete authentication system with todos");
 ```
 
 ```python Python theme={null}
-from claude_agent_sdk import query, AssistantMessage, ToolUseBlock
+from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ToolUseBlock
 from typing import List, Dict
 
 class TodoTracker:
@@ -164,7 +164,7 @@ class TodoTracker:
             print(f"{i + 1}. {icon} {text}")
 
     async def track_query(self, prompt: str):
-        async for message in query(prompt=prompt, options={"max_turns": 20}):
+        async for message in query(prompt=prompt, options=ClaudeAgentOptions(max_turns=20)):
             if isinstance(message, AssistantMessage):
                 for block in message.content:
                     if isinstance(block, ToolUseBlock) and block.name == "TodoWrite":

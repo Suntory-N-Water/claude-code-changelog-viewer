@@ -87,7 +87,7 @@ class StreamEvent:
 ```typescript TypeScript theme={null}
 type SDKPartialAssistantMessage = {
   type: "stream_event";
-  event: RawMessageStreamEvent; // From Anthropic SDK
+  event: BetaRawMessageStreamEvent; // From Anthropic SDK
   parent_tool_use_id: string | null;
   uuid: UUID;
   session_id: string;

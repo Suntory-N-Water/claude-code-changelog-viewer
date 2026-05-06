@@ -24,7 +24,7 @@ Once your marketplace is live, you can update it by pushing changes to your repo
 
 ## Walkthrough: create a local marketplace
 
-This example creates a marketplace with one plugin: a `/quality-review` skill for code reviews. You'll create the directory structure, add a skill, create the plugin manifest and marketplace catalog, then install and test it.
+This example creates a marketplace with one plugin: a `quality-review` skill for code reviews. You'll create the directory structure, add a skill, create the plugin manifest and marketplace catalog, then install and test it.
 
 ```bash theme={null}
 mkdir -p my-marketplace/.claude-plugin
@@ -32,7 +32,7 @@ mkdir -p my-marketplace/plugins/quality-review-plugin/.claude-plugin
 mkdir -p my-marketplace/plugins/quality-review-plugin/skills/quality-review
 ```
 
-Create a `SKILL.md` file that defines what the `/quality-review` skill does.
+Create a `SKILL.md` file that defines what the `quality-review` skill does.
 
 ```markdown my-marketplace/plugins/quality-review-plugin/skills/quality-review/SKILL.md theme={null}
 ---
@@ -54,7 +54,7 @@ Create a `plugin.json` file that describes the plugin. The manifest goes in the 
 ```json my-marketplace/plugins/quality-review-plugin/.claude-plugin/plugin.json theme={null}
 {
   "name": "quality-review-plugin",
-  "description": "Adds a /quality-review skill for quick code reviews",
+  "description": "Adds a quality-review skill for quick code reviews",
   "version": "1.0.0"
 }
 ```
@@ -73,7 +73,7 @@ Create the marketplace catalog that lists your plugin.
     {
       "name": "quality-review-plugin",
       "source": "./plugins/quality-review-plugin",
-      "description": "Adds a /quality-review skill for quick code reviews"
+      "description": "Adds a quality-review skill for quick code reviews"
     }
   ]
 }
@@ -86,10 +86,10 @@ Add the marketplace and install the plugin.
 /plugin install quality-review-plugin@my-plugins
 ```
 
-Select some code in your editor and run your new skill.
+Select some code in your editor and run your new skill. Plugin skills are namespaced with the plugin name.
 
 ```shell theme={null}
-/quality-review
+/quality-review-plugin:quality-review
 ```
 
 To learn more about what plugins can do, including hooks, agents, MCP servers, and LSP servers, see [Plugins](/en/plugins).

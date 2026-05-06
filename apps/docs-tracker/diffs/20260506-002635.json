@@ -1,0 +1,2018 @@
+{
+  "id": "20260506-002635",
+  "timestamp": "2026-05-06T00:26:35.825Z",
+  "aiSummary": "Agent SDKの計画モード（plan mode）が更新され、ソースファイルの編集は行わないものの読み取り専用ツールの実行が可能になりました。設定ソース（settingSources）のデフォルト挙動がCLIと一致するように変更され、明示的に空配列を指定しない限りローカル設定が読み込まれるようになっています。プラグインスキルの命名規則に名前空間が導入されたほか、ウェブ環境でのセットアップ制限やTLS証明書ストアに関するネットワーク設定の解説が詳細化されました。",
+  "files": [
+    {
+      "filename": "agent-sdk/agent-loop.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "カスタムツールの並列実行を有効にするためのreadOnlyHint属性の設定方法と、planモードにおける読み取り専用ツールの動作について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -136,7 +136,7 @@ When a tool is denied, Claude receives a rejection message as the tool result an",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When Claude requests multiple tool calls in a single turn, both SDKs can run them concurrently or sequentially depending on the tool. Read-only tools (like `Read`, `Glob`, `Grep`, and MCP tools marked as read-only) can run concurrently. Tools that modify state (like `Edit`, `Write`, and `Bash`) run sequentially to avoid conflicts."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Custom tools default to sequential execution. To enable parallel execution for a custom tool, mark it as read-only in its annotations: `readOnly` in [TypeScript](/en/agent-sdk/typescript#tool) or `readOnlyHint` in [Python](/en/agent-sdk/python#tool)."
+            },
+            {
+              "type": "added",
+              "content": "Custom tools default to sequential execution. To enable parallel execution for a custom tool, set `readOnlyHint` in its annotations. Both the [TypeScript](/en/agent-sdk/typescript#tool) and [Python](/en/agent-sdk/python#tool) SDKs use this field name from the MCP SDK."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Control how the loop runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -167,7 +167,7 @@ If you don't set `effort`, the Python SDK leaves the parameter unset and defers",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`effort` trades latency and token cost for reasoning depth within each response. [Extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) is a separate feature that produces visible chain-of-thought blocks in the output. They are independent: you can set `effort: \"low\"` with extended thinking enabled, or `effort: \"max\"` without it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use lower effort for agents doing simple, well-scoped tasks (like listing files or running a single grep) to reduce cost and latency. `effort` is set at the top-level `query()` options, not per-subagent."
+            },
+            {
+              "type": "added",
+              "content": "Use lower effort for agents doing simple, well-scoped tasks (like listing files or running a single grep) to reduce cost and latency. Set `effort` in the top-level `query()` options for the whole session, or per subagent with the `effort` field on [`AgentDefinition`](/en/agent-sdk/subagents#agentdefinition-configuration) to override the session level."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Permission mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -177,7 +177,7 @@ The permission mode option (`permission_mode` in Python, `permissionMode` in Typ",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"default\"` | Tools not covered by allow rules trigger your approval callback; no callback means deny |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"acceptEdits\"` | Auto-approves file edits and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.); other Bash commands follow default rules |"
+            },
+            {
+              "type": "removed",
+              "content": "| `\"plan\"` | No tool execution; Claude produces a plan for review |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"plan\"` | Read-only tools run; Claude explores and produces a plan without editing your source files |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"dontAsk\"` | Never prompts. Tools pre-approved by [permission rules](/en/settings#permission-settings) run, everything else is denied |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"auto\"` (TypeScript only) | Uses a model classifier to approve or deny each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability and behavior |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"bypassPermissions\"` | Runs all allowed tools without asking. Cannot be used when running as root on Unix. Use only in isolated environments where the agent's actions cannot affect systems you care about |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/migration-guide.md",
+      "additions": 9,
+      "deletions": 35,
+      "explanation": "SDKのデフォルト設定がリバートされ、設定ソースを省略した際にCLIと同様にローカル設定が読み込まれる仕様へ変更されたことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -200,28 +200,19 @@ async for message in query(",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Why this changed:** Provides better control and isolation for SDK applications. You can now build agents with custom behavior without inheriting Claude Code's CLI-focused instructions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Settings Sources No Longer Loaded by Default"
+            },
+            {
+              "type": "added",
+              "content": "### Settings sources default"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**What changed:** The SDK no longer reads from filesystem settings (CLAUDE.md, settings.json, slash commands, etc.) by default."
+            },
+            {
+              "type": "added",
+              "content": "This default was briefly changed in v0.1.0 and then reverted, so no migration action is needed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Migration:**"
+            },
+            {
+              "type": "added",
+              "content": "**Current behavior:** Omitting `settingSources` on `query()` loads user, project, and local filesystem settings, matching the CLI. This includes `~/.claude/settings.json`, `.claude/settings.json`, `.claude/settings.local.json`, CLAUDE.md files, and custom commands."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To run isolated from filesystem settings, pass an empty array:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript TypeScript theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "// BEFORE (v0.0.x) - Loaded all settings automatically"
+            },
+            {
+              "type": "removed",
+              "content": "const result = query({ prompt: \"Hello\" });"
+            },
+            {
+              "type": "removed",
+              "content": "// Would read from:"
+            },
+            {
+              "type": "removed",
+              "content": "// - ~/.claude/settings.json (user)"
+            },
+            {
+              "type": "removed",
+              "content": "// - .claude/settings.json (project)"
+            },
+            {
+              "type": "removed",
+              "content": "// - .claude/settings.local.json (local)"
+            },
+            {
+              "type": "removed",
+              "content": "// - CLAUDE.md files"
+            },
+            {
+              "type": "removed",
+              "content": "// - Custom slash commands"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "// AFTER (v0.1.0) - No settings loaded by default"
+            },
+            {
+              "type": "removed",
+              "content": "// To get the old behavior:"
+            },
+            {
+              "type": "context",
+              "content": "const result = query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: \"Hello\","
+            },
+            {
+              "type": "context",
+              "content": "  options: {"
+            },
+            {
+              "type": "removed",
+              "content": "    settingSources: [\"user\", \"project\", \"local\"]"
+            },
+            {
+              "type": "added",
+              "content": "    settingSources: [] // No filesystem settings loaded"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "});"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -235,23 +226,11 @@ const result = query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "# BEFORE (v0.0.x) - Loaded all settings automatically"
+            },
+            {
+              "type": "removed",
+              "content": "async for message in query(prompt=\"Hello\"):"
+            },
+            {
+              "type": "removed",
+              "content": "    print(message)"
+            },
+            {
+              "type": "removed",
+              "content": "# Would read from:"
+            },
+            {
+              "type": "removed",
+              "content": "# - ~/.claude/settings.json (user)"
+            },
+            {
+              "type": "removed",
+              "content": "# - .claude/settings.json (project)"
+            },
+            {
+              "type": "removed",
+              "content": "# - .claude/settings.local.json (local)"
+            },
+            {
+              "type": "removed",
+              "content": "# - CLAUDE.md files"
+            },
+            {
+              "type": "removed",
+              "content": "# - Custom slash commands"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# AFTER (v0.1.0) - No settings loaded by default"
+            },
+            {
+              "type": "removed",
+              "content": "# To get the old behavior:"
+            },
+            {
+              "type": "context",
+              "content": "from claude_agent_sdk import query, ClaudeAgentOptions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "async for message in query("
+            },
+            {
+              "type": "context",
+              "content": "    prompt=\"Hello\","
+            },
+            {
+              "type": "removed",
+              "content": "    options=ClaudeAgentOptions(setting_sources=[\"user\", \"project\", \"local\"]),"
+            },
+            {
+              "type": "added",
+              "content": "    options=ClaudeAgentOptions(setting_sources=[]),  # No filesystem settings loaded"
+            },
+            {
+              "type": "context",
+              "content": "):"
+            },
+            {
+              "type": "context",
+              "content": "    print(message)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -265,14 +244,9 @@ async for message in query(",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    print(message)"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Why this changed:** Ensures SDK applications have predictable behavior independent of local filesystem configurations. This is especially important for:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **CI/CD environments** - Consistent behavior without local customizations"
+            },
+            {
+              "type": "removed",
+              "content": "- **Deployed applications** - No dependency on filesystem settings"
+            },
+            {
+              "type": "removed",
+              "content": "- **Testing** - Isolated test environments"
+            },
+            {
+              "type": "removed",
+              "content": "- **Multi-tenant systems** - Prevent settings leakage between users"
+            },
+            {
+              "type": "added",
+              "content": "Isolation is especially important for CI/CD pipelines, deployed applications, test environments, and multi-tenant systems where local customizations should not leak in."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Current SDK releases have reverted this default for `query()`: omitting the option once again loads user, project, and local settings, matching the CLI. Pass `settingSources: []` in TypeScript or `setting_sources=[]` in Python if your application depends on the isolated behavior described above. Python SDK 0.1.59 and earlier treated an empty list the same as omitting the option, so upgrade before relying on `setting_sources=[]`. See [What settingSources does not control](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) for inputs that are read even when `settingSources` is `[]`."
+            },
+            {
+              "type": "added",
+              "content": "SDK v0.1.0 briefly defaulted to no settings loaded; this was reverted in subsequent releases. Python SDK 0.1.59 and earlier treated an empty list the same as omitting the option, so upgrade before relying on `setting_sources=[]`. See [What settingSources does not control](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) for inputs that are read even when `settingSources` is `[]`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Why the Rename?"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/permissions.md",
+      "additions": 14,
+      "deletions": 14,
+      "explanation": "許可モードのplanにおける読み取り専用ツールの実行権限と、Python SDKでのClaudeSDKClientを使用した新しい実装例が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,7 +15,7 @@ This page covers permission modes and rules. To build interactive approval flows",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When Claude requests a tool, the SDK checks permissions in this order:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run [hooks](/en/agent-sdk/hooks) first, which can allow, deny, or continue to the next step"
+            },
+            {
+              "type": "added",
+              "content": "Run [hooks](/en/agent-sdk/hooks) first. A hook can deny the call outright or pass it on. A hook that returns `allow` does not skip the deny and ask rules below; those are evaluated regardless of the hook result."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Check `deny` rules (from `disallowed_tools` and [settings.json](/en/settings#permission-settings)). If a deny rule matches, the tool is blocked, even in `bypassPermissions` mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -66,7 +66,7 @@ The SDK supports these permission modes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Deny instead of prompting | Anything not pre-approved by `allowed_tools` or rules is denied; `canUseTool` is never called |"
+            },
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Auto-accept file edits | File edits and [filesystem operations](#accept-edits-mode-acceptedits) (`mkdir`, `rm`, `mv`, etc.) are automatically approved |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Bypass all permission checks | All tools run without permission prompts (use with caution) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `plan` | Planning mode | No tool execution; Claude plans without making changes |"
+            },
+            {
+              "type": "added",
+              "content": "| `plan` | Planning mode | Read-only tools run; Claude analyzes and plans without editing your source files |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` (TypeScript only) | Model-classified approvals | A model classifier approves or denies each tool call. See [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) for availability |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Subagent inheritance:** When the parent uses `bypassPermissions`, `acceptEdits`, or `auto`, all subagents inherit that mode and it cannot be overridden per subagent. Subagents may have different system prompts and less constrained behavior than your main agent, so inheriting `bypassPermissions` grants them full, autonomous system access without any approval prompts."
+            }
+          ]
+        },
+        {
+          "header": "@@ -117,23 +117,23 @@ Call `set_permission_mode()` (Python) or `setPermissionMode()` (TypeScript) to c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "import asyncio"
+            },
+            {
+              "type": "removed",
+              "content": "from claude_agent_sdk import query, ClaudeAgentOptions"
+            },
+            {
+              "type": "added",
+              "content": "from claude_agent_sdk import ClaudeSDKClient, ClaudeAgentOptions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "async def main():"
+            },
+            {
+              "type": "removed",
+              "content": "    q = query("
+            },
+            {
+              "type": "removed",
+              "content": "        prompt=\"Help me refactor this code\","
+            },
+            {
+              "type": "added",
+              "content": "    async with ClaudeSDKClient("
+            },
+            {
+              "type": "context",
+              "content": "        options=ClaudeAgentOptions("
+            },
+            {
+              "type": "context",
+              "content": "            permission_mode=\"default\",  # Start in default mode"
+            },
+            {
+              "type": "removed",
+              "content": "        ),"
+            },
+            {
+              "type": "removed",
+              "content": "    )"
+            },
+            {
+              "type": "added",
+              "content": "        )"
+            },
+            {
+              "type": "added",
+              "content": "    ) as client:"
+            },
+            {
+              "type": "added",
+              "content": "        await client.query(\"Help me refactor this code\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "    # Change mode dynamically mid-session"
+            },
+            {
+              "type": "removed",
+              "content": "    await q.set_permission_mode(\"acceptEdits\")"
+            },
+            {
+              "type": "added",
+              "content": "        # Change mode dynamically mid-session"
+            },
+            {
+              "type": "added",
+              "content": "        await client.set_permission_mode(\"acceptEdits\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "    # Process messages with the new permission mode"
+            },
+            {
+              "type": "removed",
+              "content": "    async for message in q:"
+            },
+            {
+              "type": "removed",
+              "content": "        if hasattr(message, \"result\"):"
+            },
+            {
+              "type": "removed",
+              "content": "            print(message.result)"
+            },
+            {
+              "type": "added",
+              "content": "        # Process messages with the new permission mode"
+            },
+            {
+              "type": "added",
+              "content": "        async for message in client.receive_response():"
+            },
+            {
+              "type": "added",
+              "content": "            if hasattr(message, \"result\"):"
+            },
+            {
+              "type": "added",
+              "content": "                print(message.result)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -194,7 +194,7 @@ Use with extreme caution. Claude has full system access in this mode. Only use i",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Plan mode (`plan`)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Prevents tool execution entirely. Claude can analyze code and create plans but cannot make changes. Claude may use `AskUserQuestion` to clarify requirements before finalizing the plan. See [Handle approvals and user input](/en/agent-sdk/user-input#handle-clarifying-questions) for handling these prompts."
+            },
+            {
+              "type": "added",
+              "content": "Restricts Claude to read-only tools. Claude can read files and run read-only shell commands to explore the codebase but does not edit your source files. Claude may use `AskUserQuestion` to clarify requirements before finalizing the plan. See [Handle approvals and user input](/en/agent-sdk/user-input#handle-clarifying-questions) for handling these prompts."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Use when:** you want Claude to propose changes without executing them, such as during code review or when you need to approve changes before they're made."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "planモードの説明が「実行なし」から「読み取り専用ツールのみ実行」に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -1020,7 +1020,7 @@ Permission modes for controlling tool execution.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "PermissionMode = Literal["
+            },
+            {
+              "type": "context",
+              "content": "    \"default\",  # Standard permission behavior"
+            },
+            {
+              "type": "context",
+              "content": "    \"acceptEdits\",  # Auto-accept file edits"
+            },
+            {
+              "type": "removed",
+              "content": "    \"plan\",  # Planning mode - no execution"
+            },
+            {
+              "type": "added",
+              "content": "    \"plan\",  # Planning mode - read-only tools only"
+            },
+            {
+              "type": "context",
+              "content": "    \"dontAsk\",  # Deny anything not pre-approved instead of prompting"
+            },
+            {
+              "type": "context",
+              "content": "    \"bypassPermissions\",  # Bypass all permission checks (use with caution)"
+            },
+            {
+              "type": "context",
+              "content": "]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/streaming-output.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Anthropic SDKから継承するイベント型の定義がBetaRawMessageStreamEventに変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -87,7 +87,7 @@ class StreamEvent:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```typescript TypeScript theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "type SDKPartialAssistantMessage = {"
+            },
+            {
+              "type": "context",
+              "content": "  type: \"stream_event\";"
+            },
+            {
+              "type": "removed",
+              "content": "  event: RawMessageStreamEvent; // From Anthropic SDK"
+            },
+            {
+              "type": "added",
+              "content": "  event: BetaRawMessageStreamEvent; // From Anthropic SDK"
+            },
+            {
+              "type": "context",
+              "content": "  parent_tool_use_id: string | null;"
+            },
+            {
+              "type": "context",
+              "content": "  uuid: UUID;"
+            },
+            {
+              "type": "context",
+              "content": "  session_id: string;"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/todo-tracking.md",
+      "additions": 4,
+      "deletions": 4,
+      "explanation": "Python SDKのサンプルコードにおいて、ClaudeAgentOptionsクラスを使用したオプション指定方法に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -57,11 +57,11 @@ for await (const message of query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "from claude_agent_sdk import query, AssistantMessage, ToolUseBlock"
+            },
+            {
+              "type": "added",
+              "content": "from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ToolUseBlock"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "async for message in query("
+            },
+            {
+              "type": "context",
+              "content": "    prompt=\"Optimize my React app performance and track progress with todos\","
+            },
+            {
+              "type": "removed",
+              "content": "    options={\"max_turns\": 15},"
+            },
+            {
+              "type": "added",
+              "content": "    options=ClaudeAgentOptions(max_turns=15),"
+            },
+            {
+              "type": "context",
+              "content": "):"
+            },
+            {
+              "type": "context",
+              "content": "    # Todo updates are reflected in the message stream"
+            },
+            {
+              "type": "context",
+              "content": "    if isinstance(message, AssistantMessage):"
+            }
+          ]
+        },
+        {
+          "header": "@@ -130,7 +130,7 @@ await tracker.trackQuery(\"Build a complete authentication system with todos\");",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "from claude_agent_sdk import query, AssistantMessage, ToolUseBlock"
+            },
+            {
+              "type": "added",
+              "content": "from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ToolUseBlock"
+            },
+            {
+              "type": "context",
+              "content": "from typing import List, Dict"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "class TodoTracker:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -164,7 +164,7 @@ class TodoTracker:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "            print(f\"{i + 1}. {icon} {text}\")"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    async def track_query(self, prompt: str):"
+            },
+            {
+              "type": "removed",
+              "content": "        async for message in query(prompt=prompt, options={\"max_turns\": 20}):"
+            },
+            {
+              "type": "added",
+              "content": "        async for message in query(prompt=prompt, options=ClaudeAgentOptions(max_turns=20)):"
+            },
+            {
+              "type": "context",
+              "content": "            if isinstance(message, AssistantMessage):"
+            },
+            {
+              "type": "context",
+              "content": "                for block in message.content:"
+            },
+            {
+              "type": "context",
+              "content": "                    if isinstance(block, ToolUseBlock) and block.name == \"TodoWrite\":"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "TypeScript定義におけるplanモードの説明が読み取り専用ツールの実行を許可する内容に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -621,7 +621,7 @@ type PermissionMode =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  | \"default\" // Standard permission behavior"
+            },
+            {
+              "type": "context",
+              "content": "  | \"acceptEdits\" // Auto-accept file edits"
+            },
+            {
+              "type": "context",
+              "content": "  | \"bypassPermissions\" // Bypass all permission checks"
+            },
+            {
+              "type": "removed",
+              "content": "  | \"plan\" // Planning mode - no execution"
+            },
+            {
+              "type": "added",
+              "content": "  | \"plan\" // Planning mode - read-only tools only"
+            },
+            {
+              "type": "context",
+              "content": "  | \"dontAsk\" // Don't prompt for permissions, deny if not pre-approved"
+            },
+            {
+              "type": "context",
+              "content": "  | \"auto\"; // Use a model classifier to approve or deny each tool call"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "ウェブ版でのセットアップスクリプトの実行時間を5分以内に抑えるための並列実行やバックグラウンド処理の推奨事項が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -174,6 +174,8 @@ apt update && apt install -y gh",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the script exits non-zero, the session fails to start. Append `|| true` to non-critical commands to avoid blocking the session on an intermittent install failure."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Keep the script's total runtime under roughly five minutes so the [environment cache](#environment-caching) can build. Run independent installs in parallel with `&` and `wait`. If a single download won't fit in the five-minute limit, move it to a [SessionStart hook](#setup-scripts-vs-sessionstart-hooks) that launches it in the background."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Setup scripts that install packages need network access to reach registries. The default **Trusted** network access allows connections to [common package registries](#default-allowed-domains) including npm, PyPI, RubyGems, and crates.io. Scripts will fail to install packages if your environment uses **None** network access."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Environment caching"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "TLS接続時の証明書ストア設定（CLAUDE_CODE_CERT_STORE）のデフォルト値と挙動に関する記述が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -61,7 +61,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ATTRIBUTION_HEADER` | Set to `0` to omit the attribution block (client version and prompt fingerprint) from the start of the system prompt. Disabling it improves prompt-cache hit rates when routing through an [LLM gateway](/en/llm-gateway). Anthropic API caching is unaffected |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | Set the context capacity in tokens used for auto-compaction calculations. Defaults to the model's context window: 200K for standard models or 1M for [extended context](/en/model-config#extended-context) models. Use a lower value like `500000` on a 1M model to treat the window as 500K for compaction purposes. The value is capped at the model's actual context window. `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is applied as a percentage of this value. Setting this variable decouples the compaction threshold from the status line's `used_percentage`, which always uses the model's full context window |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_AUTO_CONNECT_IDE` | Override automatic [IDE connection](/en/vs-code). By default, Claude Code connects automatically when launched inside a supported IDE's integrated terminal. Set to `false` to prevent this. Set to `true` to force a connection attempt when auto-detection fails, such as when tmux obscures the parent terminal |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_CERT_STORE` | Comma-separated list of CA certificate sources for TLS connections. `bundled` is the Mozilla CA set shipped with Claude Code. `system` is the operating system trust store. Default is `bundled,system`. The native binary distribution is required for system store integration. On the Node.js runtime, only the bundled set is used regardless of this value |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_CERT_STORE` | Comma-separated list of CA certificate sources for TLS connections. `bundled` is the Mozilla CA set shipped with Claude Code. `system` is the operating system trust store. Default is `bundled,system` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_CERT` | Path to client certificate file for mTLS authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_KEY` | Path to client private key file for mTLS authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE` | Passphrase for encrypted CLAUDE\\_CODE\\_CLIENT\\_KEY (optional) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "ネットワークエラー時のトラブルシューティングにおいて、Node.jsランタイムだけでなくClaude Code全体の証明書信頼設定に焦点を当てた記述に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -306,7 +306,7 @@ Common causes include no internet access, a VPN that blocks `api.anthropic.com`,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Ensure your firewall allows the hosts listed in [Network access requirements](/en/network-config#network-access-requirements)"
+            },
+            {
+              "type": "context",
+              "content": "- Intermittent failures are [retried automatically](#automatic-retries); persistent failures point to a local network issue"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If `curl` succeeds but Claude Code still fails, the cause is usually something between Node.js and the network rather than the network itself:"
+            },
+            {
+              "type": "added",
+              "content": "If `curl` succeeds but Claude Code still fails, the cause is usually something between the runtime and the network rather than the network itself:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- On Linux and WSL, check `/etc/resolv.conf` for an unreachable nameserver. WSL in particular can inherit a broken resolver from the host."
+            },
+            {
+              "type": "context",
+              "content": "- On macOS, a VPN client that was disconnected or uninstalled can leave a tunnel interface or routing rule behind. Check `ifconfig` for stale `utun` interfaces and remove the VPN's network extension in System Settings."
+            }
+          ]
+        },
+        {
+          "header": "@@ -314,7 +314,7 @@ If `curl` succeeds but Claude Code still fails, the cause is usually something b",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### SSL certificate errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A proxy or security appliance on your network is intercepting TLS traffic with its own certificate, and Node.js does not trust it."
+            },
+            {
+              "type": "added",
+              "content": "A proxy or security appliance on your network is intercepting TLS traffic with its own certificate, and Claude Code does not trust it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "Unable to connect to API: SSL certificate verification failed. Check your proxy or corporate SSL certificates"
+            }
+          ]
+        },
+        {
+          "header": "@@ -323,7 +323,7 @@ Unable to connect to API: Self-signed certificate detected",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Export your organization's CA bundle and point Node at it with `NODE_EXTRA_CA_CERTS=/path/to/ca-bundle.pem`"
+            },
+            {
+              "type": "added",
+              "content": "- Export your organization's CA bundle and point Claude Code at it with `NODE_EXTRA_CA_CERTS=/path/to/ca-bundle.pem`"
+            },
+            {
+              "type": "context",
+              "content": "- See [Network configuration](/en/network-config#custom-ca-certificates) for full setup instructions"
+            },
+            {
+              "type": "context",
+              "content": "- Do not set `NODE_TLS_REJECT_UNAUTHORIZED=0`, which disables certificate validation entirely"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "インタラクティブモードの操作表に、スペースキーによる右移動のショートカットが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -127,6 +127,7 @@ Enable vim-style editing via `/config` → Editor mode.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Command | Action |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `h`/`j`/`k`/`l` | Move left/down/up/right |"
+            },
+            {
+              "type": "added",
+              "content": "| `Space` | Move right |"
+            },
+            {
+              "type": "context",
+              "content": "| `w` | Next word |"
+            },
+            {
+              "type": "context",
+              "content": "| `e` | End of word |"
+            },
+            {
+              "type": "context",
+              "content": "| `b` | Previous word |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "network-config.md",
+      "additions": 1,
+      "deletions": 2,
+      "explanation": "リリースノート取得やプラグイン情報の確認に使用されるドメインとしてraw.githubusercontent.comが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -50,8 +50,6 @@ For proxies requiring advanced authentication (NTLM, Kerberos, etc.), consider u",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "By default, Claude Code trusts both its bundled Mozilla CA certificates and your operating system's certificate store. Enterprise TLS-inspection proxies such as CrowdStrike Falcon and Zscaler work without additional configuration when their root certificate is installed in the OS trust store."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "System CA store integration requires the native Claude Code binary distribution. When running on the Node.js runtime, the system CA store is not merged automatically. In that case, set `NODE_EXTRA_CA_CERTS=/path/to/ca-cert.pem` to trust an enterprise root CA."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`CLAUDE_CODE_CERT_STORE` accepts a comma-separated list of sources. Recognized values are `bundled` for the Mozilla CA set shipped with Claude Code and `system` for the operating system trust store. The default is `bundled,system`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To trust only the bundled Mozilla CA set:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -103,6 +101,7 @@ Claude Code requires access to the following URLs. Allowlist these in your proxy",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `downloads.claude.ai` | Plugin executable downloads; native installer and native auto-updater |"
+            },
+            {
+              "type": "context",
+              "content": "| `storage.googleapis.com` | Native installer and native auto-updater on versions prior to 2.1.116 |"
+            },
+            {
+              "type": "context",
+              "content": "| `bridge.claudeusercontent.com` | [Claude in Chrome](/en/chrome) extension WebSocket bridge |"
+            },
+            {
+              "type": "added",
+              "content": "| `raw.githubusercontent.com` | Changelog feed for [`/release-notes`](/en/commands) and the release notes shown after updating; plugin marketplace install counts |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you install Claude Code through npm or manage your own binary distribution, end users may not need access to `downloads.claude.ai` or `storage.googleapis.com`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "planモードの定義更新に加え、サンドボックスのファイルシステム制限が許可・拒否ルールと統合される仕組みについて解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -37,7 +37,7 @@ Claude Code supports several permission modes that control how tools are approve",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `default` | Standard behavior: prompts for permission on first use of each tool |"
+            },
+            {
+              "type": "context",
+              "content": "| `acceptEdits` | Automatically accepts file edits and common filesystem commands (`mkdir`, `touch`, `mv`, `cp`, etc.) for paths in the working directory or `additionalDirectories` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `plan` | Plan Mode: Claude can analyze but not modify files or execute commands |"
+            },
+            {
+              "type": "added",
+              "content": "| `plan` | Plan Mode: Claude reads files and runs read-only shell commands to explore but does not edit your source files |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto` | Auto-approves tool calls with background safety checks that verify actions align with your request. Currently a research preview |"
+            },
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skips all permission prompts. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -285,7 +285,7 @@ Use both for defense-in-depth:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Permission deny rules block Claude from even attempting to access restricted resources"
+            },
+            {
+              "type": "context",
+              "content": "- Sandbox restrictions prevent Bash commands from reaching resources outside defined boundaries, even if a prompt injection bypasses Claude's decision-making"
+            },
+            {
+              "type": "removed",
+              "content": "- Filesystem restrictions in the sandbox use Read and Edit deny rules, not separate sandbox configuration"
+            },
+            {
+              "type": "added",
+              "content": "- Filesystem restrictions in the sandbox combine the [`sandbox.filesystem`](/en/sandboxing) settings with Read and Edit deny rules; both are merged into the final sandbox boundary"
+            },
+            {
+              "type": "context",
+              "content": "- Network restrictions combine WebFetch permission rules with the sandbox's `allowedDomains` and `deniedDomains` lists"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When sandboxing is enabled with `autoAllowBashIfSandboxed: true`, which is the default, sandboxed Bash commands run without prompting even if your permissions include `ask: Bash(*)`. The sandbox boundary substitutes for the per-command prompt. Explicit deny rules still apply, and `rm` or `rmdir` commands that target `/`, your home directory, or other critical system paths still trigger a prompt. See [sandbox modes](/en/sandboxing#sandbox-modes) to change this behavior."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "platforms.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "VS Codeでのサードパーティプロバイダー対応状況や、Enterprise版DesktopでのVertex AIサポートに関する詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -22,7 +22,7 @@ Choose a platform based on how you like to work and where your project lives.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Web](/en/claude-code-on-the-web) | Long-running tasks that don't need much steering, or work that should continue when you're offline | Anthropic-managed cloud, continues after you disconnect |"
+            },
+            {
+              "type": "context",
+              "content": "| Mobile | Starting and monitoring tasks while away from your computer | Cloud sessions from the Claude app for iOS and Android, [Remote Control](/en/remote-control) for local sessions, [Dispatch](/en/desktop#sessions-from-dispatch) to Desktop on Pro and Max |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The CLI is the most complete surface for terminal-native work: scripting, third-party providers, and the Agent SDK are CLI-only. Desktop and the IDE extensions trade some CLI-only features for visual review and tighter editor integration. The web runs in Anthropic's cloud, so tasks keep going after you disconnect. Mobile is a thin client into those same cloud sessions or into a local session via Remote Control, and can send tasks to Desktop with Dispatch."
+            },
+            {
+              "type": "added",
+              "content": "The CLI is the most complete surface for terminal-native work: scripting and the Agent SDK are CLI-only. Third-party providers also work in [VS Code](/en/vs-code#use-third-party-providers). Enterprise [Desktop](/en/desktop) deployments support Vertex AI and gateway providers; for Bedrock or Foundry, use the CLI or VS Code instead of Desktop. Desktop and the IDE extensions trade some CLI-only features for visual review and tighter editor integration. The web runs in Anthropic's cloud, so tasks keep going after you disconnect. Mobile is a thin client into those same cloud sessions or into a local session via Remote Control, and can send tasks to Desktop with Dispatch."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can mix surfaces on the same project. Configuration, project memory, and MCP servers are shared across the local surfaces."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 6,
+      "deletions": 6,
+      "explanation": "プラグインスキルの呼び出しにプラグイン名を接頭辞とする名前空間（例：plugin:skill）が必要になる変更が反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -24,7 +24,7 @@ Once your marketplace is live, you can update it by pushing changes to your repo",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Walkthrough: create a local marketplace"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This example creates a marketplace with one plugin: a `/quality-review` skill for code reviews. You'll create the directory structure, add a skill, create the plugin manifest and marketplace catalog, then install and test it."
+            },
+            {
+              "type": "added",
+              "content": "This example creates a marketplace with one plugin: a `quality-review` skill for code reviews. You'll create the directory structure, add a skill, create the plugin manifest and marketplace catalog, then install and test it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "mkdir -p my-marketplace/.claude-plugin"
+            }
+          ]
+        },
+        {
+          "header": "@@ -32,7 +32,7 @@ mkdir -p my-marketplace/plugins/quality-review-plugin/.claude-plugin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "mkdir -p my-marketplace/plugins/quality-review-plugin/skills/quality-review"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Create a `SKILL.md` file that defines what the `/quality-review` skill does."
+            },
+            {
+              "type": "added",
+              "content": "Create a `SKILL.md` file that defines what the `quality-review` skill does."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```markdown my-marketplace/plugins/quality-review-plugin/skills/quality-review/SKILL.md theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            }
+          ]
+        },
+        {
+          "header": "@@ -54,7 +54,7 @@ Create a `plugin.json` file that describes the plugin. The manifest goes in the",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```json my-marketplace/plugins/quality-review-plugin/.claude-plugin/plugin.json theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"name\": \"quality-review-plugin\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"description\": \"Adds a /quality-review skill for quick code reviews\","
+            },
+            {
+              "type": "added",
+              "content": "  \"description\": \"Adds a quality-review skill for quick code reviews\","
+            },
+            {
+              "type": "context",
+              "content": "  \"version\": \"1.0.0\""
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -73,7 +73,7 @@ Create the marketplace catalog that lists your plugin.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    {"
+            },
+            {
+              "type": "context",
+              "content": "      \"name\": \"quality-review-plugin\","
+            },
+            {
+              "type": "context",
+              "content": "      \"source\": \"./plugins/quality-review-plugin\","
+            },
+            {
+              "type": "removed",
+              "content": "      \"description\": \"Adds a /quality-review skill for quick code reviews\""
+            },
+            {
+              "type": "added",
+              "content": "      \"description\": \"Adds a quality-review skill for quick code reviews\""
+            },
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  ]"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            }
+          ]
+        },
+        {
+          "header": "@@ -86,10 +86,10 @@ Add the marketplace and install the plugin.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "/plugin install quality-review-plugin@my-plugins"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Select some code in your editor and run your new skill."
+            },
+            {
+              "type": "added",
+              "content": "Select some code in your editor and run your new skill. Plugin skills are namespaced with the plugin name."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```shell theme={null}"
+            },
+            {
+              "type": "removed",
+              "content": "/quality-review"
+            },
+            {
+              "type": "added",
+              "content": "/quality-review-plugin:quality-review"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To learn more about what plugins can do, including hooks, agents, MCP servers, and LSP servers, see [Plugins](/en/plugins)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "RustのLSPプラグイン名がrust-lspからrust-analyzer-lspへ修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -260,7 +260,7 @@ LSP integration provides:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `pyright-lsp` | Pyright (Python) | `pip install pyright` or `npm install -g pyright` |"
+            },
+            {
+              "type": "context",
+              "content": "| `typescript-lsp` | TypeScript Language Server | `npm install -g typescript-language-server typescript` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `rust-lsp` | rust-analyzer | [See rust-analyzer installation](https://rust-analyzer.github.io/manual.html#installation) |"
+            },
+            {
+              "type": "added",
+              "content": "| `rust-analyzer-lsp` | rust-analyzer | [See rust-analyzer installation](https://rust-analyzer.github.io/manual.html#installation) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Install the language server first, then install the plugin from the marketplace."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "security.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Accept Editsモードにおいて、承認なしで実行可能な標準的なファイル操作コマンドの具体的なリストが明示されました。",
+      "hunks": [
+        {
+          "header": "@@ -28,7 +28,7 @@ To mitigate risks in agentic systems:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Sandboxed bash tool**: [Sandbox](/en/sandboxing) bash commands with filesystem and network isolation, reducing permission prompts while maintaining security. Enable with `/sandbox` to define boundaries where Claude Code can work autonomously"
+            },
+            {
+              "type": "context",
+              "content": "- **Write access restriction**: Claude Code can only write to the folder where it was started and its subfolders—it cannot modify files in parent directories without explicit permission. While Claude Code can read files outside the working directory (useful for accessing system libraries and dependencies), write operations are strictly confined to the project scope, creating a clear security boundary"
+            },
+            {
+              "type": "context",
+              "content": "- **Prompt fatigue mitigation**: Support for allowlisting frequently used safe commands per-user, per-codebase, or per-organization"
+            },
+            {
+              "type": "removed",
+              "content": "- **Accept Edits mode**: Batch accept multiple edits while maintaining permission prompts for commands with side effects"
+            },
+            {
+              "type": "added",
+              "content": "- **Accept Edits mode**: Auto-approves file edits and a fixed set of filesystem Bash commands like `mkdir`, `touch`, `rm`, `mv`, `cp`, and `sed` for paths in the working directory. Other Bash commands and out-of-scope paths still prompt"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### User responsibility"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 17,
+      "deletions": 4,
+      "explanation": "プラグインマーケットプレイスの許可リスト設定において、正規表現によるパスパターンマッチング（pathPattern）機能が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -546,8 +546,10 @@ Plugin-related settings in `settings.json`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"extraKnownMarketplaces\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"acme-tools\": {"
+            },
+            {
+              "type": "removed",
+              "content": "      \"source\": \"github\","
+            },
+            {
+              "type": "removed",
+              "content": "      \"repo\": \"acme-corp/claude-plugins\""
+            },
+            {
+              "type": "added",
+              "content": "      \"source\": {"
+            },
+            {
+              "type": "added",
+              "content": "        \"source\": \"github\","
+            },
+            {
+              "type": "added",
+              "content": "        \"repo\": \"acme-corp/claude-plugins\""
+            },
+            {
+              "type": "added",
+              "content": "      }"
+            },
+            {
+              "type": "context",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            }
+          ]
+        },
+        {
+          "header": "@@ -659,7 +661,7 @@ Use `source: 'settings'` to declare a small set of plugins inline without settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Only available in managed settings (`managed-settings.json`)"
+            },
+            {
+              "type": "context",
+              "content": "- Cannot be overridden by user or project settings (highest precedence)"
+            },
+            {
+              "type": "context",
+              "content": "- Enforced BEFORE network/filesystem operations (blocked sources never execute)"
+            },
+            {
+              "type": "removed",
+              "content": "- Uses exact matching for source specifications (including `ref`, `path` for git sources), except `hostPattern`, which uses regex matching"
+            },
+            {
+              "type": "added",
+              "content": "- Uses exact matching for source specifications (including `ref`, `path` for git sources), except `hostPattern` and `pathPattern`, which use regex matching"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Allowlist behavior**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -669,7 +671,7 @@ Use `source: 'settings'` to declare a small set of plugins inline without settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**All supported source types**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The allowlist supports multiple marketplace source types. Most sources use exact matching, while `hostPattern` uses regex matching against the marketplace host."
+            },
+            {
+              "type": "added",
+              "content": "The allowlist supports multiple marketplace source types. Most sources use exact matching, while `hostPattern` and `pathPattern` use regex matching against the marketplace host and filesystem path respectively."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "1. **GitHub repositories**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -747,6 +749,17 @@ Host extraction by source type:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `url`: extracts hostname from the URL"
+            },
+            {
+              "type": "context",
+              "content": "- `npm`, `file`, `directory`: not supported for host pattern matching"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "8. **Path pattern matching**:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{ \"source\": \"pathPattern\", \"pathPattern\": \"^/opt/approved/\" }"
+            },
+            {
+              "type": "added",
+              "content": "{ \"source\": \"pathPattern\", \"pathPattern\": \".*\" }"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fields: `pathPattern` (required: regex pattern matched against the `path` field of `file` and `directory` sources)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use path pattern matching to allow filesystem-based marketplaces alongside `hostPattern` restrictions for network sources. Set `\".*\"` to allow all local paths, or a narrower pattern to restrict to specific directories."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Configuration examples**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Example: allow specific marketplaces only:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "web-quickstart.md",
+      "additions": 10,
+      "deletions": 0,
+      "explanation": "ウェブ版のセットアップがタイムアウトする原因と、その対策としてのインストール並列化やフックの活用方法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -169,6 +169,16 @@ The setup script exited with a non-zero status, which blocks the session from st",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To debug, add `set -x` at the top of the script to see which command failed. For non-critical commands, append `|| true` so they don't block session start."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### New sessions hang or time out during setup"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If new sessions stall on the setup script step or fail with a generic container error before the script finishes, the script is likely exceeding the roughly five-minute time budget for building the [environment cache](/en/claude-code-on-the-web#environment-caching). Heavy steps such as pulling large Docker images, syncing full dependency trees, or downloading model weights often push the total over the limit, especially when they run one after another."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To fix this, trim the script so it reliably finishes in under five minutes:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Run independent installs in parallel with `&` and a final `wait` instead of running them serially."
+            },
+            {
+              "type": "added",
+              "content": "- Move the largest downloads out of the setup script and into a [SessionStart hook](/en/claude-code-on-the-web#setup-scripts-vs-sessionstart-hooks) that launches them in the background, so the session becomes usable while they finish."
+            },
+            {
+              "type": "added",
+              "content": "- Remove long retry sleeps from the setup script, since a stalled retry loop counts against the budget."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Session keeps running after closing the tab"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This is by design. Closing the tab or navigating away doesn't stop the session. It continues running in the background until Claude finishes the current task, then idles. From the sidebar, you can [archive a session](/en/claude-code-on-the-web#archive-sessions) to hide it from your list, or [delete it](/en/claude-code-on-the-web#delete-sessions) to remove it permanently."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

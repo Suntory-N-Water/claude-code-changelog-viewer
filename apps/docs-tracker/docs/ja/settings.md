@@ -543,8 +543,10 @@ Claude Code は、skills、agents、hooks、および MCP サーバーで機能�
   },
   "extraKnownMarketplaces": {
     "acme-tools": {
-      "source": "github",
-      "repo": "acme-corp/claude-plugins"
+      "source": {
+        "source": "github",
+        "repo": "acme-corp/claude-plugins"
+      }
     }
   }
 }
@@ -656,7 +658,7 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 - managed 設定（`managed-settings.json`）でのみ利用可能
 - ユーザーまたはプロジェクト設定でオーバーライドできません（最高優先度）
 - ネットワーク/ファイルシステム操作の前に強制されます（ブロックされたソースは実行されません）
-- `hostPattern` を除き、ソース仕様に対して完全一致を使用します。`hostPattern` は正規表現マッチングを使用します
+- `hostPattern` と `pathPattern` を除き、ソース仕様に対して完全一致を使用します。`hostPattern` と `pathPattern` は正規表現マッチングを使用します
 
 **ホワイトリスト動作**：
 
@@ -666,7 +668,7 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 
 **サポートされているすべてのソースタイプ**：
 
-ホワイトリストは複数のマーケットプレイスソースタイプをサポートしています。ほとんどのソースは完全一致を使用しますが、`hostPattern` はマーケットプレイスホストに対して正規表現マッチングを使用します。
+ホワイトリストは複数のマーケットプレイスソースタイプをサポートしています。ほとんどのソースは完全一致を使用しますが、`hostPattern` と `pathPattern` はそれぞれマーケットプレイスホストとファイルシステムパスに対して正規表現マッチングを使用します。
 
 1. **GitHub リポジトリ**：
 
@@ -743,6 +745,17 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 - `git`：URL からホスト名を抽出（HTTPS と SSH 形式の両方をサポート）
 - `url`：URL からホスト名を抽出
 - `npm`、`file`、`directory`：ホストパターンマッチングではサポートされていません
+
+8. **パスパターンマッチング**：
+
+```json
+{ "source": "pathPattern", "pathPattern": "^/opt/approved/" }
+{ "source": "pathPattern", "pathPattern": ".*" }
+```
+
+フィールド：`pathPattern`（必須：`file` および `directory` ソースの `path` フィールドに対してマッチする正規表現パターン）
+
+ネットワークソースの `hostPattern` 制限と並行して、ファイルシステムベースのマーケットプレイスを許可するには、パスパターンマッチングを使用します。すべてのローカルパスを許可するには `".*"` を設定するか、特定のディレクトリに制限するにはより狭いパターンを設定します。
 
 **構成例**：
 

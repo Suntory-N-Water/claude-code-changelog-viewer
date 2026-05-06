@@ -37,10 +37,10 @@ Claude Code は、ツールの承認方法を制御するいくつかの権限�
 | :- | :- |
 | `default` | 標準動作。各ツールの最初の使用時に権限を促します |
 | `acceptEdits` | ファイル編集と一般的なファイルシステムコマンド（`mkdir`、`touch`、`mv`、`cp` など）を、作業ディレクトリまたは `additionalDirectories` 内のパスに対して自動的に受け入れます |
-| `plan` | Plan Mode。Claude はファイルを分析できますが、ファイルを変更したりコマンドを実行したりすることはできません |
+| `plan` | Plan Mode。Claude はファイルを読み取り、読み取り専用シェルコマンドを実行して探索しますが、ソースファイルを編集しません |
 | `auto` | バックグラウンド安全チェック付きでツール呼び出しを自動承認し、アクションがリクエストと一致することを確認します。現在は研究プレビューです |
 | `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します |
-| `bypassPermissions` | ファイルシステムルートまたはホームディレクトリの削除（`rm -rf /` など）は回路遮断器として引き続きプロンプトを表示しますが、その他すべての権限プロンプトをスキップします |
+| `bypassPermissions` | すべての権限プロンプトをスキップします。ファイルシステムルートまたはホームディレクトリの削除（`rm -rf /` など）は回路遮断器として引き続きプロンプトを表示します |
 
 `bypassPermissions` モードはすべての権限プロンプトをスキップします。`.git`、`.claude`、`.vscode`、`.idea`、`.husky` への書き込みを含みます。ファイルシステムルートまたはホームディレクトリを対象とした削除（`rm -rf /` や `rm -rf ~` など）は、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
 
@@ -285,10 +285,10 @@ Claude がシンボリックリンクにアクセスするとき、権限ルー�
 
 - 権限 deny ルールは、Claude が制限されたリソースへのアクセスを試みることさえ防止します
 - サンドボックス制限は、プロンプトインジェクションが Claude の意思決定をバイパスしても、Bash コマンドが定義された境界外のリソースに到達することを防止します
-- サンドボックス内のファイルシステム制限は、Read と Edit deny ルールを使用し、別のサンドボックス設定は使用しません
-- ネットワーク制限は、WebFetch 権限ルールとサンドボックスの `allowedDomains` と `deniedDomains` リストを組み合わせます
+- サンドボックス内のファイルシステム制限は、[`sandbox.filesystem`](/ja/sandboxing) 設定と Read および Edit deny ルールを組み合わせます。両方が最終的なサンドボックス境界にマージされます
+- ネットワーク制限は、WebFetch 権限ルールとサンドボックスの `allowedDomains` および `deniedDomains` リストを組み合わせます
 
-サンドボックスが `autoAllowBashIfSandboxed: true` で有効になっている場合（デフォルト）、サンドボックス化された Bash コマンドは、権限に `ask: Bash(*)` が含まれている場合でもプロンプトなしで実行されます。サンドボックス境界はコマンドごとのプロンプトの代わりになります。[サンドボックスモード](/ja/sandboxing#sandbox-modes)を参照して、この動作を変更してください。
+サンドボックスが `autoAllowBashIfSandboxed: true` で有効になっている場合（デフォルト）、サンドボックス化された Bash コマンドは、権限に `ask: Bash(*)` が含まれている場合でもプロンプトなしで実行されます。サンドボックス境界はコマンドごとのプロンプトの代わりになります。明示的な deny ルールは引き続き適用され、`/`、ホームディレクトリ、またはその他の重要なシステムパスをターゲットとする `rm` または `rmdir` コマンドは、引き続きプロンプトをトリガーします。[サンドボックスモード](/ja/sandboxing#sandbox-modes)を参照して、この動作を変更してください。
 
 ## 管理設定
 
@@ -305,17 +305,17 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 | `allowManagedMcpServersOnly` | `true` の場合、管理設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。[管理 MCP 設定](/ja/mcp#managed-mcp-configuration)を参照してください |
 | `allowManagedPermissionRulesOnly` | `true` の場合、ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義することを防止します。管理設定のルールのみが適用されます |
 | `blockedMarketplaces` | マーケットプレイスソースのブロックリスト。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
-| `channelsEnabled` | Team および Enterprise ユーザーの[チャネル](/ja/channels)を許可します。設定されていないか `false` の場合、ユーザーが `--channels` に渡すものに関係なく、チャネルメッセージ配信をブロックします |
+| `channelsEnabled` | 組織の[チャネル](/ja/channels)を許可します。各プランのデフォルトについては、[エンタープライズコントロール](/ja/channels#enterprise-controls)を参照してください |
 | `forceRemoteSettingsRefresh` | `true` の場合、リモート管理設定が新しく取得されるまで CLI 起動をブロックし、取得に失敗した場合は終了します。[フェイルクローズ強制](/ja/server-managed-settings#enforce-fail-closed-startup)を参照してください |
 | `pluginTrustMessage` | インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ |
 | `sandbox.filesystem.allowManagedReadPathsOnly` | `true` の場合、管理設定からの `filesystem.allowRead` パスのみが尊重されます。`denyRead` はすべてのソースからマージされます |
 | `sandbox.network.allowManagedDomainsOnly` | `true` の場合、管理設定からの `allowedDomains` と `WebFetch(domain:...)` allow ルールのみが尊重されます。許可されていないドメインはユーザーに促すことなく自動的にブロックされます。拒否されたドメインはすべてのソースからマージされます |
-| `strictKnownMarketplaces` | ユーザーが追加できるプラグインマーケットプレイスを制御します。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
+| `strictKnownMarketplaces` | ユーザーが追加およびインストールできるプラグインマーケットプレイスソースを制御します。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
 | `wslInheritsWindowsSettings` | Windows HKLM レジストリキーまたは `C:\Program Files\ClaudeCode\managed-settings.json` で `true` の場合、WSL は `/etc/claude-code` に加えて Windows ポリシーチェーンから管理設定を読み込みます。[設定ファイル](/ja/settings#settings-files)を参照してください |
 
 `disableBypassPermissionsMode` は通常、組織ポリシーを強制するために管理設定に配置されますが、任意のスコープから機能します。ユーザーは独自の設定で設定して、自分自身をバイパスモードからロックアウトできます。
 
-[リモートコントロール](/ja/remote-control)と[ウェブセッション](/ja/claude-code-on-the-web)へのアクセスは、管理設定キーで制御されません。Team および Enterprise プランでは、管理者が [Claude Code 管理設定](https://claude.ai/admin-settings/claude-code)でこれらの機能を有効または無効にします。
+Team および Enterprise プランでは、管理者が [Claude Code 管理設定](https://claude.ai/admin-settings/claude-code)で[リモートコントロール](/ja/remote-control)と[ウェブセッション](/ja/claude-code-on-the-web)を組織全体で有効または無効にします。リモートコントロールは、[`disableRemoteControl`](/ja/settings#available-settings)管理設定でデバイスごとに無効にすることもできます。ウェブセッションにはデバイスごとの管理設定キーはありません。
 
 ## 設定の優先順位
 

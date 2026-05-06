@@ -24,7 +24,7 @@ source: https://code.claude.com/docs/ja/plugin-marketplaces.md
 
 ## チュートリアル：ローカルマーケットプレイスの作成
 
-この例では、1 つのプラグイン（コードレビュー用の `/quality-review` skill）を含むマーケットプレイスを作成します。ディレクトリ構造を作成し、skill を追加し、プラグインマニフェストとマーケットプレイスカタログを作成してから、インストールしてテストします。
+この例では、1 つのプラグイン（コードレビュー用の `quality-review` skill）を含むマーケットプレイスを作成します。ディレクトリ構造を作成し、skill を追加し、プラグインマニフェストとマーケットプレイスカタログを作成してから、インストールしてテストします。
 
 ```bash theme={null}
 mkdir -p my-marketplace/.claude-plugin
@@ -32,7 +32,7 @@ mkdir -p my-marketplace/plugins/quality-review-plugin/.claude-plugin
 mkdir -p my-marketplace/plugins/quality-review-plugin/skills/quality-review
 ```
 
-`/quality-review` skill が何をするかを定義する `SKILL.md` ファイルを作成します。
+`quality-review` skill が何をするかを定義する `SKILL.md` ファイルを作成します。
 
 ```markdown my-marketplace/plugins/quality-review-plugin/skills/quality-review/SKILL.md theme={null}
 ---
@@ -54,7 +54,7 @@ Be concise and actionable.
 ```json my-marketplace/plugins/quality-review-plugin/.claude-plugin/plugin.json theme={null}
 {
   "name": "quality-review-plugin",
-  "description": "Adds a /quality-review skill for quick code reviews",
+  "description": "Adds a quality-review skill for quick code reviews",
   "version": "1.0.0"
 }
 ```
@@ -73,7 +73,7 @@ Be concise and actionable.
     {
       "name": "quality-review-plugin",
       "source": "./plugins/quality-review-plugin",
-      "description": "Adds a /quality-review skill for quick code reviews"
+      "description": "Adds a quality-review skill for quick code reviews"
     }
   ]
 }
@@ -86,10 +86,10 @@ Be concise and actionable.
 /plugin install quality-review-plugin@my-plugins
 ```
 
-エディタでコードを選択し、新しい skill を実行します。
+エディタでコードを選択し、新しい skill を実行します。プラグイン skill はプラグイン名でネームスペース化されます。
 
 ```shell theme={null}
-/quality-review
+/quality-review-plugin:quality-review
 ```
 
 プラグインが実行できることの詳細（hooks、agents、MCP サーバー、LSP サーバーを含む）については、[プラグイン](/ja/plugins)を参照してください。
@@ -663,6 +663,8 @@ CLAUDE_CODE_PLUGIN_CACHE_DIR=/opt/claude-seed claude plugin install my-tool@your
 - URL ソースの場合：完全な URL が正確に一致する必要があります
 - `hostPattern` ソースの場合：マーケットプレイスホストが正規表現パターンと照合されます
 - `pathPattern` ソースの場合：マーケットプレイスのファイルシステムパスが正規表現パターンと照合されます
+
+正確なマッチングは URL を正規化しません。末尾のスラッシュ、`.git` サフィックス、または `ssh://` と `https://` の形式は異なる値として扱われます。組織のマーケットプレイスが複数の URL 形式でクローンできる場合、リテラル URL よりも `hostPattern` エントリを優先して、すべての形式が一致するようにします。
 
 `strictKnownMarketplaces` は[管理設定](/ja/settings#settings-files)で設定されるため、個別のユーザーとプロジェクト設定はこれらの制限をオーバーライドできません。
 

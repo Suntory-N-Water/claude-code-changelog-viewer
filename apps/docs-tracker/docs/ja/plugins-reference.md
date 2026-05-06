@@ -260,7 +260,7 @@ LSP 統合は以下を提供します:
 | :- | :- | :- |
 | `pyright-lsp` | Pyright（Python） | `pip install pyright` または `npm install -g pyright` |
 | `typescript-lsp` | TypeScript Language Server | `npm install -g typescript-language-server typescript` |
-| `rust-lsp` | rust-analyzer | [rust-analyzer インストールを参照](https://rust-analyzer.github.io/manual.html#installation) |
+| `rust-analyzer-lsp` | rust-analyzer | [rust-analyzer インストールを参照](https://rust-analyzer.github.io/manual.html#installation) |
 
 言語サーバーをまずインストールしてから、マーケットプレイスからプラグインをインストールしてください。
 
@@ -524,7 +524,9 @@ monitors をインラインで宣言するには、`plugin.json` の `monitors` 
 
 Claude Code は、プラグインパスを参照するための 2 つの変数を提供します。どちらも skill コンテンツ、エージェントコンテンツ、hook コマンド、monitor コマンド、MCP または LSP サーバー設定に表示される場所にインラインで置換されます。どちらも hook プロセスおよび MCP または LSP サーバーサブプロセスに環境変数としてエクスポートされます。
 
-**`${CLAUDE_PLUGIN_ROOT}`**: プラグインのインストールディレクトリへの絶対パス。プラグインにバンドルされたスクリプト、バイナリ、設定ファイルを参照するために使用します。このパスはプラグインが更新されると変更されるため、ここに書き込むファイルは更新後に保持されません。
+**`${CLAUDE_PLUGIN_ROOT}`**: プラグインのインストールディレクトリへの絶対パス。プラグインにバンドルされたスクリプト、バイナリ、設定ファイルを参照するために使用します。このパスはプラグインが更新されると変更されます。前のバージョンのディレクトリは更新後約 7 日間ディスク上に残りますが、これを一時的なものとして扱い、ここに状態を書き込まないでください。
+
+プラグインがセッション中に更新されると、hook コマンド、monitors、MCP サーバー、LSP サーバーは前のバージョンのパスを使用し続けます。`/reload-plugins` を実行して、hook、MCP サーバー、LSP サーバーを新しいパスに切り替えます。monitors はセッション再起動が必要です。
 
 **`${CLAUDE_PLUGIN_DATA}`**: 更新後も保持される永続ディレクトリ。`node_modules` または Python 仮想環境などのインストール済み依存関係、生成されたコード、キャッシュ、およびプラグインバージョン全体で保持する必要があるその他のファイルに使用します。このディレクトリは、この変数が最初に参照されるときに自動的に作成されます。
 
@@ -667,6 +669,8 @@ enterprise-plugin/
 ```
 
 `.claude-plugin/` ディレクトリは `plugin.json` ファイルを含みます。他のすべてのディレクトリ（commands/、agents/、skills/、output-styles/、themes/、monitors/、hooks/）は `.claude-plugin/` 内ではなく、プラグインルートにある必要があります。
+
+プラグインルートの `CLAUDE.md` ファイルはプロジェクトコンテキストとして読み込まれません。プラグインは CLAUDE.md ではなく、skills、agents、hooks を通じてコンテキストを提供します。Claude のコンテキストに読み込まれる命令を配布するには、[skill](#skills) に配置してください。
 
 ### ファイル場所リファレンス
 

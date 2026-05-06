@@ -546,8 +546,10 @@ Plugin-related settings in `settings.json`:
   },
   "extraKnownMarketplaces": {
     "acme-tools": {
-      "source": "github",
-      "repo": "acme-corp/claude-plugins"
+      "source": {
+        "source": "github",
+        "repo": "acme-corp/claude-plugins"
+      }
     }
   }
 }
@@ -659,7 +661,7 @@ Use `source: 'settings'` to declare a small set of plugins inline without settin
 - Only available in managed settings (`managed-settings.json`)
 - Cannot be overridden by user or project settings (highest precedence)
 - Enforced BEFORE network/filesystem operations (blocked sources never execute)
-- Uses exact matching for source specifications (including `ref`, `path` for git sources), except `hostPattern`, which uses regex matching
+- Uses exact matching for source specifications (including `ref`, `path` for git sources), except `hostPattern` and `pathPattern`, which use regex matching
 
 **Allowlist behavior**:
 
@@ -669,7 +671,7 @@ Use `source: 'settings'` to declare a small set of plugins inline without settin
 
 **All supported source types**:
 
-The allowlist supports multiple marketplace source types. Most sources use exact matching, while `hostPattern` uses regex matching against the marketplace host.
+The allowlist supports multiple marketplace source types. Most sources use exact matching, while `hostPattern` and `pathPattern` use regex matching against the marketplace host and filesystem path respectively.
 
 1. **GitHub repositories**:
 
@@ -746,6 +748,17 @@ Host extraction by source type:
 - `git`: extracts hostname from the URL (supports both HTTPS and SSH formats)
 - `url`: extracts hostname from the URL
 - `npm`, `file`, `directory`: not supported for host pattern matching
+
+8. **Path pattern matching**:
+
+```json
+{ "source": "pathPattern", "pathPattern": "^/opt/approved/" }
+{ "source": "pathPattern", "pathPattern": ".*" }
+```
+
+Fields: `pathPattern` (required: regex pattern matched against the `path` field of `file` and `directory` sources)
+
+Use path pattern matching to allow filesystem-based marketplaces alongside `hostPattern` restrictions for network sources. Set `".*"` to allow all local paths, or a narrower pattern to restrict to specific directories.
 
 **Configuration examples**:
 

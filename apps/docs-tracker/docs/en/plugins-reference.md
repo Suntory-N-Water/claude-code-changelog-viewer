@@ -260,7 +260,7 @@ LSP integration provides:
 | :- | :- | :- |
 | `pyright-lsp` | Pyright (Python) | `pip install pyright` or `npm install -g pyright` |
 | `typescript-lsp` | TypeScript Language Server | `npm install -g typescript-language-server typescript` |
-| `rust-lsp` | rust-analyzer | [See rust-analyzer installation](https://rust-analyzer.github.io/manual.html#installation) |
+| `rust-analyzer-lsp` | rust-analyzer | [See rust-analyzer installation](https://rust-analyzer.github.io/manual.html#installation) |
 
 Install the language server first, then install the plugin from the marketplace.
 

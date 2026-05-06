@@ -257,11 +257,13 @@ Terminal、Finder または File Explorer、System Settings または Settings �
 
 ### セッションで並列に作業する
 
-サイドバーの\*\*+ New session**をクリックするか、macOS で**Cmd+N**を、Windows で**Ctrl+N**を押して、複数のタスクを並列で作業します。**Ctrl+Tab**と**Ctrl+Shift+Tab\*\*を押してサイドバーのセッションをサイクルします。Git リポジトリの場合、各セッションは[Git worktrees](/ja/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees)を使用してプロジェクトの独立した分離コピーを取得するため、1 つのセッションの変更は、コミットするまで他のセッションに影響しません。
+サイドバーの\*\*+ New session**をクリックするか、macOS で**Cmd+N**を、Windows で**Ctrl+N**を押して、複数のタスクを並列で作業します。**Ctrl+Tab**と**Ctrl+Shift+Tab\*\*を押してサイドバーのセッションをサイクルします。Git リポジトリの場合、各セッションは[Git worktrees](/ja/worktrees)を使用してプロジェクトの独立した分離コピーを取得するため、1 つのセッションの変更は、コミットするまで他のセッションに影響しません。
+
+2 つのセッションを同時に表示するには、macOS で**Cmd**を、Windows で**Ctrl**を押しながらサイドバーのセッションをクリックします。セッションは既に開いているセッションの横の 2 番目のペインで開きます。分割がアクティブな間、別のサイドバーセッションをクリックすると、フォーカスがあるペインが置き換わります。macOS で\*\*Cmd+\\**を、Windows で**Ctrl+\\\*\*を押して、フォーカスされたペインを閉じて、単一のセッションに戻ります。
 
 Worktrees はデフォルトで`<project-root>/.claude/worktrees/`に保存されます。Settings → Claude Code の「Worktree location」でカスタムディレクトリに変更できます。また、すべての worktree ブランチ名の前に付加されるブランチプレフィックスを設定することもできます。これは Claude が作成したブランチを整理するのに便利です。完了したら、サイドバーのセッションにマウスを合わせてアーカイブアイコンをクリックして worktree を削除します。PR がマージまたはクローズされた後にセッションを自動的にアーカイブするには、Settings → Claude Code で**Auto-archive after PR merge or close**をオンにします。Auto-archive はローカルセッションで実行が完了したものにのみ適用されます。
 
-gitignored ファイル（`.env`など）を新しい worktrees に含めるには、プロジェクトルートに[`.worktreeinclude`ファイル](/ja/common-workflows#copy-gitignored-files-to-worktrees)を作成します。
+gitignored ファイル（`.env`など）を新しい worktrees に含めるには、プロジェクトルートに[`.worktreeinclude`ファイル](/ja/worktrees#copy-gitignored-files-into-worktrees)を作成します。
 
 セッション分離には[Git](https://git-scm.com/downloads)が必要です。ほとんどの Mac には Git がデフォルトで含まれています。Terminal で`git --version`を実行して確認してください。Windows では、Code タブが機能するために Git が必要です：[Git for Windows をダウンロード](https://git-scm.com/downloads/win)し、インストールしてアプリを再起動します。Git エラーが発生した場合は、[Cowork タブ](https://claude.com/product/cowork)で Claude に助けを求めてセットアップのトラブルシューティングを行ってください。
 
@@ -481,7 +483,7 @@ Claude が別のポートを選択すると、割り当てられたポートを`
 
 ローカルセッションと dev サーバーの環境変数を設定するには、プロンプトボックスの環境ドロップダウンを開き、**Local** にマウスを合わせて、ギアアイコンをクリックしてローカル環境エディタを開きます。ここで保存する変数は、マシンに暗号化されて保存され、開始するすべてのローカルセッションとプレビューサーバーに適用されます。また、`~/.claude/settings.json` ファイルの `env` キーに変数を追加することもできます。ただし、これらは Claude セッションにのみ到達し、dev サーバーには到達しません。サポートされている変数の完全なリストについては、[環境変数](/ja/env-vars)を参照してください。
 
-[拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode)はデフォルトで有効になっており、複雑な推論タスクのパフォーマンスを向上させますが、追加のトークンを使用します。思考を完全に無効にするには、ローカル環境エディタで `MAX_THINKING_TOKENS` を `0` に設定します。[適応的推論](/ja/model-config#adjust-effort-level)を持つモデルでは、適応的推論が思考の深さを制御するため、他の `MAX_THINKING_TOKENS` 値は無視されます。Opus 4.6 と Sonnet 4.6 では、固定思考予算を使用するために `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` を `1` に設定します。Opus 4.7 は常に適応的推論を使用し、固定予算モードはありません。
+[拡張思考](/ja/model-config#extended-thinking)はデフォルトで有効になっており、複雑な推論タスクのパフォーマンスを向上させますが、追加のトークンを使用します。思考を完全に無効にするには、ローカル環境エディタで `MAX_THINKING_TOKENS` を `0` に設定します。[適応的推論](/ja/model-config#adjust-effort-level)を持つモデルでは、適応的推論が思考の深さを制御するため、他の `MAX_THINKING_TOKENS` 値は無視されます。Opus 4.6 と Sonnet 4.6 では、固定思考予算を使用するために `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` を `1` に設定します。Opus 4.7 は常に適応的推論を使用し、固定予算モードはありません。
 
 ### リモートセッション
 
