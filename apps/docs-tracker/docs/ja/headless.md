@@ -53,7 +53,7 @@ claude --bare -p "Summarize this file" --allowedTools "Read"
 | 設定 | `--settings <file-or-json>` |
 | MCP サーバー | `--mcp-config <file-or-json>` |
 | カスタムエージェント | `--agents <json>` |
-| プラグインディレクトリ | `--plugin-dir <path>` |
+| プラグイン | `--plugin-dir <path>`、`--plugin-url <url>` |
 
 ベアモードは OAuth とキーチェーン読み取りをスキップします。Anthropic 認証は `ANTHROPIC_API_KEY` または `--settings` に渡される JSON の `apiKeyHelper` から取得する必要があります。Bedrock、Vertex、および Foundry は通常のプロバイダー認証情報を使用します。
 
@@ -62,6 +62,34 @@ claude --bare -p "Summarize this file" --allowedTools "Read"
 ## 例
 
 これらの例は、一般的な CLI パターンを強調しています。CI およびその他のスクリプト呼び出しの場合は、[`--bare`](#start-faster-with-bare-mode) を追加して、ローカルで設定されているものを取得しないようにします。
+
+### Claude にデータをパイプする
+
+非対話モードは stdin を読み取るため、他のコマンドラインツールと同様にデータをパイプして応答をリダイレクトできます。
+
+この例は、ビルドログを Claude にパイプし、説明をファイルに書き込みます。
+
+```bash
+cat build-error.txt | claude -p 'concisely explain the root cause of this build error' > output.txt
+```
+
+`--output-format json` を使用すると、応答ペイロードに `total_cost_usd` とモデルごとのコスト内訳が含まれるため、スクリプト呼び出し元は [使用状況ダッシュボード](/ja/costs) を参照せずに呼び出しごとの支出を追跡できます。
+
+Claude Code v2.1.128 以降、パイプされた stdin は 10MB に制限されています。制限を超える場合、Claude Code は明確なエラーと 0 以外のステータスで終了します。より大きな入力を処理するには、コンテンツをファイルに書き込み、パイプする代わりにプロンプトでファイルパスを参照してください。
+
+### ビルドスクリプトに Claude を追加する
+
+非対話呼び出しをスクリプトでラップして、Claude をプロジェクト固有のリンターまたはレビュアーとして使用できます。
+
+この `package.json` スクリプトは、`main` に対する diff を Claude にパイプし、タイプミスを報告するよう要求します。diff をパイプすることで、Claude は読み取り権限を必要とせず、エスケープされたダブルクォートはスクリプトを Windows に対応させます。
+
+```json
+{
+  "scripts": {
+    "lint:claude": "git diff main | claude -p \"you are a typo linter. for each typo in this diff, report filename:line on one line and the issue on the next. return nothing else.\""
+  }
+}
+```
 
 ### 構造化された出力を取得する
 

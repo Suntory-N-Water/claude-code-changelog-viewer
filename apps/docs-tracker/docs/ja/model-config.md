@@ -176,12 +176,14 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 | `low` | インテリジェンスに敏感でない短くスコープされたレイテンシに敏感なタスク用に予約 |
 | `medium` | インテリジェンスをトレードオフできるコスト敏感な作業のトークン使用量を削減 |
 | `high` | トークン使用量とインテリジェンスのバランス。インテリジェンスに敏感な作業の最小値として使用するか、`xhigh` に対してトークン支出を削減するために使用 |
-| `xhigh` | ほとんどのコーディングおよび agentic コーディングタスクに最適な結果。Opus 4.7 での推奨デフォルト |
+| `xhigh` | ほとんどのコーディングおよび agentic coding タスクに最適な結果。Opus 4.7 での推奨デフォルト |
 | `max` | 難しいタスクのパフォーマンスを改善できますが、収益逓減を示す可能性があり、過度な思考の傾向があります。広く採用する前にテスト |
 
 努力スケールはモデルごとに調整されるため、同じレベル名はモデル全体で同じ基盤値を表しません。
 
-セッション設定を変更せずに 1 回限りの深い推論を行うには、プロンプトに「ultrathink」を含めます。これにより、そのターンでより多く推論するようにモデルに指示するインコンテキスト命令が追加されます。努力レベルを API に送信するように変更しません。
+#### 1 回限りの深い推論に ultrathink を使用
+
+セッション設定を変更せずに 1 回限りの深い推論を行うには、プロンプトの任意の場所に `ultrathink` を含めます。Claude Code はキーワードを認識し、インコンテキスト命令を追加します。API に送信される努力レベルは変更されません。「think」、「think hard」、「think more」などの他のフレーズは通常のプロンプトテキストとして渡され、キーワードとして認識されません。
 
 #### 努力レベルの設定
 
@@ -206,6 +208,18 @@ Opus 4.7 は常に適応的推論を使用します。固定思考予算モー�
 
 Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を設定して、`MAX_THINKING_TOKENS` で制御される以前の固定思考予算に戻すことができます。[環境変数](/ja/env-vars) を参照してください。
 
+### 拡張思考
+
+拡張思考は、Claude が応答する前に発する推論です。[適応的推論](#adjust-effort-level) をサポートするモデルでは、努力レベルは思考がどの程度発生するかの主要な制御です。以下の設定は思考をオンまたはオフにし、それがどのように表示されるかを制御します。
+
+| 制御 | 設定方法 |
+| :- | :- |
+| 現在のセッションのトグル | macOS では `Option+T`、Windows と Linux では `Alt+T` を押します。[ターミナル設定](/ja/terminal-config) が Option キーのショートカットに必要な場合があります |
+| グローバルデフォルトを設定 | `/config` を実行して思考モードをトグルします。`~/.claude/settings.json` に `alwaysThinkingEnabled` として保存されます |
+| 努力に関係なく無効化 | [`MAX_THINKING_TOKENS=0`](/ja/env-vars) を設定します。他の値は [固定思考予算](#adaptive-reasoning-and-fixed-thinking-budgets) でのみ適用されます |
+
+思考出力はデフォルトで折りたたまれています。`Ctrl+O` を押して詳細モードをトグルし、推論をグレーのイタリック体テキストとして表示します。Anthropic API 上のインタラクティブセッションはデフォルトで編集された思考ブロックを受け取るため、展開時に完全な要約を利用可能にしたい場合は [設定](/ja/settings) で `showThinkingSummaries: true` を設定します。折りたたまれたまたは編集された場合でも、生成されたすべての思考トークンに対して課金されます。
+
 ### 拡張コンテキスト
 
 Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) をサポートしています。
@@ -214,8 +228,8 @@ Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ�
 
 | プラン | Opus with 1M context | Sonnet with 1M context |
 | - | - | - |
-| Max、Team、Enterprise | サブスクリプションに含まれる | [追加使用](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) が必要 |
-| Pro | [追加使用](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) が必要 | [追加使用](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) が必要 |
+| Max、Team、Enterprise | サブスクリプションに含まれる | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要 |
+| Pro | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要 | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要 |
 | API と従量課金 | フルアクセス | フルアクセス |
 
 1M コンテキストを完全に無効にするには、`CLAUDE_CODE_DISABLE_1M_CONTEXT=1` を設定します。これにより、1M モデルバリアントがモデルピッカーから削除されます。[環境変数](/ja/env-vars) を参照してください。
@@ -244,7 +258,7 @@ Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ�
 
 ## カスタムモデルオプションの追加
 
-`ANTHROPIC_CUSTOM_MODEL_OPTION` を使用して、組み込みエイリアスを置き換えることなく、単一のカスタムエントリを `/model` ピッカーに追加します。これは Claude Code がデフォルトでリストしないモデル ID のテストに役立ちます。LLM ゲートウェイデプロイメントの場合、Claude Code はゲートウェイの `/v1/models` エンドポイントからピッカーを自動的に入力するため、この変数が必要なのはディスカバリーが必要なモデルを返さない場合のみです。[LLM ゲートウェイモデル選択](/ja/llm-gateway#model-selection)を参照してください。
+`ANTHROPIC_CUSTOM_MODEL_OPTION` を使用して、組み込みエイリアスを置き換えることなく、単一のカスタムエントリを `/model` ピッカーに追加します。これは Claude Code がデフォルトでリストしないモデル ID のテストに役立ちます。LLM ゲートウェイデプロイメントの場合、Claude Code は `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` が設定されているときにゲートウェイの `/v1/models` エンドポイントからピッカーを自動的に入力するため、この変数が必要なのはディスカバリーが無効になっているか、必要なモデルを返さない場合のみです。[LLM ゲートウェイモデル選択](/ja/llm-gateway#model-selection)を参照してください。
 
 この例では、3 つの変数をすべて設定して、ゲートウェイルーティングされた Opus デプロイメントを選択可能にします。
 
@@ -313,14 +327,14 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7[1m]'
 
 同じ `_NAME`、`_DESCRIPTION`、`_SUPPORTED_CAPABILITIES` サフィックスは `ANTHROPIC_DEFAULT_SONNET_MODEL`、`ANTHROPIC_DEFAULT_HAIKU_MODEL`、`ANTHROPIC_CUSTOM_MODEL_OPTION` で利用可能です。
 
-Claude Code は、モデル ID を既知のパターンと照合することで、[努力レベル](#adjust-effort-level) や [拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode) などの機能を有効にします。Bedrock ARN やカスタムデプロイメント名などのプロバイダー固有の ID は、これらのパターンと一致しないことが多く、サポートされている機能が無効のままになります。`_SUPPORTED_CAPABILITIES` を設定して、Claude Code にモデルが実際にサポートする機能を伝えます。
+Claude Code は、モデル ID を既知のパターンと照合することで、[努力レベル](#adjust-effort-level) や [拡張思考](#extended-thinking) などの機能を有効にします。Bedrock ARN やカスタムデプロイメント名などのプロバイダー固有の ID は、これらのパターンと一致しないことが多く、サポートされている機能が無効のままになります。`_SUPPORTED_CAPABILITIES` を設定して、Claude Code にモデルが実際にサポートする機能を伝えます。
 
 | 機能値 | 有効にするもの |
 | - | - |
 | `effort` | [努力レベル](#adjust-effort-level) と `/effort` コマンド |
-| `xhigh_effort` | `xhigh` 努力レベル |
+| `xhigh_effort` | The `xhigh` 努力レベル |
 | `max_effort` | `max` 努力レベル |
-| `thinking` | [拡張思考](/ja/common-workflows#use-extended-thinking-thinking-mode) |
+| `thinking` | [拡張思考](#extended-thinking) |
 | `adaptive_thinking` | タスクの複雑さに基づいて思考を動的に割り当てる適応的推論 |
 | `interleaved_thinking` | ツール呼び出し間の思考 |
 

@@ -168,6 +168,10 @@ Claude Code は起動時と実行中に定期的に更新をチェックしま�
 
 Homebrew、WinGet、apt、dnf、および apk インストールは自動更新されません。Homebrew の場合は、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。Linux パッケージマネージャーの場合は、[Linux パッケージマネージャーでインストール](#install-with-linux-package-managers)のアップグレードコマンドを参照してください。
 
+Claude Code が Homebrew または WinGet で自動的にアップグレードコマンドを実行するようにするには、[`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`](/ja/env-vars)を `1` に設定します。Claude Code は新しいバージョンが利用可能な場合、バックグラウンドでアップグレードを実行し、成功時に再起動プロンプトを表示します。アップグレードは Claude Code パッケージのみを対象とし、インストール済みの他のソフトウェアには影響しません。
+
+WinGet では、Claude Code の実行中にアップグレードが失敗する場合があります。これは Windows が実行可能ファイルをロックするためです。その場合、Claude Code は代わりに手動コマンドを表示します。apt、dnf、および apk は、これらのコマンドが昇格された権限を必要とするため、手動アップグレードが必要です。
+
 **既知の問題**: Claude Code は、新しいバージョンがこれらのパッケージマネージャーで利用可能になる前に更新を通知する場合があります。アップグレードが失敗した場合は、しばらく待ってからもう一度試してください。
 
 Homebrew はアップグレード後、古いバージョンをディスク上に保持します。`brew cleanup` を定期的に実行してディスク容量を回収します。
@@ -220,7 +224,7 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 }
 ```
 
-`DISABLE_AUTOUPDATER` はバックグラウンドチェックのみを停止します。`claude update` と `claude install` は引き続き機能します。手動更新を含むすべての更新パスをブロックするには、代わりに [`DISABLE_UPDATES`](/ja/env-vars) を設定します。独自のチャネルを通じて Claude Code を配布し、ユーザーが提供するバージョンに留まる必要がある場合に使用します。
+`DISABLE_AUTOUPDATER` はバックグラウンドチェックのみを停止します。`claude update` と `claude install` は引き続き機能します。手動更新を含むすべての更新パスをブロックするには、代わりに [`DISABLE_UPDATES`](/ja/env-vars)を設定します。独自のチャネルを通じて Claude Code を配布し、ユーザーが提供するバージョンに留まる必要がある場合に使用します。
 
 ### 手動で更新
 
@@ -418,11 +422,11 @@ shasum -a 256 claude
 
 ## Claude Code をアンインストール
 
-Claude Code を削除するには、インストール方法の指示に従ってください。
+Claude Code を削除するには、インストール方法の指示に従ってください。アンインストール後も `claude` が実行される場合は、2 番目のインストールまたは古いインストーラーからの残存シェルエイリアスがある可能性があります。[競合するインストールを確認](/ja/troubleshoot-install#check-for-conflicting-installations)を参照して、それを見つけて削除してください。
 
 ### ネイティブインストール
 
-Claude Code バイナリとバージョンファイルを削除します。
+Claude Code バイナリとバージョンファイルを削除します：
 
 ```bash theme={null}
 rm -f ~/.local/bin/claude

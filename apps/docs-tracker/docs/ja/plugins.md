@@ -288,6 +288,12 @@ claude --plugin-dir ./my-plugin
 claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two
 ```
 
+URL でホストされている `.zip` アーカイブとしてパッケージ化されているプラグイン（CI ビルドアーティファクトなど）をテストするには、代わりに `--plugin-url` を使用してください。Claude Code はスタートアップ時にアーカイブをフェッチし、そのセッションのみ読み込みます。フェッチが失敗するか、アーカイブが無効な場合、Claude Code はプラグイン読み込みエラーを報告し、それなしで開始します。[信頼に関する考慮事項](/ja/discover-plugins#security)と同じものが、プラグインソースに適用されます。このフラグは、制御または信頼するアーカイブのみを指してください。
+
+```bash
+claude --plugin-url https://example.com/my-plugin.zip
+```
+
 ### プラグインの問題をデバッグする
 
 プラグインが期待どおりに機能しない場合：
