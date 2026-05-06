@@ -373,6 +373,7 @@ const totalItemCount = items.length;
         <a
           href='/notify'
           class='inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[hsl(var(--cc-main-orange))] text-sm text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] active:scale-[0.96]'
+          data-cta='notify'
         >
           <svg
             class='w-4 h-4'
@@ -400,6 +401,7 @@ const totalItemCount = items.length;
           rel='noopener noreferrer'
           class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-gray-600 hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
           aria-label='Xでシェア'
+          data-share='x'
         >
           <svg
             class='w-3.5 h-3.5'
@@ -419,6 +421,7 @@ const totalItemCount = items.length;
           rel='noopener noreferrer'
           class='inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[hsl(var(--cc-gray))] text-xs text-gray-600 hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
           aria-label='はてなブックマークに追加'
+          data-share='hatena'
         >
           <svg
             class='w-3.5 h-3.5'
@@ -466,6 +469,7 @@ const totalItemCount = items.length;
             <a
               href={`/changelog/v${prevVersion}`}
               class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+              data-version-nav='prev'
             >
               <svg
                 class='w-4 h-4'
@@ -492,6 +496,7 @@ const totalItemCount = items.length;
             <a
               href={`/changelog/v${nextVersion}`}
               class='inline-flex items-center gap-1 text-sm text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors'
+              data-version-nav='next'
             >
               v{nextVersion}
               <svg
@@ -519,24 +524,94 @@ const totalItemCount = items.length;
 
   <script>
     document.addEventListener('astro:page-load', () => {
+      const version =
+        document.querySelector<HTMLHeadingElement>('h1')?.textContent?.trim() ??
+        '';
+
+      // URLコピーボタン
       const btn = document.getElementById('copy-url-btn');
       const label = document.getElementById('copy-url-label');
       const icon = document.getElementById('copy-url-icon');
-      if (!btn || !label || !icon) {
-        return;
+      if (btn && label && icon) {
+        btn.addEventListener('click', async () => {
+          await navigator.clipboard.writeText(location.href);
+          window.gtag?.('event', 'share_clicked', {
+            event_category: 'engagement',
+            share_method: 'copy_url',
+            version,
+          });
+          label.textContent = 'コピーしました';
+          icon.innerHTML =
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>';
+          setTimeout(() => {
+            label.textContent = 'URLをコピー';
+            icon.innerHTML =
+              '<path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>';
+          }, 2000);
+        });
       }
 
-      btn.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(location.href);
-        label.textContent = 'コピーしました';
-        icon.innerHTML =
-          '<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>';
-        setTimeout(() => {
-          label.textContent = 'URLをコピー';
-          icon.innerHTML =
-            '<path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>';
-        }, 2000);
-      });
+      // シェアリンク (X / はてブ)
+      document
+        .querySelectorAll<HTMLAnchorElement>('[data-share]')
+        .forEach((el) => {
+          el.addEventListener('click', () => {
+            window.gtag?.('event', 'share_clicked', {
+              event_category: 'engagement',
+              share_method: el.dataset.share,
+              version,
+            });
+          });
+        });
+
+      // 通知CTA
+      document
+        .querySelector<HTMLAnchorElement>('[data-cta="notify"]')
+        ?.addEventListener('click', () => {
+          window.gtag?.('event', 'notify_cta_clicked', {
+            event_category: 'engagement',
+            location: 'changelog_detail',
+            version,
+          });
+        });
+
+      // 前後バージョンナビゲーション
+      document
+        .querySelectorAll<HTMLAnchorElement>('[data-version-nav]')
+        .forEach((el) => {
+          el.addEventListener('click', () => {
+            window.gtag?.('event', 'version_nav_clicked', {
+              event_category: 'engagement',
+              direction: el.dataset.versionNav,
+              from_version: version,
+            });
+          });
+        });
+
+      // スクロール深度 (25% / 50% / 75% / 100%)
+      const milestones = [25, 50, 75, 100];
+      const fired = new Set<number>();
+      function onScroll() {
+        const scrolled = window.scrollY + window.innerHeight;
+        const total = document.documentElement.scrollHeight;
+        const pct = Math.round((scrolled / total) * 100);
+        for (const milestone of milestones) {
+          if (pct >= milestone && !fired.has(milestone)) {
+            fired.add(milestone);
+            window.gtag?.('event', 'scroll_depth', {
+              event_category: 'engagement',
+              depth_percent: milestone,
+              version,
+            });
+          }
+        }
+        if (fired.size === milestones.length) {
+          window.removeEventListener('scroll', onScroll, {
+            passive: true,
+          } as AddEventListenerOptions);
+        }
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
     });
   </script>
 </Layout>
