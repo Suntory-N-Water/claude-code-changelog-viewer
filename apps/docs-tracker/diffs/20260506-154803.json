@@ -1,0 +1,1427 @@
+{
+  "id": "20260506-154803",
+  "timestamp": "2026-05-06T15:48:03.658Z",
+  "aiSummary": "URLからプラグインを直接読み込む機能や、HomebrewおよびWinGetでの自動アップデート設定が追加されました。スキルごとに表示設定を細かく制御できるskillOverridesが導入され、/skillsメニューから対話的に設定可能になっています。LLMゲートウェイ経由のモデル自動検出がデフォルトでオフに変更され、新しい環境変数で制御する方式に更新されました。プラグイン開発におけるテーマやモニターの設定がexperimentalキー配下に整理され、仕様変更への対応が行われています。",
+  "files": [
+    {
+      "filename": "cli-reference.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "--plugin-urlフラグによるURLからのプラグイン読み込み機能と、--settingsフラグによる設定の上書き仕様の詳細が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -85,6 +85,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--permission-mode` | Begin in a specified [permission mode](/en/permission-modes). Accepts `default`, `acceptEdits`, `plan`, `auto`, `dontAsk`, or `bypassPermissions`. Overrides `defaultMode` from settings files | `claude --permission-mode plan` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--permission-prompt-tool` | Specify an MCP tool to handle permission prompts in non-interactive mode | `claude -p --permission-prompt-tool mcp_auth_tool \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--plugin-dir` | Load a plugin from a directory or `.zip` archive for this session only. Each flag takes one path. Repeat the flag for multiple plugins: `--plugin-dir A --plugin-dir B.zip` | `claude --plugin-dir ./my-plugin` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--plugin-url` | Fetch a plugin `.zip` archive from a URL for this session only. Each flag takes one URL. Repeat the flag for multiple plugins | `claude --plugin-url https://example.com/plugin.zip` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--print`, `-p` | Print response without interactive mode (see [Agent SDK documentation](/en/agent-sdk/overview) for programmatic usage details) | `claude -p \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--remote` | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description | `claude --remote \"Fix the login bug\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--remote-control`, `--rc` | Start an interactive session with [Remote Control](/en/remote-control#start-a-remote-control-session) enabled so you can also control it from claude.ai or the Claude app. Optionally pass a name for the session | `claude --remote-control \"My Project\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -93,7 +94,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--resume`, `-r` | Resume a specific session by ID or name, or show an interactive picker to choose a session. Includes sessions that added this directory with `/add-dir` | `claude --resume auth-refactor` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--session-id` | Use a specific session ID for the conversation (must be a valid UUID) | `claude --session-id \"550e8400-e29b-41d4-a716-446655440000\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--setting-sources` | Comma-separated list of setting sources to load (`user`, `project`, `local`) | `claude --setting-sources user,project` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--settings` | Path to a settings JSON file or a JSON string to load additional settings from | `claude --settings ./settings.json` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--settings` | Path to a settings JSON file or an inline JSON string. Values you set here override the same keys in your `settings.json` files for this session. Keys you omit keep their file-based values. See [settings precedence](/en/settings#settings-precedence) | `claude --settings ./settings.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--strict-mcp-config` | Only use MCP servers from `--mcp-config`, ignoring all other MCP configurations | `claude --strict-mcp-config --mcp-config ./mcp.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--system-prompt` | Replace the entire system prompt with custom text | `claude --system-prompt \"You are a Python expert\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--system-prompt-file` | Load system prompt from a file, replacing the default prompt | `claude --system-prompt-file ./custom-prompt.txt` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/skillsコマンドにおいて、スペースキーでスキルの表示・非表示を切り替え、保存できる操作方法が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -86,7 +86,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/setup-bedrock` | Configure [Amazon Bedrock](/en/amazon-bedrock) authentication, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_BEDROCK=1` is set. First-time Bedrock users can also access this wizard from the login screen |"
+            },
+            {
+              "type": "context",
+              "content": "| `/setup-vertex` | Configure [Google Vertex AI](/en/google-vertex-ai) authentication, project, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_VERTEX=1` is set. First-time Vertex AI users can also access this wizard from the login screen |"
+            },
+            {
+              "type": "context",
+              "content": "| `/simplify [focus]` | **[Skill](/en/skills#bundled-skills).** Review your recently changed files for code reuse, quality, and efficiency issues, then fix them. Spawns three review agents in parallel, aggregates their findings, and applies fixes. Pass text to focus on specific concerns: `/simplify focus on memory efficiency` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/skills` | List available [skills](/en/skills). Press `t` to sort by token count |"
+            },
+            {
+              "type": "added",
+              "content": "| `/skills` | List available [skills](/en/skills). Press `t` to sort by token count. Press `Space` to [hide a skill from Claude or the `/` menu](/en/skills#override-skill-visibility-from-settings), then `Enter` to save |"
+            },
+            {
+              "type": "context",
+              "content": "| `/stats` | Alias for `/usage`. Opens on the Stats tab |"
+            },
+            {
+              "type": "context",
+              "content": "| `/status` | Open the Settings interface (Status tab) showing version, model, account, and connectivity. Works while Claude is responding, without waiting for the current response to finish |"
+            },
+            {
+              "type": "context",
+              "content": "| `/statusline` | Configure Claude Code's [status line](/en/statusline). Describe what you want, or run without arguments to auto-configure from your shell prompt |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 4,
+      "deletions": 1,
+      "explanation": "パッケージマネージャーの自動更新や、ゲートウェイ経由のモデル検出を制御する新しい環境変数の説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -91,7 +91,8 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EFFORT_LEVEL` | Set the effort level for supported models. Values: `low`, `medium`, `high`, `xhigh`, `max`, or `auto` to use the model default. Available levels depend on the model. Takes precedence over `/effort` and the `effortLevel` setting. See [Adjust effort level](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` | Override [session recap](/en/interactive-mode#session-recap) availability. Set to `0` to force recaps off regardless of the `/config` toggle. Set to `1` to force recaps on when [`awaySummaryEnabled`](/en/settings#available-settings) is `false`. Takes precedence over the setting and `/config` toggle |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_BACKGROUND_PLUGIN_REFRESH` | Set to `1` to refresh plugin state at turn boundaries in [non-interactive mode](/en/headless) after a background install completes. Off by default because the refresh changes the system prompt mid-session, which invalidates [prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) for that turn |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING` | Set to `1` to force-enable fine-grained tool input streaming. Without this, the API buffers tool input parameters fully before sending delta events, which can delay display on large tool inputs. Anthropic API only: has no effect on Bedrock, Vertex, or Foundry |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING` | Controls whether tool call inputs stream from the API as Claude generates them. With this off, a large tool input such as a long file write arrives only after Claude finishes generating it, which can look like it's hanging. Enabled by default for direct Anthropic API connections. Set to `0` to opt out. Set to `1` to force-enable even when the server-side default is off. Has no effect on Bedrock, Vertex, Foundry, or [gateway](/en/llm-gateway) connections |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY` | Set to `1` to populate the `/model` picker from your gateway's `/v1/models` endpoint when `ANTHROPIC_BASE_URL` points at an Anthropic-compatible gateway such as LiteLLM, Kong, or an internal proxy. Off by default because gateways backed by a shared API key would otherwise show every user every model the key can access. Discovered models are still filtered by the [`availableModels`](/en/settings#available-settings) allowlist |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` | Set to `false` to disable prompt suggestions (the \"Prompt suggestions\" toggle in `/config`). These are the grayed-out predictions that appear in your prompt input after Claude responds. See [Prompt suggestions](/en/interactive-mode#prompt-suggestions) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TASKS` | Set to `1` to enable the task tracking system in non-interactive mode (the `-p` flag). Tasks are on by default in interactive mode. See [Task list](/en/interactive-mode#task-list) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TELEMETRY` | Set to `1` to enable OpenTelemetry data collection for metrics and logging. Required before configuring OTel exporters. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -99,6 +100,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Set to `1` to enable [agent teams](/en/agent-teams). Agent teams are experimental and disabled by default |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EXTRA_BODY` | JSON object to merge into the top level of every API request body. Useful for passing provider-specific parameters that Claude Code does not expose directly |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` | Override the default token limit for file reads. Useful when you need to read larger files in full |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_FORCE_SYNC_OUTPUT` | Set to `1` to force-enable DEC private mode 2026 [synchronized output](https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036) when your terminal supports it but is not auto-detected. Useful for emulators such as Emacs `eat` that implement BSU/ESU but do not reply to the capability probe. Has no effect under tmux |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORK_SUBAGENT` | Set to `1` to enable [forked subagents](/en/sub-agents#fork-the-current-conversation). A forked subagent inherits the full conversation context from the main session instead of starting fresh. When enabled, `/fork` spawns a forked subagent rather than acting as an alias for [`/branch`](/en/commands), and all subagent spawns run in the background. Works in interactive mode and via the SDK or `claude -p` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GIT_BASH_PATH` | Windows only: path to the Git Bash executable (`bash.exe`). Use when Git Bash is installed but not in your PATH. See [Windows setup](/en/setup#set-up-on-windows) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GLOB_HIDDEN` | Set to `false` to exclude dotfiles from results when Claude invokes the [Glob tool](/en/tools-reference). Included by default. Does not affect `@` file autocomplete, `ls`, Grep, or Read |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -121,6 +123,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_FLUSH_TIMEOUT_MS` | Timeout in milliseconds for flushing pending OpenTelemetry spans (default: 5000). See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS` | Interval for refreshing dynamic OpenTelemetry headers in milliseconds (default: 1740000 / 29 minutes). See [Dynamic headers](/en/monitoring-usage#dynamic-headers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_SHUTDOWN_TIMEOUT_MS` | Timeout in milliseconds for the OpenTelemetry exporter to finish on shutdown (default: 2000). Increase if metrics are dropped at exit. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE` | Set to `1` to let Claude Code run your package manager's upgrade command in the background when a new version is available. Applies to Homebrew and WinGet installations. Other package managers continue to show the upgrade command without running it. See [Auto updates](/en/setup#auto-updates) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PERFORCE_MODE` | Set to `1` to enable Perforce-aware write protection. When set, Edit, Write, and NotebookEdit fail with a `p4 edit <file>` hint if the target file lacks the owner-write bit, which Perforce clears on synced files until `p4 edit` opens them. This prevents Claude Code from bypassing Perforce change tracking |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PLUGIN_CACHE_DIR` | Override the plugins root directory. Despite the name, this sets the parent directory, not the cache itself: marketplaces and the plugin cache live in subdirectories under this path. Defaults to `~/.claude/plugins` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PLUGIN_GIT_TIMEOUT_MS` | Timeout in milliseconds for git operations when installing or updating plugins (default: 120000). Increase this value for large repositories or slow network connections. See [Git operations time out](/en/plugin-marketplaces#git-operations-time-out) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "features-overview.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "スキルファイルを直接編集せずに、設定からスキルの有効・無効を切り替える方法についての言及が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -202,7 +202,7 @@ Each feature has a different loading strategy and context cost:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Subagents** | When spawned | Fresh context with specified skills | Isolated from main session |"
+            },
+            {
+              "type": "context",
+              "content": "| **Hooks** | On trigger | Nothing (runs externally) | Zero, unless hook returns additional context |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "\\*By default, skill descriptions load at session start so Claude can decide when to use them. Set `disable-model-invocation: true` in a skill's frontmatter to hide it from Claude entirely until you invoke it manually. This reduces context cost to zero for skills you only trigger yourself."
+            },
+            {
+              "type": "added",
+              "content": "\\*By default, skill descriptions load at session start so Claude can decide when to use them. Set `disable-model-invocation: true` in a skill's frontmatter to hide it from Claude entirely until you invoke it manually. This reduces context cost to zero for skills you only trigger yourself. For a skill you didn't write, set [`skillOverrides`](/en/skills#override-skill-visibility-from-settings) in settings to do the same without editing its file."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Understand how features load"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "headless.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ヘッドレスモードのオプション一覧に、URL指定によるプラグイン読み込みフラグが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -53,7 +53,7 @@ In bare mode Claude has access to the Bash, file read, and file edit tools. Pass",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Settings | `--settings <file-or-json>` |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP servers | `--mcp-config <file-or-json>` |"
+            },
+            {
+              "type": "context",
+              "content": "| Custom agents | `--agents <json>` |"
+            },
+            {
+              "type": "removed",
+              "content": "| A plugin directory | `--plugin-dir <path>` |"
+            },
+            {
+              "type": "added",
+              "content": "| A plugin | `--plugin-dir <path>`, `--plugin-url <url>` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Bare mode skips OAuth and keychain reads. Anthropic authentication must come from `ANTHROPIC_API_KEY` or an `apiKeyHelper` in the JSON passed to `--settings`. Bedrock, Vertex, and Foundry use their usual provider credentials."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "how-claude-code-works.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "スキルのオンデマンド読み込みの仕組みにおいて、設定ファイルからの表示制御（skillOverrides）に関する記述が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -131,7 +131,7 @@ Run `/context` to see what's using space. MCP tool definitions are deferred by d",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Beyond compaction, you can use other features to control what loads into context."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Skills](/en/skills) load on demand. Claude sees skill descriptions at session start, but the full content only loads when a skill is used. For skills you invoke manually, set `disable-model-invocation: true` to keep descriptions out of context until you need them."
+            },
+            {
+              "type": "added",
+              "content": "[Skills](/en/skills) load on demand. Claude sees skill descriptions at session start, but the full content only loads when a skill is used. For skills you invoke manually, set `disable-model-invocation: true` to keep descriptions out of context until you need them. For skills you didn't write, use [`skillOverrides`](/en/skills#override-skill-visibility-from-settings) to do the same from settings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Subagents](/en/sub-agents) get their own fresh context, completely separate from your main conversation. Their work doesn't bloat your context. When done, they return a summary. This isolation is why subagents help with long sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "プロンプト履歴の検索範囲を切り替えるCtrl+S操作の挙動について、デフォルトが全プロジェクト対象である旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -216,7 +216,7 @@ Press `Ctrl+R` to interactively search through your command history:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "1. **Start search**: press `Ctrl+R` to activate reverse history search"
+            },
+            {
+              "type": "context",
+              "content": "2. **Type query**: enter text to search for in previous commands. The search term is highlighted in matching results"
+            },
+            {
+              "type": "context",
+              "content": "3. **Navigate matches**: press `Ctrl+R` again to cycle through older matches"
+            },
+            {
+              "type": "removed",
+              "content": "4. **Change scope**: press `Ctrl+S` to cycle between this session, this project, and all projects"
+            },
+            {
+              "type": "added",
+              "content": "4. **Change scope**: search defaults to prompts from all projects. Press `Ctrl+S` to cycle the scope through this session, this project, and all projects"
+            },
+            {
+              "type": "context",
+              "content": "5. **Accept match**:"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Tab` or `Esc` to accept the current match and continue editing"
+            },
+            {
+              "type": "context",
+              "content": "   - Press `Enter` to accept and execute the command immediately"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ゲートウェイのモデル自動検出機能がデフォルトで無効化され、有効化には特定の環境変数が必要である旨が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -52,7 +52,7 @@ Claude Code also prepends a short attribution block to the system prompt contain",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "By default, Claude Code uses standard model names for the selected API format."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When `ANTHROPIC_BASE_URL` points at a gateway that exposes the Anthropic Messages format, Claude Code queries the gateway's `/v1/models` endpoint at startup and adds the returned models to the `/model` picker. Each discovered entry is labeled \"From gateway\" and uses the `display_name` field from the response when one is provided. This requires Claude Code v2.1.126 or later."
+            },
+            {
+              "type": "added",
+              "content": "When `ANTHROPIC_BASE_URL` points at a gateway that exposes the Anthropic Messages format, Claude Code can query the gateway's `/v1/models` endpoint at startup and add the returned models to the `/model` picker. Set `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` to enable this. Discovery is off by default so that gateways backed by a shared API key do not surface every model the key can access to every user. Each discovered entry is labeled \"From gateway\" and uses the `display_name` field from the response when one is provided. This requires Claude Code v2.1.129 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Discovery applies only to the Anthropic Messages format. It does not run for Bedrock or Vertex pass-through endpoints, and it does not run when `ANTHROPIC_BASE_URL` is unset or points at `api.anthropic.com`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "カスタムモデル設定において、ゲートウェイ利用時のモデル検出制御フラグとの優先順位についての説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -263,7 +263,7 @@ You can see which model you're currently using in several ways:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Add a custom model option"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `ANTHROPIC_CUSTOM_MODEL_OPTION` to add a single custom entry to the `/model` picker without replacing the built-in aliases. This is useful for testing model IDs that Claude Code does not list by default. For LLM gateway deployments, Claude Code populates the picker automatically from the gateway's `/v1/models` endpoint, so this variable is needed only when discovery does not return the model you want. See [LLM gateway model selection](/en/llm-gateway#model-selection)."
+            },
+            {
+              "type": "added",
+              "content": "Use `ANTHROPIC_CUSTOM_MODEL_OPTION` to add a single custom entry to the `/model` picker without replacing the built-in aliases. This is useful for testing model IDs that Claude Code does not list by default. For LLM gateway deployments, Claude Code can populate the picker from the gateway's `/v1/models` endpoint when `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` is set, so this variable is needed only when discovery is disabled or does not return the model you want. See [LLM gateway model selection](/en/llm-gateway#model-selection)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example sets all three variables to make a gateway-routed Opus deployment selectable:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "プルリクエスト作成のカウント対象に、MCPツールやシェルコマンド経由の操作が含まれることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -414,7 +414,7 @@ Incremented when code is added or removed.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Pull request counter"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Incremented when creating pull requests via Claude Code."
+            },
+            {
+              "type": "added",
+              "content": "Incremented when Claude Code creates a pull request or merge request through a shell command or an MCP tool."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Attributes**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 14,
+      "deletions": 8,
+      "explanation": "テーマとモニターの設定がexperimentalセクションへ移動され、将来の互換性のための記述に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -294,7 +294,7 @@ The following `monitors/monitors.json` watches a deployment status endpoint and",
+          "lines": [
+            {
+              "type": "context",
+              "content": "]"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To declare monitors inline, set the `monitors` key in `plugin.json` to the same array. To load from a non-default path, set `monitors` to a relative path string such as `\"./config/monitors.json\"`."
+            },
+            {
+              "type": "added",
+              "content": "To declare monitors inline, set `experimental.monitors` in `plugin.json` to the same array. To load from a non-default path, set `experimental.monitors` to a relative path string such as `\"./config/monitors.json\"`. Monitors are an [experimental component](#experimental-components)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Required fields:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -316,7 +316,7 @@ Disabling a plugin mid-session does not stop monitors that are already running.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Themes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Plugins can ship color themes that appear in `/theme` alongside the built-in presets and the user's local themes. A theme is a JSON file in `themes/` with a `base` preset and a sparse `overrides` map of color tokens."
+            },
+            {
+              "type": "added",
+              "content": "Plugins can ship color themes that appear in `/theme` alongside the built-in presets and the user's local themes. A theme is a JSON file in `themes/` with a `base` preset and a sparse `overrides` map of color tokens. Themes are an [experimental component](#experimental-components)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -377,9 +377,11 @@ The manifest is optional. If omitted, Claude Code auto-discovers components in [",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  \"hooks\": \"./config/hooks.json\","
+            },
+            {
+              "type": "context",
+              "content": "  \"mcpServers\": \"./mcp-config.json\","
+            },
+            {
+              "type": "context",
+              "content": "  \"outputStyles\": \"./styles/\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"themes\": \"./themes/\","
+            },
+            {
+              "type": "context",
+              "content": "  \"lspServers\": \"./.lsp.json\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"monitors\": \"./monitors.json\","
+            },
+            {
+              "type": "added",
+              "content": "  \"experimental\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"themes\": \"./themes/\","
+            },
+            {
+              "type": "added",
+              "content": "    \"monitors\": \"./monitors.json\""
+            },
+            {
+              "type": "added",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"dependencies\": ["
+            },
+            {
+              "type": "context",
+              "content": "    \"helper-lib\","
+            },
+            {
+              "type": "context",
+              "content": "    { \"name\": \"secrets-vault\", \"version\": \"~2.1.0\" }"
+            }
+          ]
+        },
+        {
+          "header": "@@ -422,13 +424,17 @@ agent `agent-creator` for the plugin with name `plugin-dev` will appear as",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `hooks` | string\\|array\\|object | Hook config paths or inline config | `\"./my-extra-hooks.json\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `mcpServers` | string\\|array\\|object | MCP config paths or inline config | `\"./my-extra-mcp-config.json\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `outputStyles` | string\\|array | Custom output style files/directories (replaces default `output-styles/`) | `\"./styles/\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `themes` | string\\|array | Color theme files/directories (replaces default `themes/`). See [Themes](#themes) | `\"./themes/\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `lspServers` | string\\|array\\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) configs for code intelligence (go to definition, find references, etc.) | `\"./.lsp.json\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `monitors` | string\\|array | Background [Monitor](/en/tools-reference#monitor-tool) configurations that start automatically when the plugin is active. See [Monitors](#monitors) | `\"./monitors.json\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `experimental.themes` | string\\|array | Color theme files/directories (replaces default `themes/`). See [Themes](#themes) | `\"./themes/\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `experimental.monitors` | string\\|array | Background [Monitor](/en/tools-reference#monitor-tool) configurations that start automatically when the plugin is active. See [Monitors](#monitors) | `\"./monitors.json\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `userConfig` | object | User-configurable values prompted at enable time. See [User configuration](#user-configuration) | See below |"
+            },
+            {
+              "type": "context",
+              "content": "| `channels` | array | Channel declarations for message injection (Telegram, Slack, Discord style). See [Channels](#channels) | See below |"
+            },
+            {
+              "type": "context",
+              "content": "| `dependencies` | array | Other plugins this plugin requires, optionally with semver version constraints. See [Constrain plugin dependency versions](/en/plugin-dependencies) | `[{ \"name\": \"secrets-vault\", \"version\": \"~2.1.0\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Experimental components"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Components under the `experimental` key, `themes` and `monitors`, have a manifest schema that may change between releases while they stabilize. Where you declare them is a separate migration: the top level still works, `claude plugin validate` warns, and a future release will require `experimental.*`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### User configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `userConfig` field declares values that Claude Code prompts the user for when the plugin is enabled. Use this instead of requiring users to hand-edit `settings.json`."
+            }
+          ]
+        },
+        {
+          "header": "@@ -499,7 +505,7 @@ The `server` field is required and must match a key in the plugin's `mcpServers`",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Path behavior rules"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For `skills`, `commands`, `agents`, `outputStyles`, `themes`, and `monitors`, a custom path replaces the default. If the manifest specifies `skills`, the default `skills/` directory is not scanned; if it specifies `monitors`, the default `monitors/monitors.json` is not loaded. [Hooks](#hooks), [MCP servers](#mcp-servers), and [LSP servers](#lsp-servers) have different semantics for handling multiple sources."
+            },
+            {
+              "type": "added",
+              "content": "For `skills`, `commands`, `agents`, `outputStyles`, `experimental.themes`, and `experimental.monitors`, a custom path replaces the default. If the manifest specifies `skills`, the default `skills/` directory is not scanned; if it specifies `experimental.monitors`, the default `monitors/monitors.json` is not loaded. [Hooks](#hooks), [MCP servers](#mcp-servers), and [LSP servers](#lsp-servers) have different semantics for handling multiple sources."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- All paths must be relative to the plugin root and start with `./`"
+            },
+            {
+              "type": "context",
+              "content": "- Components from custom paths use the same naming and namespacing rules"
+            }
+          ]
+        },
+        {
+          "header": "@@ -600,7 +606,7 @@ The data directory is deleted automatically when you uninstall the plugin from t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugins are specified in one of two ways:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Through `claude --plugin-dir`, for the duration of a session."
+            },
+            {
+              "type": "added",
+              "content": "- Through `claude --plugin-dir` or `claude --plugin-url`, for the duration of a session."
+            },
+            {
+              "type": "context",
+              "content": "- Through a marketplace, installed for future sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For security and verification purposes, Claude Code copies *marketplace* plugins to the user's local **plugin cache** (`~/.claude/plugins/cache`) rather than using them in-place. Understanding this behavior is important when developing plugins that reference external files."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins.md",
+      "additions": 6,
+      "deletions": 0,
+      "explanation": "ZIP形式で公開されているプラグインをURL経由で一時的に読み込む方法と、その際のセキュリティ上の注意点が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -288,6 +288,12 @@ You can load multiple plugins at once by specifying the flag multiple times:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude --plugin-dir ./plugin-one --plugin-dir ./plugin-two"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To test a plugin that is already packaged as a `.zip` archive and hosted at a URL, such as a CI build artifact, use `--plugin-url` instead. Claude Code fetches the archive at startup and loads it for that session only. If the fetch fails or the archive is invalid, Claude Code reports a plugin load error and starts without it. The same [trust considerations](/en/discover-plugins#security) apply as for any plugin source: only point this flag at archives you control or trust."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude --plugin-url https://example.com/my-plugin.zip"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Debug plugin issues"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If your plugin isn't working as expected:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "スキルごとの表示状態を細かく管理するskillOverrides設定項目と、コマンドライン引数による設定の統合ルールが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -217,6 +217,7 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `showClearContextOnPlanAccept` | Show the \"clear context\" option on the plan accept screen. Defaults to `false`. Set to `true` to restore the option | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showThinkingSummaries` | Show [extended thinking](/en/model-config#extended-thinking) summaries in interactive sessions. When unset or `false` (default in interactive mode), thinking blocks are redacted by the API and shown as a collapsed stub. Redaction only changes what you see, not what the model generates: to reduce thinking spend, [lower the budget or disable thinking](/en/model-config#extended-thinking) instead. Non-interactive mode (`-p`) and SDK callers always receive summaries regardless of this setting | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showTurnDuration` | Show turn duration messages after responses, e.g. \"Cooked for 1m 6s\". Default: `true`. Appears in `/config` as **Show turn duration** | `false` |"
+            },
+            {
+              "type": "added",
+              "content": "| `skillOverrides` | Per-skill visibility overrides keyed by skill name. Value is `\"on\"`, `\"name-only\"`, `\"user-invocable-only\"`, or `\"off\"`. Lets you hide or collapse a skill without editing its SKILL.md. Does not apply to plugin skills, which are managed through `/plugin`. The `/skills` menu writes these to `.claude/settings.local.json`. See [Override skill visibility from settings](/en/skills#override-skill-visibility-from-settings). Requires Claude Code v2.1.129 or later | `{\"legacy-context\": \"name-only\", \"deploy\": \"off\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `skipWebFetchPreflight` | Skip the [WebFetch domain safety check](/en/data-usage#webfetch-domain-safety-check) that sends each requested hostname to `api.anthropic.com` before fetching. Set to `true` in environments that block traffic to Anthropic, such as Bedrock, Vertex AI, or Foundry deployments with restrictive egress. When skipped, WebFetch attempts any URL without consulting the blocklist | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerTipsEnabled` | Show tips in the spinner while Claude is working. Set to `false` to disable tips (default: `true`) | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerTipsOverride` | Override spinner tips with custom strings. `tips`: array of tip strings. `excludeDefault`: if `true`, only show custom tips; if `false` or absent, custom tips are merged with built-in tips | `{ \"excludeDefault\": true, \"tips\": [\"Use our internal tool X\"] }` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -466,7 +467,7 @@ Settings apply in order of precedence. From highest to lowest:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "   - Within the managed tier, precedence is: server-managed > MDM/OS-level policies > file-based (`managed-settings.d/*.json` + `managed-settings.json`) > HKCU registry (Windows only). Only one managed source is used; sources do not merge across tiers. Within the file-based tier, drop-in files and the base file are merged together."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "2. **Command line arguments**"
+            },
+            {
+              "type": "removed",
+              "content": "   - Temporary overrides for a specific session"
+            },
+            {
+              "type": "added",
+              "content": "   - Temporary overrides for a specific session. JSON passed via `--settings <file-or-json>` merges with file-based settings using the same rules as the other layers: a key set here overrides the same key in local, project, or user settings, and omitting a key leaves the lower-layer value in place"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "3. **Local project settings** (`.claude/settings.local.json`)"
+            },
+            {
+              "type": "context",
+              "content": "   - Personal project-specific settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 11,
+      "deletions": 7,
+      "explanation": "HomebrewやWinGet環境において、パッケージマネージャーを通じた自動アップデートを有効にする方法が詳しく解説されました。",
+      "hunks": [
+        {
+          "header": "@@ -38,19 +38,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -60,7 +60,7 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -68,7 +68,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -160,13 +160,17 @@ After installing, log in by running `claude` and following the browser prompts.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Update Claude Code"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Native installations automatically update in the background. You can [configure the release channel](#configure-release-channel) to control whether you receive updates immediately or on a delayed stable schedule, or [disable auto-updates](#disable-auto-updates) entirely. Homebrew, WinGet, and [Linux package manager](#install-with-linux-package-managers) installations require manual updates."
+            },
+            {
+              "type": "added",
+              "content": "Native installations automatically update in the background. You can [configure the release channel](#configure-release-channel) to control whether you receive updates immediately or on a delayed stable schedule, or [disable auto-updates](#disable-auto-updates) entirely. Homebrew, WinGet, and [Linux package manager](#install-with-linux-package-managers) installations require manual updates by default."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Auto-updates"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code checks for updates on startup and periodically while running. Updates download and install in the background, then take effect the next time you start Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Homebrew, WinGet, apt, dnf, and apk installations do not auto-update. For Homebrew, run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed. For WinGet, run `winget upgrade Anthropic.ClaudeCode`. For Linux package managers, see the upgrade commands in [Install with Linux package managers](#install-with-linux-package-managers)."
+            },
+            {
+              "type": "added",
+              "content": "Homebrew, WinGet, apt, dnf, and apk installations do not auto-update by default; see below to opt in for Homebrew and WinGet. To upgrade Homebrew manually, run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed. For WinGet, run `winget upgrade Anthropic.ClaudeCode`. For Linux package managers, see the upgrade commands in [Install with Linux package managers](#install-with-linux-package-managers)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To have Claude Code run the upgrade command for you on Homebrew or WinGet, set [`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`](/en/env-vars) to `1`. Claude Code then runs the upgrade in the background when a new version is available and shows a restart prompt on success. The upgrade targets only the Claude Code package and does not affect other software you have installed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On WinGet the upgrade may fail while Claude Code is running because Windows locks the executable. In that case Claude Code shows the manual command instead. apt, dnf, and apk continue to require a manual upgrade because those commands need elevated privileges."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Known issue:** Claude Code may notify you of updates before the new version is available in these package managers. If an upgrade fails, wait and try again later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 27,
+      "deletions": 1,
+      "explanation": "設定ファイルを用いてスキルの露出度を4段階（on, name-only等）で制御する方法と、そのメリットが詳しく解説されました。",
+      "hunks": [
+        {
+          "header": "@@ -480,6 +480,32 @@ Permission syntax: `Skill(name)` for exact match, `Skill(name *)` for prefix mat",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `user-invocable` field only controls menu visibility, not Skill tool access. Use `disable-model-invocation: true` to block programmatic invocation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Override skill visibility from settings"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `skillOverrides` setting controls skill visibility from your [settings](/en/settings) instead of the skill's own frontmatter. Use it for skills whose SKILL.md you don't want to edit, such as ones checked into a shared project repo or provided by an MCP server. The `/skills` menu writes it for you: highlight a skill and press `Space` to cycle states, then `Enter` to save to `.claude/settings.local.json`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each key is a skill name and each value is one of four states:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Value | Listed to Claude | In `/` menu |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"on\"` | Name and description | Yes |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"name-only\"` | Name only | Yes |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"user-invocable-only\"` | Hidden | Yes |"
+            },
+            {
+              "type": "added",
+              "content": "| `\"off\"` | Hidden | Hidden |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A skill that is absent from `skillOverrides` is treated as `\"on\"`. The example below collapses one skill to its name and turns another off entirely:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"skillOverrides\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"legacy-context\": \"name-only\","
+            },
+            {
+              "type": "added",
+              "content": "    \"deploy\": \"off\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Plugin skills are not affected by `skillOverrides`. Manage those through `/plugin` instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Share skills"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Skills can be distributed at different scopes depending on your audience:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -701,7 +727,7 @@ If Claude uses your skill when you don't want it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Skill descriptions are loaded into context so Claude knows what's available. All skill names are always included, but if you have many skills, descriptions are shortened to fit the character budget, which can strip the keywords Claude needs to match your request. The budget scales dynamically at 1% of the context window, with a fallback of 8,000 characters."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To raise the limit, set the `SLASH_COMMAND_TOOL_CHAR_BUDGET` environment variable. Or trim the `description` and `when_to_use` text at the source: put the key use case first, since each entry's combined text is capped at 1,536 characters regardless of budget."
+            },
+            {
+              "type": "added",
+              "content": "To raise the limit, set the `SLASH_COMMAND_TOOL_CHAR_BUDGET` environment variable. To free budget for other skills, set low-priority entries to `\"name-only\"` in [`skillOverrides`](#override-skill-visibility-from-settings) so they list without a description. You can also trim the `description` and `when_to_use` text at the source: put the key use case first, since each entry's combined text is capped at 1,536 characters regardless of budget."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
