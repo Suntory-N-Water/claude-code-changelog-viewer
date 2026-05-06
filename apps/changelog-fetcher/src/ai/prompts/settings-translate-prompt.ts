@@ -3,6 +3,7 @@ export type SettingEntryForPrompt = {
   key: string;
   source: 'settings' | 'env';
   description_en: string;
+  parent_descriptions: string[];
   doc_snippets: string[];
   related_changelog: {
     content_ja?: string;
@@ -37,11 +38,16 @@ export function buildSettingsTranslatePrompt(
         key,
         source,
         description_en,
+        parent_descriptions,
         doc_snippets,
         related_changelog,
       }) => {
         const sourceLabel =
           source === 'settings' ? 'settings.json 設定' : '環境変数';
+        const parentText =
+          parent_descriptions.length > 0
+            ? `### 親オブジェクトの説明\n${parent_descriptions.map((d) => `- ${d}`).join('\n')}`
+            : '';
         const docsText =
           doc_snippets.length > 0
             ? `### 関連ドキュメント\n${doc_snippets.join('\n\n')}`
@@ -67,6 +73,7 @@ export function buildSettingsTranslatePrompt(
         return `#### エントリ id=${id} (${sourceLabel})
 - キー: \`${key}\`
 - 英語説明: ${description_en}
+${parentText}
 ${docsText}
 ${changelogText}`.trim();
       },

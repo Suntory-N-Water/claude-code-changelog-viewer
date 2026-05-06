@@ -1,7 +1,11 @@
 import { globSync, mkdirSync, readFileSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import {
+  buildChangelogSearchTerms,
+  getLogger,
+  toError,
+} from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { GeminiClient } from './ai/gemini-client';
 import type { SettingEntryForPrompt } from './ai/prompts/settings-translate-prompt';
@@ -30,15 +34,16 @@ const ENV_VARS_MD_PATH = path.join(
 const INFERRED_DIR = path.join(process.cwd(), 'inferred');
 const OUTPUT_DIR = path.join(process.cwd(), 'settings');
 
-// docs 検索から除外するファイル(データ源と重複するため)
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
 
 type SettingSource = 'settings' | 'env';
 
 type RawEntry = {
   key: string;
+  leaf_name: string;
   source: SettingSource;
   description_en: string;
+  parent_descriptions: string[];
 };
 
 type RelatedChangelog = {
@@ -54,6 +59,7 @@ type RelatedChangelog = {
 
 type SettingReference = {
   key: string;
+  leaf_name: string;
   slug: string;
   source: SettingSource;
   description_en: string;
@@ -80,7 +86,10 @@ function screamingSnakeToKebab(str: string): string {
 }
 
 function toSlug(key: string, source: SettingSource): string {
-  return source === 'settings' ? camelToKebab(key) : screamingSnakeToKebab(key);
+  if (source === 'env') {
+    return screamingSnakeToKebab(key);
+  }
+  return key.split('.').map(camelToKebab).join('-');
 }
 
 type SchemaEnvProperty = {
@@ -91,21 +100,74 @@ type SchemaEnvProperty = {
 type SchemaProperty = {
   description?: string;
   type?: string;
-  properties?: Record<string, SchemaEnvProperty>;
+  properties?: Record<string, SchemaProperty>;
+  items?: SchemaProperty;
 };
 
 type SettingsJsonSchema = {
   properties?: Record<string, SchemaProperty>;
 };
 
+type CollectLeafCtx = {
+  parentDescriptions: string[];
+  source: SettingSource;
+};
+
 /**
- * settings.json スキーマから設定エントリを抽出
+ * スキーマノードを再帰的に走査してリーフノードを収集する
+ * リーフ = properties を持たないノード
  */
-async function parseSettingsSchema(): Promise<RawEntry[]> {
+function collectLeafEntries(
+  obj: SchemaProperty,
+  path: string,
+  ctx: CollectLeafCtx,
+): RawEntry[] {
+  const results: RawEntry[] = [];
+
+  if (!obj.properties) {
+    const segments = path.split('.');
+    const leaf_name = segments.at(-1) ?? path;
+    results.push({
+      key: path,
+      leaf_name,
+      source: ctx.source,
+      description_en: obj.description ?? '',
+      parent_descriptions: ctx.parentDescriptions,
+    });
+    return results;
+  }
+
+  const currentDescs =
+    obj.description !== undefined
+      ? [...ctx.parentDescriptions, obj.description]
+      : ctx.parentDescriptions;
+
+  for (const [childKey, childValue] of Object.entries(obj.properties)) {
+    const childPath = path ? `${path}.${childKey}` : childKey;
+    results.push(
+      ...collectLeafEntries(childValue, childPath, {
+        parentDescriptions: currentDescs,
+        source: ctx.source,
+      }),
+    );
+  }
+
+  return results;
+}
+
+/**
+ * settings.json スキーマからリーフ設定エントリを抽出
+ * env セクションは別処理、それ以外のプロパティを再帰的に収集
+ */
+async function parseSettingsSchema(): Promise<{
+  settings: RawEntry[];
+  envFromSchema: RawEntry[];
+}> {
   const raw = await fs.readFile(SCHEMA_PATH, 'utf-8');
   const schema = JSON.parse(raw) as SettingsJsonSchema;
 
-  const entries: RawEntry[] = [];
+  const settings: RawEntry[] = [];
+  const envFromSchema: RawEntry[] = [];
   const props = schema.properties ?? {};
 
   for (const [key, value] of Object.entries(props)) {
@@ -113,27 +175,28 @@ async function parseSettingsSchema(): Promise<RawEntry[]> {
       continue;
     }
 
-    // env セクションの各環境変数を抽出
     if (key === 'env') {
       const envProps = value.properties ?? {};
       for (const [envKey, envValue] of Object.entries(envProps)) {
-        entries.push({
+        envFromSchema.push({
           key: envKey,
+          leaf_name: envKey,
           source: 'env',
-          description_en: envValue.description ?? '',
+          description_en: (envValue as SchemaEnvProperty).description ?? '',
+          parent_descriptions: [],
         });
       }
       continue;
     }
 
-    entries.push({
-      key,
+    const leaves = collectLeafEntries(value, key, {
+      parentDescriptions: [],
       source: 'settings',
-      description_en: value.description ?? '',
     });
+    settings.push(...leaves);
   }
 
-  return entries;
+  return { settings, envFromSchema };
 }
 
 /**
@@ -159,7 +222,6 @@ async function parseEnvVarsMd(): Promise<RawEntry[]> {
       continue;
     }
 
-    // | `KEY` | description | の description 部分を取得
     const afterKey = trimmed.slice(trimmed.indexOf('`', 3) + 1).trim();
     const descriptionRaw = afterKey.startsWith('|')
       ? (afterKey.slice(1).split('|')[0]?.trim() ?? '')
@@ -167,8 +229,10 @@ async function parseEnvVarsMd(): Promise<RawEntry[]> {
 
     entries.push({
       key,
+      leaf_name: key,
       source: 'env',
       description_en: descriptionRaw,
+      parent_descriptions: [],
     });
   }
 
@@ -177,7 +241,6 @@ async function parseEnvVarsMd(): Promise<RawEntry[]> {
 
 /**
  * env-vars.md(一次ソース)と schema.env(補完)をマージ
- * 重複は env-vars.md 側を優先
  */
 function mergeEnvEntries(
   mdEntries: RawEntry[],
@@ -236,24 +299,27 @@ async function loadAllInferred(): Promise<FlatChangelogItem[]> {
 }
 
 /**
- * 設定名が content または content_ja に含まれる ChangelogItem を抽出
+ * フルパスと末端名の両方で changelog を検索する
  */
 function findRelatedChangelogs(
   key: string,
   allItems: FlatChangelogItem[],
 ): RelatedChangelog[] {
-  return allItems.filter(
-    (item) =>
-      item.content.includes(key) || (item.content_ja?.includes(key) ?? false),
+  const searchTerms = buildChangelogSearchTerms(key);
+  return allItems.filter((item) =>
+    searchTerms.some(
+      (term) =>
+        item.content.includes(term) ||
+        (item.content_ja?.includes(term) ?? false),
+    ),
   );
 }
 
 /**
- * 設定名をキーワードに docs/en/ を検索してスニペットを取得
- * env-vars.md は除外(データ源と重複するため)
+ * 末端名をキーワードに docs/en/ を検索してスニペットを取得
  */
-async function searchRelatedDocs(key: string): Promise<string[]> {
-  const keywords = { original: [key], normalized: [key] };
+async function searchRelatedDocs(leaf_name: string): Promise<string[]> {
+  const keywords = { original: [leaf_name], normalized: [leaf_name] };
   const searchResult = await searchDocs(keywords);
 
   const filteredFiles = searchResult.files.filter(
@@ -302,6 +368,7 @@ async function translateInBatches(
       key: entry.key,
       source: entry.source,
       description_en: entry.description_en,
+      parent_descriptions: entry.parent_descriptions,
       doc_snippets: docSnippetsMap.get(entry.key) ?? [],
       related_changelog: (changelogsMap.get(entry.key) ?? []).map((c) => ({
         ...(c.content_ja !== undefined ? { content_ja: c.content_ja } : {}),
@@ -323,20 +390,40 @@ async function translateInBatches(
   return resultMap;
 }
 
-async function main() {
-  log.info('設定・環境変数リファレンス生成を開始');
+/**
+ * AI なしモード: description_en をそのまま description_ja として使用
+ */
+function buildNoAiTranslationMap(
+  entries: RawEntry[],
+): Map<number, { description_ja: string; use_case_ja: string }> {
+  const resultMap = new Map<
+    number,
+    { description_ja: string; use_case_ja: string }
+  >();
+  for (const [i, entry] of entries.entries()) {
+    resultMap.set(i, {
+      description_ja: entry.description_en,
+      use_case_ja: '',
+    });
+  }
+  return resultMap;
+}
 
-  const apiKey = process.env['GEMINI_API_KEY'];
-  if (!apiKey) {
-    log.error('GEMINI_API_KEY 環境変数が設定されていません');
-    process.exit(1);
+async function main() {
+  const noAiMode = process.env['SETTINGS_NO_AI'] === '1';
+  log.info(`設定・環境変数リファレンス生成を開始 (AIモード: ${!noAiMode})`);
+
+  if (!noAiMode) {
+    const apiKey = process.env['GEMINI_API_KEY'];
+    if (!apiKey) {
+      log.error('GEMINI_API_KEY 環境変数が設定されていません');
+      process.exit(1);
+    }
   }
 
-  // データ源をパース
   log.info('settings.json スキーマを解析中...');
-  const schemaEntries = await parseSettingsSchema();
-  const schemaSettings = schemaEntries.filter((e) => e.source === 'settings');
-  const schemaEnvEntries = schemaEntries.filter((e) => e.source === 'env');
+  const { settings: schemaSettings, envFromSchema: schemaEnvEntries } =
+    await parseSettingsSchema();
 
   log.info('env-vars.md を解析中...');
   const mdEnvEntries = await parseEnvVarsMd();
@@ -347,7 +434,6 @@ async function main() {
     `設定: ${schemaSettings.length}件, 環境変数: ${mergedEnvEntries.length}件, 合計: ${allEntries.length}件`,
   );
 
-  // 生成済みファイルのキーを収集してスキップ対象を決定
   mkdirSync(OUTPUT_DIR, { recursive: true });
   const existingKeys = new Set(
     globSync('settings_*.json', { cwd: OUTPUT_DIR })
@@ -367,12 +453,10 @@ async function main() {
     return;
   }
 
-  // inferred_*.json を全件読み込み
   log.info('更新履歴を読み込み中...');
   const allInferred = await loadAllInferred();
   log.info(`更新履歴アイテム: ${allInferred.length}件`);
 
-  // 各エントリの関連 changelog と docs スニペットを収集
   log.info('関連情報を収集中...');
   const changelogsMap = new Map<string, RelatedChangelog[]>();
   const docSnippetsMap = new Map<string, string[]>();
@@ -383,7 +467,7 @@ async function main() {
         entry.key,
         findRelatedChangelogs(entry.key, allInferred),
       );
-      docSnippetsMap.set(entry.key, await searchRelatedDocs(entry.key));
+      docSnippetsMap.set(entry.key, await searchRelatedDocs(entry.leaf_name));
     }),
   );
 
@@ -396,24 +480,29 @@ async function main() {
     `コンテキストあり: ${withContextCount}件, コンテキストなし: ${newEntries.length - withContextCount}件`,
   );
 
-  // Gemini API でバッチ翻訳・用途解説生成
-  const geminiClient = new GeminiClient(apiKey, log);
   let translationMap: Map<
     number,
     { description_ja: string; use_case_ja: string }
   >;
-  try {
-    translationMap = await translateInBatches(newEntries, {
-      docSnippetsMap,
-      changelogsMap,
-      geminiClient,
-    });
-  } catch (error) {
-    log.error('翻訳処理に失敗しました', { error: toError(error) });
-    process.exit(1);
+
+  if (noAiMode) {
+    log.info('AI なしモード: 翻訳をスキップします');
+    translationMap = buildNoAiTranslationMap(newEntries);
+  } else {
+    const apiKey = process.env['GEMINI_API_KEY'] as string;
+    const geminiClient = new GeminiClient(apiKey, log);
+    try {
+      translationMap = await translateInBatches(newEntries, {
+        docSnippetsMap,
+        changelogsMap,
+        geminiClient,
+      });
+    } catch (error) {
+      log.error('翻訳処理に失敗しました', { error: toError(error) });
+      process.exit(1);
+    }
   }
 
-  // 各設定・環境変数の JSON ファイルを出力
   let writtenCount = 0;
   await Promise.all(
     newEntries.map(async (entry, index) => {
@@ -427,6 +516,7 @@ async function main() {
 
       const ref: SettingReference = {
         key: entry.key,
+        leaf_name: entry.leaf_name,
         slug,
         source: entry.source,
         description_en: entry.description_en,
