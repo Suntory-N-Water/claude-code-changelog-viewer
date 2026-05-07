@@ -110,6 +110,10 @@ claude mcp remove github
 /mcp
 ```
 
+`/mcp` パネルは、接続されている各サーバーの横にツール数を表示し、ツール機能をアドバタイズしているが、ツールを公開していないサーバーにフラグを立てます。
+
+サーバー名 `workspace` は内部使用のために予約されています。設定がその名前のサーバーを定義している場合、Claude Code はロード時にそれをスキップし、名前を変更するよう求める警告を表示します。
+
 ### 動的ツール更新
 
 Claude Code は MCP `list_changed` 通知をサポートしており、MCP サーバーが切断して再接続することなく、利用可能なツール、プロンプト、リソースを動的に更新できます。MCP サーバーが `list_changed` 通知を送信すると、Claude Code はそのサーバーから利用可能な機能を自動的に更新します。
@@ -641,13 +645,15 @@ claude mcp list
 
 Claude.ai で必要な認証ステップを完了します。
 
-Claude Code で、コマンドを使用します：
+Claude Code で、以下のコマンドを使用します：
 
 ```text theme={null}
 /mcp
 ```
 
 Claude.ai サーバーはリストに表示され、Claude.ai から来ていることを示すインジケータが付きます。
+
+Claude Code で追加したサーバーは、同じ URL を指す claude.ai コネクタより [優先](#scope-hierarchy-and-precedence) されます。この場合、`/mcp` はコネクタを非表示としてリストし、代わりにコネクタを使用する場合は重複を削除する方法を表示します。
 
 Claude Code で claude.ai MCP サーバーを無効にするには、`ENABLE_CLAUDEAI_MCP_SERVERS` 環境変数を `false` に設定します：
 
@@ -872,6 +878,8 @@ ENABLE_TOOL_SEARCH=false claude
 
 `alwaysLoad` フィールドはすべてのサーバータイプで利用可能で、Claude Code v2.1.121 以降が必要です。MCP サーバーは、ツールの `_meta` オブジェクトに `"anthropic/alwaysLoad": true` を含めることで、個別のツールを常にロードとしてマークすることもできます。これはそのツールのみに同じ効果があります。
 
+`alwaysLoad: true` を設定すると、サーバーが接続されるまでスタートアップもブロックされます。これは標準的な 5 秒の接続タイムアウトでキャップされます。これは [`MCP_CONNECTION_NONBLOCKING=1`](/ja/env-vars) が設定されている場合でも適用されます。ツールは最初のプロンプトが構築されるときに存在する必要があるためです。他のサーバーは、ノンブロッキングが有効な場合、バックグラウンドで接続し続けます。
+
 ## MCP プロンプトをコマンドとして使用する
 
 MCP サーバーはプロンプトを公開でき、Claude Code でコマンドとして利用可能になります。
@@ -1025,6 +1033,8 @@ URL パターンは `*` を使用してワイルドカードをサポートし�
 - `https://mcp.company.com/*` - 特定のドメイン上のすべてのパスを許可
 - `https://*.example.com/*` - example.com の任意のサブドメインを許可
 - `http://localhost:*/*` - localhost 上の任意のポートを許可
+
+ホスト名マッチングは大文字と小文字を区別せず、末尾の FQDN ドットを無視し、DNS セマンティクスと一致します。`*://Mcp.Example.com/*` のようなパターンは `https://mcp.example.com/api` と一致し、`https://mcp.example.com.` は `https://mcp.example.com` と同じように扱われます。スキームとパスは大文字と小文字を区別します。
 
 **リモートサーバーの動作**：
 

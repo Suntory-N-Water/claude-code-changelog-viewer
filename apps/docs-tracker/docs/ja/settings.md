@@ -159,11 +159,11 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `allowManagedHooksOnly` | （Managed 設定のみ）managed hooks、SDK hooks、および managed 設定 `enabledPlugins` で強制的に有効にされたプラグインからの hooks のみが読み込まれます。ユーザー、プロジェクト、およびその他すべてのプラグイン hooks はブロックされます。[Hook 構成](#hook-configuration)を参照してください | `true` |
 | `allowManagedMcpServersOnly` | （Managed 設定のみ）managed 設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。ユーザーは引き続き MCP サーバーを追加できますが、管理者定義のホワイトリストのみが適用されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `true` |
 | `allowManagedPermissionRulesOnly` | （Managed 設定のみ）ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義するのを防止します。managed 設定のルールのみが適用されます。[Managed のみの設定](/ja/permissions#managed-only-settings)を参照してください | `true` |
-| `alwaysThinkingEnabled` | すべてのセッションに対してデフォルトで[拡張思考](/ja/model-config#extended-thinking)を有効にします。通常は直接編集するのではなく `/config` コマンドを通じて構成されます | `true` |
-| `apiKeyHelper` | `/bin/sh` で実行される認証値を生成するカスタムスクリプト。この値は、モデルリクエストの `X-Api-Key` および `Authorization: Bearer` ヘッダーとして送信されます | `/bin/generate_temp_api_key.sh` |
+| `alwaysThinkingEnabled` | すべてのセッションに対してデフォルトで[拡張思考](/ja/model-config#extended-thinking)を有効にします。通常は直接編集するのではなく `/config` コマンドを通じて構成されます。思考を強制的にオフにするには、`env` で [`CLAUDE_CODE_DISABLE_THINKING`](/ja/env-vars)を設定します | `true` |
+| `apiKeyHelper` | `/bin/sh` で実行される認証値を生成するカスタムスクリプト。この値は、モデルリクエストの `X-Api-Key` および `Authorization: Bearer` ヘッダーとして送信されます。[`CLAUDE_CODE_API_KEY_HELPER_TTL_MS`](/ja/env-vars)でリフレッシュ間隔を設定します | `/bin/generate_temp_api_key.sh` |
 | `attribution` | git コミットとプルリクエストの属性をカスタマイズします。[属性設定](#attribution-settings)を参照してください | `{"commit": "🤖 Generated with Claude Code", "pr": ""}` |
 | `autoMemoryDirectory` | [自動メモリ](/ja/memory#storage-location)ストレージ用のカスタムディレクトリ。絶対パスまたは `~/` プレフィックス付きパスを受け入れます。ポリシーおよびユーザー設定から、および `--settings` フラグから受け入れられます。クローンされたリポジトリがメモリ書き込みを機密の場所にリダイレクトするのを防ぐため、プロジェクトまたはローカル設定からは受け入れられません | `"~/my-memory-dir"` |
-| `autoMemoryEnabled` | [自動メモリ](/ja/memory#enable-or-disable-auto-memory)を有効にします。`false` の場合、Claude は自動メモリディレクトリから読み込んだり、書き込んだりしません。デフォルト：`true`。セッション中に `/memory` でこれを切り替えることもできます | `false` |
+| `autoMemoryEnabled` | [自動メモリ](/ja/memory#enable-or-disable-auto-memory)を有効にします。`false` の場合、Claude は自動メモリディレクトリから読み込んだり、書き込んだりしません。デフォルト：`true`。セッション中に `/memory` でこれを切り替えることもできます。環境変数で無効にするには、`env` で [`CLAUDE_CODE_DISABLE_AUTO_MEMORY`](/ja/env-vars)を設定します | `false` |
 | `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、および `soft_deny` 配列の散文ルールを含みます。リテラル文字列 `"$defaults"` を配列に含めて、その位置で組み込みルールを継承します。[自動モードを構成](/ja/auto-mode-config)を参照してください。共有プロジェクト設定から読み込まれません | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
 | `autoScrollEnabled` | [フルスクリーンレンダリング](/ja/fullscreen)で、新しい出力を会話の下部に追従します。デフォルト：`true`。`/config` に**自動スクロール**として表示されます。権限プロンプトはこれがオフの場合でもビューにスクロールします | `false` |
 | `autoUpdatesChannel` | 更新に従うリリースチャネル。約 1 週間古いバージョンで、大きな回帰のあるバージョンをスキップする `"stable"` を使用するか、最新リリースの `"latest"`（デフォルト）を使用します。自動更新を完全に無効にするには、`env` で [`DISABLE_AUTOUPDATER`](/ja/setup#disable-auto-updates)を設定します | `"stable"` |
@@ -184,12 +184,12 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `disableRemoteControl` | [リモートコントロール](/ja/remote-control)を無効にします：`claude remote-control`、`--remote-control` フラグ、自動開始、およびセッション内トグルをブロックします。通常は [managed 設定](/ja/permissions#managed-settings)に配置されます。デバイスごとの MDM 強制用ですが、任意のスコープから機能します。Claude Code v2.1.128 以降が必要です | `true` |
 | `disableSkillShellExecution` | [skills](/ja/skills) およびユーザー、プロジェクト、プラグイン、または追加ディレクトリソースからのカスタムコマンド内の `` !`...` `` および ` ```! ` ブロックのインラインシェル実行を無効にします。コマンドは実行される代わりに `[shell command execution disabled by policy]` に置き換えられます。バンドルされた skills および managed skills は影響を受けません。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `true` |
 | `editorMode` | 入力プロンプトのキーバインディングモード：`"normal"` または `"vim"`。デフォルト：`"normal"`。`/config` に**エディターモード**として表示されます | `"vim"` |
-| `effortLevel` | [努力レベル](/ja/model-config#adjust-effort-level)をセッション全体で永続化します。`"low"`、`"medium"`、`"high"`、または `"xhigh"` を受け入れます。これらの値のいずれかで `/effort` を実行すると自動的に書き込まれます。[努力レベルを調整](/ja/model-config#adjust-effort-level)でサポートされているモデルを参照してください | `"xhigh"` |
+| `effortLevel` | [努力レベル](/ja/model-config#adjust-effort-level)をセッション全体で永続化します。`"low"`、`"medium"`、`"high"`、または `"xhigh"` を受け入れます。これらの値のいずれかで `/effort` を実行すると自動的に書き込まれます。`--effort` と [`CLAUDE_CODE_EFFORT_LEVEL`](/ja/env-vars)はこれを 1 セッション間オーバーライドします。[努力レベルを調整](/ja/model-config#adjust-effort-level)でサポートされているモデルを参照してください | `"xhigh"` |
 | `enableAllProjectMcpServers` | プロジェクト `.mcp.json` ファイルで定義されたすべての MCP サーバーを自動的に承認します | `true` |
 | `enabledMcpjsonServers` | `.mcp.json` ファイルから承認する特定の MCP サーバーのリスト | `["memory", "github"]` |
 | `env` | すべてのセッションに適用される環境変数 | `{"FOO": "bar"}` |
 | `fastModePerSessionOptIn` | `true` の場合、高速モードはセッション全体で永続化されません。各セッションは高速モードがオフで開始され、ユーザーが `/fast` で有効にする必要があります。ユーザーの高速モード設定は引き続き保存されます。[セッションごとのオプトインを要求](/ja/fast-mode#require-per-session-opt-in)を参照してください | `true` |
-| `feedbackSurveyRate` | [セッション品質調査](/ja/data-usage#session-quality-surveys)が適格な場合に表示される確率（0～1）。完全に抑制するには `0` に設定します。Bedrock、Vertex、または Foundry を使用する場合に役立ちます。デフォルトのサンプルレートは適用されません | `0.05` |
+| `feedbackSurveyRate` | [セッション品質調査](/ja/data-usage#session-quality-surveys)が適格な場合に表示される確率（0～1）。完全に抑制するには `0` に設定するか、`env` で [`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`](/ja/env-vars)を設定します。Bedrock、Vertex、または Foundry を使用する場合に役立ちます。デフォルトのサンプルレートは適用されません | `0.05` |
 | `fileSuggestion` | `@` ファイルオートコンプリート用のカスタムスクリプトを構成します。[ファイル提案設定](#file-suggestion-settings)を参照してください | `{"type": "command", "command": "~/.claude/file-suggestion.sh"}` |
 | `forceLoginMethod` | `claudeai` を使用して Claude.ai アカウントへのログインを制限するか、`console` を使用して Claude Console（API 使用量請求）アカウントへのログインを制限します | `claudeai` |
 | `forceLoginOrgUUID` | ログインが特定の組織に属することを要求します。単一の UUID 文字列を受け入れます。これはログイン中にその組織を自動的に事前選択するか、リストされた組織のいずれかが受け入れられる UUID の配列を受け入れます。事前選択なし。managed 設定で設定されている場合、認証されたアカウントがリストされた組織に属していない場合、ログインは失敗します。空配列は失敗して閉じられ、ログインを設定ミスメッセージでブロックします | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` または `["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]` |
@@ -200,9 +200,9 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `includeGitInstructions` | Claude のシステムプロンプトに組み込みコミットおよび PR ワークフロー命令と git ステータススナップショットを含めます（デフォルト：`true`）。たとえば、独自の git ワークフロースキルを使用する場合は、これらの命令を削除するために `false` に設定します。`CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` 環境変数が設定されている場合、この設定よりも優先されます | `false` |
 | `language` | Claude の優先応答言語を構成します（例：`"japanese"`、`"spanish"`、`"french"`）。Claude はデフォルトでこの言語で応答します。また、[音声ディクテーション](/ja/voice-dictation#change-the-dictation-language)言語も設定します | `"japanese"` |
 | `minimumVersion` | 背景自動更新と `claude update` が特定のバージョン以下にインストールするのを防止するフロア。`"latest"` チャネルから `"stable"` に `/config` を通じて切り替えると、現在のバージョンに留まるか、ダウングレードを許可するかを求めるプロンプトが表示されます。留まることを選択すると、この値が設定されます。また、[managed 設定](/ja/permissions#managed-settings)で組織全体の最小値をピンするのに役立ちます | `"2.1.100"` |
-| `model` | Claude Code に使用するデフォルトモデルをオーバーライドします | `"claude-sonnet-4-6"` |
+| `model` | Claude Code に使用するデフォルトモデルをオーバーライドします。`--model` と [`ANTHROPIC_MODEL`](/ja/model-config#environment-variables)はこれを 1 セッション間オーバーライドします | `"claude-sonnet-4-6"` |
 | `modelOverrides` | Anthropic モデル ID を Bedrock 推論プロファイル ARN などのプロバイダー固有のモデル ID にマップします。各モデルピッカーエントリは、プロバイダー API を呼び出すときにマップされた値を使用します。[バージョンごとにモデル ID をオーバーライド](/ja/model-config#override-model-ids-per-version)を参照してください | `{"claude-opus-4-6": "arn:aws:bedrock:..."}` |
-| `otelHeadersHelper` | 動的 OpenTelemetry ヘッダーを生成するスクリプト。起動時および定期的に実行されます（[動的ヘッダー](/ja/monitoring-usage#dynamic-headers)を参照） | `/bin/generate_otel_headers.sh` |
+| `otelHeadersHelper` | 動的 OpenTelemetry ヘッダーを生成するスクリプト。起動時および定期的に実行されます。[`CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS`](/ja/env-vars)でリフレッシュ間隔を設定します。[動的ヘッダー](/ja/monitoring-usage#dynamic-headers)を参照してください | `/bin/generate_otel_headers.sh` |
 | `outputStyle` | システムプロンプトを調整するための出力スタイルを構成します。[出力スタイルドキュメント](/ja/output-styles)を参照してください | `"Explanatory"` |
 | `permissions` | 権限の構造については、以下の表を参照してください。 | |
 | `plansDirectory` | プランファイルが保存される場所をカスタマイズします。パスはプロジェクトルートに相対的です。デフォルト：`~/.claude/plans` | `"./plans"` |
@@ -222,11 +222,11 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `sshConfigs` | [Desktop](/ja/desktop#pre-configure-ssh-connections-for-your-team)環境ドロップダウンに表示する SSH 接続。各エントリには `id`、`name`、および `sshHost` が必要です。`sshPort`、`sshIdentityFile`、および `startDirectory` はオプションです。managed 設定で設定されている場合、接続はユーザーに対して読み取り専用です。managed およびユーザー設定からのみ読み込まれます | `[{"id": "dev-vm", "name": "Dev VM", "sshHost": "user@dev.example.com"}]` |
 | `statusLine` | コンテキストを表示するカスタムステータスラインを構成します。[`statusLine` ドキュメント](/ja/statusline)を参照してください | `{"type": "command", "command": "~/.claude/statusline.sh"}` |
 | `strictKnownMarketplaces` | （Managed 設定のみ）プラグインマーケットプレイスソースのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。マーケットプレイス追加時およびプラグインのインストール、更新、リフレッシュ、自動更新時に適用されるため、ポリシーが設定される前に追加されたマーケットプレイスは使用できません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
-| `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`in-process`、または `tmux`。[表示モードを選択](/ja/agent-teams#choose-a-display-mode)を参照してください | `"in-process"` |
+| `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`in-process`、または `tmux`。`--teammate-mode` はこれを 1 セッション間オーバーライドします。[表示モードを選択](/ja/agent-teams#choose-a-display-mode)を参照してください | `"in-process"` |
 | `terminalProgressBarEnabled` | サポートされているターミナルでターミナル進行状況バーを表示します：ConEmu、Ghostty 1.2.0 以降、および iTerm2 3.6.6 以降。デフォルト：`true`。`/config` に**ターミナル進行状況バー**として表示されます | `false` |
-| `tui` | ターミナル UI レンダラー。フリッカーのない[alt-screen レンダラー](/ja/fullscreen)を備えた仮想スクロールバック用に `"fullscreen"` を使用します。クラシックメインスクリーンレンダラー用に `"default"` を使用します。`/tui` で設定します | `"fullscreen"` |
+| `tui` | ターミナル UI レンダラー。フリッカーのない[alt-screen レンダラー](/ja/fullscreen)を備えた仮想スクロールバック用に `"fullscreen"` を使用します。クラシックメインスクリーンレンダラー用に `"default"` を使用します。`/tui` で設定します。[`CLAUDE_CODE_NO_FLICKER`](/ja/env-vars)環境変数を設定することもできます | `"fullscreen"` |
 | `useAutoModeDuringPlan` | プラン モードが自動モードが利用可能な場合に自動モードセマンティクスを使用するかどうか。デフォルト：`true`。共有プロジェクト設定から読み込まれません。`/config` に「プラン中に自動モードを使用」として表示されます | `false` |
-| `viewMode` | 起動時のデフォルトトランスクリプトビューモード：`"default"`、`"verbose"`、または `"focus"`。設定されている場合、スティッキー `/focus` 選択をオーバーライドします | `"verbose"` |
+| `viewMode` | 起動時のデフォルトトランスクリプトビューモード：`"default"`、`"verbose"`、または `"focus"`。設定されている場合、スティッキー `/focus` 選択をオーバーライドします。`--verbose` フラグはこれを 1 セッション間オーバーライドします | `"verbose"` |
 | `voice` | [音声ディクテーション](/ja/voice-dictation)設定：`enabled` はディクテーションをオンにし、`mode` は `"hold"` または `"tap"` を選択し、`autoSubmit` はホールドモードでキーリリース時にプロンプトを送信します。`/voice` を実行すると自動的に書き込まれます。Claude.ai アカウントが必要です | `{ "enabled": true, "mode": "tap" }` |
 | `voiceEnabled` | `voice.enabled` のレガシーエイリアス。`voice` オブジェクトを優先します | `true` |
 | `wslInheritsWindowsSettings` | （Windows managed 設定のみ）`true` の場合、WSL 上の Claude Code は `/etc/claude-code` に加えて Windows ポリシーチェーンから managed 設定を読み込み、Windows ソースが優先されます。HKLM レジストリキーまたは `C:\Program Files\ClaudeCode\managed-settings.json` で設定されている場合のみ尊重されます。どちらも Windows 管理者が書き込む必要があります。HKCU ポリシーが WSL でも適用されるようにするには、フラグを HKCU 自体にも設定する必要があります。ネイティブ Windows には影響しません | `true` |
@@ -239,7 +239,7 @@ v2.1.119 より前のバージョンでは、`autoScrollEnabled`、`editorMode`�
 
 | キー | 説明 | 例 |
 | :- | :- | :- |
-| `autoConnectIde` | Claude Code が外部ターミナルから起動するときに、実行中の IDE に自動的に接続します。デフォルト：`false`。VS Code または JetBrains ターミナルの外で実行する場合、`/config` に\*\*IDE に自動接続（外部ターミナル）\*\*として表示されます | `true` |
+| `autoConnectIde` | Claude Code が外部ターミナルから起動するときに、実行中の IDE に自動的に接続します。デフォルト：`false`。VS Code または JetBrains ターミナルの外で実行する場合、`/config` に\*\*IDE に自動接続（外部ターミナル）\*\*として表示されます。[`CLAUDE_CODE_AUTO_CONNECT_IDE`](/ja/env-vars)環境変数が設定されている場合、これをオーバーライドします | `true` |
 | `autoInstallIdeExtension` | VS Code ターミナルから実行するときに Claude Code IDE 拡張機能を自動的にインストールします。デフォルト：`true`。VS Code または JetBrains ターミナル内で実行する場合、`/config` に**IDE 拡張機能を自動インストール**として表示されます。[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/ja/env-vars)環境変数を設定することもできます | `false` |
 | `externalEditorContext` | `Ctrl+G` で外部エディターを開くときに Claude の前の応答を `#` コメント付きコンテキストとして先頭に追加します。デフォルト：`false`。`/config` に**外部エディターに最後の応答を表示**として表示されます | `true` |
 

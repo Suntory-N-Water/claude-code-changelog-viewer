@@ -42,7 +42,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help` 
 
 | Flag | Description | Example |
 | :- | :- | :- |
-| `--add-dir` | Add additional working directories for Claude to read and edit files. Grants file access; most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from these directories. Validates each path exists as a directory | `claude --add-dir ../apps ../lib` |
+| `--add-dir` | Add additional working directories for Claude to read and edit files. Grants file access; most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from these directories. Validates each path exists as a directory. To persist these directories across sessions, set [`permissions.additionalDirectories`](/en/settings#permission-settings) in settings | `claude --add-dir ../apps ../lib` |
 | `--agent` | Specify an agent for the current session (overrides the `agent` setting) | `claude --agent my-custom-agent` |
 | `--agents` | Define custom subagents dynamically via JSON. Uses the same field names as subagent [frontmatter](/en/sub-agents#supported-frontmatter-fields), plus a `prompt` field for the agent's instructions | `claude --agents '{"reviewer":{"description":"Reviews code","prompt":"You are a code reviewer"}}'` |
 | `--allow-dangerously-skip-permissions` | Add `bypassPermissions` to the `Shift+Tab` mode cycle without starting in it. Lets you begin in a different mode like `plan` and switch to `bypassPermissions` later. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) | `claude --permission-mode plan --allow-dangerously-skip-permissions` |
@@ -60,7 +60,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help` 
 | `--debug-file <path>` | Write debug logs to a specific file path. Implicitly enables debug mode. Takes precedence over `CLAUDE_CODE_DEBUG_LOGS_DIR` | `claude --debug-file /tmp/claude-debug.log` |
 | `--disable-slash-commands` | Disable all skills and commands for this session | `claude --disable-slash-commands` |
 | `--disallowedTools` | Tools that are removed from the model's context and cannot be used | `"Bash(git log *)" "Bash(git diff *)" "Edit"` |
-| `--effort` | Set the [effort level](/en/model-config#adjust-effort-level) for the current session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model. Session-scoped and does not persist to settings | `claude --effort high` |
+| `--effort` | Set the [effort level](/en/model-config#adjust-effort-level) for the current session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model. Overrides the [`effortLevel`](/en/settings#available-settings) setting for this session and does not persist | `claude --effort high` |
 | `--enable-auto-mode` | Removed in v2.1.111. Auto mode is now in the `Shift+Tab` cycle by default; use `--permission-mode auto` to start in it | `claude --permission-mode auto` |
 | `--exclude-dynamic-system-prompt-sections` | Move per-machine sections from the system prompt (working directory, environment info, memory paths, git status) into the first user message. Improves prompt-cache reuse across different users and machines running the same task. Only applies with the default system prompt; ignored when `--system-prompt` or `--system-prompt-file` is set. Use with `-p` for scripted, multi-user workloads | `claude -p --exclude-dynamic-system-prompt-sections "query"` |
 | `--fallback-model` | Enable automatic fallback to specified model when default model is overloaded (print mode only) | `claude -p --fallback-model sonnet "query"` |
@@ -77,10 +77,10 @@ Customize Claude Code's behavior with these command-line flags. `claude --help` 
 | `--max-budget-usd` | Maximum dollar amount to spend on API calls before stopping (print mode only) | `claude -p --max-budget-usd 5.00 "query"` |
 | `--max-turns` | Limit the number of agentic turns (print mode only). Exits with an error when the limit is reached. No limit by default | `claude -p --max-turns 3 "query"` |
 | `--mcp-config` | Load MCP servers from JSON files or strings (space-separated) | `claude --mcp-config ./mcp.json` |
-| `--model` | Sets the model for the current session with an alias for the latest model (`sonnet` or `opus`) or a model's full name | `claude --model claude-sonnet-4-6` |
+| `--model` | Sets the model for the current session with an alias for the latest model (`sonnet` or `opus`) or a model's full name. Overrides the [`model`](/en/settings#available-settings) setting and [`ANTHROPIC_MODEL`](/en/model-config#environment-variables) | `claude --model claude-sonnet-4-6` |
 | `--name`, `-n` | Set a display name for the session, shown in `/resume` and the terminal title. You can resume a named session with `claude --resume <name>`. [`/rename`](/en/commands) changes the name mid-session and also shows it on the prompt bar | `claude -n "my-feature-work"` |
 | `--no-chrome` | Disable [Chrome browser integration](/en/chrome) for this session | `claude --no-chrome` |
-| `--no-session-persistence` | Disable session persistence so sessions are not saved to disk and cannot be resumed (print mode only) | `claude -p --no-session-persistence "query"` |
+| `--no-session-persistence` | Disable session persistence so sessions are not saved to disk and cannot be resumed. Print mode only. The [`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/en/env-vars) environment variable does the same in any mode | `claude -p --no-session-persistence "query"` |
 | `--output-format` | Specify output format for print mode (options: `text`, `json`, `stream-json`) | `claude -p "query" --output-format json` |
 | `--permission-mode` | Begin in a specified [permission mode](/en/permission-modes). Accepts `default`, `acceptEdits`, `plan`, `auto`, `dontAsk`, or `bypassPermissions`. Overrides `defaultMode` from settings files | `claude --permission-mode plan` |
 | `--permission-prompt-tool` | Specify an MCP tool to handle permission prompts in non-interactive mode | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
@@ -99,10 +99,10 @@ Customize Claude Code's behavior with these command-line flags. `claude --help` 
 | `--system-prompt` | Replace the entire system prompt with custom text | `claude --system-prompt "You are a Python expert"` |
 | `--system-prompt-file` | Load system prompt from a file, replacing the default prompt | `claude --system-prompt-file ./custom-prompt.txt` |
 | `--teleport` | Resume a [web session](/en/claude-code-on-the-web) in your local terminal | `claude --teleport` |
-| `--teammate-mode` | Set how [agent team](/en/agent-teams) teammates display: `auto` (default), `in-process`, or `tmux`. See [Choose a display mode](/en/agent-teams#choose-a-display-mode) | `claude --teammate-mode in-process` |
+| `--teammate-mode` | Set how [agent team](/en/agent-teams) teammates display: `auto` (default), `in-process`, or `tmux`. Overrides the [`teammateMode`](/en/settings#available-settings) setting for this session. See [Choose a display mode](/en/agent-teams#choose-a-display-mode) | `claude --teammate-mode in-process` |
 | `--tmux` | Create a tmux session for the worktree. Requires `--worktree`. Uses iTerm2 native panes when available; pass `--tmux=classic` for traditional tmux | `claude -w feature-auth --tmux` |
 | `--tools` | Restrict which built-in tools Claude can use. Use `""` to disable all, `"default"` for all, or tool names like `"Bash,Edit,Read"` | `claude --tools "Bash,Edit,Read"` |
-| `--verbose` | Enable verbose logging, shows full turn-by-turn output | `claude --verbose` |
+| `--verbose` | Enable verbose logging, shows full turn-by-turn output. Overrides the [`viewMode`](/en/settings#available-settings) setting for this session | `claude --verbose` |
 | `--version`, `-v` | Output the version number | `claude -v` |
 | `--worktree`, `-w` | Start Claude in an isolated [git worktree](/en/worktrees) at `<repo>/.claude/worktrees/<name>`. If no name is given, one is auto-generated | `claude -w feature-auth` |
 
