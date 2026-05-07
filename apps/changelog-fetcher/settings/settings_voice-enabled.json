@@ -1,15 +1,20 @@
 {
   "key": "voiceEnabled",
+  "leaf_name": "voiceEnabled",
   "slug": "voice-enabled",
   "source": "settings",
   "description_en": "Enable push-to-talk voice dictation. Typically written automatically when /voice is used. Requires a Claude.ai account. See https://code.claude.com/docs/en/settings#available-settings",
   "description_ja": "プッシュ・トゥ・トークによる音声入力機能を有効にします(Claude.aiアカウントが必要)。",
-  "use_case_ja": "- キーボード入力の代わりに、ショートカットキーを押している間だけ音声で指示を伝えたい場合に使用します。\n- 設定ファイルに保存されることで、セッション開始時から即座に音声入力がスタンバイ状態になります。\n- `/voice`コマンドを実行した際に自動的にこの設定が書き込まれます。",
+  "use_case_ja": "- キーボードを使わずに音声で素早く指示を出したい場合に使用します。起動直後から音声入力がスタンバイ状態になります。\n- 従来は起動のたびに再設定が必要だった問題を修正し、設定ファイルに基づいて即座に音声入力が利用可能になりました。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "| useAutoModeDuringPlan | Whether plan mode uses auto mode semantics when auto mode is available. Default: true . Not read from shared project settings. Appears in /config as \"Use auto mode during plan\" | false | | viewMode | Default transcript view mode on startup: \"default\" , \"verbose\" , or \"focus\" . Overrides the sticky /focus selection when set. The --verbose flag overrides this for one session | \"verbose\" | | voice | Voice dictation settings: enabled turns dictation on, mode selects \"hold\" or \"tap\" , and autoSubmit sends the prompt on key release in hold mode. Written automatically when you run /voice . Requires a Claude.ai account | { \"enabled\": true, \"mode\": \"tap\" } | | voiceEnabled | Legacy alias for voice.enabled . Prefer the voice object | true | | wslInheritsWindowsSettings | (Windows managed settings only) When true , Claude Code on WSL reads managed settings from the Windows policy chain in addition to /etc/claude-code , with Windows sources taking priority. Only honored when set in the HKLM registry key or C:\\Program Files\\ClaudeCode\\managed-settings.json , both of which require Windows admin to write. For HKCU policy to also apply on WSL, the flag must additionally be set in HKCU itself. Has no effect on native Windows | true | Global config settings"
+  ],
   "related_changelog": [
     {
       "version": "2.1.70",
       "content": "- Fixed push-to-talk not activating on session start when `voiceEnabled: true` was set in settings",
-      "content_ja": "設定で `voiceEnabled: true` にしているにもかかわらず、セッション開始時にプッシュ・トゥ・トーク(PTT)が有効にならない問題を修正しました。",
+      "content_ja": "設定で `voiceEnabled: true` にしているにもかかわらず、セッション開始時にプッシュ・トゥ・トーク（PTT）が有効にならない問題を修正しました。",
       "inference": {
         "before": "設定ファイルで音声機能を有効に指定していても、新しいセッションを開始した直後は音声入力用のショートカットが機能せず、手動で再設定が必要になる場合がありました。",
         "after": "セッション開始時に音声設定が正しく読み込まれ、即座にプッシュ・トゥ・トークによる音声入力が利用可能になりました。",

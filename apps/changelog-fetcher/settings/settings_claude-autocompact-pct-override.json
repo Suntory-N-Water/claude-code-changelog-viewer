@@ -1,9 +1,15 @@
 {
   "key": "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
+  "leaf_name": "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE",
   "slug": "claude-autocompact-pct-override",
   "source": "env",
   "description_en": "Set the percentage of context capacity (1-100) at which auto-compaction triggers. By default, auto-compaction triggers at approximately 95% capacity. Use lower values like `50` to compact earlier. Values above the default threshold have no effect. Applies to both main conversations and subagents. This percentage aligns with the `context_window.used_percentage` field available in [status line](/en/statusline)",
-  "description_ja": "自動コンパクションがトリガーされるコンテキスト使用率(1-100)を設定します。",
-  "use_case_ja": "- コンテキストウィンドウが一杯になる前に、早めに要約(コンパクション)を行ってトークンを節約したい場合に使用します。\n- デフォルトの約95%よりも低い値(例：50)に設定することで、会話の履歴が長くなる前に整理を促せます。",
+  "description_ja": "自動コンパクション（文脈の圧縮）を実行するコンテキスト使用率の閾値（1〜100）を設定します。",
+  "use_case_ja": "- デフォルトの約95%よりも早い段階で文脈を整理したい場合に、低い値（50など）を設定してメモリを最適化できます。\n- サブエージェントとメインセッションの両方に適用され、ステータスラインのコンテキスト使用率と連動します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "| /context | Yes | Shows what's currently in the context window | | /clear | No | Start a new session from the sidebar instead | Auto-compaction runs automatically when the context window approaches capacity, the same as in the CLI. To trigger it earlier, set CLAUDE_AUTOCOMPACT_PCT_OVERRIDE in your environment variables . For example, CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70 compacts at 70% capacity instead of the default ~95%. To change the effective window size for compaction calculations, use CLAUDE_CODE_AUTO_COMPACT_WINDOW . Subagents work the same way they do locally. Claude can spawn them with the Task tool to offload research or parallel work into a separate context window, keeping the main conversation lighter. Subagents defined in your repo's .claude/agents/ are picked up automatically. Agent teams are off by default but can be enabled by adding CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1 to your environment variables .",
+    "Auto-compaction Subagents support automatic compaction using the same logic as the main conversation. By default, auto-compaction triggers at approximately 95% capacity. To trigger compaction earlier, set CLAUDE_AUTOCOMPACT_PCT_OVERRIDE to a lower percentage (for example, 50 ). See environment variables for details. Compaction events are logged in subagent transcript files:"
+  ],
   "related_changelog": []
 }

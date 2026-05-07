@@ -1,0 +1,43 @@
+{
+  "key": "sandbox.network.allowManagedDomainsOnly",
+  "leaf_name": "allowManagedDomainsOnly",
+  "slug": "sandbox-network-allow-managed-domains-only",
+  "source": "settings",
+  "description_en": "(Managed settings only) Only allowedDomains and WebFetch(domain:...) allow rules from managed settings are respected. User, project, local, and flag settings domains are ignored. Denied domains are still respected from all sources. Non-allowed domains are automatically blocked without user prompts. See https://code.claude.com/docs/en/sandboxing#network-isolation",
+  "description_ja": "管理設定で有効な場合、ユーザーやプロジェクトの設定を無視して管理設定の許可ドメインのみを適用し、未許可ドメインへのアクセスをプロンプトなしで自動ブロックします。",
+  "use_case_ja": "- 企業などの組織において、管理者が定義したネットワーク制限を厳格に強制し、ユーザーによる意図しないポリシーのバイパスを防止したい場合に活用します。\n- 許可されていないドメインへのアクセス試行に対して承認プロンプトを出さずに即座に遮断するため、ヒューマンエラーによる機密情報流出のリスクを低減できます。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing",
+    "Configures network isolation settings for the sandboxed bash environment, including domain restrictions, Unix socket access, and custom proxy configuration."
+  ],
+  "doc_snippets": [
+    "Network access is controlled through a proxy server running outside the sandbox: Domain restrictions : Only approved domains can be accessed User confirmation : New domain requests trigger permission prompts (unless allowManagedDomainsOnly is enabled, which blocks non-allowed domains automatically) Custom proxy support : Advanced users can implement custom rules on outgoing traffic Comprehensive coverage : Restrictions apply to all scripts, programs, and subprocesses spawned by commands",
+    "| network.allowLocalBinding | Allow binding to localhost ports (macOS only). Default: false | true | | network.allowMachLookup | Additional XPC/Mach service names the sandbox may look up (macOS only). Supports a single trailing * for prefix matching. Needed for tools that communicate via XPC such as the iOS Simulator or Playwright. | [\"com.apple.coresimulator.*\"] | | network.allowedDomains | Array of domains to allow for outbound network traffic. Supports wildcards (e.g., *.example.com ). | [\"github.com\", \"*.npmjs.org\"] | | network.deniedDomains | Array of domains to block for outbound network traffic. Supports the same wildcard syntax as allowedDomains . Takes precedence over allowedDomains when both match. Merged from all settings sources regardless of allowManagedDomainsOnly . | [\"sensitive.cloud.example.com\"] | | network.allowManagedDomainsOnly | (Managed settings only) Only allowedDomains and WebFetch(domain:...) allow rules from managed settings are respected. Domains from user, project, and local settings are ignored. Non-allowed domains are blocked automatically without prompting the user. Denied domains are still respected from all sources. Default: false | true | | network.httpProxyPort | HTTP proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | 8080 | | network.socksProxyPort | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | 8081 | | enableWeakerNestedSandbox | Enable weaker sandbox for unprivileged Docker environments (Linux and WSL2 only). Reduces security. Default: false | true |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.126",
+      "content": "- **Security:** Fixed `allowManagedDomainsOnly` / `allowManagedReadPathsOnly` being ignored when a higher-priority managed-settings source lacked a `sandbox` block",
+      "content_ja": "優先度の高い管理設定にsandboxブロックがない場合、低い優先度の管理設定のドメイン/読み取り制限が無視されるセキュリティ上の問題を修正しました",
+      "inference": {
+        "before": "複数の管理設定ファイルがある際、最優先のソースに`sandbox`設定の記述がないと、他の設定ファイルで定義されたドメイン制限や読み取り制限が適用されない不備がありました。",
+        "after": "設定の優先順位に関わらず、複数の管理設定ソースから提供されるサンドボックスの制限が正しくマージされ、適用されるようになりました。",
+        "benefit": "組織の管理者によって定義されたセキュリティ制限が漏れなく適用されるようになり、意図しないドメインへのアクセスやファイル読み取りをより確実に防止できます。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Fixed sandbox prompting users to approve non-allowed domains when `allowManagedDomainsOnly` is enabled in managed settings — non-allowed domains are now blocked automatically with no bypass",
+      "content_ja": "管理設定で `allowManagedDomainsOnly` が有効な場合、未許可ドメインへの承認プロンプトを抑制し、自動的にブロックするように修正しました。",
+      "inference": {
+        "before": "組織レベルで許可ドメインを制限している場合でも、制限外のサイトへアクセスしようとするとユーザーに承認を求めるプロンプトが出てしまい、管理ポリシーをバイパスできてしまう余地がありました。",
+        "after": "ポリシーで制限されている場合はプロンプトすら出さずに即座に遮断されるようになり、管理者の意図通りの厳格な制限が適用されるようになりました。",
+        "benefit": "企業におけるセキュリティポリシーの強制力が向上し、ヒューマンエラーによる機密情報の流出リスクを低減できます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed sandbox prompting users to approve non-allowed domains when `allowManagedDomainsOnly` is enabled in managed settings — non-allowed domains are now blocked automatically with no bypass"
+    }
+  ]
+}

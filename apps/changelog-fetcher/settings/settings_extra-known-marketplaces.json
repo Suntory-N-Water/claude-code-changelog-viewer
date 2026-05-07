@@ -1,10 +1,21 @@
 {
   "key": "extraKnownMarketplaces",
+  "leaf_name": "extraKnownMarketplaces",
   "slug": "extra-known-marketplaces",
   "source": "settings",
   "description_en": "Additional marketplaces to make available for this repository. Typically used in repository .claude/settings.json to ensure team members have required plugin sources. See https://code.claude.com/docs/en/plugin-marketplaces",
-  "description_ja": "リポジトリで利用可能にする追加のプラグインマーケットプレイスを定義します。",
-  "use_case_ja": "- チーム独自のツールキットを配布するための社内リポジトリや、特定のGitHubリポジトリをプラグインの提供元として登録する際に利用します。\n- プロジェクトの `.claude/settings.json` に記述することで、チームメンバーがリポジトリをクローンした際に必要なツールのインストールを促せます。",
+  "description_ja": "このリポジトリで使用可能にする追加のマーケットプレイスを指定します。通常、チームメンバーに必要なプラグインソースを提供するためにプロジェクト設定で使用されます。",
+  "use_case_ja": "- 社内専用のプラグイン配布場所など、標準以外のマーケットプレイスからプラグインをチームに導入させたい場合に使用します。\n- --add-dir で指定されたディレクトリ内の設定からも自動認識されるため、プロジェクトごとに柔軟なツールソースを定義できます。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Team admins can set up automatic marketplace installation for projects by adding marketplace configuration to .claude/settings.json . When team members trust the repository folder, Claude Code prompts them to install these marketplaces and plugins. Add extraKnownMarketplaces to your project's .claude/settings.json :",
+    "Configuration Loaded from --add-dir Skills in .claude/skills/ Yes, with live reload Plugin settings in .claude/settings.json enabledPlugins and extraKnownMarketplaces only CLAUDE.md files, .claude/rules/ , and CLAUDE.local.md Only when CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 is set. CLAUDE.local.md additionally requires the local setting source, which is enabled by default Everything else, including subagents, commands, output styles, hooks, and other settings, is discovered only from the current working directory and its parents, your user directory at ~/.claude/ , and managed settings. To share that configuration across projects, use one of these approaches:",
+    "Marketplace sources vs plugin sources : These are different concepts that control different things. Marketplace source — where to fetch the marketplace.json catalog itself. Set when users run /plugin marketplace add or in extraKnownMarketplaces settings. Supports ref (branch/tag) but not sha . Plugin source — where to fetch an individual plugin listed in the marketplace. Set in the source field of each plugin entry inside marketplace.json . Supports both ref (branch/tag) and sha (exact commit). For example, a marketplace hosted at acme-corp/plugin-catalog (marketplace source) can list a plugin fetched from acme-corp/code-formatter (plugin source). The marketplace source and plugin source point to different repositories and are pinned independently.",
+    "Seed entries take precedence : marketplaces declared in the seed overwrite any matching entries in the user's configuration on each startup. To opt out of a seed plugin, use /plugin disable rather than removing the marketplace. Path resolution : Claude Code locates marketplace content by probing $CLAUDE_CODE_PLUGIN_SEED_DIR/marketplaces/ / at runtime, not by trusting paths stored inside the seed's JSON. This means the seed works correctly even when mounted at a different path than where it was built. Mutation is blocked : running /plugin marketplace remove or /plugin marketplace update against a seed-managed marketplace fails with guidance to ask your administrator to update the seed image. Composes with settings : if extraKnownMarketplaces or enabledPlugins declare a marketplace that already exists in the seed, Claude Code uses the seed copy instead of cloning. Managed marketplace restrictions",
+    "Use \".*\" as the pathPattern to allow any filesystem path while still controlling network sources with hostPattern . strictKnownMarketplaces restricts what users can add, but does not register marketplaces on its own. To make allowed marketplaces available automatically without users running /plugin marketplace add , pair it with extraKnownMarketplaces in the same managed-settings.json . See Using both together . How restrictions work",
+    "Because strictKnownMarketplaces is set in managed settings , individual users and project configurations cannot override these restrictions. For complete configuration details including all supported source types and comparison with extraKnownMarketplaces , see the strictKnownMarketplaces reference . Version resolution and release channels",
+    "}, \"extraKnownMarketplaces\": { \"acme-tools\": { \"source\": { \"source\": \"github\","
+  ],
   "related_changelog": [
     {
       "version": "2.0.12",

@@ -1,0 +1,140 @@
+{
+  "key": "hooks.Stop",
+  "leaf_name": "Stop",
+  "slug": "hooks-stop",
+  "source": "settings",
+  "description_en": "Hooks that run when agents finish responding. Does not run on user interrupt",
+  "description_ja": "エージェントが応答を終えた際に実行されるフック（ユーザーによる中断時は実行されません）。",
+  "use_case_ja": "- ターン終了時にワーキングツリーをスキャンして変更をログに記録したり、リクエストされたタスクが完了したかを AI に再確認させたりするワークフローを構築できます。\n- 特定の条件（テスト失敗など）に基づいて、エージェントチームの稼働を強制終了させる制御も可能です。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "| PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session |",
+    "Returning \"allow\" skips the interactive prompt but does not override permission rules . If a deny rule matches the tool call, the call is blocked even when your hook s \"allow\" . If an ask rule matches, the user is still prompted. This means deny rules from any settings scope, including managed settings , always take precedence over hook approvals. Other events use different decision patterns. For example, PostToolUse and Stop hooks use a top-level decision: \"block\" field, while PermissionRequest uses hookSpecificOutput.decision.behavior . See the summary table in the reference for a full breakdown by event. For UserPromptSubmit hooks, use additionalContext instead to inject text into Claude's context. Prompt-based hooks ( type: \"prompt\" ) handle output differently: see Prompt-based hooks .",
+    "The \"Edit|Write\" matcher fires only when Claude uses the Edit or Write tool, not when it uses Bash , Read , or any other tool. See Matcher patterns for how plain names and regular expressions are evaluated. Claude can also create or modify files by running shell commands through the Bash tool. If your hook must see every file change, such as for compliance scanning or audit logging, add a Stop hook that scans the working tree once per turn. For per-call coverage instead, also match Bash and have your script list modified and untracked files with git status --porcelain . Each event type matches on a specific field:",
+    "| Notification | notification type | permission_prompt , idle_prompt , auth_success , elicitation_dialog , elicitation_complete , elicitation_response | | SubagentStart | agent type | general-purpose , Explore , Plan , or custom agent names | | PreCompact , PostCompact | what triggered compaction | manual , auto | | SubagentStop | agent type | same values as SubagentStart | | ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env | | UserPromptExpansion | command name | your skill or command names | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove , CwdChanged | no matcher support | always fires on every occurrence | A few more examples showing matchers on different event types:",
+    "\"ok\": true : the action proceeds \"ok\": false : what happens depends on the event: Stop and SubagentStop : the reason is fed back to Claude so it keeps working PreToolUse : the tool call is denied and the reason is ed to Claude as the tool error, so it can adjust and continue PostToolUse , PostToolBatch , UserPromptSubmit , and UserPromptExpansion : the turn ends and the reason appears in the chat as a warning line This example uses a Stop hook to ask the model whether all requested tasks are complete. If the model s \"ok\": false , Claude keeps working and uses the reason as its next instruction:",
+    "Hook lifecycle Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, input arrives on stdin. For HTTP hooks, it arrives as the POST request body. Your handler can then inspect the input, take action, and optionally a decision. Events fall into three cadences: once per session ( SessionStart , SessionEnd ), once per turn ( UserPromptSubmit , Stop , StopFailure ), and on every tool call inside the agentic loop ( PreToolUse , PostToolUse ): The table below summarizes when each event fires. The Hook events section documents the full input schema and decision control options for each one.",
+    "| PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session |",
+    "Hooks are defined in JSON settings files. The configuration has three levels of nesting: Choose a hook event to respond to, like PreToolUse or Stop Add a matcher group to filter when it fires, like \"only for the Bash tool\" Define one or more hook handlers to run when matched",
+    "| Notification | notification type | permission_prompt , idle_prompt , auth_success , elicitation_dialog , elicitation_complete , elicitation_response | | SubagentStart | agent type | general-purpose , Explore , Plan , or custom agent names | | PreCompact , PostCompact | what triggered compaction | manual , auto | | SubagentStop | agent type | same values as SubagentStart | | ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | CwdChanged | no matcher support | always fires on every directory change | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env | | StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | UserPromptExpansion | command name | your skill or command names | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove | no matcher support | always fires on every occurrence | The matcher runs against a field from the JSON input that Claude Code sends to your hook on stdin. For tool events, that field is tool_name . Each hook event section lists the full set of matcher values and the input schema for that event.",
+    "| PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session |",
+    "The command value supports the same variable substitutions as MCP and LSP server configs: ${CLAUDE_PLUGIN_ROOT} , ${CLAUDE_PLUGIN_DATA} , ${user_config.*} , and any ${ENV_VAR} from the environment. Prefix the command with cd \"${CLAUDE_PLUGIN_ROOT}\" && if the script needs to run from the plugin's own directory. Disabling a plugin mid-session does not stop monitors that are already running. They stop when the session ends. Themes",
+    "Use the /agents command The /agents command opens a tabbed interface for managing subagents. The Running tab shows live subagents and lets you open or stop them. The Library tab lets you: View all available subagents (built-in, user, project, and plugin) Create new subagents with guided setup or Claude generation",
+    "| disallowedTools | No | Tools to deny, removed from inherited or specified list | | model | No | Model to use: sonnet , opus , haiku , a full model ID (for example, claude-opus-4-7 ), or inherit . Defaults to inherit | | permissionMode | No | Permission mode : default , acceptEdits , auto , dontAsk , bypassPermissions , or plan . Ignored for plugin subagents | | maxTurns | No | Maximum number of agentic turns before the subagent stops | | skills | No | Skills to load into the subagent's context at startup. The full skill content is injected, not just made available for invocation. Subagents don't inherit skills from the parent conversation | | mcpServers | No | MCP servers available to this subagent. Each entry is either a server name referencing an already-configured server (e.g., \"slack\" ) or an inline definition with the server name as key and a full MCP server config as value. Ignored for plugin subagents | | hooks | No | Lifecycle hooks scoped to this subagent. Ignored for plugin subagents |",
+    "Subagents can define hooks that run during the subagent's lifecycle. There are two ways to configure hooks: In the subagent's frontmatter : Define hooks that run only while that subagent is active In settings.json : Define hooks that run in the main session when subagents start or stop Hooks in subagent frontmatter",
+    "| :- | :- | :- | | PreToolUse | Tool name | Before the subagent uses a tool | | PostToolUse | Tool name | After the subagent uses a tool | | Stop | (none) | When the subagent finishes (converted to SubagentStop at runtime) | This example validates Bash commands with the PreToolUse hook and runs a linter after file edits with PostToolUse :"
+  ],
+  "related_changelog": [
+    {
+      "version": "1.0.41",
+      "content": "- Hooks: Split Stop hook triggering into Stop and SubagentStop"
+    },
+    {
+      "version": "1.0.45",
+      "content": "- Stop Hooks: Fixed transcript path after /clear and fixed triggering when loop ends with tool call"
+    },
+    {
+      "version": "2.0.42",
+      "content": "- Added `agent_id` and `agent_transcript_path` fields to `SubagentStop` hooks."
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Stop `/terminal-setup` from adding backslash to `Shift + Enter` in VS Code"
+    },
+    {
+      "version": "2.1.30",
+      "content": "- Improved `TaskStop` tool to display the stopped command/task description in the result line instead of a generic \"Task stopped\" message",
+      "content_ja": "`TaskStop`ツールを改善し、結果行に汎用的な「Task stopped」メッセージの代わりに、停止したコマンド/タスクの説明を表示するようにしました。",
+      "inference": {
+        "before": "`TaskStop`ツールが実行されると、停止したタスクの詳細がわからず、単に「Task stopped」と表示されていました。",
+        "after": "`TaskStop`ツールの結果に、停止したコマンドやタスクの説明が表示されるようになりました。",
+        "benefit": "どのタスクが停止されたのかを明確に把握できるようになり、デバッグや進捗管理が容易になりました。"
+      }
+    },
+    {
+      "version": "2.1.78",
+      "content": "- Added `StopFailure` hook event that fires when the turn ends due to an API error (rate limit, auth failure, etc.)",
+      "content_ja": "APIエラー（レート制限、認証失敗など）によりターンが終了した際に発火する `StopFailure` フックイベントを追加",
+      "inference": {
+        "before": "APIエラーで処理が中断された場合、それをフックして自動的に通知を送ったりログを記録したりする仕組みがありませんでした。",
+        "after": "`StopFailure` イベントにより、レート制限や認証エラーなどの失敗を検知して特定のスクリプトを実行できるようになりました。",
+        "benefit": "エラー発生時の後処理を自動化し、モニタリングやトラブルシューティングの効率を向上させることができます。"
+      }
+    },
+    {
+      "version": "2.1.92",
+      "content": "- Fixed prompt-type Stop hooks incorrectly failing when the small fast model returns `ok:false`, and restored `preventContinuation:true` semantics for non-Stop prompt-type hooks",
+      "content_ja": "Stopイベントのプロンプト型フックが特定の応答で誤って失敗する問題を修正し、継続防止セマンティクスを復元。",
+      "inference": {
+        "before": "モデルが `ok:false` を返した際にフックが予期せずエラーになったり、ツール実行をブロックすべき場面で継続されてしまう不具合がありました。",
+        "after": "Stopイベントの判定が正確になり、プロンプト型フックによるワークフローの中断制御が意図通りに機能するようになります。",
+        "benefit": "フックを利用した自動化プロセスの信頼性が向上し、特定の条件下で処理を確実に停止させることが可能になります。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added hooks support to agent frontmatter, allowing agents to define PreToolUse, PostToolUse, and Stop hooks scoped to the agent's lifecycle",
+      "content_ja": "エージェントのフロントマターでフック設定が可能になり、エージェントの生存期間に限定したフックを定義できるようになりました。"
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Fixed agent-type hooks failing with \"Messages are required for agent hooks\" when configured for events other than `Stop` or `SubagentStop`",
+      "content_ja": "エージェント型フックが `Stop` 等の特定のイベント以外で「メッセージが必要」というエラーで失敗する問題を修正",
+      "inference": {
+        "before": "`SubagentStart` などのイベントに対してエージェント型フックを適用しようとすると、必要なデータ構造が不足しているというエラーで動作しませんでした。",
+        "after": "より多くのイベントに対してエージェント型フックを正しく設定・実行できるようになりました。",
+        "benefit": "特定のライフサイクルイベントにおいて、エージェントによる高度な自動検証を柔軟に組み込めるようになります。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Added `last_assistant_message` field to Stop and SubagentStop hook inputs, providing the final assistant response text so hooks can access it without parsing transcript files.",
+      "content_ja": "StopおよびSubagentStopフック入力に `last_assistant_message` フィールドを追加しました。これにより、フックはトランスクリプトファイルを解析することなく、最終的なアシスタントの応答テキストにアクセスできるようになります。",
+      "inference": {
+        "before": "StopおよびSubagentStopフックでは、アシスタントの最終応答テキストにアクセスするためにトランスクリプトファイルを解析する必要がありました。これは手間がかかるだけでなく、エラーが発生しやすいプロセスでした。",
+        "after": "StopおよびSubagentStopフック入力に `last_assistant_message` フィールドが追加されました。これにより、フックはトランスクリプトファイルを解析することなく、アシスタントの最終応答テキストに直接アクセスできます。",
+        "benefit": "フック開発者がアシスタントの最終応答に簡単にアクセスできるようになり、より効率的で堅牢なフックの作成が可能になりました。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Fixed `TeammateIdle` and `TaskCompleted` hooks to support `{\"continue\": false, \"stopReason\": \"...\"}` to stop the teammate, matching `Stop` hook behavior",
+      "content_ja": "`TeammateIdle` および `TaskCompleted` フックにおいて、`Stop` フックと同様の `{\"continue\": false, \"stopReason\": \"...\"}` 形式によるチームメイトの停止をサポートしました。",
+      "inference": {
+        "before": "エージェントチームの作業完了時や待機時の挙動をカスタマイズする際、スクリプト側から「ここで完全に停止させる」という判断を Claude Code に伝えるスマートな方法が不足していました。",
+        "after": "標準的な停止シグナルをサポートしたことで、特定の条件（テスト失敗時など）でチームメイトの稼働を強制終了させることが、JSON レスポンス一つで制御可能になりました。",
+        "benefit": "チームメイトの無駄な待機時間を削減し、特定の状況下での自動化フローの制御がより正確に行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed plugin Stop/SessionEnd/etc hooks not firing after any `/plugin` operation"
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed `TeammateIdle` and `TaskCompleted` hooks to support `{\"continue\": false, \"stopReason\": \"...\"}` to stop the teammate, matching `Stop` hook behavior"
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed prompt-type Stop/SubagentStop hooks failing on long sessions, and hook evaluator API errors showing \"JSON validation failed\" instead of the real message",
+      "content_ja": "長時間セッションでのプロンプト型 Stop/SubagentStop フックの失敗、およびフック評価時の API エラーが不正確に表示される問題を修正しました。",
+      "inference": {
+        "before": "会話が長くなるとフックが動かなくなったり、エラーが発生しても原因が分からず「JSONバリデーション失敗」という曖昧な表示が出るだけでした。",
+        "after": "長時間のセッションでもフックが安定して動作し、エラー発生時には API からの実際のメッセージが表示されるため、自己診断が可能になりました。",
+        "benefit": "ワークフローの自動化や検証をフックで行っている場合、その信頼性とメンテナンス性が大幅に向上します。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed prompt-type `Stop`/`SubagentStop` hooks failing on long sessions, and hook evaluator API errors displaying \"JSON validation failed\" instead of the actual message",
+      "content_ja": "長いセッションでプロンプトタイプの`Stop`/`SubagentStop`フックが失敗する問題、およびフック評価時のAPIエラーが具体的なメッセージではなく「JSON validation failed」と表示される問題を修正しました。",
+      "inference": {
+        "before": "セッションが長くなると終了時の自動処理（フック）が動かなくなったり、フックの不具合時に原因が分からないエラーメッセージが表示されることがありました。",
+        "after": "長大セッションでもフックが安定動作し、エラー発生時も具体的な原因が表示されるようになったため、デバッグが容易になりました。",
+        "benefit": "自動化された後処理や通知が確実に実行されるようになり、開発ワークフローの信頼性が向上します。"
+      }
+    }
+  ]
+}

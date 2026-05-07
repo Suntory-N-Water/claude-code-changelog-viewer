@@ -1,0 +1,48 @@
+{
+  "key": "hooks.TaskCompleted",
+  "leaf_name": "TaskCompleted",
+  "slug": "hooks-task-completed",
+  "source": "settings",
+  "description_en": "Hooks that run when a task is being marked as completed. Exit code 2 prevents completion and sends feedback. Does not support matchers. See https://code.claude.com/docs/en/hooks#taskcompleted",
+  "description_ja": "タスクが完了としてマークされる際に実行されるフック。",
+  "use_case_ja": "- タスク完了の直前にカスタムロジック（テストの全件合格チェックなど）を実行し、条件を満たさない場合に完了を阻止してフィードバックを返すことができます。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "TeammateIdle : runs when a teammate is about to go idle. Exit with code 2 to send feedback and keep the teammate working. TaskCreated : runs when a task is being created. Exit with code 2 to prevent creation and send feedback. TaskCompleted : runs when a task is being marked complete. Exit with code 2 to prevent completion and send feedback. How agent teams work",
+    "| SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle |",
+    "| ElicitationResult | MCP server name | same values as Elicitation | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env | | UserPromptExpansion | command name | your skill or command names | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove , CwdChanged | no matcher support | always fires on every occurrence | A few more examples showing matchers on different event types:",
+    "| SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle |",
+    "| UserPromptExpansion | command name | your skill or command names | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove | no matcher support | always fires on every occurrence | The matcher runs against a field from the JSON input that Claude Code sends to your hook on stdin. For tool events, that field is tool_name . Each hook event section lists the full set of matcher values and the input schema for that event.",
+    "| SubagentStop | Yes | Prevents the subagent from stopping | | TeammateIdle | Yes | Prevents the teammate from going idle (teammate continues working) | | TaskCreated | Yes | Rolls back the task creation | | TaskCompleted | Yes | Prevents the task from being marked as completed | | ConfigChange | Yes | Blocks the configuration change from taking effect (except policy_settings ) | | StopFailure | No | Output and exit code are ignored | | PostToolUse | No | Shows stderr to Claude (tool already ran) |",
+    "Events Decision pattern Key fields UserPromptSubmit, UserPromptExpansion, PostToolUse, PostToolUseFailure, PostToolBatch, Stop, SubagentStop, ConfigChange, PreCompact Top-level decision decision: \"block\" , reason TeammateIdle, TaskCreated, TaskCompleted Exit code or continue: false Exit code 2 blocks the action with stderr feedback. JSON {\"continue\": false, \"stopReason\": \"...\"} also stops the teammate entirely, matching Stop hook behavior PreToolUse hookSpecificOutput permissionDecision (allow/deny/ask/defer), permissionDecisionReason PermissionRequest decision.behavior (allow/deny) PermissionDenied retry: true tells the model it may retry the denied tool call",
+    "| SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.33",
+      "content": "- Added `TeammateIdle` and `TaskCompleted` hook events for multi-agent workflows",
+      "content_ja": "マルチエージェントワークフロー向けに、`TeammateIdle`と`TaskCompleted`のフックイベントが追加されました。",
+      "inference": {
+        "before": "以前は、エージェントチームのメンバーがアイドル状態になる前や、タスクが完了とマークされる前に、カスタムロジックを挿入してワークフローを制御する仕組みがありませんでした。これにより、特定の条件下でチームメイトの作業を継続させたり、タスクの完了を阻止してフィードバックを提供したりするなどの、高度なワークフローの自動化が困難でした。",
+        "after": "`TeammateIdle`と`TaskCompleted`フックイベントが追加されたことで、エージェントチームのメンバーがアイドル状態になる直前や、タスクが完了とマークされる直前に、カスタムスクリプトやHTTPエンドポイントを実行できるようになりました。これにより、例えば、チームメイトがアイドル状態になるのを防ぎ作業を継続させたり、特定の条件が満たされない限りタスクの完了を阻止して詳細なフィードバックを要求したりすることが可能になります。",
+        "benefit": "これらの新しいフックイベントにより、マルチエージェントワークフローの自動化と制御が大幅に強化されます。チームメイトの振る舞いやタスクの完了プロセスをより細かくカスタマイズできるため、複雑なプロジェクト管理や品質保証のシナリオにおいて、より堅牢でインテリジェントなエージェントチームを構築できます。これにより、開発者はワークフローの柔軟性が向上し、生産性が高まることを実感できます。"
+      }
+    },
+    {
+      "version": "2.1.64",
+      "content": "- Fixed `TeammateIdle` and `TaskCompleted` hooks to support `{\"continue\": false, \"stopReason\": \"...\"}` to stop the teammate, matching `Stop` hook behavior",
+      "content_ja": "`TeammateIdle` および `TaskCompleted` フックにおいて、`Stop` フックと同様の `{\"continue\": false, \"stopReason\": \"...\"}` 形式によるチームメイトの停止をサポートしました。",
+      "inference": {
+        "before": "エージェントチームの作業完了時や待機時の挙動をカスタマイズする際、スクリプト側から「ここで完全に停止させる」という判断を Claude Code に伝えるスマートな方法が不足していました。",
+        "after": "標準的な停止シグナルをサポートしたことで、特定の条件（テスト失敗時など）でチームメイトの稼働を強制終了させることが、JSON レスポンス一つで制御可能になりました。",
+        "benefit": "チームメイトの無駄な待機時間を削減し、特定の状況下での自動化フローの制御がより正確に行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Fixed `TeammateIdle` and `TaskCompleted` hooks to support `{\"continue\": false, \"stopReason\": \"...\"}` to stop the teammate, matching `Stop` hook behavior"
+    }
+  ]
+}

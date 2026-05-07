@@ -56,8 +56,10 @@ const relatedAreaLinks = [...settingAreas]
     label: getFeatureAreaLabel(area),
   }));
 
+const displayName = entry.leaf_name ?? entry.key.split('.').at(-1) ?? entry.key;
+
 const siteUrl = import.meta.env.SITE;
-const pageTitle = `${entry.key} - Claude Code 設定リファレンス`;
+const pageTitle = `${displayName} - Claude Code 設定リファレンス`;
 const pageDescription = entry.description_ja.slice(0, 120);
 
 const hasContent = useCaseHtml !== null || versionGroups.length > 0;
@@ -70,7 +72,10 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
   breadcrumbs={[
     { name: 'トップ', url: siteUrl },
     { name: '設定リファレンス', url: `${siteUrl}/reference/settings` },
-    { name: entry.key, url: `${siteUrl}/reference/settings/${entry.slug}` },
+    {
+      name: displayName,
+      url: `${siteUrl}/reference/settings/${entry.slug}`,
+    },
   ]}
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4' data-pagefind-body>
@@ -109,7 +114,7 @@ const hasContent = useCaseHtml !== null || versionGroups.length > 0;
         <h1
           class='text-2xl sm:text-3xl font-bold font-mono break-all text-[hsl(var(--cc-main-black))] mb-4'
         >
-          {entry.key}
+          {displayName}
         </h1>
         <p
           class='text-base leading-relaxed text-[hsl(var(--cc-main-black))] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-[hsl(var(--cc-gray))] [&_code]:text-sm [&_code]:font-mono'

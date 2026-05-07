@@ -1,17 +1,26 @@
 {
   "key": "OTEL_LOG_TOOL_DETAILS",
+  "leaf_name": "OTEL_LOG_TOOL_DETAILS",
   "slug": "otel-log-tool-details",
   "source": "env",
   "description_en": "Set to `1` to include tool input arguments, MCP server names, raw error strings on tool failures, and other tool details in OpenTelemetry traces and logs. Disabled by default to protect PII. See [Monitoring](/en/monitoring-usage)",
-  "description_ja": "OpenTelemetryのトレースやログに、ツールの引数、MCPサーバー名、エラー詳細などの情報を含めるには1を設定します。",
-  "use_case_ja": "- 組織レベルでの利用状況の可視化や、どのコマンドがコストにどう影響しているかの詳細な分析を可能にします。\n- セキュリティポリシーに合わせて、ツールの引数などの機密情報を含む詳細ログの出力を個別に制御できます。",
+  "description_ja": "ツールの入力引数、MCPサーバー名、失敗時の生のエラー文字列などの詳細情報をOpenTelemetryのトレースとログに含めるには1に設定します。",
+  "use_case_ja": "- 開発チーム全体でのClaude Codeの利用効率や、どのコマンドが実行されたかなどの詳細な分析・可視化を行うために使用します。\n- デフォルトでは伏せられているツールのパラメータを明示的に有効化することで、トラブルシューティングや監査を容易にします。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "| OTEL_METRIC_EXPORT_INTERVAL | Export interval in milliseconds (default: 60000) | 5000 , 60000 | | OTEL_LOGS_EXPORT_INTERVAL | Logs export interval in milliseconds (default: 5000) | 1000 , 10000 | | OTEL_LOG_USER_PROMPTS | Enable logging of user prompt content (default: disabled) | 1 to enable | | OTEL_LOG_TOOL_DETAILS | Enable logging of tool parameters and input arguments in tool events and trace span attributes: Bash commands, MCP server and tool names, skill names, and tool input. Also enables custom, plugin, and MCP command names on user_prompt events (default: disabled) | 1 to enable | | OTEL_LOG_TOOL_CONTENT | Enable logging of tool input and output content in span events (default: disabled). Requires tracing . Content is truncated at 60 KB | 1 to enable | | OTEL_LOG_RAW_API_BODIES | Emit the full Anthropic Messages API request and response JSON as api_request_body / api_response_body log events (default: disabled). Bodies include the entire conversation history. Enabling this implies consent to everything OTEL_LOG_USER_PROMPTS , OTEL_LOG_TOOL_DETAILS , and OTEL_LOG_TOOL_CONTENT would reveal | 1 for inline bodies truncated at 60 KB, or file: for untruncated bodies on disk with a body_ref pointer in the event | | OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE | Metrics temporality preference (default: delta ). Set to cumulative if your backend expects cumulative temporality | delta , cumulative | | CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS | Interval for refreshing dynamic headers (default: 1740000ms / 29 minutes) | 900000 |",
+    "| OTEL_EXPORTER_OTLP_TRACES_ENDPOINT | OTLP traces endpoint, overrides OTEL_EXPORTER_OTLP_ENDPOINT | http://localhost:4318/v1/traces | | OTEL_TRACES_EXPORT_INTERVAL | Span batch export interval in milliseconds (default: 5000) | 1000 , 10000 | Spans redact user prompt text, tool input details, and tool content by default. Set OTEL_LOG_USER_PROMPTS=1 , OTEL_LOG_TOOL_DETAILS=1 , and OTEL_LOG_TOOL_CONTENT=1 to include them. When tracing is active, Bash and PowerShell subprocesses automatically inherit a TRACEPARENT environment variable containing the W3C trace context of the active tool execution span. This lets any subprocess that reads TRACEPARENT parent its own spans under the same trace, enabling end-to-end distributed tracing through scripts and commands that Claude runs.",
+    "| tool_name | Tool name | | | duration_ms | Wall-clock duration including permission wait and execution | | | result_tokens | Approximate token size of the tool result | | | file_path | Target file path for Read, Edit, and Write tools | OTEL_LOG_TOOL_DETAILS | | full_command | Command string for the Bash tool | OTEL_LOG_TOOL_DETAILS | | skill_name | Skill name for the Skill tool | OTEL_LOG_TOOL_DETAILS | | subagent_type | Subagent type for the Task tool | OTEL_LOG_TOOL_DETAILS | When OTEL_LOG_TOOL_CONTENT=1 , this span also records a tool.output span event whose attributes contain the tool's input and output bodies, truncated at 60 KB per attribute.",
+    "| - | - | - | | duration_ms | Time spent running the tool body | | | success | true or false | | | error | Error category string when execution failed, such as Error:ENOENT or ShellError . Contains the full error message instead when the gate is set | OTEL_LOG_TOOL_DETAILS | claude_code.hook",
+    "| hook_event | Hook event type, such as PreToolUse | | | hook_name | Full hook name, such as PreToolUse:Write | | | num_hooks | Number of matching hook commands executed | | | hook_definitions | JSON-serialized hook configuration | OTEL_LOG_TOOL_DETAILS | | duration_ms | Wall-clock duration of all matching hooks | | | num_success | Count of hooks that completed successfully | | | num_blocking | Count of hooks that ed a blocking decision | |"
+  ],
   "related_changelog": [
     {
       "version": "2.1.117",
       "content": "- OpenTelemetry: `user_prompt` events now include `command_name` and `command_source` for slash commands; `cost.usage`, `token.usage`, `api_request`, and `api_error` now include an `effort` attribute when the model supports effort levels. Custom/MCP command names are redacted unless `OTEL_LOG_TOOL_DETAILS=1` is set",
-      "content_ja": "OpenTelemetry の拡張：スラッシュコマンドのソース情報や、モデルの思考(Effort)レベルごとのコスト・使用量、API リクエスト情報の取得に対応しました",
+      "content_ja": "OpenTelemetry の拡張：スラッシュコマンドのソース情報や、モデルの思考（Effort）レベルごとのコスト・使用量、API リクエスト情報の取得に対応しました",
       "inference": {
-        "before": "テレメトリデータにおいて、どのコマンドから実行されたかや、モデルの「思考の深さ(Effort)」がコストにどう影響しているかを詳細に分析することが困難でした。",
+        "before": "テレメトリデータにおいて、どのコマンドから実行されたかや、モデルの「思考の深さ（Effort）」がコストにどう影響しているかを詳細に分析することが困難でした。",
         "after": "コマンド名やソース、および `effort` 属性が各イベントに付与され、組織レベルでの詳細な利用状況の可視化が可能になります。",
         "benefit": "開発チーム全体での Claude Code の利用効率やコストパフォーマンスを、より正確なデータに基づいて最適化できます。"
       }
@@ -29,10 +38,10 @@
     {
       "version": "2.1.101",
       "content": "- Improved beta tracing to honor `OTEL_LOG_USER_PROMPTS`, `OTEL_LOG_TOOL_DETAILS`, and `OTEL_LOG_TOOL_CONTENT`; sensitive span attributes are no longer emitted unless opted in",
-      "content_ja": "ベータ版のトレーシング機能で、プロンプトやツールの詳細・内容を記録する各設定(OTEL_LOG_*)を尊重するように改善",
+      "content_ja": "ベータ版のトレーシング機能で、プロンプトやツールの詳細・内容を記録する各設定（OTEL_LOG_*）を尊重するように改善",
       "inference": {
         "before": "OpenTelemetryによるトレース情報の出力時、秘匿すべき情報が設定に関わらず出力されてしまうリスクがありました。",
-        "after": "ユーザーが明示的に許可した情報(プロンプトやツールの引数など)のみがトレースに含まれるようになり、機密情報の保護が強化されました。",
+        "after": "ユーザーが明示的に許可した情報（プロンプトやツールの引数など）のみがトレースに含まれるようになり、機密情報の保護が強化されました。",
         "benefit": "組織のセキュリティポリシーに合わせて、安心して利用状況のモニタリングを行えるようになります。"
       }
     }

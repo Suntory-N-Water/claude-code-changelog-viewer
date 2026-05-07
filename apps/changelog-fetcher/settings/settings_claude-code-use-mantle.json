@@ -1,17 +1,27 @@
 {
   "key": "CLAUDE_CODE_USE_MANTLE",
+  "leaf_name": "CLAUDE_CODE_USE_MANTLE",
   "slug": "claude-code-use-mantle",
   "source": "env",
   "description_en": "Use the Bedrock [Mantle endpoint](/en/amazon-bedrock#use-the-mantle-endpoint)",
-  "description_ja": "Amazon BedrockのMantleエンドポイントを使用するように設定します。",
-  "use_case_ja": "- AWS環境において、最適化された推論インフラ層であるMantleを利用してパフォーマンスや安定性を向上させたい場合に指定します。\n- ゲートウェイ経由の認証スキップ(CLAUDE_CODE_SKIP_MANTLE_AUTH)と組み合わせて、柔軟なインフラ構成が可能です。",
+  "description_ja": "Amazon Bedrock の Mantle エンドポイントを使用可能にします。",
+  "use_case_ja": "- AWS 環境において、パフォーマンスや安定性が最適化された推論インフラである Mantle レイヤーを明示的に指定して利用するために設定します。\n- インフラストラクチャの最適化オプションを選択できるようになり、エンタープライズ環境での安定した推論を支援します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Enable Mantle With AWS credentials already configured, set CLAUDE_CODE_USE_MANTLE to route requests to the Mantle endpoint:",
+    "Run Mantle alongside the Invoke API The models available to you on Mantle may not include every model you use today. Setting both CLAUDE_CODE_USE_BEDROCK and CLAUDE_CODE_USE_MANTLE lets Claude Code call both endpoints from the same session. Model IDs that match the Mantle format are routed to Mantle, and all other model IDs go to the Bedrock Invoke API. To surface a Mantle model in the /model picker, list its ID in availableModels in your settings file . This setting also restricts the picker to the listed entries, so include every alias you want to keep available:",
+    "If your organization routes model traffic through a centralized LLM gateway that injects AWS credentials server-side, disable client-side authentication so Claude Code sends requests without SigV4 signatures or x-api-key headers:",
+    "Variable Purpose CLAUDE_CODE_USE_MANTLE Enable the Mantle endpoint. Set to 1 or true . ANTHROPIC_BEDROCK_MANTLE_BASE_URL Override the default Mantle endpoint URL CLAUDE_CODE_SKIP_MANTLE_AUTH Skip client-side authentication for proxy setups ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION Override AWS region for the Haiku-class model (shared with Bedrock)",
+    "Mantle endpoint errors If /status does not show Amazon Bedrock (Mantle) after you set CLAUDE_CODE_USE_MANTLE , the variable is not reaching the process. Confirm it is exported in the shell where you launched claude , or set it in the env block of your settings file . A 403 from the Mantle endpoint with valid credentials means your AWS account has not been granted access to the model you requested. Contact your AWS account team to request access.",
+    "| User deletes the cached settings file | First-launch behavior occurs: settings fetch asynchronously with a brief unenforced window | | API is unavailable | Cached settings apply if available, otherwise managed settings are not enforced until the next successful fetch. With forceRemoteSettingsRefresh: true , the CLI exits instead of continuing | | User authenticates with a different organization | Settings are not delivered for accounts outside the managed organization | | User configures a third-party model provider | Server-managed settings are bypassed. This includes setting CLAUDE_CODE_USE_BEDROCK , CLAUDE_CODE_USE_MANTLE , CLAUDE_CODE_USE_VERTEX , CLAUDE_CODE_USE_FOUNDRY , or a non-default ANTHROPIC_BASE_URL | To detect runtime configuration changes, use ConfigChange hooks to log modifications or block unauthorized changes before they take effect."
+  ],
   "related_changelog": [
     {
       "version": "2.1.94",
       "content": "- Added support for Amazon Bedrock powered by Mantle, set `CLAUDE_CODE_USE_MANTLE=1`",
-      "content_ja": "Mantleを利用したAmazon Bedrockのサポートを追加(CLAUDE_CODE_USE_MANTLE=1で有効化)",
+      "content_ja": "Mantleを利用したAmazon Bedrockのサポートを追加（CLAUDE_CODE_USE_MANTLE=1で有効化）",
       "inference": {
-        "before": "Amazon Bedrockを介してClaudeを使用する際、特定のインフラストラクチャ最適化レイヤー(Mantle)を明示的に指定して利用するオプションがありませんでした。",
+        "before": "Amazon Bedrockを介してClaudeを使用する際、特定のインフラストラクチャ最適化レイヤー（Mantle）を明示的に指定して利用するオプションがありませんでした。",
         "after": "環境変数 `CLAUDE_CODE_USE_MANTLE=1` を設定することで、MantleパワードのAmazon Bedrockエンドポイントを利用できるようになりました。",
         "benefit": "AWS環境において、より最適化された推論インフラストラクチャを選択できるようになり、パフォーマンスや安定性の向上が期待できます。"
       }

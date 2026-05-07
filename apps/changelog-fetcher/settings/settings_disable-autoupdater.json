@@ -1,10 +1,18 @@
 {
   "key": "DISABLE_AUTOUPDATER",
+  "leaf_name": "DISABLE_AUTOUPDATER",
   "slug": "disable-autoupdater",
   "source": "env",
   "description_en": "Set to `1` to disable automatic background updates. Manual `claude update` still works. Use `DISABLE_UPDATES` to block both",
-  "description_ja": "バックグラウンドでの自動アップデート確認を無効化します。",
-  "use_case_ja": "- 開発環境のツールバージョンを厳密に固定し、意図しない挙動の変化や不具合の混入を防ぎたい場合に設定します。\n- 自動更新は停止しますが、「claude update」コマンドによる手動更新は引き続き可能です。",
+  "description_ja": "バックグラウンドでの自動更新を無効化し、手動の `claude update` コマンドのみを許可します。",
+  "use_case_ja": "- 予期せぬタイミングでのバージョン更新による開発環境の変化を避けたい場合に、バックグラウンド更新のみを制限できます。\n- プラグインの自動更新は有効なまま、Claude Code 本体の更新だけを制御したい場合に `FORCE_AUTOUPDATE_PLUGINS=1` と組み合わせて使用します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "The Dev Container Feature always installs the latest Claude Code release. To pin a specific Claude Code version for reproducible builds, install it from your Dockerfile with npm install -g @anthropic-ai/claude-code@X.Y.Z instead of using the feature, and set DISABLE_AUTOUPDATER as shown above. For the full list of policy controls including permission rules, tool restrictions, and MCP server allowlists, see Set up Claude Code for your organization .",
+    "Official Anthropic marketplaces have auto-update enabled by default. Third-party and local development marketplaces have auto-update disabled by default. To disable all automatic updates entirely for both Claude Code and all plugins, set the DISABLE_AUTOUPDATER environment variable. See Auto updates for details. To keep plugin auto-updates enabled while disabling Claude Code auto-updates, set FORCE_AUTOUPDATE_PLUGINS=1 along with DISABLE_AUTOUPDATER :",
+    "| autoMemoryEnabled | Enable auto memory . When false , Claude does not read from or write to the auto memory directory. Default: true . You can also toggle this with /memory during a session. To disable via environment variable, set CLAUDE_CODE_DISABLE_AUTO_MEMORY in env | false | | autoMode | Customize what the auto mode classifier blocks and allows. Contains environment , allow , and soft_deny arrays of prose rules. Include the literal string \"$defaults\" in an array to inherit the built-in rules at that position. See Configure auto mode . Not read from shared project settings | {\"soft_deny\": [\"$defaults\", \"Never run terraform apply\"]} | | autoScrollEnabled | In fullscreen rendering , follow new output to the bottom of the conversation. Default: true . Appears in /config as Auto-scroll . Permission prompts still scroll into view when this is off | false | | autoUpdatesChannel | Release channel to follow for updates. Use \"stable\" for a version that is typically about one week old and skips versions with major regressions, or \"latest\" (default) for the most recent release. To disable auto-updates entirely, set DISABLE_AUTOUPDATER in env | \"stable\" | | availableModels | Restrict which models users can select via /model , --model , or ANTHROPIC_MODEL . Does not affect the Default option. See Restrict model selection | [\"sonnet\", \"haiku\"] | | awaySummaryEnabled | Show a one-line session recap when you to the terminal after a few minutes away. Set to false or turn off Session recap in /config to disable. Same as CLAUDE_CODE_ENABLE_AWAY_SUMMARY | true | | awsAuthRefresh | Custom script that modifies the directory (see advanced credential configuration ) | aws sso login --profile myprofile |",
+    "Disable auto-updates Set DISABLE_AUTOUPDATER to \"1\" in the env key of your settings.json file: DISABLE_AUTOUPDATER only stops the background check; claude update and claude install still work. To block all update paths, including manual updates, set DISABLE_UPDATES instead. Use this when you distribute Claude Code through your own channels and need users to stay on the version you provide. Update manually"
+  ],
   "related_changelog": [
     {
       "version": "2.0.36",
@@ -13,7 +21,7 @@
     {
       "version": "2.1.118",
       "content": "- Added `DISABLE_UPDATES` env var to completely block all update paths including manual `claude update` — stricter than `DISABLE_AUTOUPDATER`",
-      "content_ja": "手動の `claude update` を含むすべての更新経路を完全にブロックする `DISABLE_UPDATES` 環境変数を追加しました(`DISABLE_AUTOUPDATER` よりも厳格な設定です)。",
+      "content_ja": "手動の `claude update` を含むすべての更新経路を完全にブロックする `DISABLE_UPDATES` 環境変数を追加しました（`DISABLE_AUTOUPDATER` よりも厳格な設定です）。",
       "inference": {
         "before": "自動更新は `DISABLE_AUTOUPDATER` でオフにできましたが、手動コマンドによる更新を完全に制限することはできず、特定のバージョンを厳格に固定したいエンタープライズ環境などで意図しない更新が防げない可能性がありました。",
         "after": "`DISABLE_UPDATES` を設定することで、バックグラウンドでの自動チェックだけでなく、明示的な手動更新コマンドも拒否されるようになり、管理者が承認した特定のバージョンを確実に使い続けることができます。",

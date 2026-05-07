@@ -85,11 +85,14 @@ const settingsReferenceCollection = defineCollection({
   loader: glob({ pattern: '**/*.json', base: './src/content/settings' }),
   schema: z.object({
     key: z.string(),
+    leaf_name: z.string().optional(),
     slug: z.string(),
     source: z.enum(['settings', 'env']),
     description_en: z.string(),
     description_ja: z.string(),
     use_case_ja: z.string().optional(),
+    parent_descriptions: z.array(z.string()),
+    doc_snippets: z.array(z.string()),
     related_changelog: z.array(z.unknown()),
   }),
 });

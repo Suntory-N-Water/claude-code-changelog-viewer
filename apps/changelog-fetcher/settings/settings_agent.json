@@ -1,10 +1,53 @@
 {
   "key": "agent",
+  "leaf_name": "agent",
   "slug": "agent",
   "source": "settings",
   "description_en": "Name of an agent (built-in or custom) to use for the main thread. Applies the agent's system prompt, tool restrictions, and model. See https://code.claude.com/docs/en/sub-agents",
-  "description_ja": "メインスレッドで使用する組み込みまたはカスタムエージェントの名前を指定します。",
-  "use_case_ja": "- 特定の役割(コードレビュアーやセキュリティ担当など)に特化したエージェントでセッションを開始したい場合に使用します。\n- `--agent`フラグで指定した場合は設定を上書きでき、ターミナルのタイトルバーで稼働中のエージェントを確認可能です。\n- エージェントごとに定義された専用のモデル、ツール制限、MCPサーバー、およびフックが自動的に適用されます。",
+  "description_ja": "メインスレッドで使用するエージェントの名前を指定し、システムプロンプトや使用ツール、モデルを適用します。",
+  "use_case_ja": "- 「セキュリティレビュアー」や「Pythonエキスパート」など、特定の役割に特化したシステムプロンプトや制限を持つエージェントとしてセッションを開始したい場合に使用します。\n- `--agent` フラグで実行する際、エージェント定義に含まれる MCP サーバーやフックを自動的にロードしてワークフローをカスタマイズできます。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "| claude auth login | Sign in to your Anthropic account. Use --email to pre-fill your email address, --sso to force SSO authentication, and --console to sign in with Anthropic Console for API usage billing instead of a Claude subscription | claude auth login --console | | claude auth logout | Log out from your Anthropic account | claude auth logout | | claude auth status | Show authentication status as JSON. Use --text for human-readable output. Exits with code 0 if logged in, 1 if not | claude auth status | | claude agents | List all configured subagents , grouped by source | claude agents | | claude auto-mode defaults | Print the built-in auto mode classifier rules as JSON. Use claude auto-mode config to see your effective config with settings applied | claude auto-mode defaults > rules.json | | claude mcp | Configure Model Context Protocol (MCP) servers | See the Claude Code MCP documentation . | | claude plugin | Manage Claude Code plugins . Alias: claude plugins . See plugin reference for subcommands | claude plugin install code-review@claude-plugins-official |",
+    "Flag Description Example --add-dir Add additional working directories for Claude to read and edit files. Grants file access; most .claude/ configuration is not discovered from these directories. Validates each path exists as a directory. To persist these directories across sessions, set permissions.additionalDirectories in settings claude --add-dir ../apps ../lib --agent Specify an agent for the current session (overrides the agent setting) claude --agent my-custom-agent --agents Define custom subagents dynamically via JSON. Uses the same field names as subagent frontmatter , plus a prompt field for the agent's instructions claude --agents '{\"reviewer\":{\"description\":\"Reviews code\",\"prompt\":\"You are a code reviewer\"}}' --allow-dangerously-skip-permissions Add bypassPermissions to the Shift+Tab mode cycle without starting in it. Lets you begin in a different mode like plan and switch to bypassPermissions later. See permission modes claude --permission-mode plan --allow-dangerously-skip-permissions --allowedTools Tools that execute without prompting for permission. See permission rule syntax for pattern matching. To restrict which tools are available, use --tools instead \"Bash(git log *)\" \"Bash(git diff *)\" \"Read\" --append-system-prompt Append custom text to the end of the default system prompt claude --append-system-prompt \"Always use TypeScript\"",
+    "| --include-hook-events | Include all hook lifecycle events in the output stream. Requires --output-format stream-json | claude -p --output-format stream-json --include-hook-events \"query\" | | --include-partial-messages | Include partial streaming events in output. Requires --print and --output-format stream-json | claude -p --output-format stream-json --include-partial-messages \"query\" | | --input-format | Specify input format for print mode (options: text , stream-json ) | claude -p --output-format json --input-format stream-json | | --json-schema | Get validated JSON output matching a JSON Schema after agent completes its workflow (print mode only, see structured outputs ) | claude -p --json-schema '{\"type\":\"object\",\"properties\":{...}}' \"query\" | | --maintenance | Run Setup hooks with the maintenance matcher before the session (print mode only) | claude -p --maintenance \"query\" | | --max-budget-usd | Maximum dollar amount to spend on API calls before stopping (print mode only) | claude -p --max-budget-usd 5.00 \"query\" | | --max-turns | Limit the number of agentic turns (print mode only). Exits with an error when the limit is reached. No limit by default | claude -p --max-turns 3 \"query\" | | --mcp-config | Load MCP servers from JSON files or strings (space-separated) | claude --mcp-config ./mcp.json | | --model | Sets the model for the current session with an alias for the latest model ( sonnet or opus ) or a model's full name. Overrides the model setting and ANTHROPIC_MODEL | claude --model claude-sonnet-4-6 | | --name , -n | Set a display name for the session, shown in /resume and the terminal title. You can resume a named session with claude --resume . /rename changes the name mid-session and also shows it on the prompt bar | claude -n \"my-feature-work\" |",
+    "| --permission-prompt-tool | Specify an MCP tool to handle permission prompts in non-interactive mode | claude -p --permission-prompt-tool mcp_auth_tool \"query\" | | --plugin-dir | Load a plugin from a directory or archive for this session only. Each flag takes one path. Repeat the flag for multiple plugins: --plugin-dir A --plugin-dir B.zip | claude --plugin-dir ./my-plugin | | --plugin-url | Fetch a plugin archive from a URL for this session only. Each flag takes one URL. Repeat the flag for multiple plugins | claude --plugin-url https://example.com/plugin.zip | | --print , -p | Print response without interactive mode (see Agent SDK documentation for programmatic usage details) | claude -p \"query\" | | --remote | Create a new web session on claude.ai with the provided task description | claude --remote \"Fix the login bug\" | | --remote-control , --rc | Start an interactive session with Remote Control enabled so you can also control it from claude.ai or the Claude app. Optionally pass a name for the session | claude --remote-control \"My Project\" | | --remote-control-session-name-prefix | Prefix for auto-generated Remote Control session names when no explicit name is set. Defaults to your machine's hostname, producing names like myhost-graceful-unicorn . Set CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX for the same effect | claude remote-control --remote-control-session-name-prefix dev-box |",
+    "| --system-prompt | Replace the entire system prompt with custom text | claude --system-prompt \"You are a Python expert\" | | --system-prompt-file | Load system prompt from a file, replacing the default prompt | claude --system-prompt-file ./custom-prompt.txt | | --teleport | Resume a web session in your local terminal | claude --teleport | | --teammate-mode | Set how agent team teammates display: auto (default), in-process , or tmux . Overrides the teammateMode setting for this session. See Choose a display mode | claude --teammate-mode in-process | | --tmux | Create a tmux session for the worktree. Requires --worktree . Uses iTerm2 native panes when available; pass --tmux=classic for traditional tmux | claude -w feature-auth --tmux | | --tools | Restrict which built-in tools Claude can use. Use \"\" to disable all, \"default\" for all, or tool names like \"Bash,Edit,Read\" | claude --tools \"Bash,Edit,Read\" | | --verbose | Enable verbose logging, shows full turn-by-turn output. Overrides the viewMode setting for this session | claude --verbose |",
+    "Hook lifecycle Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, input arrives on stdin. For HTTP hooks, it arrives as the POST request body. Your handler can then inspect the input, take action, and optionally a decision. Events fall into three cadences: once per session ( SessionStart , SessionEnd ), once per turn ( UserPromptSubmit , Stop , StopFailure ), and on every tool call inside the agentic loop ( PreToolUse , PostToolUse ): The table below summarizes when each event fires. The Hook events section documents the full input schema and decision control options for each one.",
+    "| PostToolUseFailure | After a tool call fails | | PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session | | CwdChanged | When the working directory changes, for example when Claude executes a cd command. Useful for reactive environment management with tools like direnv | | FileChanged | When a watched file changes on disk. The matcher field specifies which filenames to watch | | WorktreeCreate | When a worktree is being created via --worktree or isolation: \"worktree\" . Replaces default git behavior | | WorktreeRemove | When a worktree is being removed, either at session exit or when a subagent finishes | | PreCompact | Before context compaction | | PostCompact | After context compaction completes | | Elicitation | When an MCP server requests user input during a tool call |",
+    "See How a hook resolves above for a complete walkthrough with an annotated example. This page uses specific terms for each level: hook event for the lifecycle point, matcher group for the filter, and hook handler for the shell command, HTTP endpoint, MCP tool, prompt, or agent that runs. \"Hook\" on its own refers to the general feature. Hook locations",
+    "| .claude/settings.local.json | Single project | No, gitignored | | Managed policy settings | Organization-wide | Yes, admin-controlled | | Plugin hooks/hooks.json | When plugin is enabled | Yes, bundled with the plugin | | Skill or agent frontmatter | While the component is active | Yes, defined in the component file | For details on settings file resolution, see settings . Enterprise administrators can use allowManagedHooksOnly to block user, project, and plugin hooks. Hooks from plugins force-enabled in managed settings enabledPlugins are exempt, so administrators can distribute vetted hooks through an organization marketplace. See Hook configuration .",
+    "| Setup | which CLI flag triggered setup | init , maintenance | | SessionEnd | why the session ended | clear , resume , logout , prompt_input_exit , bypass_permissions_disabled , other | | Notification | notification type | permission_prompt , idle_prompt , auth_success , elicitation_dialog , elicitation_complete , elicitation_response | | SubagentStart | agent type | general-purpose , Explore , Plan , or custom agent names | | PreCompact , PostCompact | what triggered compaction | manual , auto | | SubagentStop | agent type | same values as SubagentStart | | ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | CwdChanged | no matcher support | always fires on every directory change | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env |",
+    "This reference provides complete technical specifications for the Claude Code plugin system, including component schemas, CLI commands, and development tools. A plugin is a self-contained directory of components that extends Claude Code with custom functionality. Plugin components include skills, agents, hooks, MCP servers, LSP servers, and monitors. Plugin components reference",
+    "For complete details, see Skills . Agents Plugins can provide specialized subagents for specific tasks that Claude can invoke automatically when appropriate. Location : agents/ directory in plugin root File format : Markdown files describing agent capabilities Agent structure : Plugin agents support name , description , model , effort , maxTurns , tools , disallowedTools , skills , memory , background , and isolation frontmatter fields. The only valid isolation value is \"worktree\" . For security reasons, hooks , mcpServers , and permissionMode are not supported for plugin-shipped agents. Integration points : Agents appear in the /agents interface Claude can invoke agents automatically based on task context Agents can be invoked manually by users Plugin agents work alongside built-in Claude agents For complete details, see Subagents . Hooks",
+    "| PostToolUseFailure | After a tool call fails | | PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session | | CwdChanged | When the working directory changes, for example when Claude executes a cd command. Useful for reactive environment management with tools like direnv | | FileChanged | When a watched file changes on disk. The matcher field specifies which filenames to watch | | WorktreeCreate | When a worktree is being created via --worktree or isolation: \"worktree\" . Replaces default git behavior | | WorktreeRemove | When a worktree is being removed, either at session exit or when a subagent finishes | | PreCompact | Before context compaction | | PostCompact | After context compaction completes | | Elicitation | When an MCP server requests user input during a tool call |",
+    "http : send the event JSON as a POST request to a URL mcp_tool : call a tool on a configured MCP server prompt : evaluate a prompt with an LLM (uses $ARGUMENTS placeholder for context) agent : run an agentic verifier with tools for complex verification tasks MCP servers",
+    "\"keywords\": [\"keyword1\", \"keyword2\"], \"skills\": \"./custom/skills/\", \"commands\": [\"./custom/commands/special.md\"], \"agents\": [\"./custom/agents/reviewer.md\"], \"hooks\": \"./config/hooks.json\", \"mcpServers\": \"./mcp-config.json\", \"outputStyles\": \"./styles/\",",
+    "Create plugins Create custom plugins to extend Claude Code with skills, agents, hooks, and MCP servers. Plugins let you extend Claude Code with custom functionality that can be shared across projects and teams. This guide covers creating your own plugins with skills, agents, hooks, and MCP servers. Looking to install existing plugins? See Discover and install plugins . For complete technical specifications, see Plugins reference . When to use plugins vs standalone configuration Claude Code supports two ways to add custom skills, agents, and hooks: Approach Skill names Best for",
+    "Use plugins when : You want to share functionality with your team or community You need the same skills/agents across multiple projects You want version control and easy updates for your extensions You're distributing through a marketplace You're okay with namespaced skills like /my-plugin:hello (namespacing prevents conflicts between plugins)",
+    "Create your first plugin Every plugin lives in its own directory containing a manifest and your skills, agents, or hooks. Create one now:",
+    "Plugin structure overview You've created a plugin with a skill, but plugins can include much more: custom agents, hooks, MCP servers, LSP servers, and background monitors. Common mistake : Don't put commands/ , agents/ , skills/ , or hooks/ inside the .claude-plugin/ directory. Only plugin.json goes inside .claude-plugin/ . All other directories must be at the plugin root level. Directory Location Purpose .claude-plugin/ Plugin root Contains plugin.json manifest (optional if components use default locations) skills/ Skills as /SKILL.md directories commands/ Skills as flat Markdown files. Use skills/ for new plugins agents/ Custom agent definitions hooks/ Event handlers in hooks.json MCP server configurations LSP server configurations for code intelligence",
+    "| bin/ | Plugin root | Executables added to the Bash tool's PATH while the plugin is enabled | | settings.json | Plugin root | Default settings applied when the plugin is enabled | Next steps : Ready to add more features? Jump to Develop more complex plugins to add agents, hooks, MCP servers, and LSP servers. For complete technical specifications of all plugin components, see Plugins reference . Develop more complex plugins",
+    "Feature User location Project location Local location Settings ~/.claude/settings.json .claude/settings.json .claude/settings.local.json Subagents ~/.claude/agents/ .claude/agents/ None MCP servers ~/.claude.json ~/.claude.json (per-project) Plugins CLAUDE.md ~/.claude/CLAUDE.md CLAUDE.md or .claude/CLAUDE.md CLAUDE.local.md",
+    "Key Description Example agent Run the main thread as a named subagent. Applies that subagent's system prompt, tool restrictions, and model. See Invoke subagents explicitly \"code-reviewer\" allowedChannelPlugins (Managed settings only) Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Undefined = fall back to the default, empty array = block all channel plugins. Requires channelsEnabled: true . See Restrict which channel plugins can run [{ \"marketplace\": \"claude-plugins-official\", \"plugin\": \"telegram\" }] allowedHttpHookUrls Allowlist of URL patterns that HTTP hooks may target. Supports * as a wildcard. When set, hooks with non-matching URLs are blocked. Undefined = no restriction, empty array = block all HTTP hooks. Arrays merge across settings sources. See Hook configuration [\"https://hooks.example.com/*\"] allowedMcpServers When set in managed-settings.json, allowlist of MCP servers users can configure. Undefined = no restrictions, empty array = lockdown. Applies to all scopes. Denylist takes precedence. See Managed MCP configuration [{ \"serverName\": \"github\" }]",
+    "| awsCredentialExport | Custom script that outputs JSON with AWS credentials (see advanced credential configuration ) | /bin/generate_aws_grant.sh | | blockedMarketplaces | (Managed settings only) Blocklist of marketplace sources. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. Blocked sources are checked before downloading, so they never touch the filesystem. See Managed marketplace restrictions | [{ \"source\": \"github\", \"repo\": \"untrusted/plugins\" }] | | channelsEnabled | (Managed settings only) Allow channels for the organization. On claude.ai Team and Enterprise plans, channels are blocked when this is unset or false . For Anthropic Console accounts using API key authentication, channels are allowed by default unless your organization deploys managed settings, in which case this key must be set to true | true | | cleanupPeriodDays | Session files older than this period are deleted at startup (default: 30 days, minimum 1). Setting to 0 is rejected with a validation error. Also controls the age cutoff for automatic removal of orphaned subagent worktrees at startup. To disable transcript writes entirely, set the CLAUDE_CODE_SKIP_PROMPT_HISTORY environment variable, or in non-interactive mode ( -p ) use the --no-session-persistence flag or the persistSession: false SDK option. | 20 | | companyAnnouncements | Announcement to display to users at startup. If multiple announcements are provided, they will be cycled through at random. | [\"Welcome to Acme Corp! Review our code guidelines at docs.acme.com\"] | | defaultShell | Default shell for input-box ! commands. Accepts \"bash\" (default) or \"powershell\" . Setting \"powershell\" routes interactive ! commands through PowerShell on Windows. Requires CLAUDE_CODE_USE_POWERSHELL_TOOL=1 . See PowerShell tool | \"powershell\" | | deniedMcpServers | When set in managed-settings.json, denylist of MCP servers that are explicitly blocked. Applies to all scopes including managed servers. Denylist takes precedence over allowlist. See Managed MCP configuration | [{ \"serverName\": \"filesystem\" }] |",
+    "| sshConfigs | SSH connections to show in the Desktop environment dropdown. Each entry requires id , name , and sshHost ; sshPort , sshIdentityFile , and startDirectory are optional. When set in managed settings, connections are read-only for users. Read from managed and user settings only | [{\"id\": \"dev-vm\", \"name\": \"Dev VM\", \"sshHost\": \"user@dev.example.com\"}] | | statusLine | Configure a custom status line to display context. See statusLine documentation | {\"type\": \"command\", \"command\": \"~/.claude/statusline.sh\"} | | strictKnownMarketplaces | (Managed settings only) Allowlist of plugin marketplace sources. Undefined = no restrictions, empty array = lockdown. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. See Managed marketplace restrictions | [{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }] | | teammateMode | How agent team teammates display: auto (picks split panes in tmux or iTerm2, in-process otherwise), in-process , or tmux . --teammate-mode overrides this for one session. See choose a display mode | \"in-process\" | | terminalProgressBarEnabled | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: true . Appears in /config as Terminal progress bar | false | | tui | Terminal UI renderer. Use \"fullscreen\" for the flicker-free alt-screen renderer with virtualized scrollback. Use \"default\" for the classic main-screen renderer. Set via /tui . You can also set the CLAUDE_CODE_NO_FLICKER environment variable | \"fullscreen\" | | useAutoModeDuringPlan | Whether plan mode uses auto mode semantics when auto mode is available. Default: true . Not read from shared project settings. Appears in /config as \"Use auto mode during plan\" | false |",
+    "| Read(./.env) | Matches reading the file | | WebFetch(domain:example.com) | Matches fetch requests to example.com | For the complete rule syntax reference, including wildcard behavior, tool-specific patterns for Read, Edit, WebFetch, MCP, and Agent rules, and security limitations of Bash patterns, see Permission rule syntax . Sandbox settings",
+    "Custom commands have been merged into skills. A file at .claude/commands/deploy.md and a skill at .claude/skills/deploy/SKILL.md both create /deploy and work the same way. Your existing .claude/commands/ files keep working. Skills add optional features: a directory for supporting files, frontmatter to control whether you or Claude invokes them , and the ability for Claude to load them automatically when relevant. Claude Code skills follow the Agent Skills open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like invocation control , subagent execution , and dynamic context injection . Bundled skills",
+    "The --add-dir flag grants file access rather than configuration discovery, but skills are an exception: .claude/skills/ within an added directory is loaded automatically. See Live change detection for how edits are picked up during a session. Other .claude/ configuration such as subagents, commands, and output styles is not loaded from additional directories. See the exceptions table for the complete list of what is and isn't loaded, and the recommended ways to share configuration across projects. CLAUDE.md files from --add-dir directories are not loaded by default. To load them, set CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1 . See Load from additional directories .",
+    "Push to the deployment target",
+    "| when_to_use | No | Additional context for when Claude should invoke the skill, such as trigger phrases or example requests. Appended to description in the skill listing and counts toward the 1,536-character cap. | | argument-hint | No | Hint shown during autocomplete to indicate expected arguments. Example: [issue-number] or [filename] [format] . | | arguments | No | Named positional arguments for $name substitution in the skill content. Accepts a space-separated string or a YAML list. Names map to argument positions in order. | | disable-model-invocation | No | Set to true to prevent Claude from automatically loading this skill. Use for workflows you want to trigger manually with /name . Also prevents the skill from being preloaded into subagents . Default: false . | | user-invocable | No | Set to false to hide from the / menu. Use for background knowledge users shouldn't invoke directly. Default: true . | | allowed-tools | No | Tools Claude can use without asking permission when this skill is active. Accepts a space-separated string or a YAML list. | | model | No | Model to use when this skill is active. The override applies for the rest of the current turn and is not saved to settings; the session model resumes on your next prompt. Accepts the same values as /model , or inherit to keep the active model. | | effort | No | Effort level when this skill is active. Overrides the session effort level. Default: inherits from session. Options: low , medium , high , xhigh , max ; available levels depend on the model. | | context | No | Set to fork to run in a forked subagent context. | | agent | No | Which subagent type to use when context: fork is set. | | hooks | No | Hooks scoped to this skill's lifecycle. See Hooks in skills and agents for configuration format. | | paths | No | Glob patterns that limit when this skill is activated. Accepts a comma-separated string or a YAML list. When set, Claude loads the skill automatically only when working with files matching the patterns. Uses the same format as path-specific rules . | | shell | No | Shell to use for !`command` and ```! blocks in this skill. Accepts bash (default) or powershell . Setting powershell runs inline shell commands via PowerShell on Windows. Requires CLAUDE_CODE_USE_POWERSHELL_TOOL=1 . |",
+    "| disable-model-invocation: true | Yes | No | Description not in context, full skill loads when you invoke | | user-invocable: false | No | Yes | Description always in context, full skill loads when invoked | In a regular session, skill descriptions are loaded into context so Claude knows what's available, but full skill content only loads when invoked. Subagents with preloaded skills work differently: the full skill content is injected at startup. Skill content lifecycle",
+    "The optional padding field adds extra horizontal spacing (in characters) to the status line content. Defaults to 0 . This padding is in addition to the interface's built-in spacing, so it controls relative indentation rather than absolute distance from the terminal edge. The optional refreshInterval field re-runs your command every N seconds in addition to the event-driven updates . The minimum is 1 . Set this when your status line shows time-based data such as a clock, or when background subagents change git state while the main session is idle. Leave it unset to run only on events. The optional hideVimModeIndicator field suppresses the built-in -- INSERT -- text below the prompt. Set this to true when your script renders vim.mode itself, so the mode is not shown twice.",
+    "Your script runs after each new assistant message, after /compact finishes, when the permission mode changes, or when vim mode toggles. Updates are debounced at 300ms, meaning rapid changes batch together and your script runs once things settle. If a new update triggers while your script is still running, the in-flight execution is cancelled. If you edit your script, the changes won't appear until your next interaction with Claude Code triggers an update. These triggers can go quiet when the main session is idle, for example while a coordinator waits on background subagents. To keep time-based or externally-sourced segments current during idle periods, set refreshInterval to also re-run the command on a fixed timer. What your script can output",
+    "| version | Claude Code version | | output_style.name | Name of the current output style | | vim.mode | Current vim mode ( NORMAL , INSERT , VISUAL , or VISUAL LINE ) when vim mode is enabled | | agent.name | Agent name when running with the --agent flag or agent settings configured | | worktree.name | Name of the active worktree. Present only during --worktree sessions | | worktree.path | Absolute path to the worktree directory | | worktree.branch | Git branch name for the worktree (for example, \"worktree-my-feature\" ). Absent for hook-based worktrees |",
+    "\"vim\": { \"mode\": \"NORMAL\" }, \"agent\": { \"name\": \"security-reviewer\" }, \"worktree\": {",
+    "workspace.git_worktree : appears only when the current directory is inside a linked git worktree effort : appears only when the current model supports the reasoning effort parameter vim : appears only when vim mode is enabled agent : appears only when running with the --agent flag or agent settings configured worktree : appears only during --worktree sessions. When present, branch and original_branch may also be absent for hook-based worktrees rate_limits : appears only for Claude.ai subscribers (Pro/Max) after the first API response in the session. Each window ( five_hour , seven_day ) may be independently absent. Use jq -r '.rate_limits.five_hour.used_percentage // empty' to handle absence gracefully.",
+    "Create custom subagents Create and use specialized AI subagents in Claude Code for task-specific workflows and improved context management. Subagents are specialized AI assistants that handle specific types of tasks. Use one when a side task would flood your main conversation with search results, logs, or file contents you won't reference again: the subagent does that work in its own context and s only the summary. Define a custom subagent when you keep spawning the same kind of worker with the same instructions. Each subagent runs in its own context window with a custom system prompt, specific tool access, and independent permissions. When Claude encounters a task that matches a subagent's description, it delegates to that subagent, which works independently and s results. To see the context savings in practice, the context window visualization walks through a session where a subagent handles research in its own separate window. If you need multiple agents working in parallel and communicating with each other, see agent teams instead. Subagents work within a single session; agent teams coordinate across separate sessions. Subagents help you: Preserve context by keeping exploration and implementation out of your main conversation Enforce constraints by limiting which tools a subagent can use Reuse configurations across projects with user-level subagents Specialize behavior with focused system prompts for specific domains Control costs by routing tasks to faster, cheaper models like Haiku Claude uses each subagent's description to decide when to delegate tasks. When you create a subagent, write a clear description so Claude knows when to use it. Claude Code includes several built-in subagents like Explore , Plan , and general-purpose . You can also create custom subagents to handle specific tasks. This page covers: Built-in subagents How to create your own Full configuration options Patterns for working with subagents Forked subagents Example subagents Claude Code includes built-in subagents that Claude automatically uses when appropriate. Each inherits the parent conversation's permissions with additional tool restrictions. A fast, read-only agent optimized for searching and analyzing codebases. Model : Haiku (fast, low-latency) Tools : Read-only tools (denied access to Write and Edit tools)",
+    "When invoking Explore, Claude specifies a thoroughness level: quick for targeted lookups, medium for balanced exploration, or very thorough for comprehensive analysis. A research agent used during plan mode to gather context before presenting a plan. Model : Inherits from main conversation Tools : Read-only tools (denied access to Write and Edit tools) Purpose : Codebase research for planning When you're in plan mode and Claude needs to understand your codebase, it delegates research to the Plan subagent. This prevents infinite nesting (subagents cannot spawn other subagents) while still gathering necessary context. A capable agent for complex, multi-step tasks that require both exploration and action. Tools : All tools",
+    "Claude delegates to general-purpose when the task requires both exploration and modification, complex reasoning to interpret results, or multiple dependent steps. Claude Code includes additional helper agents for specific tasks. These are typically invoked automatically, so you don't need to use them directly. Agent Model When Claude uses it statusline-setup Sonnet When you run /statusline to configure your status line claude-code-guide Haiku When you ask questions about Claude Code features Beyond these built-in subagents, you can create your own with custom prompts, tool restrictions, permission modes, hooks, and skills. The following sections show how to get started and customize subagents. Quickstart: create your first subagent Subagents are defined in Markdown files with YAML frontmatter. You can create them manually or use the /agents command. This walkthrough guides you through creating a user-level subagent with the /agents command. The subagent reviews code and suggests improvements for the codebase. In Claude Code, run: Switch to the Library tab, select Create new agent , then choose Personal . This saves the subagent to ~/.claude/agents/ so it's available in all your projects. Select Generate with Claude . When prompted, describe the subagent: Claude generates the identifier, description, and system prompt for you. For a read-only reviewer, deselect everything except Read-only tools . If you keep all tools selected, the subagent inherits all tools available to the main conversation. Choose which model the subagent uses. For this example agent, select Sonnet , which balances capability and speed for analyzing code patterns. Pick a background color for the subagent. This helps you identify which subagent is running in the UI. Select User scope to give the subagent a persistent memory directory at ~/.claude/agent-memory/ . The subagent uses this to accumulate insights across conversations, such as codebase patterns and recurring issues. Select None if you don't want the subagent to persist learnings. Review the configuration summary. Press s or Enter to save, or press e to save and edit the file in your editor. The subagent is available immediately. Try it: Claude delegates to your new subagent, which scans the codebase and s improvement suggestions. You now have a subagent you can use in any project on your machine to analyze codebases and suggest improvements. You can also create subagents manually as Markdown files, define them via CLI flags, or distribute them through plugins. The following sections cover all configuration options. Configure subagents Use the /agents command The /agents command opens a tabbed interface for managing subagents. The Running tab shows live subagents and lets you open or stop them. The Library tab lets you: View all available subagents (built-in, user, project, and plugin) Create new subagents with guided setup or Claude generation Edit existing subagent configuration and tool access Delete custom subagents See which subagents are active when duplicates exist This is the recommended way to create and manage subagents. For manual creation or automation, you can also add subagent files directly. To list all configured subagents from the command line without starting an interactive session, run claude agents . This shows agents grouped by source and indicates which are overridden by higher-priority definitions. Choose the subagent scope Subagents are Markdown files with YAML frontmatter. Store them in different locations depending on scope. When multiple subagents share the same name, the higher-priority location wins. Location Scope Priority How to create Managed settings Organization-wide 1 (highest) Deployed via managed settings --agents CLI flag Current session 2 Pass JSON when launching Claude Code .claude/agents/ Current project 3 Interactive or manual ~/.claude/agents/ All your projects 4 Plugin's agents/ directory Where plugin is enabled 5 (lowest) Installed with plugins Project subagents ( .claude/agents/ ) are ideal for subagents specific to a codebase. Check them into version control so your team can use and improve them collaboratively. Project subagents are discovered by walking up from the current working directory. Directories added with --add-dir grant file access only and are not scanned for subagents. To share subagents across projects, use ~/.claude/agents/ or a plugin . User subagents ( ~/.claude/agents/ ) are personal subagents available in all your projects. CLI-defined subagents are passed as JSON when launching Claude Code. They exist only for that session and aren't saved to disk, making them useful for quick testing or automation scripts. You can define multiple subagents in a single --agents call:",
+    "'@ markdown"
+  ],
   "related_changelog": [
     {
       "version": "1.0.41",
@@ -23,20 +66,16 @@
       "content": "- Windows: Fixed file search, @agent mentions, and custom slash commands functionality"
     },
     {
+      "version": "1.0.70",
+      "content": "- Windows: Fixed native file search, ripgrep, and subagent functionality"
+    },
+    {
       "version": "1.0.64",
       "content": "- Agents: Added model customization support - you can now specify which model an agent should use"
     },
     {
       "version": "1.0.64",
       "content": "- Agents: Fixed unintended access to the recursive agent tool"
-    },
-    {
-      "version": "1.0.70",
-      "content": "- Windows: Fixed native file search, ripgrep, and subagent functionality"
-    },
-    {
-      "version": "1.0.81",
-      "content": "- Agents: Fix custom agent loading when agent files are unparsable"
     },
     {
       "version": "1.0.80",
@@ -47,36 +86,16 @@
       "content": "- @-mention: Add ~/.claude/\\* files to suggestions for easier agent, output style, and slash command editing"
     },
     {
+      "version": "1.0.81",
+      "content": "- Agents: Fix custom agent loading when agent files are unparsable"
+    },
+    {
       "version": "2.0.0",
       "content": "- Add subagents dynamically with `--agents` flag"
     },
     {
-      "version": "2.0.12",
-      "content": "- **Plugin System Released**: Extend Claude Code with custom commands, agents, hooks, and MCP servers from marketplaces"
-    },
-    {
       "version": "2.0.17",
       "content": "- Introducing the Explore subagent. Powered by Haiku it'll search through your codebase efficiently to save context!"
-    },
-    {
-      "version": "2.0.28",
-      "content": "- Plan mode: introduced new Plan subagent"
-    },
-    {
-      "version": "2.0.28",
-      "content": "- Subagents: claude can now choose to resume subagents"
-    },
-    {
-      "version": "2.0.28",
-      "content": "- Subagents: claude can dynamically choose the model used by its subagents"
-    },
-    {
-      "version": "2.0.28",
-      "content": "- Discovery of custom slash commands, subagents, and output styles no longer respects .gitignore"
-    },
-    {
-      "version": "2.0.31",
-      "content": "- Fixed a bug with subagents and MCP servers related to \"Tool names must be unique\" error"
     },
     {
       "version": "2.0.25",
@@ -95,8 +114,36 @@
       "content": "- Fixed MCP tools not being available to sub-agents"
     },
     {
+      "version": "2.0.31",
+      "content": "- Fixed a bug with subagents and MCP servers related to \"Tool names must be unique\" error"
+    },
+    {
+      "version": "2.0.12",
+      "content": "- **Plugin System Released**: Extend Claude Code with custom commands, agents, hooks, and MCP servers from marketplaces"
+    },
+    {
       "version": "2.0.42",
       "content": "- Added `agent_id` and `agent_transcript_path` fields to `SubagentStop` hooks."
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Plan mode: introduced new Plan subagent"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Subagents: claude can now choose to resume subagents"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Subagents: claude can dynamically choose the model used by its subagents"
+    },
+    {
+      "version": "2.0.28",
+      "content": "- Discovery of custom slash commands, subagents, and output styles no longer respects .gitignore"
+    },
+    {
+      "version": "2.0.49",
+      "content": "- Fixed handling of subagent permissions"
     },
     {
       "version": "2.0.43",
@@ -111,8 +158,8 @@
       "content": "- Added the `SubagentStart` hook event"
     },
     {
-      "version": "2.0.49",
-      "content": "- Fixed handling of subagent permissions"
+      "version": "2.0.64",
+      "content": "- Agents and bash commands can run asynchronously and send messages to wake up the main agent"
     },
     {
       "version": "2.0.60",
@@ -131,10 +178,6 @@
       "content": "- Added `agent` setting to configure main thread with a specific agent's system prompt, tool restrictions, and model"
     },
     {
-      "version": "2.0.64",
-      "content": "- Agents and bash commands can run asynchronously and send messages to wake up the main agent"
-    },
-    {
       "version": "2.0.74",
       "content": "- Improved `/context` command visualization with grouped skills and agents by source, slash commands, and sorted token count"
     },
@@ -147,11 +190,6 @@
         "after": "マージの形式を問わず、役割を終えたワークツリーがより正確に検出・削除されるようになりました。",
         "benefit": "開発マシンのストレージ容量が無駄な一時ファイルで枯渇するのを防ぎ、環境を常にクリーンに保てます。"
       }
-    },
-    {
-      "version": "2.1.114",
-      "content": "- Fixed a crash in the permission dialog when an agent teams teammate requested tool permission",
-      "content_ja": "Agent Teamsのチームメイトがツールの実行許可をリクエストした際に、パーミッションダイアログでクラッシュが発生する問題を修正しました。"
     },
     {
       "version": "2.1.116",
@@ -170,33 +208,13 @@
       "inference": {
         "before": "サブエージェントの設定ファイルで定義したフック (`hooks:`) は、サブエージェントとして呼び出された時しか機能せず、`--agent` で直接起動した場合には実行されませんでした。",
         "after": "`--agent` を使って特定のロールでセッションを開始した場合でも、そのエージェントの定義に含まれるフックが正しくトリガーされるようになりました。",
-        "benefit": "特定の役割(セキュリティ担当やレビュアーなど)を担うエージェントを直接起動した際も、自動フォーマットなどのカスタムワークフローが期待通りに動作します。"
+        "benefit": "特定の役割（セキュリティ担当やレビュアーなど）を担うエージェントを直接起動した際も、自動フォーマットなどのカスタムワークフローが期待通りに動作します。"
       }
     },
     {
-      "version": "2.1.117",
-      "content": "- Forked subagents can now be enabled on external builds by setting `CLAUDE_CODE_FORK_SUBAGENT=1`",
-      "content_ja": "外部ビルドにおいて `CLAUDE_CODE_FORK_SUBAGENT=1` を設定することで、フォークされたサブエージェントを有効化できるようになりました",
-      "inference": {
-        "before": "特定の外部環境やカスタムビルドにおいて、並列タスクを実行するためのフォークされたサブエージェントがデフォルトで制限されていた可能性があります。",
-        "after": "環境変数 `CLAUDE_CODE_FORK_SUBAGENT=1` を指定するだけで、メインスレッドのコンテキストを汚さずにサブエージェントを活用した並列処理が実行可能になります。",
-        "benefit": "重い探索やログ解析をサブエージェントに分離できるため、メイン会話のコンテキストを節約し、作業効率を向上させられます。"
-      }
-    },
-    {
-      "version": "2.1.117",
-      "content": "- Agent frontmatter `mcpServers` are now loaded for main-thread agent sessions via `--agent`",
-      "content_ja": "`--agent` フラグを使用したメインスレッドのエージェントセッションで、エージェント定義(フロントマター)の `mcpServers` が読み込まれるようになりました",
-      "inference": {
-        "before": "カスタムエージェントをメインスレッドとして直接起動した際、そのエージェント専用の MCP サーバー設定が反映されない場合がありました。",
-        "after": "エージェントファイル内に定義された MCP サーバーが自動的に起動するため、エージェントごとに必要な外部ツールへのアクセスが確実に行われます。",
-        "benefit": "特定のタスクに特化したツール(GitHub、Jira など)を持つエージェントを、個別のセッションとして即座に活用できるようになります。"
-      }
-    },
-    {
-      "version": "2.1.117",
-      "content": "- Fixed subagents running a different model than the main agent incorrectly flagging file reads with a malware warning",
-      "content_ja": "メインエージェントと異なるモデルを使用するサブエージェントが、ファイル読み取り時に誤ってマルウェア警告を出してしまう問題を修正しました。"
+      "version": "2.1.114",
+      "content": "- Fixed a crash in the permission dialog when an agent teams teammate requested tool permission",
+      "content_ja": "Agent Teamsのチームメイトがツールの実行許可をリクエストした際に、パーミッションダイアログでクラッシュが発生する問題を修正しました。"
     },
     {
       "version": "2.1.113",
@@ -216,7 +234,7 @@
     {
       "version": "2.1.113",
       "content": "- Fixed `CLAUDE_CODE_EXTRA_BODY` `output_config.effort` causing 400 errors on subagent calls to models that don't support effort and on Vertex AI",
-      "content_ja": "思考負荷(Effort)設定をサポートしていないモデルやVertex AIを使用している際に発生していた400エラーを修正しました",
+      "content_ja": "思考負荷（Effort）設定をサポートしていないモデルやVertex AIを使用している際に発生していた400エラーを修正しました",
       "inference": {
         "before": "特定のプロバイダーや古いモデルで、新しい機能であるEffort設定が不適切に送信され、通信エラーが発生することがありました。",
         "after": "接続先のモデルがサポートしている機能を自動判別し、適切なパラメータのみを送信するように改善されました。",
@@ -226,12 +244,72 @@
     {
       "version": "2.1.113",
       "content": "- Fixed Remote Control sessions not streaming subagent transcripts",
-      "content_ja": "リモートコントロールセッションにおいて、サブエージェントの途中経過(transcript)がリアルタイムに表示されない問題を修正しました。"
+      "content_ja": "リモートコントロールセッションにおいて、サブエージェントの途中経過（transcript）がリアルタイムに表示されない問題を修正しました。"
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Forked subagents can now be enabled on external builds by setting `CLAUDE_CODE_FORK_SUBAGENT=1`",
+      "content_ja": "外部ビルドにおいて `CLAUDE_CODE_FORK_SUBAGENT=1` を設定することで、フォークされたサブエージェントを有効化できるようになりました",
+      "inference": {
+        "before": "特定の外部環境やカスタムビルドにおいて、並列タスクを実行するためのフォークされたサブエージェントがデフォルトで制限されていた可能性があります。",
+        "after": "環境変数 `CLAUDE_CODE_FORK_SUBAGENT=1` を指定するだけで、メインスレッドのコンテキストを汚さずにサブエージェントを活用した並列処理が実行可能になります。",
+        "benefit": "重い探索やログ解析をサブエージェントに分離できるため、メイン会話のコンテキストを節約し、作業効率を向上させられます。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Agent frontmatter `mcpServers` are now loaded for main-thread agent sessions via `--agent`",
+      "content_ja": "`--agent` フラグを使用したメインスレッドのエージェントセッションで、エージェント定義（フロントマター）の `mcpServers` が読み込まれるようになりました",
+      "inference": {
+        "before": "カスタムエージェントをメインスレッドとして直接起動した際、そのエージェント専用の MCP サーバー設定が反映されない場合がありました。",
+        "after": "エージェントファイル内に定義された MCP サーバーが自動的に起動するため、エージェントごとに必要な外部ツールへのアクセスが確実に行われます。",
+        "benefit": "特定のタスクに特化したツール（GitHub、Jira など）を持つエージェントを、個別のセッションとして即座に活用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.117",
+      "content": "- Fixed subagents running a different model than the main agent incorrectly flagging file reads with a malware warning",
+      "content_ja": "メインエージェントと異なるモデルを使用するサブエージェントが、ファイル読み取り時に誤ってマルウェア警告を出してしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.120",
+      "content": "- Spinner tips that recommend installing the desktop app or creating skills/agents are now hidden when you already have them",
+      "content_ja": "デスクトップアプリの導入やスキル作成を促すスピナー内のヒントが、すでに導入済みの場合は表示されないよう改善されました。"
+    },
+    {
+      "version": "2.1.129",
+      "content": "- Fixed agent panel below the prompt being hidden when subagents are running (regression in 2.1.122)",
+      "content_ja": "サブエージェントの実行中にプロンプト下のエージェントパネルが隠れてしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.129",
+      "content": "- Fixed `/agents` Library list arrow-key navigation: the highlighted agent now stays visible when the list exceeds the viewport",
+      "content_ja": "`/agents`のライブラリリストで、項目が多い場合に矢印キーで選択したエージェントが画面外に隠れてしまう問題が修正されました",
+      "inference": {
+        "before": "エージェントの数が多いリストにおいて、キーボード操作で下の方を選択しても、画面が自動でスクロールせず選択中の項目が見えなくなることがありました。",
+        "after": "矢印キーでの操作に合わせてビューポートが適切に追従し、常にハイライトされているエージェントが表示されるようになります。",
+        "benefit": "多数のカスタムエージェントを使い分けている環境でも、キーボードだけでスムーズに目的のものを選択・管理できます。"
+      }
     },
     {
       "version": "2.1.14",
       "content": "- Fixed memory issues that could cause crashes when running parallel subagents",
       "content_ja": "並列でサブエージェントを実行した際にクラッシュを引き起こす可能性があったメモリの問題を修正しました。"
+    },
+    {
+      "version": "2.1.128",
+      "content": "- Fixed sub-agent progress summaries missing the prompt cache (~3× `cache_creation` reduction)",
+      "content_ja": "サブエージェントの進捗サマリーでプロンプトキャッシュが欠落していた問題を修正（`cache_creation` が約3分の1に削減）",
+      "inference": {
+        "before": "メインセッションから起動されたサブエージェントが状況を報告する際、内部的なキャッシュが効率的に利用されておらず、毎回不要なトークン生成コストが発生していました。",
+        "after": "進捗サマリーの送信時にプロンプトキャッシュが適切に効くようになり、キャッシュ作成にかかるコストが大幅に抑制されます。",
+        "benefit": "サブエージェントを多用する複雑なタスクにおいて、API 使用コストの削減とレスポンスの高速化が期待できます。"
+      }
+    },
+    {
+      "version": "2.1.128",
+      "content": "- Fixed sub-agent summaries firing repeatedly while a sub-agent's transcript is static, capping worst-case token cost on idle sub-agents",
+      "content_ja": "サブエージェントの変更がない場合に概要生成を繰り返さないよう制限し、待機中のトークンコストを抑制しました。"
     },
     {
       "version": "2.1.16",
@@ -252,11 +330,6 @@
         "after": "サブエージェントやスキルの実行開始直後から、WebSearch や WebFetch を含むすべての遅延ロードツールが正しく利用可能になります。",
         "benefit": "複雑な調査タスクをサブエージェントに任せる際、最初からスムーズに外部情報の検索を開始できるため、作業の停滞がなくなります。"
       }
-    },
-    {
-      "version": "2.1.120",
-      "content": "- Spinner tips that recommend installing the desktop app or creating skills/agents are now hidden when you already have them",
-      "content_ja": "デスクトップアプリの導入やスキル作成を促すスピナー内のヒントが、すでに導入済みの場合は表示されないよう改善されました。"
     },
     {
       "version": "2.1.2",
@@ -354,16 +427,6 @@
       }
     },
     {
-      "version": "2.1.43",
-      "content": "- Fixed spurious warnings for non-agent markdown files in `.claude/agents/` directory",
-      "content_ja": "`.claude/agents/`ディレクトリ内のエージェント以外のMarkdownファイルに対して発生していた誤った警告が修正されました。",
-      "inference": {
-        "before": "以前は、`.claude/agents/`ディレクトリにエージェントではない通常のMarkdownファイルを配置すると、不必要な警告が表示されることがありました。これにより、ユーザーはこれらの警告に煩わされ、重要な情報を見落とす可能性がありました。",
-        "after": "今回の修正により、`.claude/agents/`ディレクトリ内にあるMarkdownファイルがエージェントに関連しない場合でも、誤った警告が表示されなくなりました。システムは正しくエージェント関連ファイルとそれ以外のファイルを区別します。",
-        "benefit": "ユーザーは、`.claude/agents/`ディレクトリをより柔軟に利用できるようになり、開発環境が警告で煩雑になることがなくなります。これにより、よりクリーンで集中しやすい作業環境が提供され、生産性が向上します。"
-      }
-    },
-    {
       "version": "2.1.41",
       "content": "- Fixed permission wait time being included in subagent elapsed time display",
       "content_ja": "サブエージェントの経過時間表示にパーミッション待機時間が含まれる問題を修正しました。"
@@ -387,6 +450,21 @@
         "after": "プラグインのインストール後、再起動することなく、提供されたコマンド、エージェント、フックが即座に利用可能になりました。",
         "benefit": "プラグインの追加や更新がよりスムーズになり、開発者はツールのセットアップ時間を短縮して、すぐに作業を開始できます。"
       }
+    },
+    {
+      "version": "2.1.43",
+      "content": "- Fixed spurious warnings for non-agent markdown files in `.claude/agents/` directory",
+      "content_ja": "`.claude/agents/`ディレクトリ内のエージェント以外のMarkdownファイルに対して発生していた誤った警告が修正されました。",
+      "inference": {
+        "before": "以前は、`.claude/agents/`ディレクトリにエージェントではない通常のMarkdownファイルを配置すると、不必要な警告が表示されることがありました。これにより、ユーザーはこれらの警告に煩わされ、重要な情報を見落とす可能性がありました。",
+        "after": "今回の修正により、`.claude/agents/`ディレクトリ内にあるMarkdownファイルがエージェントに関連しない場合でも、誤った警告が表示されなくなりました。システムは正しくエージェント関連ファイルとそれ以外のファイルを区別します。",
+        "benefit": "ユーザーは、`.claude/agents/`ディレクトリをより柔軟に利用できるようになり、開発環境が警告で煩雑になることがなくなります。これにより、よりクリーンで集中しやすい作業環境が提供され、生産性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.53",
+      "content": "- Fixed bulk agent kill (ctrl+f) to send a single aggregate notification instead of one per agent, and to properly clear the command queue",
+      "content_ja": "一括エージェントキル(Ctrl+F)で、エージェントごとに通知するのではなく、単一の集計通知を送信し、コマンドキューを適切にクリアするように修正しました。"
     },
     {
       "version": "2.1.50",
@@ -429,16 +507,6 @@
       }
     },
     {
-      "version": "2.1.53",
-      "content": "- Fixed bulk agent kill (ctrl+f) to send a single aggregate notification instead of one per agent, and to properly clear the command queue",
-      "content_ja": "一括エージェントキル(Ctrl+F)で、エージェントごとに通知するのではなく、単一の集計通知を送信し、コマンドキューを適切にクリアするように修正しました。"
-    },
-    {
-      "version": "2.1.59",
-      "content": "- Improved memory usage in multi-agent sessions by releasing completed subagent task state",
-      "content_ja": "完了したサブエージェントタスクの状態を解放することで、マルチエージェントセッションでのメモリ使用量が改善されました。"
-    },
-    {
       "version": "2.1.49",
       "content": "- Subagents support `isolation: \"worktree\"` for working in a temporary git worktree",
       "content_ja": "サブエージェントが一時的なGitワークツリーで作業するための`isolation: \"worktree\"`をサポートするようになりました。",
@@ -464,6 +532,16 @@
       }
     },
     {
+      "version": "2.1.59",
+      "content": "- Improved memory usage in multi-agent sessions by releasing completed subagent task state",
+      "content_ja": "完了したサブエージェントタスクの状態を解放することで、マルチエージェントセッションでのメモリ使用量が改善されました。"
+    },
+    {
+      "version": "2.1.7",
+      "content": "- Added inline display of agent's final response in task notifications, making it easier to see results without reading the full transcript file",
+      "content_ja": "タスク通知にエージェントの最終応答をインライン表示できるようになり、トランスクリプトファイル全体を読まなくても結果を確認しやすくなりました。"
+    },
+    {
       "version": "2.1.63",
       "content": "- Improved memory usage in long sessions with subagents by stripping heavy progress message payloads during context compaction",
       "content_ja": "サブエージェントを使用する長時間セッションでのメモリ使用量が改善されました。コンテキスト圧縮中に重いプログレスメッセージペイロードが除去されます。",
@@ -474,39 +552,9 @@
       }
     },
     {
-      "version": "2.1.7",
-      "content": "- Added inline display of agent's final response in task notifications, making it easier to see results without reading the full transcript file",
-      "content_ja": "タスク通知にエージェントの最終応答をインライン表示できるようになり、トランスクリプトファイル全体を読まなくても結果を確認しやすくなりました。"
-    },
-    {
-      "version": "2.1.71",
-      "content": "- Fixed background agent completion notifications missing the output file path, which made it difficult for parent agents to recover agent results after context compaction",
-      "content_ja": "バックグラウンドエージェントの完了通知に出力ファイルパスが含まれておらず、コンテキスト圧縮後に親エージェントが結果を復元できない問題を修正しました。"
-    },
-    {
-      "version": "2.1.71",
-      "content": "- Fixed `--print` hanging forever when team agents are configured — the exit loop no longer waits on long-lived `in_process_teammate` tasks",
-      "content_ja": "エージェントチームが構成されている場合に、終了ループが長時間実行される `in_process_teammate` タスクの完了を待たなくなったことで、`--print` モードが永久にハングする問題を修正しました。",
-      "inference": {
-        "before": "チームメイトエージェントを利用してスクリプト出力を行う際、バックグラウンドタスクが終了しないためにコマンド全体が応答しなくなることがありました。",
-        "after": "出力が完了した時点で適切に終了処理が行われるようになり、自動化ワークフロー内での実行が安定しました。",
-        "benefit": "CI/CD などの非対話的な自動化処理において、Claude Code を確実に終了させることができ、パイプラインの停止を防げます。"
-      }
-    },
-    {
-      "version": "2.1.73",
-      "content": "- Fixed subagents with `model: opus`/`sonnet`/`haiku` being silently downgraded to older model versions on Bedrock, Vertex, and Microsoft Foundry",
-      "content_ja": "Bedrock、Vertex、Foundryにおいて、サブエージェントのモデルが古いバージョンに自動的にダウングレードされる問題を修正",
-      "inference": {
-        "before": "サブエージェントに `opus` や `sonnet` を指定しても、クラウドプラットフォームの制約により意図せず古いモデルが使用されることがありました。",
-        "after": "各プロバイダーでのモデルエイリアス解決が修正され、常に最新の Claude 4.6 (Sonnet/Opus) などの指定したスペックが正しく適用されます。",
-        "benefit": "サブエージェントが本来の推論能力をフルに発揮できるため、複雑なタスクの解決精度が向上します。"
-      }
-    },
-    {
-      "version": "2.1.73",
-      "content": "- Fixed background bash processes spawned by subagents not being cleaned up when the agent exits",
-      "content_ja": "サブエージェントが終了した際に、そのエージェントが起動したバックグラウンドのBashプロセスが残ってしまう問題を修正しました。"
+      "version": "2.1.75",
+      "content": "- Fixed footer hint in agent teams showing \"↓ to expand\" instead of the correct \"shift + ↓ to expand\"",
+      "content_ja": "エージェントチームのフッターヒントを、正しいショートカットである「shift + ↓」に修正しました。"
     },
     {
       "version": "2.1.72",
@@ -546,7 +594,7 @@
     {
       "version": "2.1.74",
       "content": "- Fixed full model IDs (e.g., `claude-opus-4-5`) being silently ignored in agent frontmatter `model:` field and `--agents` JSON config — agents now accept the same model values as `--model`",
-      "content_ja": "エージェントのフロントマターや `--agents` JSON設定で、フルモデルID(例: `claude-opus-4-5`)が無視されていた問題を修正し、`--model` と同じ値を指定可能に改善",
+      "content_ja": "エージェントのフロントマターや `--agents` JSON設定で、フルモデルID（例: `claude-opus-4-5`）が無視されていた問題を修正し、`--model` と同じ値を指定可能に改善",
       "inference": {
         "before": "サブエージェントの設定で詳細なモデルバージョンを指定しても無視されることがあり、期待した性能のモデルが起動しない場合がありました。",
         "after": "サブエージェントの設定で、メインセッションと同じように正確なモデルIDを使用して、特定の用途に最適なモデルを確実に割り当てられるようになります。",
@@ -554,9 +602,24 @@
       }
     },
     {
-      "version": "2.1.75",
-      "content": "- Fixed footer hint in agent teams showing \"↓ to expand\" instead of the correct \"shift + ↓ to expand\"",
-      "content_ja": "エージェントチームのフッターヒントを、正しいショートカットである「shift + ↓」に修正しました。"
+      "version": "2.1.73",
+      "content": "- Fixed subagents with `model: opus`/`sonnet`/`haiku` being silently downgraded to older model versions on Bedrock, Vertex, and Microsoft Foundry",
+      "content_ja": "Bedrock、Vertex、Foundryにおいて、サブエージェントのモデルが古いバージョンに自動的にダウングレードされる問題を修正",
+      "inference": {
+        "before": "サブエージェントに `opus` や `sonnet` を指定しても、クラウドプラットフォームの制約により意図せず古いモデルが使用されることがありました。",
+        "after": "各プロバイダーでのモデルエイリアス解決が修正され、常に最新の Claude 4.6 (Sonnet/Opus) などの指定したスペックが正しく適用されます。",
+        "benefit": "サブエージェントが本来の推論能力をフルに発揮できるため、複雑なタスクの解決精度が向上します。"
+      }
+    },
+    {
+      "version": "2.1.73",
+      "content": "- Fixed background bash processes spawned by subagents not being cleaned up when the agent exits",
+      "content_ja": "サブエージェントが終了した際に、そのエージェントが起動したバックグラウンドのBashプロセスが残ってしまう問題を修正しました。"
+    },
+    {
+      "version": "2.1.76",
+      "content": "- Improved background agent behavior — killing a background agent now preserves its partial results in the conversation context",
+      "content_ja": "バックグラウンドエージェントを強制終了した際、それまでの途中経過を会話コンテキストに保持するように改善しました。"
     },
     {
       "version": "2.1.77",
@@ -594,9 +657,9 @@
       "content_ja": "停止中のエージェントにメッセージを送った際、エラーを返すのではなくバックグラウンドで自動再開するようにしました"
     },
     {
-      "version": "2.1.76",
-      "content": "- Improved background agent behavior — killing a background agent now preserves its partial results in the conversation context",
-      "content_ja": "バックグラウンドエージェントを強制終了した際、それまでの途中経過を会話コンテキストに保持するように改善しました。"
+      "version": "2.1.81",
+      "content": "- Fixed a race condition where background agent task output could hang indefinitely when the task completed between polling intervals",
+      "content_ja": "バックグラウンドでのエージェントタスク完了時に、ポーリング間隔のタイミングによって出力が停止したままになるレースコンディションを修正しました。"
     },
     {
       "version": "2.1.78",
@@ -604,7 +667,7 @@
       "content_ja": "プラグイン提供のサブエージェント向けに frontmatter での `effort`、`maxTurns`、`disallowedTools` 設定をサポート",
       "inference": {
         "before": "プラグインに含まれるサブエージェントの思考レベルや最大ターン数、使用禁止ツールの制限を詳細に制御することが困難でした。",
-        "after": "サブエージェントの定義ファイル(frontmatter)から、これら高度なパラメーターを直接指定できるようになりました。",
+        "after": "サブエージェントの定義ファイル（frontmatter）から、これら高度なパラメーターを直接指定できるようになりました。",
         "benefit": "開発者はエージェントの挙動をより精密にチューニングしたプラグインを配布・利用できるようになります。"
       }
     },
@@ -617,11 +680,6 @@
         "after": "大規模なセッションデータの処理が改善され、サブエージェントを含む複雑な履歴も正しく保持・再開できるようになりました。",
         "benefit": "長期間にわたる複雑な開発タスクでも、Claude が過去の経緯を忘れずにサポートし続けられます。"
       }
-    },
-    {
-      "version": "2.1.81",
-      "content": "- Fixed a race condition where background agent task output could hang indefinitely when the task completed between polling intervals",
-      "content_ja": "バックグラウンドでのエージェントタスク完了時に、ポーリング間隔のタイミングによって出力が停止したままになるレースコンディションを修正しました。"
     },
     {
       "version": "2.1.79",
@@ -664,13 +722,28 @@
       }
     },
     {
+      "version": "2.1.71",
+      "content": "- Fixed background agent completion notifications missing the output file path, which made it difficult for parent agents to recover agent results after context compaction",
+      "content_ja": "バックグラウンドエージェントの完了通知に出力ファイルパスが含まれておらず、コンテキスト圧縮後に親エージェントが結果を復元できない問題を修正しました。"
+    },
+    {
+      "version": "2.1.71",
+      "content": "- Fixed `--print` hanging forever when team agents are configured — the exit loop no longer waits on long-lived `in_process_teammate` tasks",
+      "content_ja": "エージェントチームが構成されている場合に、終了ループが長時間実行される `in_process_teammate` タスクの完了を待たなくなったことで、`--print` モードが永久にハングする問題を修正しました。",
+      "inference": {
+        "before": "チームメイトエージェントを利用してスクリプト出力を行う際、バックグラウンドタスクが終了しないためにコマンド全体が応答しなくなることがありました。",
+        "after": "出力が完了した時点で適切に終了処理が行われるようになり、自動化ワークフロー内での実行が安定しました。",
+        "benefit": "CI/CD などの非対話的な自動化処理において、Claude Code を確実に終了させることができ、パイプラインの停止を防げます。"
+      }
+    },
+    {
       "version": "2.1.88",
       "content": "- Added named subagents to `@` mention typeahead suggestions",
       "content_ja": "`@` メンションの入力候補に名前付きサブエージェントを追加しました",
       "inference": {
         "before": "特定の役割を持つサブエージェントを呼び出す際、名前を正確に覚えている必要があり、入力の手間がかかっていました。",
         "after": "`@` を入力するだけでファイルやMCPリソースと同様にサブエージェントも候補に表示されるようになり、素早く選択できます。",
-        "benefit": "特定のタスクに特化したサブエージェント(コードレビュアーなど)を即座に呼び出せるようになり、マルチエージェントを活用したワークフローがよりスムーズになります。"
+        "benefit": "特定のタスクに特化したサブエージェント（コードレビュアーなど）を即座に呼び出せるようになり、マルチエージェントを活用したワークフローがよりスムーズになります。"
       }
     },
     {
@@ -684,24 +757,24 @@
       }
     },
     {
-      "version": "2.1.94",
-      "content": "- Fixed agents appearing stuck after a 429 rate-limit response with a long Retry-After header — the error now surfaces immediately instead of silently waiting",
-      "content_ja": "レート制限(429エラー)のRetry-Afterヘッダーが長い場合にエージェントが固まって見える問題を修正し、待機せずに即座にエラーを表示するように変更しました。"
+      "version": "2.1.92",
+      "content": "- Fixed subagent spawning permanently failing with \"Could not determine pane count\" after tmux windows are killed or renumbered during a long-running session",
+      "content_ja": "tmux セッション中にウィンドウが削除・再番号付けされた際、サブエージェントの生成が失敗し続ける問題を修正。"
     },
     {
       "version": "2.1.90",
       "content": "- Fixed `--resume` causing a full prompt-cache miss on the first request for users with deferred tools, MCP servers, or custom agents (regression since v2.1.69)",
-      "content_ja": "遅延読み込みされるツール、MCPサーバー、またはカスタムエージェントを使用しているユーザーにおいて、`--resume` 実行時に最初のセッションでプロンプトキャッシュが完全にミスヒットする問題を修正しました(v2.1.69以降のデグレ)。",
+      "content_ja": "遅延読み込みされるツール、MCPサーバー、またはカスタムエージェントを使用しているユーザーにおいて、`--resume` 実行時に最初のセッションでプロンプトキャッシュが完全にミスヒットする問題を修正しました（v2.1.69以降のデグレ）。",
       "inference": {
-        "before": "以前のセッションを再開する際、特定の構成(MCPなど)を利用しているとキャッシュが効かず、最初の応答に時間がかかったりトークン消費が増えたりしていました。",
+        "before": "以前のセッションを再開する際、特定の構成（MCPなど）を利用しているとキャッシュが効かず、最初の応答に時間がかかったりトークン消費が増えたりしていました。",
         "after": "セッション再開時の内部的な読み込みフローが改善され、以前のコンテキストが正しくキャッシュから再利用されます。",
         "benefit": "レジューム直後のレスポンスが高速化され、APIコストの節約にも繋がります。"
       }
     },
     {
-      "version": "2.1.92",
-      "content": "- Fixed subagent spawning permanently failing with \"Could not determine pane count\" after tmux windows are killed or renumbered during a long-running session",
-      "content_ja": "tmux セッション中にウィンドウが削除・再番号付けされた際、サブエージェントの生成が失敗し続ける問題を修正。"
+      "version": "2.1.94",
+      "content": "- Fixed agents appearing stuck after a 429 rate-limit response with a long Retry-After header — the error now surfaces immediately instead of silently waiting",
+      "content_ja": "レート制限（429エラー）のRetry-Afterヘッダーが長い場合にエージェントが固まって見える問題を修正し、待機せずに即座にエラーを表示するように変更しました。"
     },
     {
       "version": "2.1.101",
@@ -834,51 +907,6 @@
       }
     },
     {
-      "version": "2.1.119",
-      "content": "- `--print` mode now honors the agent's `tools:` and `disallowedTools:` frontmatter, matching interactive-mode behavior",
-      "content_ja": "`--print` モード(非対話モード)において、エージェント定義の `tools:` および `disallowedTools:` フロントマターが適用され、対話モードの動作と一致するようになりました",
-      "inference": {
-        "before": "スクリプトなどから `-p` フラグで実行する際、カスタムエージェントの設定で禁止したツールが無視されて使用されてしまう可能性がありました。",
-        "after": "非対話モードでもフロントマターの設定が厳密に守られ、エージェントが使用できるツールの制限が対話モードと完全に同期されました。",
-        "benefit": "CI/CD パイプラインなどの自動実行環境においても、意図しないツールの実行を防ぎ、セキュリティと動作の予測可能性を高めることができます。"
-      }
-    },
-    {
-      "version": "2.1.119",
-      "content": "- `--agent <name>` now honors the agent definition's `permissionMode` for built-in agents",
-      "content_ja": "`--agent <name>` 指定時、組み込みエージェントの定義に含まれる `permissionMode` 設定が適用されるようになりました",
-      "inference": {
-        "before": "組み込みエージェント(Explore や Plan など)を明示的に呼び出した際、そのエージェントに定義されている推奨パーミッションモードが反映されないことがありました。",
-        "after": "エージェントごとに設定された最適なパーミッションモード(例：読み取り専用、または自動承認)が自動的に適用されます。",
-        "benefit": "タスクに合わせて最適な安全レベルや自動化レベルが設定済みのエージェントを、手間なく安全に利用開始できます。"
-      }
-    },
-    {
-      "version": "2.1.119",
-      "content": "- Subagent and SDK MCP server reconfiguration now connects servers in parallel instead of serially",
-      "content_ja": "サブエージェントおよび SDK における MCP サーバーの再構成時に、サーバーへの接続を直列ではなく並列で行うように変更しました",
-      "inference": {
-        "before": "複数の MCP サーバーを接続している場合、一つずつ順番に接続処理が行われていたため、接続完了まで待機時間が発生していました。",
-        "after": "接続処理が並列化され、複数のサーバーを同時に初期化するようになりました。",
-        "benefit": "サブエージェントの起動や大規模なコンテキスト再構成が大幅に高速化され、作業の中断時間が短縮されます。"
-      }
-    },
-    {
-      "version": "2.1.119",
-      "content": "- Fixed spinner staying on when a subagent task notification is orphaned in the queue",
-      "content_ja": "サブエージェントのタスク通知がキューに残されたままになった際、スピナー(読み込み中表示)が消えずに残り続ける問題を修正しました。"
-    },
-    {
-      "version": "2.1.119",
-      "content": "- Fixed `/agents` detail view mislabeling built-in tools unavailable to subagents as \"Unrecognized\"",
-      "content_ja": "`/agents` の詳細表示で、サブエージェントが使用できない組み込みツールが誤って \"Unrecognized(未認識)\" と表示される問題を修正しました",
-      "inference": {
-        "before": "エージェントの権限制限によって無効化されているツールが、あたかも存在しないツールであるかのような不正確な表示になっていました。",
-        "after": "制限されたツールであることが正しく表示されるようになります。",
-        "benefit": "設定が正しく反映されているかを正確に確認でき、エージェントの挙動把握が容易になります。"
-      }
-    },
-    {
       "version": "2.1.118",
       "content": "- Fixed agent-type hooks failing with \"Messages are required for agent hooks\" when configured for events other than `Stop` or `SubagentStop`",
       "content_ja": "エージェント型フックが `Stop` 等の特定のイベント以外で「メッセージが必要」というエラーで失敗する問題を修正",
@@ -895,7 +923,7 @@
       "inference": {
         "before": "フックの中で動くエージェントの動作そのものがフックを再発火させてしまい、無限ループのような不要な処理が発生していました。",
         "after": "検証用のサブエージェントによるアクションは、外部のフック発火対象から適切に除外されるようになりました。",
-        "benefit": "フックの実行コスト(トークン使用量)が最適化され、意図しないフックの連鎖を防げます。"
+        "benefit": "フックの実行コスト（トークン使用量）が最適化され、意図しないフックの連鎖を防げます。"
       }
     },
     {
@@ -916,6 +944,61 @@
         "before": "「パーミッション確認をスキップする」設定にしていても、Claude Code 自身の構成ファイルが格納される特定のディレクトリへの書き込みには、安全上の理由から追加の確認が求められていました。",
         "after": "スキルやエージェントの定義ディレクトリへの書き込みが自動承認の対象に含まれました。これにより、Claude に自身のスキルを自律的に追加・修正させる際のフローが中断されなくなります。",
         "benefit": "Claude に自身の機能を拡張させる自動化タスクにおいて、ユーザーが手動で承認ボタンを押す手間が省け、完全な自律動作を実現できます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- `--print` mode now honors the agent's `tools:` and `disallowedTools:` frontmatter, matching interactive-mode behavior",
+      "content_ja": "`--print` モード（非対話モード）において、エージェント定義の `tools:` および `disallowedTools:` フロントマターが適用され、対話モードの動作と一致するようになりました",
+      "inference": {
+        "before": "スクリプトなどから `-p` フラグで実行する際、カスタムエージェントの設定で禁止したツールが無視されて使用されてしまう可能性がありました。",
+        "after": "非対話モードでもフロントマターの設定が厳密に守られ、エージェントが使用できるツールの制限が対話モードと完全に同期されました。",
+        "benefit": "CI/CD パイプラインなどの自動実行環境においても、意図しないツールの実行を防ぎ、セキュリティと動作の予測可能性を高めることができます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- `--agent <name>` now honors the agent definition's `permissionMode` for built-in agents",
+      "content_ja": "`--agent <name>` 指定時、組み込みエージェントの定義に含まれる `permissionMode` 設定が適用されるようになりました",
+      "inference": {
+        "before": "組み込みエージェント（Explore や Plan など）を明示的に呼び出した際、そのエージェントに定義されている推奨パーミッションモードが反映されないことがありました。",
+        "after": "エージェントごとに設定された最適なパーミッションモード（例：読み取り専用、または自動承認）が自動的に適用されます。",
+        "benefit": "タスクに合わせて最適な安全レベルや自動化レベルが設定済みのエージェントを、手間なく安全に利用開始できます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Subagent and SDK MCP server reconfiguration now connects servers in parallel instead of serially",
+      "content_ja": "サブエージェントおよび SDK における MCP サーバーの再構成時に、サーバーへの接続を直列ではなく並列で行うように変更しました",
+      "inference": {
+        "before": "複数の MCP サーバーを接続している場合、一つずつ順番に接続処理が行われていたため、接続完了まで待機時間が発生していました。",
+        "after": "接続処理が並列化され、複数のサーバーを同時に初期化するようになりました。",
+        "benefit": "サブエージェントの起動や大規模なコンテキスト再構成が大幅に高速化され、作業の中断時間が短縮されます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed spinner staying on when a subagent task notification is orphaned in the queue",
+      "content_ja": "サブエージェントのタスク通知がキューに残されたままになった際、スピナー（読み込み中表示）が消えずに残り続ける問題を修正しました。"
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed `/agents` detail view mislabeling built-in tools unavailable to subagents as \"Unrecognized\"",
+      "content_ja": "`/agents` の詳細表示で、サブエージェントが使用できない組み込みツールが誤って \"Unrecognized（未認識）\" と表示される問題を修正しました",
+      "inference": {
+        "before": "エージェントの権限制限によって無効化されているツールが、あたかも存在しないツールであるかのような不正確な表示になっていました。",
+        "after": "制限されたツールであることが正しく表示されるようになります。",
+        "benefit": "設定が正しく反映されているかを正確に確認でき、エージェントの挙動把握が容易になります。"
+      }
+    },
+    {
+      "version": "2.1.132",
+      "content": "- Fixed dead keyboard input on Windows after re-opening a background session from `claude agents`",
+      "content_ja": "Windows 環境で `claude agents` からバックグラウンドセッションを再開した後にキーボード入力ができなくなる問題を修正しました",
+      "inference": {
+        "before": "Windows ユーザーがバックグラウンドで動作させていたエージェントの操作に戻ろうとすると、入力が受け付けられずセッションが続行できないことがありました。",
+        "after": "セッション再開時のフォーカスと入力制御が修正され、Windows でも正常に入力を継続できます。",
+        "benefit": "バックグラウンドでの並列作業が Windows 環境でも安定して行えるようになります。"
       }
     },
     {
@@ -1045,7 +1128,7 @@
     {
       "version": "2.1.64",
       "content": "- Added `agent_id` (for subagents) and `agent_type` (for subagents and `--agent`) to hook events",
-      "content_ja": "フックイベントのコンテキスト情報に `agent_id`(サブエージェント用)と `agent_type`(サブエージェントおよび `--agent` 指定時用)を追加しました。",
+      "content_ja": "フックイベントのコンテキスト情報に `agent_id`（サブエージェント用）と `agent_type`（サブエージェントおよび `--agent` 指定時用）を追加しました。",
       "inference": {
         "before": "フック内で、現在実行中のアクションがメインスレッドによるものか、それとも特定のサブエージェントによるものかを判別して処理を分けることが困難でした。",
         "after": "フックハンドラーに渡される JSON にエージェントの情報が含まれるようになったため、「このエージェントが実行するときだけは特定の処理をスキップする」といったきめ細やかな制御が可能になりました。",
@@ -1055,7 +1138,7 @@
     {
       "version": "2.1.64",
       "content": "- Fixed extra blank lines appearing below each tool call in the expanded subagent transcript view (Ctrl+O)",
-      "content_ja": "サブエージェントの詳細表示(Ctrl+O)において、各ツール呼び出しの下に余分な空行が表示される問題を修正しました。"
+      "content_ja": "サブエージェントの詳細表示（Ctrl+O）において、各ツール呼び出しの下に余分な空行が表示される問題を修正しました。"
     },
     {
       "version": "2.1.69",
@@ -1088,7 +1171,7 @@
     {
       "version": "2.1.69",
       "content": "- Fixed extra blank lines appearing below each tool call in the expanded subagent transcript view (Ctrl+O)",
-      "content_ja": "サブエージェントの書き起こし詳細表示(Ctrl+O)で、各ツール呼び出しの下に余計な空行が表示される問題を修正"
+      "content_ja": "サブエージェントの書き起こし詳細表示（Ctrl+O）で、各ツール呼び出しの下に余計な空行が表示される問題を修正"
     },
     {
       "version": "2.1.69",
@@ -1151,51 +1234,11 @@
       }
     },
     {
-      "version": "2.1.97",
-      "content": "- Added `● N running` indicator in `/agents` next to agent types with live subagent instances",
-      "content_ja": "`/agents`メニューにて、実行中のサブエージェントインスタンスが存在するエージェント種別の横に「● N running」インジケーターを表示するようにしました。",
-      "inference": {
-        "before": "複数のバックグラウンドタスクやサブエージェントが並行動作している際、どの種類のエージェントがいくつアクティブなのかを一覧で確認する手段が不足していました。",
-        "after": "`/agents`コマンドで表示されるリストから、現在どのアビリティを持つエージェントが稼働中であるかが一目で分かるようになりました。",
-        "benefit": "並行処理の進行状況を把握しやすくなり、リソースの管理やタスクの完了待ちを直感的に確認できます。"
-      }
-    },
-    {
-      "version": "2.1.97",
-      "content": "- Fixed prompt-type `Stop`/`SubagentStop` hooks failing on long sessions, and hook evaluator API errors displaying \"JSON validation failed\" instead of the actual message",
-      "content_ja": "長いセッションでプロンプトタイプの`Stop`/`SubagentStop`フックが失敗する問題、およびフック評価時のAPIエラーが具体的なメッセージではなく「JSON validation failed」と表示される問題を修正しました。",
-      "inference": {
-        "before": "セッションが長くなると終了時の自動処理(フック)が動かなくなったり、フックの不具合時に原因が分からないエラーメッセージが表示されることがありました。",
-        "after": "長大セッションでもフックが安定動作し、エラー発生時も具体的な原因が表示されるようになったため、デバッグが容易になりました。",
-        "benefit": "自動化された後処理や通知が確実に実行されるようになり、開発ワークフローの信頼性が向上します。"
-      }
-    },
-    {
-      "version": "2.1.97",
-      "content": "- Fixed subagents with worktree isolation or `cwd:` override leaking their working directory back to the parent session's Bash tool",
-      "content_ja": "ワークツリー隔離や`cwd:`オーバーライドを使用しているサブエージェントが、親セッションのBashツールに作業ディレクトリ情報を漏洩させてしまう問題を修正しました。",
-      "inference": {
-        "before": "サブエージェントが独立した場所で作業していても、その影響でメインセッションのディレクトリ情報が混乱し、後続のコマンドが意図しない場所で実行されるリスクがありました。",
-        "after": "サブエージェントの作業環境が完全に隔離され、親セッションの環境に影響を及ぼさないようになりました。",
-        "benefit": "複数のディレクトリをまたぐ複雑な並行作業を、メイン環境を汚すことなく安全に実行できます。"
-      }
-    },
-    {
-      "version": "2.1.97",
-      "content": "- Fixed compaction writing duplicate multi-MB subagent transcript files on prompt-too-long retries",
-      "content_ja": "プロンプトが長すぎてリトライが発生した際、コンパクション処理が数MBに及ぶサブエージェントの文字起こしファイルを重複して書き込んでしまう問題を修正しました。",
-      "inference": {
-        "before": "特定のエラー条件下で、ディスク容量を無駄に消費する巨大な一時ファイルが生成され、マシンのストレージを圧迫する可能性がありました。",
-        "after": "不要なファイルの重複書き込みが防止され、ディスク使用量が最適化されました。",
-        "benefit": "長時間の利用でもディスク容量を心配する必要がなくなり、ツール全体のクリーンな動作が維持されます。"
-      }
-    },
-    {
       "version": "2.1.98",
       "content": "- Fixed agent team members not inheriting the leader's permission mode when using `--dangerously-skip-permissions`",
       "content_ja": "`--dangerously-skip-permissions` 使用時に、エージェントチームのメンバーがリーダーのパーミッションモードを継承しない問題を修正しました。",
       "inference": {
-        "before": "リーダー(親エージェント)を全許可モードにしても、チームメイト(子エージェント)が毎回許可を求めてきてしまい、並行作業の自動化が妨げられていました。",
+        "before": "リーダー（親エージェント）を全許可モードにしても、チームメイト（子エージェント）が毎回許可を求めてきてしまい、並行作業の自動化が妨げられていました。",
         "after": "チーム全体で一貫したパーミッション設定が適用されるようになり、完全な自動実行が可能になりました。",
         "benefit": "大規模なリファクタリングなど、エージェントチームを活用した自動化ワークフローが途切れることなく完了します。"
       }
@@ -1223,11 +1266,51 @@
     {
       "version": "2.1.98",
       "content": "- Improved `/agents` with a tabbed layout: a Running tab shows live subagents, and the Library tab adds Run agent and View running instance actions",
-      "content_ja": "`/agents` コマンドをタブ形式のレイアウトに改善しました。「実行中(Running)」タブでライブ状態のサブエージェントを確認でき、「ライブラリ(Library)」タブからエージェントの実行やインスタンスの表示が可能です。",
+      "content_ja": "`/agents` コマンドをタブ形式のレイアウトに改善しました。「実行中（Running）」タブでライブ状態のサブエージェントを確認でき、「ライブラリ（Library）」タブからエージェントの実行やインスタンスの表示が可能です。",
       "inference": {
         "before": "多くのサブエージェントを使い始めると、今どれが動いていて、どのような設定になっているかを一覧で管理するのが困難でした。",
         "after": "動いているエージェントと利用可能なエージェントが整理され、直感的に管理・呼び出しができるようになりました。",
         "benefit": "複雑な並行タスクの進捗状況を整理して把握でき、エージェントを司令塔のように操る体験が向上します。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Added `● N running` indicator in `/agents` next to agent types with live subagent instances",
+      "content_ja": "`/agents`メニューにて、実行中のサブエージェントインスタンスが存在するエージェント種別の横に「● N running」インジケーターを表示するようにしました。",
+      "inference": {
+        "before": "複数のバックグラウンドタスクやサブエージェントが並行動作している際、どの種類のエージェントがいくつアクティブなのかを一覧で確認する手段が不足していました。",
+        "after": "`/agents`コマンドで表示されるリストから、現在どのアビリティを持つエージェントが稼働中であるかが一目で分かるようになりました。",
+        "benefit": "並行処理の進行状況を把握しやすくなり、リソースの管理やタスクの完了待ちを直感的に確認できます。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed prompt-type `Stop`/`SubagentStop` hooks failing on long sessions, and hook evaluator API errors displaying \"JSON validation failed\" instead of the actual message",
+      "content_ja": "長いセッションでプロンプトタイプの`Stop`/`SubagentStop`フックが失敗する問題、およびフック評価時のAPIエラーが具体的なメッセージではなく「JSON validation failed」と表示される問題を修正しました。",
+      "inference": {
+        "before": "セッションが長くなると終了時の自動処理（フック）が動かなくなったり、フックの不具合時に原因が分からないエラーメッセージが表示されることがありました。",
+        "after": "長大セッションでもフックが安定動作し、エラー発生時も具体的な原因が表示されるようになったため、デバッグが容易になりました。",
+        "benefit": "自動化された後処理や通知が確実に実行されるようになり、開発ワークフローの信頼性が向上します。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed subagents with worktree isolation or `cwd:` override leaking their working directory back to the parent session's Bash tool",
+      "content_ja": "ワークツリー隔離や`cwd:`オーバーライドを使用しているサブエージェントが、親セッションのBashツールに作業ディレクトリ情報を漏洩させてしまう問題を修正しました。",
+      "inference": {
+        "before": "サブエージェントが独立した場所で作業していても、その影響でメインセッションのディレクトリ情報が混乱し、後続のコマンドが意図しない場所で実行されるリスクがありました。",
+        "after": "サブエージェントの作業環境が完全に隔離され、親セッションの環境に影響を及ぼさないようになりました。",
+        "benefit": "複数のディレクトリをまたぐ複雑な並行作業を、メイン環境を汚すことなく安全に実行できます。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed compaction writing duplicate multi-MB subagent transcript files on prompt-too-long retries",
+      "content_ja": "プロンプトが長すぎてリトライが発生した際、コンパクション処理が数MBに及ぶサブエージェントの文字起こしファイルを重複して書き込んでしまう問題を修正しました。",
+      "inference": {
+        "before": "特定のエラー条件下で、ディスク容量を無駄に消費する巨大な一時ファイルが生成され、マシンのストレージを圧迫する可能性がありました。",
+        "after": "不要なファイルの重複書き込みが防止され、ディスク使用量が最適化されました。",
+        "benefit": "長時間の利用でもディスク容量を心配する必要がなくなり、ツール全体のクリーンな動作が維持されます。"
       }
     }
   ]

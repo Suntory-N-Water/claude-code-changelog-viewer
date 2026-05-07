@@ -1,3 +1,4 @@
+import { buildChangelogSearchTerms } from '@claude-code-changelog-viewer/common';
 import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
 
 export type ChangelogItemWithVersion = {
@@ -17,10 +18,17 @@ export function findRelatedChangelogs(
   key: string,
   changelogs: { version: string; items: ChangelogItem[] }[],
 ): ChangelogItemWithVersion[] {
+  const searchTerms = buildChangelogSearchTerms(key);
   const results: ChangelogItemWithVersion[] = [];
   for (const { version, items } of changelogs) {
     for (const item of items) {
-      if (item.content.includes(key) || item.content_ja?.includes(key)) {
+      if (
+        searchTerms.some(
+          (term) =>
+            item.content.includes(term) ||
+            (item.content_ja?.includes(term) ?? false),
+        )
+      ) {
         results.push({ version, item });
       }
     }

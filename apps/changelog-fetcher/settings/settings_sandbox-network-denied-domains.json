@@ -1,0 +1,29 @@
+{
+  "key": "sandbox.network.deniedDomains",
+  "leaf_name": "deniedDomains",
+  "slug": "sandbox-network-denied-domains",
+  "source": "settings",
+  "description_en": "Blocklist of network domains for sandboxed commands. Blocks specific domains even when a broader allowedDomains wildcard would otherwise permit them. Supports wildcard patterns like *.example.com. See https://code.claude.com/docs/en/sandboxing#network-isolation",
+  "description_ja": "サンドボックス化されたコマンドに対するネットワークドメインの拒否リストで、広範な許可設定よりも優先して特定のドメインをブロックします。",
+  "use_case_ja": "- ワイルドカードを用いた広範な許可リスト（allowedDomains）を使用している場合に、その中の特定のドメインだけを個別に拒否したい場合に使用します。\n- 拒否リストは許可リストよりも優先されるため、特定の機密ドメインや不要なドメインへのアクセスを確実に遮断し、セキュリティを向上させることができます。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing",
+    "Configures network isolation settings for the sandboxed bash environment, including domain restrictions, Unix socket access, and custom proxy configuration."
+  ],
+  "doc_snippets": [
+    "Permission deny rules block Claude from even attempting to access restricted resources Sandbox restrictions prevent Bash commands from reaching resources outside defined boundaries, even if a prompt injection bypasses Claude's decision-making Filesystem restrictions in the sandbox combine the sandbox.filesystem settings with Read and Edit deny rules; both are merged into the final sandbox boundary Network restrictions combine WebFetch permission rules with the sandbox's allowedDomains and deniedDomains lists When sandboxing is enabled with autoAllowBashIfSandboxed: true , which is the default, sandboxed Bash commands run without prompting even if your permissions include ask: Bash(*) . The sandbox boundary substitutes for the per-command prompt. Explicit deny rules still apply, and rm or rmdir commands that target / , your home directory, or other critical system paths still trigger a prompt. See sandbox modes to change this behavior.",
+    "Use Read and Edit deny rules to block access to specific files or directories Use WebFetch allow/deny rules to control domain access Use sandbox allowedDomains to control which domains Bash commands can reach Use sandbox deniedDomains to block specific domains even when a broader allowedDomains wildcard would otherwise permit them Paths from both sandbox.filesystem settings and permission rules are merged together into the final sandbox configuration."
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.113",
+      "content": "- Added `sandbox.network.deniedDomains` setting to block specific domains even when a broader `allowedDomains` wildcard would otherwise permit them",
+      "content_ja": "特定のドメインを個別にブロックするための `sandbox.network.deniedDomains` 設定を追加しました",
+      "inference": {
+        "before": "ワイルドカードを使用した広範な `allowedDomains` 設定を行っている場合、その範囲内の特定のドメインだけを拒否することが困難でした。",
+        "after": "拒否リスト（deniedDomains）が許可リストより優先されるようになり、細かいネットワーク制御が可能になりました。",
+        "benefit": "広域な許可を与えつつ、特定の機密ドメインや不要なドメインへのアクセスを確実に遮断できるため、セキュリティが向上します。"
+      }
+    }
+  ]
+}

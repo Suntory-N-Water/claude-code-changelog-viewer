@@ -1,10 +1,22 @@
 {
   "key": "language",
+  "leaf_name": "language",
   "slug": "language",
   "source": "settings",
   "description_en": "Configure Claude's preferred response language (e.g., \"japanese\", \"spanish\", \"french\"). Claude will respond in this language by default. Also sets the voice dictation language and terminal tab session title generation. See https://code.claude.com/docs/en/settings#available-settings",
-  "description_ja": "Claude の優先回答言語を設定します。",
-  "use_case_ja": "- 音声入力(ディクテーション)の認識言語や、ターミナルのタブタイトルの生成言語を日本語に固定したい場合に設定します。\n- プロンプトが英語であっても常に日本語で回答させたいなど、一貫した多言語開発環境を構築するのに役立ちます。",
+  "description_ja": "Claude が回答に使用する優先言語（例: \"japanese\"）を設定します。",
+  "use_case_ja": "- 毎回「日本語で答えて」と指示する手間を省き、デフォルトで一貫した日本語のレスポンスを得たい場合に使用します。\n- 音声入力（Voice dictation）の認識言語や、ターミナルのタブタイトルの生成言語も、この設定に基づいて切り替わります。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Managed settings can be distributed via MDM (Mobile Device Management) or other device management solutions. Environment variables defined in the managed settings file have high precedence and cannot be overridden by users. Claude Code does not pass OTEL_* environment variables to the subprocesses it spawns, including the Bash tool, hooks, MCP servers, and language servers. An OpenTelemetry-instrumented application that you run through the Bash tool does not inherit Claude Code's exporter endpoint or headers, so set those variables directly in the command if that application needs to export its own telemetry. Configuration details",
+    "tool_name : Tool name ( \"Edit\" , \"Write\" , \"NotebookEdit\" ) decision : User decision ( \"accept\" , \"reject\" ) source : Where the decision came from. One of \"config\" , \"hook\" , \"user_permanent\" , \"user_temporary\" , \"user_abort\" , or \"user_reject\" . See the Tool decision event for what each value means. language : Programming language of the edited file, such as \"TypeScript\" , \"Python\" , \"JavaScript\" , or \"Markdown\" . Returns \"unknown\" for unrecognized file extensions. Active time counter",
+    "| httpHookAllowedEnvVars | Allowlist of environment variable names HTTP hooks may interpolate into headers. When set, each hook's effective allowedEnvVars is the intersection with this list. Undefined = no restriction. Arrays merge across settings sources. See Hook configuration | [\"MY_TOKEN\", \"HOOK_SECRET\"] | | includeCoAuthoredBy | Deprecated : Use attribution instead. Whether to include the co-authored-by Claude byline in git commits and pull requests (default: true ) | false | | includeGitInstructions | Include built-in commit and PR workflow instructions and the git status snapshot in Claude's system prompt (default: true ). Set to false to remove both, for example when using your own git workflow skills. The CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS environment variable takes precedence over this setting when set | false | | language | Configure Claude's preferred response language (e.g., \"japanese\" , \"spanish\" , \"french\" ). Claude will respond in this language by default. Also sets the voice dictation language | \"japanese\" | | minimumVersion | Floor that prevents background auto-updates and claude update from installing a version below this one. Switching from the \"latest\" channel to \"stable\" via /config prompts you to stay on the current version or allow the downgrade. Choosing to stay sets this value. Also useful in managed settings to pin an organization-wide minimum | \"2.1.100\" | | model | Override the default model to use for Claude Code. --model and ANTHROPIC_MODEL override this for one session | \"claude-sonnet-4-6\" | | modelOverrides | Map Anthropic model IDs to provider-specific model IDs such as Bedrock inference profile ARNs. Each model picker entry uses its mapped value when calling the provider API. See Override model IDs per version | {\"claude-opus-4-6\": \"arn:aws:bedrock:...\"} |",
+    "/voice accepts an optional mode argument:",
+    "The first tap only starts recording when the prompt input is empty, so you can still type spaces normally while composing a message. The second tap stops recording regardless of input contents. Recording also stops automatically after 15 seconds of silence or two minutes total. Change the dictation language Voice dictation uses the same language setting that controls Claude's response language. If that setting is empty, dictation defaults to English. In the VS Code extension, if language is empty, dictation uses VS Code's accessibility.voice.speechLanguage setting before defaulting to English. Language Code Czech cs Danish da",
+    "| Turkish | tr | | Ukrainian | uk | Set the language in /config or directly in settings. You can use either the BCP 47 language code or the language name: If your language setting is not in the supported list, /voice warns you on enable and falls back to English for dictation. Claude's text responses are not affected by this fallback. Rebind the dictation key",
+    "Nothing happens when holding Space in hold mode : watch the prompt input while you hold. If spaces keep accumulating, voice dictation is likely off; run /voice hold to enable it. If only one or two spaces appear and then nothing, voice dictation is on but hold detection is not triggering. Hold detection requires your terminal to send key-repeat events, so it cannot detect a held key if key-repeat is disabled at the OS level. Switch to tap mode with /voice tap to avoid the key-repeat requirement. Tapping Space types a space instead of recording in tap mode : the first tap only starts recording when the prompt input is empty. Clear the input first, or check that you are in tap mode by running /voice tap . No audio detected from microphone : recording started but captured silence. Confirm the correct input device is set as the system default and that its input level is not muted or near zero. On Windows, open Settings → System → Sound → Input and select your microphone. On macOS, open System Settings → Sound → Input. No speech detected : audio reached the transcription service but no words were recognized. Speak closer to the microphone, reduce background noise, and confirm your dictation language matches the language you are speaking. Transcription is garbled or in the wrong language : dictation defaults to English. If you are dictating in another language, set it in /config first. See Change the dictation language . Terminal not listed in macOS Microphone settings",
+    "See also Customize keyboard shortcuts : rebind voice:pushToTalk and other CLI keyboard actions Configure settings : full reference for voice , language , and other settings keys Interactive mode : keyboard shortcuts, input modes, and session controls Commands : reference for /voice , /config , and all other commands"
+  ],
   "related_changelog": [
     {
       "version": "1.0.28",
@@ -26,7 +38,7 @@
     {
       "version": "2.1.108",
       "content": "- Fixed diacritical marks (accents, umlauts, cedillas) being dropped from responses when the `language` setting is configured",
-      "content_ja": "`language`設定(例：`japanese`)を使用している際、レスポンスからアクセントやウムラウト等の記号が消える問題を修正",
+      "content_ja": "`language`設定（例：`japanese`）を使用している際、レスポンスからアクセントやウムラウト等の記号が消える問題を修正",
       "inference": {
         "before": "日本語以外の言語設定を併用している場合などに、特定の文字記号が正しく表示されないことがありました。",
         "after": "言語設定に関わらず、アクセント記号等を含む全文字が正しくレスポンスに反映されるようになりました。",
@@ -34,19 +46,19 @@
       }
     },
     {
-      "version": "2.1.16",
-      "content": "- Fixed session titles on the resume screen not respecting the user's language setting",
-      "content_ja": "再開画面のセッションタイトルがユーザーの言語設定を反映していない問題を修正しました。"
-    },
-    {
       "version": "2.1.120",
       "content": "- [VSCode] Voice dictation now respects the `language` setting in `~/.claude/settings.json`",
-      "content_ja": "[VSCode] 音声入力(Voice dictation)が `~/.claude/settings.json` の `language` 設定を正しく反映するように改善",
+      "content_ja": "[VSCode] 音声入力（Voice dictation）が `~/.claude/settings.json` の `language` 設定を正しく反映するように改善",
       "inference": {
-        "before": "VS Code 上で音声入力を使用する際、設定ファイルで日本語(japanese)などを指定していても、意図した言語で認識されない場合がありました。",
+        "before": "VS Code 上で音声入力を使用する際、設定ファイルで日本語（japanese）などを指定していても、意図した言語で認識されない場合がありました。",
         "after": "共通設定の言語指定が音声入力エンジンにも一貫して適用されるようになります。",
         "benefit": "日本語での音声プロンプト入力の精度と体験が向上し、ハンズフリーでの開発がより快適になります。"
       }
+    },
+    {
+      "version": "2.1.16",
+      "content": "- Fixed session titles on the resume screen not respecting the user's language setting",
+      "content_ja": "再開画面のセッションタイトルがユーザーの言語設定を反映していない問題を修正しました。"
     },
     {
       "version": "2.1.31",
@@ -81,9 +93,9 @@
     {
       "version": "2.1.121",
       "content": "- The terminal tab session title is now generated in your configured `language` setting",
-      "content_ja": "ターミナルタブのセッションタイトルが、設定された `language`(言語)で生成されるようになりました。",
+      "content_ja": "ターミナルタブのセッションタイトルが、設定された `language`（言語）で生成されるようになりました。",
       "inference": {
-        "before": "設定で言語を日本語などに指定していても、ターミナルのタブに自動で付与されるセッション名(概要)は常に英語で生成されていました。",
+        "before": "設定で言語を日本語などに指定していても、ターミナルのタブに自動で付与されるセッション名（概要）は常に英語で生成されていました。",
         "after": "設定ファイルの `language` 項目を反映し、ユーザーが指定した言語でタブタイトルが生成されるようになりました。",
         "benefit": "日本語環境で使用している場合、タブの一覧を見るだけでどのセッションが何の内容だったかを直感的に把握しやすくなります。"
       }
@@ -93,7 +105,7 @@
       "content": "- [VSCode] Voice dictation now respects the `accessibility.voice.speechLanguage` setting when no Claude Code language is configured",
       "content_ja": "[VS Code] Claude Code の言語設定がない場合、音声入力が VS Code の `accessibility.voice.speechLanguage` 設定を尊重するようになりました。",
       "inference": {
-        "before": "VS Code 拡張版で音声入力(ディクテーション)を使用する際、Claude Code 側の設定が空だとデフォルトの言語が使われ、VS Code 本体で設定している好みの音声言語が反映されませんでした。",
+        "before": "VS Code 拡張版で音声入力（ディクテーション）を使用する際、Claude Code 側の設定が空だとデフォルトの言語が使われ、VS Code 本体で設定している好みの音声言語が反映されませんでした。",
         "after": "個別の設定がない場合は VS Code 側の音声言語設定を自動で参照するようになり、エディタ環境と一貫性のある動作になります。",
         "benefit": "VS Code ですでに音声入力を活用しているユーザーは、Claude Code のためだけに言語を再設定する手間が省けます。"
       }
@@ -111,7 +123,7 @@
     {
       "version": "2.1.69",
       "content": "- Added Voice STT support for 10 new languages (20 total) — Russian, Polish, Turkish, Dutch, Ukrainian, Greek, Czech, Danish, Swedish, Norwegian",
-      "content_ja": "音声入力(STT)にロシア語、オランダ語、北欧諸国語など新たに10言語のサポートを追加(計20言語に対応)",
+      "content_ja": "音声入力（STT）にロシア語、オランダ語、北欧諸国語など新たに10言語のサポートを追加（計20言語に対応）",
       "inference": {
         "before": "音声入力機能を利用できる言語が限定されており、多くの開発者にとって母国語での入力が困難でした。",
         "after": "対応言語が倍増し、より広範な地域の開発者が自然な音声でClaudeに指示を出せるようになりました。",

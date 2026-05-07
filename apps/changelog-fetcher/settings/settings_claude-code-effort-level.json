@@ -1,9 +1,27 @@
 {
   "key": "CLAUDE_CODE_EFFORT_LEVEL",
+  "leaf_name": "CLAUDE_CODE_EFFORT_LEVEL",
   "slug": "claude-code-effort-level",
   "source": "env",
   "description_en": "Set the effort level for supported models. Values: `low`, `medium`, `high`, `xhigh`, `max`, or `auto` to use the model default. Available levels depend on the model. Takes precedence over `/effort` and the `effortLevel` setting. See [Adjust effort level](/en/model-config#adjust-effort-level)",
-  "description_ja": "サポートされているモデルの思考負荷(Effort)レベルを low, medium, high, xhigh, max, または auto の中から設定します。",
-  "use_case_ja": "- 特定のセッションやスクリプトにおいて、モデルの推論の深さとトークン消費のバランスを環境変数から直接制御します。\n- `max` 設定をセッションをまたいで適用したい場合や、スキル・サブエージェントごとに個別の負荷設定を強制したい場合に使用します。",
-  "related_changelog": []
+  "description_ja": "サポートされているモデルの思考の努力レベル（low, medium, high, xhigh, max, auto）を設定します。",
+  "use_case_ja": "- /effortコマンドや設定ファイルの値よりも優先され、セッション中の推論の深さを固定できます。\n- 環境変数の設定値はUI（モデルピッカー等）にも反映されるため、現在の設定ミスによる予期せぬトークン消費を防げます。\n- スキルやサブエージェントごとに異なる努力レベルを適用したい場合のベース設定としても機能します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "When you first run Opus 4.7, Claude Code applies xhigh even if you previously set a different effort level for Opus 4.6 or Sonnet 4.6. Run /effort again to choose a different level after switching. low , medium , high , and xhigh persist across sessions. max provides the deepest reasoning with no constraint on token spending and applies to the current session only, except when set through the CLAUDE_CODE_EFFORT_LEVEL environment variable. Choose an effort level",
+    "/effort : run /effort with no arguments to open an interactive slider, /effort followed by a level name to set it directly, or /effort auto to reset to the model default In /model : use left/right arrow keys to adjust the effort slider when selecting a model --effort flag : pass a level name to set it for a single session when launching Claude Code Environment variable : set CLAUDE_CODE_EFFORT_LEVEL to a level name or auto Settings : set effortLevel in your settings file Skill and subagent frontmatter : set effort in a skill or subagent markdown file to override the effort level when that skill or subagent runs",
+    "| disableRemoteControl | Disable Remote Control : blocks claude remote-control , the --remote-control flag, auto-start, and the in-session toggle. Typically placed in managed settings for per-device MDM enforcement, but works from any scope. Requires Claude Code v2.1.128 or later | true | | disableSkillShellExecution | Disable inline shell execution for !`...` and ```! blocks in skills and custom commands from user, project, plugin, or additional-directory sources. Commands are replaced with [shell command execution disabled by policy] instead of being run. Bundled and managed skills are not affected. Most useful in managed settings where users cannot override it | true | | editorMode | Key binding mode for the input prompt: \"normal\" or \"vim\" . Default: \"normal\" . Appears in /config as Editor mode | \"vim\" | | effortLevel | Persist the effort level across sessions. Accepts \"low\" , \"medium\" , \"high\" , or \"xhigh\" . Written automatically when you run /effort with one of those values. --effort and CLAUDE_CODE_EFFORT_LEVEL override this for one session. See Adjust effort level for supported models | \"xhigh\" | | enableAllProjectMcpServers | Automatically approve all MCP servers defined in project files | true | | enabledMcpjsonServers | List of specific MCP servers from files to approve | [\"memory\", \"github\"] | | env | Environment variables that will be applied to every session | {\"FOO\": \"bar\"} |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.132",
+      "content": "- Fixed `/effort` picker not reflecting the `CLAUDE_CODE_EFFORT_LEVEL` env var override",
+      "content_ja": "`/effort` の選択画面に `CLAUDE_CODE_EFFORT_LEVEL` 環境変数のオーバーライド設定が反映されない問題を修正しました",
+      "inference": {
+        "before": "環境変数で思考の努力レベルを固定していても、UI 上のインジケーターには以前の設定やデフォルト値が表示され、実際の設定と乖離があるように見えました。",
+        "after": "環境変数の設定値が UI にも正しく反映され、現在の正確な動作設定を視覚的に確認できます。",
+        "benefit": "現在の推論設定が一目でわかるようになり、設定ミスによる予期せぬトークン消費や回答精度の変化を防げます。"
+      }
+    }
+  ]
 }

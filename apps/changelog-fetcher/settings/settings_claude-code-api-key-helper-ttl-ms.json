@@ -1,10 +1,16 @@
 {
   "key": "CLAUDE_CODE_API_KEY_HELPER_TTL_MS",
+  "leaf_name": "CLAUDE_CODE_API_KEY_HELPER_TTL_MS",
   "slug": "claude-code-api-key-helper-ttl-ms",
   "source": "env",
   "description_en": "Interval in milliseconds at which credentials should be refreshed (when using [`apiKeyHelper`](/en/settings#available-settings))",
-  "description_ja": "apiKeyHelper設定を使用している際、認証情報を更新する間隔をミリ秒単位で設定します。",
-  "use_case_ja": "- 独自のスクリプトでAPIキーを取得している環境で、キーの有効期限に合わせて更新頻度を調整したい場合に使用します。\n- デフォルトの5分間隔が短い、あるいは長すぎる場合に、認証システムの要件に合わせて最適化できます。",
+  "description_ja": "`apiKeyHelper`を使用して認証情報を取得する際の更新間隔（ミリ秒単位）を設定します。",
+  "use_case_ja": "- 短期間で期限が切れる一時的なAPIキーを生成するカスタムスクリプトを使用している場合に、リフレッシュ頻度を調整できます。\n- デフォルト（5分または401エラー時）以外のタイミングで、バックグラウンドでのキー更新を制御したい場合に利用します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "If you've set the CLAUDE_CONFIG_DIR environment variable on Linux or Windows, the file lives under that directory instead. Supported authentication types : Claude.ai credentials, Claude API credentials, Azure Auth, Bedrock Auth, and Vertex Auth. Custom credential scripts : the apiKeyHelper setting can be configured to run a shell script that s an API key. Refresh intervals : by default, apiKeyHelper is called after 5 minutes or on HTTP 401 response. Set CLAUDE_CODE_API_KEY_HELPER_TTL_MS environment variable for custom refresh intervals. Slow helper notice : if apiKeyHelper takes longer than 10 seconds to a key, Claude Code displays a warning notice in the prompt bar showing the elapsed time. If you see this notice regularly, check whether your credential script can be optimized. apiKeyHelper , ANTHROPIC_API_KEY , and ANTHROPIC_AUTH_TOKEN apply to terminal CLI sessions only. Claude Desktop and remote sessions use OAuth exclusively and do not call apiKeyHelper or read API key environment variables.",
+    "| allowManagedMcpServersOnly | (Managed settings only) Only allowedMcpServers from managed settings are respected. deniedMcpServers still merges from all sources. Users can still add MCP servers, but only the admin-defined allowlist applies. See Managed MCP configuration | true | | allowManagedPermissionRulesOnly | (Managed settings only) Prevent user and project settings from defining allow , ask , or deny permission rules. Only rules in managed settings apply. See Managed-only settings | true | | alwaysThinkingEnabled | Enable extended thinking by default for all sessions. Typically configured via the /config command rather than editing directly. To force thinking off regardless of this setting, set CLAUDE_CODE_DISABLE_THINKING in env | true | | apiKeyHelper | Custom script, to be executed in /bin/sh , to generate an auth value. This value will be sent as X-Api-Key and Authorization: Bearer headers for model requests. Set the refresh interval with CLAUDE_CODE_API_KEY_HELPER_TTL_MS | /bin/generate_temp_api_key.sh | | attribution | Customize attribution for git commits and pull requests. See Attribution settings | {\"commit\": \"🤖 Generated with Claude Code\", \"pr\": \"\"} | | autoMemoryDirectory | Custom directory for auto memory storage. Accepts an absolute path or a ~/ -prefixed path. Accepted from policy and user settings, and from the --settings flag. Not accepted from project or local settings, since a cloned repository could supply either file to redirect memory writes to sensitive locations | \"~/my-memory-dir\" | | autoMemoryEnabled | Enable auto memory . When false , Claude does not read from or write to the auto memory directory. Default: true . You can also toggle this with /memory during a session. To disable via environment variable, set CLAUDE_CODE_DISABLE_AUTO_MEMORY in env | false |"
+  ],
   "related_changelog": [
     {
       "version": "0.2.117",
