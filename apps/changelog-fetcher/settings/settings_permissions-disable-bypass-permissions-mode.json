@@ -1,0 +1,33 @@
+{
+  "key": "permissions.disableBypassPermissionsMode",
+  "leaf_name": "disableBypassPermissionsMode",
+  "slug": "permissions-disable-bypass-permissions-mode",
+  "source": "settings",
+  "description_en": "Disable the ability to bypass permission prompts",
+  "description_ja": "パーミッションの確認をバイパスする機能を無効にします。",
+  "use_case_ja": "- 組織内の管理設定でこれを 'disable' にすることで、開発者が意図せず --dangerously-skip-permissions フラグを使用してセキュリティ制約を回避することを防ぎます。\n- 本番環境へのアクセスが可能なマシンなど、高い安全性が求められる環境でバイパスモードを禁止し、常に人間の承認を強制するために使用します。",
+  "parent_descriptions": [
+    "Tool usage permissions configuration.\nSee https://code.claude.com/docs/en/permissions and https://code.claude.com/docs/en/settings#permission-settings\nSee https://code.claude.com/docs/en/tools-reference for full list of tools available to Claude."
+  ],
+  "doc_snippets": [
+    "| dontAsk | Auto-denies tools unless pre-approved via /permissions or permissions.allow rules | | bypassPermissions | Skips all permission prompts. Root and home directory removals such as rm -rf / still prompt as a circuit breaker | bypassPermissions mode skips all permission prompts, including writes to , , , , and . Removals targeting the filesystem root or home directory, such as rm -rf / and rm -rf ~ , still prompt as a circuit breaker against model error. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting permissions.disableBypassPermissionsMode to \"disable\" in managed settings . To prevent bypassPermissions or auto mode from being used, set permissions.disableBypassPermissionsMode or permissions.disableAutoMode to \"disable\" in any settings file . These are most useful in managed settings where they cannot be overridden. Permission rule syntax",
+    "| strictKnownMarketplaces | Controls which plugin marketplace sources users can add and install plugins from. See managed marketplace restrictions | | wslInheritsWindowsSettings | When true in the Windows HKLM registry key or C:\\Program Files\\ClaudeCode\\managed-settings.json , WSL reads managed settings from the Windows policy chain in addition to /etc/claude-code . See Settings files | disableBypassPermissionsMode is typically placed in managed settings to enforce organizational policy, but it works from any scope. A user can set it in their own settings to lock themselves out of bypass mode. On Team and Enterprise plans, an admin enables or disables Remote Control and web sessions organization-wide in Claude Code admin settings . Remote Control can additionally be disabled per device with the disableRemoteControl managed setting. Web sessions have no per-device managed settings key.",
+    "| deny | Array of permission rules to deny tool use. Use this to exclude sensitive files from Claude Code access. See Permission rule syntax and Bash permission limitations | [ \"WebFetch\", \"Bash(curl *)\", \"Read(./.env)\", \"Read(./secrets/**)\" ] | | additionalDirectories | Additional working directories for file access. Most .claude/ configuration is not discovered from these directories | [ \"../docs/\" ] | | defaultMode | Default permission mode when opening Claude Code. Valid values: default , acceptEdits , plan , auto , dontAsk , bypassPermissions . The --permission-mode CLI flag overrides this setting for a single session | \"acceptEdits\" | | disableBypassPermissionsMode | Set to \"disable\" to prevent bypassPermissions mode from being activated. This disables the --dangerously-skip-permissions command-line flag. Typically placed in managed settings to enforce organizational policy, but works from any scope | \"disable\" | | skipDangerousModePermissionPrompt | Skip the confirmation prompt shown before entering bypass permissions mode via --dangerously-skip-permissions or defaultMode: \"bypassPermissions\" . Ignored when set in project settings ( .claude/settings.json ) to prevent untrusted repositories from auto-bypassing the prompt | true | Permission rule syntax"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.110",
+      "content": "- Fixed `PermissionRequest` hooks returning `updatedInput` not being re-checked against `permissions.deny` rules; `setMode:'bypassPermissions'` updates now respect `disableBypassPermissionsMode`",
+      "content_ja": "`PermissionRequest`フックによる入力更新後に`permissions.deny`ルールが再チェックされない問題、およびバイパス設定が制限を無視できる問題を修正",
+      "inference": {
+        "before": "フック機能で入力を書き換えた際、禁止ルールをすり抜けてしまう可能性がありました。また、管理ポリシーで禁止されている場合でも、フックから「バイパスモード」へ移行できてしまうセキュリティ上の懸念がありました。",
+        "after": "更新された入力に対して再度厳格な権限チェックが行われ、管理者設定による「バイパス禁止」も常に尊重されるようになりました。",
+        "benefit": "組織で設定したセキュリティポリシーをバイパスされるリスクが解消され、フック機能を安心して業務に組み込めます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- [VSCode] The permission mode picker now respects `permissions.disableBypassPermissionsMode` from your effective Claude Code settings (including managed/policy settings) — when set to `disable`, bypass permissions mode is hidden from the picker"
+    }
+  ]
+}

@@ -1,9 +1,12 @@
 {
   "key": "CLAUDE_CODE_SHELL",
+  "leaf_name": "CLAUDE_CODE_SHELL",
   "slug": "claude-code-shell",
   "source": "env",
   "description_en": "Override automatic shell detection. Useful when your login shell differs from your preferred working shell (for example, `bash` vs `zsh`)",
-  "description_ja": "自動検出されるシェルの代わりに、Claude Codeが使用する優先シェルを指定します。",
+  "description_ja": "自動検出されるシェルの種類を上書きし、ログインシェルと異なる好みのシェル（例：zsh ではなく bash）を強制的に使用させます。",
+  "parent_descriptions": [],
+  "doc_snippets": [],
   "related_changelog": [
     {
       "version": "1.0.61",
@@ -12,6 +15,16 @@
     {
       "version": "2.0.65",
       "content": "- Added `CLAUDE_CODE_SHELL` environment variable to override automatic shell detection (useful when login shell differs from actual working shell)"
+    },
+    {
+      "version": "2.1.128",
+      "content": "- Fixed MCP stdio servers receiving corrupted arguments when `CLAUDE_CODE_SHELL_PREFIX` is set and an argument contains spaces or shell metacharacters",
+      "content_ja": "`CLAUDE_CODE_SHELL_PREFIX` 設定時に、引数にスペースやシェル特殊文字が含まれると MCP stdio サーバーが破損した引数を受け取ってしまう問題を修正",
+      "inference": {
+        "before": "ロギングなどのためにシェルプレフィックスを使用している環境で、MCP サーバーを起動する際、スペースを含む複雑な引数が正しくエスケープされず、サーバーが正常に動作しないことがありました。",
+        "after": "特殊文字を含む引数のクォーティング処理が改善され、プレフィックス使用時でも MCP サーバーへ正確に引数が渡されるようになります。",
+        "benefit": "監査やデバッグのためにシェルをラップしている環境でも、MCP 連携を安定して利用できます。"
+      }
     }
   ]
 }

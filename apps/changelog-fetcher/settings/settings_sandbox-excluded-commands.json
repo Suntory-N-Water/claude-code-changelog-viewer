@@ -1,0 +1,40 @@
+{
+  "key": "sandbox.excludedCommands",
+  "leaf_name": "excludedCommands",
+  "slug": "sandbox-excluded-commands",
+  "source": "settings",
+  "description_en": "Commands that should never run in the sandbox (e.g., [\"git\", \"docker\"]). See https://code.claude.com/docs/en/sandboxing#configure-sandboxing",
+  "description_ja": "サンドボックス内で実行すべきではないコマンドのリスト（例: [\"git\", \"docker\"]）を指定します。",
+  "use_case_ja": "- DockerやWSL2環境下のWindowsバイナリなど、サンドボックスの制約（名前空間やプロキシ制限）と互換性のないツールを実行させるために使用します。\n- サンドボックスの制限でコマンドが失敗した際の「脱出ハッチ」として機能し、特定のコマンドを隔離環境の外で実行させることで開発作業の停滞を防ぎます。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing"
+  ],
+  "doc_snippets": [
+    "WSL1 does not support sandboxing because it lacks the required Linux namespace primitives. If you see Sandboxing requires WSL2 , upgrade your distribution to WSL2 or run Claude Code without sandboxing. On WSL2, sandboxed commands cannot launch Windows binaries such as cmd.exe , powershell.exe , or anything under /mnt/c/ . WSL hands these off to the Windows host over a Unix socket, which the sandbox blocks. If a command needs to invoke a Windows binary, add it to excludedCommands so it runs outside the sandbox. Enable sandboxing",
+    "Many CLI tools require accessing certain hosts. As you use these tools, they will request permission to access certain hosts. Granting permission will allow them to access these hosts now and in the future, enabling them to safely execute inside the sandbox. watchman is incompatible with running in the sandbox. If you're running jest , consider using jest --no-watchman docker is incompatible with running in the sandbox. Consider specifying docker * in excludedCommands to force it to run outside of the sandbox. Claude Code includes an intentional escape hatch mechanism that allows commands to run outside the sandbox when necessary. When a command fails due to sandbox restrictions (such as network connectivity issues or incompatible tools), Claude is prompted to analyze the failure and may retry the command with the dangerouslyDisableSandbox parameter. Commands that use this parameter go through the normal Claude Code permissions flow requiring user permission to execute. This allows Claude Code to handle edge cases where certain tools or network operations cannot function within sandbox constraints. You can disable this escape hatch by setting \"allowUnsandboxedCommands\": false in your sandbox settings . When disabled, the dangerouslyDisableSandbox parameter is completely ignored and all commands must run sandboxed or be explicitly listed in excludedCommands . Security benefits",
+    "| enabled | Enable bash sandboxing (macOS, Linux, and WSL2). Default: false | true | | failIfUnavailable | Exit with an error at startup if sandbox.enabled is true but the sandbox cannot start (missing dependencies or unsupported platform). When false (default), a warning is shown and commands run unsandboxed. Intended for managed settings deployments that require sandboxing as a hard gate | true | | autoAllowBashIfSandboxed | Auto-approve bash commands when sandboxed. Default: true | true | | excludedCommands | Commands that should run outside of the sandbox | [\"docker *\"] | | allowUnsandboxedCommands | Allow commands to run outside the sandbox via the dangerouslyDisableSandbox parameter. When set to false , the dangerouslyDisableSandbox escape hatch is completely disabled and all commands must run sandboxed (or be in excludedCommands ). Useful for enterprise policies that require strict sandboxing. Default: true | false | | filesystem.allowWrite | Additional paths where sandboxed commands can write. Arrays are merged across all settings scopes: user, project, and managed paths are combined, not replaced. Also merged with paths from Edit(...) allow permission rules. See path prefixes below. | [\"/tmp/build\", \"~/.kube\"] | | filesystem.denyWrite | Paths where sandboxed commands cannot write. Arrays are merged across all settings scopes. Also merged with paths from Edit(...) deny permission rules. | [\"/etc\", \"/usr/local/bin\"] | | filesystem.denyRead | Paths where sandboxed commands cannot read. Arrays are merged across all settings scopes. Also merged with paths from Read(...) deny permission rules. | [\"~/.aws/credentials\"] |",
+    "\"sandbox\": { \"enabled\": true, \"autoAllowBashIfSandboxed\": true, \"excludedCommands\": [\"docker *\"], \"filesystem\": { \"allowWrite\": [\"/tmp/build\", \" /.kube\"], \"denyRead\": [\" /.aws/credentials\"]"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.34",
+      "content": "- Fixed a bug where commands excluded from sandboxing (via `sandbox.excludedCommands` or `dangerouslyDisableSandbox`) could bypass the Bash ask permission rule when `autoAllowBashIfSandboxed` was enabled",
+      "content_ja": "サンドボックスから除外されたコマンド(`sandbox.excludedCommands` または `dangerouslyDisableSandbox` 経由)が、`autoAllowBashIfSandboxed` が有効な場合に Bash の権限要求ルールを迂回するバグを修正しました。",
+      "inference": {
+        "before": "以前は、サンドボックス機能を使って自動承認されるように設定されたBashコマンドの一部が、意図せず権限の要求なしに実行される可能性がありました。これは、特定のコマンドがサンドボックスから除外されるように設定されている場合に発生し、セキュリティ上の脆弱性となる恐れがありました。",
+        "after": "今回の修正により、`autoAllowBashIfSandboxed` 設定が有効な環境でも、サンドボックスから除外されたコマンドは適切にBashの権限要求ルールに従うようになりました。これにより、除外設定されたコマンドであっても、ユーザーの許可なく勝手に実行されることはありません。",
+        "benefit": "この修正により、サンドボックスのセキュリティモデルが強化され、より安心してClaude Codeを利用できるようになります。意図しないコマンドの実行を防ぎ、システムへのアクセスを厳密に制御できるため、セキュリティリスクが低減されます。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed several permission rule matching issues: wildcard rules not matching commands with heredocs, embedded newlines, or no arguments; `sandbox.excludedCommands` failing with env var prefixes; \"always allow\" suggesting overly broad prefixes for nested CLI tools; and deny rules not applying to all command forms",
+      "content_ja": "ワイルドカードルールのマッチング精度やサンドボックス除外コマンド、拒否ルールの適用範囲など、パーミッション周りの不具合を修正",
+      "inference": {
+        "before": "ヒアドキュメントを含むコマンドや環境変数プレフィックス付きのコマンドなど、特定のパターンにおいてパーミッション設定が正しく適用されない場合がありました。",
+        "after": "コマンドラインの解析ロジックが強化され、複雑な形式のコマンドに対しても設定した許可・拒否ルールが正確に機能するようになりました。",
+        "benefit": "「常に許可」や「常に拒否」の設定が期待通りに働くようになり、セキュリティ設定の信頼性が向上します。"
+      }
+    }
+  ]
+}

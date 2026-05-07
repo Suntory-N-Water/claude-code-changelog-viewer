@@ -1,0 +1,44 @@
+{
+  "key": "hooks.PermissionRequest",
+  "leaf_name": "PermissionRequest",
+  "slug": "hooks-permission-request",
+  "source": "settings",
+  "description_en": "Hooks that run when a permission dialog appears",
+  "description_ja": "権限確認ダイアログが表示される際に実行されるフック。",
+  "use_case_ja": "- 特定の操作（例：プラン終了後の実行確認）を自動承認して対話の手間を省いたり、独自の権限チェックロジックを組み込んだりします。\n- 入力を書き換えた後の再チェックやバイパス禁止設定など、組織のセキュリティポリシーを遵守した権限制御が可能です。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "Skip the approval dialog for tool calls you always allow. This example auto-approves ExitPlanMode , the tool Claude calls when it finishes presenting a plan and asks to proceed, so you aren't prompted every time a plan is ready. Unlike the exit-code examples above, auto-approval requires your hook to write a JSON decision to stdout. A PermissionRequest hook fires when Claude Code is about to show a permission dialog, and ing \"behavior\": \"allow\" answers it on your behalf. The matcher scopes the hook to ExitPlanMode only, so no other prompts are affected. Add this to ~/.claude/settings.json :",
+    "| UserPromptSubmit | When you submit a prompt, before Claude processes it | | UserPromptExpansion | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion | | PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears | | PermissionDenied | When a tool call is denied by the auto mode classifier. Return {retry: true} to tell the model it may retry the denied tool call | | PostToolUse | After a tool call succeeds | | PostToolUseFailure | After a tool call fails |",
+    "| UserPromptSubmit | When you submit a prompt, before Claude processes it | | UserPromptExpansion | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion | | PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears | | PermissionDenied | When a tool call is denied by the auto mode classifier. Return {retry: true} to tell the model it may retry the denied tool call | | PostToolUse | After a tool call succeeds | | PostToolUseFailure | After a tool call fails |",
+    "Event What the matcher filters Example matcher values PreToolUse , PostToolUse , PostToolUseFailure , PermissionRequest , PermissionDenied tool name Bash , Edit|Write , mcp__.* SessionStart how the session started startup , resume , clear , compact Setup which CLI flag triggered setup init , maintenance SessionEnd why the session ended clear , resume , logout , prompt_input_exit , bypass_permissions_disabled , other",
+    "Match MCP tools MCP server tools appear as regular tools in tool events ( PreToolUse , PostToolUse , PostToolUseFailure , PermissionRequest , PermissionDenied ), so you can match them the same way you match any other tool name. MCP tools follow the naming pattern mcp__ __ , for example:",
+    "Field Required Description type yes \"command\" , \"http\" , \"mcp_tool\" , \"prompt\" , or \"agent\" if no Permission rule syntax to filter when this hook runs, such as \"Bash(git *)\" or \"Edit(*.ts)\" . The hook only spawns if the tool call matches the pattern, or if a Bash command is too complex to parse. Only evaluated on tool events: PreToolUse , PostToolUse , PostToolUseFailure , PermissionRequest , and PermissionDenied . On other events, a hook with if set never runs. Uses the same syntax as permission rules timeout Seconds before canceling. Defaults: 600 for command, 30 for prompt, 60 for agent statusMessage Custom spinner message displayed while the hook runs once If true , runs once per session then is removed. Only honored for hooks declared in skill frontmatter ; ignored in settings files and agent frontmatter",
+    "Hook event Can block? What happens on exit 2 PreToolUse Yes Blocks the tool call PermissionRequest Denies the permission UserPromptSubmit Blocks prompt processing and erases the prompt UserPromptExpansion Blocks the expansion Stop Prevents Claude from stopping, continues the conversation",
+    "decision : Either \"accept\" or \"reject\" source : Where the decision came from: \"config\" : Decided automatically without prompting, based on project settings, enterprise managed policy, --allowedTools or --disallowedTools flags, the active permission mode, or because the tool is inherently safe. \"hook\" : A PreToolUse or PermissionRequest hook ed the decision. \"user_permanent\" : Emitted when the user chose \"Always allow\" when prompted, saving a rule to their personal settings. Also emitted for later calls that match that saved rule. Treated as an accept. \"user_temporary\" : Emitted when the user chose \"Yes\" or \"Yes, for this session\" when prompted, without saving a rule. Also emitted for later calls in the same session that match that session-scoped allow. Treated as an accept. \"user_abort\" : Emitted when the user dismissed the permission prompt without answering. Treated as a reject.",
+    "Permissions : allow, ask, and deny rules; managed policies Configure auto mode : tell the classifier which infrastructure your organization trusts Hooks : custom permission logic via PreToolUse and PermissionRequest hooks Ultraplan : run plan mode in a Claude Code on the web session with browser-based review Security : safeguards and best practices Sandboxing : filesystem and network isolation for Bash commands",
+    "| UserPromptSubmit | When you submit a prompt, before Claude processes it | | UserPromptExpansion | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion | | PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears | | PermissionDenied | When a tool call is denied by the auto mode classifier. Return {retry: true} to tell the model it may retry the denied tool call | | PostToolUse | After a tool call succeeds | | PostToolUseFailure | After a tool call fails |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.0.45",
+      "content": "- Added `PermissionRequest` hook to automatically approve or deny tool permission requests with custom logic"
+    },
+    {
+      "version": "2.0.54",
+      "content": "- Hooks: Enable PermissionRequest hooks to process 'always allow' suggestions and apply permission updates"
+    },
+    {
+      "version": "2.1.110",
+      "content": "- Fixed `PermissionRequest` hooks returning `updatedInput` not being re-checked against `permissions.deny` rules; `setMode:'bypassPermissions'` updates now respect `disableBypassPermissionsMode`",
+      "content_ja": "`PermissionRequest`フックによる入力更新後に`permissions.deny`ルールが再チェックされない問題、およびバイパス設定が制限を無視できる問題を修正",
+      "inference": {
+        "before": "フック機能で入力を書き換えた際、禁止ルールをすり抜けてしまう可能性がありました。また、管理ポリシーで禁止されている場合でも、フックから「バイパスモード」へ移行できてしまうセキュリティ上の懸念がありました。",
+        "after": "更新された入力に対して再度厳格な権限チェックが行われ、管理者設定による「バイパス禁止」も常に尊重されるようになりました。",
+        "benefit": "組織で設定したセキュリティポリシーをバイパスされるリスクが解消され、フック機能を安心して業務に組み込めます。"
+      }
+    }
+  ]
+}

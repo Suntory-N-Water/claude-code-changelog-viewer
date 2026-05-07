@@ -1,0 +1,45 @@
+{
+  "key": "hooks.InstructionsLoaded",
+  "leaf_name": "InstructionsLoaded",
+  "slug": "hooks-instructions-loaded",
+  "source": "settings",
+  "description_en": "Hooks that run when a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded (e.g., nested traversal, path glob match). No decision control; used for audit logging and observability. Does not support matchers. See https://code.claude.com/docs/en/hooks#instructionsloaded",
+  "description_ja": "CLAUDE.md や .claude/rules/*.md ファイルがコンテキストに読み込まれた際に実行されるフック。",
+  "use_case_ja": "- 特定の指示ファイルが読み込まれたことを検知して監査ログを記録したり、読み込まれたルールに基づいた環境の自動セットアップを行ったりします。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "| Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session | | CwdChanged | When the working directory changes, for example when Claude executes a cd command. Useful for reactive environment management with tools like direnv | | FileChanged | When a watched file changes on disk. The matcher field specifies which filenames to watch |",
+    "| SubagentStop | agent type | same values as SubagentStart | | ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env |",
+    "| Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session | | CwdChanged | When the working directory changes, for example when Claude executes a cd command. Useful for reactive environment management with tools like direnv | | FileChanged | When a watched file changes on disk. The matcher field specifies which filenames to watch |",
+    "| CwdChanged | no matcher support | always fires on every directory change | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env | | StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | UserPromptExpansion | command name | your skill or command names | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation |",
+    "| ElicitationResult | Yes | Blocks the response (action becomes decline) | | WorktreeCreate | Yes | Any non-zero exit code causes worktree creation to fail | | WorktreeRemove | No | Failures are logged in debug mode only | | InstructionsLoaded | No | Exit code is ignored | HTTP response handling",
+    "| WorktreeCreate | path | Command hook prints path on stdout; HTTP hook s hookSpecificOutput.worktreePath . Hook failure or missing path fails creation | | Elicitation | hookSpecificOutput | action (accept/decline/cancel), content (form field values for accept) | | ElicitationResult | hookSpecificOutput | action (accept/decline/cancel), content (form field values override) | | WorktreeRemove, Notification, SessionEnd, PostCompact, InstructionsLoaded, StopFailure, CwdChanged, FileChanged | None | No decision control. Used for side effects like logging or cleanup | Here are examples of each pattern in action:",
+    "Setup hooks have access to CLAUDE_ENV_FILE . Variables written to that file persist into subsequent Bash commands for the session, just as in SessionStart hooks . Only type: \"command\" and type: \"mcp_tool\" hooks are supported. InstructionsLoaded Fires when a CLAUDE.md or .claude/rules/*.md file is loaded into context. This event fires at session start for eagerly-loaded files and again later when files are lazily loaded, for example when Claude accesses a subdirectory that contains a nested CLAUDE.md or when conditional rules with paths: frontmatter match. The hook does not support blocking or decision control. It runs asynchronously for observability purposes. The matcher runs against load_reason . For example, use \"matcher\": \"session_start\" to fire only for files loaded at session start, or \"matcher\": \"path_glob_match|nested_traversal\" to fire only for lazy loads. InstructionsLoaded input In addition to the common input fields , InstructionsLoaded hooks receive these fields: Field Description",
+    "For instructions you want at the system prompt level, use --append-system-prompt . This must be passed every invocation, so it's better suited to scripts and automation than interactive use. Use the InstructionsLoaded hook to log exactly which instruction files are loaded, when they load, and why. This is useful for debugging path-specific rules or lazy-loaded files in subdirectories. I don't know what auto memory saved",
+    "| Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session | | CwdChanged | When the working directory changes, for example when Claude executes a cd command. Useful for reactive environment management with tools like direnv | | FileChanged | When a watched file changes on disk. The matcher field specifies which filenames to watch |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.64",
+      "content": "- Added `InstructionsLoaded` hook event that fires when CLAUDE.md or `.claude/rules/*.md` files are loaded into context",
+      "content_ja": "`InstructionsLoaded` フックイベントを追加しました。`CLAUDE.md` や `.claude/rules/*.md` ファイルがコンテキストに読み込まれたタイミングで実行されます。",
+      "inference": {
+        "before": "Claude がいつプロジェクト固有のルールを認識したのかをトリガーにして外部スクリプトを実行したり、読み込まれた指示の内容に基づいて動的な処理を行ったりする手段がありませんでした。",
+        "after": "ルールの読み込み完了をフックできるようになったため、特定のルールが適用された際に通知を出したり、関連する依存関係のチェックを自動で行ったりすることが可能になります。",
+        "benefit": "指示ファイル（CLAUDE.md）を中心とした開発ワークフローの自動化が進み、特定のコンテキストに合わせた柔軟な拡張が可能になります。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Added `InstructionsLoaded` hook event that fires when CLAUDE.md or `.claude/rules/*.md` files are loaded into context",
+      "content_ja": "CLAUDE.md やルールファイルが読み込まれた際に発火する `InstructionsLoaded` フックイベントを追加",
+      "inference": {
+        "before": "プロジェクト固有の指示が読み込まれたタイミングを検知して自動で処理を実行する手段がありませんでした。",
+        "after": "メモリファイルが読み込まれた直後に特定のスクリプトを実行し、コンテキストの検証や追加情報の注入が可能になりました。",
+        "benefit": "指示ファイルの変更に合わせた環境の自動セットアップなどが可能になり、プロジェクトごとのカスタマイズの幅が広がります。"
+      }
+    }
+  ]
+}

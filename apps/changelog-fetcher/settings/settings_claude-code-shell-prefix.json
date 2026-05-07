@@ -1,13 +1,27 @@
 {
   "key": "CLAUDE_CODE_SHELL_PREFIX",
+  "leaf_name": "CLAUDE_CODE_SHELL_PREFIX",
   "slug": "claude-code-shell-prefix",
   "source": "env",
   "description_en": "Command prefix that wraps shell commands Claude Code spawns: Bash tool calls, [hook](/en/hooks) commands, and stdio [MCP server](/en/mcp) startup commands. Useful for logging or auditing. Example: setting `/path/to/logger.sh` runs each command as `/path/to/logger.sh <command>`",
-  "description_ja": "Claude Codeが起動するすべてのシェルコマンド(ツール呼び出し、フック、MCPサーバー)に付与するコマンド接頭辞を設定します。",
+  "description_ja": "Claude Code が起動するシェルコマンド（Bashツール、フック、MCPサーバー起動など）をラップするコマンドプレフィックスを指定します。",
+  "use_case_ja": "- 全てのコマンド実行をカスタムスクリプト経由にすることで、監査ログの記録やデバッグを可能にします。\n- スペースや特殊文字を含む複雑な引数も適切にクォーティングして MCP サーバーに渡せるよう改善されており、安定したラップ環境を提供します。",
+  "parent_descriptions": [],
+  "doc_snippets": [],
   "related_changelog": [
     {
       "version": "1.0.61",
       "content": "- Added `CLAUDE_CODE_SHELL_PREFIX` for wrapping Claude and user-provided shell commands run by Claude Code"
+    },
+    {
+      "version": "2.1.128",
+      "content": "- Fixed MCP stdio servers receiving corrupted arguments when `CLAUDE_CODE_SHELL_PREFIX` is set and an argument contains spaces or shell metacharacters",
+      "content_ja": "`CLAUDE_CODE_SHELL_PREFIX` 設定時に、引数にスペースやシェル特殊文字が含まれると MCP stdio サーバーが破損した引数を受け取ってしまう問題を修正",
+      "inference": {
+        "before": "ロギングなどのためにシェルプレフィックスを使用している環境で、MCP サーバーを起動する際、スペースを含む複雑な引数が正しくエスケープされず、サーバーが正常に動作しないことがありました。",
+        "after": "特殊文字を含む引数のクォーティング処理が改善され、プレフィックス使用時でも MCP サーバーへ正確に引数が渡されるようになります。",
+        "benefit": "監査やデバッグのためにシェルをラップしている環境でも、MCP 連携を安定して利用できます。"
+      }
     }
   ]
 }

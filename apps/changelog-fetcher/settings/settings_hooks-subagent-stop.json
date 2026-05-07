@@ -1,0 +1,75 @@
+{
+  "key": "hooks.SubagentStop",
+  "leaf_name": "SubagentStop",
+  "slug": "hooks-subagent-stop",
+  "source": "settings",
+  "description_en": "Hooks that run when subagents finish responding",
+  "description_ja": "サブエージェントが応答を終えた際に実行されるフック。",
+  "use_case_ja": "- サブエージェントの処理が完了したタイミングでクリーンアップスクリプトを実行したり、最終的な応答内容を解析して後続の処理に活かしたりします。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "| PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding |",
+    "| Notification | notification type | permission_prompt , idle_prompt , auth_success , elicitation_dialog , elicitation_complete , elicitation_response | | SubagentStart | agent type | general-purpose , Explore , Plan , or custom agent names | | PreCompact , PostCompact | what triggered compaction | manual , auto | | SubagentStop | agent type | same values as SubagentStart | | ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact |",
+    "\"ok\": true : the action proceeds \"ok\": false : what happens depends on the event: Stop and SubagentStop : the reason is fed back to Claude so it keeps working PreToolUse : the tool call is denied and the reason is ed to Claude as the tool error, so it can adjust and continue PostToolUse , PostToolBatch , UserPromptSubmit , and UserPromptExpansion : the turn ends and the reason appears in the chat as a warning line",
+    "| PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding |",
+    "| Notification | notification type | permission_prompt , idle_prompt , auth_success , elicitation_dialog , elicitation_complete , elicitation_response | | SubagentStart | agent type | general-purpose , Explore , Plan , or custom agent names | | PreCompact , PostCompact | what triggered compaction | manual , auto | | SubagentStop | agent type | same values as SubagentStart | | ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | CwdChanged | no matcher support | always fires on every directory change | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env |",
+    "In addition to settings files and plugins, hooks can be defined directly in skills and subagents using frontmatter. These hooks are scoped to the component's lifecycle and only run when that component is active. All hook events are supported. For subagents, Stop hooks are automatically converted to SubagentStop since that is the event that fires when a subagent completes. Hooks use the same configuration format as settings-based hooks but are scoped to the component's lifetime and cleaned up when it finishes.",
+    "| UserPromptSubmit | Yes | Blocks prompt processing and erases the prompt | | UserPromptExpansion | Yes | Blocks the expansion | | Stop | Yes | Prevents Claude from stopping, continues the conversation | | SubagentStop | Yes | Prevents the subagent from stopping | | TeammateIdle | Yes | Prevents the teammate from going idle (teammate continues working) | | TaskCreated | Yes | Rolls back the task creation | | TaskCompleted | Yes | Prevents the task from being marked as completed |",
+    "Events Decision pattern Key fields UserPromptSubmit, UserPromptExpansion, PostToolUse, PostToolUseFailure, PostToolBatch, Stop, SubagentStop, ConfigChange, PreCompact Top-level decision decision: \"block\" , reason TeammateIdle, TaskCreated, TaskCompleted Exit code or continue: false Exit code 2 blocks the action with stderr feedback. JSON {\"continue\": false, \"stopReason\": \"...\"} also stops the teammate entirely, matching Stop hook behavior PreToolUse hookSpecificOutput permissionDecision (allow/deny/ask/defer), permissionDecisionReason PermissionRequest decision.behavior (allow/deny)",
+    "| PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned | | SubagentStop | When a subagent finishes | | TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding |",
+    "| :- | :- | :- | | PreToolUse | Tool name | Before the subagent uses a tool | | PostToolUse | Tool name | After the subagent uses a tool | | Stop | (none) | When the subagent finishes (converted to SubagentStop at runtime) | This example validates Bash commands with the PreToolUse hook and runs a linter after file edits with PostToolUse :",
+    "Event Matcher input When it fires SubagentStart Agent type name When a subagent begins execution SubagentStop When a subagent completes Both events support matchers to target specific agent types by name. This example runs a setup script only when the db-agent subagent starts, and a cleanup script when any subagent stops:"
+  ],
+  "related_changelog": [
+    {
+      "version": "1.0.41",
+      "content": "- Hooks: Split Stop hook triggering into Stop and SubagentStop"
+    },
+    {
+      "version": "2.0.42",
+      "content": "- Added `agent_id` and `agent_transcript_path` fields to `SubagentStop` hooks."
+    },
+    {
+      "version": "2.1.118",
+      "content": "- Fixed agent-type hooks failing with \"Messages are required for agent hooks\" when configured for events other than `Stop` or `SubagentStop`",
+      "content_ja": "エージェント型フックが `Stop` 等の特定のイベント以外で「メッセージが必要」というエラーで失敗する問題を修正",
+      "inference": {
+        "before": "`SubagentStart` などのイベントに対してエージェント型フックを適用しようとすると、必要なデータ構造が不足しているというエラーで動作しませんでした。",
+        "after": "より多くのイベントに対してエージェント型フックを正しく設定・実行できるようになりました。",
+        "benefit": "特定のライフサイクルイベントにおいて、エージェントによる高度な自動検証を柔軟に組み込めるようになります。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Added `last_assistant_message` field to Stop and SubagentStop hook inputs, providing the final assistant response text so hooks can access it without parsing transcript files.",
+      "content_ja": "StopおよびSubagentStopフック入力に `last_assistant_message` フィールドを追加しました。これにより、フックはトランスクリプトファイルを解析することなく、最終的なアシスタントの応答テキストにアクセスできるようになります。",
+      "inference": {
+        "before": "StopおよびSubagentStopフックでは、アシスタントの最終応答テキストにアクセスするためにトランスクリプトファイルを解析する必要がありました。これは手間がかかるだけでなく、エラーが発生しやすいプロセスでした。",
+        "after": "StopおよびSubagentStopフック入力に `last_assistant_message` フィールドが追加されました。これにより、フックはトランスクリプトファイルを解析することなく、アシスタントの最終応答テキストに直接アクセスできます。",
+        "benefit": "フック開発者がアシスタントの最終応答に簡単にアクセスできるようになり、より効率的で堅牢なフックの作成が可能になりました。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Fixed prompt-type Stop/SubagentStop hooks failing on long sessions, and hook evaluator API errors showing \"JSON validation failed\" instead of the real message",
+      "content_ja": "長時間セッションでのプロンプト型 Stop/SubagentStop フックの失敗、およびフック評価時の API エラーが不正確に表示される問題を修正しました。",
+      "inference": {
+        "before": "会話が長くなるとフックが動かなくなったり、エラーが発生しても原因が分からず「JSONバリデーション失敗」という曖昧な表示が出るだけでした。",
+        "after": "長時間のセッションでもフックが安定して動作し、エラー発生時には API からの実際のメッセージが表示されるため、自己診断が可能になりました。",
+        "benefit": "ワークフローの自動化や検証をフックで行っている場合、その信頼性とメンテナンス性が大幅に向上します。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Fixed prompt-type `Stop`/`SubagentStop` hooks failing on long sessions, and hook evaluator API errors displaying \"JSON validation failed\" instead of the actual message",
+      "content_ja": "長いセッションでプロンプトタイプの`Stop`/`SubagentStop`フックが失敗する問題、およびフック評価時のAPIエラーが具体的なメッセージではなく「JSON validation failed」と表示される問題を修正しました。",
+      "inference": {
+        "before": "セッションが長くなると終了時の自動処理（フック）が動かなくなったり、フックの不具合時に原因が分からないエラーメッセージが表示されることがありました。",
+        "after": "長大セッションでもフックが安定動作し、エラー発生時も具体的な原因が表示されるようになったため、デバッグが容易になりました。",
+        "benefit": "自動化された後処理や通知が確実に実行されるようになり、開発ワークフローの信頼性が向上します。"
+      }
+    }
+  ]
+}

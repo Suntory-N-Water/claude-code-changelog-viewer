@@ -1,0 +1,127 @@
+{
+  "key": "hooks.PostToolUse",
+  "leaf_name": "PostToolUse",
+  "slug": "hooks-post-tool-use",
+  "source": "settings",
+  "description_en": "Hooks that run after tool completion",
+  "description_ja": "ツールの完了後に実行されるフック。",
+  "use_case_ja": "- ファイル編集直後に Prettier などのフォーマッタを自動実行して、コードのスタイルを一貫性に保つのに役立ちます。\n- ツールの実行結果を AI に渡す前に加工・置換したり、処理にかかった純粋な実行時間を計測して分析したりすることができます。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "Aspect Hook Skill Runs A shell command, HTTP request, LLM prompt, or subagent Instructions Claude reads and follows Triggered by Lifecycle events such as PostToolUse or SessionStart You typing / , or Claude matching the description to your task Determinism Always fires on its event; the trigger is guaranteed Claude interprets the instructions; outcome can vary Context cost Zero unless the hook s output Description loads each session; full content loads when used Best for Linting after edits, blocking unsafe commands, logging, notifications Workflows that need reasoning, reference material, multi-step tasks",
+    "Put guardrails in hooks. An instruction like \"never edit \" in CLAUDE.md or a skill is a request, not a guarantee. A PreToolUse hook that blocks the edit is enforcement. If a rule must hold every time, make it a hook rather than a prompt instruction. Hook output lands in context. A PostToolUse hook that runs your linter feeds results back as text Claude reads; a /fix-lint skill tells Claude how to resolve them. Understand how features layer",
+    "Automatically run Prettier on every file Claude edits, so formatting stays consistent without manual intervention. This hook uses the PostToolUse event with an Edit|Write matcher, so it runs only after file-editing tools. The command extracts the edited file path with jq and passes it to Prettier. Add this to .claude/settings.json in your project root:",
+    "| PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears | | PermissionDenied | When a tool call is denied by the auto mode classifier. Return {retry: true} to tell the model it may retry the denied tool call | | PostToolUse | After a tool call succeeds | | PostToolUseFailure | After a tool call fails | | PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned |",
+    "Returning \"allow\" skips the interactive prompt but does not override permission rules . If a deny rule matches the tool call, the call is blocked even when your hook s \"allow\" . If an ask rule matches, the user is still prompted. This means deny rules from any settings scope, including managed settings , always take precedence over hook approvals. Other events use different decision patterns. For example, PostToolUse and Stop hooks use a top-level decision: \"block\" field, while PermissionRequest uses hookSpecificOutput.decision.behavior . See the summary table in the reference for a full breakdown by event. For UserPromptSubmit hooks, use additionalContext instead to inject text into Claude's context. Prompt-based hooks ( type: \"prompt\" ) handle output differently: see Prompt-based hooks . Filter hooks with matchers Without a matcher, a hook fires on every occurrence of its event. Matchers let you narrow that down. For example, if you want to run a formatter only after file edits (not after every tool call), add a matcher to your PostToolUse hook:",
+    "Event What the matcher filters Example matcher values PreToolUse , PostToolUse , PostToolUseFailure , PermissionRequest , PermissionDenied tool name Bash , Edit|Write , mcp__.* SessionStart how the session started startup , resume , clear , compact Setup which CLI flag triggered setup init , maintenance SessionEnd why the session ended clear , resume , logout , prompt_input_exit , bypass_permissions_disabled , other",
+    "Hook lifecycle Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, input arrives on stdin. For HTTP hooks, it arrives as the POST request body. Your handler can then inspect the input, take action, and optionally a decision. Events fall into three cadences: once per session ( SessionStart , SessionEnd ), once per turn ( UserPromptSubmit , Stop , StopFailure ), and on every tool call inside the agentic loop ( PreToolUse , PostToolUse ): The table below summarizes when each event fires. The Hook events section documents the full input schema and decision control options for each one.",
+    "| PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears | | PermissionDenied | When a tool call is denied by the auto mode classifier. Return {retry: true} to tell the model it may retry the denied tool call | | PostToolUse | After a tool call succeeds | | PostToolUseFailure | After a tool call fails | | PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned |",
+    "Event What the matcher filters Example matcher values PreToolUse , PostToolUse , PostToolUseFailure , PermissionRequest , PermissionDenied tool name Bash , Edit|Write , mcp__.* SessionStart how the session started startup , resume , clear , compact Setup which CLI flag triggered setup init , maintenance SessionEnd why the session ended clear , resume , logout , prompt_input_exit , bypass_permissions_disabled , other",
+    "Match MCP tools MCP server tools appear as regular tools in tool events ( PreToolUse , PostToolUse , PostToolUseFailure , PermissionRequest , PermissionDenied ), so you can match them the same way you match any other tool name. MCP tools follow the naming pattern mcp__ __ , for example:",
+    "| PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears | | PermissionDenied | When a tool call is denied by the auto mode classifier. Return {retry: true} to tell the model it may retry the denied tool call | | PostToolUse | After a tool call succeeds | | PostToolUseFailure | After a tool call fails | | PostToolBatch | After a full batch of parallel tool calls resolves, before the next model call | | Notification | When Claude Code sends a notification | | SubagentStart | When a subagent is spawned |",
+    "Hook not triggering on expected events : Verify the event name is correct (case-sensitive): PostToolUse , not postToolUse Check the matcher pattern matches your tools: \"matcher\": \"Write|Edit\" for file operations Confirm the hook type is valid: command , http , mcp_tool , prompt , or agent",
+    "Event Matcher input When it fires PreToolUse Tool name Before the subagent uses a tool PostToolUse After the subagent uses a tool Stop (none) When the subagent finishes (converted to SubagentStop at runtime) This example validates Bash commands with the PreToolUse hook and runs a linter after file edits with PostToolUse :",
+    "PostToolUse: - matcher: \"Edit|Write\" hooks: - type: command"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.0.0",
+      "content": "- Hooks: Reduced PostToolUse 'tool_use' ids were found without 'tool_result' blocks errors"
+    },
+    {
+      "version": "2.0.32",
+      "content": "- Fixed hook progress messages not updating correctly during PostToolUse hook execution"
+    },
+    {
+      "version": "2.0.43",
+      "content": "- Added `tool_use_id` field to `PreToolUseHookInput` and `PostToolUseHookInput` types"
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed several hooks issues: `transcript_path` pointing to the wrong directory for resumed/forked sessions, agent `prompt` being silently deleted from settings.json on every settings write, PostToolUse block reason displaying twice, async hooks not receiving stdin with bash `read -r`, and validation error message showing an example that fails validation",
+      "content_ja": "transcript_path の不備や設定保存時の prompt 消失、async フックの stdin 問題など、フック機能の複数の不具合を修正",
+      "inference": {
+        "before": "レジュームしたセッションで履歴パスが誤っていたり、非同期フックで `read -r` が動作しないなど、高度なカスタマイズを行うフック機能においていくつかの不安定な挙動がありました。",
+        "after": "セッション管理とフック実行エンジンの修正により、自作の自動化スクリプトがより正確に動作するようになりました。",
+        "benefit": "自作のフックを用いた高度なワークフロー自動化を、予期せぬエラーに悩まされることなく構築できます。"
+      }
+    },
+    {
+      "version": "2.1.88",
+      "content": "- Fixed PreToolUse/PostToolUse hooks not providing `file_path` as an absolute path for Write/Edit/Read tools",
+      "content_ja": "Write/Edit/Readツールにおいて、PreToolUse/PostToolUseフックが `file_path` を絶対パスで提供していなかった問題を修正しました",
+      "inference": {
+        "before": "フック機能でファイルの変更を監視・処理する際、ファイルパスが相対パスで渡されることがあり、実行ディレクトリが異なると正しいファイルを特定できないリスクがありました。",
+        "after": "常にルートからの絶対パスが渡されるようになり、どのディレクトリから実行しても確実に対象ファイルを処理できるようになりました。",
+        "benefit": "自動フォーマットやバリデーションなどのフックの信頼性が高まり、複雑なプロジェクト構造でも誤作動の心配なく自動化を任せられます。"
+      }
+    },
+    {
+      "version": "2.1.90",
+      "content": "- Fixed `Edit`/`Write` failing with \"File content has changed\" when a PostToolUse format-on-save hook rewrites the file between consecutive edits",
+      "content_ja": "PostToolUse フックで「保存時にフォーマット」を実行する際、連続した編集の間にファイルが書き換えられることで `Edit`/`Write` ツールが \"File content has changed\" エラーで失敗する問題を修正しました。",
+      "inference": {
+        "before": "Claude がファイルを編集した直後にフックで Prettier などのフォーマッタを動かすと、Claude 側が持っているファイル状態と不一致が起き、次の編集ができなくなることがありました。",
+        "after": "フックによる変更が正しく検知され、Claude はエラーで止まることなく連続した編集作業を継続できるようになりました。",
+        "benefit": "自動フォーマットなどのフック機能を併用しているプロジェクトでも、Claude による一連のコード修正がスムーズに完了します。"
+      }
+    },
+    {
+      "version": "2.1.0",
+      "content": "- Added hooks support to agent frontmatter, allowing agents to define PreToolUse, PostToolUse, and Stop hooks scoped to the agent's lifecycle",
+      "content_ja": "エージェントのフロントマターでフック設定が可能になり、エージェントの生存期間に限定したフックを定義できるようになりました。"
+    },
+    {
+      "version": "2.1.121",
+      "content": "- PostToolUse hooks can now replace tool output for all tools via `hookSpecificOutput.updatedToolOutput` (previously MCP-only)",
+      "content_ja": "`PostToolUse` フックが、すべてのツールにおいて `hookSpecificOutput.updatedToolOutput` を介してツールの出力を置換できるようになりました（以前は MCP ツールのみ対応）。",
+      "inference": {
+        "before": "ツールの実行結果をフックで加工して Claude に渡す機能は、MCP サーバー経由のツールに限定されていました。Bash やファイル操作などの組み込みツールの出力を動的にフィルタリングしたり修正したりすることは困難でした。",
+        "after": "すべての種類のツールで実行後の出力置換がサポートされました。フックスクリプトから `updatedToolOutput` を返すことで、Claude に渡される最終的なレスポンスを自在に制御できます。",
+        "benefit": "秘匿情報のマスキングや、巨大なログ出力の要約など、Claude に渡す情報をフックでインテリジェントに制御し、コンテキストの質を高めることができます。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Hooks: `PostToolUse` and `PostToolUseFailure` hook inputs now include `duration_ms` (tool execution time, excluding permission prompts and PreToolUse hooks)",
+      "content_ja": "フック機能の改善：`PostToolUse` および `PostToolUseFailure` の入力 JSON に、ツールの純粋な実行時間を示す `duration_ms` が含まれるようになりました（承認待機時間は除く）",
+      "inference": {
+        "before": "フックからツールの実行時間を把握することが難しく、どの操作に時間がかかっているかの正確な計測が困難でした。",
+        "after": "フックへの入力データにミリ秒単位の `duration_ms` が追加され、ユーザーの承認待ち時間を除いた純粋な処理時間を取得できるようになりました。",
+        "benefit": "独自のメトリクス収集や、処理の重いツール呼び出しの検知など、開発プロセスの分析と最適化がより精緻に行えるようになります。"
+      }
+    },
+    {
+      "version": "2.1.119",
+      "content": "- Fixed async `PostToolUse` hooks that emit no response payload writing empty entries to the session transcript",
+      "content_ja": "レスポンスを返さない非同期の `PostToolUse` フックが、セッション履歴に空のエントリを書き込んでしまう問題を修正しました",
+      "inference": {
+        "before": "バックグラウンドで動作するフック（通知のみを行う場合など）を実行すると、履歴の中に何も表示されない不要な行が増えていきました。",
+        "after": "レスポンスのないフック実行は履歴を汚さないよう適切に処理されます。",
+        "benefit": "`/resume` などで会話履歴を見返す際、不要な空白が排除され、本来の会話内容が読みやすくなります。"
+      }
+    },
+    {
+      "version": "2.1.47",
+      "content": "- Fixed hooks (PreToolUse, PostToolUse) silently failing to execute on Windows by using Git Bash instead of cmd.exe (anthropics/claude-code#25981)",
+      "content_ja": "WindowsでGit Bashではなくcmd.exeを使用していたため、フック(PreToolUse、PostToolUse)がサイレントに実行に失敗する問題を修正しました(anthropics/claude-code#25981)。",
+      "inference": {
+        "before": "Windows環境では、cmd.exeが使用されていたため、フック(PreToolUse、PostToolUse)がサイレントに失敗し、実行されない問題がありました。",
+        "after": "Windows環境でhooks(PreToolUse、PostToolUse)がサイレントに失敗する問題が修正されました。Git Bashが使用されるようになり、フックが正しく実行されるようになりました。",
+        "benefit": "Windows環境でのフック実行が安定し、Git Bashの利用によりPreToolUseやPostToolUseといった重要な自動化処理が正しく機能するようになりました。"
+      }
+    },
+    {
+      "version": "2.1.89",
+      "content": "- Fixed PreToolUse/PostToolUse hooks to receive `file_path` as an absolute path for Write/Edit/Read tools, matching the documented behavior",
+      "content_ja": "Write/Edit/Readツールにおいて、PreToolUse/PostToolUseフックが `file_path` を絶対パスで受け取るよう修正しました。これはドキュメントの記載通りの挙動です。",
+      "inference": {
+        "before": "フックに渡却されるパスが相対パスであったため、フック側のスクリプトでカレントディレクトリを移動している場合などにパスの解決が失敗することがありました。",
+        "after": "常にルートからの絶対パスが渡されるようになり、どのような実行環境でもフックが正確に対象ファイルを特定できます。",
+        "benefit": "フックを利用した複雑な自動処理や検証スクリプトの作成が、より簡単かつ確実になります。"
+      }
+    }
+  ]
+}

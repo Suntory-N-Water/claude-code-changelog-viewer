@@ -1,9 +1,16 @@
 {
   "key": "claudeMdExcludes",
+  "leaf_name": "claudeMdExcludes",
   "slug": "claude-md-excludes",
   "source": "settings",
   "description_en": "Glob patterns for CLAUDE.md files to exclude from loading. Useful in monorepos to skip irrelevant instructions from other teams. Patterns match against absolute file paths. Arrays merge across settings layers. Managed policy CLAUDE.md files cannot be excluded. See https://code.claude.com/docs/en/memory#exclude-specific-claude-md-files",
   "description_ja": "読み込みから除外する CLAUDE.md ファイルの glob パターンを指定します。",
-  "use_case_ja": "- 大規模なモノレポにおいて、自分の作業とは無関係な別チームの指示ファイルを AI が読み込まないようにするために使用します。\n- プロジェクト全体に適用される共通ルールとは別に、特定のルールディレクトリを除外してトークン消費や推論の混乱を抑えるのに役立ちます。",
+  "use_case_ja": "- 大規模なモノレポにおいて、他チームが作成した無関係な CLAUDE.md の指示を Claude が読み込んで混乱するのを防ぎます。\n- プロジェクト固有のルールを優先させ、不要なファイルによるトークンの消費や指示の衝突を回避したい場合に活用します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "\"Run npm test before committing\" instead of \"Test your changes\" \"API handlers live in src/api/handlers/ \" instead of \"Keep files organized\" Consistency : if two rules contradict each other, Claude may pick one arbitrarily. Review your CLAUDE.md files, nested CLAUDE.md files in subdirectories, and .claude/rules/ periodically to remove outdated or conflicting instructions. In monorepos, use claudeMdExcludes to skip CLAUDE.md files from other teams that aren't relevant to your work. Import additional files",
+    "Claude also discovers CLAUDE.md and CLAUDE.local.md files in subdirectories under your current working directory. Instead of loading them at launch, they are included when Claude reads files in those subdirectories. If you work in a large monorepo where other teams' CLAUDE.md files get picked up, use claudeMdExcludes to skip them. Block-level HTML comments ( ) in CLAUDE.md files are stripped before the content is injected into Claude's context. Use them to leave notes for human maintainers without spending context tokens on them. Comments inside code blocks are preserved. When you open a CLAUDE.md file directly with the Read tool, comments remain visible.",
+    "Exclude specific CLAUDE.md files In large monorepos, ancestor CLAUDE.md files may contain instructions that aren't relevant to your work. The claudeMdExcludes setting lets you skip specific files by path or glob pattern. This example excludes a top-level CLAUDE.md and a rules directory from a parent folder. Add it to .claude/settings.local.json so the exclusion stays local to your machine: Patterns are matched against absolute file paths using glob syntax. You can configure claudeMdExcludes at any settings layer : user, project, local, or managed policy. Arrays merge across layers. Managed policy CLAUDE.md files cannot be excluded. This ensures organization-wide instructions always apply regardless of individual settings."
+  ],
   "related_changelog": []
 }

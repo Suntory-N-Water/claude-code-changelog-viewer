@@ -1,11 +1,34 @@
 {
   "key": "ANTHROPIC_BASE_URL",
+  "leaf_name": "ANTHROPIC_BASE_URL",
   "slug": "anthropic-base-url",
   "source": "env",
   "description_en": "Override the API endpoint to route requests through a proxy or gateway. When set to a non-first-party host, [MCP tool search](/en/mcp#scale-with-mcp-tool-search) is disabled by default. Set `ENABLE_TOOL_SEARCH=true` if your proxy forwards `tool_reference` blocks",
-  "description_ja": "APIエンドポイントをプロキシやゲートウェイのアドレスに上書きします。",
-  "use_case_ja": "- 独自のLLMゲートウェイやプロキシサーバーを介してリクエストをルーティングしたい場合に使用します。\n- 互換ゲートウェイを指している場合、`/model`コマンドでゲートウェイ側が提供する独自のモデル一覧を取得・表示できます。\n- 社内ガバナンスやフィルタリング、利用統計取得のために中央サーバーを経由させる構成で必須となります。",
+  "description_ja": "プロキシやゲートウェイを経由するために、API エンドポイントを上書きします。",
+  "use_case_ja": "- 社内の LLM ゲートウェイや特定のプロキシを介して API リクエストを送信する必要があるエンタープライズ環境で使用します。\n- 互換性のあるゲートウェイを使用している場合、`/model` コマンドでゲートウェイ側が提供するカスタムモデル一覧を動的に取得・選択できるようになります。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Confirm you can reach the API host from the same shell by running curl -I https://api.anthropic.com . On Windows PowerShell use curl.exe -I https://api.anthropic.com so the built-in Invoke-WebRequest alias is not used. If you are behind a corporate proxy, set HTTPS_PROXY before launching Claude Code and see Network configuration If you route through an LLM gateway or relay, set ANTHROPIC_BASE_URL to its address. See LLM gateway configuration for setup. Ensure your firewall allows the hosts listed in Network access requirements Intermittent failures are retried automatically ; persistent failures point to a local network issue",
+    "By default, Claude Code uses standard model names for the selected API format. When ANTHROPIC_BASE_URL points at a gateway that exposes the Anthropic Messages format, Claude Code can query the gateway's /v1/models endpoint at startup and add the ed models to the /model picker. Set CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1 to enable this. Discovery is off by default so that gateways backed by a shared API key do not surface every model the key can access to every user. Each discovered entry is labeled \"From gateway\" and uses the display_name field from the response when one is provided. This requires Claude Code v2.1.129 or later. Discovery applies only to the Anthropic Messages format. It does not run for Bedrock or Vertex pass-through endpoints, and it does not run when ANTHROPIC_BASE_URL is unset or points at api.anthropic.com . The discovery request authenticates the same way as inference requests: it sends ANTHROPIC_AUTH_TOKEN as a bearer token, or ANTHROPIC_API_KEY as the x-api-key header when no auth token is set, along with any headers from ANTHROPIC_CUSTOM_HEADERS . Only models whose ID begins with claude or anthropic are added to the picker. Results are cached to ~/.claude/cache/gateway-models.json and refreshed on each startup. If the request fails or the gateway does not implement /v1/models , the picker falls back to the cached list from the previous startup or to the built-in model list.",
+    "Using LiteLLM's Anthropic format endpoint : Benefits of the unified endpoint over pass-through endpoints:",
+    "Using pass-through endpoint : Amazon Bedrock through LiteLLM",
+    "Configure tool search Tool search is enabled by default: MCP tools are deferred and discovered on demand. It is disabled by default on Vertex AI, which does not accept the tool search beta header, and when ANTHROPIC_BASE_URL points to a non-first-party host, since most proxies do not forward tool_reference blocks. Set ENABLE_TOOL_SEARCH explicitly to opt in. This feature requires models that support tool_reference blocks: Sonnet 4 and later, or Opus 4 and later. Haiku models do not support tool search. Control tool search behavior with the ENABLE_TOOL_SEARCH environment variable: Value Behavior (unset) All MCP tools deferred and loaded on demand. Falls back to loading upfront on Vertex AI or when ANTHROPIC_BASE_URL is a non-first-party host true All MCP tools deferred, including on Vertex AI and for non-first-party ANTHROPIC_BASE_URL auto Threshold mode: tools load upfront if they fit within 10% of the context window, deferred otherwise auto: Threshold mode with a custom percentage, where is 0-100 (e.g., auto:5 for 5%) false All MCP tools loaded upfront, no deferral",
+    "When you pin a model on a third-party provider, the provider-specific ID appears as-is in the /model picker and Claude Code may not recognize which features the model supports. You can override the display name and declare capabilities with companion environment variables for each pinned model. These variables take effect on third-party providers such as Bedrock, Vertex AI, and Foundry. The _NAME and _DESCRIPTION variables also take effect when ANTHROPIC_BASE_URL points to an LLM gateway . They have no effect when connecting directly to api.anthropic.com . Environment variable Description",
+    "Amazon Bedrock Google Vertex AI Microsoft Foundry Custom API endpoints via ANTHROPIC_BASE_URL or LLM gateways Audit logging",
+    "| User deletes the cached settings file | First-launch behavior occurs: settings fetch asynchronously with a brief unenforced window | | API is unavailable | Cached settings apply if available, otherwise managed settings are not enforced until the next successful fetch. With forceRemoteSettingsRefresh: true , the CLI exits instead of continuing | | User authenticates with a different organization | Settings are not delivered for accounts outside the managed organization | | User configures a third-party model provider | Server-managed settings are bypassed. This includes setting CLAUDE_CODE_USE_BEDROCK , CLAUDE_CODE_USE_MANTLE , CLAUDE_CODE_USE_VERTEX , CLAUDE_CODE_USE_FOUNDRY , or a non-default ANTHROPIC_BASE_URL | To detect runtime configuration changes, use ConfigChange hooks to log modifications or block unauthorized changes before they take effect.",
+    "Most organizations can use a cloud provider directly without additional configuration. However, you may need to configure a corporate proxy or LLM gateway if your organization has specific network or management requirements. These are different configurations that can be used together: Corporate proxy : Routes traffic through an HTTP/HTTPS proxy. Use this if your organization requires all outbound traffic to pass through a proxy server for security monitoring, compliance, or network policy enforcement. Configure with the HTTPS_PROXY or HTTP_PROXY environment variables. Learn more in Enterprise network configuration . LLM Gateway : A service that sits between Claude Code and the cloud provider to handle authentication and routing. Use this if you need centralized usage tracking across teams, custom rate limiting or budgets, or centralized authentication management. Configure with the ANTHROPIC_BASE_URL , ANTHROPIC_BEDROCK_BASE_URL , or ANTHROPIC_VERTEX_BASE_URL environment variables. Learn more in LLM gateway configuration . The following examples show the environment variables to set in your shell or shell profile ( , ). See Settings for other configuration methods."
+  ],
   "related_changelog": [
+    {
+      "version": "2.1.129",
+      "content": "- Third-party deployments (Bedrock, Vertex, Foundry, or `ANTHROPIC_BASE_URL` gateway) no longer see spinner tips pointing at first-party Anthropic surfaces",
+      "content_ja": "サードパーティ（Bedrock、Vertex、Foundry、独自ゲートウェイ）利用時に、Anthropic公式サービスへの案内チップが表示されなくなりました",
+      "inference": {
+        "before": "BedrockやVertex AIなどのサードパーティ環境で利用している場合でも、公式のAnthropicサービスに関連するヒントが表示されることがありました。",
+        "after": "利用しているプロバイダーを判別し、その環境に不適切な公式サービスへのリンクやチップが表示されないように改善されました。",
+        "benefit": "企業ポリシー等で特定のクラウド環境を利用しているユーザーにとって、ノイズとなる不要な情報を排除し、一貫性のある作業環境を提供します。"
+      }
+    },
     {
       "version": "2.1.126",
       "content": "- The `/model` picker now lists models from your gateway's `/v1/models` endpoint when `ANTHROPIC_BASE_URL` points at an Anthropic-compatible gateway",
@@ -17,16 +40,6 @@
       }
     },
     {
-      "version": "2.1.72",
-      "content": "- Fixed tool search to activate even with `ANTHROPIC_BASE_URL` as long as `ENABLE_TOOL_SEARCH` is set.",
-      "content_ja": "ANTHROPIC_BASE_URL 使用時でも ENABLE_TOOL_SEARCH が設定されていればツール検索が有効になるよう修正",
-      "inference": {
-        "before": "LLM ゲートウェイ構成などで ANTHROPIC_BASE_URL を設定している場合、ENABLE_TOOL_SEARCH を明示的に設定していてもツール検索機能が正常に動作しないことがありました。",
-        "after": "ANTHROPIC_BASE_URL の設定有無にかかわらず、ENABLE_TOOL_SEARCH 環境変数が設定されていればツール検索機能がアクティブになります。",
-        "benefit": "カスタムプロキシやゲートウェイを経由するエンタープライズ環境でも、Claude Code の強力なツール検索機能を確実に利用できるようになります。"
-      }
-    },
-    {
       "version": "2.1.70",
       "content": "- Fixed API 400 errors when using `ANTHROPIC_BASE_URL` with a third-party gateway — tool search now correctly detects proxy endpoints and disables `tool_reference` blocks",
       "content_ja": "サードパーティ製ゲートウェイを介して `ANTHROPIC_BASE_URL` を使用した際の API 400 エラーを修正しました。ツール検索機能がプロキシエンドポイントを正しく検出し、`tool_reference` ブロックを無効化するようになりました。",
@@ -34,6 +47,16 @@
         "before": "サードパーティのプロキシやゲートウェイを経由して API を利用する際、ツール検索機能がエンドポイントの性質を正しく認識できず、互換性のない形式でリクエストを送信して API 400 エラーが発生する場合がありました。",
         "after": "ツール検索機能がプロキシエンドポイントをインテリジェントに検出し、必要に応じて `tool_reference` ブロックを適切に無効化するように改善されました。",
         "benefit": "特定のネットワーク環境やカスタムゲートウェイを利用している開発者でも、接続エラーに悩まされることなく安定してツール機能を利用できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.72",
+      "content": "- Fixed tool search to activate even with `ANTHROPIC_BASE_URL` as long as `ENABLE_TOOL_SEARCH` is set.",
+      "content_ja": "ANTHROPIC_BASE_URL 使用時でも ENABLE_TOOL_SEARCH が設定されていればツール検索が有効になるよう修正",
+      "inference": {
+        "before": "LLM ゲートウェイ構成などで ANTHROPIC_BASE_URL を設定している場合、ENABLE_TOOL_SEARCH を明示的に設定していてもツール検索機能が正常に動作しないことがありました。",
+        "after": "ANTHROPIC_BASE_URL の設定有無にかかわらず、ENABLE_TOOL_SEARCH 環境変数が設定されていればツール検索機能がアクティブになります。",
+        "benefit": "カスタムプロキシやゲートウェイを経由するエンタープライズ環境でも、Claude Code の強力なツール検索機能を確実に利用できるようになります。"
       }
     },
     {

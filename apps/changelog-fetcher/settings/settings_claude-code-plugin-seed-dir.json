@@ -1,15 +1,23 @@
 {
   "key": "CLAUDE_CODE_PLUGIN_SEED_DIR",
+  "leaf_name": "CLAUDE_CODE_PLUGIN_SEED_DIR",
   "slug": "claude-code-plugin-seed-dir",
   "source": "env",
   "description_en": "Path to one or more read-only plugin seed directories, separated by `:` on Unix or `;` on Windows. Use this to bundle a pre-populated plugins directory into a container image. Claude Code registers marketplaces from these directories at startup and uses pre-cached plugins without re-cloning. See [Pre-populate plugins for containers](/en/plugin-marketplaces#pre-populate-plugins-for-containers)",
-  "description_ja": "コンテナイメージなどに同梱された読み取り専用のプラグインシードディレクトリのパスを指定します。",
-  "use_case_ja": "- コンテナの起動時やCI環境で、実行時のクローンをスキップして、ビルド済みのプラグインやマーケットプレイスを即座に利用可能にします。\n- Unix系ではコロン、Windowsではセミコロンで区切ることで、複数のディレクトリからプラグインを読み込むことが可能です。\n- 読み取り専用として扱われるため、意図しない自動更新や削除を防ぎ、環境の再現性を担保します。",
+  "description_ja": "読み取り専用のプラグインシードディレクトリのパスを指定します（複数指定時は Unix 系は `:`、Windows は `;` で区切ります）。",
+  "use_case_ja": "- コンテナイメージや CI 環境に、あらかじめクローン済みのプラグインを同梱して配布し、実行時のダウンロードを不要にします。\n- 共通の組織内プラグインとプロジェクト固有のプラグインなど、複数の配布元を組み合わせて管理できます。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Pre-populate plugins for containers For container images and CI environments, you can pre-populate a plugins directory at build time so Claude Code starts with marketplaces and plugins already available, without cloning anything at runtime. Set the CLAUDE_CODE_PLUGIN_SEED_DIR environment variable to point at this directory. To layer multiple seed directories, separate paths with : on Unix or ; on Windows. Claude Code searches each directory in order, and the first seed that contains a given marketplace or plugin cache wins. The seed directory mirrors the structure of ~/.claude/plugins : To build a seed directory, run Claude Code once during image build, install the plugins you need, then copy the resulting ~/.claude/plugins directory into your image and point CLAUDE_CODE_PLUGIN_SEED_DIR at it. To skip the copy step, set CLAUDE_CODE_PLUGIN_CACHE_DIR to your target seed path during the build so plugins install directly there:",
+    "CLAUDE_CODE_PLUGIN_CACHE_DIR=/opt/claude-seed claude plugin install my-tool@your-plugins",
+    "Read-only : the seed directory is never written to. Auto-updates are disabled for seed marketplaces since git pull would fail on a read-only filesystem. Seed entries take precedence : marketplaces declared in the seed overwrite any matching entries in the user's configuration on each startup. To opt out of a seed plugin, use /plugin disable rather than removing the marketplace. Path resolution : Claude Code locates marketplace content by probing $CLAUDE_CODE_PLUGIN_SEED_DIR/marketplaces/ / at runtime, not by trusting paths stored inside the seed's JSON. This means the seed works correctly even when mounted at a different path than where it was built. Mutation is blocked : running /plugin marketplace remove or /plugin marketplace update against a seed-managed marketplace fails with guidance to ask your administrator to update the seed image. Composes with settings : if extraKnownMarketplaces or enabledPlugins declare a marketplace that already exists in the seed, Claude Code uses the seed copy instead of cloning.",
+    "export CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1"
+  ],
   "related_changelog": [
     {
       "version": "2.1.77",
       "content": "- Improved headless mode plugin installation to compose correctly with `CLAUDE_CODE_PLUGIN_SEED_DIR`",
-      "content_ja": "ヘッドレスモードでのプラグインインストールが、シードディレクトリ(初期設定)と正しく組み合わさるよう改善しました"
+      "content_ja": "ヘッドレスモードでのプラグインインストールが、シードディレクトリ（初期設定）と正しく組み合わさるよう改善しました"
     },
     {
       "version": "2.1.79",

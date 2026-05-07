@@ -1,0 +1,35 @@
+{
+  "key": "hooks.StopFailure",
+  "leaf_name": "StopFailure",
+  "slug": "hooks-stop-failure",
+  "source": "settings",
+  "description_en": "Hooks that run when a turn ends due to an API error (e.g., rate_limit, authentication_failed, billing_error, invalid_request, server_error, max_output_tokens, unknown). Matcher can scope to specific error types. Hook output and exit code are ignored. See https://code.claude.com/docs/en/hooks",
+  "description_ja": "API エラー（レート制限、認証失敗、サーバーエラーなど）によりターンが終了した際に実行されるフック。",
+  "use_case_ja": "- レート制限や認証エラーなどの失敗を検知して、自動的に管理者へ通知を送ったりトラブルシューティング用のログを記録したりします。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "| TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session |",
+    "| PreCompact , PostCompact | what triggered compaction | manual , auto | | SubagentStop | agent type | same values as SubagentStart | | ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation |",
+    "Hook timeout is 10 minutes by default, configurable per hook with the timeout field (in seconds). PostToolUse hooks cannot undo actions since the tool has already executed. PermissionRequest hooks do not fire in non-interactive mode ( -p ). Use PreToolUse hooks for automated permission decisions. Stop hooks fire whenever Claude finishes responding, not only at task completion. They do not fire on user interrupts. API errors fire StopFailure instead. When multiple PreToolUse hooks updatedInput to rewrite a tool's arguments, the last one to finish wins. Since hooks run in parallel, the order is non-deterministic. Avoid having more than one hook modify the same tool's input. Hooks and permission modes",
+    "Hook lifecycle Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, input arrives on stdin. For HTTP hooks, it arrives as the POST request body. Your handler can then inspect the input, take action, and optionally a decision. Events fall into three cadences: once per session ( SessionStart , SessionEnd ), once per turn ( UserPromptSubmit , Stop , StopFailure ), and on every tool call inside the agentic loop ( PreToolUse , PostToolUse ): The table below summarizes when each event fires. The Hook events section documents the full input schema and decision control options for each one.",
+    "| TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session |",
+    "| ConfigChange | configuration source | user_settings , project_settings , local_settings , policy_settings , skills | | CwdChanged | no matcher support | always fires on every directory change | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env | | StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | UserPromptExpansion | command name | your skill or command names | | Elicitation | MCP server name | your configured MCP server names |",
+    "| TaskCreated | Yes | Rolls back the task creation | | TaskCompleted | Yes | Prevents the task from being marked as completed | | ConfigChange | Yes | Blocks the configuration change from taking effect (except policy_settings ) | | StopFailure | No | Output and exit code are ignored | | PostToolUse | No | Shows stderr to Claude (tool already ran) | | PostToolUseFailure | No | Shows stderr to Claude (tool already failed) | | PostToolBatch | Yes | Stops the agentic loop before the next model call |",
+    "| WorktreeCreate | path | Command hook prints path on stdout; HTTP hook s hookSpecificOutput.worktreePath . Hook failure or missing path fails creation | | Elicitation | hookSpecificOutput | action (accept/decline/cancel), content (form field values for accept) | | ElicitationResult | hookSpecificOutput | action (accept/decline/cancel), content (form field values override) | | WorktreeRemove, Notification, SessionEnd, PostCompact, InstructionsLoaded, StopFailure, CwdChanged, FileChanged | None | No decision control. Used for side effects like logging or cleanup | Here are examples of each pattern in action:",
+    "| TaskCreated | When a task is being created via TaskCreate | | TaskCompleted | When a task is being marked as completed | | Stop | When Claude finishes responding | | StopFailure | When the turn ends due to an API error. Output and exit code are ignored | | TeammateIdle | When an agent team teammate is about to go idle | | InstructionsLoaded | When a CLAUDE.md or .claude/rules/*.md file is loaded into context. Fires at session start and when files are lazily loaded during a session | | ConfigChange | When a configuration file changes during a session |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.78",
+      "content": "- Added `StopFailure` hook event that fires when the turn ends due to an API error (rate limit, auth failure, etc.)",
+      "content_ja": "APIエラー（レート制限、認証失敗など）によりターンが終了した際に発火する `StopFailure` フックイベントを追加",
+      "inference": {
+        "before": "APIエラーで処理が中断された場合、それをフックして自動的に通知を送ったりログを記録したりする仕組みがありませんでした。",
+        "after": "`StopFailure` イベントにより、レート制限や認証エラーなどの失敗を検知して特定のスクリプトを実行できるようになりました。",
+        "benefit": "エラー発生時の後処理を自動化し、モニタリングやトラブルシューティングの効率を向上させることができます。"
+      }
+    }
+  ]
+}

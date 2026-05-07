@@ -1,10 +1,15 @@
 {
   "key": "ANTHROPIC_CUSTOM_HEADERS",
+  "leaf_name": "ANTHROPIC_CUSTOM_HEADERS",
   "slug": "anthropic-custom-headers",
   "source": "env",
   "description_en": "Custom headers to add to requests (`Name: Value` format, newline-separated for multiple headers)",
-  "description_ja": "APIリクエストに追加するカスタムヘッダーを「名前: 値」の形式(複数行可)で指定します。",
-  "use_case_ja": "- 独自のプロキシや社内ゲートウェイが要求する、特定の認証用ヘッダーや追跡用IDを各リクエストに付与するために使用します。\n- Bedrock等のサードパーティプロバイダー利用時でも、必要に応じて追加のメタデータを送信できます。\n- 標準の認証フローとは別に、環境固有の要求仕様を満たすために利用されます。",
+  "description_ja": "リクエストに追加するカスタムヘッダーを「名前: 値」の形式で指定します（複数ある場合は改行区切り）。",
+  "use_case_ja": "- LLMゲートウェイ経由で認証を行う際や、企業独自のプロキシサーバーで追加の認可ヘッダーが必要な場合に指定します。\n- Amazon Bedrockなどのクラウドプロバイダーを利用する際、不要な認証変数が干渉して403エラーが発生するのを回避するための微調整に使用します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Discovery applies only to the Anthropic Messages format. It does not run for Bedrock or Vertex pass-through endpoints, and it does not run when ANTHROPIC_BASE_URL is unset or points at api.anthropic.com . The discovery request authenticates the same way as inference requests: it sends ANTHROPIC_AUTH_TOKEN as a bearer token, or ANTHROPIC_API_KEY as the x-api-key header when no auth token is set, along with any headers from ANTHROPIC_CUSTOM_HEADERS . Only models whose ID begins with claude or anthropic are added to the picker. Results are cached to ~/.claude/cache/gateway-models.json and refreshed on each startup. If the request fails or the gateway does not implement /v1/models , the picker falls back to the cached list from the previous startup or to the built-in model list. If your gateway uses model names that do not match the discovery filter, use the environment variables documented in Model configuration to add them manually."
+  ],
   "related_changelog": [
     {
       "version": "2.1.101",

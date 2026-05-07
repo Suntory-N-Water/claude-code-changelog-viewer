@@ -1,0 +1,37 @@
+{
+  "key": "sandbox.enableWeakerNetworkIsolation",
+  "leaf_name": "enableWeakerNetworkIsolation",
+  "slug": "sandbox-enable-weaker-network-isolation",
+  "source": "settings",
+  "description_en": "macOS only. Allow access to the system TLS trust service (com.apple.trustd.agent) in the sandbox. Required for Go-based tools like gh, gcloud, and terraform to verify TLS certificates when using httpProxyPort with a MITM proxy and custom CA. Reduces security by opening a potential data exfiltration path. Default: false. See https://code.claude.com/docs/en/settings#sandbox-settings",
+  "description_ja": "macOS専用の設定で、MITMプロキシ環境下でGo製のツール（gh, terraform等）がTLS証明書を検証できるようにシステムTLS信頼サービスへのアクセスを許可します。",
+  "use_case_ja": "- 企業内プロキシやカスタムCA証明書を使用している環境で、Go言語で書かれたCLIツールがTLS検証エラーで動作しない問題を解決するために使用します。\n- セキュリティを維持しつつネットワーク隔離レベルをわずかに調整することで、社内ネットワーク制限下でも `terraform` や `gcloud` などの必須ツールを正常に動作させることができます。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing"
+  ],
+  "doc_snippets": [
+    "| network.httpProxyPort | HTTP proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | 8080 | | network.socksProxyPort | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | 8081 | | enableWeakerNestedSandbox | Enable weaker sandbox for unprivileged Docker environments (Linux and WSL2 only). Reduces security. Default: false | true | | enableWeakerNetworkIsolation | (macOS only) Allow access to the system TLS trust service ( com.apple.trustd.agent ) in the sandbox. Required for Go-based tools like gh , gcloud , and terraform to verify TLS certificates when using httpProxyPort with a MITM proxy and custom CA. Reduces security by opening a potential data exfiltration path. Default: false | true | Sandbox path prefixes"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.64",
+      "content": "- Added `sandbox.enableWeakerNetworkIsolation` setting (macOS only) to allow Go programs like `gh`, `gcloud`, and `terraform` to verify TLS certificates when using a custom MITM proxy with `httpProxyPort`",
+      "content_ja": "macOS 限定で `sandbox.enableWeakerNetworkIsolation` 設定を追加しました。`httpProxyPort` を使用したカスタムプロキシ環境下で、`gh` や `terraform` などの Go 製プログラムが TLS 証明書を検証できるようになります。",
+      "inference": {
+        "before": "macOS のサンドボックス環境でカスタムプロキシを使用すると、Go 言語で書かれたツールが証明書の検証に失敗し、ネットワーク通信が必要なコマンドが実行できないことがありました。",
+        "after": "ネットワークの隔離レベルをわずかに調整するオプションが提供され、セキュリティを維持しつつ、企業内プロキシ環境などでも Go 製のツールが正しく動作するようになりました。",
+        "benefit": "企業独自のネットワーク環境下でも、`gh` コマンドによる PR 作成や `terraform` によるインフラ操作を Claude に安全に実行させることができます。"
+      }
+    },
+    {
+      "version": "2.1.69",
+      "content": "- Added `sandbox.enableWeakerNetworkIsolation` setting (macOS only) to allow Go programs like `gh`, `gcloud`, and `terraform` to verify TLS certificates when using a custom MITM proxy with `httpProxyPort`",
+      "content_ja": "macOS限定の `sandbox.enableWeakerNetworkIsolation` 設定を追加。カスタムプロキシ使用時に `gh` や `terraform` 等のGoプログラムでのTLS検証を許可",
+      "inference": {
+        "before": "サンドボックスのネットワーク隔離が厳格すぎて、Go言語で書かれたCLIツールがカスタムCA証明書を介したプロキシ環境で証明書エラーを起こすことがありました。",
+        "after": "macOSの信頼された証明書サービスへのアクセスを許可するオプションが追加され、企業プロキシ環境下でもこれらのツールが正常に動作するようになります。",
+        "benefit": "社内ネットワーク制限がある環境でも、`terraform` や `gcloud` といった必須のインフラ操作ツールをClaude Codeから安全に実行できます。"
+      }
+    }
+  ]
+}

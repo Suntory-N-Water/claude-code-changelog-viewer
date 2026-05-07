@@ -1,0 +1,34 @@
+{
+  "key": "hooks.ElicitationResult",
+  "leaf_name": "ElicitationResult",
+  "slug": "hooks-elicitation-result",
+  "source": "settings",
+  "description_en": "Hooks that run after a user responds to an MCP elicitation, before the response is sent back to the server. See https://code.claude.com/docs/en/hooks",
+  "description_ja": "ユーザーが MCP の入力要求に応答した後、その応答がサーバーに送信される前に実行されるフック。",
+  "use_case_ja": "- ユーザーが入力したデータに対してカスタムバリデーションを追加したり、送信直前に内容を自動補完・修正したりする高度な自動化が可能です。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "| PreCompact | Before context compaction | | PostCompact | After context compaction completes | | Elicitation | When an MCP server requests user input during a tool call | | ElicitationResult | After a user responds to an MCP elicitation, before the response is sent back to the server | | SessionEnd | When a session terminates | When multiple hooks match, each one s its own result. For decisions, Claude Code picks the most restrictive answer. A PreToolUse hook ing deny cancels the tool call no matter what the others . One hook ing ask forces the permission prompt even if the rest allow . Text from additionalContext is kept from every hook and passed to Claude together.",
+    "| StopFailure | error type | rate_limit , authentication_failed , oauth_org_not_allowed , billing_error , invalid_request , server_error , max_output_tokens , unknown | | InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env | | UserPromptExpansion | command name | your skill or command names | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove , CwdChanged | no matcher support | always fires on every occurrence |",
+    "| PreCompact | Before context compaction | | PostCompact | After context compaction completes | | Elicitation | When an MCP server requests user input during a tool call | | ElicitationResult | After a user responds to an MCP elicitation, before the response is sent back to the server | | SessionEnd | When a session terminates | How a hook resolves",
+    "| InstructionsLoaded | load reason | session_start , nested_traversal , path_glob_match , include , compact | | UserPromptExpansion | command name | your skill or command names | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove | no matcher support | always fires on every occurrence | The matcher runs against a field from the JSON input that Claude Code sends to your hook on stdin. For tool events, that field is tool_name . Each hook event section lists the full set of matcher values and the input schema for that event.",
+    "| PreCompact | Yes | Blocks compaction | | PostCompact | No | Shows stderr to user only | | Elicitation | Yes | Denies the elicitation | | ElicitationResult | Yes | Blocks the response (action becomes decline) | | WorktreeCreate | Yes | Any non-zero exit code causes worktree creation to fail | | WorktreeRemove | No | Failures are logged in debug mode only | | InstructionsLoaded | No | Exit code is ignored |",
+    "| PermissionDenied | hookSpecificOutput | retry: true tells the model it may retry the denied tool call | | WorktreeCreate | path | Command hook prints path on stdout; HTTP hook s hookSpecificOutput.worktreePath . Hook failure or missing path fails creation | | Elicitation | hookSpecificOutput | action (accept/decline/cancel), content (form field values for accept) | | ElicitationResult | hookSpecificOutput | action (accept/decline/cancel), content (form field values override) | | WorktreeRemove, Notification, SessionEnd, PostCompact, InstructionsLoaded, StopFailure, CwdChanged, FileChanged | None | No decision control. Used for side effects like logging or cleanup | Here are examples of each pattern in action:",
+    "Exit code 2 denies the elicitation and shows stderr to the user. ElicitationResult Runs after a user responds to an MCP elicitation. Hooks can observe, modify, or block the response before it is sent back to the MCP server. The matcher field matches against the MCP server name. ElicitationResult input In addition to the common input fields , ElicitationResult hooks receive mcp_server_name , action , and optional mode , elicitation_id , and content fields.",
+    "| PreCompact | Before context compaction | | PostCompact | After context compaction completes | | Elicitation | When an MCP server requests user input during a tool call | | ElicitationResult | After a user responds to an MCP elicitation, before the response is sent back to the server | | SessionEnd | When a session terminates | Hook types :"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.76",
+      "content": "- Added new `Elicitation` and `ElicitationResult` hooks to intercept and override responses before they're sent back",
+      "content_ja": "新しい`Elicitation`および`ElicitationResult`フックを追加 — 応答が返される前に、内容をインターセプトして上書きできるようになりました",
+      "inference": {
+        "before": "MCP elicitationの応答やプロセスを自動化したり、独自のロジックで制御したりするための拡張ポイントが存在しませんでした。",
+        "after": "新しいフックにより、Claude Codeがユーザーに応答を返す直前でデータを取得し、必要に応じてその内容を変更したり独自の処理を挟んだりすることが可能になりました。",
+        "benefit": "elicitationプロセスにおけるカスタムバリデーションの追加や、特定の入力を自動補完するなどの高度な自動化が可能になります。"
+      }
+    }
+  ]
+}

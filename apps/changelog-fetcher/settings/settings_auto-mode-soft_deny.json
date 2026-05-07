@@ -1,0 +1,31 @@
+{
+  "key": "autoMode.soft_deny",
+  "leaf_name": "soft_deny",
+  "slug": "auto-mode-soft_deny",
+  "source": "settings",
+  "description_en": "Rules for the auto mode classifier soft-deny section. Replaces the built-in soft-deny rules entirely unless the literal string \"$defaults\" is included as an entry, which splices the built-in defaults in at that position.",
+  "description_ja": "オートモードの分類器におけるソフト拒否セクションのルールを設定します。",
+  "use_case_ja": "- デフォルトの安全策に加え、Terraform の実行禁止など、組織独自の環境におけるリスクの高い操作を禁止対象として追加したい場合に使用します。\n- `\"$defaults\"` を記述することで、組み込みの禁止ルールセットを上書きすることなく、独自の制約を簡単に追加・管理できます。",
+  "parent_descriptions": [
+    "Customization for the auto mode classifier prompt. Typically configured in managed settings to tune the allow/deny rules used when permissions.defaultMode is \"auto\". By default, allow, soft_deny, and environment REPLACE the corresponding built-in classifier section entirely. Include the literal string \"$defaults\" as an array entry (added in v2.1.118) to splice the built-in defaults in at that position alongside your custom rules. See https://code.claude.com/docs/en/permissions"
+  ],
+  "doc_snippets": [
+    "The classifier does not read autoMode from shared project settings in .claude/settings.json , so a checked-in repo cannot inject its own allow rules. Entries from each scope are combined. A developer can extend environment , allow , and soft_deny with personal entries but cannot remove entries that managed settings provide. Because allow rules act as exceptions to block rules inside the classifier, a developer-added allow entry can override an organization soft_deny entry: the combination is additive, not a hard policy boundary. The classifier is a second gate that runs after the permissions system . For actions that must never run regardless of user intent or classifier configuration, use permissions.deny in managed settings, which blocks the action before the classifier is consulted and cannot be overridden.",
+    "Override the block and allow rules Two additional fields let you replace the classifier's built-in rule lists: autoMode.soft_deny controls what gets blocked, and autoMode.allow controls which exceptions apply. Each is an array of prose descriptions, read as natural-language rules. There is no autoMode.deny field; to hard-block an action regardless of intent, use permissions.deny , which runs before the classifier. Inside the classifier, precedence works in three tiers: soft_deny rules block first allow rules then override matching blocks as exceptions Explicit user intent overrides both: if the user's message directly and specifically describes the exact action Claude is about to take, the classifier allows it even when a soft_deny rule matches General requests don't count as explicit intent. Asking Claude to \"clean up the repo\" does not authorize force-pushing, but asking Claude to \"force-push this branch\" does. To loosen, add to allow when the classifier repeatedly flags a routine pattern the default exceptions don't cover. To tighten, add to soft_deny for risks specific to your environment that the defaults miss. To keep the built-in rules while adding your own, include the literal string \"$defaults\" in the array. The default rules are spliced in at that position, so your custom rules can go before or after them, and you continue to inherit updates as the built-in list changes across releases.",
+    "} bash claude auto-mode defaults",
+    "claude auto-mode config bash claude auto-mode critique",
+    "| attribution | Customize attribution for git commits and pull requests. See Attribution settings | {\"commit\": \"🤖 Generated with Claude Code\", \"pr\": \"\"} | | autoMemoryDirectory | Custom directory for auto memory storage. Accepts an absolute path or a ~/ -prefixed path. Accepted from policy and user settings, and from the --settings flag. Not accepted from project or local settings, since a cloned repository could supply either file to redirect memory writes to sensitive locations | \"~/my-memory-dir\" | | autoMemoryEnabled | Enable auto memory . When false , Claude does not read from or write to the auto memory directory. Default: true . You can also toggle this with /memory during a session. To disable via environment variable, set CLAUDE_CODE_DISABLE_AUTO_MEMORY in env | false | | autoMode | Customize what the auto mode classifier blocks and allows. Contains environment , allow , and soft_deny arrays of prose rules. Include the literal string \"$defaults\" in an array to inherit the built-in rules at that position. See Configure auto mode . Not read from shared project settings | {\"soft_deny\": [\"$defaults\", \"Never run terraform apply\"]} | | autoScrollEnabled | In fullscreen rendering , follow new output to the bottom of the conversation. Default: true . Appears in /config as Auto-scroll . Permission prompts still scroll into view when this is off | false | | autoUpdatesChannel | Release channel to follow for updates. Use \"stable\" for a version that is typically about one week old and skips versions with major regressions, or \"latest\" (default) for the most recent release. To disable auto-updates entirely, set DISABLE_AUTOUPDATER in env | \"stable\" | | availableModels | Restrict which models users can select via /model , --model , or ANTHROPIC_MODEL . Does not affect the Default option. See Restrict model selection | [\"sonnet\", \"haiku\"] |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.118",
+      "content": "- Auto mode: include `\"$defaults\"` in `autoMode.allow`, `autoMode.soft_deny`, or `autoMode.environment` to add custom rules alongside the built-in list instead of replacing it",
+      "content_ja": "Auto mode（オートモード）：`autoMode.allow`、`autoMode.soft_deny`、`autoMode.environment` 内に `\"$defaults\"` を含めることで、組み込みのルールリストを置き換えるのではなく、カスタムルールを追加できるようになりました。",
+      "inference": {
+        "before": "オートモードの信頼済みドメインや禁止ルールをカスタマイズしようとすると、既存のデフォルト設定がすべて上書きされてしまうため、標準の安全な設定をすべて手動でコピーして再定義しなければなりませんでした。",
+        "after": "`\"$defaults\"` プレースホルダーを使用することで、標準設定を維持したまま、自社独自の追加ルールだけを差分として簡単に記述できるようになりました。",
+        "benefit": "デフォルトの強力な安全策を損なうことなく、最小限の設定で独自の環境に合わせた最適化が行えるため、オートモードの導入がより安全かつスムーズになります。"
+      }
+    }
+  ]
+}

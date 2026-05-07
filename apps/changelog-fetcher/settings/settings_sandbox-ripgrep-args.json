@@ -1,0 +1,29 @@
+{
+  "key": "sandbox.ripgrep.args",
+  "leaf_name": "args",
+  "slug": "sandbox-ripgrep-args",
+  "source": "settings",
+  "description_en": "Additional arguments to pass to the ripgrep binary",
+  "description_ja": "ripgrepバイナリに渡す追加のコマンドライン引数を指定します。",
+  "use_case_ja": "- Claude Codeによる検索動作を調整するために、特定のファイル形式の除外や検索動作のオプションをデフォルトに加えて指定したい場合に使用します。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing",
+    "Custom ripgrep configuration for Claude Code's bundled ripgrep support. Overrides the bundled binary and arguments."
+  ],
+  "doc_snippets": [
+    "Run /mcp to see every configured server, its connection status, and whether you have approved it for the current project. A server can be defined correctly but still not provide tools for a few common reasons: Project-scoped servers in require a one-time approval. If the prompt was dismissed, the server stays disabled until you approve it from /mcp . A server that fails to start shows as failed in /mcp . Relative file paths in command or args are a frequent cause, since they resolve against the directory you launched Claude Code from rather than the location of . A server that shows as connected but lists zero tools has started successfully but isn't ing a tool list. Select Reconnect from /mcp . If the count stays at zero, run claude --debug mcp to see the server's stderr output. For configuration locations and scope rules, see MCP .",
+    "| Cleanup logic never runs at session end | No SessionEnd hook configured | Add a SessionEnd hook in settings.json . See the hook events list . | | MCP servers in never load | File is under .claude/ or uses Claude Desktop's config format | Project MCP config goes at the repository root as , not inside .claude/ . See MCP configuration . | | Project MCP server added but doesn't appear | The one-time approval prompt was dismissed | Project-scoped servers require approval. Run /mcp to see status and approve. | | MCP server fails to start from some directories | command or args uses a relative file path | Use absolute paths for local scripts. Executables on your PATH like npx or uvx work as-is. | | MCP server starts without expected environment variables | Variables are in settings.json env , which doesn't propagate to MCP child processes | Set per-server env inside instead. | | Bash(rm *) deny rule doesn't block /bin/rm or find -delete | Prefix rules match the literal command string, not the underlying executable | Add explicit patterns for each variant, or use a PreToolUse hook or the sandbox for a hard guarantee. |",
+    "]",
+    "| - | - | - | | name | string | A unique identifier for this server | | runtimeExecutable | string | The command to run, such as npm , yarn , or node | | runtimeArgs | string[] | Arguments passed to runtimeExecutable , such as [\"run\", \"dev\"] | | port | number | The port your server listens on. Defaults to 3000 | | cwd | string | Working directory relative to your project root. Defaults to the project root. Use ${workspaceFolder} to reference the project root explicitly | | env | object | Additional environment variables as key-value pairs, such as { \"NODE_ENV\": \"development\" } . Don't put secrets here since this file is committed to your repo. To pass secrets to your dev server, set them in the local environment editor instead. | | autoPort | boolean | How to handle port conflicts. See below | | program | string | A script to run with node . See when to use program vs runtimeExecutable | | args | string[] | Arguments passed to program . Only used when program is set | When to use program vs runtimeExecutable Use runtimeExecutable with runtimeArgs to start a dev server through a package manager. For example, \"runtimeExecutable\": \"npm\" with \"runtimeArgs\": [\"run\", \"dev\"] runs npm run dev . Use program when you have a standalone script you want to run with node directly. For example, \"program\": \"server.js\" runs node server.js . Pass additional flags with args . Port conflicts",
+    "]",
+    "\"mcpServers\": { \"database-tools\": { \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\", \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"], \"env\": { \"DB_URL\": \"${DB_URL}\" }",
+    "\"mcpServers\": { \"plugin-api\": { \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/api-server\", \"args\": [\"--port\", \"8080\"] } } }",
+    "\"mcpServers\": { \"shared-server\": { \"command\": \"/path/to/server\", \"args\": [], \"env\": {} } }",
+    "Environment variables can be expanded in: command - The server executable path args - Command-line arguments env - Environment variables passed to the server url - For HTTP server types headers - For HTTP server authentication",
+    "\"mcpServers\": { \"plugin-database\": { \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\", \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"], \"env\": { \"DB_PATH\": \"${CLAUDE_PLUGIN_ROOT}/data\" } }, \"plugin-api-client\": { \"command\": \"npx\", \"args\": [\"@company/mcp-server\", \"--plugin-mode\"], \"cwd\": \"${CLAUDE_PLUGIN_ROOT}\" } }",
+    "\"lspServers\": { \"go\": { \"command\": \"gopls\", \"args\": [\"serve\"], \"extensionToLanguage\": { \".go\": \"go\" }",
+    "Field Description args Command-line arguments for the LSP server transport Communication transport: stdio (default) or socket env Environment variables to set when starting the server initializationOptions Options passed to the server during initialization",
+    "\"mcpServers\": { \"routines\": { \"command\": \"node\", \"args\": [\"${CLAUDE_PLUGIN_ROOT}/server.js\"], \"env\": { \"NODE_PATH\": \"${CLAUDE_PLUGIN_DATA}/node_modules\" }"
+  ],
+  "related_changelog": []
+}

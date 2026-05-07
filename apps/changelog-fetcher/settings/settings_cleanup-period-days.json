@@ -1,10 +1,19 @@
 {
   "key": "cleanupPeriodDays",
+  "leaf_name": "cleanupPeriodDays",
   "slug": "cleanup-period-days",
   "source": "settings",
   "description_en": "Number of days to retain sessions, orphaned subagent worktrees, tasks, shell snapshots, and backups. Minimum is 1; setting 0 is rejected with a validation error. See https://code.claude.com/docs/en/settings#available-settings",
-  "description_ja": "セッション、孤立したワークツリー、タスク、シェルスナップショット、バックアップを保持する日数を指定します。",
-  "use_case_ja": "- ローカルに保存される会話履歴や中間ファイルの保存期間を調整し、ディスク容量の圧迫を防ぎたい場合に設定します。\n- デフォルトは30日ですが、機密情報の露出を抑えるために期間を短縮したり、長期プロジェクトのために延長したりするのに役立ちます。",
+  "description_ja": "セッション、タスク、シェルスナップショットなどの履歴を保持する日数を設定します。",
+  "use_case_ja": "- ローカルディスク容量を節約するために、古いセッションログや一時ファイルを自動的にクリーンアップしたい場合に使用します。\n- セキュリティ要件に合わせて、機密情報が含まれる可能性のある会話履歴の保持期間を短縮（最小 1 日）することができます。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Cleaned up automatically Files in the paths below are deleted on startup once they're older than cleanupPeriodDays . The default is 30 days. Path under ~/.claude/ Contents",
+    "Transcripts and history are not encrypted at rest. OS file permissions are the only protection. If a tool reads a file or a command prints a credential, that value is written to projects/ / . To reduce exposure: Lower cleanupPeriodDays to shorten how long transcripts are kept Set the CLAUDE_CODE_SKIP_PROMPT_HISTORY environment variable to skip writing transcripts and prompt history in any mode. In non-interactive mode, you can instead pass --no-session-persistence alongside -p , or set persistSession: false in the Agent SDK. Use permission rules to deny reads of credential files",
+    "Standard: 30-day retention period Zero data retention : available for Claude Code on Claude for Enterprise. ZDR is enabled on a per-organization basis; each new organization must have ZDR enabled separately by your account team Local caching: Claude Code clients store session transcripts locally in plaintext under ~/.claude/projects/ for 30 days by default to enable session resumption. Adjust the period with cleanupPeriodDays . See application data for what's stored and how to clear it. You can delete individual Claude Code on the web sessions at any time. Deleting a session permanently removes the session's event data. For instructions on how to delete sessions, see Delete sessions .",
+    "| awsCredentialExport | Custom script that outputs JSON with AWS credentials (see advanced credential configuration ) | /bin/generate_aws_grant.sh | | blockedMarketplaces | (Managed settings only) Blocklist of marketplace sources. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. Blocked sources are checked before downloading, so they never touch the filesystem. See Managed marketplace restrictions | [{ \"source\": \"github\", \"repo\": \"untrusted/plugins\" }] | | channelsEnabled | (Managed settings only) Allow channels for the organization. On claude.ai Team and Enterprise plans, channels are blocked when this is unset or false . For Anthropic Console accounts using API key authentication, channels are allowed by default unless your organization deploys managed settings, in which case this key must be set to true | true | | cleanupPeriodDays | Session files older than this period are deleted at startup (default: 30 days, minimum 1). Setting to 0 is rejected with a validation error. Also controls the age cutoff for automatic removal of orphaned subagent worktrees at startup. To disable transcript writes entirely, set the CLAUDE_CODE_SKIP_PROMPT_HISTORY environment variable, or in non-interactive mode ( -p ) use the --no-session-persistence flag or the persistSession: false SDK option. | 20 | | companyAnnouncements | Announcement to display to users at startup. If multiple announcements are provided, they will be cycled through at random. | [\"Welcome to Acme Corp! Review our code guidelines at docs.acme.com\"] | | defaultShell | Default shell for input-box ! commands. Accepts \"bash\" (default) or \"powershell\" . Setting \"powershell\" routes interactive ! commands through PowerShell on Windows. Requires CLAUDE_CODE_USE_POWERSHELL_TOOL=1 . See PowerShell tool | \"powershell\" | | deniedMcpServers | When set in managed-settings.json, denylist of MCP servers that are explicitly blocked. Applies to all scopes including managed servers. Denylist takes precedence over allowlist. See Managed MCP configuration | [{ \"serverName\": \"filesystem\" }] |",
+    "Main conversation compaction : When the main conversation compacts, subagent transcripts are unaffected. They're stored in separate files. Session persistence : Subagent transcripts persist within their session. You can resume a subagent after restarting Claude Code by resuming the same session. Automatic cleanup : Transcripts are cleaned up based on the cleanupPeriodDays setting (default: 30 days). Auto-compaction"
+  ],
   "related_changelog": [
     {
       "version": "0.2.117",
@@ -23,10 +32,10 @@
     {
       "version": "2.1.101",
       "content": "- Fixed `--setting-sources` without `user` causing background cleanup to ignore `cleanupPeriodDays` and delete conversation history older than 30 days",
-      "content_ja": "`--setting-sources` に `user` が含まれない場合、バックグラウンドでのクリーンアップが設定(cleanupPeriodDays)を無視して30日以前の履歴を削除してしまう問題を修正",
+      "content_ja": "`--setting-sources` に `user` が含まれない場合、バックグラウンドでのクリーンアップが設定（cleanupPeriodDays）を無視して30日以前の履歴を削除してしまう問題を修正",
       "inference": {
         "before": "特定のプロジェクト設定のみで起動した際、会話履歴の保存期間設定が無視され、古い履歴が勝手に削除されてしまうことがありました。",
-        "after": "どのような起動設定であっても、設定された保存期間(デフォルト30日)を正しく参照してクリーンアップが行われます。",
+        "after": "どのような起動設定であっても、設定された保存期間（デフォルト30日）を正しく参照してクリーンアップが行われます。",
         "benefit": "長期にわたるプロジェクトの重要な会話履歴が意図せず消えてしまうリスクを回避できます。"
       }
     },
@@ -35,8 +44,8 @@
       "content": "- Fixed tool result files never being cleaned up, ignoring the `cleanupPeriodDays` setting",
       "content_ja": "ツール実行結果のファイルが削除されず、`cleanupPeriodDays` 設定が無視される問題を修正しました",
       "inference": {
-        "before": "Claude がツールを実行した際のログや中間ファイルが蓄積され続け、設定で指定した保持期間(デフォルト 30 日)を過ぎてもディスク上に残り続けていました。",
-        "after": "クリーンアップ処理が正しく全ての関連ファイル(.jsonl 等)に適用されるようになり、古いデータが自動的に削除されるようになりました。",
+        "before": "Claude がツールを実行した際のログや中間ファイルが蓄積され続け、設定で指定した保持期間（デフォルト 30 日）を過ぎてもディスク上に残り続けていました。",
+        "after": "クリーンアップ処理が正しく全ての関連ファイル（.jsonl 等）に適用されるようになり、古いデータが自動的に削除されるようになりました。",
         "benefit": "不要なデータによってディスク容量が圧迫されるのを防ぎ、システムをクリーンな状態に保てます。"
       }
     },

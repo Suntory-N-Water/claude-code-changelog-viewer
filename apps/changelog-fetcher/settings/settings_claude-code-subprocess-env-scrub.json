@@ -1,18 +1,21 @@
 {
   "key": "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB",
+  "leaf_name": "CLAUDE_CODE_SUBPROCESS_ENV_SCRUB",
   "slug": "claude-code-subprocess-env-scrub",
   "source": "env",
   "description_en": "Set to `1` to strip Anthropic and cloud provider credentials from subprocess environments (Bash tool, hooks, MCP stdio servers). The parent Claude process keeps these credentials for API calls, but child processes cannot read them, reducing exposure to prompt injection attacks that attempt to exfiltrate secrets via shell expansion. On Linux, this also runs Bash subprocesses in an isolated PID namespace so they cannot read host process environments via `/proc`; as a side effect, `ps`, `pgrep`, and `kill` cannot see or signal host processes. `claude-code-action` sets this automatically when `allowed_non_write_users` is configured",
-  "description_ja": "1に設定すると、サブプロセスの環境からAnthropicやクラウドプロバイダーの認証情報を除去します。",
-  "use_case_ja": "- プロンプトインジェクション攻撃によってシェル展開経由で機密情報が流出するリスクを低減します。\n- Linux環境ではBashサブプロセスを隔離されたPIDネームスペースで実行し、ホストプロセスの環境参照を遮断します。",
+  "description_ja": "1 を設定すると、サブプロセスの環境から Anthropic やクラウドプロバイダーの認証情報を除去してプロンプトインジェクションのリスクを軽減します。",
+  "use_case_ja": "- Claude が実行する Bash コマンドや MCP サーバーから API キーなどの機密情報を隠蔽し、悪意のある入力による情報の外部漏洩を防ぎます。\n- Linux 環境では PID ネームスペースによる隔離も行われ、ホスト側のプロセス情報へのアクセスを遮断するサンドボックス的な実行が可能です。\n- 信頼できないコードの分析や外部ツールとの連携時における安全性を大幅に高めることができます。",
+  "parent_descriptions": [],
+  "doc_snippets": [],
   "related_changelog": [
     {
       "version": "2.1.83",
       "content": "- Added `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` to strip Anthropic and cloud provider credentials from subprocess environments (Bash tool, hooks, MCP stdio servers)",
-      "content_ja": "サブプロセス環境(Bash ツール、フック、MCP stdio サーバー)から Anthropic やクラウドプロバイダーの認証情報を削除する `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` を追加しました",
+      "content_ja": "サブプロセス環境（Bash ツール、フック、MCP stdio サーバー）から Anthropic やクラウドプロバイダーの認証情報を削除する `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1` を追加しました",
       "inference": {
         "before": "Claude Code が起動されているシェルに設定されている API キーなどの機密情報が、Claude が実行する Bash コマンドや MCP サーバーなどの子プロセスにそのまま引き継がれていました。万が一、プロンプトインジェクションが発生した場合、これらの情報が外部に漏洩するリスクがありました。",
-        "after": "この環境変数を有効にすることで、子プロセスの環境変数から機密性の高い認証情報を自動的に除去(スクラブ)します。Claude Code 本体は認証情報を保持し続けますが、その配下で動くツールからは参照できなくなります。",
+        "after": "この環境変数を有効にすることで、子プロセスの環境変数から機密性の高い認証情報を自動的に除去（スクラブ）します。Claude Code 本体は認証情報を保持し続けますが、その配下で動くツールからは参照できなくなります。",
         "benefit": "開発環境における機密情報の露出を最小限に抑え、信頼できないコードを分析したり、外部の MCP ツールを利用したりする際の安全性が大幅に向上します。"
       }
     },

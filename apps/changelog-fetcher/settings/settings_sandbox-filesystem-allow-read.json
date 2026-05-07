@@ -1,0 +1,31 @@
+{
+  "key": "sandbox.filesystem.allowRead",
+  "leaf_name": "allowRead",
+  "slug": "sandbox-filesystem-allow-read",
+  "source": "settings",
+  "description_en": "Paths to re-allow reading within denyRead regions. Takes precedence over denyRead for matching paths. See https://code.claude.com/docs/en/sandboxing#granting-subprocess-write-access-to-specific-paths",
+  "description_ja": "denyReadで拒否された領域内の特定のパスに対して、読み取りを再許可します。",
+  "use_case_ja": "- セキュリティのためにホームディレクトリ全体を読み取り拒否（denyRead）しつつ、現在のプロジェクトディレクトリ（`.`）だけをピンポイントで読み取り可能にしたい場合などに使用します。\n- 厳格な制限を維持したまま、開発に必要な最小限のアクセス権限だけを柔軟に提供できます。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing",
+    "Filesystem access control for sandboxed commands. See https://code.claude.com/docs/en/sandboxing#filesystem-isolation"
+  ],
+  "doc_snippets": [
+    "These paths are enforced at the OS level, so all commands running inside the sandbox, including their child processes, respect them. This is the recommended approach when a tool needs write access to a specific location, rather than excluding the tool from the sandbox entirely with excludedCommands . When allowWrite (or denyWrite / denyRead / allowRead ) is defined in multiple settings scopes , the arrays are merged , meaning paths from every scope are combined, not replaced. For example, if managed settings allow writes to /opt/company-tools and a user adds ~/.kube in their personal settings, both paths are included in the final sandbox configuration. This means users and projects can extend the list without duplicating or overriding paths set by higher-priority scopes. Path prefixes control how paths are resolved:",
+    "The older //path prefix for absolute paths still works. If you previously used single-slash /path expecting project-relative resolution, switch to ./path . This syntax differs from Read and Edit permission rules , which use //path for absolute and /path for project-relative. Sandbox filesystem paths use standard conventions: /tmp/build is an absolute path. You can also deny write or read access using sandbox.filesystem.denyWrite and sandbox.filesystem.denyRead . These are merged with any paths from Edit(...) and Read(...) permission rules. To re-allow reading specific paths within a denied region, use sandbox.filesystem.allowRead , which takes precedence over denyRead . When allowManagedReadPathsOnly is enabled in managed settings, only managed allowRead entries are respected; user, project, and local allowRead entries are ignored. denyRead still merges from all sources. For example, to block reading from the entire home directory while still allowing reads from the current project, add this to your project's .claude/settings.json :",
+    "} }",
+    "Use sandbox.filesystem.allowWrite to grant subprocess write access to paths outside the working directory Use sandbox.filesystem.denyWrite and sandbox.filesystem.denyRead to block subprocess access to specific paths Use sandbox.filesystem.allowRead to re-allow reading specific paths within a denyRead region Use Read and Edit deny rules to block access to specific files or directories Use WebFetch allow/deny rules to control domain access Use sandbox allowedDomains to control which domains Bash commands can reach"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.77",
+      "content": "- Added `allowRead` sandbox filesystem setting to re-allow read access within `denyRead` regions",
+      "content_ja": "サンドボックスのファイルシステム設定に、`denyRead` 領域内での読み取りを再許可する `allowRead` を追加しました",
+      "inference": {
+        "before": "特定のディレクトリへのアクセスを `denyRead` で制限した場合、そのサブディレクトリを個別に読み取り許可する手段がありませんでした。",
+        "after": "`allowRead` 設定を使用することで、読み取り拒否された広範なパスの中から特定のサブパスだけを安全に許可できるようになりました。",
+        "benefit": "サンドボックスのセキュリティ制限を維持しつつ、必要なファイルへのアクセスだけをピンポイントで許可できるため、柔軟な環境構築が可能です。"
+      }
+    }
+  ]
+}

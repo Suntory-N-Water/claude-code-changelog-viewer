@@ -1,0 +1,43 @@
+{
+  "key": "hooks.UserPromptSubmit",
+  "leaf_name": "UserPromptSubmit",
+  "slug": "hooks-user-prompt-submit",
+  "source": "settings",
+  "description_en": "Hooks that run when a user submits a prompt",
+  "description_ja": "ユーザーがプロンプトを送信した際に実行されるフック。",
+  "use_case_ja": "- プロンプトの送信直前に追加のコンテキストを注入したり、特定のキーワードに基づいてセッションタイトルを自動的に書き換えたりするために使用します。",
+  "parent_descriptions": [
+    "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
+  ],
+  "doc_snippets": [
+    "| :- | :- | | SessionStart | When a session begins or resumes | | Setup | When you start Claude Code with --init-only , or with --init or --maintenance in -p mode. For one-time preparation in CI or scripts | | UserPromptSubmit | When you submit a prompt, before Claude processes it | | UserPromptExpansion | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion | | PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears |",
+    "The exit code determines what happens next: Exit 0 : the action proceeds. For UserPromptSubmit , UserPromptExpansion , and SessionStart hooks, anything you write to stdout is added to Claude's context. Exit 2 : the action is blocked. Write a reason to stderr, and Claude receives it as feedback so it can adjust. Some events cannot be blocked: for SessionStart , Setup , Notification , and others, exit 2 shows stderr to the user and execution continues. See exit code 2 behavior per event for the full list. Any other exit code : the action proceeds. The transcript shows a hook error notice followed by the first line of stderr; the full stderr goes to the debug log .",
+    "Other events use different decision patterns. For example, PostToolUse and Stop hooks use a top-level decision: \"block\" field, while PermissionRequest uses hookSpecificOutput.decision.behavior . See the summary table in the reference for a full breakdown by event. For UserPromptSubmit hooks, use additionalContext instead to inject text into Claude's context. Prompt-based hooks ( type: \"prompt\" ) handle output differently: see Prompt-based hooks . Filter hooks with matchers",
+    "| ElicitationResult | MCP server name | same values as Elicitation | | FileChanged | literal filenames to watch (see FileChanged ) | .envrc\\|.env | | UserPromptExpansion | command name | your skill or command names | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove , CwdChanged | no matcher support | always fires on every occurrence | A few more examples showing matchers on different event types:",
+    "Hook lifecycle Hooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, input arrives on stdin. For HTTP hooks, it arrives as the POST request body. Your handler can then inspect the input, take action, and optionally a decision. Events fall into three cadences: once per session ( SessionStart , SessionEnd ), once per turn ( UserPromptSubmit , Stop , StopFailure ), and on every tool call inside the agentic loop ( PreToolUse , PostToolUse ): The table below summarizes when each event fires. The Hook events section documents the full input schema and decision control options for each one.",
+    "| :- | :- | | SessionStart | When a session begins or resumes | | Setup | When you start Claude Code with --init-only , or with --init or --maintenance in -p mode. For one-time preparation in CI or scripts | | UserPromptSubmit | When you submit a prompt, before Claude processes it | | UserPromptExpansion | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion | | PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears |",
+    "| UserPromptExpansion | command name | your skill or command names | | Elicitation | MCP server name | your configured MCP server names | | ElicitationResult | MCP server name | same values as Elicitation | | UserPromptSubmit , PostToolBatch , Stop , TeammateIdle , TaskCreated , TaskCompleted , WorktreeCreate , WorktreeRemove | no matcher support | always fires on every occurrence | The matcher runs against a field from the JSON input that Claude Code sends to your hook on stdin. For tool events, that field is tool_name . Each hook event section lists the full set of matcher values and the input schema for that event.",
+    "The exit code from your hook command tells Claude Code whether the action should proceed, be blocked, or be ignored. Exit 0 means success. Claude Code parses stdout for JSON output fields . JSON output is only processed on exit 0. For most events, stdout is written to the debug log but not shown in the transcript. The exceptions are UserPromptSubmit , UserPromptExpansion , and SessionStart , where stdout is added as context that Claude can see and act on. Exit 2 means a blocking error. Claude Code ignores stdout and any JSON in it. Instead, stderr text is fed back to Claude as an error message. The effect depends on the event: PreToolUse blocks the tool call, UserPromptSubmit rejects the prompt, and so on. See exit code 2 behavior for the full list. Any other exit code is a non-blocking error for most hook events. The transcript shows a hook error notice followed by the first line of stderr, so you can identify the cause without --debug . Execution continues and the full stderr is written to the debug log.",
+    "| :- | :- | | SessionStart | When a session begins or resumes | | Setup | When you start Claude Code with --init-only , or with --init or --maintenance in -p mode. For one-time preparation in CI or scripts | | UserPromptSubmit | When you submit a prompt, before Claude processes it | | UserPromptExpansion | When a user-typed command expands into a prompt, before it reaches Claude. Can block the expansion | | PreToolUse | Before a tool call executes. Can block it | | PermissionRequest | When a permission dialog appears |"
+  ],
+  "related_changelog": [
+    {
+      "version": "1.0.54",
+      "content": "- Hooks: Added UserPromptSubmit hook and the current working directory to hook inputs"
+    },
+    {
+      "version": "1.0.59",
+      "content": "- Hooks: UserPromptSubmit now supports additionalContext in advanced JSON output"
+    },
+    {
+      "version": "2.1.94",
+      "content": "- Added `hookSpecificOutput.sessionTitle` to `UserPromptSubmit` hooks for setting the session title",
+      "content_ja": "`UserPromptSubmit` フックに `hookSpecificOutput.sessionTitle` を追加し、フック経由でのセッションタイトルの設定に対応",
+      "inference": {
+        "before": "セッションのタイトルはAIによって自動生成されるか手動で変更する必要があり、ユーザーのプロンプト入力に基づいて外部スクリプトなどから動的にタイトルを制御する手段がありませんでした。",
+        "after": "ユーザーがプロンプトを送信した直後に実行されるフックから、JSON形式でセッションタイトルを指定して上書きできるようになりました。",
+        "benefit": "独自の命名規則に従ってセッションを自動整理したり、特定のキーワードが含まれる場合にタイトルを即座に変更したりといった自動化が可能になります。"
+      }
+    }
+  ]
+}
