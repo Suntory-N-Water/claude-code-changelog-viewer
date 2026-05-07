@@ -214,7 +214,7 @@ Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を�
 
 | 制御 | 設定方法 |
 | :- | :- |
-| 現在のセッションのトグル | macOS では `Option+T`、Windows と Linux では `Alt+T` を押します。[ターミナル設定](/ja/terminal-config) が Option キーのショートカットに必要な場合があります |
+| 現在のセッションのトグル | macOS では `Option+T`、Windows と Linux では `Alt+T` を押します |
 | グローバルデフォルトを設定 | `/config` を実行して思考モードをトグルします。`~/.claude/settings.json` に `alwaysThinkingEnabled` として保存されます |
 | 努力に関係なく無効化 | [`MAX_THINKING_TOKENS=0`](/ja/env-vars) を設定します。他の値は [固定思考予算](#adaptive-reasoning-and-fixed-thinking-budgets) でのみ適用されます |
 

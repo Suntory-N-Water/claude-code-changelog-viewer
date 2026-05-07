@@ -11,7 +11,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 
 キーボードショートカットはプラットフォームとターミナルによって異なる場合があります。`?` を押すと、お使いの環境で利用可能なショートカットが表示されます。
 
-**macOS ユーザー**: Option/Alt キーショートカット（`Alt+B`、`Alt+F`、`Alt+Y`、`Alt+M`、`Alt+P`、`Alt+T`）を使用するには、ターミナルで Option を Meta として設定する必要があります：
+**macOS ユーザー**: Option/Alt キーショートカット（`Alt+B`、`Alt+F`、`Alt+Y`、`Alt+M`、`Alt+P`）を使用するには、ターミナルで Option を Meta として設定する必要があります：
 
 - **iTerm2**: 設定 → プロファイル → キー → 一般 → Left/Right Option キーを「Esc+」に設定
 - **Apple Terminal**: 設定 → プロファイル → キーボード → 「Option キーを Meta キーとして使用」をチェック
@@ -38,7 +38,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | `Esc` + `Esc` | 巻き戻しまたは要約 | コードおよび/または会話を前の時点に復元するか、選択したメッセージから要約 |
 | `Shift+Tab` または `Alt+M`（一部の設定） | 権限モードを切り替え | `default`、`acceptEdits`、`plan`、および `auto` や `bypassPermissions` などの有効にしたモード間を循環します。[権限モード](/ja/permission-modes) を参照してください。 |
 | `Option+P`（macOS）または `Alt+P`（Windows/Linux） | モデルを切り替え | プロンプトをクリアせずにモデルを切り替え |
-| `Option+T`（macOS）または `Alt+T`（Windows/Linux） | 拡張思考を切り替え | 拡張思考モードを有効または無効にします。macOS では、このショートカットが機能するようにターミナルを設定して Option を Meta として送信してください |
+| `Option+T`（macOS）または `Alt+T`（Windows/Linux） | 拡張思考を切り替え | 拡張思考モードを有効または無効にします。v2.1.132 以降、このショートカットは macOS で Option を Meta として設定しなくても機能します |
 | `Option+O`（macOS）または `Alt+O`（Windows/Linux） | 高速モードを切り替え | [高速モード](/ja/fast-mode) を有効または無効にします |
 
 ### テキスト編集
