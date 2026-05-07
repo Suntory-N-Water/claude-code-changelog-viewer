@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/ja/discover-plugins.md
 
 # マーケットプレイスから事前構築されたプラグインを発見してインストールする
 
-> マーケットプレイスからプラグインを検索してインストールし、Claude Code を新しいコマンド、エージェント、機能で拡張します。
+> マーケットプレイスからプラグインを検索してインストールし、Claude Code を新しいスキル、エージェント、機能で拡張します。
 
 プラグインは Claude Code をスキル、エージェント、フック、MCP サーバーで拡張します。プラグインマーケットプレイスは、これらの拡張機能を自分で構築することなく発見してインストールするのに役立つカタログです。
 
@@ -30,6 +30,8 @@ source: https://code.claude.com/docs/ja/discover-plugins.md
 ```shell
 /plugin install github@claude-plugins-official
 ```
+
+Claude Code がプラグインがどのマーケットプレイスにも見つからないと報告する場合、マーケットプレイスが見つからないか古い可能性があります。`/plugin marketplace update claude-plugins-official` を実行して更新するか、まだ追加していない場合は `/plugin marketplace add anthropics/claude-plugins-official` を実行してください。その後、インストールを再試行してください。
 
 公式マーケットプレイスは Anthropic によって管理されています。公式マーケットプレイスにプラグインを送信するには、アプリ内送信フォームのいずれかを使用してください。
 
@@ -86,7 +88,7 @@ source: https://code.claude.com/docs/ja/discover-plugins.md
 
 ### 開発ワークフロー
 
-一般的な開発タスク用のコマンドとエージェントを追加するプラグイン。
+一般的な開発タスク用のスキルとエージェントを追加するプラグイン：
 
 - **commit-commands**: コミット、プッシュ、PR 作成を含む Git コミット ワークフロー
 - **pr-review-toolkit**: プルリクエストをレビューするための特化したエージェント
@@ -95,7 +97,7 @@ source: https://code.claude.com/docs/ja/discover-plugins.md
 
 ### 出力スタイル
 
-Claude の応答方法をカスタマイズします。
+Claude の応答方法をカスタマイズします：
 
 - **explanatory-output-style**: 実装の選択に関する教育的な洞察
 - **learning-output-style**: スキル構築のためのインタラクティブな学習モード
@@ -104,7 +106,7 @@ Claude の応答方法をカスタマイズします。
 
 Anthropic は、プラグインシステムで何が可能かを示す例プラグインを含む [デモプラグインマーケットプレイス](https://github.com/anthropics/claude-code/tree/main/plugins)（`claude-code-plugins`）も管理しています。公式マーケットプレイスとは異なり、このマーケットプレイスは手動で追加する必要があります。
 
-Claude Code 内から、`anthropics/claude-code` マーケットプレイスの `plugin marketplace add` コマンドを実行します。
+Claude Code 内から、`anthropics/claude-code` マーケットプレイスの `plugin marketplace add` コマンドを実行します：
 
 ```shell theme={null}
 /plugin marketplace add anthropics/claude-code
@@ -112,7 +114,7 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 
 これにより、マーケットプレイス カタログがダウンロードされ、そのプラグインが利用可能になります。
 
-`/plugin` を実行してプラグイン マネージャーを開きます。これにより、**Tab**（または後方に移動するには **Shift+Tab**）を使用して循環できる 4 つのタブを持つタブ付きインターフェースが開きます。
+`/plugin` を実行してプラグイン マネージャーを開きます。これにより、**Tab**（または後方に移動するには **Shift+Tab**）を使用して循環できる 4 つのタブを持つタブ付きインターフェースが開きます：
 
 - **Discover**: すべてのマーケットプレイスから利用可能なプラグインを参照
 - **Installed**: インストール済みプラグインを表示および管理
@@ -121,15 +123,15 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 
 **Discover** タブに移動して、追加したばかりのマーケットプレイスからプラグインを確認してください。
 
-プラグインを選択してその詳細を表示し、インストール スコープを選択します。
+プラグインを選択してその詳細を表示し、インストール スコープを選択します：
 
 - **User scope**: すべてのプロジェクト全体で自分用にインストール
 - **Project scope**: このリポジトリのすべてのコラボレーター用にインストール
 - **Local scope**: このリポジトリ内で自分用にのみインストール
 
-たとえば、**commit-commands**（git ワークフロー コマンドを追加するプラグイン）を選択して、ユーザー スコープにインストールします。
+たとえば、**commit-commands**（git ワークフロー スキルを追加するプラグイン）を選択して、ユーザー スコープにインストールします。
 
-コマンドラインから直接インストールすることもできます。
+コマンドラインから直接インストールすることもできます：
 
 ```shell theme={null}
 /plugin install commit-commands@anthropics-claude-code
@@ -137,9 +139,9 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 
 スコープの詳細については、[構成スコープ](/ja/settings#configuration-scopes)を参照してください。
 
-インストール後、`/reload-plugins` を実行してプラグインをアクティブ化します。プラグイン コマンドはプラグイン名でネームスペース化されているため、**commit-commands** は `/commit-commands:commit` のようなコマンドを提供します。
+インストール後、`/reload-plugins` を実行してプラグインをアクティブ化します。プラグイン スキルはプラグイン名でネームスペース化されているため、**commit-commands** は `/commit-commands:commit` のようなスキルを提供します。
 
-ファイルに変更を加えて、以下を実行して試してみてください。
+ファイルに変更を加えて、以下を実行して試してみてください：
 
 ```shell theme={null}
 /commit-commands:commit
@@ -147,7 +149,7 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 
 これにより、変更がステージされ、コミット メッセージが生成され、コミットが作成されます。
 
-各プラグインは異なる方法で機能します。**Discover** タブのプラグインの説明またはそのホームページをチェックして、提供されるコマンドと機能を確認してください。
+各プラグインは異なる方法で機能します。**Discover** タブのプラグインの説明またはそのホームページをチェックして、提供されるスキルと機能を確認してください。
 
 このガイドの残りの部分では、マーケットプレイスを追加し、プラグインをインストールし、構成を管理するすべての方法について説明します。
 
@@ -166,7 +168,7 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 
 `.claude-plugin/marketplace.json` ファイルを含む GitHub リポジトリを `owner/repo` 形式を使用して追加します。ここで `owner` は GitHub ユーザー名または組織で、`repo` はリポジトリ名です。
 
-たとえば、`anthropics/claude-code` は `anthropics` が所有する `claude-code` リポジトリを指します。
+たとえば、`anthropics/claude-code` は `anthropics` が所有する `claude-code` リポジトリを指します：
 
 ```shell
 /plugin marketplace add anthropics/claude-code
@@ -174,7 +176,7 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 
 ### 他の Git ホストから追加する
 
-完全な URL を提供することで、任意の git リポジトリを追加します。これは GitLab、Bitbucket、自己ホスト サーバーを含む任意の Git ホストで機能します。
+完全な URL を提供することで、任意の git リポジトリを追加します。これは GitLab、Bitbucket、自己ホスト サーバーを含む任意の Git ホストで機能します。`.git` サフィックスを含めて、Claude Code がリポジトリをクローンするようにしてください。URL をホストされた `marketplace.json` ファイルへの直接リンクとして扱うのではなく。
 
 HTTPS を使用する場合：
 
@@ -188,7 +190,7 @@ SSH を使用する場合：
 /plugin marketplace add git@gitlab.com:company/plugins.git
 ```
 
-特定のブランチまたはタグを追加するには、`#` の後に ref を追加します。
+特定のブランチまたはタグを追加するには、`#` の後に ref を追加します：
 
 ```shell
 /plugin marketplace add https://gitlab.com/company/plugins.git#v1.0.0
@@ -196,13 +198,13 @@ SSH を使用する場合：
 
 ### ローカル パスから追加する
 
-`.claude-plugin/marketplace.json` ファイルを含むローカル ディレクトリを追加します。
+`.claude-plugin/marketplace.json` ファイルを含むローカル ディレクトリを追加します：
 
 ```shell
 /plugin marketplace add ./my-marketplace
 ```
 
-`marketplace.json` ファイルへの直接パスを追加することもできます。
+`marketplace.json` ファイルへの直接パスを追加することもできます：
 
 ```shell
 /plugin marketplace add ./path/to/marketplace.json
@@ -210,7 +212,7 @@ SSH を使用する場合：
 
 ### リモート URL から追加する
 
-URL 経由でリモート `marketplace.json` ファイルを追加します。
+URL 経由でリモート `marketplace.json` ファイルを追加します：
 
 ```shell
 /plugin marketplace add https://example.com/marketplace.json
@@ -220,13 +222,13 @@ URL ベースのマーケットプレイスは、Git ベースのマーケット
 
 ## プラグインをインストールする
 
-マーケットプレイスを追加したら、プラグインを直接インストールできます（デフォルトではユーザー スコープにインストール）。
+マーケットプレイスを追加したら、プラグインを直接インストールできます（デフォルトではユーザー スコープにインストール）：
 
 ```shell
 /plugin install plugin-name@marketplace-name
 ```
 
-別の[インストール スコープ](/ja/settings#configuration-scopes)を選択するには、インタラクティブ UI を使用します。`/plugin` を実行して **Discover** タブに移動し、プラグインで **Enter** を押します。以下のオプションが表示されます。
+別の[インストール スコープ](/ja/settings#configuration-scopes)を選択するには、インタラクティブ UI を使用します。`/plugin` を実行して **Discover** タブに移動し、プラグインで **Enter** を押します。以下のオプションが表示されます：
 
 - **User scope**（デフォルト）: すべてのプロジェクト全体で自分用にインストール
 - **Project scope**: このリポジトリのすべてのコラボレーター用にインストール（`.claude/settings.json` に追加）
@@ -234,35 +236,41 @@ URL ベースのマーケットプレイスは、Git ベースのマーケット
 
 **managed** スコープのプラグインも表示される場合があります。これらは管理者が[管理設定](/ja/settings#settings-files)経由でインストールしたもので、変更することはできません。
 
-`/plugin` を実行して **Installed** タブに移動し、スコープでグループ化されたプラグインを確認してください。
-
 プラグインをインストールする前に、それを信頼していることを確認してください。Anthropic はプラグインに含まれる MCP サーバー、ファイル、またはその他のソフトウェアを制御せず、意図したとおりに機能することを確認できません。詳細については、各プラグインのホームページを確認してください。
 
 ## インストール済みプラグインを管理する
 
-`/plugin` を実行して **Installed** タブに移動し、プラグインを表示、有効化、無効化、またはアンインストールします。プラグイン名または説明でリストをフィルタリングするには、入力します。
+`/plugin` を実行して **Installed** タブに移動し、プラグインを表示、有効化、無効化、またはアンインストールします。リストはスコープでグループ化され、問題が最初に表示されるようにソートされます。読み込みエラーまたは未解決の依存関係を持つプラグインが上部に表示され、その後にお気に入りが続き、無効化されたプラグインは下部の折りたたまれたヘッダーの後ろに折りたたまれます。
+
+リストから以下を実行できます：
+
+- `f` を押して、選択したプラグインをお気に入りに追加またはお気に入りから削除
+- 入力してプラグイン名または説明でフィルタリング
+- Enter を押してプラグインの詳細ビューを開き、有効化、無効化、またはアンインストール
+
+プラグインをインストールして依存関係を宣言すると、インストール出力には、それと共に自動インストールされた依存関係が一覧表示されます。
 
 直接コマンドでプラグインを管理することもできます。
 
-プラグインをアンインストールせずに無効化します。
+プラグインをアンインストールせずに無効化します：
 
 ```shell
 /plugin disable plugin-name@marketplace-name
 ```
 
-無効化されたプラグインを再度有効化します。
+無効化されたプラグインを再度有効化します：
 
 ```shell
 /plugin enable plugin-name@marketplace-name
 ```
 
-プラグインを完全に削除します。
+プラグインを完全に削除します：
 
 ```shell
 /plugin uninstall plugin-name@marketplace-name
 ```
 
-`--scope` オプションを使用すると、CLI コマンドで特定のスコープをターゲットにできます。
+`--scope` オプションを使用すると、CLI コマンドで特定のスコープをターゲットにできます：
 
 ```shell
 claude plugin install formatter@your-org --scope project
@@ -271,7 +279,7 @@ claude plugin uninstall formatter@your-org --scope project
 
 ### プラグインの変更をリスタートなしで適用する
 
-セッション中にプラグインをインストール、有効化、または無効化すると、`/reload-plugins` を実行してすべての変更をリスタートなしで取得します。
+セッション中にプラグインをインストール、有効化、または無効化すると、`/reload-plugins` を実行してすべての変更をリスタートなしで取得します：
 
 ```shell
 /reload-plugins
@@ -285,7 +293,7 @@ Claude Code はすべてのアクティブなプラグインをリロードし�
 
 ### インタラクティブ インターフェースを使用する
 
-`/plugin` を実行して **Marketplaces** タブに移動して、以下を実行します。
+`/plugin` を実行して **Marketplaces** タブに移動して、以下を実行します：
 
 - 追加したすべてのマーケットプレイスをそのソースとステータスで表示
 - 新しいマーケットプレイスを追加
@@ -296,19 +304,19 @@ Claude Code はすべてのアクティブなプラグインをリロードし�
 
 直接コマンドでマーケットプレイスを管理することもできます。
 
-構成されたすべてのマーケットプレイスをリストします。
+構成されたすべてのマーケットプレイスをリストします：
 
 ```shell
 /plugin marketplace list
 ```
 
-マーケットプレイスからプラグイン リストを更新します。
+マーケットプレイスからプラグイン リストを更新します：
 
 ```shell
 /plugin marketplace update marketplace-name
 ```
 
-マーケットプレイスを削除します。
+マーケットプレイスを削除します：
 
 ```shell
 /plugin marketplace remove marketplace-name
@@ -320,7 +328,7 @@ Claude Code はすべてのアクティブなプラグインをリロードし�
 
 Claude Code はスタートアップ時にマーケットプレイスとそのインストール済みプラグインを自動的に更新できます。マーケットプレイスで自動更新が有効になっている場合、Claude Code はマーケットプレイス データを更新し、インストール済みプラグインを最新バージョンに更新します。プラグインが更新された場合、`/reload-plugins` を実行するよう促すメッセージが表示されます。
 
-UI を通じて個別のマーケットプレイスの自動更新を切り替えます。
+UI を通じて個別のマーケットプレイスの自動更新を切り替えます：
 
 1. `/plugin` を実行してプラグイン マネージャーを開く
 2. **Marketplaces** を選択
@@ -331,7 +339,7 @@ UI を通じて個別のマーケットプレイスの自動更新を切り替�
 
 Claude Code とすべてのプラグインの両方のすべての自動更新を完全に無効化するには、`DISABLE_AUTOUPDATER` 環境変数を設定します。詳細については、[自動更新](/ja/setup#auto-updates)を参照してください。
 
-Claude Code の自動更新を無効化しながらプラグイン自動更新を有効化したままにするには、`DISABLE_AUTOUPDATER` と共に `FORCE_AUTOUPDATE_PLUGINS=1` を設定します。
+Claude Code の自動更新を無効化しながらプラグイン自動更新を有効化したままにするには、`DISABLE_AUTOUPDATER` と共に `FORCE_AUTOUPDATE_PLUGINS=1` を設定します：
 
 ```bash
 export DISABLE_AUTOUPDATER=1
@@ -344,7 +352,7 @@ export FORCE_AUTOUPDATE_PLUGINS=1
 
 チーム管理者は、`.claude/settings.json` にマーケットプレイス構成を追加することで、プロジェクトの自動マーケットプレイス インストールを設定できます。チーム メンバーがリポジトリ フォルダを信頼すると、Claude Code はこれらのマーケットプレイスとプラグインをインストールするよう促します。
 
-プロジェクトの `.claude/settings.json` に `extraKnownMarketplaces` を追加します。
+プロジェクトの `.claude/settings.json` に `extraKnownMarketplaces` を追加します：
 
 ```json
 {
@@ -371,10 +379,10 @@ export FORCE_AUTOUPDATE_PLUGINS=1
 
 「unknown command」が表示されるか、`/plugin` コマンドが表示されない場合：
 
-1. **バージョンを確認する**: `claude --version` を実行します。
+1. **バージョンを確認する**: `claude --version` を実行して、インストールされているものを確認します。
 2. **Claude Code を更新する**:
-   - **Homebrew**: `brew upgrade claude-code`
-   - **npm**: `npm update -g @anthropic-ai/claude-code`
+   - **Homebrew**: `brew upgrade claude-code`（または `brew upgrade claude-code@latest` をインストールした場合）
+   - **npm**: `npm install -g @anthropic-ai/claude-code@latest`
    - **ネイティブ インストーラー**: [セットアップ](/ja/setup)からインストール コマンドを再実行します。
 3. **Claude Code を再起動する**: 更新後、ターミナルを再起動して `claude` を再度実行します。
 

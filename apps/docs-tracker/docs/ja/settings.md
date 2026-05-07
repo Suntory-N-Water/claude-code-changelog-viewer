@@ -173,6 +173,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `awsCredentialExport` | AWS 認証情報を含む JSON を出力するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `/bin/generate_aws_grant.sh` |
 | `blockedMarketplaces` | （Managed 設定のみ）マーケットプレイスソースのブロックリスト。マーケットプレイス追加時およびプラグインのインストール、更新、リフレッシュ、自動更新時に適用されるため、ポリシーが設定される前に追加されたマーケットプレイスは使用できません。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "untrusted/plugins" }]` |
 | `channelsEnabled` | （Managed 設定のみ）組織に対して[チャネル](/ja/channels)を許可します。Claude.ai Team および Enterprise プランでは、これが未設定または `false` の場合、チャネルはブロックされます。[Anthropic Console](/ja/authentication#claude-console-authentication)アカウントで API キー認証を使用している場合、チャネルはデフォルトで許可されます。ただし、組織が managed 設定をデプロイしている場合は、このキーを `true` に設定する必要があります | `true` |
+| `claudeMdExcludes` | [メモリ](/ja/memory)を読み込むときにスキップする `CLAUDE.md` ファイルの Glob パターンまたは絶対パス。パターンは絶対ファイルパスに対してマッチします。ユーザー、プロジェクト、およびローカルメモリのみに適用されます。managed ポリシーファイルは除外できません | `["**/vendor/**/CLAUDE.md"]` |
 | `cleanupPeriodDays` | この期間より長く非アクティブなセッションは起動時に削除されます（デフォルト：30 日、最小 1）。`0` に設定するとバリデーションエラーで拒否されます。また、起動時に[孤立した subagent worktrees](/ja/worktrees#clean-up-worktrees)の自動削除の年齢カットオフも制御します。トランスクリプト書き込みを完全に無効にするには、[`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/ja/env-vars)環境変数を設定するか、非インタラクティブモード（`-p`）で `--no-session-persistence` フラグまたは `persistSession: false` SDK オプションを使用します。 | `20` |
 | `companyAnnouncements` | 起動時にユーザーに表示するアナウンス。複数のアナウンスが提供される場合、ランダムにサイクルされます。 | `["Welcome to Acme Corp! Review our code guidelines at docs.acme.com"]` |
 | `defaultShell` | 入力ボックス `!` コマンドのデフォルトシェル。`"bash"`（デフォルト）または `"powershell"` を受け入れます。`"powershell"` を設定すると、インタラクティブ `!` コマンドが Windows 上の PowerShell を通じてルーティングされます。`CLAUDE_CODE_USE_POWERSHELL_TOOL=1` が必要です。[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください | `"powershell"` |
@@ -194,6 +195,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `forceLoginMethod` | `claudeai` を使用して Claude.ai アカウントへのログインを制限するか、`console` を使用して Claude Console（API 使用量請求）アカウントへのログインを制限します | `claudeai` |
 | `forceLoginOrgUUID` | ログインが特定の組織に属することを要求します。単一の UUID 文字列を受け入れます。これはログイン中にその組織を自動的に事前選択するか、リストされた組織のいずれかが受け入れられる UUID の配列を受け入れます。事前選択なし。managed 設定で設定されている場合、認証されたアカウントがリストされた組織に属していない場合、ログインは失敗します。空配列は失敗して閉じられ、ログインを設定ミスメッセージでブロックします | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` または `["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]` |
 | `forceRemoteSettingsRefresh` | （Managed 設定のみ）リモート managed 設定がサーバーから新しく取得されるまで CLI スタートアップをブロックします。フェッチが失敗した場合、キャッシュされた設定または設定なしで続行するのではなく、CLI は終了します。設定されていない場合、スタートアップはリモート設定を待たずに続行します。[fail-closed 強制](/ja/server-managed-settings#enforce-fail-closed-startup)を参照してください | `true` |
+| `gcpAuthRefresh` | GCP Application Default Credentials が期限切れになったか読み込めない場合にリフレッシュするカスタムスクリプト。[高度な認証情報構成](/ja/google-vertex-ai#advanced-credential-configuration)を参照してください | `gcloud auth application-default login` |
 | `hooks` | ライフサイクルイベントで実行するカスタムコマンドを構成します。形式については [hooks ドキュメント](/ja/hooks)を参照してください | [hooks](/ja/hooks)を参照 |
 | `httpHookAllowedEnvVars` | HTTP hooks がヘッダーに補間できる環境変数名のホワイトリスト。設定されている場合、各 hook の有効な `allowedEnvVars` はこのリストとの交差です。未定義 = 制限なし。配列はすべての設定ソース全体でマージされます。[Hook 構成](#hook-configuration)を参照してください | `["MY_TOKEN", "HOOK_SECRET"]` |
 | `includeCoAuthoredBy` | **非推奨**：代わりに `attribution` を使用してください。git コミットとプルリクエストに `co-authored-by Claude` バイラインを含めるかどうか（デフォルト：`true`） | `false` |
@@ -222,6 +224,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `sshConfigs` | [Desktop](/ja/desktop#pre-configure-ssh-connections-for-your-team)環境ドロップダウンに表示する SSH 接続。各エントリには `id`、`name`、および `sshHost` が必要です。`sshPort`、`sshIdentityFile`、および `startDirectory` はオプションです。managed 設定で設定されている場合、接続はユーザーに対して読み取り専用です。managed およびユーザー設定からのみ読み込まれます | `[{"id": "dev-vm", "name": "Dev VM", "sshHost": "user@dev.example.com"}]` |
 | `statusLine` | コンテキストを表示するカスタムステータスラインを構成します。[`statusLine` ドキュメント](/ja/statusline)を参照してください | `{"type": "command", "command": "~/.claude/statusline.sh"}` |
 | `strictKnownMarketplaces` | （Managed 設定のみ）プラグインマーケットプレイスソースのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。マーケットプレイス追加時およびプラグインのインストール、更新、リフレッシュ、自動更新時に適用されるため、ポリシーが設定される前に追加されたマーケットプレイスは使用できません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
+| `syntaxHighlightingDisabled` | diff、コードブロック、ファイルプレビューの構文強調表示を無効にします | `true` |
 | `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`in-process`、または `tmux`。`--teammate-mode` はこれを 1 セッション間オーバーライドします。[表示モードを選択](/ja/agent-teams#choose-a-display-mode)を参照してください | `"in-process"` |
 | `terminalProgressBarEnabled` | サポートされているターミナルでターミナル進行状況バーを表示します：ConEmu、Ghostty 1.2.0 以降、および iTerm2 3.6.6 以降。デフォルト：`true`。`/config` に**ターミナル進行状況バー**として表示されます | `false` |
 | `tui` | ターミナル UI レンダラー。フリッカーのない[alt-screen レンダラー](/ja/fullscreen)を備えた仮想スクロールバック用に `"fullscreen"` を使用します。クラシックメインスクリーンレンダラー用に `"default"` を使用します。`/tui` で設定します。[`CLAUDE_CODE_NO_FLICKER`](/ja/env-vars)環境変数を設定することもできます | `"fullscreen"` |
@@ -436,7 +439,7 @@ your-repo-file-index --query "$query" | head -20
 
 **HTTP hook URL を制限：**
 
-HTTP hooks がターゲットにできる URL を制限します。マッチングのワイルドカードとして `*` をサポートします。配列が定義されている場合、一致しない URL をターゲットにする HTTP hooks はサイレントにブロックされます。
+HTTP hooks がターゲットにできる URL を制限します。マッチングのワイルドカードとして `*` をサポートします。配列が定義されている場合、一致しない URL をターゲットにする HTTP hooks はサイレントにブロックされます。ホスト名マッチングは大文字と小文字を区別せず、末尾の FQDN ドットを無視し、DNS セマンティクスに一致します。
 
 ```json
 {

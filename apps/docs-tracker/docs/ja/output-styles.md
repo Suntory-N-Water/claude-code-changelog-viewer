@@ -5,9 +5,11 @@ source: https://code.claude.com/docs/ja/output-styles.md
 
 # 出力スタイル
 
-> ソフトウェアエンジニアリング以外の用途に合わせて Claude Code をカスタマイズする
+> ソフトウェアエンジニアリング以外の用途に合わせて Claude Code を適応させる
 
-出力スタイルを使用すると、Claude Code をあらゆるタイプのエージェントとして使用できます。ローカルスクリプトの実行、ファイルの読み書き、TODO の追跡など、コアの機能を保持したままです。
+出力スタイルは Claude がどのように応答するかを変更し、Claude が何を知っているかは変更しません。システムプロンプトを変更してロール、トーン、出力形式を設定しながら、スクリプトの実行、ファイルの読み書き、TODO の追跡などのコア機能を保持します。毎回同じ声や形式で再度プロンプトを入力し続ける場合、または Claude がソフトウェアエンジニア以外として機能することを望む場合に使用します。
+
+プロジェクト、規約、またはコードベースに関する指示については、代わりに [CLAUDE.md](/ja/memory) を使用してください。
 
 ## 組み込み出力スタイル
 
@@ -64,7 +66,13 @@ tasks. [Your custom instructions here...]
 [Define how the assistant should behave in this style...]
 ```
 
-これらのファイルはユーザーレベル（`~/.claude/output-styles`）またはプロジェクトレベル（`.claude/output-styles`）に保存できます。
+これらのファイルは 3 つのレベルで保存できます。
+
+- ユーザー: `~/.claude/output-styles`
+- プロジェクト: `.claude/output-styles`
+- 管理ポリシー: [管理設定ディレクトリ](/ja/settings#settings-files) 内の `.claude/output-styles`
+
+[プラグイン](/ja/plugins-reference) は `output-styles/` ディレクトリで出力スタイルを配布することもできます。
 
 ### Frontmatter
 
@@ -75,6 +83,7 @@ tasks. [Your custom instructions here...]
 | `name` | 出力スタイルの名前（ファイル名でない場合） | ファイル名から継承 |
 | `description` | `/config` ピッカーに表示される出力スタイルの説明 | なし |
 | `keep-coding-instructions` | Claude Code のシステムプロンプトのコーディング関連の部分を保持するかどうか | false |
+| `force-for-plugin` | プラグイン出力スタイルのみ: プラグインが有効になるたびに、ユーザーが選択する必要なく、このスタイルを自動的に適用します。ユーザーの `outputStyle` 設定をオーバーライドします。複数の有効なプラグインがこれを設定する場合、最初に読み込まれたものが優先されます。 | false |
 
 ## 関連機能との比較
 
