@@ -1,0 +1,137 @@
+{
+  "id": "20260507-154708",
+  "timestamp": "2026-05-07T15:47:08.056Z",
+  "aiSummary": "Python用Agent SDKにおいて、停止理由や権限拒否、エラーリストなどの新しい属性がレスポンス型に追加されました。memory設定のガイドラインが明確化され、コミット前などの特定のタイミングで実行すべき命令は、フックとして記述することが推奨されています。フックはシェルのコマンドとして実行され、AIの判断に関わらずライフサイクルイベントに合わせて適用されます。",
+  "files": [
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 5,
+      "deletions": 1,
+      "explanation": "レスポンス型に権限拒否、エラー、APIステータス、UUIDといった詳細情報を保持するフィールドが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1467,13 +1467,17 @@ class ResultMessage:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    is_error: bool"
+            },
+            {
+              "type": "context",
+              "content": "    num_turns: int"
+            },
+            {
+              "type": "context",
+              "content": "    session_id: str"
+            },
+            {
+              "type": "added",
+              "content": "    stop_reason: str | None = None"
+            },
+            {
+              "type": "context",
+              "content": "    total_cost_usd: float | None = None"
+            },
+            {
+              "type": "context",
+              "content": "    usage: dict[str, Any] | None = None"
+            },
+            {
+              "type": "context",
+              "content": "    result: str | None = None"
+            },
+            {
+              "type": "removed",
+              "content": "    stop_reason: str | None = None"
+            },
+            {
+              "type": "context",
+              "content": "    structured_output: Any = None"
+            },
+            {
+              "type": "context",
+              "content": "    model_usage: dict[str, Any] | None = None"
+            },
+            {
+              "type": "added",
+              "content": "    permission_denials: list[Any] | None = None"
+            },
+            {
+              "type": "context",
+              "content": "    deferred_tool_use: DeferredToolUse | None = None"
+            },
+            {
+              "type": "added",
+              "content": "    errors: list[str] | None = None"
+            },
+            {
+              "type": "added",
+              "content": "    api_error_status: int | None = None"
+            },
+            {
+              "type": "added",
+              "content": "    uuid: str | None = None"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `usage` dict contains the following keys when present:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "特定の実行タイミングを要する指示について、memoryではなくhookを利用すべきであるという使い分けの指針が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -365,6 +365,8 @@ To debug:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Make instructions more specific. \"Use 2-space indentation\" works better than \"format code nicely.\""
+            },
+            {
+              "type": "context",
+              "content": "- Look for conflicting instructions across CLAUDE.md files. If two files give different guidance for the same behavior, Claude may pick one arbitrarily."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the instruction is something that must run at a specific point, such as before every commit or after each file edit, write it as a [hook](/en/hooks-guide) instead. Hooks execute as shell commands at fixed lifecycle events and apply regardless of what Claude decides to do."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For instructions you want at the system prompt level, use [`--append-system-prompt`](/en/cli-reference#system-prompt-flags). This must be passed every invocation, so it's better suited to scripts and automation than interactive use."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use the [`InstructionsLoaded` hook](/en/hooks#instructionsloaded) to log exactly which instruction files are loaded, when they load, and why. This is useful for debugging path-specific rules or lazy-loaded files in subdirectories."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
