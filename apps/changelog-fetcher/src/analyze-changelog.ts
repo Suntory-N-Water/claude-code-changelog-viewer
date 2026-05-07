@@ -1,6 +1,10 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import {
+  getLogger,
+  normalizeMarkdownForAi,
+  toError,
+} from '@claude-code-changelog-viewer/common';
 import {
   type Analysis,
   AnalysisSchema,
@@ -51,7 +55,12 @@ async function main() {
       );
 
       // スコアリング & 上位3件取得
-      const topDocs = getTopDocs(snippetResults, 3);
+      const topDocs = getTopDocs(snippetResults, 3).map((doc) => ({
+        ...doc,
+        snippets: doc.snippets
+          .map(normalizeMarkdownForAi)
+          .filter((snippet) => snippet.length > 0),
+      }));
 
       return {
         content: item.content,

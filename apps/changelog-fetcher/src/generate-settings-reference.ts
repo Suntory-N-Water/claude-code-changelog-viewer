@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import {
   buildChangelogSearchTerms,
   getLogger,
+  normalizeMarkdownForAi,
   toError,
 } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
@@ -65,6 +66,8 @@ type SettingReference = {
   description_en: string;
   description_ja: string;
   use_case_ja?: string;
+  parent_descriptions: string[];
+  doc_snippets: string[];
   related_changelog: RelatedChangelog[];
 };
 
@@ -330,7 +333,10 @@ async function searchRelatedDocs(leaf_name: string): Promise<string[]> {
   }
 
   const snippetResults = await extractSnippets(filteredFiles, keywords);
-  return snippetResults.flatMap((r) => r.snippets);
+  return snippetResults
+    .flatMap((r) => r.snippets)
+    .map(normalizeMarkdownForAi)
+    .filter((snippet) => snippet.length > 0);
 }
 
 type TranslateContext = {
@@ -524,6 +530,8 @@ async function main() {
         ...(translation.use_case_ja
           ? { use_case_ja: translation.use_case_ja }
           : {}),
+        parent_descriptions: entry.parent_descriptions,
+        doc_snippets: docSnippetsMap.get(entry.key) ?? [],
         related_changelog: relatedChangelog,
       };
 

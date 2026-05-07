@@ -91,6 +91,8 @@ const settingsReferenceCollection = defineCollection({
     description_en: z.string(),
     description_ja: z.string(),
     use_case_ja: z.string().optional(),
+    parent_descriptions: z.array(z.string()),
+    doc_snippets: z.array(z.string()),
     related_changelog: z.array(z.unknown()),
   }),
 });
