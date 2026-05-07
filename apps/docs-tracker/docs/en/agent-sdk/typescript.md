@@ -7,8 +7,6 @@ source: https://code.claude.com/docs/en/agent-sdk/typescript.md
 
 > Complete API reference for the TypeScript Agent SDK, including all functions, types, and interfaces.
 
-**Try the new V2 interface (preview):** A simplified interface with `send()` and `stream()` patterns is now available, making multi-turn conversations easier. [Learn more about the TypeScript V2 preview](/en/agent-sdk/typescript-v2-preview)
-
 ## Installation
 
 ```bash
