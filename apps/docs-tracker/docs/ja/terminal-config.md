@@ -26,9 +26,9 @@ Enter キーを押すとメッセージが送信されます。送信せずに�
 
 | ターミナル | Shift+Enter で改行 |
 | :- | :- |
-| Ghostty、Kitty、iTerm2、WezTerm、Warp、Apple Terminal | セットアップなしで機能 |
+| Ghostty、Kitty、iTerm2、WezTerm、Warp、Apple Terminal、Windows Terminal | セットアップなしで機能 |
 | VS Code、Cursor、Windsurf、Alacritty、Zed | 1 回 `/terminal-setup` を実行 |
-| Windows Terminal、gnome-terminal、PyCharm や Android Studio などの JetBrains IDE | 利用不可。Ctrl+J または `\` の後に Enter を使用 |
+| gnome-terminal、PyCharm や Android Studio などの JetBrains IDE | 利用不可。Ctrl+J または `\` の後に Enter を使用 |
 
 VS Code、Cursor、Windsurf、Alacritty、Zed の場合、`/terminal-setup` は Shift+Enter およびその他のキーバインディングをターミナルの設定ファイルに書き込みます。VS Code、Cursor、Windsurf ではエディタ設定で `terminal.integrated.mouseWheelScrollSensitivity` も設定され、[フルスクリーンモード](/ja/fullscreen) でのスクロールがスムーズになります。既存のバインディングと設定はそのまま保持されます。`VSCode terminal Shift+Enter key binding already configured` などのメッセージが表示された場合は、変更は加えられていません。tmux または screen 内ではなく、ホストターミナル内で直接 `/terminal-setup` を実行してください。ホストターミナルの設定に書き込む必要があるためです。
 

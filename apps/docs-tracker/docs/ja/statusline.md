@@ -119,7 +119,7 @@ Claude Code はスクリプトを実行し、stdin 経由で [JSON セッショ�
 
 **更新のタイミング**
 
-スクリプトは新しいアシスタントメッセージの後、パーミッションモードが変更されたとき、または vim モードが切り替わったときに実行されます。更新は 300ms でデバウンスされます。つまり、急速な変更がバッチ処理され、スクリプトは物事が落ち着いたら一度実行されます。スクリプトがまだ実行中に新しい更新がトリガーされた場合、実行中の実行はキャンセルされます。スクリプトを編集した場合、Claude Code との次の相互作用がトリガーされるまで変更は表示されません。
+スクリプトは新しいアシスタントメッセージの後、`/compact` が完了した後、パーミッションモードが変更されたとき、または vim モードが切り替わったときに実行されます。更新は 300ms でデバウンスされます。つまり、急速な変更がバッチ処理され、スクリプトは物事が落ち着いたら一度実行されます。スクリプトがまだ実行中に新しい更新がトリガーされた場合、実行中の実行はキャンセルされます。スクリプトを編集した場合、Claude Code との次の相互作用がトリガーされるまで変更は表示されません。
 
 これらのトリガーは、メインセッションがアイドル状態の場合（例えば、コーディネーターがバックグラウンドサブエージェントを待機している場合）、静かになる可能性があります。アイドル期間中に時間ベースまたは外部ソースのセグメントを最新に保つには、[`refreshInterval`](#manually-configure-a-status-line) を設定して、固定タイマーでもコマンドを再実行します。
 
@@ -146,7 +146,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `cost.total_duration_ms` | セッション開始からの総経過時間（ミリ秒） |
 | `cost.total_api_duration_ms` | API レスポンスを待つのに費やされた総時間（ミリ秒） |
 | `cost.total_lines_added`、`cost.total_lines_removed` | 変更されたコード行 |
-| `context_window.total_input_tokens`、`context_window.total_output_tokens` | セッション全体の累積トークン数 |
+| `context_window.total_input_tokens`、`context_window.total_output_tokens` | コンテキストウィンドウに現在あるトークン数。最新の API レスポンスから取得。入力にはキャッシュ読み取りと書き込みが含まれます。v2.1.132 より前は累積セッション合計でした |
 | `context_window.context_window_size` | トークン単位の最大コンテキストウィンドウサイズ。デフォルトは 200000、拡張コンテキストを持つモデルの場合は 1000000 |
 | `context_window.used_percentage` | 事前計算されたコンテキストウィンドウ使用割合 |
 | `context_window.remaining_percentage` | 事前計算されたコンテキストウィンドウ残り割合 |
@@ -199,8 +199,8 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
     "total_lines_removed": 23
   },
   "context_window": {
-    "total_input_tokens": 15234,
-    "total_output_tokens": 4521,
+    "total_input_tokens": 15500,
+    "total_output_tokens": 1200,
     "context_window_size": 200000,
     "used_percentage": 8,
     "remaining_percentage": 92,
@@ -256,17 +256,17 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 **`null` の可能性があるフィールド**：
 
-- `context_window.current_usage`：セッションの最初の API 呼び出しの前は `null`
+- `context_window.current_usage`：セッションの最初の API 呼び出しの前は `null`、および `/compact` の後は次の API 呼び出しが再度入力されるまで `null`
 - `context_window.used_percentage`、`context_window.remaining_percentage`：セッションの早期段階では `null` の可能性があります
 
 スクリプトで条件付きアクセスと null 値のフォールバックデフォルトを使用して、不在のフィールドを処理します。
 
 ### コンテキストウィンドウフィールド
 
-`context_window` オブジェクトは、コンテキスト使用状況を追跡する 2 つの方法を提供します：
+`context_window` オブジェクトは、最新の API レスポンスからのライブコンテキストウィンドウを説明します。v2.1.132 以降、`total_input_tokens` と `total_output_tokens` は現在のコンテキスト使用状況を反映し、累積セッション合計ではありません。
 
-- **累積合計**（`total_input_tokens`、`total_output_tokens`）：セッション全体のすべてのトークンの合計。総消費量の追跡に便利です
-- **現在の使用状況**（`current_usage`）：最新の API 呼び出しからのトークン数。実際のコンテキスト状態を反映しているため、正確なコンテキスト割合に使用します
+- **結合合計**（`total_input_tokens`、`total_output_tokens`）：コンテキストウィンドウに現在あるトークン。`total_input_tokens` は `input_tokens`、`cache_creation_input_tokens`、および `cache_read_input_tokens` の合計です。`total_output_tokens` は最新レスポンスからの出力トークンです。両方とも最初の API レスポンスの前は `0` です。
+- **コンポーネント別使用状況**（`current_usage`）：カテゴリ別に分類された同じトークン数。キャッシュヒットを新規入力から分離する必要がある場合に使用します。
 
 `current_usage` オブジェクトには以下が含まれます：
 
@@ -279,7 +279,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 `current_usage` から手動でコンテキスト割合を計算する場合、`used_percentage` と一致させるために同じ入力のみの式を使用します。
 
-`current_usage` オブジェクトはセッションの最初の API 呼び出しの前は `null` です。
+`current_usage` オブジェクトはセッションの最初の API 呼び出しの前は `null` です。また `/compact` の直後は `null` であり、次の API 呼び出しが再度入力されるまで `null` のままです。
 
 ## 例
 
@@ -956,15 +956,29 @@ echo "$dirname [$model]"
 
 **コンテキスト割合が予期しない値を表示する**
 
-- 累積合計ではなく、正確なコンテキスト状態に `used_percentage` を使用します
-- `total_input_tokens` と `total_output_tokens` はセッション全体で累積され、コンテキストウィンドウサイズを超える可能性があります
+- 最も単純で正確なコンテキスト状態には `used_percentage` を使用します
 - コンテキスト割合は `/context` 出力と異なる場合があります。これは各が計算されるタイミングが異なるためです
 
 **OSC 8 リンクがクリック可能でない**
 
 - ターミナルが OSC 8 ハイパーリンクをサポートしていることを確認します（iTerm2、Kitty、WezTerm）
+
 - Terminal.app はクリック可能なリンクをサポートしていません
+
+- リンクテキストが表示されているがクリック可能でない場合、Claude Code がターミナルのハイパーリンクサポートを検出できていない可能性があります。これは Windows Terminal および自動検出リストに含まれていない他のエミュレーターに一般的に影響します。Claude Code を起動する前に `FORCE_HYPERLINK` 環境変数を設定して、検出をオーバーライドします：
+
+  ```bash theme={null}
+  FORCE_HYPERLINK=1 claude
+  ```
+
+  PowerShell では、最初に現在のセッションで変数を設定します：
+
+  ```powershell theme={null}
+  $env:FORCE_HYPERLINK = "1"; claude
+  ```
+
 - SSH と tmux セッションは設定に応じて OSC シーケンスをストリップする可能性があります
+
 - エスケープシーケンスが `\e]8;;` のようなリテラルテキストとして表示される場合は、`echo -e` の代わりに `printf '%b'` を使用して、より確実なエスケープ処理を行います
 
 **エスケープシーケンスでの表示の不具合**
@@ -987,6 +1001,6 @@ echo "$dirname [$model]"
 
 **通知がステータスラインの行を共有する**
 
-- MCP サーバーエラー、自動更新などのシステム通知は、ステータスラインと同じ行の右側に表示されます
+- MCP サーバーエラーおよび自動更新などのシステム通知は、ステータスラインと同じ行の右側に表示されます。コンテキスト低警告などの一時的な通知もこの領域を循環します。
 - 詳細モードを有効にすると、この領域にトークンカウンターが追加されます
 - 狭いターミナルでは、これらの通知がステータスラインの出力を切り詰める可能性があります
