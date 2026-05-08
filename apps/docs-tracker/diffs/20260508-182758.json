@@ -1,0 +1,422 @@
+{
+  "id": "20260508-182758",
+  "timestamp": "2026-05-08T18:27:58.834Z",
+  "aiSummary": "開発ワークフローの各段階における推奨コマンドが体系化され、初期設定からデプロイ前までの最適な利用手順が明確化されました。ルーチンの実行環境がAnthropic管理のクラウド基盤であることが明記され、管理者による機能制限オプションも追加されています。権限承認プロセスのログ出力仕様が詳細化され、CLIとSDKでの挙動の違いや設定ソースの判定基準が補足されました。iTerm2等の特定端末に依存しないターミナル設定の記述や、VS Code拡張機能でのバイナリ指定方法も更新されています。",
+  "files": [
+    {
+      "filename": "agent-teams.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "チーム管理において、一度に管理できるチームは1つのみであるという制限事項の表現が、より直接的な記述に修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -388,7 +388,7 @@ Agent teams are experimental. Current limitations to be aware of:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **No session resumption with in-process teammates**: `/resume` and `/rewind` do not restore in-process teammates. After resuming a session, the lead may attempt to message teammates that no longer exist. If this happens, tell the lead to spawn new teammates."
+            },
+            {
+              "type": "context",
+              "content": "- **Task status can lag**: teammates sometimes fail to mark tasks as completed, which blocks dependent tasks. If a task appears stuck, check whether the work is actually done and update the task status manually or tell the lead to nudge the teammate."
+            },
+            {
+              "type": "context",
+              "content": "- **Shutdown can be slow**: teammates finish their current request or tool call before shutting down, which can take time."
+            },
+            {
+              "type": "removed",
+              "content": "- **One team per session**: a lead can only manage one team at a time. Clean up the current team before starting a new one."
+            },
+            {
+              "type": "added",
+              "content": "- **One team at a time**: a lead can only manage one team. Clean up the current team before creating a new one."
+            },
+            {
+              "type": "context",
+              "content": "- **No nested teams**: teammates cannot spawn their own teams or teammates. Only the lead can manage the team."
+            },
+            {
+              "type": "context",
+              "content": "- **Lead is fixed**: the session that creates the team is the lead for its lifetime. You can't promote a teammate to lead or transfer leadership."
+            },
+            {
+              "type": "context",
+              "content": "- **Permissions set at spawn**: all teammates start with the lead's permission mode. You can change individual teammate modes after spawning, but you can't set per-teammate modes at spawn time."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 19,
+      "deletions": 3,
+      "explanation": "ワークフローの段階ごとに推奨されるコマンド群の解説が追加され、scheduleコマンドがクラウド基盤で実行されることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -13,12 +13,28 @@ Type `/` to see every command available to you, or type `/` followed by letters",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A command is only recognized at the start of your message. Text that follows the command name is passed to it as arguments."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The table below lists all the commands included in Claude Code. Entries marked **[Skill](/en/skills#bundled-skills)** are bundled skills. They use the same mechanism as skills you write yourself: a prompt handed to Claude, which Claude can also invoke automatically when relevant. Everything else is a built-in command whose behavior is coded into the CLI. To add your own commands, see [skills](/en/skills)."
+            },
+            {
+              "type": "added",
+              "content": "## Commands across a typical workflow"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Not every command appears for every user. Availability depends on your platform, plan, and environment. For example, `/desktop` only shows on macOS and Windows, and `/upgrade` only shows on Pro and Max plans."
+            },
+            {
+              "type": "added",
+              "content": "Most commands are useful at a specific point in a session, from setting up a project to shipping a change."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**First session in a repo.** Run `/init` to generate a starter `CLAUDE.md`, then `/memory` to refine it. Use `/mcp` and `/agents` to set up any servers or subagents the project needs, and `/permissions` to set the approval rules you want."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**During a task.** `/plan` switches into plan mode before a large change. `/model` and `/effort` adjust how much reasoning you're spending. When the conversation gets long, `/context` shows where the window is going and `/compact` summarizes it down; use `/btw` for a quick aside that shouldn't bloat history."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Before you ship.** `/diff` shows what changed, `/simplify` reviews recent files and applies quality and efficiency fixes, and `/review` or `/security-review` give a deeper read-only pass."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Between sessions.** `/clear` starts fresh on a new task while keeping project memory. `/resume` and `/branch` let you return to or fork an earlier conversation. `/teleport` pulls a web session into this terminal, and `/remote-control` lets you continue this local session from another device."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**When something is wrong.** `/rewind` rolls code and conversation back to a checkpoint. `/doctor` and `/debug` diagnose install and runtime issues, and `/feedback` reports a bug with session context attached."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## All commands"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The table below lists all the commands included in Claude Code. Entries marked **[Skill](/en/skills#bundled-skills)** are bundled skills. They use the same mechanism as skills you write yourself: a prompt handed to Claude, which Claude can also invoke automatically when relevant. Everything else is a built-in command whose behavior is coded into the CLI. To add your own commands, see [skills](/en/skills)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In the table below, `<arg>` indicates a required argument and `[arg]` indicates an optional one."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Not every command appears for every user. Availability depends on your platform, plan, and environment. For example, `/desktop` only shows on macOS and Windows, and `/upgrade` only shows on Pro and Max plans."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Command | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `/add-dir <path>` | Add a working directory for file access during the current session. Most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from the added directory. You can later resume the session from the added directory with `--continue` or `--resume` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -81,7 +97,7 @@ In the table below, `<arg>` indicates a required argument and `[arg]` indicates",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/review [PR]` | Review a pull request locally in your current session. For a deeper cloud-based review, see [`/ultrareview`](/en/ultrareview) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/rewind` | Rewind the conversation and/or code to a previous point, or summarize from a selected message. See [checkpointing](/en/checkpointing). Aliases: `/checkpoint`, `/undo` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/sandbox` | Toggle [sandbox mode](/en/sandboxing). Available on supported platforms only |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/schedule [description]` | Create, update, list, or run [routines](/en/routines). Claude walks you through the setup conversationally. Alias: `/routines` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/schedule [description]` | Create, update, list, or run [routines](/en/routines), which execute on Anthropic-managed cloud infrastructure. Claude walks you through the setup conversationally. Alias: `/routines` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/security-review` | Analyze pending changes on the current branch for security vulnerabilities. Reviews the git diff and identifies risks like injection, auth issues, and data exposure |"
+            },
+            {
+              "type": "context",
+              "content": "| `/setup-bedrock` | Configure [Amazon Bedrock](/en/amazon-bedrock) authentication, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_BEDROCK=1` is set. First-time Bedrock users can also access this wizard from the login screen |"
+            },
+            {
+              "type": "context",
+              "content": "| `/setup-vertex` | Configure [Google Vertex AI](/en/google-vertex-ai) authentication, project, region, and model pins through an interactive wizard. Only visible when `CLAUDE_CODE_USE_VERTEX=1` is set. First-time Vertex AI users can also access this wizard from the login screen |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "権限判定イベントのconfig、user_permanent、user_temporaryの各分類について、記録される条件やソースの詳細が大幅に加筆されました。",
+      "hunks": [
+        {
+          "header": "@@ -638,10 +638,10 @@ Logged when a tool permission decision is made (accept/reject).",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `tool_use_id`: Unique identifier for this tool invocation. Matches the `tool_use_id` passed to hooks, allowing correlation between OTel events and hook-captured data."
+            },
+            {
+              "type": "context",
+              "content": "- `decision`: Either `\"accept\"` or `\"reject\"`"
+            },
+            {
+              "type": "context",
+              "content": "- `source`: Where the decision came from:"
+            },
+            {
+              "type": "removed",
+              "content": "  - `\"config\"`: Decided automatically without prompting, based on project settings, enterprise managed policy, `--allowedTools` or `--disallowedTools` flags, the active permission mode, or because the tool is inherently safe."
+            },
+            {
+              "type": "added",
+              "content": "  - `\"config\"`: Decided automatically without prompting, based on project settings, allow rules in the user's personal settings, enterprise managed policy, `--allowedTools` or `--disallowedTools` flags, the active permission mode, a session-scoped grant from an earlier prompt in the same interactive CLI session, or because the tool is inherently safe. The event does not indicate which of these sources matched."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"hook\"`: A `PreToolUse` or `PermissionRequest` hook returned the decision."
+            },
+            {
+              "type": "removed",
+              "content": "  - `\"user_permanent\"`: Emitted when the user chose \"Always allow\" when prompted, saving a rule to their personal settings. Also emitted for later calls that match that saved rule. Treated as an accept."
+            },
+            {
+              "type": "removed",
+              "content": "  - `\"user_temporary\"`: Emitted when the user chose \"Yes\" or \"Yes, for this session\" when prompted, without saving a rule. Also emitted for later calls in the same session that match that session-scoped allow. Treated as an accept."
+            },
+            {
+              "type": "added",
+              "content": "  - `\"user_permanent\"`: Emitted when the user chose \"Yes, and don't ask again for ...\" at a permission prompt, which saves an allow rule to their personal settings. In the interactive CLI this is emitted only for that choice itself; later calls that match the saved rule emit `\"config\"` instead. In Agent SDK or non-interactive `-p` sessions, both the initial choice and later rule matches emit `\"user_permanent\"`. Treated as an accept."
+            },
+            {
+              "type": "added",
+              "content": "  - `\"user_temporary\"`: Emitted when the user chose \"Yes\" at a permission prompt for a one-time approval, or chose one of the \"... during this session\" options on a file edit or read prompt. In the interactive CLI this is emitted only for the choice itself; later calls allowed by that session-scoped grant emit `\"config\"` instead. In Agent SDK or non-interactive `-p` sessions, both the choice and later matches emit `\"user_temporary\"`. Treated as an accept."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"user_abort\"`: Emitted when the user dismissed the permission prompt without answering. Treated as a reject."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"user_reject\"`: Emitted when the user chose \"No\" when prompted, or a call matched a deny rule in their personal settings. Treated as a reject."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "routines.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "チームおよびエンタープライズの管理者が、管理設定画面からルーチン機能を一括で無効化できる手順が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -21,6 +21,8 @@ A single routine can combine triggers. For example, a PR review routine can run",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Routines are available on Pro, Max, Team, and Enterprise plans with [Claude Code on the web](/en/claude-code-on-the-web) enabled. Create and manage them at [claude.ai/code/routines](https://claude.ai/code/routines), or from the CLI with `/schedule`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Team and Enterprise admins can disable routines for all members with the Routines toggle at [claude.ai/admin-settings/claude-code](https://claude.ai/admin-settings/claude-code). When disabled, existing routines stop running and members cannot create new ones."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This page covers creating a routine, configuring each trigger type, managing runs, and how usage limits apply."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Example use cases"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "terminal-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "tmuxの設定説明において、パススルー機能の対象が特定の端末名から「外部ターミナル」という一般的な表現に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -94,7 +94,7 @@ set -s extended-keys on",
+          "lines": [
+            {
+              "type": "context",
+              "content": "set -as terminal-features 'xterm*:extkeys'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `allow-passthrough` line lets notifications and progress updates reach iTerm2, Ghostty, or Kitty instead of being swallowed by tmux. The `extended-keys` lines let tmux distinguish Shift+Enter from plain Enter so the newline shortcut works."
+            },
+            {
+              "type": "added",
+              "content": "The `allow-passthrough` line lets notifications and progress updates reach the outer terminal instead of being swallowed by tmux. The `extended-keys` lines let tmux distinguish Shift+Enter from plain Enter so the newline shortcut works."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Match the color theme"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "vs-code.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "claudeProcessWrapper設定項目について、プラットフォーム固有のバイナリが同梱されていない場合の代替指定方法が詳しく説明されました。",
+      "hunks": [
+        {
+          "header": "@@ -273,7 +273,7 @@ Add `\"$schema\": \"https://json.schemastore.org/claude-code-settings.json\"` to you",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `environmentVariables` | `[]` | Set environment variables for the Claude process. Use Claude Code settings instead for shared config. |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableLoginPrompt` | `false` | Skip authentication prompts (for third-party provider setups) |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowDangerouslySkipPermissions` | `false` | Adds [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) and Bypass permissions to the mode selector. Auto mode has [plan, admin, model, and provider requirements](/en/permission-modes#eliminate-prompts-with-auto-mode), so it may remain unavailable even with this toggle on. Use Bypass permissions only in sandboxes with no internet access. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claudeProcessWrapper` | - | Executable path used to launch the Claude process |"
+            },
+            {
+              "type": "added",
+              "content": "| `claudeProcessWrapper` | - | Executable used to launch the Claude process. The bundled binary path is passed as an argument when present. Set this to a separately installed `claude` binary if the extension build doesn't include one for your platform. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## VS Code extension vs. Claude Code CLI"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

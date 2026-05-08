@@ -401,5 +401,5 @@ tmux kill-session -t <session-name>
 並列作業と委任の関連アプローチを探索してください。
 
 - **軽量委任**：[subagents](/ja/sub-agents) はセッション内で調査または検証用のヘルパーエージェントを生成し、エージェント間調整が必要ないタスクに適しています
-- **手動並列セッション**：[Git worktrees](/ja/common-workflows#run-parallel-claude-code-sessions-with-git-worktrees) を使用すると、自動チーム調整なしで複数の Claude Code セッションを自分で実行できます
+- **手動並列セッション**：[Git worktrees](/ja/worktrees) を使用すると、自動チーム調整なしで複数の Claude Code セッションを自分で実行できます
 - **アプローチを比較**：[subagent とエージェントチーム](/ja/features-overview#compare-similar-features)の比較を参照して、並べて比較してください

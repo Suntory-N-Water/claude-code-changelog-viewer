@@ -273,7 +273,7 @@ vscode://anthropic.claude-code/open?prompt=review%20my%20changes
 | `environmentVariables` | `[]` | Claude プロセスの環境変数を設定します。共有設定には Claude Code 設定を使用します。 |
 | `disableLoginPrompt` | `false` | 認証プロンプトをスキップします（サードパーティプロバイダーセットアップ用）。 |
 | `allowDangerouslySkipPermissions` | `false` | [Auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) と Bypass permissions をモード選択ツールに追加します。Auto mode には [plan、admin、model、provider の要件](/ja/permission-modes#eliminate-prompts-with-auto-mode)があるため、このトグルがオンでも利用不可のままである可能性があります。Bypass permissions は、インターネットアクセスのないサンドボックスでのみ使用してください。 |
-| `claudeProcessWrapper` | - | Claude プロセスを起動するために使用される実行可能ファイルパス |
+| `claudeProcessWrapper` | - | Claude プロセスを起動するために使用される実行可能ファイル。バンドルされたバイナリパスは、存在する場合は引数として渡されます。拡張機能ビルドにプラットフォーム用のバイナリが含まれていない場合は、これを別途インストールされた `claude` バイナリに設定します。 |
 
 ## VS Code 拡張機能と Claude Code CLI
 

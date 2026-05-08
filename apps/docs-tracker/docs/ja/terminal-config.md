@@ -94,7 +94,7 @@ set -s extended-keys on
 set -as terminal-features 'xterm*:extkeys'
 ```
 
-`allow-passthrough` 行により、通知とプログレス更新が tmux に飲み込まれるのではなく、iTerm2、Ghostty、または Kitty に到達できます。`extended-keys` 行により、tmux は Shift+Enter をプレーン Enter と区別できるため、改行ショートカットが機能します。
+`allow-passthrough` 行により、通知とプログレス更新が tmux に飲み込まれるのではなく、外側のターミナルに到達できます。`extended-keys` 行により、tmux は Shift+Enter をプレーン Enter と区別できるため、改行ショートカットが機能します。
 
 ## カラーテーマを一致させる
 
