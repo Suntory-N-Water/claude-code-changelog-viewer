@@ -206,6 +206,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `modelOverrides` | Anthropic モデル ID を Bedrock 推論プロファイル ARN などのプロバイダー固有のモデル ID にマップします。各モデルピッカーエントリは、プロバイダー API を呼び出すときにマップされた値を使用します。[バージョンごとにモデル ID をオーバーライド](/ja/model-config#override-model-ids-per-version)を参照してください | `{"claude-opus-4-6": "arn:aws:bedrock:..."}` |
 | `otelHeadersHelper` | 動的 OpenTelemetry ヘッダーを生成するスクリプト。起動時および定期的に実行されます。[`CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS`](/ja/env-vars)でリフレッシュ間隔を設定します。[動的ヘッダー](/ja/monitoring-usage#dynamic-headers)を参照してください | `/bin/generate_otel_headers.sh` |
 | `outputStyle` | システムプロンプトを調整するための出力スタイルを構成します。[出力スタイルドキュメント](/ja/output-styles)を参照してください | `"Explanatory"` |
+| `parentSettingsBehavior` | （Managed 設定のみ）Agent SDK または IDE 拡張機能などの埋め込みホストプロセスによってプログラム的に提供される managed 設定が、管理者デプロイ済みの managed ティアも存在する場合に適用されるかどうかを制御します。`"first-wins"`：親提供の設定は削除され、管理者ティアのみが適用されます。`"merge"`：親提供の設定は管理者ティアの下で適用され、ポリシーを厳しくできるが緩くできないようにフィルタリングされます。管理者ティアがデプロイされていない場合は効果がありません。デフォルト：`"first-wins"`。Claude Code v2.1.133 以降が必要です | `"merge"` |
 | `permissions` | 権限の構造については、以下の表を参照してください。 | |
 | `plansDirectory` | プランファイルが保存される場所をカスタマイズします。パスはプロジェクトルートに相対的です。デフォルト：`~/.claude/plans` | `"./plans"` |
 | `pluginTrustMessage` | （Managed 設定のみ）インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ。これを使用して、組織固有のコンテキストを追加します。たとえば、内部マーケットプレイスからのプラグインが検証されていることを確認します。 | `"All plugins from our marketplace are approved by IT"` |
@@ -248,10 +249,11 @@ v2.1.119 より前のバージョンでは、`autoScrollEnabled`、`editorMode`�
 
 ### Worktree 設定
 
-`--worktree` が git worktrees を作成および管理する方法を構成します。これらの設定を使用して、大規模なモノレポのディスク使用量とスタートアップ時間を削減します。
+`--worktree` が git worktrees を作成および管理する方法を構成します。
 
 | キー | 説明 | 例 |
 | :- | :- | :- |
+| `worktree.baseRef` | 新しい worktrees がブランチする ref。`"fresh"`（デフォルト）は `origin/<default-branch>` からブランチして、リモートと一致するクリーンツリーを取得します。`"head"` は現在のローカル `HEAD` からブランチするため、プッシュされていないコミットとフィーチャーブランチの状態が worktree に存在します。`--worktree`、`EnterWorktree` ツール、および subagent 分離に適用されます | `"head"` |
 | `worktree.symlinkDirectories` | メインリポジトリから各 worktree にシンボリックリンクするディレクトリ。ディスク上の大規模なディレクトリの重複を避けるため。デフォルトではディレクトリはシンボリックリンクされません | `["node_modules", ".cache"]` |
 | `worktree.sparsePaths` | git sparse-checkout（cone モード）を通じて各 worktree でチェックアウトするディレクトリ。リストされたパスのみがディスクに書き込まれます。大規模なモノレポではより高速です | `["packages/my-app", "shared/utils"]` |
 
@@ -311,6 +313,8 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `network.socksProxyPort` | 独自のプロキシを使用する場合に使用される SOCKS5 プロキシポート。指定されていない場合、Claude は独自のプロキシを実行します。 | `8081` |
 | `enableWeakerNestedSandbox` | 非特権 Docker 環境用の弱いサンドボックスを有効にします（Linux と WSL2 のみ）。**セキュリティを低下させます。** デフォルト：false | `true` |
 | `enableWeakerNetworkIsolation` | （macOS のみ）サンドボックス内のシステム TLS 信頼サービス（`com.apple.trustd.agent`）へのアクセスを許可します。`httpProxyPort` を MITM プロキシおよびカスタム CA と共に使用する場合、`gh`、`gcloud`、`terraform` などの Go ベースのツールが TLS 証明書を検証するために必要です。**セキュリティを低下させます**。データ流出の可能性のあるパスを開きます。デフォルト：false | `true` |
+| `bwrapPath` | （Managed 設定のみ、Linux/WSL2）bubblewrap（`bwrap`）バイナリへの絶対パス。`PATH` を通じた自動検出をオーバーライドします。[managed 設定](/ja/settings#settings-precedence)からのみ尊重され、ユーザーまたはプロジェクト設定からは尊重されません。managed 環境で `bwrap` が非標準の場所にインストールされている場合に役立ちます。 | `/opt/admin/bwrap` |
+| `socatPath` | （Managed 設定のみ、Linux/WSL2）サンドボックスネットワークプロキシに使用される `socat` バイナリへの絶対パス。`PATH` を通じた自動検出をオーバーライドします。managed 設定からのみ尊重されます。 | `/opt/admin/socat` |
 
 #### サンドボックスパスプレフィックス
 

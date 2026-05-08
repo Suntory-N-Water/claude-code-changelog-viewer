@@ -209,6 +209,7 @@ The published schema is updated periodically and may not include settings added 
 | `modelOverrides` | Map Anthropic model IDs to provider-specific model IDs such as Bedrock inference profile ARNs. Each model picker entry uses its mapped value when calling the provider API. See [Override model IDs per version](/en/model-config#override-model-ids-per-version) | `{"claude-opus-4-6": "arn:aws:bedrock:..."}` |
 | `otelHeadersHelper` | Script to generate dynamic OpenTelemetry headers. Runs at startup and periodically. Set the refresh interval with [`CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS`](/en/env-vars). See [Dynamic headers](/en/monitoring-usage#dynamic-headers) | `/bin/generate_otel_headers.sh` |
 | `outputStyle` | Configure an output style to adjust the system prompt. See [output styles documentation](/en/output-styles) | `"Explanatory"` |
+| `parentSettingsBehavior` | (Managed settings only) Controls whether managed settings supplied programmatically by an embedding host process, such as the Agent SDK or an IDE extension, apply when an admin-deployed managed tier is also present. `"first-wins"`: the parent-supplied settings are dropped and only the admin tier applies. `"merge"`: the parent-supplied settings apply under the admin tier, filtered so they can tighten policy but not loosen it. Has no effect when no admin tier is deployed. Default: `"first-wins"`. Requires Claude Code v2.1.133 or later | `"merge"` |
 | `permissions` | See table below for structure of permissions. | |
 | `plansDirectory` | Customize where plan files are stored. Path is relative to project root. Default: `~/.claude/plans` | `"./plans"` |
 | `pluginTrustMessage` | (Managed settings only) Custom message appended to the plugin trust warning shown before installation. Use this to add organization-specific context, for example to confirm that plugins from your internal marketplace are vetted. | `"All plugins from our marketplace are approved by IT"` |
@@ -251,10 +252,11 @@ Versions before v2.1.119 also store `autoScrollEnabled`, `editorMode`, `showTurn
 
 ### Worktree settings
 
-Configure how `--worktree` creates and manages git worktrees. Use these settings to reduce disk usage and startup time in large monorepos.
+Configure how `--worktree` creates and manages git worktrees.
 
 | Key | Description | Example |
 | :- | :- | :- |
+| `worktree.baseRef` | Which ref new worktrees branch from. `"fresh"` (default) branches from `origin/<default-branch>` for a clean tree matching the remote. `"head"` branches from your current local `HEAD`, so unpushed commits and feature-branch state are present in the worktree. Applies to `--worktree`, the `EnterWorktree` tool, and subagent isolation | `"head"` |
 | `worktree.symlinkDirectories` | Directories to symlink from the main repository into each worktree to avoid duplicating large directories on disk. No directories are symlinked by default | `["node_modules", ".cache"]` |
 | `worktree.sparsePaths` | Directories to check out in each worktree via git sparse-checkout (cone mode). Only the listed paths are written to disk, which is faster in large monorepos | `["packages/my-app", "shared/utils"]` |
 
@@ -314,6 +316,8 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y
 | `network.socksProxyPort` | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8081` |
 | `enableWeakerNestedSandbox` | Enable weaker sandbox for unprivileged Docker environments (Linux and WSL2 only). **Reduces security.** Default: false | `true` |
 | `enableWeakerNetworkIsolation` | (macOS only) Allow access to the system TLS trust service (`com.apple.trustd.agent`) in the sandbox. Required for Go-based tools like `gh`, `gcloud`, and `terraform` to verify TLS certificates when using `httpProxyPort` with a MITM proxy and custom CA. **Reduces security** by opening a potential data exfiltration path. Default: false | `true` |
+| `bwrapPath` | (Managed settings only, Linux/WSL2) Absolute path to the bubblewrap (`bwrap`) binary. Overrides automatic detection via `PATH`. Only honored from [managed settings](/en/settings#settings-precedence), not from user or project settings. Useful when `bwrap` is installed at a non-standard location in managed environments. | `/opt/admin/bwrap` |
+| `socatPath` | (Managed settings only, Linux/WSL2) Absolute path to the `socat` binary used for the sandbox network proxy. Overrides automatic detection via `PATH`. Only honored from managed settings. | `/opt/admin/socat` |
 
 #### Sandbox path prefixes
 

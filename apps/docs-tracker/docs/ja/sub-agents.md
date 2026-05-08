@@ -223,12 +223,12 @@ specific, actionable feedback on quality, security, and best practices.
 | :- | :- | :- |
 | `name` | はい | 小文字とハイフンを使用した一意の識別子 |
 | `description` | はい | Claude がこのサブエージェントに委譲する場合 |
-| `tools` | いいえ | サブエージェントが使用できる[ツール](#available-tools)。省略した場合はすべてのツールを継承 |
+| `tools` | いいえ | サブエージェントが使用できる[ツール](#available-tools)。省略した場合はすべてのツールを継承します。スキルをコンテキストにプリロードするには、`tools` にリストするのではなく `skills` フィールドを使用します |
 | `disallowedTools` | いいえ | 拒否するツール。継承または指定されたリストから削除 |
 | `model` | いいえ | 使用する[モデル](#choose-a-model)：`sonnet`、`opus`、`haiku`、完全なモデル ID（例：`claude-opus-4-7`）、または `inherit`。デフォルトは `inherit` |
 | `permissionMode` | いいえ | [権限モード](#permission-modes)：`default`、`acceptEdits`、`auto`、`dontAsk`、`bypassPermissions`、または `plan`。[プラグインサブエージェント](#choose-the-subagent-scope)では無視されます |
 | `maxTurns` | いいえ | サブエージェントが停止する前の最大 agentic ターン数 |
-| `skills` | いいえ | スタートアップ時にサブエージェントのコンテキストに読み込む[スキル](/ja/skills)。呼び出しのために利用可能にするだけでなく、完全なスキルコンテンツが注入されます。サブエージェントは親の会話からスキルを継承しません |
+| `skills` | いいえ | スタートアップ時にサブエージェントのコンテキストに[プリロード](/ja/skills)する[スキル](/ja/skills)。完全なスキルコンテンツが注入されます。説明だけでなく、スキル全体が注入されます。サブエージェントは、Skill ツールを通じて、リストされていないプロジェクト、ユーザー、およびプラグインスキルを引き続き呼び出すことができます |
 | `mcpServers` | いいえ | このサブエージェントで利用可能な[MCP サーバー](/ja/mcp)。各エントリは、既に設定されたサーバーを参照するサーバー名（例：`"slack"`）または、サーバー名をキーとし、完全な[MCP サーバー設定](/ja/mcp#installing-mcp-servers)を値とするインライン定義のいずれかです。[プラグインサブエージェント](#choose-the-subagent-scope)では無視されます |
 | `hooks` | いいえ | このサブエージェントにスコープされた[ライフサイクルフック](#define-hooks-for-subagents)。[プラグインサブエージェント](#choose-the-subagent-scope)では無視されます |
 | `memory` | いいえ | [永続メモリスコープ](#enable-persistent-memory)：`user`、`project`、または `local`。クロスセッション学習を有効にします |
@@ -375,7 +375,7 @@ skills:
 Implement API endpoints. Follow the conventions and patterns from the preloaded skills.
 ```
 
-各スキルの完全なコンテンツがサブエージェントのコンテキストに注入され、呼び出しのために利用可能にするだけではありません。サブエージェントは親の会話からスキルを継承しません。明示的にリストする必要があります。
+各スキルの完全なコンテンツがサブエージェントのコンテキストに注入されます。説明だけでなく、スキル全体が注入されます。このフィールドは、どのスキルがプリロードされるかを制御します。スキルの発見と読み込みはスキルの実行中に必要ありません。プリロードなしでも、サブエージェントは Skill ツールを通じてプロジェクト、ユーザー、およびプラグインスキルを検出して呼び出すことができます。スキルをプリロードするのを防ぐには、[`tools`](#available-tools)リストから `Skill` を省略するか、`disallowedTools` に追加します。
 
 [`disable-model-invocation: true`](/ja/skills#control-who-invokes-a-skill)を設定するスキルをプリロードすることはできません。プリロードは Claude が呼び出すことができるスキルの同じセットから引き出されるためです。リストされたスキルが見つからないか無効な場合、Claude Code はそれをスキップし、デバッグログに警告をログします。
 

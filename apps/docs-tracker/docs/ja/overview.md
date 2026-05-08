@@ -7,568 +7,162 @@ source: https://code.claude.com/docs/ja/overview.md
 
 > Claude Code は agentic coding ツールで、コードベースを読み取り、ファイルを編集し、コマンドを実行し、開発ツールと統合します。ターミナル、IDE、デスクトップアプリ、ブラウザで利用できます。
 
-.dark .cc-ic {
-  --ic-slate: #f0eee6;
-  --ic-gray-000: #262624;
-  --ic-gray-150: #1f1e1d;
-  --ic-gray-550: #91908a;
-  --ic-gray-700: #bfbdb4;
-  --ic-border-subtle: rgba(240, 238, 230, 0.08);
-  --ic-border-default: rgba(240, 238, 230, 0.14);
-  --ic-border-strong: rgba(240, 238, 230, 0.28);
-}
-.dark .cc-ic-check { background: transparent; }
-.dark .cc-ic-card { border: 0.5px solid var(--ic-border-subtle); }
-.dark .cc-ic-p-pill.cc-ic-active { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); }
-.cc-ic *, .cc-ic *::before, .cc-ic *::after { box-sizing: border-box; }
-.cc-ic a { text-decoration: none; }
-.cc-ic a:not([class]) { color: inherit; }
-.cc-ic button { font-family: inherit; cursor: pointer; }
-
-.cc-ic-tab-strip {
-  display: inline-flex; gap: 2px;
-  padding: 4px; background: var(--ic-gray-150);
-  border-radius: 10px; overflow-x: auto;
-  max-width: 100%;
-}
-.cc-ic-tab {
-  appearance: none; background: none; border: none;
-  padding: 10px 18px; font-size: 15px; font-weight: 430;
-  color: var(--ic-gray-550); border-radius: 7px;
-  white-space: nowrap;
-  transition: color 0.12s, background-color 0.12s;
-}
-.cc-ic-tab:hover { color: var(--ic-gray-700); }
-.cc-ic-tab.cc-ic-active {
-  color: var(--ic-slate); font-weight: 500;
-  background: var(--ic-gray-000);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-.dark .cc-ic-tab.cc-ic-active { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
-
-.cc-ic-team-wrap { padding: 16px 0 20px; }
-.cc-ic-team-toggle {
-  display: flex; align-items: center; gap: 12px; font-family: inherit;
-  padding: 12px 16px; font-size: 14px; font-weight: 430;
-  color: var(--ic-gray-700); cursor: pointer; user-select: none;
-  width: fit-content; background: var(--ic-gray-150);
-  border: 0.5px solid var(--ic-border-subtle); border-radius: 8px;
-  transition: border-color 0.15s;
-}
-.cc-ic-team-toggle:hover { border-color: var(--ic-border-default); }
-.cc-ic-team-toggle.cc-ic-checked {
-  background: rgba(217, 119, 87, 0.08);
-  border-color: rgba(217, 119, 87, 0.25);
-}
-.cc-ic-check {
-  width: 16px; height: 16px;
-  border: 1px solid var(--ic-border-strong); border-radius: 4px;
-  background: var(--ic-gray-000);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.cc-ic-check svg { color: #fff; display: none; }
-.cc-ic-team-toggle.cc-ic-checked .cc-ic-check { background: var(--ic-clay-deep); border-color: var(--ic-clay-deep); }
-.cc-ic-team-toggle.cc-ic-checked .cc-ic-check svg { display: block; }
-
-.cc-ic-team-reveal { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
-.cc-ic-sales {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 14px 16px;
-  background: var(--ic-gray-000); border: 0.5px solid var(--ic-border-default);
-  border-radius: 8px; flex-wrap: wrap;
-}
-.cc-ic-sales-text { font-size: 13px; color: var(--ic-gray-700); line-height: 1.5; flex: 1; min-width: 200px; }
-.cc-ic-sales-text strong { font-weight: 550; color: var(--ic-slate); }
-.cc-ic-sales-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.cc-ic-btn-clay {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--ic-clay-deep); color: #fff; border: none;
-  border-radius: 8px; padding: 8px 14px;
-  font-size: 13px; font-weight: 500;
-  transition: background-color 0.15s; white-space: nowrap;
-}
-.cc-ic-btn-clay:hover { background: var(--ic-clay); }
-.cc-ic-btn-ghost {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: transparent; color: var(--ic-gray-700);
-  border: 0.5px solid var(--ic-border-default);
-  border-radius: 8px; padding: 8px 14px;
-  font-size: 13px; font-weight: 500;
-}
-.cc-ic-btn-ghost:hover { background: rgba(0, 0, 0, 0.04); }
-
-.cc-ic-provider-bar {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 16px; background: var(--ic-gray-150);
-  border-radius: 8px; font-size: 13px; flex-wrap: wrap;
-}
-.cc-ic-provider-bar .cc-ic-label { color: var(--ic-gray-550); flex-shrink: 0; }
-.cc-ic-provider-pills { display: flex; gap: 4px; flex-wrap: wrap; }
-.cc-ic-p-pill {
-  appearance: none; border: none; background: transparent;
-  padding: 6px 12px; border-radius: 6px;
-  font-size: 13px; font-weight: 430; color: var(--ic-gray-700);
-  white-space: nowrap;
-}
-.cc-ic-p-pill:hover { background: rgba(0, 0, 0, 0.04); }
-.cc-ic-p-pill.cc-ic-active {
-  background: var(--ic-gray-000); color: var(--ic-slate);
-  font-weight: 500; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-.cc-ic-provider-notice {
-  display: flex; padding: 16px 18px;
-  background: var(--ic-gray-000); border: 0.5px solid var(--ic-border-default);
-  border-radius: 8px; gap: 14px; align-items: flex-start;
-}
-.cc-ic-provider-notice > svg { color: var(--ic-gray-550); margin-top: 2px; flex-shrink: 0; }
-.cc-ic-provider-notice-body { font-size: 14px; line-height: 1.55; color: var(--ic-gray-700); }
-.cc-ic-provider-notice-body strong { font-weight: 550; color: var(--ic-slate); }
-.cc-ic-provider-notice-body a { color: var(--ic-clay-deep); font-weight: 500; }
-.cc-ic-provider-notice-body a:hover { text-decoration: underline; }
-
-.cc-ic-card { background: #141413; border-radius: 12px; overflow: hidden; }
-.cc-ic-subtabs {
-  display: flex; align-items: center;
-  background: #1a1918;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
-  padding: 0 8px; overflow-x: auto;
-}
-.cc-ic-subtab {
-  appearance: none; background: none; border: none;
-  padding: 12px 16px; font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  position: relative; white-space: nowrap;
-}
-.cc-ic-subtab:hover { color: rgba(255, 255, 255, 0.75); }
-.cc-ic-subtab.cc-ic-active { color: #fff; }
-.cc-ic-subtab.cc-ic-active::after {
-  content: ''; position: absolute;
-  left: 12px; right: 12px; bottom: -0.5px;
-  height: 2px; background: var(--ic-clay);
-}
-.cc-ic-shell-switch {
-  display: inline-flex; gap: 2px;
-  margin: 14px 26px 0; padding: 3px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  font-family: inherit;
-}
-.cc-ic-shell-option {
-  font: inherit; font-size: 12px; font-weight: 500;
-  padding: 5px 12px; border-radius: 6px;
-  background: transparent; border: none;
-  color: rgba(255, 255, 255, 0.55);
-  cursor: pointer; user-select: none; white-space: nowrap;
-  transition: color 120ms ease, background-color 120ms ease;
-}
-.cc-ic-shell-option:hover { color: rgba(255, 255, 255, 0.85); }
-.cc-ic-shell-option.cc-ic-active {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-}
-
-.cc-ic-card-body { padding: 24px 26px; display: flex; align-items: flex-start; gap: 14px; }
-.cc-ic-prompt {
-  color: var(--ic-clay); font-family: var(--ic-font-mono);
-  font-size: 17px; user-select: none; padding-top: 2px;
-}
-.cc-ic-cmd {
-  flex: 1; font-family: var(--ic-font-mono);
-  font-size: 17px; color: #f0eee6;
-  line-height: 1.55; white-space: pre-wrap; word-break: break-word;
-}
-.cc-ic-copy {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 0.5px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.85);
-  padding: 7px 13px; border-radius: 8px;
-  font-size: 13px; font-weight: 500; flex-shrink: 0;
-}
-.cc-ic-copy:hover { background: rgba(255, 255, 255, 0.14); }
-.cc-ic-copy.cc-ic-copied { background: var(--ic-clay-deep); border-color: var(--ic-clay-deep); color: #fff; }
-
-.cc-ic-below {
-  margin-top: 12px; font-size: 13px; color: var(--ic-gray-550);
-  display: flex; gap: 16px; flex-wrap: wrap; align-items: baseline;
-}
-.cc-ic-below a { color: var(--ic-gray-700); border-bottom: 0.5px solid var(--ic-border-default); }
-.cc-ic-below a:hover { color: var(--ic-clay-deep); border-bottom-color: var(--ic-clay-deep); }
-.cc-ic-handoff {
-  padding: 22px 24px;
-  background: linear-gradient(180deg, #faf9f4 0%, #f3f1e9 100%);
-  border: 0.5px solid var(--ic-border-default);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(31, 30, 29, 0.04), 0 6px 16px -4px rgba(31, 30, 29, 0.06);
-}
-.dark .cc-ic-handoff {
-  background: linear-gradient(180deg, #262624 0%, #1f1e1d 100%);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 16px -4px rgba(0, 0, 0, 0.4);
-}
-.cc-ic-handoff-title {
-  font-size: 16px; font-weight: 550; color: var(--ic-slate);
-  letter-spacing: -0.01em; margin-bottom: 4px;
-}
-.cc-ic-handoff-sub {
-  font-size: 14px; line-height: 1.5; color: var(--ic-gray-700);
-  margin-bottom: 18px;
-}
-.cc-ic-handoff-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.cc-ic-handoff-alt {
-  margin-top: 12px; font-size: 12px; color: var(--ic-gray-550);
-}
-.cc-ic-handoff-alt code {
-  font-family: var(--ic-font-mono); font-size: 11px;
-  background: var(--ic-gray-150); padding: 2px 6px;
-  border-radius: 4px; color: var(--ic-gray-700);
-}
-.cc-ic-copy-sm {
-  appearance: none; border: none;
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px;
-  margin-left: 4px; vertical-align: middle;
-  background: var(--ic-gray-150); color: var(--ic-gray-550);
-  border-radius: 4px;
-  transition: color 0.1s, background-color 0.1s;
-}
-.cc-ic-copy-sm:hover { color: var(--ic-gray-700); background: var(--ic-border-default); }
-.cc-ic-copy-sm.cc-ic-copied { background: var(--ic-clay-deep); color: #fff; }
-
-@media (max-width: 720px) {
-  .cc-ic-tab { padding: 12px 14px; font-size: 14px; }
-  .cc-ic-sales-actions { width: 100%; }
-  .cc-ic-card-body { padding: 20px; }
-  .cc-ic-cmd { font-size: 15px; }
-}
-`;
-  return <div className="cc-ic not-prose">
-      <style>{STYLES}</style>
-
-      {}
-      <div className="cc-ic-tab-strip" role="tablist">
-        {TABS.map(t => <button key={t.key} type="button" role="tab" aria-selected={target === t.key} className={'cc-ic-tab' + (target === t.key ? ' cc-ic-active' : '')} onClick={() => setTarget(t.key)}>
-            {t.label}
-          </button>)}
-      </div>
-
-      {}
-      <div className="cc-ic-team-wrap">
-        <button type="button" role="switch" aria-checked={team} className={'cc-ic-team-toggle' + (team ? ' cc-ic-checked' : '')} onClick={() => setTeam(!team)}>
-          <span className="cc-ic-check">{iconCheck(11)}</span>
-          <span>
-            I’m buying for a team or company (SSO, AWS/Azure/GCP, central billing)
-          </span>
-        </button>
-      </div>
-
-      {}
-      {team && <div className="cc-ic-team-reveal">
-          <div className="cc-ic-sales">
-            <div className="cc-ic-sales-text">
-              <strong>Set up your team:</strong> self-serve or talk to sales.
-            </div>
-            <div className="cc-ic-sales-actions">
-              <a href="https://claude.ai/upgrade?initialPlanType=team&amp;utm_source=claude_code&amp;utm_medium=docs&amp;utm_content=configurator_team_get_started" className="cc-ic-btn-ghost">
-                Get started
-              </a>
-              <a href="https://www.anthropic.com/contact-sales?utm_source=claude_code&amp;utm_medium=docs&amp;utm_content=configurator_team_contact_sales" className="cc-ic-btn-clay">
-                Contact sales {iconArrowRight()}
-              </a>
-            </div>
-          </div>
-
-          <div className="cc-ic-provider-bar">
-            <span className="cc-ic-label">Run on</span>
-            <div className="cc-ic-provider-pills" role="radiogroup" aria-label="Provider">
-              {PROVIDERS.map(p => <button key={p.key} type="button" role="radio" aria-checked={provider === p.key} className={'cc-ic-p-pill' + (provider === p.key ? ' cc-ic-active' : '')} onClick={() => setProvider(p.key)}>
-                  {p.label}
-                </button>)}
-            </div>
-          </div>
-
-          {showNotice && <div className="cc-ic-provider-notice">
-              {iconInfo()}
-              <div className="cc-ic-provider-notice-body">
-                {PROVIDER_NOTICE[provider]}
-              </div>
-            </div>}
-        </div>}
-
-      {}
-      {target === 'terminal' && <div className="cc-ic-card">
-          <div className="cc-ic-subtabs" role="tablist" aria-label="Install method">
-            {Object.keys(TERM).map(k => <button key={k} type="button" role="tab" aria-selected={pkg === k} className={'cc-ic-subtab' + (pkg === k ? ' cc-ic-active' : '')} onClick={() => setPkg(k)}>
-                {TERM[k].label}
-              </button>)}
-          </div>
-          {isWinInstaller && <div className="cc-ic-shell-switch" role="tablist" aria-label="Shell">
-              {[{
-    k: 'ps',
-    label: 'PowerShell'
-  }, {
-    k: 'cmd',
-    label: 'CMD'
-  }].map(({k, label}) => {
-    const active = k === 'cmd' === winCmd;
-    return <button key={k} type="button" role="tab" aria-selected={active} className={'cc-ic-shell-option' + (active ? ' cc-ic-active' : '')} onClick={() => setWinCmd(k === 'cmd')}>
-                    {label}
-                  </button>;
-  })}
-            </div>}
-          {cardBodyCmd(terminalCmd, isWinPrompt ? '>' : '$')}
-        </div>}
-
-      {}
-      {target === 'terminal' && <div className="cc-ic-below">
-          {isWinInstaller && <span>
-              <a href="https://git-scm.com/downloads/win" target="_blank" rel="noopener">
-                Git for Windows
-              </a>{' '}
-              recommended. PowerShell is used if Git Bash is absent.
-            </span>}
-          {(pkg === 'brew' || pkg === 'winget') && <span>
-              Does not auto-update. Run{' '}
-              <code>{pkg === 'brew' ? 'brew upgrade claude-code' : 'winget upgrade Anthropic.ClaudeCode'}</code>{' '}
-              periodically.
-            </span>}
-          <a href="/en/troubleshoot-install">Installation troubleshooting</a>
-        </div>}
-
-      {alt && <div className="cc-ic-handoff">
-          <div className="cc-ic-handoff-title">Claude Code for {alt.name}</div>
-          <div className="cc-ic-handoff-sub">{alt.tagline}</div>
-          <div className="cc-ic-handoff-actions">
-            <a href={alt.installHref} className="cc-ic-btn-clay" {...alt.installHref.startsWith('http') ? {
-    target: '_blank',
-    rel: 'noopener'
-  } : {}}>
-              {alt.installLabel} {iconArrowUpRight(13)}
-            </a>
-            <a href={alt.guideHref} className="cc-ic-btn-ghost">
-              {alt.name} guide {iconArrowRight(12)}
-            </a>
-          </div>
-          {alt.altCmd && <div className="cc-ic-handoff-alt">
-              or run <code>{alt.altCmd}</code>
-              <button type="button" className={'cc-ic-copy-sm' + (copied === 'alt' ? ' cc-ic-copied' : '')} onClick={() => handleCopy(alt.altCmd, 'alt')} aria-label="Copy command">
-                {copied === 'alt' ? iconCheck(11) : iconCopy(11)}
-              </button>
-            </div>}
-        </div>}
-    </div>;
-};
-
 Claude Code は AI を活用したコーディングアシスタントで、機能の構築、バグの修正、開発タスクの自動化を支援します。コードベース全体を理解し、複数のファイルとツール間で作業して目標を達成できます。
-
-<div data-gb-slot="overview-install-configurator">
-  <Experiment flag="overview-install-configurator" treatment={<InstallConfigurator />} />
-</div>
 
 ## はじめに
 
 環境を選択してはじめましょう。ほとんどのサーフェスには [Claude サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=overview_pricing)または [Anthropic Console](https://console.anthropic.com/) アカウントが必要です。Terminal CLI と VS Code は [サードパーティプロバイダー](/ja/third-party-integrations)もサポートしています。
 
-<Tabs>
-  <Tab title="Terminal">
-    ターミナルで Claude Code を直接操作するための機能豊富な CLI です。ファイルを編集し、コマンドを実行し、コマンドラインからプロジェクト全体を管理できます。
+ターミナルで Claude Code を直接操作するための機能豊富な CLI です。ファイルを編集し、コマンドを実行し、コマンドラインからプロジェクト全体を管理できます。
 
-    To install Claude Code, use one of the following methods:
+To install Claude Code, use one of the following methods:
 
-    <Tabs>
-      <Tab title="Native Install (Recommended)">
-        **macOS, Linux, WSL:**
+**macOS, Linux, WSL:**
 
-        ```bash theme={null}
-        curl -fsSL https://claude.ai/install.sh | bash
-        ```
+```bash theme={null}
+curl -fsSL https://claude.ai/install.sh | bash
+```
 
-        **Windows PowerShell:**
+**Windows PowerShell:**
 
-        ```powershell theme={null}
-        irm https://claude.ai/install.ps1 | iex
-        ```
+```powershell theme={null}
+irm https://claude.ai/install.ps1 | iex
+```
 
-        **Windows CMD:**
+**Windows CMD:**
 
-        ```batch theme={null}
-        curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
-        ```
+```batch theme={null}
+curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
 
-        If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\` when you're in PowerShell and `C:\` without the `PS` when you're in CMD.
+If you see `The token '&&' is not a valid statement separator`, you're in PowerShell, not CMD. If you see `'irm' is not recognized as an internal or external command`, you're in CMD, not PowerShell. Your prompt shows `PS C:\` when you're in PowerShell and `C:\` without the `PS` when you're in CMD.
 
-        [Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows.
+[Git for Windows](https://git-scm.com/downloads/win) is recommended on native Windows so Claude Code can use the Bash tool. If Git for Windows is not installed, Claude Code uses PowerShell as the shell tool instead. WSL setups do not need Git for Windows.
 
-        <Info>
-          Native installations automatically update in the background to keep you on the latest version.
-        </Info>
-      </Tab>
+Native installations automatically update in the background to keep you on the latest version.
 
-      <Tab title="Homebrew">
-        ```bash theme={null}
-        brew install --cask claude-code
-        ```
+```bash theme={null}
+brew install --cask claude-code
+```
 
-        Homebrew offers two casks. `claude-code` tracks the stable release channel, which is typically about a week behind and skips releases with major regressions. `claude-code@latest` tracks the latest channel and receives new versions as soon as they ship.
+Homebrew offers two casks. `claude-code` tracks the stable release channel, which is typically about a week behind and skips releases with major regressions. `claude-code@latest` tracks the latest channel and receives new versions as soon as they ship.
 
-        <Info>
-          Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes.
-        </Info>
-      </Tab>
+Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes.
 
-      <Tab title="WinGet">
-        ```powershell theme={null}
-        winget install Anthropic.ClaudeCode
-        ```
+```powershell theme={null}
+winget install Anthropic.ClaudeCode
+```
 
-        <Info>
-          WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCode` periodically to get the latest features and security fixes.
-        </Info>
-      </Tab>
-    </Tabs>
+WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCode` periodically to get the latest features and security fixes.
 
-    You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
+You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
 
-    その後、任意のプロジェクトで Claude Code を開始します：
+その後、任意のプロジェクトで Claude Code を開始します：
 
-    ```bash theme={null}
-    cd your-project
-    claude
-    ```
+```bash theme={null}
+cd your-project
+claude
+```
 
-    初回使用時にログインするよう促されます。これで完了です！[クイックスタートに進む →](/ja/quickstart)
+初回使用時にログインするよう促されます。これで完了です！[クイックスタートに進む →](/ja/quickstart)
 
-    <Tip>
-      インストールオプション、手動更新、またはアンインストール手順については [高度なセットアップ](/ja/setup) を参照してください。問題が発生した場合は [インストールのトラブルシューティング](/ja/troubleshoot-install) にアクセスしてください。
-    </Tip>
-  </Tab>
+インストールオプション、手動更新、またはアンインストール手順については [高度なセットアップ](/ja/setup) を参照してください。問題が発生した場合は [インストールのトラブルシューティング](/ja/troubleshoot-install) にアクセスしてください。
 
-  <Tab title="VS Code">
-    VS Code 拡張機能は、インラインの差分表示、@-メンション、プラン確認、会話履歴をエディター内で直接提供します。
+VS Code 拡張機能は、インラインの差分表示、@-メンション、プラン確認、会話履歴をエディター内で直接提供します。
 
-    * [VS Code 用にインストール](vscode:extension/anthropic.claude-code)
-    * [Cursor 用にインストール](cursor:extension/anthropic.claude-code)
+- [VS Code 用にインストール](vscode:extension/anthropic.claude-code)
+- [Cursor 用にインストール](cursor:extension/anthropic.claude-code)
 
-    または、拡張機能ビュー（Mac では `Cmd+Shift+X`、Windows/Linux では `Ctrl+Shift+X`）で「Claude Code」を検索してください。インストール後、コマンドパレット（`Cmd+Shift+P` / `Ctrl+Shift+P`）を開き、「Claude Code」と入力して、**新しいタブで開く** を選択します。
+または、拡張機能ビュー（Mac では `Cmd+Shift+X`、Windows/Linux では `Ctrl+Shift+X`）で「Claude Code」を検索してください。インストール後、コマンドパレット（`Cmd+Shift+P` / `Ctrl+Shift+P`）を開き、「Claude Code」と入力して、**新しいタブで開く** を選択します。
 
-    [VS Code ではじめる →](/ja/vs-code#get-started)
-  </Tab>
+[VS Code ではじめる →](/ja/vs-code#get-started)
 
-  <Tab title="Desktop app">
-    IDE またはターミナルの外で Claude Code を実行するためのスタンドアロンアプリです。差分を視覚的に確認し、複数のセッションを並行実行し、定期的なタスクをスケジュール設定し、クラウドセッションを開始できます。
+IDE またはターミナルの外で Claude Code を実行するためのスタンドアロンアプリです。差分を視覚的に確認し、複数のセッションを並行実行し、定期的なタスクをスケジュール設定し、クラウドセッションを開始できます。
 
-    ダウンロードしてインストール：
+ダウンロードしてインストール：
 
-    * [macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)（Intel および Apple Silicon）
-    * [Windows](https://claude.ai/api/desktop/win32/x64/setup/latest/redirect?utm_source=claude_code\&utm_medium=docs)（x64）
-    * [Windows ARM64](https://claude.ai/api/desktop/win32/arm64/setup/latest/redirect?utm_source=claude_code\&utm_medium=docs)
+- [macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)（Intel および Apple Silicon）
+- [Windows](https://claude.ai/api/desktop/win32/x64/setup/latest/redirect?utm_source=claude_code\&utm_medium=docs)（x64）
+- [Windows ARM64](https://claude.ai/api/desktop/win32/arm64/setup/latest/redirect?utm_source=claude_code\&utm_medium=docs)
 
-    インストール後、Claude を起動し、サインインして、**Code** タブをクリックしてコーディングを開始します。[有料サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=overview_desktop_pricing)が必要です。
+インストール後、Claude を起動し、サインインして、**Code** タブをクリックしてコーディングを開始します。[有料サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=overview_desktop_pricing)が必要です。
 
-    [デスクトップアプリについて詳しく →](/ja/desktop-quickstart)
-  </Tab>
+[デスクトップアプリについて詳しく →](/ja/desktop-quickstart)
 
-  <Tab title="Web">
-    ローカルセットアップなしでブラウザで Claude Code を実行します。長時間実行されるタスクを開始して完了を待つ、ローカルにないリポジトリで作業する、または複数のタスクを並行実行できます。デスクトップブラウザと Claude iOS アプリで利用できます。
+ローカルセットアップなしでブラウザで Claude Code を実行します。長時間実行されるタスクを開始して完了を待つ、ローカルにないリポジトリで作業する、または複数のタスクを並行実行できます。デスクトップブラウザと Claude iOS アプリで利用できます。
 
-    [claude.ai/code](https://claude.ai/code) でコーディングを開始します。
+[claude.ai/code](https://claude.ai/code) でコーディングを開始します。
 
-    [Web ではじめる →](/ja/web-quickstart)
-  </Tab>
+[Web ではじめる →](/ja/web-quickstart)
 
-  <Tab title="JetBrains">
-    IntelliJ IDEA、PyCharm、WebStorm、その他の JetBrains IDE 用のプラグインで、インタラクティブな差分表示と選択コンテキスト共有機能があります。
+IntelliJ IDEA、PyCharm、WebStorm、その他の JetBrains IDE 用のプラグインで、インタラクティブな差分表示と選択コンテキスト共有機能があります。
 
-    JetBrains Marketplace から [Claude Code プラグイン](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-) をインストールして IDE を再起動します。
+JetBrains Marketplace から [Claude Code プラグイン](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-) をインストールして IDE を再起動します。
 
-    [JetBrains ではじめる →](/ja/jetbrains)
-  </Tab>
-</Tabs>
+[JetBrains ではじめる →](/ja/jetbrains)
 
 ## できること
 
 Claude Code を使用できるいくつかの方法を紹介します：
 
-<AccordionGroup>
-  <Accordion title="先延ばしにしている作業を自動化する" icon="wand-magic-sparkles">
-    Claude Code は、1 日を費やす退屈なタスクを処理します：テストされていないコードのテスト作成、プロジェクト全体のリントエラー修正、マージコンフリクト解決、依存関係の更新、リリースノートの作成。
+Claude Code は、1 日を費やす退屈なタスクを処理します：テストされていないコードのテスト作成、プロジェクト全体のリントエラー修正、マージコンフリクト解決、依存関係の更新、リリースノートの作成。
 
-    ```bash theme={null}
-    claude "write tests for the auth module, run them, and fix any failures"
-    ```
-  </Accordion>
+```bash theme={null}
+claude "write tests for the auth module, run them, and fix any failures"
+```
 
-  <Accordion title="機能を構築し、バグを修正する" icon="hammer">
-    プレーンテキストで実現したいことを説明します。Claude Code はアプローチを計画し、複数のファイル間でコードを作成し、動作を検証します。
+プレーンテキストで実現したいことを説明します。Claude Code はアプローチを計画し、複数のファイル間でコードを作成し、動作を検証します。
 
-    バグの場合は、エラーメッセージを貼り付けるか、症状を説明します。Claude Code はコードベース全体で問題をトレースし、根本原因を特定し、修正を実装します。詳細な例については [一般的なワークフロー](/ja/common-workflows) を参照してください。
-  </Accordion>
+バグの場合は、エラーメッセージを貼り付けるか、症状を説明します。Claude Code はコードベース全体で問題をトレースし、根本原因を特定し、修正を実装します。詳細な例については [一般的なワークフロー](/ja/common-workflows) を参照してください。
 
-  <Accordion title="コミットとプルリクエストを作成する" icon="code-branch">
-    Claude Code は git と直接連携します。変更をステージングし、コミットメッセージを作成し、ブランチを作成し、プルリクエストを開きます。
+Claude Code は git と直接連携します。変更をステージングし、コミットメッセージを作成し、ブランチを作成し、プルリクエストを開きます。
 
-    ```bash theme={null}
-    claude "commit my changes with a descriptive message"
-    ```
+```bash theme={null}
+claude "commit my changes with a descriptive message"
+```
 
-    CI では、[GitHub Actions](/ja/github-actions) または [GitLab CI/CD](/ja/gitlab-ci-cd) でコードレビューと問題トリアージを自動化できます。
-  </Accordion>
+CI では、[GitHub Actions](/ja/github-actions) または [GitLab CI/CD](/ja/gitlab-ci-cd) でコードレビューと問題トリアージを自動化できます。
 
-  <Accordion title="MCP でツールを接続する" icon="plug">
-    [Model Context Protocol（MCP）](/ja/mcp) は、AI ツールを外部データソースに接続するためのオープンスタンダードです。MCP を使用すると、Claude Code は Google Drive のデザインドキュメントを読み取り、Jira のチケットを更新し、Slack からデータをプルするか、独自のカスタムツーリングを使用できます。
-  </Accordion>
+[Model Context Protocol（MCP）](/ja/mcp) は、AI ツールを外部データソースに接続するためのオープンスタンダードです。MCP を使用すると、Claude Code は Google Drive のデザインドキュメントを読み取り、Jira のチケットを更新し、Slack からデータをプルするか、独自のカスタムツーリングを使用できます。
 
-  <Accordion title="指示、スキル、フックでカスタマイズする" icon="sliders">
-    [`CLAUDE.md`](/ja/memory) はプロジェクトルートに追加するマークダウンファイルで、Claude Code はすべてのセッションの開始時に読み取ります。コーディング標準、アーキテクチャの決定、推奨ライブラリ、レビューチェックリストを設定するために使用します。Claude は [自動メモリ](/ja/memory#auto-memory) も構築し、ビルドコマンドやデバッグの洞察などの学習内容を保存し、何も書かずにセッション間で共有します。
+[`CLAUDE.md`](/ja/memory) はプロジェクトルートに追加するマークダウンファイルで、Claude Code はすべてのセッションの開始時に読み取ります。コーディング標準、アーキテクチャの決定、推奨ライブラリ、レビューチェックリストを設定するために使用します。Claude は [自動メモリ](/ja/memory#auto-memory) も構築し、ビルドコマンドやデバッグの洞察などの学習内容を保存し、何も書かずにセッション間で共有します。
 
-    [カスタムコマンド](/ja/skills) を作成して、チームが共有できる反復可能なワークフローをパッケージ化します（`/review-pr` や `/deploy-staging` など）。
+[スキル](/ja/skills) を作成して、チームが共有できる反復可能なワークフローをパッケージ化します（`/review-pr` や `/deploy-staging` など）。
 
-    [フック](/ja/hooks) を使用すると、ファイル編集後の自動フォーマットやコミット前のリント実行など、Claude Code アクション前後にシェルコマンドを実行できます。
-  </Accordion>
+[フック](/ja/hooks) を使用すると、ファイル編集後の自動フォーマットやコミット前のリント実行など、Claude Code アクション前後にシェルコマンドを実行できます。
 
-  <Accordion title="エージェントチームを実行し、カスタムエージェントを構築する" icon="users">
-    [複数の Claude Code エージェント](/ja/sub-agents) を生成して、タスクの異なる部分に同時に取り組みます。リードエージェントが作業を調整し、サブタスクを割り当て、結果をマージします。
+[複数の Claude Code エージェント](/ja/sub-agents) を生成して、タスクの異なる部分に同時に取り組みます。リードエージェントが作業を調整し、サブタスクを割り当て、結果をマージします。
 
-    完全にカスタムなワークフローの場合、[Agent SDK](/ja/agent-sdk/overview) を使用すると、Claude Code のツールと機能を活用した独自のエージェントを構築でき、オーケストレーション、ツールアクセス、権限を完全に制御できます。
-  </Accordion>
+完全にカスタムなワークフローの場合、[Agent SDK](/ja/agent-sdk/overview) を使用すると、Claude Code のツールと機能を活用した独自のエージェントを構築でき、オーケストレーション、ツールアクセス、権限を完全に制御できます。
 
-  <Accordion title="CLI でパイプ、スクリプト、自動化する" icon="terminal">
-    Claude Code は構成可能で Unix 哲学に従います。ログをパイプで渡し、CI で実行するか、他のツールと連鎖させます：
+Claude Code は構成可能で Unix 哲学に従います。ログをパイプで渡し、CI で実行するか、他のツールと連鎖させます：
 
-    ```bash theme={null}
-    # 最近のログ出力を分析する
-    tail -200 app.log | claude -p "Slack me if you see any anomalies"
+```bash theme={null}
+# 最近のログ出力を分析する
+tail -200 app.log | claude -p "Slack me if you see any anomalies"
 
-    # CI で翻訳を自動化する
-    claude -p "translate new strings into French and raise a PR for review"
+# CI で翻訳を自動化する
+claude -p "translate new strings into French and raise a PR for review"
 
-    # ファイル全体でバルク操作
-    git diff main --name-only | claude -p "review these changed files for security issues"
-    ```
+# ファイル全体でバルク操作
+git diff main --name-only | claude -p "review these changed files for security issues"
+```
 
-    すべてのコマンドとフラグのセットについては [CLI リファレンス](/ja/cli-reference) を参照してください。
-  </Accordion>
+すべてのコマンドとフラグのセットについては [CLI リファレンス](/ja/cli-reference) を参照してください。
 
-  <Accordion title="定期的なタスクをスケジュール設定する" icon="clock">
-    繰り返される作業を自動化するためにスケジュールで Claude を実行します：朝の PR レビュー、夜間の CI 障害分析、週次の依存関係監査、または PR マージ後のドキュメント同期。
+繰り返される作業を自動化するためにスケジュールで Claude を実行します：朝の PR レビュー、夜間の CI 障害分析、週次の依存関係監査、または PR マージ後のドキュメント同期。
 
-    * [ルーティン](/ja/routines) は Anthropic が管理するインフラストラクチャで実行されるため、コンピューターがオフの場合でも実行し続けます。API 呼び出しまたは GitHub イベントでトリガーすることもできます。Web、デスクトップアプリ、または CLI で `/schedule` を実行して作成します。
-    * [デスクトップスケジュール済みタスク](/ja/desktop-scheduled-tasks) はマシン上で実行され、ローカルファイルとツールに直接アクセスできます
-    * [`/loop`](/ja/scheduled-tasks) は CLI セッション内でプロンプトを繰り返し、クイックポーリングを行います
-  </Accordion>
+- [ルーティン](/ja/routines) は Anthropic が管理するインフラストラクチャで実行されるため、コンピューターがオフの場合でも実行し続けます。API 呼び出しまたは GitHub イベントでトリガーすることもできます。Web、デスクトップアプリ、または CLI で `/schedule` を実行して作成します。
+- [デスクトップスケジュール済みタスク](/ja/desktop-scheduled-tasks) はマシン上で実行され、ローカルファイルとツールに直接アクセスできます
+- [`/loop`](/ja/scheduled-tasks) は CLI セッション内でプロンプトを繰り返し、クイックポーリングを行います
 
-  <Accordion title="どこからでも作業する" icon="globe">
-    セッションは単一のサーフェスに限定されません。コンテキストが変わるにつれて、環境間で作業を移動します：
+セッションは単一のサーフェスに限定されません。コンテキストが変わるにつれて、環境間で作業を移動します：
 
-    * デスクから離れて、電話または [リモートコントロール](/ja/remote-control) を使用した任意のブラウザから作業を続けます
-    * [Dispatch](/ja/desktop#sessions-from-dispatch) にメッセージを送信して、電話からタスクを送信し、作成されたデスクトップセッションを開きます
-    * [Web](/ja/claude-code-on-the-web) または [iOS アプリ](https://apps.apple.com/app/claude-by-anthropic/id6473753684) で長時間実行されるタスクを開始し、`claude --teleport` でターミナルにプルします
-    * ターミナルセッションを [デスクトップアプリ](/ja/desktop) に `/desktop` で渡して、視覚的な差分確認を行います
-    * チームチャットからタスクをルーティング：[Slack](/ja/slack) で `@Claude` にメンションしてバグレポートを送信し、プルリクエストを取得します
-  </Accordion>
-</AccordionGroup>
+- デスクから離れて、電話または [リモートコントロール](/ja/remote-control) を使用した任意のブラウザから作業を続けます
+- [Dispatch](/ja/desktop#sessions-from-dispatch) にメッセージを送信して、電話からタスクを送信し、作成されたデスクトップセッションを開きます
+- [Web](/ja/claude-code-on-the-web) または [iOS アプリ](https://apps.apple.com/app/claude-by-anthropic/id6473753684) で長時間実行されるタスクを開始し、`claude --teleport` でターミナルにプルします
+- ターミナルセッションを [デスクトップアプリ](/ja/desktop) に `/desktop` で渡して、視覚的な差分確認を行います
+- チームチャットからタスクをルーティング：[Slack](/ja/slack) で `@Claude` にメンションしてバグレポートを送信し、プルリクエストを取得します
 
 ## Claude Code をどこでも使用する
 
@@ -576,25 +170,25 @@ Claude Code を使用できるいくつかの方法を紹介します：
 
 上記の [Terminal](/ja/quickstart)、[VS Code](/ja/vs-code)、[JetBrains](/ja/jetbrains)、[Desktop](/ja/desktop)、[Web](/ja/claude-code-on-the-web) 環境を超えて、Claude Code は CI/CD、チャット、ブラウザワークフローと統合します：
 
-| 実現したいこと                                                      | 最適なオプション                                                                                                            |
-| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| ローカルセッションを電話または別のデバイスから続行する                                  | [リモートコントロール](/ja/remote-control)                                                                                    |
-| Telegram、Discord、iMessage、または独自の webhook からセッションにイベントをプッシュする | [チャネル](/ja/channels)                                                                                                |
-| ローカルでタスクを開始し、モバイルで続行する                                       | [Web](/ja/claude-code-on-the-web) または [Claude iOS アプリ](https://apps.apple.com/app/claude-by-anthropic/id6473753684) |
-| 定期的なスケジュールで Claude を実行する                                     | [ルーティン](/ja/routines) または [デスクトップスケジュール済みタスク](/ja/desktop-scheduled-tasks)                                          |
-| PR レビューと問題トリアージを自動化する                                        | [GitHub Actions](/ja/github-actions) または [GitLab CI/CD](/ja/gitlab-ci-cd)                                           |
-| すべての PR で自動コードレビューを取得する                                      | [GitHub Code Review](/ja/code-review)                                                                               |
-| Slack からプルリクエストへバグレポートをルーティングする                              | [Slack](/ja/slack)                                                                                                  |
-| ライブ Web アプリケーションをデバッグする                                      | [Chrome](/ja/chrome)                                                                                                |
-| 独自のワークフロー用のカスタムエージェントを構築する                                   | [Agent SDK](/ja/agent-sdk/overview)                                                                                 |
+| 実現したいこと | 最適なオプション |
+| - | - |
+| ローカルセッションを電話または別のデバイスから続行する | [リモートコントロール](/ja/remote-control) |
+| Telegram、Discord、iMessage、または独自の webhook からセッションにイベントをプッシュする | [チャネル](/ja/channels) |
+| ローカルでタスクを開始し、モバイルで続行する | [Web](/ja/claude-code-on-the-web) または [Claude iOS アプリ](https://apps.apple.com/app/claude-by-anthropic/id6473753684) |
+| 定期的なスケジュールで Claude を実行する | [ルーティン](/ja/routines) または [デスクトップスケジュール済みタスク](/ja/desktop-scheduled-tasks) |
+| PR レビューと問題トリアージを自動化する | [GitHub Actions](/ja/github-actions) または [GitLab CI/CD](/ja/gitlab-ci-cd) |
+| すべての PR で自動コードレビューを取得する | [GitHub Code Review](/ja/code-review) |
+| Slack からプルリクエストへバグレポートをルーティングする | [Slack](/ja/slack) |
+| ライブ Web アプリケーションをデバッグする | [Chrome](/ja/chrome) |
+| 独自のワークフロー用のカスタムエージェントを構築する | [Agent SDK](/ja/agent-sdk/overview) |
 
 ## 次のステップ
 
 Claude Code をインストールしたら、これらのガイドでさらに詳しく学べます。
 
-* [クイックスタート](/ja/quickstart)：コードベースの探索から修正のコミットまで、最初の実際のタスクを実行します
-* [指示とメモリを保存する](/ja/memory)：CLAUDE.md ファイルと自動メモリで Claude に永続的な指示を与えます
-* [一般的なワークフロー](/ja/common-workflows) と [ベストプラクティス](/ja/best-practices)：Claude Code から最大限の価値を得るためのパターン
-* [設定](/ja/settings)：ワークフローに合わせて Claude Code をカスタマイズします
-* [トラブルシューティング](/ja/troubleshooting)：一般的な問題の解決策
-* [code.claude.com](https://code.claude.com/)：デモ、価格設定、製品の詳細
+- [クイックスタート](/ja/quickstart)：コードベースの探索から修正のコミットまで、最初の実際のタスクを実行します
+- [指示とメモリを保存する](/ja/memory)：CLAUDE.md ファイルと自動メモリで Claude に永続的な指示を与えます
+- [一般的なワークフロー](/ja/common-workflows) と [ベストプラクティス](/ja/best-practices)：Claude Code から最大限の価値を得るためのパターン
+- [設定](/ja/settings)：ワークフローに合わせて Claude Code をカスタマイズします
+- [トラブルシューティング](/ja/troubleshooting)：一般的な問題の解決策
+- [code.claude.com](https://code.claude.com/)：デモ、価格設定、製品の詳細

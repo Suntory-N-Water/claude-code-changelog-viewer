@@ -492,6 +492,7 @@ Claude Code で `/hooks` と入力して、設定されたフックの読み取�
 | `transcript_path` | 会話 JSON へのパス |
 | `cwd` | フックが呼び出されるときの現在の作業ディレクトリ |
 | `permission_mode` | 現在の[権限モード](/ja/permissions#permission-modes): `"default"`、`"plan"`、`"acceptEdits"`、`"auto"`、`"dontAsk"`、または `"bypassPermissions"`。すべてのイベントがこのフィールドを受け取るわけではありません。各イベントの JSON 例を確認してください |
+| `effort` | アクティブな[努力レベル](/ja/model-config#adjust-effort-level)を保持する `level` フィールドを持つオブジェクト。ターンの場合: `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。リクエストされた努力レベルが現在のモデルがサポートしているものを超える場合、これはモデルが実際に使用したダウングレードされたレベルであり、リクエストしたレベルではありません。オブジェクトは[ステータス ライン](/ja/statusline#available-data)の `effort` フィールドと一致します。`PreToolUse`、`PostToolUse`、`Stop`、`SubagentStop` などのツール使用コンテキスト内で発火するイベント、および現在のモデルが努力パラメータをサポートする場合に存在します。レベルは、フック コマンドと Bash ツールに `$CLAUDE_EFFORT` 環境変数として利用可能です。 |
 | `hook_event_name` | 発火したイベントの名前 |
 
 `--agent` で実行するか、サブエージェント内で実行する場合、2 つの追加フィールドが含まれます。
