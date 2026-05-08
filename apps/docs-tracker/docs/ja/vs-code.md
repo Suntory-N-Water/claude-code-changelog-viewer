@@ -29,6 +29,8 @@ IDE のリンクをクリックして直接インストールします。
 
 または、VS Code で `Cmd+Shift+X`（Mac）または `Ctrl+Shift+X`（Windows/Linux）を押して拡張機能ビューを開き、「Claude Code」を検索して、**インストール**をクリックします。
 
+拡張機能は Windsurf や Kiro などの他の VS Code フォークにもインストールされます。エディタの拡張機能ビューで「Claude Code」を検索するか、[Open VSX レジストリ](https://open-vsx.org/extension/Anthropic/claude-code)からインストールしてください。エディタが拡張機能をインストールできない場合は、統合ターミナルで `claude` を実行してください。[CLI](/ja/quickstart) はどのターミナルでも動作します。
+
 インストール後に拡張機能が表示されない場合は、VS Code を再起動するか、コマンドパレットから「Developer: Reload Window」を実行してください。
 
 ## はじめに

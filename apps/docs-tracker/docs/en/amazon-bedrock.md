@@ -61,7 +61,7 @@ source: https://code.claude.com/docs/en/amazon-bedrock.md
     </div>;
 };
 
-<Experiment flag="docs-contact-sales-cta" treatment={<ContactSalesCard surface="bedrock" />} />
+<ContactSalesCard surface="bedrock" />
 
 ## Prerequisites
 

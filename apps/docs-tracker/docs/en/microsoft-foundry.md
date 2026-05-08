@@ -61,7 +61,7 @@ source: https://code.claude.com/docs/en/microsoft-foundry.md
     </div>;
 };
 
-<Experiment flag="docs-contact-sales-cta" treatment={<ContactSalesCard surface="foundry" />} />
+<ContactSalesCard surface="foundry" />
 
 ## Prerequisites
 

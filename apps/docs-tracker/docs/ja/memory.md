@@ -129,11 +129,21 @@ Claude Code は `CLAUDE.md` を読みます。`AGENTS.md` ではありません�
 `src/billing/` の下の変更には Plan Mode を使用します。
 ```
 
+シンボリックリンクも機能します。Claude 固有のコンテンツを追加する必要がない場合は、次のようにします。
+
+```bash
+ln -s AGENTS.md CLAUDE.md
+```
+
+Windows では、シンボリックリンクを作成するには管理者権限または開発者モードが必要なため、代わりに `@AGENTS.md` インポートを使用します。
+
+既に `AGENTS.md` を持つリポジトリで [`/init`](/ja/commands) を実行すると、それを読み込み、関連する部分を生成された `CLAUDE.md` に組み込みます。また、`.cursorrules` や `.windsurfrules` などの他のツール設定も読み込みます。
+
 ### CLAUDE.md ファイルの読み込み方法
 
 Claude Code は現在のワーキングディレクトリからディレクトリツリーを上に歩き、途中の各ディレクトリをチェックして `CLAUDE.md` および `CLAUDE.local.md` ファイルを探します。つまり、`foo/bar/` で Claude Code を実行すると、`foo/bar/CLAUDE.md`、`foo/CLAUDE.md`、およびそれらと一緒にある `CLAUDE.local.md` ファイルから指示を読み込みます。
 
-発見されたすべてのファイルはコンテキストに連結され、互いに上書きするのではなく、各ディレクトリ内で `CLAUDE.local.md` は `CLAUDE.md` の後に追加されるため、指示が矛盾する場合、個人的なメモはそのレベルで Claude が読む最後のものです。
+発見されたすべてのファイルはコンテキストに連結され、互いに上書きするのではなく、ディレクトリツリー全体で、コンテンツはファイルシステムルートからワーキングディレクトリまで順序付けられます。`foo/bar/` の例では、`foo/CLAUDE.md` は `foo/bar/CLAUDE.md` の前にコンテキストに表示されるため、Claude を起動した場所に近い指示が最後に読まれます。各ディレクトリ内で、`CLAUDE.local.md` は `CLAUDE.md` の後に追加されるため、個人的なメモはそのレベルで Claude が読む最後のものです。
 
 Claude は現在のワーキングディレクトリの下のサブディレクトリ内の `CLAUDE.md` および `CLAUDE.local.md` ファイルも発見します。起動時に読み込む代わりに、Claude がそれらのサブディレクトリ内のファイルを読むときに含まれます。
 

@@ -1,0 +1,1128 @@
+{
+  "id": "20260508-002636",
+  "timestamp": "2026-05-08T00:26:36.293Z",
+  "aiSummary": "クラウドセッションやルーチンにおけるネットワークアクセス制御の詳細が追加され、特定のドメインを許可する手順や制限事項が具体化されました。デバッグ機能として/debugコマンドや/doctor実行時の自動修正提案が導入され、設定トラブルシューティングの効率が向上しています。また、CLAUDE.mdの作成においてシンボリックリンクの利用や既存の設定ファイル（AGENTS.md等）の読み込みに関する記述が拡充されました。VS Code拡張機能がWindsurfやKiroなどのフォーク製品にも対応したことや、カスタムAPIエンドポイントの認証設定についても明記されています。",
+  "files": [
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "営業問い合わせ用カードの表示形式が、実験フラグを使用しない直接的なコンポーネント表示に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -61,7 +61,7 @@ source: https://code.claude.com/docs/en/amazon-bedrock.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    </div>;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "<Experiment flag=\"docs-contact-sales-cta\" treatment={<ContactSalesCard surface=\"bedrock\" />} />"
+            },
+            {
+              "type": "added",
+              "content": "<ContactSalesCard surface=\"bedrock\" />"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Prerequisites"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "authentication.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "カスタムAPIエンドポイントを経由してリクエストを行う場合に、ANTHROPIC_BASE_URL環境変数を設定する手順が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -93,6 +93,7 @@ Claude Code securely manages your authentication credentials:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - On Linux, credentials are stored in `~/.claude/.credentials.json` with file mode `0600`."
+            },
+            {
+              "type": "context",
+              "content": "  - On Windows, credentials are stored in `%USERPROFILE%\\.claude\\.credentials.json` and inherit the access controls of your user profile directory, which restricts the file to your user account by default."
+            },
+            {
+              "type": "context",
+              "content": "  - If you've set the `CLAUDE_CONFIG_DIR` environment variable on Linux or Windows, the `.credentials.json` file lives under that directory instead."
+            },
+            {
+              "type": "added",
+              "content": "  - Claude Code manages `.credentials.json` through `/login` and `/logout`. To route requests through a custom API endpoint, set the [`ANTHROPIC_BASE_URL`](/en/env-vars) environment variable instead."
+            },
+            {
+              "type": "context",
+              "content": "- **Supported authentication types**: Claude.ai credentials, Claude API credentials, Azure Auth, Bedrock Auth, and Vertex Auth."
+            },
+            {
+              "type": "context",
+              "content": "- **Custom credential scripts**: the [`apiKeyHelper`](/en/settings#available-settings) setting can be configured to run a shell script that returns an API key."
+            },
+            {
+              "type": "context",
+              "content": "- **Refresh intervals**: by default, `apiKeyHelper` is called after 5 minutes or on HTTP 401 response. Set `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` environment variable for custom refresh intervals."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 5,
+      "deletions": 1,
+      "explanation": "ウェブ版の環境設定画面へのアクセス方法が更新され、ネットワークアクセス設定の変更手順やMCPコネクタの通信経路に関する詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -145,7 +145,7 @@ Environments control [network access](#network-access), environment variables, a",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Action | How |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| Add an environment | Select the current environment to open the selector, then select **Add environment**. The dialog includes name, network access level, environment variables, and setup script. |"
+            },
+            {
+              "type": "removed",
+              "content": "| Edit an environment | Select the settings icon to the right of the environment name. |"
+            },
+            {
+              "type": "added",
+              "content": "| Edit an environment | Select the cloud icon showing the current environment's name to open the selector, hover over an environment, and click the settings icon that appears on the right. |"
+            },
+            {
+              "type": "context",
+              "content": "| Archive an environment | Open the environment for editing and select **Archive**. Archived environments are hidden from the selector but existing sessions keep running. |"
+            },
+            {
+              "type": "context",
+              "content": "| Set the default for `--remote` | Run `/remote-env` in your terminal. If you have a single environment, this command shows your current configuration. `/remote-env` only selects the default; add, edit, and archive environments from the web interface. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -254,6 +254,10 @@ Replacing the base image with your own Docker image is not yet supported. Use a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Network access controls outbound connections from the cloud environment. Each environment specifies one access level, and you can extend it with custom allowed domains. The default is **Trusted**, which allows package registries and other [allowlisted domains](#default-allowed-domains)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To change an environment's network access, [open it for editing](#configure-your-environment) and use the **Network access** selector in the dialog. There is no separate Environments page. The cloud icon appears wherever you start a cloud session or configure a [routine](/en/routines#environments-and-network-access)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "MCP connector traffic is routed through Anthropic's servers, so the connectors you enable on a session or routine work without adding their hosts to **Allowed domains**. Connectors are configured per session or per routine; remove any you don't need to limit which tools Claude can reach. This relies on the same Anthropic-bound channel noted under [Security and isolation](#security-and-isolation)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Access levels"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Choose an access level when you create or edit an environment:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "debug-your-config.md",
+      "additions": 22,
+      "deletions": 2,
+      "explanation": "/debugコマンドの導入や/doctorコマンドでの修正案内機能、および一時ディレクトリを使用したクリーンな設定でのテスト手法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -26,6 +26,7 @@ For detail on a specific category, follow up with the dedicated command:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/mcp` | Connected MCP servers and their status |"
+            },
+            {
+              "type": "context",
+              "content": "| `/permissions` | Resolved allow and deny rules currently in effect |"
+            },
+            {
+              "type": "context",
+              "content": "| `/doctor` | Configuration diagnostics: invalid keys, schema errors, installation health |"
+            },
+            {
+              "type": "added",
+              "content": "| `/debug [issue]` | Enables debug logging for the session and prompts Claude to diagnose using the log output and settings paths |"
+            },
+            {
+              "type": "context",
+              "content": "| `/status` | Active settings sources, including whether managed settings are in effect |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If a memory file is missing from `/memory`, check its location against [how CLAUDE.md files load](/en/memory#how-claude-md-files-load). Subdirectory `CLAUDE.md` files load on demand when Claude reads a file in that directory with the Read tool, not at session start."
+            }
+          ]
+        },
+        {
+          "header": "@@ -40,7 +41,9 @@ CLAUDE.md and permissions solve different problems. CLAUDE.md tells Claude how y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Settings merge across managed, user, project, and local scopes. Managed settings always win when present. Among the rest, the closer scope overrides the broader one in the order local, then project, then user. Some settings can also be set by command-line flags or [environment variables](/en/env-vars), which act as another override layer. When a setting doesn't seem to apply, the value you set is usually being overridden by another scope or an environment variable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `/doctor` to validate your configuration files and surface invalid keys or schema errors. Run `/status` to see which settings sources are active, including whether managed settings are in effect. To understand which scope wins for a given key, see [How scopes interact](/en/settings#how-scopes-interact)."
+            },
+            {
+              "type": "added",
+              "content": "Run `/doctor` to validate your configuration files and surface invalid keys or schema errors. When `/doctor` reports issues, press `f` to send the diagnostic report to Claude and have it walk through fixes with you."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/status` to see which settings sources are active, including whether managed settings are in effect. To understand which scope wins for a given key, see [How scopes interact](/en/settings#how-scopes-interact)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Check MCP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -62,7 +65,23 @@ Edits to `settings.json` take effect in the running session after a brief file-s",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If `/hooks` shows the hook but it still does not fire, the next step is to watch hook evaluation live. Start a session with `claude --debug hooks` and trigger the tool call. The debug log records each event, which matchers were checked, and the hook's exit code and output. See [Debug hooks](/en/hooks#debug-hooks) for the log format and [hooks troubleshooting](/en/hooks-guide#limitations-and-troubleshooting) for common failure patterns."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Common causes"
+            },
+            {
+              "type": "added",
+              "content": "## Test against a clean configuration"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If targeted checks don't isolate the cause, or your configuration is in an unknown state, compare against a session that loads nothing from your usual setup. Point [`CLAUDE_CONFIG_DIR`](/en/env-vars) at an empty directory to bypass everything under `~/.claude`, and launch from a directory that has no `.claude` folder, `.mcp.json`, or `CLAUDE.md` so project configuration is also skipped."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "cd /tmp && CLAUDE_CONFIG_DIR=/tmp/claude-clean claude"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The clean session has no user or project settings, hooks, MCP servers, plugins, or memory."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Managed settings still apply if your organization deploys them, since they live at a system path outside `~/.claude`"
+            },
+            {
+              "type": "added",
+              "content": "- On Linux and Windows, you'll be prompted to log in again because credentials are stored under the configuration directory"
+            },
+            {
+              "type": "added",
+              "content": "- On macOS, credentials are in the Keychain and carry over to the clean session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the problem disappears here, the cause is somewhere in your real `~/.claude` or project `.claude` files. Reintroduce them one at a time, by copying files into the temporary directory or by launching from your project, to find which one. If it persists in the clean session, the cause is outside your user and project configuration. Run `/status` to check whether managed settings are in effect, look for [environment variables](/en/env-vars) that affect Claude Code, then see [Troubleshooting](/en/troubleshooting)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Check common causes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Most configuration surprises trace back to a small set of location and syntax rules. Check these before assuming a bug:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -79,6 +98,7 @@ Most configuration surprises trace back to a small set of location and syntax ru",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Subagent ignores `CLAUDE.md` instructions | Subagents don't always inherit project memory | Put critical rules in the agent file body, which becomes the subagent's system prompt. See [subagent configuration](/en/sub-agents). |"
+            },
+            {
+              "type": "context",
+              "content": "| Cleanup logic never runs at session end | No `SessionEnd` hook configured | Add a `SessionEnd` hook in `settings.json`. See the [hook events list](/en/hooks#hook-events). |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP servers in `.mcp.json` never load | File is under `.claude/` or uses Claude Desktop's config format | Project MCP config goes at the repository root as `.mcp.json`, not inside `.claude/`. See [MCP configuration](/en/mcp). |"
+            },
+            {
+              "type": "added",
+              "content": "| MCP servers added under `mcpServers` in `settings.json` never appear | `settings.json` does not read an `mcpServers` key | Define project servers in `.mcp.json` at the repository root, or run `claude mcp add --scope user` for user-scoped servers. See [MCP configuration](/en/mcp). |"
+            },
+            {
+              "type": "context",
+              "content": "| Project MCP server added but doesn't appear | The one-time approval prompt was dismissed | Project-scoped servers require approval. Run `/mcp` to see status and approve. |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP server fails to start from some directories | `command` or `args` uses a relative file path | Use absolute paths for local scripts. Executables on your `PATH` like `npx` or `uvx` work as-is. |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP server starts without expected environment variables | Variables are in `settings.json` `env`, which doesn't propagate to MCP child processes | Set per-server `env` inside `.mcp.json` instead. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 23,
+      "deletions": 1,
+      "explanation": "クラウドセッションで発生する403エラー（host_not_allowed）の原因と、ネットワーク許可リストを更新して特定のドメインを許可する方法が詳しく記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -34,6 +34,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `does not meet scope requirement user:profile` | [Authentication](#oauth-scope-requirement) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Unable to connect to API` | [Network](#unable-to-connect-to-api) |"
+            },
+            {
+              "type": "context",
+              "content": "| `SSL certificate verification failed` | [Network](#ssl-certificate-errors) |"
+            },
+            {
+              "type": "added",
+              "content": "| `403` with `x-deny-reason: host_not_allowed` in a cloud or routine session | [Network](#host-not-allowed-in-a-cloud-session) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Prompt is too long` | [Request errors](#prompt-is-too-long) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Error during compaction: Conversation too long` | [Request errors](#error-during-compaction-conversation-too-long) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Request too large` | [Request errors](#request-too-large) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -281,7 +282,7 @@ OAuth token does not meet scope requirement: user:profile",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Network and connection errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These errors mean Claude Code could not reach the API at all. They almost always originate in your local network, proxy, or firewall rather than Anthropic infrastructure."
+            },
+            {
+              "type": "added",
+              "content": "These errors mean a network request from Claude Code failed to reach its destination. They usually originate in your local network, proxy, or firewall, or in the cloud environment's network policy."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Unable to connect to API"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -327,6 +328,27 @@ Unable to connect to API: Self-signed certificate detected",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- See [Network configuration](/en/network-config#custom-ca-certificates) for full setup instructions"
+            },
+            {
+              "type": "context",
+              "content": "- Do not set `NODE_TLS_REJECT_UNAUTHORIZED=0`, which disables certificate validation entirely"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Host not allowed in a cloud session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "An outbound HTTP request from a cloud session or routine was blocked by the environment's network policy."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "HTTP 403"
+            },
+            {
+              "type": "added",
+              "content": "x-deny-reason: host_not_allowed"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You may also see a TLS certificate that doesn't match the destination's real certificate. The cloud environment routes outbound traffic through a proxy that enforces the network policy, so a mismatched certificate means the proxy terminated the connection, not the destination."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This is not a client-side network problem. Cloud sessions and [routines](/en/routines) run inside a sandboxed environment whose outbound traffic is filtered to the environment's allowlist. The **Default** environment uses **Trusted** access, which permits the [default allowlist](/en/claude-code-on-the-web#default-allowed-domains) of package registries, cloud provider APIs, container registries, and common development domains but blocks everything else."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Open the routine for editing, or start a cloud session. Select the cloud icon showing your environment's name, such as **Default**, to open the selector. Hover over your environment and click the settings icon."
+            },
+            {
+              "type": "added",
+              "content": "- In the **Update cloud environment** dialog, change **Network access** from **Trusted** to **Custom**, then add the blocked domain to **Allowed domains**. Enter one domain per line. Check **Also include default list of common package managers** to keep the [default allowlist](/en/claude-code-on-the-web#default-allowed-domains) alongside your custom domains. Select **Full** instead if you want unrestricted access."
+            },
+            {
+              "type": "added",
+              "content": "- Click **Save changes**. The next run uses the updated allowlist."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See [Network access](/en/claude-code-on-the-web#network-access) for access levels and the default allowlist. Local CLI sessions are not affected by this policy."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Request errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These errors mean the API received your request but rejected its content."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "google-vertex-ai.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Vertex AIのページにおいて、営業問い合わせ用コンポーネントの呼び出しコードが簡略化されました。",
+      "hunks": [
+        {
+          "header": "@@ -61,7 +61,7 @@ source: https://code.claude.com/docs/en/google-vertex-ai.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    </div>;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "<Experiment flag=\"docs-contact-sales-cta\" treatment={<ContactSalesCard surface=\"vertex\" />} />"
+            },
+            {
+              "type": "added",
+              "content": "<ContactSalesCard surface=\"vertex\" />"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Prerequisites"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 10,
+      "deletions": 0,
+      "explanation": "CLAUDE.mdをシンボリックリンクで作成する方法や、/init実行時にAGENTS.mdや他ツール設定を自動で取り込む機能が紹介されています。",
+      "hunks": [
+        {
+          "header": "@@ -129,6 +129,16 @@ Claude Code reads `CLAUDE.md`, not `AGENTS.md`. If your repository already uses",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Use plan mode for changes under `src/billing/`."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A symlink also works if you don't need to add Claude-specific content:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "ln -s AGENTS.md CLAUDE.md"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Windows, creating a symlink requires Administrator privileges or Developer Mode, so use the `@AGENTS.md` import instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Running [`/init`](/en/commands) in a repo that already has an `AGENTS.md` reads it and incorporates the relevant parts into the generated `CLAUDE.md`. It also reads other tool configs like `.cursorrules` and `.windsurfrules`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### How CLAUDE.md files load"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code reads CLAUDE.md files by walking up the directory tree from your current working directory, checking each directory along the way for `CLAUDE.md` and `CLAUDE.local.md` files. This means if you run Claude Code in `foo/bar/`, it loads instructions from `foo/bar/CLAUDE.md`, `foo/CLAUDE.md`, and any `CLAUDE.local.md` files alongside them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "microsoft-foundry.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Microsoft Foundryのセクションで、営業問い合わせカードの表示ロジックが最新化されました。",
+      "hunks": [
+        {
+          "header": "@@ -61,7 +61,7 @@ source: https://code.claude.com/docs/en/microsoft-foundry.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    </div>;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "<Experiment flag=\"docs-contact-sales-cta\" treatment={<ContactSalesCard surface=\"foundry\" />} />"
+            },
+            {
+              "type": "added",
+              "content": "<ContactSalesCard surface=\"foundry\" />"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Prerequisites"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "ANTHROPIC_BASE_URLがリクエストの送信先のみを変更し、モデルの動作自体には影響しない点についての注釈が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -18,6 +18,8 @@ For the `model` setting in Claude Code, you can configure either:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - Foundry: a deployment name"
+            },
+            {
+              "type": "context",
+              "content": "  - Vertex: a version name"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`ANTHROPIC_BASE_URL` changes where requests are sent, not which model answers them. To route Claude through an LLM gateway, see [LLM gateway configuration](/en/llm-gateway)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Model aliases"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Model aliases provide a convenient way to select model settings without"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "routines.md",
+      "additions": 22,
+      "deletions": 4,
+      "explanation": "ルーチン実行時のネットワークアクセス権限の詳細設定や、ステータス表示が「成功」であってもタスク内容の確認が必要である旨の警告が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -67,7 +67,7 @@ Pick a [cloud environment](/en/claude-code-on-the-web#the-cloud-environment) for",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Environment variables**: provide API keys, tokens, or other secrets Claude can use"
+            },
+            {
+              "type": "context",
+              "content": "- **Setup script**: install dependencies and tools the routine needs. The result is [cached](/en/claude-code-on-the-web#environment-caching), so the script doesn't re-run on every session"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A **Default** environment is provided. To use a custom environment, [create one](/en/claude-code-on-the-web#the-cloud-environment) before creating the routine."
+            },
+            {
+              "type": "added",
+              "content": "A **Default** environment is provided with **Trusted** network access, which allows the [default set](/en/claude-code-on-the-web#default-allowed-domains) of package registries, cloud provider APIs, container registries, and common development domains, but blocks everything else. If your routine needs to reach your own services or a domain outside that list, edit the environment's [network access](/en/claude-code-on-the-web#network-access) before running. To use a separate environment, [create one](/en/claude-code-on-the-web#configure-your-environment) first."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Under **Select a trigger**, choose how the routine starts. You can pick one trigger type or combine several."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -133,7 +133,7 @@ API triggers are added to an existing routine from the web. The CLI cannot curre",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Go to [claude.ai/code/routines](https://claude.ai/code/routines), click the routine you want to trigger via API, then click the pencil icon to open **Edit routine**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Scroll to the **Select a trigger** section below the prompt, click **Add another trigger**, and choose **API**."
+            },
+            {
+              "type": "added",
+              "content": "Scroll to the **Select a trigger** section below the **Instructions** box, click **Add another trigger**, and choose **API**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The modal shows the URL for this routine along with a sample curl command. Copy the URL, then click **Generate token** and copy the token immediately. The token is shown once and cannot be retrieved later, so store it somewhere secure such as your alerting tool's secret store."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -240,6 +240,8 @@ Click a routine in the list to open its detail page. The detail page shows the r",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Click any run to open it as a full session. From there you can see what Claude did, review changes, create a pull request, or continue the conversation. Each run session works like any other session: use the dropdown menu next to the session title to rename, archive, or delete it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A green status in the run list means the session started and exited without an infrastructure error. It does not mean the task in your prompt succeeded. Open the run to read the transcript and confirm what Claude actually did. Blocked network requests, missing connector tools, and task-level failures all surface there rather than in the status indicator."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Edit and control routines"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "From the routine detail page you can:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -265,9 +267,25 @@ When you create a routine, all of your currently connected connectors are includ",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To manage or add connectors outside of the routine form, visit **Settings > Connectors** on claude.ai or use `/schedule update` in the CLI."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Environments"
+            },
+            {
+              "type": "added",
+              "content": "### Environments and network access"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each routine runs in a [cloud environment](/en/claude-code-on-the-web#the-cloud-environment) that controls network access, environment variables, and setup scripts. The routine inherits the environment's network policy on every run."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The **Default** environment uses **Trusted** network access: the [default allowlist](/en/claude-code-on-the-web#default-allowed-domains) of package registries, cloud provider APIs, container registries, and common development domains is reachable, but arbitrary domains are not. Outbound requests to other hosts fail with `403` and `x-deny-reason: host_not_allowed`. MCP connector traffic is routed through Anthropic's servers, so the connectors you add to the routine work without adding their hosts to **Allowed domains**. Remove any connectors you don't need under [Connectors](#connectors)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To allow additional domains:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On the routine's detail page, click the pencil icon to open **Edit routine**."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Below the **Instructions** box, select the cloud icon showing your environment's name, such as **Default**."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Hover over the environment in the list and click the settings icon that appears on the right."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In the **Update cloud environment** dialog, change **Network access** to **Custom** and enter your domains in **Allowed domains**. Check **Also include default list of common package managers** to keep the [default allowlist](/en/claude-code-on-the-web#default-allowed-domains) alongside your custom domains. Select **Full** instead for unrestricted access."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Click **Save changes**. The new policy applies from the next run."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each routine runs in a [cloud environment](/en/claude-code-on-the-web#the-cloud-environment) that controls network access, environment variables, and setup scripts. Configure environments before creating a routine to give Claude access to APIs, install dependencies, or restrict network scope. See [cloud environment](/en/claude-code-on-the-web#the-cloud-environment) for the full setup guide."
+            },
+            {
+              "type": "added",
+              "content": "See [Network access](/en/claude-code-on-the-web#network-access) for details on access levels and the default allowlist."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Usage and limits"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "third-party-integrations.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サードパーティ連携の概要ページにおいて、コンタクト用コンポーネントの表示方法が修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -63,7 +63,7 @@ source: https://code.claude.com/docs/en/third-party-integrations.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Organizations can deploy Claude Code through Anthropic directly or through a cloud provider. This page helps you choose the right configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "<Experiment flag=\"docs-contact-sales-cta\" treatment={<ContactSalesCard surface=\"third_party_overview\" />} />"
+            },
+            {
+              "type": "added",
+              "content": "<ContactSalesCard surface=\"third_party_overview\" />"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Compare deployment options"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "vs-code.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "公式拡張機能がWindsurfやKiroなどのVS Codeフォーク版に対応したことや、Open VSXレジストリからのインストールについて追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -29,6 +29,8 @@ Click the link for your IDE to install directly:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Or in VS Code, press `Cmd+Shift+X` (Mac) or `Ctrl+Shift+X` (Windows/Linux) to open the Extensions view, search for \"Claude Code\", and click **Install**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The extension also installs in other VS Code forks like Windsurf or Kiro. Search for \"Claude Code\" in the editor's Extensions view, or install from the [Open VSX registry](https://open-vsx.org/extension/Anthropic/claude-code). If your editor can't install the extension, run `claude` in its integrated terminal instead. The [CLI](/en/quickstart) works in any terminal."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the extension doesn't appear after installation, restart VS Code or run \"Developer: Reload Window\" from the Command Palette."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Get started"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

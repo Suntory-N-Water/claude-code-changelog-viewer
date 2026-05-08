@@ -61,7 +61,7 @@ source: https://code.claude.com/docs/en/google-vertex-ai.md
     </div>;
 };
 
-<Experiment flag="docs-contact-sales-cta" treatment={<ContactSalesCard surface="vertex" />} />
+<ContactSalesCard surface="vertex" />
 
 ## Prerequisites
 

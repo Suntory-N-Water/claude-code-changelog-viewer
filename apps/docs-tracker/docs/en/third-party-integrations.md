@@ -63,7 +63,7 @@ source: https://code.claude.com/docs/en/third-party-integrations.md
 
 Organizations can deploy Claude Code through Anthropic directly or through a cloud provider. This page helps you choose the right configuration.
 
-<Experiment flag="docs-contact-sales-cta" treatment={<ContactSalesCard surface="third_party_overview" />} />
+<ContactSalesCard surface="third_party_overview" />
 
 ## Compare deployment options
 
