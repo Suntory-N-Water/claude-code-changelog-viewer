@@ -10,14 +10,14 @@ const MAX_DIFF_LINES_FOR_PROMPT = 200;
 
 const MODEL_RATE_LIMITS: Record<string, number> = {
   'gemini-3-flash-preview': 15 * 1000,
-  'gemini-3.1-flash-lite-preview': 15 * 1000,
+  'gemini-3.1-flash-lite': 15 * 1000,
   'gemini-2.5-flash': 15 * 1000,
   'gemini-2.5-flash-lite': 10 * 1000,
 };
 
 const FALLBACK_MODELS = [
   'gemini-3-flash-preview',
-  'gemini-3.1-flash-lite-preview',
+  'gemini-3.1-flash-lite',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
 ];

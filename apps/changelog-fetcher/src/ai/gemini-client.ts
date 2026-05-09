@@ -22,7 +22,7 @@ const MAX_RETRIES_PER_MODEL = 3;
  */
 const MODEL_RATE_LIMITS: Record<string, number> = {
   'gemini-3-flash-preview': 15 * 1000, // 4 RPM
-  'gemini-3.1-flash-lite-preview': 15 * 1000, // 4 RPM
+  'gemini-3.1-flash-lite': 15 * 1000, // 4 RPM
   'gemini-2.5-flash': 15 * 1000, // 4 RPM
   'gemini-2.5-flash-lite': 10 * 1000, // 6 RPM
 };
@@ -32,7 +32,7 @@ const MODEL_RATE_LIMITS: Record<string, number> = {
  */
 const INFERENCE_FALLBACK_MODELS = [
   'gemini-3-flash-preview',
-  'gemini-3.1-flash-lite-preview',
+  'gemini-3.1-flash-lite',
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
 ];
