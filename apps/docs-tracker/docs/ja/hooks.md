@@ -1175,7 +1175,7 @@ PreToolUse は以前、トップレベル `decision` と `reason` フィール�
 
 遅延されたツールが再開時に利用できなくなった場合、プロセスは `stop_reason: "tool_deferred_unavailable"` と `is_error: true` で終了し、フックが発火する前に。これは、提供されたツールの MCP サーバーが再開されたセッションに接続されていない場合に発生します。`deferred_tool_use` ペイロードは引き続き含まれるため、どのツールが欠落しているかを識別できます。
 
-`--resume` は前のセッションから権限モードを復元しません。遅延されたときにアクティブだった `--permission-mode` フラグを再開時に渡します。Claude Code はモードが異なる場合に警告をログします。
+`--resume` は前のセッションから権限モードを復元します。遅延されたときにアクティブだった権限モードが復元されるため、再開時に `--permission-mode` を再度渡す必要はありません。例外は `plan` と `bypassPermissions` で、これらは決して引き継がれません。再開時に `--permission-mode` を明示的に渡すと、復元された値がオーバーライドされます。
 
 ### PermissionRequest
 
