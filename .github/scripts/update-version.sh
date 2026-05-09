@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Git設定(冪等性を保証)
+# Git設定
 git config user.name "github-actions[bot]" || true
 git config user.email "github-actions[bot]@users.noreply.github.com" || true
 
@@ -63,29 +63,3 @@ echo "✅ Updated $CLAUDE_VERSION_JSON to version $CLEAN_VERSION"
 
 # 変更をステージング
 git add "$CLAUDE_VERSION_JSON"
-
-# Gitタグの作成(既存タグがある場合は上書き)
-CLAUDE_TAG="claude-${LATEST_VERSION}"
-
-if git rev-parse "$CLAUDE_TAG" >/dev/null 2>&1; then
-  echo "⚠️  Tag $CLAUDE_TAG already exists, overwriting..."
-  git tag -d "$CLAUDE_TAG"
-fi
-
-git tag -a "$CLAUDE_TAG" -m "Claude Code $LATEST_VERSION
-
-Synced with Claude Code $LATEST_VERSION"
-echo "✅ Created tag: $CLAUDE_TAG"
-
-# アプリバージョンタグの作成
-APP_VERSION=$(jq -r '.version' package.json)
-APP_TAG="app-v${APP_VERSION}"
-
-if git rev-parse "$APP_TAG" >/dev/null 2>&1; then
-  echo "ℹ️  App tag $APP_TAG already exists, skipping..."
-else
-  git tag -a "$APP_TAG" -m "App v${APP_VERSION}
-
-Application version at time of Claude Code $LATEST_VERSION sync"
-  echo "✅ Created tag: $APP_TAG"
-fi

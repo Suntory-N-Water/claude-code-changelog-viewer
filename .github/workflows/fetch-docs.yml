@@ -25,6 +25,7 @@ jobs:
 
     permissions:
       contents: write # Need write permission to commit changes
+      pull-requests: write
       issues: write # Need write permission to create issues on failure
 
     outputs:
@@ -37,7 +38,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0 # Fetch all history for proper git diff
-          persist-credentials: true # git push のために必要
+          persist-credentials: false
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -101,28 +102,27 @@ jobs:
         if: steps.git-check.outputs.should_push == 'true'
         run: git add apps/docs-tracker/diffs/
 
-      - name: Commit changes
+      - name: Prepare PR metadata
+        id: pr-meta
         if: steps.git-check.outputs.should_push == 'true'
+        env:
+          CHANGED_COUNT: ${{ steps.git-check.outputs.changed_files }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Get timestamp
           TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
 
-          # Create commit message
           if [ "$CHANGED_COUNT" -eq 1 ]; then
             COMMIT_MSG="chore: Update Claude Code docs - 1 file changed"
           else
             COMMIT_MSG="chore: Update Claude Code docs - $CHANGED_COUNT files changed"
           fi
 
-          # Add detailed description
-          COMMIT_BODY="Automated documentation update at $TIMESTAMP"$'\n\n'"Modified files:"
+          COMMIT_BODY="Automated documentation update at ${TIMESTAMP}"$'\n\n'"Modified files:"
 
-          # Add list of changed files to commit body
           for file in $(git diff --staged --name-only | head -20); do
-            COMMIT_BODY="${COMMIT_BODY}"$'\n'"- $file"
+            COMMIT_BODY="${COMMIT_BODY}"$'\n'"- ${file}"
           done
 
           if [ "$CHANGED_COUNT" -gt 20 ]; then
@@ -130,23 +130,41 @@ jobs:
             COMMIT_BODY="${COMMIT_BODY}"$'\n'"... and ${REMAINING} more files"
           fi
 
-          # Commit with message and body
-          git commit -m "$COMMIT_MSG" -m "$COMMIT_BODY"
-        env:
-          CHANGED_COUNT: ${{ steps.git-check.outputs.changed_files }}
+          echo "title=${COMMIT_MSG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "body<<EOF"
+            echo "${COMMIT_BODY}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Push changes
+      - name: Create pull request
+        id: create-pr
         if: steps.git-check.outputs.should_push == 'true'
-        run: |
-          # Pull latest changes and rebase to avoid conflicts
-          git pull --rebase origin main
-          git push
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          branch: chore/update-docs
+          commit-message: ${{ steps.pr-meta.outputs.title }}
+          title: ${{ steps.pr-meta.outputs.title }}
+          body: ${{ steps.pr-meta.outputs.body }}
+          delete-branch: true
 
       - name: Get commit SHA
         id: get-sha
-        if: steps.git-check.outputs.should_push == 'true'
+        if: steps.git-check.outputs.should_push == 'true' &&
+          steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
         run: |
-          COMMIT_SHA=$(git rev-parse HEAD)
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --admin \
+            --delete-branch
+          echo "✓ PR #${PR_NUMBER} をマージしました"
+
+          git fetch origin main
+          COMMIT_SHA=$(git rev-parse origin/main)
           echo "sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
           echo "✓ Commit SHA: $COMMIT_SHA"
 
