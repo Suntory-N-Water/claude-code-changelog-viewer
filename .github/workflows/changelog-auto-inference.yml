@@ -22,6 +22,7 @@ jobs:
 
     permissions:
       contents: write
+      pull-requests: write
       issues: write
 
     steps:
@@ -29,7 +30,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - uses: ./.github/actions/setup
 
@@ -136,64 +137,70 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Update version and create tag
+      - name: Update version
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
           NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
         run: |
-          chmod +x .github/scripts/update-version-and-tag.sh
+          chmod +x .github/scripts/update-version.sh
           # shellcheck disable=SC2086
-          .github/scripts/update-version-and-tag.sh $NEW_VERSIONS
+          .github/scripts/update-version.sh $NEW_VERSIONS
 
       - name: Format code
         if: steps.detect-updates.outputs.has_updates == 'true'
         run: pnpm run format
 
-      - name: Commit and push
+      - name: Prepare PR metadata
+        id: pr-meta
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
           NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
         run: |
-          git add -A
-
-          # 変更ファイル数をカウント
-          CHANGED_FILES=$(git diff --staged --name-only | wc -l)
-
-          if [ "$CHANGED_FILES" -eq 0 ]; then
-            echo "ℹ️ No changes to commit"
-            exit 0
-          fi
-
-          # バージョンリストを整形
           VERSIONS="$NEW_VERSIONS"
           VERSION_COUNT=$(echo "$VERSIONS" | wc -w)
+          FIRST_VERSION=$(echo "$VERSIONS" | awk '{print $1}')
           TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S JST')
 
-          # コミットメッセージ作成
           if [ "$VERSION_COUNT" -eq 1 ]; then
             COMMIT_TITLE="chore: Process CHANGELOG updates - 1 version"
           else
             COMMIT_TITLE="chore: Process CHANGELOG updates - $VERSION_COUNT versions"
           fi
 
-          COMMIT_BODY="Processed versions: $VERSIONS
+          {
+            echo "branch=chore/changelog-${FIRST_VERSION}"
+            echo "title=${COMMIT_TITLE}"
+            echo "body<<EOF"
+            echo "Processed versions: ${VERSIONS}"
+            echo ""
+            echo "Automated update at ${TIMESTAMP}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-          Automated update at $TIMESTAMP"
+      - name: Create pull request
+        id: create-pr
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          branch: ${{ steps.pr-meta.outputs.branch }}
+          commit-message: ${{ steps.pr-meta.outputs.title }}
+          title: ${{ steps.pr-meta.outputs.title }}
+          body: ${{ steps.pr-meta.outputs.body }}
+          delete-branch: true
 
-          git commit -m "$COMMIT_TITLE" -m "$COMMIT_BODY"
-
-          # コミットハッシュを表示
-          COMMIT_HASH=$(git rev-parse HEAD)
-          echo "✓ Created commit: $COMMIT_HASH"
-
-          # リベースしてプッシュ
-          git pull --rebase origin main
-          git push
-
-          # タグもプッシュ(同一バージョン再処理時は上書き)
-          git push --tags --force
-
-          echo "✓ Changes and tags pushed successfully"
+      - name: Merge pull request
+        if: steps.detect-updates.outputs.has_updates == 'true' &&
+          steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --admin \
+            --delete-branch
+          echo "✓ PR #${PR_NUMBER} をマージしました"
 
       - name: Trigger notification dispatch
         if: steps.detect-updates.outputs.has_updates == 'true'

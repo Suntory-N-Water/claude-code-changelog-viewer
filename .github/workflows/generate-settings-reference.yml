@@ -22,6 +22,7 @@ jobs:
 
     permissions:
       contents: write
+      pull-requests: write
       issues: write
 
     steps:
@@ -29,7 +30,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - uses: ./.github/actions/setup
 
@@ -43,23 +44,29 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit and push
+      - name: Create pull request
+        id: create-pr
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          branch: chore/update-settings-reference
+          commit-message: "chore: 設定リファレンスを更新"
+          title: "chore: 設定リファレンスを更新"
+          body: |
+            設定リファレンスの自動更新
+          delete-branch: true
+
+      - name: Merge pull request
+        if: steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
         run: |
-          git add -A
-          CHANGED_FILES=$(git diff --staged --name-only | wc -l)
-
-          if [ "$CHANGED_FILES" -eq 0 ]; then
-            echo "ℹ️ 新規生成ファイルなし"
-            exit 0
-          fi
-
-          TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S JST')
-          git commit -m "chore: 設定リファレンスを更新" -m "Automated update at $TIMESTAMP"
-
-          git pull --rebase origin main
-          git push
-
-          echo "✓ 変更をプッシュしました"
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --admin \
+            --delete-branch
+          echo "✓ PR #${PR_NUMBER} をマージしました"
 
       - name: Create issue on failure
         if: failure()
