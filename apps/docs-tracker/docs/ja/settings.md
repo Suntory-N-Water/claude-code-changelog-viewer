@@ -164,7 +164,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `attribution` | git コミットとプルリクエストの属性をカスタマイズします。[属性設定](#attribution-settings)を参照してください | `{"commit": "🤖 Generated with Claude Code", "pr": ""}` |
 | `autoMemoryDirectory` | [自動メモリ](/ja/memory#storage-location)ストレージ用のカスタムディレクトリ。絶対パスまたは `~/` プレフィックス付きパスを受け入れます。ポリシーおよびユーザー設定から、および `--settings` フラグから受け入れられます。クローンされたリポジトリがメモリ書き込みを機密の場所にリダイレクトするのを防ぐため、プロジェクトまたはローカル設定からは受け入れられません | `"~/my-memory-dir"` |
 | `autoMemoryEnabled` | [自動メモリ](/ja/memory#enable-or-disable-auto-memory)を有効にします。`false` の場合、Claude は自動メモリディレクトリから読み込んだり、書き込んだりしません。デフォルト：`true`。セッション中に `/memory` でこれを切り替えることもできます。環境変数で無効にするには、`env` で [`CLAUDE_CODE_DISABLE_AUTO_MEMORY`](/ja/env-vars)を設定します | `false` |
-| `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、および `soft_deny` 配列の散文ルールを含みます。リテラル文字列 `"$defaults"` を配列に含めて、その位置で組み込みルールを継承します。[自動モードを構成](/ja/auto-mode-config)を参照してください。共有プロジェクト設定から読み込まれません | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
+| `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、`soft_deny`、および `hard_deny` 配列の散文ルールを含みます。リテラル文字列 `"$defaults"` を配列に含めて、その位置で組み込みルールを継承します。[自動モードを構成](/ja/auto-mode-config)を参照してください。共有プロジェクト設定から読み込まれません | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
 | `autoScrollEnabled` | [フルスクリーンレンダリング](/ja/fullscreen)で、新しい出力を会話の下部に追従します。デフォルト：`true`。`/config` に**自動スクロール**として表示されます。権限プロンプトはこれがオフの場合でもビューにスクロールします | `false` |
 | `autoUpdatesChannel` | 更新に従うリリースチャネル。約 1 週間古いバージョンで、大きな回帰のあるバージョンをスキップする `"stable"` を使用するか、最新リリースの `"latest"`（デフォルト）を使用します。自動更新を完全に無効にするには、`env` で [`DISABLE_AUTOUPDATER`](/ja/setup#disable-auto-updates)を設定します | `"stable"` |
 | `availableModels` | `/model`、`--model`、または `ANTHROPIC_MODEL` を通じてユーザーが選択できるモデルを制限します。デフォルトオプションには影響しません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください | `["sonnet", "haiku"]` |
@@ -210,6 +210,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `permissions` | 権限の構造については、以下の表を参照してください。 | |
 | `plansDirectory` | プランファイルが保存される場所をカスタマイズします。パスはプロジェクトルートに相対的です。デフォルト：`~/.claude/plans` | `"./plans"` |
 | `pluginTrustMessage` | （Managed 設定のみ）インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ。これを使用して、組織固有のコンテキストを追加します。たとえば、内部マーケットプレイスからのプラグインが検証されていることを確認します。 | `"All plugins from our marketplace are approved by IT"` |
+| `policyHelper` | 起動時に managed 設定を動的に計算する管理者デプロイ済みの実行可能ファイル。MDM またはシステム `managed-settings.json` ファイルからのみ尊重されます。[ポリシーヘルパーで managed 設定を計算](#compute-managed-settings-with-a-policy-helper)を参照してください。Claude Code v2.1.136 以降が必要です | `{"path": "/usr/local/bin/claude-policy"}` |
 | `preferredNotifChannel` | タスク完了および権限プロンプト通知の方法：`"auto"`、`"terminal_bell"`、`"iterm2"`、`"iterm2_with_bell"`、`"kitty"`、`"ghostty"`、または `"notifications_disabled"`。デフォルト：`"auto"`。iTerm2、Ghostty、Kitty ではデスクトップ通知を送信し、他のターミナルでは何もしません。任意のターミナルでベル文字を鳴らすには `"terminal_bell"` を設定します。`/config` に**通知**として表示されます。[ターミナルベルまたは通知を取得](/ja/terminal-config#get-a-terminal-bell-or-notification)を参照してください | `"terminal_bell"` |
 | `prefersReducedMotion` | アクセシビリティのために UI アニメーション（スピナー、シマー、フラッシュエフェクト）を削減または無効にします | `true` |
 | `prUrlTemplate` | フッターおよびツール結果サマリーに表示される PR バッジの URL テンプレート。`gh` レポートされた PR URL から `{host}`、`{owner}`、`{repo}`、`{number}`、および `{url}` を置き換えます。PR リンクを `github.com` の代わりに内部コードレビューツールにポイントするために使用します。Claude の散文の `#123` オートリンクには影響しません | `"https://reviews.example.com/{owner}/{repo}/pull/{number}"` |
@@ -460,6 +461,32 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
   "httpHookAllowedEnvVars": ["MY_TOKEN", "HOOK_SECRET"]
 }
 ```
+
+### ポリシーヘルパーで managed 設定を計算
+
+`policyHelper` 設定は、起動時に managed 設定を動的に計算する実行可能ファイルを指しています。管理者は、静的ファイルの代わりに、デバイスの状態、ID、またはリモートサービスからポリシーを導出できます。MDM またはシステム `managed-settings.json` ファイルから構成します。Claude Code は、ユーザー設定、プロジェクト設定、HKCU レジストリハイブ、および [サーバー管理設定](/ja/server-managed-settings)を含む他のスコープに表示される `policyHelper` を無視します。
+
+設定は以下のキーを受け入れます：
+
+| キー | タイプ | 説明 |
+| - | - | - |
+| `path` | string | ヘルパー実行可能ファイルへの絶対パス |
+| `timeoutMs` | number | ヘルパーが失敗として扱われるまでの待機時間 |
+| `refreshIntervalMs` | number | バックグラウンドでヘルパーを再実行する頻度。`0` に設定して更新を無効にするか、少なくとも `60000` に設定します |
+
+ヘルパーは JSON エンベロープを stdout に書き込みます。設定をトップレベルではなく `managedSettings` キーの下に配置します。ベアの設定オブジェクトは `managedSettings` が未定義で解析され、何も適用されないためです：
+
+```json
+{
+  "managedSettings": {
+    "permissions": { "deny": ["Read(//etc/secrets/**)"] }
+  },
+  "claudeMd": "# Organization context\n...",
+  "appendSystemPrompt": "Always cite the internal style guide."
+}
+```
+
+ヘルパーが `managedSettings` を出力すると、そのオブジェクトは実行のためにファイルベースの managed 設定を置き換えます。ヘルパーが起動時にゼロ以外で終了すると、Claude Code はエラーを出力し、起動を拒否します。そのため、停止復旧が必要なヘルパーは独自のキャッシュから提供し、`0` で終了する必要があります。
 
 ### 設定の優先度
 

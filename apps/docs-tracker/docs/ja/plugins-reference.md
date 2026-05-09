@@ -416,7 +416,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
-| `skills` | string\|array | `<name>/SKILL.md` を含むカスタム skill ディレクトリ（デフォルト `skills/` を置き換え） | `"./custom/skills/"` |
+| `skills` | string\|array | `<name>/SKILL.md` を含むカスタム skill ディレクトリ（デフォルト `skills/` に加えて） | `"./custom/skills/"` |
 | `commands` | string\|array | カスタムフラット `.md` skill ファイルまたはディレクトリ（デフォルト `commands/` を置き換え） | `"./custom/cmd.md"` または `["./cmd1.md"]` |
 | `agents` | string\|array | カスタムエージェントファイル（デフォルト `agents/` を置き換え） | `"./custom/agents/reviewer.md"` |
 | `hooks` | string\|array\|object | Hook 設定パスまたはインライン設定 | `"./my-extra-hooks.json"` |
@@ -503,12 +503,17 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 ### パス動作ルール
 
-`skills`、`commands`、`agents`、`outputStyles`、`experimental.themes`、`experimental.monitors` の場合、カスタムパスはデフォルトを置き換えます。マニフェストが `skills` を指定する場合、デフォルト `skills/` ディレクトリはスキャンされません。`experimental.monitors` を指定する場合、デフォルト `monitors/monitors.json` は読み込まれません。[Hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)は複数のソースを処理するための異なるセマンティクスを持ちます。
+カスタムパスがプラグインのデフォルトディレクトリを置き換えるか拡張するかは、フィールドによって異なります:
+
+- **デフォルトを置き換える**: `commands`、`agents`、`outputStyles`、`experimental.themes`、`experimental.monitors`。たとえば、マニフェストが `commands` を指定する場合、デフォルト `commands/` ディレクトリはスキャンされません。デフォルトを保持してさらに追加するには、明示的にリストします: `"commands": ["./commands/", "./extras/"]`
+- **デフォルトに追加**: `skills`。デフォルト `skills/` ディレクトリは常にスキャンされ、`skills` にリストされているディレクトリはそれと一緒に読み込まれます
+- **独自のマージルール**: [hooks](#hooks)、[MCP servers](#mcp-servers)、[LSP servers](#lsp-servers)。各セクションで複数のソースがどのように結合されるかを参照してください
+
+すべてのパスフィールドについて:
 
 - すべてのパスはプラグインルートに相対的で、`./` で始まる必要があります
 - カスタムパスからのコンポーネントは同じ命名と名前空間ルールを使用します
 - 複数のパスを配列として指定できます
-- skills、commands、agents、output styles のデフォルトディレクトリを保持してさらにパスを追加するには、配列にデフォルトを含めます: `"skills": ["./skills/", "./extras/"]`
 - skill パスが `SKILL.md` を直接含むディレクトリを指す場合（例: `"skills": ["./"]` がプラグインルートを指す）、`SKILL.md` の frontmatter `name` フィールドが skill の呼び出し名を決定します。これはインストールディレクトリに関係なく安定した名前を提供します。frontmatter に `name` が設定されていない場合、ディレクトリ basename がフォールバックとして使用されます。
 
 **パスの例**:
