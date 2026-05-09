@@ -349,6 +349,8 @@ npm パッケージは、スタンドアロンインストーラーと同じネ�
 
 サポートされている npm インストールプラットフォームは `darwin-arm64`、`darwin-x64`、`linux-x64`、`linux-arm64`、`linux-x64-musl`、`linux-arm64-musl`、`win32-x64`、および `win32-arm64` です。パッケージマネージャーはオプション依存関係を許可する必要があります。インストール後にバイナリが見つからない場合は、[トラブルシューティング](/ja/troubleshoot-install#native-binary-not-found-after-npm-install)を参照してください。
 
+npm インストールをアップグレードするには、`npm install -g @anthropic-ai/claude-code@latest` を実行します。`npm update -g` は避けてください。これは元のインストールからの semver 範囲を尊重し、最新リリースに移動しない可能性があります。
+
 `sudo npm install -g` を使用しないでください。これはアクセス許可の問題とセキュリティリスクにつながる可能性があります。アクセス許可エラーが発生した場合は、[トラブルシューティングアクセス許可エラー](/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
 
 ### バイナリ整合性とコード署名
