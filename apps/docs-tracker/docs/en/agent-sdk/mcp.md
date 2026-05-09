@@ -282,7 +282,7 @@ options = ClaudeAgentOptions(
 }
 ```
 
-For HTTP (non-streaming), use `"type": "http"` instead.
+For the streamable HTTP transport, use `"type": "http"` instead. In `.mcp.json` and other JSON config files, `"streamable-http"` is accepted as an alias for `"http"`. The programmatic `mcpServers` option accepts only `"http"`.
 
 ### SDK MCP servers
 
