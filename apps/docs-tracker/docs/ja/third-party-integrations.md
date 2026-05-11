@@ -84,6 +84,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <th>Claude for Teams/Enterprise</th>
       <th>Anthropic Console</th>
       <th>Amazon Bedrock</th>
+      <th>Claude Platform on AWS</th>
       <th>Google Vertex AI</th>
       <th>Microsoft Foundry</th>
     </tr>
@@ -95,6 +96,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <td>ほとんどの組織（推奨）</td>
       <td>個別開発者</td>
       <td>AWS ネイティブデプロイメント</td>
+      <td>Claude API 機能を備えた AWS Marketplace 請求</td>
       <td>GCP ネイティブデプロイメント</td>
       <td>Azure ネイティブデプロイメント</td>
     </tr>
@@ -104,6 +106,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <td><strong>Teams:</strong> \$150/シート（Premium）PAYG 利用可能<br /><strong>Enterprise:</strong> <a href="https://claude.com/contact-sales?utm_source=claude_code&utm_medium=docs&utm_content=third_party_enterprise">営業に連絡</a></td>
       <td>PAYG</td>
       <td>AWS 経由の PAYG</td>
+      <td>AWS Marketplace 経由の PAYG</td>
       <td>GCP 経由の PAYG</td>
       <td>Azure 経由の PAYG</td>
     </tr>
@@ -113,12 +116,14 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <td>サポート対象[国](https://www.anthropic.com/supported-countries)</td>
       <td>サポート対象[国](https://www.anthropic.com/supported-countries)</td>
       <td>複数の AWS [リージョン](https://docs.aws.amazon.com/bedrock/latest/userguide/models-regions.html)</td>
+      <td>複数の AWS リージョン</td>
       <td>複数の GCP [リージョン](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations)</td>
       <td>複数の Azure [リージョン](https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/)</td>
     </tr>
 
     <tr>
       <td>Prompt caching</td>
+      <td>デフォルトで有効</td>
       <td>デフォルトで有効</td>
       <td>デフォルトで有効</td>
       <td>デフォルトで有効</td>
@@ -131,6 +136,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <td>Claude.ai SSO またはメール</td>
       <td>API キー</td>
       <td>API キーまたは AWS 認証情報</td>
+      <td>API キーまたは AWS 認証情報</td>
       <td>GCP 認証情報</td>
       <td>API キーまたは Microsoft Entra ID</td>
     </tr>
@@ -139,6 +145,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <td>コスト追跡</td>
       <td>使用状況ダッシュボード</td>
       <td>使用状況ダッシュボード</td>
+      <td>AWS Cost Explorer</td>
       <td>AWS Cost Explorer</td>
       <td>GCP Billing</td>
       <td>Azure Cost Management</td>
@@ -151,12 +158,14 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
       <td>いいえ</td>
       <td>いいえ</td>
       <td>いいえ</td>
+      <td>いいえ</td>
     </tr>
 
     <tr>
       <td>エンタープライズ機能</td>
       <td>チーム管理、SSO、使用状況監視</td>
       <td>なし</td>
+      <td>IAM ポリシー、CloudTrail</td>
       <td>IAM ポリシー、CloudTrail</td>
       <td>IAM ロール、Cloud Audit Logs</td>
       <td>RBAC ポリシー、Azure Monitor</td>
@@ -169,6 +178,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 * [Claude for Teams または Enterprise](/ja/authentication#claude-for-teams-or-enterprise)
 * [Anthropic Console](/ja/authentication#claude-console-authentication)
 * [Amazon Bedrock](/ja/amazon-bedrock)
+* [Claude Platform on AWS](/ja/claude-platform-on-aws)
 * [Google Vertex AI](/ja/google-vertex-ai)
 * [Microsoft Foundry](/ja/microsoft-foundry)
 
@@ -177,7 +187,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 ほとんどの組織は、追加の構成なしでクラウドプロバイダーを直接使用できます。ただし、組織に特定のネットワークまたは管理要件がある場合は、企業プロキシまたは LLM ゲートウェイを構成する必要がある場合があります。これらは一緒に使用できる異なる構成です。
 
 * **企業プロキシ**: HTTP/HTTPS プロキシを通じてトラフィックをルーティングします。組織がセキュリティ監視、コンプライアンス、またはネットワークポリシー実装のためにすべての送信トラフィックをプロキシサーバーを通じて渡す必要がある場合に使用します。`HTTPS_PROXY` または `HTTP_PROXY` 環境変数で構成します。[エンタープライズネットワーク構成](/ja/network-config)で詳細をご覧ください。
-* **LLM ゲートウェイ**: Claude Code とクラウドプロバイダーの間に位置して、認証とルーティングを処理するサービスです。チーム全体の一元化された使用状況追跡、カスタムレート制限または予算、または一元化された認証管理が必要な場合に使用します。`ANTHROPIC_BASE_URL`、`ANTHROPIC_BEDROCK_BASE_URL`、または `ANTHROPIC_VERTEX_BASE_URL` 環境変数で構成します。[LLM ゲートウェイ構成](/ja/llm-gateway)で詳細をご覧ください。
+* **LLM ゲートウェイ**: Claude Code とクラウドプロバイダーの間に位置して、認証とルーティングを処理するサービスです。チーム全体の一元化された使用状況追跡、カスタムレート制限または予算、または一元化された認証管理が必要な場合に使用します。`ANTHROPIC_BASE_URL`、`ANTHROPIC_BEDROCK_BASE_URL`、`ANTHROPIC_AWS_BASE_URL`、または `ANTHROPIC_VERTEX_BASE_URL` 環境変数で構成します。[LLM ゲートウェイ構成](/ja/llm-gateway)で詳細をご覧ください。
 
 以下の例は、シェルまたはシェルプロファイル（`.bashrc`、`.zshrc`）で設定する環境変数を示しています。その他の構成方法については、[設定](/ja/settings)を参照してください。
 
@@ -283,8 +293,8 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 Claude Code がコードベースを理解できるようにドキュメントに投資することを強くお勧めします。組織は複数のレベルで CLAUDE.md ファイルをデプロイできます。
 
-* **組織全体**: macOS の `/Library/Application Support/ClaudeCode/CLAUDE.md` などのシステムディレクトリにデプロイして、会社全体の標準を設定します。
-* **リポジトリレベル**: プロジェクトアーキテクチャ、ビルドコマンド、貢献ガイドラインを含むリポジトリルートに `CLAUDE.md` ファイルを作成します。ソース管理にチェックインして、すべてのユーザーが利益を得られるようにします。
+* **組織全体**: macOS の `/Library/Application Support/ClaudeCode/CLAUDE.md` などのシステムディレクトリにデプロイして、会社全体の標準を設定します
+* **リポジトリレベル**: プロジェクトアーキテクチャ、ビルドコマンド、貢献ガイドラインを含むリポジトリルートに `CLAUDE.md` ファイルを作成します。ソース管理にチェックインして、すべてのユーザーが利益を得られるようにします
 
 [メモリと CLAUDE.md ファイル](/ja/memory)で詳細をご覧ください。
 
@@ -298,7 +308,7 @@ Claude Code がコードベースを理解できるようにドキュメント�
 
 ### クラウドプロバイダーのモデルバージョンをピン留めする
 
-[Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、または [Foundry](/ja/microsoft-foundry) を通じてデプロイする場合は、`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、および `ANTHROPIC_DEFAULT_HAIKU_MODEL` を使用して特定のモデルバージョンをピン留めします。ピン留めしない場合、モデルエイリアスは最新バージョンに解決され、Anthropic が新しいモデルをリリースしてアカウントでまだ有効になっていない場合、ユーザーが破損する可能性があります。ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。各プロバイダーが最新バージョンが利用できない場合に何を行うかについては、[モデル構成](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
+[Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、[Foundry](/ja/microsoft-foundry)、または [Claude Platform on AWS](/ja/claude-platform-on-aws) を通じてデプロイする場合は、`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、および `ANTHROPIC_DEFAULT_HAIKU_MODEL` を使用して特定のモデルバージョンをピン留めします。ピン留めしない場合、モデルエイリアスは最新バージョンに解決され、Anthropic が新しいモデルをリリースしてアカウントでまだ有効になっていない場合があります。ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。各プロバイダーが最新バージョンが利用できない場合に何を行うかについては、[モデル構成](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 
 ### セキュリティポリシーを構成する
 

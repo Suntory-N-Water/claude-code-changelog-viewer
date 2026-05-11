@@ -35,7 +35,7 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
 | **`opus[1m]`** | 長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) を備えた Opus を使用 |
 | **`opusplan`** | Plan Mode 中は `opus` を使用し、実行中は `sonnet` に自動的に切り替わる特別なモード |
 
-Anthropic API では、`opus` は Opus 4.7 に解決され、`sonnet` は Sonnet 4.6 に解決されます。Bedrock、Vertex、Foundry では、`opus` は Opus 4.6 に解決され、`sonnet` は Sonnet 4.5 に解決されます。より新しいモデルは、完全なモデル名を明示的に選択するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` を設定することで、これらのプロバイダーで利用可能です。
+Anthropic API および [Claude Platform on AWS](/ja/claude-platform-on-aws) では、`opus` は Opus 4.7 に解決され、`sonnet` は Sonnet 4.6 に解決されます。Bedrock、Vertex、Foundry では、`opus` は Opus 4.6 に解決され、`sonnet` は Sonnet 4.5 に解決されます。より新しいモデルは、完全なモデル名を明示的に選択するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` を設定することで、これらのプロバイダーで利用可能です。
 
 エイリアスはプロバイダーの推奨バージョンを指し、時間とともに更新されます。特定のバージョンに固定するには、完全なモデル名（例：`claude-opus-4-7`）を使用するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` などの対応する環境変数を設定します。
 
@@ -289,9 +289,9 @@ Claude Code は `ANTHROPIC_CUSTOM_MODEL_OPTION` で設定されたモデル ID �
 
 ### サードパーティデプロイメント用のモデルのピン留め
 
-[Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、または [Foundry](/ja/microsoft-foundry) を通じて Claude Code をデプロイする場合、ユーザーへのロールアウト前にモデルバージョンをピン留めします。
+[Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、[Foundry](/ja/microsoft-foundry)、または [Claude Platform on AWS](/ja/claude-platform-on-aws) を通じて Claude Code をデプロイする場合、ユーザーへのロールアウト前にモデルバージョンをピン留めします。
 
-ピン留めなしでは、Claude Code はモデルエイリアス（`sonnet`、`opus`、`haiku`）を使用し、最新バージョンに解決されます。Anthropic が新しいモデルをリリースすると、新しいバージョンが有効になっていないアカウントを持つユーザーは通知を見て、Bedrock と Vertex AI ユーザーはそのセッションの以前のバージョンにフォールバックしますが、Foundry ユーザーはエラーを見ます。Foundry には同等のスタートアップチェックがないためです。
+ピン留めなしでは、Claude Code はモデルエイリアス（`sonnet`、`opus`、`haiku`）を使用し、最新バージョンに解決されます。Anthropic が新しいモデルをリリースすると、新しいバージョンがまだユーザーのアカウントで有効になっていない場合、Bedrock と Vertex AI ユーザーは通知を見て、そのセッションの以前のバージョンにフォールバックしますが、Foundry ユーザーはエラーを見ます。Foundry には同等のスタートアップチェックがないためです。
 
 初期セットアップの一部として、3 つのモデル環境変数すべてを特定のバージョン ID に設定します。ピン留めにより、ユーザーが新しいモデルに移行するタイミングを制御できます。
 
@@ -334,7 +334,7 @@ Claude Code は、モデル ID を既知のパターンと照合することで�
 | 機能値 | 有効にするもの |
 | - | - |
 | `effort` | [努力レベル](#adjust-effort-level) と `/effort` コマンド |
-| `xhigh_effort` | The `xhigh` 努力レベル |
+| `xhigh_effort` | `xhigh` 努力レベル |
 | `max_effort` | `max` 努力レベル |
 | `thinking` | [拡張思考](#extended-thinking) |
 | `adaptive_thinking` | タスクの複雑さに基づいて思考を動的に割り当てる適応的推論 |

@@ -179,7 +179,7 @@ Claude Code は PowerShell AST を解析し、複合コマンド内の各コマ�
 
 `Edit` ルールは、ファイルを編集するすべての組み込みツールに適用されます。Claude は、Grep や Glob などのファイルを読み取るすべての組み込みツールに `Read` ルールを適用するためにベストエフォートを試みます。
 
-Read と Edit deny ルールは Claude の組み込みファイルツールに適用され、Bash サブプロセスには適用されません。`Read(./.env)` deny ルールは Read ツールをブロックしますが、Bash での `cat .env` は防止しません。パスへのすべてのプロセスのアクセスをブロックする OS レベルの強制については、[サンドボックスを有効にしてください](/ja/sandboxing)。
+Read と Edit deny ルールは Claude の組み込みファイルツールと、Bash で Claude Code が認識するファイルコマンド（`cat`、`head`、`tail`、`sed` など）に適用されます。これらは、Python または Node スクリプトがファイルを自分で開くような、ファイルを間接的に読み書きする任意のサブプロセスには適用されません。パスへのすべてのプロセスのアクセスをブロックする OS レベルの強制については、[サンドボックスを有効にしてください](/ja/sandboxing)。
 
 Read と Edit ルールの両方は、[gitignore](https://git-scm.com/docs/gitignore) 仕様に従い、4 つの異なるパターンタイプがあります。
 
