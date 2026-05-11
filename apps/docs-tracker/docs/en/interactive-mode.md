@@ -24,7 +24,7 @@ See [Terminal configuration](/en/terminal-config) for details.
 | Shortcut | Description | Context |
 | :- | :- | :- |
 | `Ctrl+C` | Cancel current input or generation | Standard interrupt |
-| `Ctrl+X Ctrl+K` | Kill all background agents. Press twice within 3 seconds to confirm | Background agent control |
+| `Ctrl+X Ctrl+K` | Kill all running [background subagents](/en/sub-agents#run-subagents-in-foreground-or-background) in this session. Press twice within 3 seconds to confirm | Subagent control |
 | `Ctrl+D` | Exit Claude Code session | EOF signal |
 | `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding. Turn on Show last response in external editor in `/config` to prepend Claude's previous reply as `#`-commented context above your prompt; the comment block is stripped when you save |
 | `Ctrl+L` | Redraw screen | Forces a full terminal redraw. Input and conversation history are kept. Use this to recover if the display becomes garbled or partially blank |
