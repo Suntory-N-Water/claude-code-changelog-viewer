@@ -103,7 +103,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `chat:cancel` | Escape | 現在の入力をキャンセル |
 | `chat:clearInput` | Ctrl+L | 入力を保持したまま全画面再描画を強制します。[フルスクリーンレンダリング](/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
 | `chat:clearScreen` | Cmd+K | [フルスクリーンレンダリング](/ja/fullscreen#clear-the-conversation)では、2 秒以内に 2 回押して `/clear` を実行 |
-| `chat:killAgents` | Ctrl+X Ctrl+K | すべてのバックグラウンドエージェントを終了 |
+| `chat:killAgents` | Ctrl+X Ctrl+K | このセッション内のすべての実行中の[バックグラウンドサブエージェント](/ja/sub-agents#run-subagents-in-foreground-or-background)を終了 |
 | `chat:cycleMode` | Shift+Tab\* | 権限モードをサイクル |
 | `chat:modelPicker` | Meta+P | モデルピッカーを開く |
 | `chat:fastMode` | Meta+O | 高速モードを切り替え |
