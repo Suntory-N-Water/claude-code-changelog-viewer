@@ -1709,6 +1709,8 @@ exit 0
 
 メイン Claude Code エージェントが応答を終了したときに実行されます。ユーザー割り込みが原因で停止が発生した場合は実行されません。API エラーは代わりに[StopFailure](#stopfailure)を発火させます。
 
+[`/goal`](/ja/goal)コマンドは、セッション スコープのプロンプト ベースの Stop フックの組み込みショートカットです。Claude が条件が成立するまで作業を続けるようにしたいが、フック設定を書きたくない場合に使用します。
+
 #### Stop 入力
 
 [共通入力フィールド](#common-input-fields)に加えて、Stop フックは `stop_hook_active` と `last_assistant_message` を受け取ります。`stop_hook_active` フィールドは、Claude Code がすでに stop フックの結果として続行している場合は `true` です。この値をチェックするか、Claude Code が無限に実行されるのを防ぐためにトランスクリプトを処理します。`last_assistant_message` フィールドは Claude の最終応答のテキスト コンテンツを含むため、フックはトランスクリプト ファイルを解析せずにアクセスできます。
