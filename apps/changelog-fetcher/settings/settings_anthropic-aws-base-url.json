@@ -1,0 +1,17 @@
+{
+  "key": "ANTHROPIC_AWS_BASE_URL",
+  "leaf_name": "ANTHROPIC_AWS_BASE_URL",
+  "slug": "anthropic-aws-base-url",
+  "source": "env",
+  "description_en": "Override the [Claude Platform on AWS](/en/claude-platform-on-aws) endpoint URL. Use for custom regions or when routing through an [LLM gateway](/en/llm-gateway). Defaults to `https://aws-external-anthropic.{AWS_REGION}.api.aws`",
+  "description_ja": "AWS上のClaudeプラットフォームのエンドポイントURLを上書きし、カスタムリージョンやLLMゲートウェイ経由のルーティングに使用します。",
+  "use_case_ja": "- 組織のセキュリティポリシーやコンプライアンスにより、すべての通信を特定のプロキシやLLMゲートウェイ経由にする必要がある場合に使用します。\n- 独自の認証やレート制限、使用状況の追跡を行うための中間サーバーを指定する際に設定します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "export AWS_REGION=us-east-1",
+    "Route through a corporate proxy To route traffic through a proxy or LLM gateway , set ANTHROPIC_AWS_BASE_URL to the proxy's address. Claude Code sends requests to that URL with the same workspace and authentication headers, so any gateway that forwards them unchanged works. If your gateway signs requests itself, set CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH=1 so Claude Code sends unsigned requests and lets the gateway add SigV4 headers before forwarding to AWS. If the gateway requires its own token, set it in ANTHROPIC_AUTH_TOKEN .",
+    "export CLAUDE_CODE_USE_ANTHROPIC_AWS=1 export CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH=1 export ANTHROPIC_AWS_WORKSPACE_ID=wrkspc_01ABCDEFGHIJKLMN export ANTHROPIC_AWS_BASE_URL= https://anthropic-proxy.example.com",
+    "Most organizations can use a cloud provider directly without additional configuration. However, you may need to configure a corporate proxy or LLM gateway if your organization has specific network or management requirements. These are different configurations that can be used together: Corporate proxy : Routes traffic through an HTTP/HTTPS proxy. Use this if your organization requires all outbound traffic to pass through a proxy server for security monitoring, compliance, or network policy enforcement. Configure with the HTTPS_PROXY or HTTP_PROXY environment variables. Learn more in Enterprise network configuration . LLM Gateway : A service that sits between Claude Code and the cloud provider to handle authentication and routing. Use this if you need centralized usage tracking across teams, custom rate limiting or budgets, or centralized authentication management. Configure with the ANTHROPIC_BASE_URL , ANTHROPIC_BEDROCK_BASE_URL , ANTHROPIC_AWS_BASE_URL , or ANTHROPIC_VERTEX_BASE_URL environment variables. Learn more in LLM gateway configuration . The following examples show the environment variables to set in your shell or shell profile ( , ). See Settings for other configuration methods."
+  ],
+  "related_changelog": []
+}
