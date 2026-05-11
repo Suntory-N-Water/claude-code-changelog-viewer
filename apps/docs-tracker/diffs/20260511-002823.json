@@ -1,0 +1,138 @@
+{
+  "id": "20260511-002823",
+  "timestamp": "2026-05-11T00:28:23.940Z",
+  "aiSummary": "スキルの説明文がコンテキスト上限を超えた際の挙動を制御する2つの新しい設定オプションが追加されました。スキルの説明文を個別に切り詰める最大文字数制限や、コンテキストウィンドウ全体に占めるスキル一覧の割合をカスタマイズできるようになっています。設定変更により頻度の低いスキルの説明を非表示にするなど、トークン消費の最適化と精度の維持を両立する柔軟性が向上しました。これらの新設定はClaude Code v2.1.105以降で利用可能です。",
+  "files": [
+    {
+      "filename": "settings.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "スキルの説明文の最大文字数を制限するmaxSkillDescriptionCharsと、コンテキスト内のスキル用予算割合を指定するskillListingBudgetFractionの解説が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -204,6 +204,7 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `includeCoAuthoredBy` | **Deprecated**: Use `attribution` instead. Whether to include the `co-authored-by Claude` byline in git commits and pull requests (default: `true`) | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `includeGitInstructions` | Include built-in commit and PR workflow instructions and the git status snapshot in Claude's system prompt (default: `true`). Set to `false` to remove both, for example when using your own git workflow skills. The `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` environment variable takes precedence over this setting when set | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `language` | Configure Claude's preferred response language (e.g., `\"japanese\"`, `\"spanish\"`, `\"french\"`). Claude will respond in this language by default. Also sets the [voice dictation](/en/voice-dictation#change-the-dictation-language) language | `\"japanese\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `maxSkillDescriptionChars` | Per-skill character cap on the combined `description` and `when_to_use` text in the [skill listing](/en/skills#skill-descriptions-are-cut-short) Claude sees each turn (default: `1536`). Text longer than this is truncated. Raise to keep long descriptions intact at the cost of more context per turn; lower to fit more skills under [`skillListingBudgetFraction`](#available-settings). Requires Claude Code v2.1.105 or later | `2048` |"
+            },
+            {
+              "type": "context",
+              "content": "| `minimumVersion` | Floor that prevents background auto-updates and `claude update` from installing a version below this one. Switching from the `\"latest\"` channel to `\"stable\"` via `/config` prompts you to stay on the current version or allow the downgrade. Choosing to stay sets this value. Also useful in [managed settings](/en/permissions#managed-settings) to pin an organization-wide minimum | `\"2.1.100\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `model` | Override the default model to use for Claude Code. `--model` and [`ANTHROPIC_MODEL`](/en/model-config#environment-variables) override this for one session | `\"claude-sonnet-4-6\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `modelOverrides` | Map Anthropic model IDs to provider-specific model IDs such as Bedrock inference profile ARNs. Each model picker entry uses its mapped value when calling the provider API. See [Override model IDs per version](/en/model-config#override-model-ids-per-version) | `{\"claude-opus-4-6\": \"arn:aws:bedrock:...\"}` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -221,6 +222,7 @@ The published schema is updated periodically and may not include settings added",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `showClearContextOnPlanAccept` | Show the \"clear context\" option on the plan accept screen. Defaults to `false`. Set to `true` to restore the option | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showThinkingSummaries` | Show [extended thinking](/en/model-config#extended-thinking) summaries in interactive sessions. When unset or `false` (default in interactive mode), thinking blocks are redacted by the API and shown as a collapsed stub. Redaction only changes what you see, not what the model generates: to reduce thinking spend, [lower the budget or disable thinking](/en/model-config#extended-thinking) instead. Non-interactive mode (`-p`) and SDK callers always receive summaries regardless of this setting | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showTurnDuration` | Show turn duration messages after responses, e.g. \"Cooked for 1m 6s\". Default: `true`. Appears in `/config` as **Show turn duration** | `false` |"
+            },
+            {
+              "type": "added",
+              "content": "| `skillListingBudgetFraction` | Fraction of the model's context window reserved for the [skill listing](/en/skills#skill-descriptions-are-cut-short) Claude sees each turn (default: `0.01` = 1%). When the listing exceeds the budget, descriptions for the least-used skills are collapsed to bare names so Claude can still invoke them but won't see why. Raise to keep more descriptions visible at the cost of more context per turn. `/doctor` shows the current truncation count and which skills are affected. Requires Claude Code v2.1.105 or later | `0.02` |"
+            },
+            {
+              "type": "context",
+              "content": "| `skillOverrides` | Per-skill visibility overrides keyed by skill name. Value is `\"on\"`, `\"name-only\"`, `\"user-invocable-only\"`, or `\"off\"`. Lets you hide or collapse a skill without editing its SKILL.md. Does not apply to plugin skills, which are managed through `/plugin`. The `/skills` menu writes these to `.claude/settings.local.json`. See [Override skill visibility from settings](/en/skills#override-skill-visibility-from-settings). Requires Claude Code v2.1.129 or later | `{\"legacy-context\": \"name-only\", \"deploy\": \"off\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `skipWebFetchPreflight` | Skip the [WebFetch domain safety check](/en/data-usage#webfetch-domain-safety-check) that sends each requested hostname to `api.anthropic.com` before fetching. Set to `true` in environments that block traffic to Anthropic, such as Bedrock, Vertex AI, or Foundry deployments with restrictive egress. When skipped, WebFetch attempts any URL without consulting the blocklist | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `spinnerTipsEnabled` | Show tips in the spinner while Claude is working. Set to `false` to disable tips (default: `true`) | `false` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "スキル予算が不足した際に使用頻度の低いスキルの説明から省略される仕組みや、新しい設定項目を用いた予算の拡張方法について具体的に追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -725,9 +725,9 @@ If Claude uses your skill when you don't want it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Skill descriptions are cut short"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Skill descriptions are loaded into context so Claude knows what's available. All skill names are always included, but if you have many skills, descriptions are shortened to fit the character budget, which can strip the keywords Claude needs to match your request. The budget scales dynamically at 1% of the context window, with a fallback of 8,000 characters."
+            },
+            {
+              "type": "added",
+              "content": "Skill descriptions are loaded into context so Claude knows what's available. All skill names are always included, but if you have many skills, descriptions are shortened to fit the character budget, which can strip the keywords Claude needs to match your request. The budget scales at 1% of the model's context window. When it overflows, descriptions for the skills you invoke least are dropped first, so the skills you actually use keep their full text. Run `/doctor` to see whether the budget is overflowing and which skills are affected."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To raise the limit, set the `SLASH_COMMAND_TOOL_CHAR_BUDGET` environment variable. To free budget for other skills, set low-priority entries to `\"name-only\"` in [`skillOverrides`](#override-skill-visibility-from-settings) so they list without a description. You can also trim the `description` and `when_to_use` text at the source: put the key use case first, since each entry's combined text is capped at 1,536 characters regardless of budget."
+            },
+            {
+              "type": "added",
+              "content": "To raise the budget, set the [`skillListingBudgetFraction`](/en/settings#available-settings) setting (e.g. `0.02` = 2%) or the `SLASH_COMMAND_TOOL_CHAR_BUDGET` environment variable to a fixed character count. To free budget for other skills, set low-priority entries to `\"name-only\"` in [`skillOverrides`](#override-skill-visibility-from-settings) so they list without a description. You can also trim the `description` and `when_to_use` text at the source: put the key use case first, since each entry's combined text is capped at 1,536 characters regardless of budget. The cap is configurable with [`maxSkillDescriptionChars`](/en/settings#available-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
