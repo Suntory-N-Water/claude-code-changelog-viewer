@@ -63,7 +63,8 @@ source: https://code.claude.com/docs/ja/hooks.md
           {
             "type": "command",
             "if": "Bash(rm *)",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-rm.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-rm.sh",
+            "args": []
           }
         ]
       }
@@ -429,7 +430,8 @@ MCP ツール フックは、Claude Code が MCP サーバーに接続した後�
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/check-style.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-style.sh",
+            "args": []
           }
         ]
       }
@@ -452,7 +454,8 @@ MCP ツール フックは、Claude Code が MCP サーバーに接続した後�
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/format.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/format.sh",
+            "args": [],
             "timeout": 30
           }
         ]
@@ -1894,7 +1897,8 @@ ConfigChange フックは設定ファイル、管理ポリシー設定、スキ�
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/audit-config-change.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/audit-config-change.sh",
+            "args": []
           }
         ]
       }
@@ -2568,7 +2572,8 @@ fi
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/run-tests-async.sh",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/run-tests-async.sh",
+            "args": [],
             "async": true,
             "timeout": 300
           }
@@ -2603,7 +2608,7 @@ fi
 - **入力を検証およびサニタイズ**: 入力データを盲目的に信頼しないでください
 - **常にシェル変数を引用**: `$VAR` ではなく `"$VAR"` を使用
 - **パス トラバーサルをブロック**: ファイル パスで `..` をチェック
-- **絶対パスを使用**: スクリプトの完全なパスを指定し、プロジェクト ルートに `"$CLAUDE_PROJECT_DIR"` を使用
+- **絶対パスを使用**: スクリプトの完全なパスを指定します。exec 形式では、`${CLAUDE_PROJECT_DIR}` を使用し、パスは引用符で囲む必要がありません。シェル形式では、ダブル クォートで囲みます
 - **機密ファイルをスキップ**: `.env`、`.git/`、キーなどを避ける
 
 ## Windows PowerShell ツール
