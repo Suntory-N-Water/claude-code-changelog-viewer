@@ -1,0 +1,25 @@
+{
+  "key": "CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL",
+  "leaf_name": "CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL",
+  "slug": "claude-code-enable-feedback-survey-for-otel",
+  "source": "env",
+  "description_en": "Set to `1` to route the \"How is Claude doing?\" session quality survey to your own [OpenTelemetry collector](/en/monitoring-usage) when Anthropic-bound nonessential traffic is blocked. Survey ratings are emitted only as OTEL events to your configured collector. No survey data is sent to Anthropic in this mode. Applies when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY`, or `DO_NOT_TRACK` is set, and has no effect otherwise. `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` and the organization product feedback policy take precedence",
+  "description_ja": "Anthropicへの不要なトラフィックがブロックされている場合に、セッション品質調査「How is Claude doing?」の送信先を独自のOpenTelemetryコレクターにルーティングします。",
+  "use_case_ja": "- 非必須トラフィックが制限されているエンタープライズ環境で、無効化されていたセッション品質調査をOpenTelemetry経由で再有効化できます。\n- 調査データはAnthropicへ送信されず、管理者が自組織のコレクターを通じて開発者のフィードバックを直接収集・監視するために使用します。\n- テレメトリ無効化設定(DISABLE_TELEMETRY等)が有効な際でも、この変数により調査機能のみを特定してオーバーライド可能です。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "appearance_id : Unique ID linking the events emitted for one survey instance survey_type : Which survey produced the event. \"session\" is the \"How is Claude doing?\" rating prompt response : The user's selection on responded events enabled_via_override : true when CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL is set. Emitted as a boolean, not a string. Present on session survey events. Filter on this attribute to confirm the override is applied across a fleet Interpret metrics and events data"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.136",
+      "content": "- Added `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` to re-enable the session quality survey for enterprises capturing responses through OpenTelemetry",
+      "content_ja": "OpenTelemetry(OTel)経由でテレメトリを収集しているエンタープライズ向けに、セッション品質調査の再有効化設定を追加しました。",
+      "inference": {
+        "before": "OpenTelemetryを介して指標やログを収集しているエンタープライズ環境において、セッション終了時の品質調査アンケートが表示されず、ユーザーフィードバックの収集が困難でした。",
+        "after": "環境変数 `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` を設定することで、OTel使用時でもセッション品質調査を有効化できるようになりました。",
+        "benefit": "管理者は組織全体の利用状況を監視しつつ、開発者からの具体的な品質フィードバックを直接収集できるようになります。"
+      }
+    }
+  ]
+}
