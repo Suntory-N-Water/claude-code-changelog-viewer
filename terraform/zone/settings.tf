@@ -92,3 +92,12 @@ resource "cloudflare_zone_setting" "zero_rtt" {
   setting_id = "0rtt"
   value      = "on"
 }
+
+# Early Hints (HTTP 103) を有効化
+# Cloudflare がオリジンのレスポンスを待つ間に Link ヘッダーを先行送信し、
+# ブラウザが CSS/JS のプリロードを早期に開始できるようにする
+resource "cloudflare_zone_setting" "early_hints" {
+  zone_id    = var.zone_id
+  setting_id = "early_hints"
+  value      = "on"
+}
