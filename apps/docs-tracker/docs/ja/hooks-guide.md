@@ -846,7 +846,7 @@ Hook は設定されていますが、実行されません。
   echo '{"tool_name":"Bash","tool_input":{"command":"ls"}}' | ./my-hook.sh
   echo $?  # 終了コードを確認
   ```
-- 「command not found」が表示される場合は、絶対パスを使用するか、スクリプトを参照するために `$CLAUDE_PROJECT_DIR` を使用します
+- 「command not found」が表示される場合は、絶対パスを使用するか、スクリプトを参照するために `${CLAUDE_PROJECT_DIR}` を使用します。シェルクォーティングを完全に回避するには、`"args": []` を追加して [exec form](/ja/hooks#exec-form-and-shell-form) に切り替えます。これはシェルなしでスクリプトを直接生成します
 - 「jq: command not found」が表示される場合は、`jq` をインストールするか、JSON 解析に Python/Node.js を使用します
 - スクリプトがまったく実行されていない場合は、実行可能にします：`chmod +x ./my-hook.sh`
 

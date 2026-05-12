@@ -63,7 +63,8 @@ To see how these pieces fit together, consider this `PreToolUse` hook that block
           {
             "type": "command",
             "if": "Bash(rm *)",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-rm.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/block-rm.sh",
+            "args": []
           }
         ]
       }
@@ -429,7 +430,8 @@ This example uses `${CLAUDE_PROJECT_DIR}` to run a style checker from the projec
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/check-style.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-style.sh",
+            "args": []
           }
         ]
       }
@@ -452,7 +454,8 @@ This example runs a formatting script bundled with the plugin:
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/format.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/format.sh",
+            "args": [],
             "timeout": 30
           }
         ]
@@ -1899,7 +1902,8 @@ This example logs all configuration changes for security auditing:
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/audit-config-change.sh"
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/audit-config-change.sh",
+            "args": []
           }
         ]
       }
@@ -2574,7 +2578,8 @@ Then add this configuration to `.claude/settings.json` in your project root. The
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/run-tests-async.sh",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/run-tests-async.sh",
+            "args": [],
             "async": true,
             "timeout": 300
           }
@@ -2609,7 +2614,7 @@ Keep these practices in mind when writing hooks:
 - **Validate and sanitize inputs**: never trust input data blindly
 - **Always quote shell variables**: use `"$VAR"` not `$VAR`
 - **Block path traversal**: check for `..` in file paths
-- **Use absolute paths**: specify full paths for scripts, using `"$CLAUDE_PROJECT_DIR"` for the project root
+- **Use absolute paths**: specify full paths for scripts. In exec form, use `${CLAUDE_PROJECT_DIR}` and the path needs no quoting. In shell form, wrap it in double quotes
 - **Skip sensitive files**: avoid `.env`, `.git/`, keys, etc.
 
 ## Windows PowerShell tool
