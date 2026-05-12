@@ -1,0 +1,1160 @@
+{
+  "id": "20260512-183509",
+  "timestamp": "2026-05-12T18:35:09.881Z",
+  "aiSummary": "Claude Opus 4.7向けのファストモード（fast mode）が試験的に導入され、環境変数を通じて利用可能になりました。企業向けの機能として、テレメトリを無効にしている環境でもOpenTelemetryコレクター経由でフィードバック調査を収集できる新しい設定オプションが追加されています。システムプロンプトのカスタマイズに関する解説が大幅に強化され、デフォルトの役割を維持する「追記」と完全に変更する「置換」の使い分けがより明確に説明されるようになりました。また、Ubuntu 24.04環境におけるサンドボックス実行のためのAppArmor設定手順や、権限確認なしで実行可能な読み取り専用コマンドの拡充が行われています。",
+  "files": [
+    {
+      "filename": "agent-sdk/modifying-system-prompts.md",
+      "additions": 81,
+      "deletions": 162,
+      "explanation": "システムプロンプトの修正方法について、プロンプトキャッシュの効率化や出力スタイルの適用方法など、より詳細なガイドラインが再編されました。",
+      "hunks": []
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "プロンプトキャッシュの再利用性を高めるための動的セクション除外オプションの設定項目について、説明テキストの一部が微調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -871,7 +871,7 @@ class SystemPromptPreset(TypedDict):",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `type` | Yes | Must be `\"preset\"` to use a preset system prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `preset` | Yes | Must be `\"claude_code\"` to use Claude Code's system prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `append` | No | Additional instructions to append to the preset system prompt |"
+            },
+            {
+              "type": "removed",
+              "content": "| `exclude_dynamic_sections` | No | Move per-session context such as working directory, git status, and memory paths from the system prompt into the first user message. Improves prompt-cache reuse across users and machines. See [Modify system prompts](/en/agent-sdk/modifying-system-prompts#improve-prompt-caching-across-users-and-machines) |"
+            },
+            {
+              "type": "added",
+              "content": "| `exclude_dynamic_sections` | No | Move per-session context such as working directory, the git-repo flag, and auto-memory paths from the system prompt into the first user message. Improves prompt-cache reuse across users and machines. See [Modify system prompts](/en/agent-sdk/modifying-system-prompts#improve-prompt-caching-across-users-and-machines) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SettingSource`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "SDKのセッションで特定の出力スタイルを有効化するためのoutputStyleプロパティに関する説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -391,6 +391,7 @@ Configuration object for the `query()` function.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `mcpServers` | `Record<string, [`McpServerConfig`](#mcpserverconfig)>` | `{}` | MCP server configurations |"
+            },
+            {
+              "type": "context",
+              "content": "| `model` | `string` | Default from CLI | Claude model to use |"
+            },
+            {
+              "type": "context",
+              "content": "| `outputFormat` | `{ type: 'json_schema', schema: JSONSchema }` | `undefined` | Define output format for agent results. See [Structured outputs](/en/agent-sdk/structured-outputs) for details |"
+            },
+            {
+              "type": "added",
+              "content": "| `outputStyle` | `string` | `undefined` | Name of an [output style](/en/output-styles) to activate for the session. The style must exist in a loaded `settingSources` location, such as `.claude/output-styles/`. See [Activate an output style](/en/agent-sdk/modifying-system-prompts#activate-an-output-style) |"
+            },
+            {
+              "type": "context",
+              "content": "| `pathToClaudeCodeExecutable` | `string` | Auto-resolved from bundled native binary | Path to Claude Code executable. Only needed if optional dependencies were skipped during install or your platform isn't in the supported set |"
+            },
+            {
+              "type": "context",
+              "content": "| `permissionMode` | [`PermissionMode`](#permissionmode) | `'default'` | Permission mode for the session |"
+            },
+            {
+              "type": "context",
+              "content": "| `permissionPromptToolName` | `string` | `undefined` | MCP tool name for permission prompts |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "システムプロンプトを「追記」するか「置換」するかを判断するための詳細な基準と、永続的な設定には出力スタイルやCLAUDE.mdを使用すべき旨が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -68,7 +68,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--disallowedTools` | Tools that are removed from the model's context and cannot be used | `\"Bash(git log *)\" \"Bash(git diff *)\" \"Edit\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--effort` | Set the [effort level](/en/model-config#adjust-effort-level) for the current session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model. Overrides the [`effortLevel`](/en/settings#available-settings) setting for this session and does not persist | `claude --effort high` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--enable-auto-mode` | Removed in v2.1.111. Auto mode is now in the `Shift+Tab` cycle by default; use `--permission-mode auto` to start in it | `claude --permission-mode auto` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--exclude-dynamic-system-prompt-sections` | Move per-machine sections from the system prompt (working directory, environment info, memory paths, git status) into the first user message. Improves prompt-cache reuse across different users and machines running the same task. Only applies with the default system prompt; ignored when `--system-prompt` or `--system-prompt-file` is set. Use with `-p` for scripted, multi-user workloads | `claude -p --exclude-dynamic-system-prompt-sections \"query\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--exclude-dynamic-system-prompt-sections` | Move per-machine sections from the system prompt (working directory, environment info, memory paths, git-repo flag) into the first user message. Improves prompt-cache reuse across different users and machines running the same task. Only applies with the default system prompt; ignored when `--system-prompt` or `--system-prompt-file` is set. Use with `-p` for scripted, multi-user workloads | `claude -p --exclude-dynamic-system-prompt-sections \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--fallback-model` | Enable automatic fallback to specified model when default model is overloaded (print mode only) | `claude -p --fallback-model sonnet \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--fork-session` | When resuming, create a new session ID instead of reusing the original (use with `--resume` or `--continue`) | `claude --resume abc123 --fork-session` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--from-pr` | Resume sessions linked to a specific pull request. Accepts a PR number, a GitHub or GitHub Enterprise PR URL, a GitLab merge request URL, or a Bitbucket pull request URL. Sessions are linked automatically when Claude creates the pull request | `claude --from-pr 123` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -125,7 +125,9 @@ Claude Code provides four flags for customizing the system prompt. All four work",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`--system-prompt` and `--system-prompt-file` are mutually exclusive. The append flags can be combined with either replacement flag."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For most use cases, use an append flag. Appending preserves Claude Code's built-in capabilities while adding your requirements. Use a replacement flag only when you need complete control over the system prompt."
+            },
+            {
+              "type": "added",
+              "content": "Choose based on whether Claude Code's default identity still fits your task. Use an append flag when Claude should remain a coding assistant that also follows your extra rules: per-invocation instructions, output formatting, or domain context for a `-p` script. Appending preserves the default tool guidance, safety instructions, and coding conventions, so you only supply what differs. Use a replacement flag when the surface, identity, or permission model differs from Claude Code's, like a non-coding agent in a pipeline that no human watches. Replacing drops all of the default prompt, including tool guidance and safety instructions, so you take responsibility for whatever your task still needs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "These flags apply only to the current invocation. For persistent personas you can switch between and share across a project, use [output styles](/en/output-styles). For project conventions Claude should always follow, use [CLAUDE.md](/en/memory). The [Agent SDK guide on system prompts](/en/agent-sdk/modifying-system-prompts#decide-on-a-starting-point) covers the same decision in more depth."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## See also"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "data-usage.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "データ送信を制限している組織向けに、OpenTelemetryコレクターを利用してフィードバック調査のみを有効化する新しい制御フラグの説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -34,9 +34,9 @@ After the rating prompt, you may see a separate follow-up asking \"Can Anthropic",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **No**: declines without sending anything"
+            },
+            {
+              "type": "context",
+              "content": "- **Don't ask again**: declines and stops this follow-up from appearing in future sessions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Nothing is uploaded unless you explicitly select **Yes**. Organizations with [zero data retention](/en/zero-data-retention), or where product feedback is disabled by organization policy, never see this follow-up. Your responses to this survey, including session transcripts submitted after the rating prompt, do not impact your data training preferences and cannot be used to train our AI models."
+            },
+            {
+              "type": "added",
+              "content": "Nothing is uploaded unless you explicitly select **Yes**. Organizations with [zero data retention](/en/zero-data-retention), or where product feedback is disabled by organization policy, or where `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set, never see this follow-up. Your responses to this survey, including session transcripts submitted after the rating prompt, do not impact your data training preferences and cannot be used to train our AI models."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To disable these surveys, set `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1`. The survey is also disabled when `DISABLE_TELEMETRY` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set. To control frequency instead of disabling, set [`feedbackSurveyRate`](/en/settings#available-settings) in your settings file to a probability between `0` and `1`."
+            },
+            {
+              "type": "added",
+              "content": "To disable these surveys, set `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1`. The survey is also disabled when `DISABLE_TELEMETRY`, `DO_NOT_TRACK`, or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set. Organizations that block nonessential traffic but capture survey responses through their own [OpenTelemetry collector](/en/monitoring-usage) can opt the survey back in by setting `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1`. The survey then logs ratings to the configured collector only. The transcript-share follow-up and all other Anthropic-bound feedback traffic stay disabled. To control frequency instead of disabling, set [`feedbackSurveyRate`](/en/settings#available-settings) in your settings file to a probability between `0` and `1`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Data retention"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Opus 4.7でのファストモード有効化や、OpenTelemetry向けのフィードバック調査許可など、新しい環境変数の定義が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -82,7 +82,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_CRON` | Set to `1` to disable [scheduled tasks](/en/scheduled-tasks). The `/loop` skill and cron tools become unavailable and any already-scheduled tasks stop firing, including tasks that are already running mid-session |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Set to `1` to strip Anthropic-specific `anthropic-beta` request headers and beta tool-schema fields (such as `defer_loading` and `eager_input_streaming`) from API requests. Use this when a proxy gateway rejects requests with errors like \"Unexpected value(s) for the `anthropic-beta` header\" or \"Extra inputs are not permitted\". Standard fields (`name`, `description`, `input_schema`, `cache_control`) are preserved. |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_FAST_MODE` | Set to `1` to disable [fast mode](/en/fast-mode) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` | Set to `1` to disable the \"How is Claude doing?\" session quality surveys. Surveys are also disabled when `DISABLE_TELEMETRY` or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set. To set a sample rate instead of disabling outright, use the [`feedbackSurveyRate`](/en/settings#available-settings) setting. See [Session quality surveys](/en/data-usage#session-quality-surveys) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` | Set to `1` to disable the \"How is Claude doing?\" session quality surveys. Surveys are also disabled when `DISABLE_TELEMETRY`, `DO_NOT_TRACK`, or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` is set, unless `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` opts back in. To set a sample rate instead of disabling outright, use the [`feedbackSurveyRate`](/en/settings#available-settings) setting. See [Session quality surveys](/en/data-usage#session-quality-surveys) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING` | Set to `1` to disable file [checkpointing](/en/checkpointing). The `/rewind` command will not be able to restore code changes |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` | Set to `1` to remove built-in commit and PR workflow instructions and the git status snapshot from Claude's system prompt. Useful when using your own git workflow skills. Takes precedence over the [`includeGitInstructions`](/en/settings#available-settings) setting when set |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_LEGACY_MODEL_REMAP` | Set to `1` to prevent automatic remapping of Opus 4.0 and 4.1 to the current Opus version on the Anthropic API. Use when you intentionally want to pin an older model. The remap does not run on Bedrock, Vertex, or Foundry |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -97,8 +97,10 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EFFORT_LEVEL` | Set the effort level for supported models. Values: `low`, `medium`, `high`, `xhigh`, `max`, or `auto` to use the model default. Available levels depend on the model. Takes precedence over `/effort` and the `effortLevel` setting. See [Adjust effort level](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` | Override [session recap](/en/interactive-mode#session-recap) availability. Set to `0` to force recaps off regardless of the `/config` toggle. Set to `1` to force recaps on when [`awaySummaryEnabled`](/en/settings#available-settings) is `false`. Takes precedence over the setting and `/config` toggle |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_BACKGROUND_PLUGIN_REFRESH` | Set to `1` to refresh plugin state at turn boundaries in [non-interactive mode](/en/headless) after a background install completes. Off by default because the refresh changes the system prompt mid-session, which invalidates [prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) for that turn |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` | Set to `1` to route the \"How is Claude doing?\" session quality survey to your own [OpenTelemetry collector](/en/monitoring-usage) when Anthropic-bound nonessential traffic is blocked. Survey ratings are emitted only as OTEL events to your configured collector. No survey data is sent to Anthropic in this mode. Applies when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY`, or `DO_NOT_TRACK` is set, and has no effect otherwise. `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` and the organization product feedback policy take precedence |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING` | Controls whether tool call inputs stream from the API as Claude generates them. With this off, a large tool input such as a long file write arrives only after Claude finishes generating it, which can look like it's hanging. Enabled by default on the Anthropic API. On Bedrock and Vertex, enabled per model where the deployed container supports it. Set to `0` to opt out. Set to `1` to force on when routing through a proxy via `ANTHROPIC_BASE_URL`, `ANTHROPIC_VERTEX_BASE_URL`, or `ANTHROPIC_BEDROCK_BASE_URL`. Off by default on Foundry and [gateway](/en/llm-gateway) connections |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY` | Set to `1` to populate the `/model` picker from your gateway's `/v1/models` endpoint when `ANTHROPIC_BASE_URL` points at an Anthropic-compatible gateway such as LiteLLM, Kong, or an internal proxy. Off by default because gateways backed by a shared API key would otherwise show every user every model the key can access. Discovered models are still filtered by the [`availableModels`](/en/settings#available-settings) allowlist |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE` | Set to `1` to run [fast mode](/en/fast-mode) on Claude Opus 4.7 instead of Opus 4.6. With the variable set, `/fast` switches to Opus 4.7; without it, `/fast` continues to use Opus 4.6 |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` | Set to `false` to disable prompt suggestions (the \"Prompt suggestions\" toggle in `/config`). These are the grayed-out predictions that appear in your prompt input after Claude responds. See [Prompt suggestions](/en/interactive-mode#prompt-suggestions) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TASKS` | Set to `1` to enable the task tracking system in non-interactive mode (the `-p` flag). Tasks are on by default in interactive mode. See [Task list](/en/interactive-mode#task-list) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TELEMETRY` | Set to `1` to enable OpenTelemetry data collection for metrics and logging. Required before configuring OTel exporters. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fast-mode.md",
+      "additions": 40,
+      "deletions": 10,
+      "explanation": "ファストモードがOpus 4.7に対応したことに伴い、環境変数による切り替え方法や共通のレート制限に関する仕様が詳しく記述されています。",
+      "hunks": [
+        {
+          "header": "@@ -5,24 +5,25 @@ source: https://code.claude.com/docs/en/fast-mode.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Speed up responses with fast mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Get faster Opus 4.6 responses in Claude Code by toggling fast mode."
+            },
+            {
+              "type": "added",
+              "content": "> Get faster Opus responses in Claude Code by toggling fast mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fast mode is in [research preview](#research-preview). The feature, pricing, and availability may change based on feedback."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fast mode is a high-speed configuration for Claude Opus 4.6, making the model 2.5x faster at a higher cost per token. Toggle it on with `/fast` when you need speed for interactive work like rapid iteration or live debugging, and toggle it off when cost matters more than latency."
+            },
+            {
+              "type": "added",
+              "content": "Fast mode is a high-speed configuration for Claude Opus, making the model 2.5x faster at a higher cost per token. Toggle it on with `/fast` when you need speed for interactive work like rapid iteration or live debugging, and toggle it off when cost matters more than latency."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fast mode is not a different model. It uses the same Opus 4.6 with a different API configuration that prioritizes speed over cost efficiency. You get identical quality and capabilities, just faster responses. Fast mode is not available on Opus 4.7 or other models."
+            },
+            {
+              "type": "added",
+              "content": "Fast mode is not a different model. It uses Claude Opus with a different API configuration that prioritizes speed over cost efficiency. You get identical quality and capabilities, just faster responses. Fast mode is supported on Opus 4.6 and Opus 4.7. It is not available on Sonnet, Haiku, or other models."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fast mode requires Claude Code v2.1.36 or later. Check your version with `claude --version`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "What to know:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Use `/fast` to toggle on fast mode in Claude Code CLI. Also available via `/fast` in Claude Code VS Code Extension."
+            },
+            {
+              "type": "removed",
+              "content": "- Fast mode for Opus 4.6 pricing is $30/150 MTok."
+            },
+            {
+              "type": "added",
+              "content": "- By default, `/fast` runs on Opus 4.6. To run fast mode on Opus 4.7 instead, set the [`CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE`](#use-fast-mode-on-opus-4-7) environment variable."
+            },
+            {
+              "type": "added",
+              "content": "- Fast mode pricing is $30/150 MTok on both Opus 4.6 and Opus 4.7."
+            },
+            {
+              "type": "context",
+              "content": "- Available to all Claude Code users on subscription plans (Pro/Max/Team/Enterprise) and Claude Console."
+            },
+            {
+              "type": "context",
+              "content": "- For Claude Code users on subscription plans (Pro/Max/Team/Enterprise), fast mode is available via extra usage only and not included in the subscription rate limits."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This page covers how to [toggle fast mode](#toggle-fast-mode), its [cost tradeoff](#understand-the-cost-tradeoff), [when to use it](#decide-when-to-use-fast-mode), [requirements](#requirements), [per-session opt-in](#require-per-session-opt-in), and [rate limit behavior](#handle-rate-limits)."
+            },
+            {
+              "type": "added",
+              "content": "This page covers how to [toggle fast mode](#toggle-fast-mode), [use fast mode on Opus 4.7](#use-fast-mode-on-opus-4-7), the [cost tradeoff](#understand-the-cost-tradeoff), [when to use it](#decide-when-to-use-fast-mode), [requirements](#requirements), [per-session opt-in](#require-per-session-opt-in), and [rate limit behavior](#handle-rate-limits)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Toggle fast mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -37,20 +38,49 @@ For the best cost efficiency, enable fast mode at the start of a session rather",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you enable fast mode:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- If you're on a different model, Claude Code automatically switches to Opus 4.6"
+            },
+            {
+              "type": "added",
+              "content": "- If you're on a different model, Claude Code automatically switches to the fast mode model: Opus 4.6 by default, or Opus 4.7 when [`CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE`](#use-fast-mode-on-opus-4-7) is set."
+            },
+            {
+              "type": "context",
+              "content": "- You'll see a confirmation message: \"Fast mode ON\""
+            },
+            {
+              "type": "context",
+              "content": "- A small `↯` icon appears next to the prompt while fast mode is active"
+            },
+            {
+              "type": "context",
+              "content": "- Run `/fast` again at any time to check whether fast mode is on or off"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When you disable fast mode with `/fast` again, you remain on Opus 4.6. The model does not revert to your previous model. To switch to a different model, use `/model`."
+            },
+            {
+              "type": "added",
+              "content": "When you disable fast mode with `/fast` again, you remain on the same Opus version that fast mode was running on. The model does not revert to your previous model. To switch to a different model, use `/model`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Use fast mode on Opus 4.7"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fast mode on Opus 4.7 requires Claude Code v2.1.139 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fast mode for Claude Opus 4.7 is in research preview. It runs at the same 2.5x speed and the same price as fast mode for Opus 4.6, with no other behavior changes."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On May 14, 2026, Opus 4.7 becomes the default fast mode model. Until then, opt in by setting `CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE=1`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To opt in, set `CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE=1` before launching Claude Code. With the variable set, `/fast` runs on Opus 4.7. Without it, `/fast` continues to run on Opus 4.6."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can set the variable as a shell export:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "export CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE=1"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Or in any Claude Code [settings file](/en/settings#settings-files), including user, project, and managed settings, to scope the opt-in:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"env\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE\": \"1\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fast mode for Opus 4.6 remains available alongside Opus 4.7. The two share the same fast mode rate limit pool: usage on either model draws from the same limits."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Understand the cost tradeoff"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fast mode has higher per-token pricing than standard Opus 4.6:"
+            },
+            {
+              "type": "added",
+              "content": "Fast mode has higher per-token pricing than standard Opus:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Mode | Input (MTok) | Output (MTok) |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| Fast mode on Opus 4.6 | $30 | $150 |"
+            },
+            {
+              "type": "added",
+              "content": "| Fast mode on Opus 4.7 | $30 | $150 |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Fast mode pricing is flat across the full 1M token context window."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -117,9 +147,9 @@ This is useful for controlling costs in organizations where users run multiple c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Handle rate limits"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Fast mode has separate rate limits from standard Opus 4.6. When you hit the fast mode rate limit or run out of extra usage:"
+            },
+            {
+              "type": "added",
+              "content": "Fast mode has separate rate limits from standard Opus. Fast mode for Opus 4.6 and Opus 4.7 share the same rate limit pool: usage on either model draws from the same limits. When you hit the fast mode rate limit or run out of extra usage:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "1. Fast mode automatically falls back to standard Opus 4.6"
+            },
+            {
+              "type": "added",
+              "content": "1. Fast mode automatically falls back to standard speed on the same Opus version"
+            },
+            {
+              "type": "context",
+              "content": "2. The `↯` icon turns gray to indicate cooldown"
+            },
+            {
+              "type": "context",
+              "content": "3. You continue working at standard speed and pricing"
+            },
+            {
+              "type": "context",
+              "content": "4. When the cooldown expires, fast mode automatically re-enables"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 18,
+      "deletions": 0,
+      "explanation": "OpenTelemetryで収集可能なイベントとして、フィードバック調査の表示や回答内容に関する属性情報の詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -896,6 +896,24 @@ Logged when conversation compaction completes.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `post_tokens`: Approximate token count after compaction"
+            },
+            {
+              "type": "context",
+              "content": "- `error`: Error message when compaction failed"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Feedback survey event"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Logged when a session quality survey is shown or answered. See [Session quality surveys](/en/data-usage#session-quality-surveys) for what the surveys collect and how to control them."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Event Name**: `claude_code.feedback_survey`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Attributes**:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- All [standard attributes](#standard-attributes)"
+            },
+            {
+              "type": "added",
+              "content": "- `event.name`: `\"feedback_survey\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `event.timestamp`: ISO 8601 timestamp"
+            },
+            {
+              "type": "added",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "added",
+              "content": "- `event_type`: Survey lifecycle event, for example `\"appeared\"`, `\"responded\"`, or `\"transcript_prompt_appeared\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `appearance_id`: Unique ID linking the events emitted for one survey instance"
+            },
+            {
+              "type": "added",
+              "content": "- `survey_type`: Which survey produced the event. `\"session\"` is the \"How is Claude doing?\" rating prompt"
+            },
+            {
+              "type": "added",
+              "content": "- `response`: The user's selection on `responded` events"
+            },
+            {
+              "type": "added",
+              "content": "- `enabled_via_override`: `true` when [`CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL`](/en/env-vars) is set. Emitted as a boolean, not a string. Present on `session` survey events. Filter on this attribute to confirm the override is applied across a fleet"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Interpret metrics and events data"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The exported metrics and events support a range of analyses:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "output-styles.md",
+      "additions": 18,
+      "deletions": 9,
+      "explanation": "出力スタイルがデフォルトのコーディングアシスタントとしての役割を完全に置き換えるものであることが強調され、他のカスタマイズ手法との違いが整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -117,18 +117,27 @@ Output style files support frontmatter for specifying metadata:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Output Styles vs. CLAUDE.md vs. --append-system-prompt"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Output styles completely \"turn off\" the parts of Claude Code's default system"
+            },
+            {
+              "type": "removed",
+              "content": "prompt specific to software engineering. Neither CLAUDE.md nor"
+            },
+            {
+              "type": "removed",
+              "content": "`--append-system-prompt` edit Claude Code's default system prompt. CLAUDE.md"
+            },
+            {
+              "type": "removed",
+              "content": "adds the contents as a user message *following* Claude Code's default system"
+            },
+            {
+              "type": "removed",
+              "content": "prompt. `--append-system-prompt` appends the content to the system prompt."
+            },
+            {
+              "type": "added",
+              "content": "Choose based on whether Claude should stop acting as a coding assistant or keep"
+            },
+            {
+              "type": "added",
+              "content": "its default role and learn more. Output styles replace the software-engineering"
+            },
+            {
+              "type": "added",
+              "content": "parts of Claude Code's system prompt with your own role and voice, so use one"
+            },
+            {
+              "type": "added",
+              "content": "when Claude should adopt a different identity, like a writing editor or a"
+            },
+            {
+              "type": "added",
+              "content": "data-analysis assistant. CLAUDE.md and `--append-system-prompt` both keep"
+            },
+            {
+              "type": "added",
+              "content": "Claude Code's default identity and add to it, so use them when Claude should"
+            },
+            {
+              "type": "added",
+              "content": "remain a coding assistant that also follows your project conventions or extra"
+            },
+            {
+              "type": "added",
+              "content": "instructions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The mechanisms differ as well. Output styles edit the system prompt directly."
+            },
+            {
+              "type": "added",
+              "content": "CLAUDE.md adds its contents as a user message after the system prompt."
+            },
+            {
+              "type": "added",
+              "content": "`--append-system-prompt` appends content to the end of the system prompt without"
+            },
+            {
+              "type": "added",
+              "content": "removing anything."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Output Styles vs. [Agents](/en/sub-agents)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Output styles directly affect the main agent loop and only affect the system"
+            },
+            {
+              "type": "removed",
+              "content": "prompt. Agents are invoked to handle specific tasks and can include additional"
+            },
+            {
+              "type": "removed",
+              "content": "settings like the model to use, the tools they have available, and some context"
+            },
+            {
+              "type": "removed",
+              "content": "about when to use the agent."
+            },
+            {
+              "type": "added",
+              "content": "Use an output style to change how the main conversation responds in every"
+            },
+            {
+              "type": "added",
+              "content": "session. Use a [subagent](/en/sub-agents) when you want a separately scoped"
+            },
+            {
+              "type": "added",
+              "content": "helper that the main conversation delegates to. Output styles affect only the"
+            },
+            {
+              "type": "added",
+              "content": "system prompt of the main agent loop. Agents handle specific tasks and can carry"
+            },
+            {
+              "type": "added",
+              "content": "their own model, tools, and context about when to invoke them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Output Styles vs. [Skills](/en/skills)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ユーザーへの確認なしに実行できる読み取り専用のBashコマンド一覧に、echo、pwd、whichが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -133,7 +133,7 @@ Exec wrappers such as `watch`, `setsid`, `ionice`, and `flock` always prompt and",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Read-only commands"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code recognizes a built-in set of Bash commands as read-only and runs them without a permission prompt in every mode. These include `ls`, `cat`, `head`, `tail`, `grep`, `find`, `wc`, `diff`, `stat`, `du`, `cd`, and read-only forms of `git`. The set is not configurable; to require a prompt for one of these commands, add an `ask` or `deny` rule for it."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code recognizes a built-in set of Bash commands as read-only and runs them without a permission prompt in every mode. These include `ls`, `cat`, `echo`, `pwd`, `head`, `tail`, `grep`, `find`, `wc`, `which`, `diff`, `stat`, `du`, `cd`, and read-only forms of `git`. The set is not configurable; to require a prompt for one of these commands, add an `ask` or `deny` rule for it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Unquoted glob patterns are permitted for commands whose every flag is read-only, so `ls *.ts` and `wc -l src/*.py` run without a prompt. Commands with write-capable or exec-capable flags, such as `find`, `sort`, `sed`, and `git`, still prompt when an unquoted glob is present because the glob could expand to a flag like `-delete`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 20,
+      "deletions": 0,
+      "explanation": "Ubuntu 24.04以降でサンドボックス（bubblewrap）を動作させるために必要なAppArmorプロファイルの設定手順が新規追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -82,6 +82,26 @@ sudo apt-get install bubblewrap socat",
+          "lines": [
+            {
+              "type": "context",
+              "content": "sudo dnf install bubblewrap socat"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Ubuntu 24.04 and later, the default AppArmor policy prevents bubblewrap from creating the user namespaces it needs for isolation. Add an AppArmor profile that grants `bwrap` this capability:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "sudo tee /etc/apparmor.d/bwrap > /dev/null <<'EOF'"
+            },
+            {
+              "type": "added",
+              "content": "abi <abi/4.0>,"
+            },
+            {
+              "type": "added",
+              "content": "include <tunables/global>"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "profile bwrap /usr/bin/bwrap flags=(unconfined) {"
+            },
+            {
+              "type": "added",
+              "content": "  userns,"
+            },
+            {
+              "type": "added",
+              "content": "  include if exists <local/bwrap>"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "EOF"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The profile applies only to `bwrap` itself, not to the commands it runs inside the sandbox. Reload AppArmor to apply it:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "sudo systemctl reload apparmor"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "WSL1 does not support sandboxing because it lacks the required Linux namespace primitives. If you see `Sandboxing requires WSL2`, upgrade your distribution to WSL2 or run Claude Code without sandboxing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "On WSL2, sandboxed commands cannot launch Windows binaries such as `cmd.exe`, `powershell.exe`, or anything under `/mnt/c/`. WSL hands these off to the Windows host over a Unix socket, which the sandbox blocks. If a command needs to invoke a Windows binary, add it to [`excludedCommands`](/en/settings#sandbox-settings) so it runs outside the sandbox."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
