@@ -22,17 +22,29 @@ With MCP servers connected, you can ask Claude Code to:
 - **Automate workflows**: "Create Gmail drafts inviting these 10 users to a feedback session about the new feature."
 - **React to external events**: An MCP server can also act as a [channel](/en/channels) that pushes messages into your session, so Claude reacts to Telegram messages, Discord chats, or webhook events while you're away.
 
-## Popular MCP servers
+## Find and build MCP servers
 
-Here are some commonly used MCP servers you can connect to Claude Code:
+Browse reviewed connectors in the [Anthropic Directory](https://claude.ai/directory). Directory connectors use the same MCP infrastructure as Claude Code, so you can add any remote server listed there with `claude mcp add`.
 
-Use third party MCP servers at your own risk - Anthropic has not verified
-the correctness or security of all these servers.
-Make sure you trust MCP servers you are installing.
-Be especially careful when using MCP servers that could fetch untrusted
-content, as these can expose you to prompt injection risk.
+Verify you trust each server before connecting it. Servers that fetch external content can expose you to [prompt injection risk](/en/security#protect-against-prompt-injection).
 
-**Need a specific integration?** [Find hundreds more MCP servers on GitHub](https://github.com/modelcontextprotocol/servers), or build your own using the [MCP SDK](https://modelcontextprotocol.io/quickstart/server).
+To build your own server, see the [MCP server guide](https://modelcontextprotocol.io/docs/develop/build-server) for protocol fundamentals and the [Claude connector building docs](https://claude.com/docs/connectors/building) for authentication, testing, and Directory submission.
+
+You can also have Claude scaffold a server for you with the official [`mcp-server-dev` plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev).
+
+In a Claude Code session, run:
+
+```
+/plugin install mcp-server-dev@claude-plugins-official
+```
+
+Then run `/reload-plugins` to activate it in the current session.
+
+```
+/mcp-server-dev:build-mcp-server
+```
+
+Claude asks about your use case and scaffolds a remote HTTP or local stdio server.
 
 ## Installing MCP servers
 
