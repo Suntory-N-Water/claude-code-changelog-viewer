@@ -860,7 +860,7 @@ Hook は設定されていますが、実行されません。
 
 ### Stop hook が永遠に実行される
 
-Claude は無限ループで作業を続けます。停止する代わりに。
+Claude は無限ループで作業を続け、停止する代わりに。
 
 Stop hook スクリプトは、それが既にトリガーされたかどうかをチェックする必要があります。JSON 入力から `stop_hook_active` フィールドを解析し、`true` の場合は早期に終了します：
 
@@ -877,7 +877,7 @@ fi
 
 Claude Code は hook スクリプトが有効な JSON を出力しているにもかかわらず、JSON 解析エラーを表示します。
 
-Claude Code が hook を実行するとき、プロファイル（`~/.zshrc` または `~/.bashrc`）をソースするシェルを生成します。プロファイルに無条件の `echo` ステートメントが含まれている場合、その出力は hook の JSON に前置されます：
+Claude Code がシェル形式のコマンド hook（`args` なし）を実行する場合、デフォルトで macOS と Linux では `sh -c` を、Windows では Git Bash を生成します。このシェルは非インタラクティブですが、Git Bash と一部の設定（`BASH_ENV` が `~/.bashrc` を指すなど）は依然としてプロファイルをソースします。そのプロファイルに無条件の `echo` ステートメントが含まれている場合、その出力は hook の JSON に前置されます：
 
 ```text
 Shell ready on arm64

@@ -202,14 +202,15 @@ Claude はブラウザタスク用に新しいタブを開き、ブラウザの�
 | Open in Terminal | - | Claude をターミナルモードで開く |
 | Open in New Tab | `Cmd+Shift+Esc`（Mac）/ `Ctrl+Shift+Esc`（Windows/Linux） | 新しい会話をエディタタブとして開く |
 | Open in New Window | - | 新しい会話を別のウィンドウで開く |
-| New Conversation | `Cmd+N`（Mac）/ `Ctrl+N`（Windows/Linux） | 新しい会話を開始する。Claude がフォーカスされている必要があり、`enableNewConversationShortcut` が `true` に設定されている必要があります。 |
-| Insert @-Mention Reference | `Option+K`（Mac）/ `Alt+K`（Windows/Linux） | 現在のファイルと選択への参照を挿入する（エディタがフォーカスされている必要があります） |
-| Show Logs | - | 拡張機能デバッグログを表示する |
-| Logout | - | Anthropic アカウントからサインアウトする |
+| New Conversation | `Cmd+N`（Mac）/ `Ctrl+N`（Windows/Linux） | 新しい会話を開始します。Claude がフォーカスされている必要があり、`enableNewConversationShortcut` が `true` に設定されている必要があります。 |
+| Reopen Closed Session | `Cmd+Shift+T`（Mac）/ `Ctrl+Shift+T`（Windows/Linux） | 最近閉じた Claude セッションタブを再度開きます。最後に閉じたタブが Claude セッションではなかった場合、VS Code の通常の再度開く機能にフォールスルーします。`enableReopenClosedSessionShortcut` で無効にできます。 |
+| Insert @-Mention Reference | `Option+K`（Mac）/ `Alt+K`（Windows/Linux） | 現在のファイルと選択への参照を挿入します（エディタがフォーカスされている必要があります） |
+| Show Logs | - | 拡張機能デバッグログを表示します |
+| Logout | - | Anthropic アカウントからサインアウトします |
 
 ### 他のツールから VS Code タブを起動する
 
-拡張機能は `vscode://anthropic.claude-code/open` で URI ハンドラーを登録します。これを使用して、独自のツーリングから新しい Claude Code タブを開きます。シェルエイリアス、ブラウザブックマークレット、または URL を開くことができるスクリプト。VS Code がまだ実行されていない場合、URL を開くと最初に起動します。VS Code が既に実行されている場合、URL は現在フォーカスされているウィンドウで開きます。
+拡張機能は `vscode://anthropic.claude-code/open` で URI ハンドラーを登録します。これを使用して、独自のツーリングから新しい Claude Code タブを開きます。シェルエイリアス、ブラウザブックマークレット、または URL を開くことができるスクリプトです。VS Code がまだ実行されていない場合、URL を開くと最初に起動します。VS Code が既に実行されている場合、URL は現在フォーカスされているウィンドウで開きます。
 
 オペレーティングシステムの URL オープナーでハンドラーを呼び出します。
 
@@ -267,6 +268,7 @@ vscode://anthropic.claude-code/open?prompt=review%20my%20changes
 | `autosave` | `true` | Claude が読み取りまたは書き込みする前にファイルを自動保存します。 |
 | `useCtrlEnterToSend` | `false` | Enter の代わりに Ctrl/Cmd+Enter を使用してプロンプトを送信します。 |
 | `enableNewConversationShortcut` | `false` | Cmd/Ctrl+N を有効にして新しい会話を開始します。 |
+| `enableReopenClosedSessionShortcut` | `true` | Cmd/Ctrl+Shift+T を使用して、最近閉じた Claude セッションタブを再度開きます。最後に閉じたタブが Claude セッションではなかった場合、このショートカットは VS Code の通常の reopen-closed-editor コマンドを実行します。 |
 | `hideOnboarding` | `false` | オンボーディングチェックリスト（卒業キャップアイコン）を非表示にします。 |
 | `respectGitIgnore` | `true` | ファイル検索から .gitignore パターンを除外します。 |
 | `usePythonEnvironment` | `true` | Claude を実行するときにワークスペースの Python 環境をアクティベートします。Python 拡張機能が必要です。 |

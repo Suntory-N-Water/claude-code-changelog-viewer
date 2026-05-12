@@ -29,6 +29,8 @@ Claude Code は、パワーと安全性のバランスを取るために、段�
 
 ルールは順序で評価されます。**deny -> ask -> allow**。最初にマッチしたルールが優先されるため、deny ルールは常に優先されます。
 
+権限ルールは Claude Code によって実装されており、モデルによってではありません。プロンプトまたは `CLAUDE.md` の指示は、Claude が何をしようとするかを形作りますが、Claude Code が許可する内容は変わりません。アクセスを付与または取り消すには、`/permissions`、ここで説明されているルール、[permission mode](/ja/permission-modes)、または [PreToolUse hook](#extend-permissions-with-hooks) を使用してください。
+
 ## 権限モード
 
 Claude Code は、ツールの承認方法を制御するいくつかの権限モードをサポートしています。[権限モード](/ja/permission-modes)を参照して、各モードをいつ使用するかを確認してください。[設定ファイル](/ja/settings#settings-files)で `defaultMode` を設定します。
@@ -149,7 +151,7 @@ Claude Code は、Bash コマンドの組み込みセットを読み取り専用
 
 - **Bash ネットワークツールを制限する**：deny ルールを使用して `curl`、`wget` などのコマンドをブロックし、許可されたドメインに対して `WebFetch(domain:github.com)` 権限で WebFetch ツールを使用します
 - **PreToolUse フックを使用する**：Bash コマンドの URL を検証し、許可されていないドメインをブロックするフックを実装します
-- CLAUDE.md を通じて Claude Code に許可された curl パターンについて指示します
+- **CLAUDE.md ガイダンスを追加する**：`CLAUDE.md` で Claude Code に許可された curl パターンについて説明します。これは Claude が試みることを形作りますが、境界を強制しないため、上記のオプションの 1 つと組み合わせてください
 
 WebFetch のみを使用しても、ネットワークアクセスは防止されません。Bash が許可されている場合、Claude は `curl`、`wget` または他のツールを使用して任意の URL に到達できます。
 

@@ -283,10 +283,44 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 
 | フィールド | 必須 | 説明 |
 | :- | :- | :- |
-| `command` | はい | 実行するシェル コマンド |
+| `command` | はい | 実行するシェル コマンド。`args` を使用する場合、直接生成する実行可能ファイル。[Exec フォームとシェル フォーム](#exec-form-and-shell-form)を参照してください |
+| `args` | いいえ | 引数リスト。存在する場合、`command` は実行可能ファイルとして解決され、`args` を引数ベクトルとして直接生成されます。シェルは関与しません。[Exec フォームとシェル フォーム](#exec-form-and-shell-form)を参照してください |
 | `async` | いいえ | `true` の場合、ブロックせずにバックグラウンドで実行されます。[バックグラウンドでフックを実行](#run-hooks-in-the-background)を参照してください |
 | `asyncRewake` | いいえ | `true` の場合、バックグラウンドで実行され、終了コード 2 で Claude を起動します。`async` を暗黙的に指定します。フックの stderr、または stderr が空の場合は stdout が、Claude がシステム リマインダーとして長時間実行されるバックグラウンド失敗に反応できるように表示されます |
-| `shell` | いいえ | このフックに使用するシェル。`"bash"`（デフォルト）または `"powershell"` を受け入れます。`"powershell"` を設定すると、Windows 上で PowerShell 経由でコマンドが実行されます。`CLAUDE_CODE_USE_POWERSHELL_TOOL` は不要です。フックは PowerShell を直接生成するため |
+| `shell` | いいえ | このフックに使用するシェル。`"bash"`（デフォルト）または `"powershell"` を受け入れます。`"powershell"` を設定すると、Windows 上で PowerShell 経由でコマンドが実行されます。`CLAUDE_CODE_USE_POWERSHELL_TOOL` は不要です。フックは PowerShell を直接生成するため。`args` が設定されている場合は無視されます |
+
+##### Exec フォームとシェル フォーム
+
+コマンド フックは `args` が設定されている場合は exec フォームで実行され、`args` が省略されている場合はシェル フォームで実行されます。フックが[パス プレースホルダー](#reference-scripts-by-path)を参照する場合は常に `args` を設定してください。各要素は引用符なしで 1 つの引数として渡されるためです。パイプや `&&` などのシェル機能が必要な場合、または両方の懸念が適用されない場合は `args` を省略してください。
+
+**Exec フォーム**は `args` が存在する場合に実行されます。Claude Code は `command` を `PATH` 上の実行可能ファイルとして解決し、`args` を引数ベクトルとして直接生成します。シェルがないため、各 `args` 要素は記述されたとおりに正確に 1 つの引数であり、`${CLAUDE_PLUGIN_ROOT}` などのパス プレースホルダーは `command` と各 `args` 要素にプレーン文字列として置換されます。アポストロフィ、`$`、バッククォートなどの特殊文字は、シェルが解釈しないため、そのまま渡されます。プラットフォーム上でシェル トークン化は発生しません。
+
+**シェル フォーム**は `args` が存在しない場合に実行されます。`command` 文字列はシェルに渡されます。macOS と Linux では `sh -c`、Windows では Git Bash、または Git Bash がインストールされていない場合は PowerShell。`shell` フィールドを設定して明示的に選択します。シェルは文字列をトークン化し、変数を展開し、パイプ、`&&`、リダイレクト、グロブを解釈します。
+
+Windows では、exec フォームは `command` が `.exe` などの実際の実行可能ファイルに解決されることが必要です。npm、npx、eslint、およびその他のツールが `node_modules/.bin` にインストールする `.cmd` と `.bat` シムは実行可能ファイルではなく、シェルなしで生成することはできません。exec フォームでそれらを実行するには、基になるスクリプトを `node` で直接呼び出します。例えば `"command": "node", "args": ["${CLAUDE_PLUGIN_ROOT}/node_modules/eslint/bin/eslint.js"]`。`node` プラス スクリプト パス パターンは、`node.exe` が実際のバイナリであるため、すべてのプラットフォームで機能します。`.cmd` または `.bat` シムを名前で実行するには、シェル フォームを使用します。
+
+この例は、プラグインにバンドルされた Node スクリプトを実行します。Exec フォームは解決されたスクリプト パスを引用符なしで 1 つの引数として渡します。
+
+```json
+{
+  "type": "command",
+  "command": "node",
+  "args": ["${CLAUDE_PLUGIN_ROOT}/scripts/format.js", "--fix"]
+}
+```
+
+同等のシェル フォームは、スペースまたは特殊文字を含むパスを処理するために引用符が必要です。
+
+```json
+{
+  "type": "command",
+  "command": "node \"${CLAUDE_PLUGIN_ROOT}\"/scripts/format.js --fix"
+}
+```
+
+両方のフォームは同じ[パス プレースホルダー](#reference-scripts-by-path)をサポートし、両方とも生成されたプロセスで環境変数 `CLAUDE_PROJECT_DIR`、`CLAUDE_PLUGIN_ROOT`、`CLAUDE_PLUGIN_DATA` としてエクスポートするため、スクリプトは起動方法に関係なく `process.env.CLAUDE_PLUGIN_ROOT` を読み取ることができます。プラグイン フックは追加で `${user_config.*}` 値を置換します。[ユーザー設定](/ja/plugins-reference#user-configuration)を参照してください。
+
+Exec フォームでは、`command` は実行可能ファイル名またはパスのみです。`command` が空白を含むパス区切りなしの名前であり、`args` と一緒に空白を含む場合、Claude Code は警告をログします。生成が失敗するためです。`node script.js` という名前の実行可能ファイルはありません。余分なトークンを `args` に移動します。`C:\Program Files\nodejs\node.exe` などのスペースを含む絶対パスは、単一の有効な実行可能ファイルであり、警告をトリガーしません。
 
 #### HTTP フック フィールド
 
@@ -372,17 +406,19 @@ MCP ツール フックは、Claude Code が MCP サーバーに接続した後�
 | `prompt` | はい | モデルに送信するプロンプト テキスト。フック入力 JSON のプレースホルダーとして `$ARGUMENTS` を使用します |
 | `model` | いいえ | 評価に使用するモデル。デフォルトは高速モデル |
 
-すべてのマッチング フックは並列で実行され、同一のハンドラーは自動的に重複排除されます。コマンド フックはコマンド文字列で重複排除され、HTTP フックは URL で重複排除されます。ハンドラーは Claude Code の環境を持つ現在のディレクトリで実行されます。`$CLAUDE_CODE_REMOTE` 環境変数はリモート Web 環境で `"true"` に設定され、ローカル CLI では設定されません。
+すべてのマッチング フックは並列で実行され、同一のハンドラーは自動的に重複排除されます。コマンド フックはコマンド文字列と `args` で重複排除され、HTTP フックは URL で重複排除されます。ハンドラーは Claude Code の環境を持つ現在のディレクトリで実行されます。`$CLAUDE_CODE_REMOTE` 環境変数はリモート Web 環境で `"true"` に設定され、ローカル CLI では設定されません。
 
 ### パスでフック スクリプトを参照
 
-環境変数を使用して、フックが実行されるときの作業ディレクトリに関係なく、プロジェクトまたはプラグイン ルートを基準にしてフック スクリプトを参照します。
+フックが実行されるときの作業ディレクトリに関係なく、プロジェクトまたはプラグイン ルートを基準にしてフック スクリプトを参照するには、これらのプレースホルダーを使用します。
 
-- `$CLAUDE_PROJECT_DIR`: プロジェクト ルート。スペースを含むパスを処理するために引用符で囲みます。
-- `${CLAUDE_PLUGIN_ROOT}`: プラグイン インストール ディレクトリ、プラグインにバンドルされたスクリプト用。プラグイン更新時に変更されます。
+- `${CLAUDE_PROJECT_DIR}`: プロジェクト ルート。
+- `${CLAUDE_PLUGIN_ROOT}`: プラグインの インストール ディレクトリ、[プラグイン](/ja/plugins)にバンドルされたスクリプト用。プラグイン更新時に変更されます。
 - `${CLAUDE_PLUGIN_DATA}`: プラグインの[永続データ ディレクトリ](/ja/plugins-reference#persistent-data-directory)、プラグイン更新を通じて存続すべき依存関係と状態用。
 
-この例は `$CLAUDE_PROJECT_DIR` を使用して、`Write` または `Edit` ツール呼び出しの後、プロジェクトの `.claude/hooks/` ディレクトリからスタイル チェッカーを実行します。
+パス プレースホルダーを参照するフックには[exec フォーム](#exec-form-and-shell-form)を優先してください。Exec フォームは各 `args` 要素を引用符なしで 1 つの引数として渡すため、スペースまたは特殊文字を含むパスは引用符が不要です。シェル フォームでは、各プレースホルダーをダブル クォートで囲みます。
+
+この例は `${CLAUDE_PROJECT_DIR}` を使用して、`Write` または `Edit` ツール呼び出しの後、プロジェクトの `.claude/hooks/` ディレクトリからスタイル チェッカーを実行します。
 
 ```json theme={null}
 {
@@ -393,7 +429,7 @@ MCP ツール フックは、Claude Code が MCP サーバーに接続した後�
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-style.sh"
+            "command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/check-style.sh"
           }
         ]
       }
@@ -416,7 +452,7 @@ MCP ツール フックは、Claude Code が MCP サーバーに接続した後�
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/format.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/format.sh",
             "timeout": 30
           }
         ]
@@ -500,7 +536,9 @@ Claude Code で `/hooks` と入力して、設定されたフックの読み取�
 | フィールド | 説明 |
 | :- | :- |
 | `agent_id` | サブエージェントの一意の識別子。フックがサブエージェント呼び出し内で発火する場合にのみ存在します。これを使用して、サブエージェント フック呼び出しをメイン スレッド呼び出しから区別します。 |
-| `agent_type` | エージェント名（例えば、`"Explore"` または `"security-reviewer"`）。セッションが `--agent` を使用するか、フックがサブエージェント内で発火する場合に存在します。サブエージェントの場合、サブエージェントのタイプがセッションの `--agent` 値よりも優先されます。 |
+| `agent_type` | エージェント名（例えば、`"Explore"` または `"security-reviewer"`）。セッションが `--agent` を使用するか、フックがサブエージェント内で発火する場合に存在します。サブエージェントの場合、サブエージェントのタイプがセッションの `--agent` 値よりも優先されます。[カスタム サブエージェント](/ja/sub-agents)の場合、これはエージェントのフロントマターの `name` フィールドであり、ファイル名ではありません。 |
+
+[`SessionStart`](#sessionstart) フックのみが `model` フィールドを受け取ります。`$CLAUDE_MODEL` 環境変数はありません。フック プロセスは親環境を継承するため、シェルで `$ANTHROPIC_MODEL` を設定した場合はそれを読み取ることができますが、セッション中に `/model` でモデルを切り替えるときにその値は変わりません。
 
 例えば、Bash コマンドの `PreToolUse` フックは stdin で以下を受け取ります。
 
@@ -1106,6 +1144,18 @@ Web を検索します。
 | `questions` | 配列 | `[{"question": "Which framework?", "header": "Framework", "options": [{"label": "React"}], "multiSelect": false}]` | 提示する質問。各質問には `question` 文字列、短い `header`、`options` 配列、およびオプションの `multiSelect` フラグがあります |
 | `answers` | オブジェクト | `{"Which framework?": "React"}` | オプション。質問テキストを選択されたオプション ラベルにマップします。複数選択の回答はラベルをコンマで結合します。Claude はこのフィールドを設定しません。`updatedInput` 経由で提供して、プログラムで回答します |
 
+##### ExitPlanMode
+
+Claude が[プラン モード](/ja/permission-modes#analyze-before-you-edit-with-plan-mode)を離れる前にプランを提示し、ユーザーに承認を求めます。Claude はツールを呼び出す前にプランをディスク上のファイルに書き込むため、モデルからのリテラル `tool_input` は `allowedPrompts` のみを含みます。Claude Code はプラン コンテンツとファイル パスをフックに渡す前に注入します。
+
+| フィールド | タイプ | 例 | 説明 |
+| :- | :- | :- | :- |
+| `plan` | 文字列 | `"## Refactor auth\n1. Extract..."` | Markdown のプラン コンテンツ。ディスク上のプラン ファイルから注入 |
+| `planFilePath` | 文字列 | `"/Users/.../plans/refactor-auth.md"` | プラン ファイルへのパス。注入 |
+| `allowedPrompts` | 配列 | `[{"tool": "Bash", "prompt": "run tests"}]` | オプション。Claude がプランを実装するために要求しているプロンプト ベースの権限。各エントリは `tool` 名とアクションのカテゴリを説明する `prompt` を含みます |
+
+`PostToolUse` では、`tool_response` は `plan` と `filePath` フィールドを含むオブジェクトで、承認されたプランと内部ステータス フラグを保持します。ディスクからファイルを再度読み取るのではなく、`tool_response.plan` でプラン コンテンツを読み取ります。
+
 #### PreToolUse 決定制御
 
 `PreToolUse` フックはツール呼び出しが進行するかどうかを制御できます。トップレベル `decision` フィールドを使用する他のフックとは異なり、PreToolUse は `hookSpecificOutput` オブジェクト内に決定を返します。これにより、より豊かな制御が可能になります。4 つの結果（許可、拒否、質問、遅延）と、実行前にツール入力を変更する機能。
@@ -1537,7 +1587,7 @@ Notification フックは通知をブロックまたは変更できません。�
 
 ### SubagentStart
 
-Agent ツール経由でサブエージェントが生成されるときに実行されます。エージェント タイプ名でフィルタリングするマッチャーをサポート（`general-purpose`、`Explore`、`Plan` などの組み込みエージェント、または `.claude/agents/` からのカスタム エージェント名）。
+Agent ツール経由でサブエージェントが生成されるときに実行されます。エージェント タイプ名でフィルタリングするマッチャーをサポート（`general-purpose`、`Explore`、`Plan` などの組み込みエージェント、または[カスタム サブエージェント](/ja/sub-agents)の場合はエージェントのフロントマターの `name` フィールド。ファイル名ではありません）。
 
 #### SubagentStart 入力
 
@@ -1592,7 +1642,7 @@ Claude Code サブエージェントが応答を終了したときに実行さ�
 }
 ```
 
-SubagentStop フックは[Stop フック](#stop-decision-control)と同じ決定制御形式を使用します。
+SubagentStop フックは[Stop フック](#stop-decision-control)と同じ決定制御形式を使用します。`additionalContext` をサポートしません。`decision: "block"` を `reason` と一緒に返すとサブエージェントを実行し続け、`reason` をサブエージェントの次の命令として配信します。サブエージェントが戻った後に親セッションにコンテキストを注入するには、代わりに `Agent` ツール上の [`PostToolUse`](#posttooluse)フックを使用します。
 
 ### TaskCreated
 
@@ -2338,6 +2388,7 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 | `prompt` | はい | LLM に送信するプロンプト テキスト。フック入力 JSON のプレースホルダーとして `$ARGUMENTS` を使用します。`$ARGUMENTS` が存在しない場合、入力 JSON がプロンプトに追加されます |
 | `model` | いいえ | 評価に使用するモデル。デフォルトは高速モデル |
 | `timeout` | いいえ | タイムアウト（秒単位）。デフォルト：30 |
+| `continueOnBlock` | いいえ | プロンプトが `ok: false` を返すとき、理由を Claude にフィードバックして、停止する代わりにターンを続行します。デフォルト：`false`。結果の `decision: "block"` に `continue: true` として実装されます。イベント ごとの動作については、[レスポンス スキーマ](#response-schema)を参照してください |
 
 ### レスポンス スキーマ
 
@@ -2352,14 +2403,15 @@ LLM は以下を含む JSON で応答する必要があります：
 
 | フィールド | 説明 |
 | :- | :- |
-| `ok` | `true` はアクションを許可、`false` は防止 |
-| `reason` | `ok` が `false` のときに必須。ブロックの説明 |
+| `ok` | `true` はアクションを許可、`false` は `decision: "block"` を生成します。以下のイベント ごとの動作を参照してください |
+| `reason` | `ok` が `false` のときに必須。ブロック理由として使用されます |
 
 `ok: false` で何が起こるかはイベントによって異なります：
 
 - `Stop` と `SubagentStop`：理由は Claude の次の指示としてフィードバックされ、ターンが続行されます
 - `PreToolUse`：ツール呼び出しが拒否され、理由は Claude にツール エラーとして返されます。これはコマンド フックの `permissionDecision: "deny"` と同等です
-- `PostToolUse`、`PostToolBatch`、`UserPromptSubmit`、`UserPromptExpansion`：ターンが終了し、理由は警告行としてチャットに表示されます。これはコマンド フックから `"continue": false` を返すことと同等です
+- `PostToolUse`：デフォルトではターンが終了し、理由は警告行としてチャットに表示されます。`continueOnBlock: true` を設定して、理由を Claude にフィードバックし、ターンを続行する代わりに使用します
+- `PostToolBatch`、`UserPromptSubmit`、`UserPromptExpansion`：ターンが終了し、理由は警告行として表示されます。これらのイベントは `continue` に関係なく `decision: "block"` でターンを終了します
 - `PostToolUseFailure`、`TaskCreated`、`TaskCompleted`：理由は Claude にツール エラーとして返されます。`PreToolUse` と同様です
 - `PermissionRequest`：`ok: false` は効果がありません。フックから承認を拒否するには、[コマンド フック](#command-hook-fields)を使用して `hookSpecificOutput.decision.behavior: "deny"` を返します
 
