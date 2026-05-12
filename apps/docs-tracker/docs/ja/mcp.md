@@ -74,6 +74,10 @@ claude mcp add --transport sse private-api https://api.company.com/sse \
 
 Stdio サーバーはマシン上でローカルプロセスとして実行されます。システムへの直接アクセスやカスタムスクリプトが必要なツールに最適です。
 
+Claude Code は、生成されたサーバーの環境に `CLAUDE_PROJECT_DIR` を設定して、プロジェクトルートを指定するため、サーバーは作業ディレクトリに依存することなくプロジェクト相対パスを解決できます。これは hooks が `CLAUDE_PROJECT_DIR` 変数で受け取るのと同じディレクトリです。サーバープロセス内から読み取ります。例えば、Node では `process.env.CLAUDE_PROJECT_DIR`、Python では `os.environ["CLAUDE_PROJECT_DIR"]` です。サーバーは MCP `roots/list` リクエストを呼び出すこともでき、Claude Code が起動されたディレクトリを返します。
+
+この変数はサーバーの環境に設定され、Claude Code 自体の環境には設定されないため、プロジェクトスコープまたはユーザースコープの `.mcp.json` `command` または `args` で `${VAR}` 展開を使用して参照するには、`${CLAUDE_PROJECT_DIR:-.}` などのデフォルトが必要です。プラグイン提供の MCP 設定は `${CLAUDE_PROJECT_DIR}` を直接置換し、デフォルトは必要ありません。
+
 ```bash
 # 基本的な構文
 claude mcp add [options] <name> -- <command> [args...]
@@ -187,7 +191,7 @@ MCP サーバーはセッションに直接メッセージをプッシュする�
 **プラグイン MCP 機能**：
 
 - **自動ライフサイクル**：セッション起動時に、有効なプラグインのサーバーが自動的に接続されます。セッション中にプラグインを有効または無効にする場合は、`/reload-plugins` を実行して MCP サーバーを接続または切断してください
-- **環境変数**：バンドルされたプラグインファイルに `${CLAUDE_PLUGIN_ROOT}` を使用し、プラグイン更新を通じて保持される [永続的な状態](/ja/plugins-reference#persistent-data-directory) に `${CLAUDE_PLUGIN_DATA}` を使用します
+- **環境変数**：バンドルされたプラグインファイルに `${CLAUDE_PLUGIN_ROOT}` を使用し、プラグイン更新を通じて保持される [永続的な状態](/ja/plugins-reference#persistent-data-directory) に `${CLAUDE_PLUGIN_DATA}` を使用し、安定したプロジェクトルートに `${CLAUDE_PROJECT_DIR}` を使用します
 - **ユーザー環境アクセス**：手動で設定されたサーバーと同じ環境変数へのアクセス
 - **複数のトランスポートタイプ**：stdio、SSE、HTTP トランスポートをサポート（トランスポートサポートはサーバーによって異なる場合があります）
 
@@ -407,6 +411,8 @@ orders テーブルのスキーマを表示してください
 
 多くのクラウドベースの MCP サーバーは認証が必要です。Claude Code は安全な接続のために OAuth 2.0 をサポートしています。
 
+Claude Code は、サーバーが `401 Unauthorized` と認可サーバーを指す `WWW-Authenticate` ヘッダーで応答するときに、リモートサーバーが認証を必要とするとマークします。その応答を返すカスタムサーバーは、他のリモートサーバーと同じ `/mcp` 認証フローを取得します。
+
 例：
 
 ```bash theme={null}
@@ -444,7 +450,7 @@ claude mcp add --transport http \
 
 ### 事前設定された OAuth 認証情報を使用する
 
-一部の MCP サーバーは自動 OAuth セットアップをサポートしていません。「Incompatible auth server: does not support dynamic client registration」のようなエラーが表示される場合、サーバーは事前設定された認証情報が必要です。Claude Code は Client ID Metadata Document（CIMD）を使用するサーバーもサポートしており、これらを自動的に検出します。自動検出に失敗した場合は、まずサーバーの開発者ポータルを通じて OAuth アプリを登録し、サーバーを追加するときに認証情報を提供してください。
+一部の MCP サーバーは、Dynamic Client Registration を通じた自動 OAuth セットアップをサポートしていません。「Incompatible auth server: does not support dynamic client registration」のようなエラーが表示される場合、サーバーは事前設定された認証情報が必要です。Claude Code は Client ID Metadata Document（CIMD）を使用するサーバーもサポートしており、これらを自動的に検出します。自動検出に失敗した場合は、まずサーバーの開発者ポータルを通じて OAuth アプリを登録し、サーバーを追加するときに認証情報を提供してください。
 
 サーバーの開発者ポータルを通じてアプリを作成し、クライアント ID とクライアントシークレットをメモしてください。
 

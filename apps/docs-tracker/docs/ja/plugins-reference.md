@@ -96,7 +96,7 @@ disallowedTools: Write, Edit
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/format-code.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/format-code.sh"
           }
         ]
       }
@@ -282,7 +282,7 @@ LSP 統合は以下を提供します:
 [
   {
     "name": "deploy-status",
-    "command": "${CLAUDE_PLUGIN_ROOT}/scripts/poll-deploy.sh ${user_config.api_endpoint}",
+    "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/poll-deploy.sh ${user_config.api_endpoint}",
     "description": "Deployment status changes"
   },
   {
@@ -310,7 +310,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 | :- | :- |
 | `when` | monitor がいつ開始するかを制御します。`"always"` はセッション開始時とプラグイン再読み込み時に開始し、デフォルトです。`"on-skill-invoke:<skill-name>"` はこのプラグイン内の名前付き skill が最初にディスパッチされるときに開始します |
 
-`command` 値は MCP および LSP サーバー設定と同じ[変数置換](#environment-variables)をサポートします: `${CLAUDE_PLUGIN_ROOT}`、`${CLAUDE_PLUGIN_DATA}`、`${user_config.*}`、および環境からの任意の `${ENV_VAR}`。スクリプトがプラグイン自体のディレクトリから実行される必要がある場合は、コマンドの前に `cd "${CLAUDE_PLUGIN_ROOT}" && ` を付けます。
+`command` 値は MCP および LSP サーバー設定と同じ[変数置換](#environment-variables)をサポートします: `${CLAUDE_PLUGIN_ROOT}`、`${CLAUDE_PLUGIN_DATA}`、`${CLAUDE_PROJECT_DIR}`、`${user_config.*}`、および環境からの任意の `${ENV_VAR}`。スクリプトがプラグイン自体のディレクトリから実行される必要がある場合は、コマンドの前に `cd "${CLAUDE_PLUGIN_ROOT}" && ` を付けます。
 
 セッション中にプラグインを無効にしても、既に実行中の monitors は停止しません。セッションが終了するときに停止します。
 
@@ -533,13 +533,15 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 ### 環境変数
 
-Claude Code は、プラグインパスを参照するための 2 つの変数を提供します。どちらも skill コンテンツ、エージェントコンテンツ、hook コマンド、monitor コマンド、MCP または LSP サーバー設定に表示される場所にインラインで置換されます。どちらも hook プロセスおよび MCP または LSP サーバーサブプロセスに環境変数としてエクスポートされます。
+Claude Code は、プラグインパスを参照するための 3 つの変数を提供します。すべては skill コンテンツ、エージェントコンテンツ、hook コマンド、monitor コマンド、MCP または LSP サーバー設定に表示される場所にインラインで置換されます。すべては hook プロセスおよび MCP または LSP サーバーサブプロセスに環境変数としてエクスポートされます。
 
-**`${CLAUDE_PLUGIN_ROOT}`**: プラグインのインストールディレクトリへの絶対パス。プラグインにバンドルされたスクリプト、バイナリ、設定ファイルを参照するために使用します。このパスはプラグインが更新されると変更されます。前のバージョンのディレクトリは更新後約 7 日間ディスク上に残りますが、これを一時的なものとして扱い、ここに状態を書き込まないでください。
+**`${CLAUDE_PLUGIN_ROOT}`**: プラグインのインストールディレクトリへの絶対パス。プラグインにバンドルされたスクリプト、バイナリ、設定ファイルを参照するために使用します。hook および monitor コマンドでは、`"${CLAUDE_PLUGIN_ROOT}"` のようにダブルクォートで囲み、スペースまたは特殊文字を含むパスが単一の引数として渡されるようにしてください。このパスはプラグインが更新されると変更されます。前のバージョンのディレクトリは更新後約 7 日間ディスク上に残りますが、これを一時的なものとして扱い、ここに状態を書き込まないでください。
 
 プラグインがセッション中に更新されると、hook コマンド、monitors、MCP サーバー、LSP サーバーは前のバージョンのパスを使用し続けます。`/reload-plugins` を実行して、hook、MCP サーバー、LSP サーバーを新しいパスに切り替えます。monitors はセッション再起動が必要です。
 
 **`${CLAUDE_PLUGIN_DATA}`**: 更新後も保持される永続ディレクトリ。`node_modules` または Python 仮想環境などのインストール済み依存関係、生成されたコード、キャッシュ、およびプラグインバージョン全体で保持する必要があるその他のファイルに使用します。このディレクトリは、この変数が最初に参照されるときに自動的に作成されます。
+
+**`${CLAUDE_PROJECT_DIR}`**: プロジェクトルート。これは hook が `CLAUDE_PROJECT_DIR` 変数で受け取るのと同じディレクトリです。プロジェクトローカルスクリプトまたは設定ファイルを参照するために使用します。スペースを含むパスを処理するためにクォートで囲みます。たとえば `"${CLAUDE_PROJECT_DIR}/scripts/server.sh"`。MCP サーバーは MCP `roots/list` リクエストを呼び出すこともでき、Claude Code が起動されたディレクトリを返します。
 
 ```json
 {
@@ -549,7 +551,7 @@ Claude Code は、プラグインパスを参照するための 2 つの変数�
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/process.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/process.sh"
           }
         ]
       }
@@ -622,12 +624,20 @@ Claude の Glob および Grep ツールは検索中に孤立したバージョ�
 
 インストールされたプラグインはディレクトリの外側のファイルを参照できません。プラグインルートの外側をトラバースするパス（`../shared-utils` など）は、これらの外部ファイルがキャッシュにコピーされないため、インストール後は機能しません。
 
-### 外部依存関係の操作
+### マーケットプレイス内でシンボリックリンクを使用してファイルを共有
 
-プラグインがディレクトリの外側のファイルにアクセスする必要がある場合、プラグインディレクトリ内の外部ファイルへのシンボリックリンクを作成できます。シンボリックリンクはキャッシュに保持されるのではなく逆参照され、実行時にそのターゲットに解決されます。次のコマンドはプラグインディレクトリ内から共有ユーティリティの場所へのリンクを作成します:
+プラグインが同じマーケットプレイスの他の部分とファイルを共有する必要がある場合、プラグインディレクトリ内にシンボリックリンクを作成できます。プラグインがキャッシュにコピーされるときにシンボリックリンクがどのように処理されるかは、そのターゲットがどこに解決されるかによって異なります:
+
+- **プラグイン自体のディレクトリ内:** シンボリックリンクはキャッシュ内の相対シンボリックリンクとして保持されるため、実行時にコピーされたターゲットへの解決を続けます。
+- **同じマーケットプレイス内の他の場所:** シンボリックリンクは逆参照されます。ターゲットのコンテンツはキャッシュにコピーされます。これにより、メタプラグインの `skills/` ディレクトリがマーケットプレイス内の他のプラグインで定義されたスキルにリンクできます。
+- **マーケットプレイス外:** シンボリックリンクはセキュリティのためにスキップされます。これにより、プラグインがシステムパスなどの任意のホストファイルをキャッシュに取り込むことを防ぎます。
+
+`--plugin-dir` でインストールされたプラグイン、またはローカルパスからのプラグインの場合、プラグイン自体のディレクトリ内で解決されるシンボリックリンクのみが保持されます。その他はすべてスキップされます。
+
+次のコマンドは、マーケットプレイスプラグイン内から兄弟プラグインで定義された共有スキルへのリンクを作成します。Windows では、昇格されたコマンドプロンプトから `mklink /D` を使用するか、開発者モードを有効にします:
 
 ```bash
-ln -s /path/to/shared-utils ./shared-utils
+ln -s ../../shared-plugin/skills/foo ./skills/foo
 ```
 
 これはキャッシングシステムのセキュリティ上の利点を維持しながら柔軟性を提供します。
@@ -863,6 +873,56 @@ claude plugin list [options]
 | `--json` | JSON として出力 | |
 | `--available` | マーケットプレイスから利用可能なプラグインを含めます。`--json` が必要です | |
 | `-h, --help` | コマンドのヘルプを表示 | |
+
+### plugin details
+
+プラグインのコンポーネントインベントリと予想トークンコストを表示します。出力には、プラグインが提供するすべてのコンポーネントがリストアップされ、Skills（スキルとコマンド）、Agents、Hooks、MCP サーバーとしてグループ化され、各セッションに追加されるトークン数の推定値が表示されます。
+
+```bash
+claude plugin details <name>
+```
+
+**引数:**
+
+- `<name>`: プラグイン名または `plugin-name@marketplace-name`
+
+**オプション:**
+
+| オプション | 説明 | デフォルト |
+| :- | :- | :- |
+| `-h, --help` | コマンドのヘルプを表示 | |
+
+出力には、各コンポーネントの 2 つのコスト数値が表示されます。
+
+- **Always-on:** スキルの説明、エージェントの説明、コマンド名など、プラグインのリスティングテキストによってすべてのセッションに追加されるトークン。コンポーネントが実行されるかどうかに関係なく追加されます。
+- **On-invoke:** コンポーネントが実行されるときのコンポーネントのコスト。プラグイン全体ではなくコンポーネントごとに表示されます。これは、典型的なセッションではコンポーネントのサブセットのみを呼び出すためです。
+
+この例は、2 つのスキルを持つプラグインの出力がどのように見えるかを示しています。
+
+```
+security-guidance 1.2.0
+  Real-time security analysis for Claude Code sessions
+  Source: security-guidance@claude-code-marketplace
+
+Component inventory
+  Skills (2)  scan-dependencies, review-changes
+  Agents (0)
+  Hooks (1)  (harness-only — no model context cost)
+  MCP servers (0)
+
+Projected token cost
+  Always-on:   ~180 tok   added to every session
+
+Per-component (rounded)
+  component            always-on  on-invoke
+  scan-dependencies        ~100      ~2400
+  review-changes            ~80      ~1800
+
+  On-invoke cost is paid each time a skill or agent fires.
+  Token counts are estimates and may differ from actual usage.
+```
+
+Always-on の合計は、アクティブなモデルの `count_tokens` API を使用して計算されます。コンポーネントごとの数値は、その合計から比例的にスケーリングされます。API に到達できない場合、コマンドは文字ベースの推定値にフォールバックします。
 
 ### plugin tag
 

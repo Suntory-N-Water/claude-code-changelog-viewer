@@ -168,6 +168,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `gen_ai.system` | 常に `anthropic`。OpenTelemetry GenAI セマンティック規約 | |
 | `gen_ai.request.model` | `model` と同じ値。OpenTelemetry GenAI セマンティック規約 | |
 | `query_source` | リクエストを発行したサブシステム。例: `repl_main_thread` またはサブエージェント名 | |
+| `agent_id` | リクエストを発行したサブエージェントまたはチームメイトの識別子。メインセッションでは存在しません | |
+| `parent_agent_id` | このエージェントを生成したエージェントの識別子。メインセッションおよびそこから直接生成されたエージェントでは存在しません | |
 | `speed` | `fast` または `normal` | |
 | `llm_request.context` | 親スパンに応じて `interaction`、`tool`、または `standalone` | |
 | `duration_ms` | 再試行を含む実時間 | |
@@ -414,7 +416,7 @@ Claude Code は以下のメトリクスをエクスポートします:
 
 #### プルリクエストカウンター
 
-Claude Code を介してプルリクエストを作成するときにインクリメントされます。
+Claude Code を介してシェルコマンドまたは MCP ツールを通じてプルリクエストまたはマージリクエストを作成するときにインクリメントされます。
 
 **属性**:
 
@@ -439,6 +441,10 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - `query_source`: リクエストを発行したサブシステムのカテゴリ。`"main"`、`"subagent"`、または `"auxiliary"` のいずれか
 - `speed`: 高速モードを使用した場合は `"fast"`。それ以外の場合は存在しません
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level): `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。モデルが努力をサポートしない場合は存在しません。
+- `agent.name`: リクエストを発行したサブエージェントタイプ。組み込みエージェント名と公式マーケットプレイスプラグインのエージェントはそのまま表示されます。その他のユーザー定義エージェント名は `"custom"` に置き換えられます。リクエストが名前付きサブエージェントタイプによって発行されなかった場合は存在しません。
+- `skill.name`: リクエストに対してアクティブなスキル。Skill ツール、`/` コマンド、またはスポーンされたサブエージェントによって継承されます。組み込み、バンドル、ユーザー定義、および公式マーケットプレイスプラグインスキル名はそのまま表示されます。サードパーティプラグインスキル名は `"third-party"` に置き換えられます。アクティブなスキルがない場合は存在しません。
+- `plugin.name`: アクティブなスキルまたはサブエージェントがプラグインによって提供される場合の所有プラグイン。公式マーケットプレイスプラグイン名はそのまま表示されます。サードパーティプラグイン名は `"third-party"` に置き換えられます。スキルもサブエージェントも所有プラグインを持たない場合は存在しません。
+- `marketplace.name`: 所有プラグインがインストールされたマーケットプレイス。公式マーケットプレイスプラグインに対してのみ出力されます。それ以外の場合は存在しません。
 
 #### トークンカウンター
 
@@ -452,6 +458,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - `query_source`: リクエストを発行したサブシステムのカテゴリ。`"main"`、`"subagent"`、または `"auxiliary"` のいずれか
 - `speed`: 高速モードを使用した場合は `"fast"`。それ以外の場合は存在しません
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。詳細は [コストカウンター](#cost-counter)を参照してください。
+- `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`: リクエストのスキル、プラグイン、およびエージェント属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 #### コード編集ツール決定カウンター
 
@@ -462,7 +469,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - すべての[標準属性](#standard-attributes)
 - `tool_name`: ツール名 (`"Edit"`、`"Write"`、`"NotebookEdit"`)
 - `decision`: ユーザーの決定 (`"accept"`、`"reject"`)
-- `source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`。詳細は [ツール決定イベント](#tool-decision-event)を参照してください。
+- `source`: 決定ソース。`"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"` のいずれか。詳細は [ツール決定イベント](#tool-decision-event)を参照してください。
 - `language`: 編集されたファイルのプログラミング言語。例: `"TypeScript"`、`"Python"`、`"JavaScript"`、`"Markdown"`。認識されないファイル拡張子の場合は `"unknown"` を返します。
 
 #### アクティブ時間カウンター
@@ -526,7 +533,7 @@ Claude Code は、OpenTelemetry ログ/イベント経由で以下のイベン�
 - `error_type`: ツールが失敗した場合のエラーカテゴリ文字列。例: `"Error:ENOENT"` または `"ShellError"`
 - `error` (`OTEL_LOG_TOOL_DETAILS=1` の場合): ツールが失敗した場合の完全なエラーメッセージ
 - `decision_type`: `"accept"` または `"reject"`
-- `decision_source`: 決定ソース - `"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"`。詳細は [ツール決定イベント](#tool-decision-event)を参照してください。
+- `decision_source`: 決定ソース。`"config"`、`"hook"`、`"user_permanent"`、`"user_temporary"`、`"user_abort"`、または `"user_reject"` のいずれか。詳細は [ツール決定イベント](#tool-decision-event)を参照してください。
 - `tool_input_size_bytes`: JSON シリアル化されたツール入力のサイズ (バイト単位)
 - `tool_result_size_bytes`: ツール結果のサイズ (バイト単位)
 - `mcp_server_scope`: MCP サーバースコープ識別子 (MCP ツール用)
@@ -638,10 +645,10 @@ Claude への API リクエストが失敗するときにログされます。
 - `tool_use_id`: このツール呼び出しの一意の識別子。フックに渡される `tool_use_id` と一致し、OTel イベントとフック取得データ間の相関を可能にします。
 - `decision`: `"accept"` または `"reject"`
 - `source`: 決定ソース:
-  - `"config"`: プロジェクト設定、エンタープライズ管理ポリシー、`--allowedTools` または `--disallowedTools` フラグ、アクティブな権限モード、またはツールが本質的に安全であるため、プロンプトなしで自動的に決定されました。
+  - `"config"`: プロジェクト設定、ユーザーの個人設定内の許可ルール、エンタープライズ管理ポリシー、`--allowedTools` または `--disallowedTools` フラグ、アクティブな権限モード、同じインタラクティブ CLI セッション内の前のプロンプトからのセッションスコープの許可、またはツールが本質的に安全であるため、プロンプトなしで自動的に決定されました。このイベントは、これらのソースのどれが一致したかを示しません。
   - `"hook"`: `PreToolUse` または `PermissionRequest` フックが決定を返しました。
-  - `"user_permanent"`: ユーザーがプロンプトされたときに「常に許可」を選択し、個人設定にルールを保存した場合に出力されます。また、そのルールに一致する後の呼び出しに対しても出力されます。受け入れとして扱われます。
-  - `"user_temporary"`: ユーザーがプロンプトされたときに「はい」または「このセッションのみはい」を選択し、ルールを保存しなかった場合に出力されます。また、そのセッションスコープの許可に一致する同じセッション内の後の呼び出しに対しても出力されます。受け入れとして扱われます。
+  - `"user_permanent"`: ユーザーが権限プロンプトで「はい、今後も同じ対象に対して聞かないでください」を選択し、個人設定に許可ルールを保存した場合に出力されます。インタラクティブ CLI では、その選択自体に対してのみ出力されます。後で保存されたルールに一致する呼び出しは代わりに `"config"` を出力します。Agent SDK または非インタラクティブ `-p` セッションでは、初期選択と後のルール一致の両方が `"user_permanent"` を出力します。受け入れとして扱われます。
+  - `"user_temporary"`: ユーザーが権限プロンプトで「はい」を選択した場合、またはファイル編集または読み取りプロンプトで「このセッション中は...」オプションのいずれかを選択した場合に出力されます。インタラクティブ CLI では、その選択自体に対してのみ出力されます。後でそのセッションスコープの許可に一致する呼び出しは代わりに `"config"` を出力します。Agent SDK または非インタラクティブ `-p` セッションでは、選択と後の一致の両方が `"user_temporary"` を出力します。受け入れとして扱われます。
   - `"user_abort"`: ユーザーが権限プロンプトを回答なしで閉じた場合に出力されます。拒否として扱われます。
   - `"user_reject"`: ユーザーがプロンプトされたときに「いいえ」を選択した場合、または呼び出しが個人設定内の拒否ルールに一致した場合に出力されます。拒否として扱われます。
 
@@ -732,6 +739,30 @@ Claude Code が予期しない内部エラーをキャッチするときにロ�
 - `plugin.version`: マーケットプレイスエントリで宣言されている場合のプラグインバージョン。サードパーティマーケットプレイスの場合、`OTEL_LOG_TOOL_DETAILS=1` の場合のみ含まれます
 - `marketplace.name`: プラグインがインストールされたマーケットプレイス。サードパーティマーケットプレイスの場合、`OTEL_LOG_TOOL_DETAILS=1` の場合のみ含まれます
 
+#### プラグイン読み込みイベント
+
+セッション開始時に有効なプラグインごとに 1 回ログされます。このイベントを使用して、フリート全体でどのプラグインがアクティブであるかをインベントリします。これは、インストールアクション自体を記録する `plugin_installed` を補完します。
+
+**イベント名**: `claude_code.plugin_loaded`
+
+**属性**:
+
+- すべての[標準属性](#standard-attributes)
+- `event.name`: `"plugin_loaded"`
+- `event.timestamp`: ISO 8601 タイムスタンプ
+- `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
+- `plugin.name`: プラグインの名前。公式マーケットプレイスおよび組み込みバンドルの外部にあるプラグインの場合、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り値は `"third-party"` です
+- `marketplace.name`: プラグインがインストールされたマーケットプレイス (既知の場合)。`plugin.name` と同じ条件下で `"third-party"` に編集されます
+- `plugin.version`: プラグインマニフェストからのバージョン。名前が編集されていない場合、およびマニフェストがバージョンを宣言している場合にのみ含まれます
+- `plugin.scope`: プラグインの出所カテゴリ: `"official"`、`"org"`、`"user-local"`、または `"default-bundle"`
+- `enabled_via`: プラグインが有効になった方法: `"default-enable"`、`"org-policy"`、`"seed-mount"`、または `"user-install"`
+- `plugin_id_hash`: プラグイン名とマーケットプレイスの決定論的ハッシュ。設定されたエクスポーターにのみ送信されます。フリート全体で読み込まれているサードパーティプラグインの数をカウントできます。その名前を記録することなく
+- `has_hooks`: プラグインがフックに貢献するかどうか
+- `has_mcp`: プラグインが MCP サーバーに貢献するかどうか
+- `skill_path_count`: プラグインが宣言するスキルディレクトリの数
+- `command_path_count`: プラグインが宣言するコマンドディレクトリの数
+- `agent_path_count`: プラグインが宣言するエージェントディレクトリの数
+
 #### スキル有効化イベント
 
 スキルが呼び出されるときにログされます。Claude が Skill ツールを通じてそれを呼び出すか、`/` コマンドとして実行するかどうかにかかわらず。
@@ -783,6 +814,25 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `total_attempts`: 試行の総数
 - `total_retry_duration_ms`: すべての試行にわたる実時間
 - `speed`: `"fast"` または `"normal"`
+
+#### フック登録イベント
+
+セッション開始時に設定されたフックごとに 1 回ログされます。このイベントを使用して、フリート全体でどのフックがアクティブであるかをインベントリします。これは、実行ごとの `hook_execution_start` および `hook_execution_complete` イベントを補完します。
+
+**イベント名**: `claude_code.hook_registered`
+
+**属性**:
+
+- すべての[標準属性](#standard-attributes)
+- `event.name`: `"hook_registered"`
+- `event.timestamp`: ISO 8601 タイムスタンプ
+- `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
+- `hook_event`: フックイベントタイプ。例: `"PreToolUse"` または `"PostToolUse"`
+- `hook_type`: フック実装タイプ: `"command"`、`"prompt"`、`"mcp_tool"`、`"http"`、または `"agent"`
+- `hook_source`: フックが定義されている場所: `"userSettings"`、`"projectSettings"`、`"localSettings"`、`"flagSettings"`、`"policySettings"`、または `"pluginHook"`
+- `hook_matcher` (`OTEL_LOG_TOOL_DETAILS=1` の場合): フック設定から設定されている場合のマッチャー文字列
+- `plugin.name` (`hook_source` が `"pluginHook"` の場合): 貢献するプラグインの名前。公式マーケットプレイスおよび組み込みバンドルの外部にあるプラグインの場合、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り値は `"third-party"` です
+- `plugin_id_hash` (`hook_source` が `"pluginHook"` の場合): プラグイン名とマーケットプレイスの決定論的ハッシュ。設定されたエクスポーターにのみ送信されます。その名前を記録することなく、貢献するプラグインの数をカウントできます
 
 #### フック実行開始イベント
 
@@ -854,7 +904,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 
 | メトリクス | 分析の機会 |
 | - | - |
-| `claude_code.token.usage` | `type` (入力/出力)、ユーザー、チーム、またはモデル別に分類 |
+| `claude_code.token.usage` | `type` (入力/出力)、ユーザー、チーム、モデル、`skill.name`、`plugin.name`、または `agent.name` 別に分類 |
 | `claude_code.session.count` | 時間経過に伴う採用と関与を追跡 |
 | `claude_code.lines_of_code.count` | コード追加/削除を追跡して生産性を測定 |
 | `claude_code.commit.count` & `claude_code.pull_request.count` | 開発ワークフローへの影響を理解 |
@@ -865,6 +915,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 
 - チームまたは個人全体の使用トレンドを追跡する
 - 最適化のための高使用セッションを特定する
+- `skill.name`、`plugin.name`、および `agent.name` 属性を介して、特定のスキル、プラグイン、またはサブエージェントタイプへの支出を属性付けする
 
 コストメトリクスは概算です。公式な請求データについては、API プロバイダー (Claude Console、Amazon Bedrock、または Google Cloud Vertex) を参照してください。
 
