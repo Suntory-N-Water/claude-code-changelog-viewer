@@ -1,0 +1,1070 @@
+{
+  "id": "20260513-213143",
+  "timestamp": "2026-05-13T21:31:43.786Z",
+  "aiSummary": "Claude Codeの各機能が利用可能なプラン構成と、APIプロバイダーごとの制限事項が明確化されました。カスタム出力スタイルにおいて、組み込みのソフトウェアエンジニアリング指示を維持するかを選択できるkeep-coding-instructionsオプションが導入されています。プロジェクト固有の指示ファイルであるCLAUDE.mdの読み込み優先順位が整理され、ユーザー設定との競合が解消されました。各カスタマイズ機能の比較表が拡充され、出力スタイル、CLAUDE.md、エージェントなどの使い分けがより具体的に解説されています。",
+  "files": [
+    {
+      "filename": "admin-setup.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "RoutinesやCode Reviewなどの高度な機能にはClaude.aiアカウントが必要であることを明記し、APIプロバイダー経由の利用における制限事項が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -23,7 +23,7 @@ SSO, SCIM provisioning, and seat assignment are configured at the Claude account",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Choose your API provider"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code connects to Claude through one of several API providers. Your choice affects billing, authentication, and which compliance posture you inherit."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code connects to Claude through one of several API providers. Your choice affects billing, authentication, which compliance posture you inherit, and which Claude Code features your developers can use."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Provider | Choose this when |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -33,6 +33,8 @@ Claude Code connects to Claude through one of several API providers. Your choice",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Google Vertex AI | You want to inherit existing GCP compliance controls and billing |"
+            },
+            {
+              "type": "context",
+              "content": "| Microsoft Foundry | You want to inherit existing Azure compliance controls and billing |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Some Claude Code features require a Claude.ai account. [Claude Code on the web](/en/claude-code-on-the-web), [Routines](/en/routines), [Code Review](/en/code-review), [Remote Control](/en/remote-control), and the [Chrome extension](/en/chrome) are not available through Console API keys or cloud-provider credentials alone. If you deploy through Bedrock, Vertex, or Foundry, plan whether developers also need Claude for Teams or Enterprise seats. Each feature page lists its plan requirements."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For the full provider comparison covering authentication, regions, and feature parity, see the [enterprise deployment overview](/en/third-party-integrations). Each provider's auth setup is in [Authentication](/en/authentication)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Proxy and firewall requirements in [Network configuration](/en/network-config) apply regardless of provider. If you want a single endpoint in front of multiple providers or centralized request logging, see [LLM gateway](/en/llm-gateway)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/modifying-system-prompts.md",
+      "additions": 6,
+      "deletions": 3,
+      "explanation": "カスタムプロンプト作成時にデフォルトのコーディング指示を継承するためのkeep-coding-instructions設定と、その具体的な活用例が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -107,14 +107,17 @@ Output styles are saved configurations that modify Claude's system prompt. They'",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Create an output style"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "An output style is a markdown file with a `name` and `description` in its frontmatter, followed by the prompt content. Save it to `~/.claude/output-styles/` for a user-level style available in every project, or `.claude/output-styles/` in your repository for a project-level style you can commit and share with your team."
+            },
+            {
+              "type": "added",
+              "content": "An output style is a markdown file with [frontmatter](/en/output-styles#frontmatter) for metadata, followed by the prompt content. Save it to `~/.claude/output-styles/` for a user-level style available in every project, or `.claude/output-styles/` in your repository for a project-level style you can commit and share with your team."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The example below defines a code-review persona. Save it as `~/.claude/output-styles/code-reviewer.md` to make it available across projects:"
+            },
+            {
+              "type": "added",
+              "content": "By default, a custom output style replaces the `claude_code` preset's software engineering instructions with your own. To keep them and layer your instructions on top, set `keep-coding-instructions: true` in the frontmatter. Keep them when your agent is still doing software engineering work. Leave them out when you're replacing the role entirely."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The example below defines a code-review persona that keeps the coding instructions, since reviewing code still benefits from Claude Code's security and code-quality guidance. Save it as `~/.claude/output-styles/code-reviewer.md` to make it available across projects:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```markdown ~/.claude/output-styles/code-reviewer.md theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "context",
+              "content": "name: Code Reviewer"
+            },
+            {
+              "type": "context",
+              "content": "description: Thorough code review assistant"
+            },
+            {
+              "type": "added",
+              "content": "keep-coding-instructions: true"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You are an expert code reviewer."
+            }
+          ]
+        },
+        {
+          "header": "@@ -297,7 +300,7 @@ The four customization methods differ in where they live, how they're shared, an",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Default tools** | Preserved | Preserved | Preserved | Lost (unless included) |"
+            },
+            {
+              "type": "context",
+              "content": "| **Built-in safety** | Maintained | Maintained | Maintained | Must be added |"
+            },
+            {
+              "type": "context",
+              "content": "| **Environment context** | Automatic | Automatic | Automatic | Must be provided |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Customization level** | Additions only | Replace default | Additions only | Complete control |"
+            },
+            {
+              "type": "added",
+              "content": "| **Customization level** | Additions only | Replace or extend default | Additions only | Complete control |"
+            },
+            {
+              "type": "context",
+              "content": "| **Version control** | With project | Yes | With code | With code |"
+            },
+            {
+              "type": "context",
+              "content": "| **Scope** | Project-specific | User or project | Code session | Code session |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "CLAUDE.mdファイルの読み込み順序が整理され、プロジェクト固有の指示がユーザーレベルの指示よりも後に読み込まれ優先される仕組みが説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -52,13 +52,13 @@ Keep it to facts Claude should hold in every session: build commands, convention",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Choose where to put CLAUDE.md files"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "CLAUDE.md files can live in several locations, each with a different scope. More specific locations take precedence over broader ones."
+            },
+            {
+              "type": "added",
+              "content": "CLAUDE.md files can live in several locations, each with a different scope. The table below lists them in load order, from broadest scope to most specific, so a project instruction appears in context after a user instruction."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Scope | Location | Purpose | Use case examples | Shared with |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| **Managed policy** | • macOS: `/Library/Application Support/ClaudeCode/CLAUDE.md`• Linux and WSL: `/etc/claude-code/CLAUDE.md`• Windows: `C:\\Program Files\\ClaudeCode\\CLAUDE.md` | Organization-wide instructions managed by IT/DevOps | Company coding standards, security policies, compliance requirements | All users in organization |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Project instructions** | `./CLAUDE.md` or `./.claude/CLAUDE.md` | Team-shared instructions for the project | Project architecture, coding standards, common workflows | Team members via source control |"
+            },
+            {
+              "type": "context",
+              "content": "| **User instructions** | `~/.claude/CLAUDE.md` | Personal preferences for all projects | Code styling preferences, personal tooling shortcuts | Just you (all projects) |"
+            },
+            {
+              "type": "added",
+              "content": "| **Project instructions** | `./CLAUDE.md` or `./.claude/CLAUDE.md` | Team-shared instructions for the project | Project architecture, coding standards, common workflows | Team members via source control |"
+            },
+            {
+              "type": "context",
+              "content": "| **Local instructions** | `./CLAUDE.local.md` | Personal project-specific preferences; add to `.gitignore` | Your sandbox URLs, preferred test data | Just you (current project) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "CLAUDE.md and CLAUDE.local.md files in the directory hierarchy above the working directory are loaded in full at launch. Files in subdirectories load on demand when Claude reads files in those directories. See [How CLAUDE.md files load](#how-claude-md-files-load) for the full resolution order."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "output-styles.md",
+      "additions": 54,
+      "deletions": 86,
+      "explanation": "出力スタイルの設定方法が刷新され、他のカスタマイズ機能との機能比較表や、より実践的なMermaidダイアグラム出力のテンプレート例が掲載されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,59 +7,29 @@ source: https://code.claude.com/docs/en/output-styles.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Adapt Claude Code for uses beyond software engineering"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Output styles change how Claude responds, not what Claude knows. They modify the system prompt to set role, tone, and output format while keeping core capabilities like running scripts, reading and writing files, and tracking TODOs. Use one when you keep re-prompting for the same voice or format every turn, or when you want Claude to act as something other than a software engineer."
+            },
+            {
+              "type": "added",
+              "content": "Output styles change how Claude responds, not what Claude knows. They modify the system prompt to set role, tone, and output format. Use one when you keep re-prompting for the same voice or format every turn, or when you want Claude to act as something other than a software engineer."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A custom output style adds your instructions to the system prompt and lets you choose whether to keep Claude Code's built-in software engineering instructions. Keep them when you're changing how Claude communicates but still coding, like always answering with a diagram. Leave them out when Claude isn't doing software engineering at all, like a writing assistant or data analyst."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For instructions about your project, conventions, or codebase, use [CLAUDE.md](/en/memory) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Built-in output styles"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code's **Default** output style is the existing system prompt, designed"
+            },
+            {
+              "type": "removed",
+              "content": "to help you complete software engineering tasks efficiently."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code's **Default** output style is the existing system prompt, designed to help you complete software engineering tasks efficiently."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "There are three additional built-in output styles:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Proactive**: Claude executes immediately, makes reasonable assumptions"
+            },
+            {
+              "type": "removed",
+              "content": "  instead of pausing for routine decisions, and prefers action over planning."
+            },
+            {
+              "type": "removed",
+              "content": "  This applies the same guidance as"
+            },
+            {
+              "type": "removed",
+              "content": "  [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) without"
+            },
+            {
+              "type": "removed",
+              "content": "  changing your permission mode, so you still see permission prompts before"
+            },
+            {
+              "type": "removed",
+              "content": "  tools run."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Explanatory**: Provides educational \"Insights\" in between helping you"
+            },
+            {
+              "type": "removed",
+              "content": "  complete software engineering tasks. Helps you understand implementation"
+            },
+            {
+              "type": "removed",
+              "content": "  choices and codebase patterns."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Learning**: Collaborative, learn-by-doing mode where Claude will not only"
+            },
+            {
+              "type": "removed",
+              "content": "  share \"Insights\" while coding, but also ask you to contribute small, strategic"
+            },
+            {
+              "type": "removed",
+              "content": "  pieces of code yourself. Claude Code will add `TODO(human)` markers in your"
+            },
+            {
+              "type": "removed",
+              "content": "  code for you to implement."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## How output styles work"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Output styles directly modify Claude Code's system prompt."
+            },
+            {
+              "type": "added",
+              "content": "- **Proactive**: Claude executes immediately, makes reasonable assumptions instead of pausing for routine decisions, and prefers action over planning. This applies the same guidance as [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) without changing your permission mode, so you still see permission prompts before tools run."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Custom output styles exclude instructions for coding (such as verifying code"
+            },
+            {
+              "type": "removed",
+              "content": "  with tests), unless `keep-coding-instructions` is true."
+            },
+            {
+              "type": "removed",
+              "content": "- All output styles have their own custom instructions added to the end of the"
+            },
+            {
+              "type": "removed",
+              "content": "  system prompt."
+            },
+            {
+              "type": "removed",
+              "content": "- All output styles trigger reminders for Claude to adhere to the output style"
+            },
+            {
+              "type": "removed",
+              "content": "  instructions during the conversation."
+            },
+            {
+              "type": "added",
+              "content": "- **Explanatory**: Provides educational \"Insights\" in between helping you complete software engineering tasks. Helps you understand implementation choices and codebase patterns."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Token usage depends on the style. Adding instructions to the system prompt"
+            },
+            {
+              "type": "removed",
+              "content": "increases input tokens, though prompt caching reduces this cost after the first"
+            },
+            {
+              "type": "removed",
+              "content": "request in a session. The built-in Explanatory and Learning styles produce"
+            },
+            {
+              "type": "removed",
+              "content": "longer responses than Default by design, which increases output tokens. For"
+            },
+            {
+              "type": "removed",
+              "content": "custom styles, output token usage depends on what your instructions tell Claude"
+            },
+            {
+              "type": "removed",
+              "content": "to produce."
+            },
+            {
+              "type": "added",
+              "content": "- **Learning**: Collaborative, learn-by-doing mode where Claude will not only share \"Insights\" while coding, but also ask you to contribute small, strategic pieces of code yourself. Claude Code will add `TODO(human)` markers in your code for you to implement."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Change your output style"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `/config` and select **Output style** to pick a style from a menu. Your"
+            },
+            {
+              "type": "removed",
+              "content": "selection is saved to `.claude/settings.local.json` at the"
+            },
+            {
+              "type": "removed",
+              "content": "[local project level](/en/settings)."
+            },
+            {
+              "type": "added",
+              "content": "Run `/config` and select **Output style** to pick a style from a menu. Your selection is saved to `.claude/settings.local.json` at the [local project level](/en/settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To set a style without the menu, edit the `outputStyle` field directly in a"
+            },
+            {
+              "type": "removed",
+              "content": "settings file:"
+            },
+            {
+              "type": "added",
+              "content": "To set a style without the menu, edit the `outputStyle` field directly in a settings file:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -67,78 +37,76 @@ settings file:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Because the output style is set in the system prompt at session start,"
+            },
+            {
+              "type": "removed",
+              "content": "changes take effect the next time you start a new session. This keeps the system"
+            },
+            {
+              "type": "removed",
+              "content": "prompt stable throughout a conversation so prompt caching can reduce latency and"
+            },
+            {
+              "type": "removed",
+              "content": "cost."
+            },
+            {
+              "type": "added",
+              "content": "Because the output style is set in the system prompt at session start, changes take effect the next time you start a new session. This keeps the system prompt stable throughout a conversation so prompt caching can reduce latency and cost."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Create a custom output style"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Custom output styles are Markdown files with frontmatter and the text that will"
+            },
+            {
+              "type": "removed",
+              "content": "be added to the system prompt:"
+            },
+            {
+              "type": "added",
+              "content": "A custom output style is a Markdown file: frontmatter for metadata, then the instructions to add to the system prompt."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Save it at one of three levels. The file name becomes the style name unless you set `name` in the frontmatter."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- User: `~/.claude/output-styles`"
+            },
+            {
+              "type": "added",
+              "content": "- Project: `.claude/output-styles`"
+            },
+            {
+              "type": "added",
+              "content": "- Managed policy: `.claude/output-styles` inside the [managed settings directory](/en/settings#settings-files)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Decide whether to keep Claude Code's software engineering instructions. Set `keep-coding-instructions: true` if you're changing how Claude communicates but still want it coding the same way. Leave it out if Claude won't be doing software engineering."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```markdown"
+            },
+            {
+              "type": "added",
+              "content": "This example leads every explanation with a diagram while keeping Claude's coding behavior:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```markdown theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "removed",
+              "content": "name: My Custom Style"
+            },
+            {
+              "type": "removed",
+              "content": "description:"
+            },
+            {
+              "type": "removed",
+              "content": "  A brief description of what this style does, to be displayed to the user"
+            },
+            {
+              "type": "added",
+              "content": "name: Diagrams first"
+            },
+            {
+              "type": "added",
+              "content": "description: Lead every explanation with a diagram"
+            },
+            {
+              "type": "added",
+              "content": "keep-coding-instructions: true"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Custom Style Instructions"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You are an interactive CLI tool that helps users with software engineering"
+            },
+            {
+              "type": "removed",
+              "content": "tasks. [Your custom instructions here...]"
+            },
+            {
+              "type": "added",
+              "content": "When explaining code, architecture, or data flow, start with a Mermaid diagram showing the structure, then explain in prose."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Specific Behaviors"
+            },
+            {
+              "type": "added",
+              "content": "## Diagram conventions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Define how the assistant should behave in this style...]"
+            },
+            {
+              "type": "added",
+              "content": "Use `flowchart TD` for control flow and `sequenceDiagram` for request paths. Keep diagrams under 15 nodes."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can save these files at three levels:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- User: `~/.claude/output-styles`"
+            },
+            {
+              "type": "removed",
+              "content": "- Project: `.claude/output-styles`"
+            },
+            {
+              "type": "removed",
+              "content": "- Managed policy: `.claude/output-styles` inside the [managed settings directory](/en/settings#settings-files)"
+            },
+            {
+              "type": "added",
+              "content": "Run `/config` and select your style under **Output style**. It takes effect the next time you start a session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Plugins](/en/plugins-reference) can also ship output styles in an `output-styles/` directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Frontmatter"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Output style files support frontmatter for specifying metadata:"
+            },
+            {
+              "type": "added",
+              "content": "Output style files support these frontmatter fields:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Frontmatter | Purpose | Default |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `name` | Name of the output style, if not the file name | Inherits from file name |"
+            },
+            {
+              "type": "context",
+              "content": "| `description` | Description of the output style, shown in the `/config` picker | None |"
+            },
+            {
+              "type": "removed",
+              "content": "| `keep-coding-instructions` | Whether to keep the parts of Claude Code's system prompt related to coding. | false |"
+            },
+            {
+              "type": "removed",
+              "content": "| `force-for-plugin` | Plugin output styles only: apply this style automatically whenever the plugin is enabled, without requiring users to select it. Overrides the user's `outputStyle` setting. If multiple enabled plugins set this, the first one loaded wins. | false |"
+            },
+            {
+              "type": "added",
+              "content": "| `keep-coding-instructions` | Keep Claude Code's built-in software engineering instructions | `false` |"
+            },
+            {
+              "type": "added",
+              "content": "| `force-for-plugin` | Plugin output styles only: apply this style automatically whenever the plugin is enabled, without requiring users to select it. Overrides the user's `outputStyle` setting. If multiple enabled plugins set this, Claude Code uses the first one loaded. | `false` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Comparisons to related features"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Output Styles vs. CLAUDE.md vs. --append-system-prompt"
+            },
+            {
+              "type": "added",
+              "content": "## How output styles work"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Choose based on whether Claude should stop acting as a coding assistant or keep"
+            },
+            {
+              "type": "removed",
+              "content": "its default role and learn more. Output styles replace the software-engineering"
+            },
+            {
+              "type": "removed",
+              "content": "parts of Claude Code's system prompt with your own role and voice, so use one"
+            },
+            {
+              "type": "removed",
+              "content": "when Claude should adopt a different identity, like a writing editor or a"
+            },
+            {
+              "type": "removed",
+              "content": "data-analysis assistant. CLAUDE.md and `--append-system-prompt` both keep"
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code's default identity and add to it, so use them when Claude should"
+            },
+            {
+              "type": "removed",
+              "content": "remain a coding assistant that also follows your project conventions or extra"
+            },
+            {
+              "type": "removed",
+              "content": "instructions."
+            },
+            {
+              "type": "added",
+              "content": "Output styles directly modify Claude Code's system prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The mechanisms differ as well. Output styles edit the system prompt directly."
+            },
+            {
+              "type": "removed",
+              "content": "CLAUDE.md adds its contents as a user message after the system prompt."
+            },
+            {
+              "type": "removed",
+              "content": "`--append-system-prompt` appends content to the end of the system prompt without"
+            },
+            {
+              "type": "removed",
+              "content": "removing anything."
+            },
+            {
+              "type": "added",
+              "content": "- All output styles have their own custom instructions added to the end of the system prompt."
+            },
+            {
+              "type": "added",
+              "content": "- All output styles trigger reminders for Claude to adhere to the output style instructions during the conversation."
+            },
+            {
+              "type": "added",
+              "content": "- Custom output styles leave out Claude Code's built-in software engineering instructions, such as how to scope changes, write comments, and verify work, unless `keep-coding-instructions` is set to `true`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Output Styles vs. [Agents](/en/sub-agents)"
+            },
+            {
+              "type": "added",
+              "content": "Token usage depends on the style. Adding instructions to the system prompt increases input tokens, though prompt caching reduces this cost after the first request in a session. The built-in Explanatory and Learning styles produce longer responses than Default by design, which increases output tokens. For custom styles, output token usage depends on what your instructions tell Claude to produce."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use an output style to change how the main conversation responds in every"
+            },
+            {
+              "type": "removed",
+              "content": "session. Use a [subagent](/en/sub-agents) when you want a separately scoped"
+            },
+            {
+              "type": "removed",
+              "content": "helper that the main conversation delegates to. Output styles affect only the"
+            },
+            {
+              "type": "removed",
+              "content": "system prompt of the main agent loop. Agents handle specific tasks and can carry"
+            },
+            {
+              "type": "removed",
+              "content": "their own model, tools, and context about when to invoke them."
+            },
+            {
+              "type": "added",
+              "content": "## Comparisons to related features"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Output Styles vs. [Skills](/en/skills)"
+            },
+            {
+              "type": "added",
+              "content": "Several features customize how Claude Code behaves. Output styles modify the system prompt directly and apply to every response. The others add instructions without changing the default system prompt, or scope them to a specific task."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Output styles modify how Claude responds (formatting, tone, structure) and are always active once selected. Skills are task-specific prompts that you invoke with `/skill-name` or that Claude loads automatically when relevant. Use output styles for consistent formatting preferences; use skills for reusable workflows and tasks."
+            },
+            {
+              "type": "added",
+              "content": "| Feature | How it works | Use it when |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| Output styles | Modifies the system prompt | You want a different role, tone, or default response format every turn |"
+            },
+            {
+              "type": "added",
+              "content": "| [CLAUDE.md](/en/memory) | Adds a user message after the system prompt | Claude should always know your project conventions and codebase context |"
+            },
+            {
+              "type": "added",
+              "content": "| `--append-system-prompt` | Appends to the system prompt without removing anything | You want a one-off addition for a single invocation |"
+            },
+            {
+              "type": "added",
+              "content": "| [Agents](/en/sub-agents) | Runs a subagent with its own system prompt, model, and tools | You want a separately scoped helper for a focused task |"
+            },
+            {
+              "type": "added",
+              "content": "| [Skills](/en/skills) | Loads task-specific instructions when invoked or relevant | You have a reusable workflow |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Related resources"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Settings](/en/settings): where the `outputStyle` field lives and how settings precedence works"
+            },
+            {
+              "type": "added",
+              "content": "- [Permission modes](/en/permission-modes): the Proactive style mirrors auto mode without changing your permission mode"
+            },
+            {
+              "type": "added",
+              "content": "- [Plugins](/en/plugins): package and distribute output styles alongside skills, hooks, and agents"
+            },
+            {
+              "type": "added",
+              "content": "- [Debug your configuration](/en/debug-your-config): diagnose why an output style isn't taking effect"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
