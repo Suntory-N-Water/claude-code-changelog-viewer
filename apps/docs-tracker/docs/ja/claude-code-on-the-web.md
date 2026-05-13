@@ -31,10 +31,12 @@ source: https://code.claude.com/docs/ja/claude-code-on-the-web.md
 
 | 方法 | 仕組み | 最適な用途 |
 | :- | :- | :- |
-| **GitHub App** | [ウェブオンボーディング](/ja/web-quickstart)中に特定のリポジトリに Claude GitHub App をインストールします。アクセスはリポジトリごとにスコープされます。 | リポジトリごとの明示的な認可を望むチーム |
-| **`/web-setup`** | ターミナルで `/web-setup` を実行して、ローカル `gh` CLI トークンを Claude アカウントに同期します。アクセスは `gh` トークンが見ることができるものと一致します。 | すでに `gh` を使用している個別開発者 |
+| **GitHub App** | [ウェブオンボーディング](/ja/web-quickstart)中に Claude GitHub App を認可します。 | ブラウザオンボーディング；[Auto-fix](#auto-fix-pull-requests) を希望するチーム |
+| **`/web-setup`** | ターミナルで `/web-setup` を実行して、ローカル `gh` CLI トークンを Claude アカウントに同期します。 | すでに `gh` を使用している個別開発者 |
 
-どちらの方法でも機能します。[`/schedule`](/ja/routines)は両方の形式のアクセスをチェックし、どちらも設定されていない場合は `/web-setup` を実行するよう促します。[ターミナルから接続](/ja/web-quickstart#connect-from-your-terminal)で `/web-setup` のウォークスルーを参照してください。
+どちらの方法でも、クラウドセッションは Claude GitHub App がインストールされているリポジトリだけでなく、接続している GitHub アカウントが見ることができるすべてのリポジトリにアクセスできます。App インストールは [Auto-fix](#auto-fix-pull-requests) の PR webhook を有効にします；これはセッションレベルのアクセス制御ではありません。クラウドセッションからチームが到達できるリポジトリを制限するには、GitHub 自体でアクセスを制限してください。たとえば、接続している GitHub アカウントのチームまたはリポジトリメンバーシップを制限することで実現できます。
+
+どちらの方法でも機能します。[`/schedule`](/ja/routines) は両方の形式のアクセスをチェックし、どちらも設定されていない場合は `/web-setup` を実行するよう促します。[ターミナルから接続](/ja/web-quickstart#connect-from-your-terminal)で `/web-setup` のウォークスルーを参照してください。
 
 GitHub App は [Auto-fix](#auto-fix-pull-requests) に必須です。これは App を使用して PR webhook を受け取ります。`/web-setup` で接続し、後で Auto-fix が必要な場合は、それらのリポジトリに App をインストールします。
 
@@ -682,6 +684,8 @@ PR がどこから来たか、どのデバイスを使用しているかに応�
 - **モバイルアプリから**：Claude に PR を auto-fix するよう指示します。例えば「watch this PR and fix any CI failures or review comments」
 - **既存の PR**：PR URL をセッションに貼り付けて、Claude に auto-fix するよう指示します
 
+Auto-fix は PR ごとのトグルです。監視を停止するには、ウェブセッションで CI ステータスバーを開き、**Auto-fix** トグルをクリアするか、Claude に PR の監視を停止するよう指示します。
+
 ### Claude が PR アクティビティにどのように応答するか
 
 auto-fix がアクティブな場合、Claude は新しいレビューコメントと CI チェック失敗を含む PR の GitHub イベントを受け取ります。各イベントについて、Claude は調査して進め方を決定します：
@@ -711,23 +715,23 @@ Claude は PR を解決する際に GitHub のレビューコメントスレッ�
 
 新しいセッションが `Session creation failed` で開始に失敗するか、プロビジョニングで停止する場合、Claude Code はクラウド環境を割り当てることができませんでした。
 
-- [status.claude.com](https://status.claude.com) でクラウドセッションインシデントを確認します
-- 1 分後に再試行します。容量はオンデマンドでプロビジョニングされます
-- リポジトリが到達可能であることを確認します。プライベートリポジトリには、そのリポジトリへのアクセス権を持つ GitHub App がインストールされているか、`/web-setup` 経由で同期された `gh` トークンが必要です。[GitHub 認証オプション](#github-authentication-options)を参照してください。
+- [status.claude.com](https://status.claude.com) でクラウドセッションインシデントを確認してください
+- 1 分後に再試行してください。容量はオンデマンドでプロビジョニングされます
+- リポジトリが到達可能であることを確認してください。接続している GitHub アカウントは、Claude GitHub App 認可またはオンデマンドで `/web-setup` 経由で同期された `gh` トークンのいずれかを通じて、GitHub 上のリポジトリへのアクセス権を持つ必要があります。リポジトリに App をインストールする必要はありません。[GitHub 認証オプション](#github-authentication-options)を参照してください。
 
 ### Remote Control セッションの有効期限切れまたはアクセス拒否
 
 `--teleport` はクラウドセッションが使用する同じ Remote Control セッションインフラストラクチャを通じて接続するため、認証およびセッション有効期限エラーは Remote Control の表現で表示されます。`Remote Control session has expired` または `Access denied` が表示される場合があります。接続トークンは短命で、アカウントにスコープされています。
 
-- ローカルで `/login` を実行して認証情報をリフレッシュし、再接続します
-- 同じアカウントにサインインしていることを確認します。セッションを所有しています
+- ローカルで `/login` を実行して認証情報をリフレッシュし、再接続してください
+- セッションを所有する同じアカウントにサインインしていることを確認してください
 - `Remote Control may not be available for this organization` が表示される場合、管理者がプランのリモートセッションを有効にしていません
 
 ### 環境の有効期限切れ
 
 クラウドセッションは非アクティブ期間後に停止し、基盤となる環境は回収されます。ローカルターミナルから、これは `Could not resume session ... its environment has expired. Creating a fresh session instead.` として表示されます。ウェブでは、セッションはセッションリストで期限切れとしてマークされます。
 
-[claude.ai/code](https://claude.ai/code) からセッションを再度開いて、会話履歴が復元された新しい環境をプロビジョニングします。
+[claude.ai/code](https://claude.ai/code) からセッションを再度開いて、会話履歴が復元された新しい環境をプロビジョニングしてください。
 
 ## 制限事項
 
