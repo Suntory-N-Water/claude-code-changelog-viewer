@@ -22,15 +22,29 @@ MCP サーバーが接続されている場合、Claude Code に以下のこと�
 - **ワークフローを自動化する**：「新機能に関するフィードバックセッションに招待する 10 人のユーザーに Gmail ドラフトを作成してください。」
 - **外部イベントに対応する**：MCP サーバーは [チャネル](/ja/channels) として機能することもでき、セッションにメッセージをプッシュするため、Claude は離席中に Telegram メッセージ、Discord チャット、または webhook イベントに対応できます。
 
-## 人気のある MCP サーバー
+## MCP サーバーを検索してビルドする
 
-Claude Code に接続できる一般的に使用される MCP サーバーをいくつか紹介します：
+[Anthropic Directory](https://claude.ai/directory) でレビュー済みのコネクタを参照してください。Directory コネクタは Claude Code と同じ MCP インフラストラクチャを使用しているため、`claude mcp add` を使用して、そこにリストされているリモートサーバーを追加できます。
 
-サードパーティの MCP サーバーは自己責任で使用してください。Anthropic はこれらすべてのサーバーの正確性またはセキュリティを検証していません。
-インストールする MCP サーバーを信頼していることを確認してください。
-信頼できないコンテンツを取得する可能性のある MCP サーバーを使用する場合は特に注意してください。これらはプロンプトインジェクションのリスクにさらされる可能性があります。
+接続する前に、各サーバーを信頼していることを確認してください。外部コンテンツを取得するサーバーは、[プロンプトインジェクションリスク](/ja/security#protect-against-prompt-injection)にさらされる可能性があります。
 
-**特定の統合が必要ですか？** [GitHub で数百以上の MCP サーバーを検索](https://github.com/modelcontextprotocol/servers)するか、[MCP SDK](https://modelcontextprotocol.io/quickstart/server) を使用して独自のサーバーを構築してください。
+独自のサーバーをビルドするには、プロトコルの基礎については [MCP サーバーガイド](https://modelcontextprotocol.io/docs/develop/build-server) を、認証、テスト、Directory への提出については [Claude コネクタビルディングドキュメント](https://claude.com/docs/connectors/building) を参照してください。
+
+公式の [`mcp-server-dev` プラグイン](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/mcp-server-dev) を使用して、Claude にサーバーをスキャフォルドしてもらうこともできます。
+
+Claude Code セッションで、以下を実行します：
+
+```
+/plugin install mcp-server-dev@claude-plugins-official
+```
+
+次に `/reload-plugins` を実行して、現在のセッションでアクティブにします。
+
+```
+/mcp-server-dev:build-mcp-server
+```
+
+Claude があなたのユースケースについて質問し、リモート HTTP またはローカル stdio サーバーをスキャフォルドします。
 
 ## MCP サーバーのインストール
 
@@ -834,14 +848,14 @@ Claude Code はツール説明とサーバー命令を各 2KB で切り詰めま
 
 ### ツール検索を設定する
 
-ツール検索はデフォルトで有効です：MCP ツールは遅延され、オンデマンドで検出されます。Vertex AI ではデフォルトで無効です。これは `tool_reference` ブロックを受け入れないためです。`ANTHROPIC_BASE_URL` が非ファーストパーティホストを指している場合も無効です。ほとんどのプロキシは `tool_reference` ブロックを転送しないためです。`ENABLE_TOOL_SEARCH` を明示的に設定してオプトインしてください。この機能には、`tool_reference` ブロックをサポートするモデルが必要です：Sonnet 4 以降、または Opus 4 以降。Haiku モデルはツール検索をサポートしていません。
+ツール検索はデフォルトで有効です：MCP ツールは遅延され、オンデマンドで検出されます。Vertex AI ではデフォルトで無効です。これは `tool_reference` ブロックを受け入れないためです。`ANTHROPIC_BASE_URL` が非ファーストパーティホストを指している場合も無効です。ほとんどのプロキシは `tool_reference` ブロックを転送しないためです。プロキシが `tool_reference` ブロックを転送する場合は、`ENABLE_TOOL_SEARCH` を明示的に設定してフォールバックをオーバーライドしてください。この機能には、`tool_reference` ブロックをサポートするモデルが必要です：Sonnet 4 以降、または Opus 4 以降。Haiku モデルはツール検索をサポートしていません。
 
 `ENABLE_TOOL_SEARCH` 環境変数でツール検索の動作を制御します：
 
 | 値 | 動作 |
 | :- | :- |
 | （未設定） | すべての MCP ツールが遅延され、オンデマンドでロードされます。Vertex AI または `ANTHROPIC_BASE_URL` が非ファーストパーティホストの場合はアップフロントロードにフォールバック |
-| `true` | すべての MCP ツールが遅延。Vertex AI および非ファーストパーティ `ANTHROPIC_BASE_URL` を含む |
+| `true` | すべての MCP ツールが遅延。Claude Code は Vertex AI およびプロキシ経由でもベータヘッダーを送信します。バックエンドが `tool_reference` ブロックをサポートしない場合、リクエストは失敗します |
 | `auto` | しきい値モード：ツールがコンテキストウィンドウの 10% 以内に収まる場合はアップフロントロード、そうでない場合は遅延 |
 | `auto:<N>` | カスタムパーセンテージ付きしきい値モード。`<N>` は 0-100（例：5% の場合は `auto:5`） |
 | `false` | すべての MCP ツールがアップフロントロード、遅延なし |

@@ -896,6 +896,24 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `post_tokens`: 圧縮後のおおよそのトークン数
 - `error`: 圧縮が失敗した場合のエラーメッセージ
 
+#### フィードバック調査イベント
+
+セッション品質調査が表示または回答されるときにログされます。調査が収集する内容と制御方法については、[セッション品質調査](/ja/data-usage#session-quality-surveys)を参照してください。
+
+**イベント名**: `claude_code.feedback_survey`
+
+**属性**:
+
+- すべての[標準属性](#standard-attributes)
+- `event.name`: `"feedback_survey"`
+- `event.timestamp`: ISO 8601 タイムスタンプ
+- `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
+- `event_type`: 調査ライフサイクルイベント。例: `"appeared"`、`"responded"`、または `"transcript_prompt_appeared"`
+- `appearance_id`: 1 つの調査インスタンスに対して出力されたイベントをリンクする一意の ID
+- `survey_type`: イベントを生成した調査。`"session"` は「Claude はどのように機能していますか?」という評価プロンプトです
+- `response`: `responded` イベントでのユーザーの選択
+- `enabled_via_override`: [`CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL`](/ja/env-vars) が設定されている場合は `true`。文字列ではなくブール値として出力されます。`session` 調査イベントに存在します。この属性をフィルタリングして、フリート全体でオーバーライドが適用されていることを確認します
+
 ## メトリクスとイベントデータの解釈
 
 エクスポートされたメトリクスとイベントは、さまざまな分析をサポートします:

@@ -337,6 +337,8 @@ UI を通じて個別のマーケットプレイスの自動更新を切り替�
 
 公式 Anthropic マーケットプレイスはデフォルトで自動更新が有効になっています。サードパーティおよびローカル開発マーケットプレイスはデフォルトで自動更新が無効になっています。
 
+管理者は、マネージド設定で各 [`extraKnownMarketplaces`](/ja/settings#extraknownmarketplaces) エントリに `"autoUpdate": true` を設定して、各ユーザーが切り替える必要なく、組織マーケットプレイスの自動更新を有効にすることもできます。
+
 Claude Code とすべてのプラグインの両方のすべての自動更新を完全に無効化するには、`DISABLE_AUTOUPDATER` 環境変数を設定します。詳細については、[自動更新](/ja/setup#auto-updates)を参照してください。
 
 Claude Code の自動更新を無効化しながらプラグイン自動更新を有効化したままにするには、`DISABLE_AUTOUPDATER` と共に `FORCE_AUTOUPDATE_PLUGINS=1` を設定します：

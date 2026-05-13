@@ -82,7 +82,7 @@ Claude Code は、ユーザーが付与したパーミッションのみを持�
 
 Claude Code ユーザーは Model Context Protocol（MCP）サーバーを設定できます。許可された MCP サーバーのリストは、エンジニアがソース管理にチェックインする Claude Code 設定の一部として、ソースコードで設定されます。
 
-独自の MCP サーバーを作成するか、信頼できるプロバイダーからの MCP サーバーを使用することをお勧めします。Claude Code パーミッションを MCP サーバー用に設定できます。Anthropic は MCP サーバーを管理または監査しません。
+独自の MCP サーバーを作成するか、信頼できるプロバイダーからの MCP サーバーを使用することをお勧めします。Claude Code パーミッションを MCP サーバー用に設定できます。Anthropic は MCP サーバーを [リスティング基準](https://claude.com/docs/connectors/building/review-criteria) に照らして確認してから [Anthropic Directory](https://claude.ai/directory) に追加しますが、MCP サーバーのセキュリティ監査または管理は行いません。
 
 ## IDE セキュリティ
 
