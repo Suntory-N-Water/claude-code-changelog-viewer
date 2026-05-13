@@ -226,7 +226,7 @@ Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を�
 
 Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) をサポートしています。
 
-利用可能性はモデルとプランによって異なります。Max、Team、Enterprise プランでは、Opus は追加設定なしで自動的に 1M コンテキストにアップグレードされます。これは Team Standard と Team Premium の両方のシートに適用されます。
+利用可能性はモデルとプランによって異なります。Max、Team、Enterprise プランでは、Opus は追加設定なしで自動的に 1M コンテキストにアップグレードされます。これは Team Standard と Team Premium の両方のシートに適用されます。Sonnet with 1M context は自動アップグレードの一部ではなく、Max を含むすべてのサブスクリプションプランで [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要です。
 
 | プラン | Opus with 1M context | Sonnet with 1M context |
 | - | - | - |

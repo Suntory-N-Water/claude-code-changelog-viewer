@@ -1,0 +1,179 @@
+{
+  "id": "20260513-042015",
+  "timestamp": "2026-05-13T04:20:15.183Z",
+  "aiSummary": "WebセッションにおけるプルリクエストのAuto-fix機能の制御方法が追加されました。Claude 3 Opusモデルの1Mコンテキストへの自動アップグレードに関する記述が更新され、Sonnetモデルでの利用条件が明確化されています。サーバー管理設定の強制適用時においても、認証切れに対応するための一部コマンドが制限の対象外となるよう仕様が変更されました。",
+  "files": [
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "CIステータスバーやチャット操作を通じた、プルリクエストのAuto-fix機能の有効化・無効化の切り替え手順が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -684,6 +684,8 @@ There are a few ways to turn on auto-fix depending on where the PR came from and",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **From the mobile app**: tell Claude to auto-fix the PR, for example \"watch this PR and fix any CI failures or review comments\""
+            },
+            {
+              "type": "context",
+              "content": "- **Any existing PR**: paste the PR URL into a session and tell Claude to auto-fix it"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Auto-fix is a per-PR toggle. To stop monitoring, open the CI status bar in the web session and clear the **Auto-fix** toggle, or tell Claude to stop watching the PR."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### How Claude responds to PR activity"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When auto-fix is active, Claude receives GitHub events for the PR including new review comments and CI check failures. For each event, Claude investigates and decides how to proceed:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Opusモデルの1Mコンテキストへの自動アップグレードについて補足され、Sonnetモデルで1Mコンテキストを利用する際は有料プランでも追加利用枠が必要な点が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -233,7 +233,7 @@ Thinking output is collapsed by default. Press `Ctrl+O` to toggle verbose mode a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Opus 4.7, Opus 4.6, and Sonnet 4.6 support a [1 million token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) for long sessions with large codebases."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Availability varies by model and plan. On Max, Team, and Enterprise plans, Opus is automatically upgraded to 1M context with no additional configuration. This applies to both Team Standard and Team Premium seats."
+            },
+            {
+              "type": "added",
+              "content": "Availability varies by model and plan. On Max, Team, and Enterprise plans, Opus is automatically upgraded to 1M context with no additional configuration. This applies to both Team Standard and Team Premium seats. Sonnet with 1M context is not part of the automatic upgrade and requires [extra usage](https://support.claude.com/en/articles/12429409-extra-usage-for-paid-claude-plans) on every subscription plan, including Max."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Plan | Opus with 1M context | Sonnet with 1M context |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "server-managed-settings.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "設定の取得に失敗してCLIが終了する設定になっている場合でも、認証情報の更新に必要なauthサブコマンドだけは実行可能になったことが説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -161,6 +161,8 @@ To enable this, add the key to your managed settings configuration:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before enabling this setting, ensure your network policies allow connectivity to `api.anthropic.com`. If that endpoint is unreachable, the CLI exits at startup and users cannot start Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.139, the `claude auth` subcommands such as `claude auth login` are exempt from this check, so users can re-authenticate when expired credentials are the reason the settings fetch fails."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Security approval dialogs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Certain settings that could pose security risks require explicit user approval before being applied:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -196,7 +198,7 @@ Server-managed settings provide centralized policy enforcement, but they operate",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| User edits the cached settings file | Tampered file applies at startup, but correct settings restore on the next server fetch |"
+            },
+            {
+              "type": "context",
+              "content": "| User deletes the cached settings file | First-launch behavior occurs: settings fetch asynchronously with a brief unenforced window |"
+            },
+            {
+              "type": "removed",
+              "content": "| API is unavailable | Cached settings apply if available, otherwise managed settings are not enforced until the next successful fetch. With `forceRemoteSettingsRefresh: true`, the CLI exits instead of continuing |"
+            },
+            {
+              "type": "added",
+              "content": "| API is unavailable | Cached settings apply if available, otherwise managed settings are not enforced until the next successful fetch. With `forceRemoteSettingsRefresh: true`, the CLI exits instead of continuing, except for [`claude auth` subcommands](#enforce-fail-closed-startup) |"
+            },
+            {
+              "type": "context",
+              "content": "| User authenticates with a different organization | Settings are not delivered for accounts outside the managed organization |"
+            },
+            {
+              "type": "context",
+              "content": "| User configures a [third-party model provider](#platform-availability) | Server-managed settings are bypassed. This includes setting `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_MANTLE`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, or a non-default `ANTHROPIC_BASE_URL` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
