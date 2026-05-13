@@ -118,6 +118,8 @@ Create a team with 4 teammates to refactor these modules in parallel.
 Use Sonnet for each teammate.
 ```
 
+チームメンバーはデフォルトではリーダーの `/model` 選択を継承しません。プロンプトで指定されていない場合に使用されるモデルを変更するには、`/config` で **Default teammate model** を設定してください。チームメンバーがリーダーの現在のモデルに従うようにするには、**Default (leader's model)** を選択してください。
+
 ### チームメンバーのプラン承認を要求する
 
 複雑またはリスクの高いタスクの場合、チームメンバーが実装前にプランを立てることを要求できます。チームメンバーはリーダーがアプローチを承認するまで、読み取り専用プランモードで動作します。

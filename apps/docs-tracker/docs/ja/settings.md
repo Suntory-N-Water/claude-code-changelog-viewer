@@ -251,6 +251,7 @@ v2.1.119 より前のバージョンでは、`autoScrollEnabled`、`editorMode`�
 | `autoConnectIde` | Claude Code が外部ターミナルから起動するときに、実行中の IDE に自動的に接続します。デフォルト：`false`。VS Code または JetBrains ターミナルの外で実行する場合、`/config` に\*\*IDE に自動接続（外部ターミナル）\*\*として表示されます。[`CLAUDE_CODE_AUTO_CONNECT_IDE`](/ja/env-vars)環境変数が設定されている場合、これをオーバーライドします | `true` |
 | `autoInstallIdeExtension` | VS Code ターミナルから実行するときに Claude Code IDE 拡張機能を自動的にインストールします。デフォルト：`true`。VS Code または JetBrains ターミナル内で実行する場合、`/config` に**IDE 拡張機能を自動インストール**として表示されます。[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/ja/env-vars)環境変数を設定することもできます | `false` |
 | `externalEditorContext` | `Ctrl+G` で外部エディターを開くときに Claude の前の応答を `#` コメント付きコンテキストとして先頭に追加します。デフォルト：`false`。`/config` に**外部エディターに最後の応答を表示**として表示されます | `true` |
+| `teammateDefaultModel` | [エージェントチーム](/ja/agent-teams)チームメイトのデフォルトモデル。spawn プロンプトが指定しない場合。`"sonnet"` などのモデルエイリアスに設定するか、リーダーの現在の `/model` 選択を継承するために `null` に設定します。`/config` に**デフォルトチームメイトモデル**として表示されます | `"sonnet"` |
 
 ### Worktree 設定
 
@@ -657,6 +658,8 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 - `directory`：ローカルファイルシステムパス（開発のみ、`path` を使用）
 - `hostPattern`：マーケットプレイスホストに一致する正規表現パターン（`hostPattern` を使用）
 - `settings`：ホストされたリポジトリなしで settings.json に直接宣言されたインラインマーケットプレイス（`name` と `plugins` を使用）
+
+各マーケットプレイスエントリは、オプションの `autoUpdate` ブール値も受け入れます。`source` と並行して `"autoUpdate": true` を設定して、Claude Code がそのマーケットプレイスをリフレッシュし、起動時にインストール済みプラグインを更新するようにします。省略した場合、公式 Anthropic マーケットプレイスはデフォルトで `true` に設定され、その他すべてのマーケットプレイスはデフォルトで `false` に設定されます。[自動更新の構成](/ja/discover-plugins#configure-auto-updates)を参照してください。
 
 `source: 'settings'` を使用して、ホストされたマーケットプレイスリポジトリをセットアップせずに、小規模なプラグインセットをインラインで宣言します。ここにリストされているプラグインは、GitHub または npm などの外部ソースを参照する必要があります。各プラグインを `enabledPlugins` で個別に有効にする必要があります。
 

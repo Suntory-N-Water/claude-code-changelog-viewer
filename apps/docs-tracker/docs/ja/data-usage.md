@@ -34,9 +34,9 @@ Claude Code で「How is Claude doing this session?」プロンプトが表示�
 - **No**：何も送信せずに拒否します
 - **Don't ask again**：拒否し、今後のセッションでこのフォローアップが表示されなくなります
 
-**Yes** を明示的に選択しない限り、何もアップロードされません。[ゼロデータ保持](/ja/zero-data-retention) を設定している組織、または組織ポリシーで製品フィードバックが無効になっている組織は、このフォローアップを表示しません。数値評価プロンプトの後に送信されたセッショントランスクリプトを含む、この調査への応答は、データトレーニング設定に影響を与えず、AI モデルをトレーニングするために使用することはできません。
+**Yes** を明示的に選択しない限り、何もアップロードされません。[ゼロデータ保持](/ja/zero-data-retention) を設定している組織、または組織ポリシーで製品フィードバックが無効になっている組織、または `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` が設定されている組織は、このフォローアップを表示しません。数値評価プロンプトの後に送信されたセッショントランスクリプトを含む、この調査への応答は、データトレーニング設定に影響を与えず、AI モデルをトレーニングするために使用することはできません。
 
-これらの調査を無効にするには、`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` を設定します。調査は、`DISABLE_TELEMETRY` または `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` が設定されている場合にも無効になります。無効にする代わりに頻度を制御するには、設定ファイルで [`feedbackSurveyRate`](/ja/settings#available-settings) を `0` から `1` の間の確率に設定します。
+これらの調査を無効にするには、`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY=1` を設定します。調査は、`DISABLE_TELEMETRY`、`DO_NOT_TRACK`、または `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` が設定されている場合にも無効になります。無効にする代わりに頻度を制御するには、設定ファイルで [`feedbackSurveyRate`](/ja/settings#available-settings) を `0` から `1` の間の確率に設定します。非必須トラフィックをブロックしているが、独自の [OpenTelemetry collector](/ja/monitoring-usage) を通じて調査応答をキャプチャしている組織は、`CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL=1` を設定することで調査をオプトバックインできます。調査は、設定されたコレクターのみに数値評価をログします。トランスクリプト共有フォローアップおよび他のすべての Anthropic バウンドフィードバックトラフィックは無効のままです。
 
 ### データ保持
 
