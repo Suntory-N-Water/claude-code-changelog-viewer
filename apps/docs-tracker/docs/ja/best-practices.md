@@ -49,36 +49,36 @@ UI の変更は [Chrome 拡張機能の Claude](/ja/chrome) を使用して検�
 
 研究と計画を実装から分離して、間違った問題を解決することを避けます。
 
-Claude が直接コーディングにジャンプさせると、間違った問題を解決するコードが生成される可能性があります。[Plan Mode](/ja/common-workflows#use-plan-mode-for-safe-code-analysis) を使用して、探索を実行から分離します。
+Claude が直接コーディングにジャンプさせると、間違った問題を解決するコードが生成される可能性があります。[Plan Mode](/ja/permission-modes#analyze-before-you-edit-with-plan-mode) を使用して、探索を実行から分離します。
 
 推奨されるワークフローには 4 つのフェーズがあります。
 
 Plan Mode に入ります。Claude はファイルを読み取り、変更を加えずに質問に答えます。
 
-```txt claude (Plan Mode) theme={null}
+```txt claude (plan mode) theme={null}
 read /src/auth and understand how we handle sessions and login.
 also look at how we manage environment variables for secrets.
 ```
 
 Claude に詳細な実装計画を作成するよう依頼します。
 
-```txt claude (Plan Mode) theme={null}
+```txt claude (plan mode) theme={null}
 I want to add Google OAuth. What files need to change?
 What's the session flow? Create a plan.
 ```
 
 `Ctrl+G` を押して、Claude が進む前に、テキストエディタで計画を開いて直接編集します。
 
-Normal Mode に戻り、Claude にコーディングさせ、計画に対して検証します。
+Plan Mode を終了し、Claude にコーディングさせ、計画に対して検証します。
 
-```txt claude (Normal Mode) theme={null}
+```txt claude (default mode) theme={null}
 implement the OAuth flow from your plan. write tests for the
 callback handler, run the test suite and fix any failures.
 ```
 
 Claude に説明的なメッセージでコミットし、PR を作成するよう依頼します。
 
-```txt claude (Normal Mode) theme={null}
+```txt claude (default mode) theme={null}
 commit with a descriptive message and open a PR
 ```
 
@@ -329,11 +329,11 @@ Keep interviewing until we've covered everything, then write a complete spec to 
 
 ### 早期かつ頻繁に方向転換する
 
-Claude が軌道を外れていることに気付いたらすぐに修正します。
+Claude が軌道を外れていることに気付いたらすぐに修正してください。
 
-最良の結果は、タイトなフィードバックループから来ます。Claude は時々最初の試みで問題を完全に解決しますが、それを迅速に修正することは一般的により良い解決策をより速く生成します。
+最良の結果は、タイトなフィードバックループから生まれます。Claude は時々最初の試みで問題を完全に解決しますが、それを迅速に修正することは一般的により良い解決策をより速く生成します。
 
-- **`Esc`**：`Esc` キーで Claude の中途半端なアクションを停止します。コンテキストは保持されるため、リダイレクトできます。
+- **`Esc`**：`Esc` キーで Claude の途中のアクションを停止します。コンテキストは保持されるため、リダイレクトできます。
 - **`Esc + Esc` または `/rewind`**：`Esc` を 2 回押すか `/rewind` を実行して、巻き戻しメニューを開き、以前の会話とコード状態を復元するか、選択したメッセージから要約します。
 - **`"Undo that"`**：Claude に変更を元に戻すよう依頼します。
 - **`/clear`**：関連のないタスク間でコンテキストをリセットします。関連のないコンテキストを持つ長いセッションはパフォーマンスを低下させる可能性があります。
@@ -351,9 +351,9 @@ Claude Code はコンテキスト制限に近づくと会話履歴を自動的�
 - タスク間で頻繁に `/clear` を使用してコンテキストウィンドウを完全にリセットします
 - 自動コンパクションがトリガーされると、Claude は最も重要なもの（コードパターン、ファイル状態、主要な決定を含む）を要約します
 - より多くの制御のために、`/compact <instructions>` を実行します。例えば `/compact Focus on the API changes`
-- 会話の一部のみをコンパクトするには、`Esc + Esc` または `/rewind` を使用し、メッセージチェックポイントを選択し、**ここから要約**を選択します。これにより、そのポイント以降のメッセージが凝縮され、以前のコンテキストは保持されます。
+- 会話の一部のみをコンパクトするには、`Esc + Esc` または `/rewind` を使用し、メッセージチェックポイントを選択し、**ここから要約** または **ここまで要約** を選択します。最初のものはそのポイント以降のメッセージを凝縮し、以前のコンテキストは保持されます。2 番目のものは以前のメッセージを凝縮し、最近のものは完全に保持されます。[復元と要約](/ja/checkpointing#restore-vs-summarize)を参照してください。
 - CLAUDE.md でコンパクション動作をカスタマイズします。`"When compacting, always preserve the full list of modified files and any test commands"` のような指示を使用して、重要なコンテキストが要約を生き残ることを確認します
-- 会話履歴に入らない簡単な質問については、[`/btw`](/ja/interactive-mode#side-questions-with-btw) を使用します。答えは却下可能なオーバーレイに表示され、会話履歴に入らないため、コンテキストを増やさずに詳細をチェックできます。
+- 会話履歴に入らない簡単な質問については、[`/btw`](/ja/interactive-mode#side-questions-with-%2Fbtw) を使用します。答えは却下可能なオーバーレイに表示され、会話履歴に入らないため、コンテキストを増やさずに詳細をチェックできます。
 
 ### 調査にサブエージェントを使用する
 
@@ -376,9 +376,9 @@ use a subagent to review this code for edge cases
 
 ### チェックポイントで巻き戻す
 
-Claude が行うすべてのアクションはチェックポイントを作成します。以前のチェックポイントに会話、コード、またはその両方を復元できます。
+送信するすべてのプロンプトはチェックポイントを作成します。以前のチェックポイントに会話、コード、またはその両方を復元できます。
 
-Claude は変更前に自動的にチェックポイントを作成します。`Escape` をダブルタップするか `/rewind` を実行して、巻き戻しメニューを開きます。会話のみを復元したり、コードのみを復元したり、両方を復元したり、選択したメッセージから要約したりできます。詳細については、[チェックポイント](/ja/checkpointing)を参照してください。
+Claude は変更前に自動的にファイルをスナップショットするため、チェックポイントはそれらを復元できます。`Escape` をダブルタップするか `/rewind` を実行して、巻き戻しメニューを開きます。会話のみを復元したり、コードのみを復元したり、両方を復元したり、選択したメッセージから要約したりできます。詳細については、[チェックポイント](/ja/checkpointing)を参照してください。
 
 すべての動きを慎重に計画する代わりに、Claude に何か危険なことを試すよう指示できます。うまくいかない場合は、巻き戻して別のアプローチを試してください。チェックポイントはセッション全体で保持されるため、ターミナルを閉じても後で巻き戻すことができます。
 
@@ -386,16 +386,9 @@ Claude は変更前に自動的にチェックポイントを作成します。`
 
 ### 会話を再開する
 
-`claude --continue` を実行して中断したところから再開するか、`--resume` を使用して最近のセッションから選択します。
+`/rename` でセッションに名前を付け、ブランチのように扱います。各ワークストリームは独自の永続的なコンテキストを取得します。
 
-Claude Code は会話をローカルに保存します。タスクが複数のセッションにまたがる場合、コンテキストを再度説明する必要はありません。
-
-```bash
-claude --continue    # Resume the most recent conversation
-claude --resume      # Select from recent conversations
-```
-
-`/rename` を使用してセッションに `"oauth-migration"` や `"debugging-memory-leak"` などの説明的な名前を付けて、後で見つけやすくします。セッションをブランチのように扱う：異なるワークストリームは別々の永続的なコンテキストを持つことができます。
+Claude Code は会話をローカルに保存するため、タスクが複数のセッションにまたがる場合、コンテキストを再度説明する必要はありません。`claude --continue` を実行して最新のセッションを選択するか、`claude --resume` を実行してリストから選択します。`oauth-migration` などの説明的な名前でセッションに名前を付けて、後で見つけやすくします。[セッションを管理](/ja/sessions)を参照して、再開、ブランチ、命名制御の完全なセットを確認してください。
 
 ***
 
@@ -409,7 +402,7 @@ claude --resume      # Select from recent conversations
 
 CI、プリコミットフック、またはスクリプトで `claude -p "prompt"` を使用します。ストリーミング JSON 出力の場合は `--output-format stream-json` を追加します。
 
-`claude -p "your prompt"` を使用すると、セッションなしで Claude を非対話的に実行できます。非対話型モードは、Claude を CI パイプライン、プリコミットフック、または自動化されたワークフローに統合する方法です。出力形式を使用すると、結果をプログラムで解析できます。プレーンテキスト、JSON、またはストリーミング JSON。
+`claude -p "your prompt"` を使用すると、セッションなしで Claude を非対話的に実行できます。[非対話型モード](/ja/headless)は、Claude を CI パイプライン、プリコミットフック、または自動化されたワークフローに統合する方法です。出力形式を使用すると、結果をプログラムで解析できます。プレーンテキスト、JSON、またはストリーミング JSON です。
 
 ```bash
 # One-off queries
@@ -426,11 +419,12 @@ claude -p "Analyze this log file" --output-format stream-json
 
 複数の Claude セッションを並列で実行して、開発を高速化し、分離された実験を実行するか、複雑なワークフローを開始します。
 
-並列セッションを実行するには 3 つの主な方法があります。
+自分で行いたい調整の量に合わせて、並列アプローチを選択します。
 
-- [Claude Code デスクトップアプリ](/ja/desktop#work-in-parallel-with-sessions)：複数のローカルセッションを視覚的に管理します。各セッションは独自の分離されたワークツリーを取得します。
-- [Web 上の Claude Code](/ja/claude-code-on-the-web)：Anthropic のセキュアなクラウドインフラストラクチャで分離された VM で実行します。
-- [エージェントチーム](/ja/agent-teams)：共有タスク、メッセージング、チームリーダーを備えた複数のセッションの自動調整。
+- [Worktrees](/ja/worktrees)：分離された git チェックアウトで個別の CLI セッションを実行して、編集が衝突しないようにします
+- [デスクトップアプリ](/ja/desktop#work-in-parallel-with-sessions)：複数のローカルセッションを視覚的に管理します。各セッションは独自の worktree にあります
+- [Web 上の Claude Code](/ja/claude-code-on-the-web)：Anthropic が管理するクラウドインフラストラクチャで分離された VM で実行します
+- [エージェントチーム](/ja/agent-teams)：共有タスク、メッセージング、チームリーダーを備えた複数のセッションの自動調整
 
 作業を並列化することを超えて、複数のセッションは品質に焦点を当てたワークフローを有効にします。新しいコンテキストは、Claude がちょうど書いたコードに偏らないため、コードレビューを改善します。
 

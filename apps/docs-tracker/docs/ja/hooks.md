@@ -272,9 +272,9 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 | :- | :- | :- |
 | `type` | はい | `"command"`、`"http"`、`"mcp_tool"`、`"prompt"`、または `"agent"` |
 | `if` | いいえ | `"Bash(git *)"` または `"Edit(*.ts)"` などの権限ルール構文を使用してこのフックが実行されるタイミングをフィルタリングします。ツール呼び出しがパターンにマッチする場合のみ、フックが生成されます。または Bash コマンドが解析するには複雑すぎる場合。ツール イベントでのみ評価されます。`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、`PermissionDenied`。他のイベントでは、`if` が設定されたフックは実行されません。[権限ルール](/ja/permissions)と同じ構文を使用します |
-| `timeout` | いいえ | キャンセルまでの秒数。デフォルト: コマンドは 600、プロンプトは 30、エージェントは 60 |
+| `timeout` | いいえ | キャンセルまでの秒数。デフォルト: `command`、`http`、`mcp_tool` は 600、`prompt` は 30、`agent` は 60。[`UserPromptSubmit`](#userpromptsubmit) は `command`、`http`、`mcp_tool` のデフォルトを 30 に低下させます |
 | `statusMessage` | いいえ | フックの実行中に表示されるカスタム スピナー メッセージ |
-| `once` | いいえ | `true` の場合、セッションごとに 1 回だけ実行してから削除されます。[スキルとエージェントのフック](#hooks-in-skills-and-agents)でのみ尊重されます。設定ファイルとエージェント フロントマターでは無視されます |
+| `once` | いいえ | `true` の場合、セッションごとに 1 回だけ実行してから削除されます。[スキル フロントマター](#hooks-in-skills-and-agents)でのみ尊重されます。設定ファイルとエージェント フロントマターでは無視されます |
 
 `if` フィールドは正確に 1 つの権限ルールを保持します。ルールを組み合わせるための `&&`、`||`、またはリスト構文はありません。複数の条件を適用するには、各条件に対して個別のフック ハンドラーを定義します。Bash の場合、ルールは先頭の `VAR=value` 割り当てが削除された後のツール入力の各サブコマンドに対してマッチされるため、`if: "Bash(git push *)"` は `FOO=bar git push` と `npm test && git push` の両方にマッチします。コマンドが解析するには複雑すぎる場合、いずれかのサブコマンドがマッチすると、またはいつでもフックが実行されます。
 
@@ -521,9 +521,11 @@ Claude Code で `/hooks` と入力して、設定されたフックの読み取�
 
 コマンド フックは stdin 経由で JSON データを受け取り、終了コード、stdout、stderr を通じて結果を通信します。HTTP フックは同じ JSON をリクエスト本体として受け取り、HTTP レスポンス本体を通じて結果を通信します。このセクションでは、すべてのイベントに共通するフィールドと動作について説明します。[フック イベント](#hook-events)の各セクションには、その特定の入力スキーマと決定制御オプションが含まれています。
 
+macOS と Linux では、コマンド フックは v2.1.139 以降、制御端末のない独自のセッションで実行されます。フック プロセスと子プロセスは `/dev/tty` を開くことも、エスケープ シーケンスを Claude Code インターフェイスに直接送信することもできません。Windows には `/dev/tty` がありません。任意のプラットフォームでユーザーにメッセージを表示するには、JSON 出力で[`systemMessage`](#json-output)を返します。デスクトップ通知をトリガーしたり、ウィンドウ タイトルを設定したり、ベルを鳴らしたりするには、代わりに[`terminalSequence`](#emit-terminal-notifications)を返します。
+
 ### 共通入力フィールド
 
-すべてのフック イベントは、各[フック イベント](#hook-events)セクションで説明されているイベント固有のフィールドに加えて、これらのフィールドを JSON として受け取ります。コマンド フックの場合、この JSON は stdin 経由で到着します。HTTP フックの場合、POST リクエスト本体として到着します。
+フック イベントは、各[フック イベント](#hook-events)セクションで説明されているイベント固有のフィールドに加えて、これらのフィールドを JSON として受け取ります。コマンド フックの場合、この JSON は stdin 経由で到着します。HTTP フックの場合、POST リクエスト本体として到着します。
 
 | フィールド | 説明 |
 | :- | :- |
@@ -644,7 +646,7 @@ HTTP フックは終了コードと stdout の代わりに HTTP ステータス 
 
 フックの stdout には JSON オブジェクトのみが含まれている必要があります。シェル プロファイルがスタートアップ時にテキストを出力する場合、JSON 解析に干渉する可能性があります。トラブルシューティング ガイドの[JSON 検証に失敗](/ja/hooks-guide#json-validation-failed)を参照してください。
 
-コンテキストに注入されたフック出力（`additionalContext`、`systemMessage`、またはプレーン stdout）は 10,000 文字でキャップされます。この制限を超える出力はファイルに保存され、プレビューとファイル パスに置き換えられます。大きなツール結果と同じ方法で処理されます。
+フック出力文字列（`additionalContext`、`systemMessage`、およびプレーン stdout を含む）は 10,000 文字でキャップされます。この制限を超える出力はファイルに保存され、プレビューとファイル パスに置き換えられます。大きなツール結果と同じ方法で処理されます。
 
 JSON オブジェクトは 3 種類のフィールドをサポートしています。
 
@@ -658,12 +660,45 @@ JSON オブジェクトは 3 種類のフィールドをサポートしていま
 | `stopReason` | なし | `continue` が `false` のときにユーザーに表示されるメッセージ。Claude には表示されません |
 | `suppressOutput` | `false` | `true` の場合、デバッグ ログから stdout を非表示にします |
 | `systemMessage` | なし | ユーザーに表示される警告メッセージ |
+| `terminalSequence` | なし | Claude Code が代わりに発行するターミナル エスケープ シーケンス（デスクトップ通知、ウィンドウ タイトル、ベルなど）。OSC `0`/`1`/`2`/`9`/`99`/`777` と BEL に制限されます。値に許可リスト外のものが含まれている場合、フィールドは無視されます。`/dev/tty` が利用できないフックの代わりにこれを使用してください |
 
 Claude を完全に停止するには、イベント タイプに関係なく。
 
 ```json
 { "continue": false, "stopReason": "Build failed, fix errors before continuing" }
 ```
+
+#### ターミナル通知を発行
+
+`terminalSequence` フィールドには Claude Code v2.1.141 以降が必要です。
+
+フックは制御端末なしで実行されるため、エスケープ シーケンスを `/dev/tty` に直接書き込むことは失敗します。代わりに、エスケープ シーケンスを `terminalSequence` フィールドで返し、Claude Code は独自のターミナル書き込みパスを通じてそれを発行します。これはレース フリーで、tmux と GNU screen 内で機能し、`/dev/tty` がない Windows で機能します。
+
+フィールドは 1 つ以上の許可リストに登録されたエスケープ シーケンスの文字列を受け入れます。
+
+- OSC `0`、`1`、`2`: ウィンドウとアイコン タイトル
+- OSC `9`: iTerm2、ConEmu、Windows Terminal、WezTerm 通知（`9;4` タスクバー進捗を含む）
+- OSC `99`: Kitty 通知
+- OSC `777`: urxvt、Ghostty、Warp 通知
+- 裸の BEL
+
+シーケンスは BEL または ST で終了する場合があります。許可リスト外のもの（CSI カーソルと色シーケンス、OSC パレット シーケンス、OSC 8 ハイパーリンク、OSC 52 クリップボード書き込み、OSC 1337 を含む）は拒否され、フィールドは無視されます。
+
+以下の例は `Notification` フックからデスクトップ通知を発火します。エスケープ シーケンスは `printf` 8 進数エスケープで構築されるため、制御バイトはシェル コマンド ラインに表示されず、`jq -n --arg` は JSON 出力を構築するため、通知メッセージの引用符、バックスラッシュ、改行は正しくエスケープされます。
+
+```bash
+#!/bin/bash
+# Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
+input=$(cat)
+title="Claude Code'
+body=$(jq -r '.message // "Needs your attention"' <<<"$input")
+seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
+jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
+```
+
+`{ "terminalSequence": "..." }` の形状は、任意のシェルまたは言語から同じです。Windows では、PowerShell またはスクリプトでエスケープ文字列を構築し、同じ JSON オブジェクトを発行します。
+
+`terminalSequence` は、以前に `/dev/tty` にエスケープ シーケンスを直接書き込んでいたフックの対応する置き換えです。許可リストはカーソルを移動したり色を変更したりできないシーケンスに制限されているため、フックはオンスクリーン プロンプトを破損することはできません。
 
 #### Claude 用にコンテキストを追加
 
@@ -937,6 +972,8 @@ InstructionsLoaded フックは決定制御がありません。命令ロード�
 ### UserPromptSubmit
 
 ユーザーがプロンプトを送信するときに実行されます。Claude がそれを処理する前に。これにより、プロンプト/会話に基づいて追加コンテキストを追加したり、プロンプトを検証したり、特定のタイプのプロンプトをブロックしたりできます。
+
+`UserPromptSubmit` フックは `command`、`http`、`mcp_tool` タイプのデフォルト タイムアウトが 30 秒で、他のイベントでのこれらのタイプの 600 秒のデフォルトより短くなっています。このフックはすべてのプロンプトの前に実行され、モデル処理がそれが完了するまでブロックされるため、スタックしたフックはセッションを停止させます。フックにより多くの時間が必要な場合は、フック エントリで `timeout` フィールドを設定します。
 
 #### UserPromptSubmit 入力
 
@@ -2529,7 +2566,7 @@ LLM は以下を含む JSON で応答する必要があります：
 
 非同期フックが発火すると、Claude Code はフック プロセスを開始し、完了を待たずにすぐに続行します。フックは同期フックと同じ JSON 入力を stdin 経由で受け取ります。
 
-バックグラウンド プロセスが終了した後、フックが `systemMessage` または `additionalContext` フィールドを含む JSON レスポンスを生成した場合、そのコンテンツは次の会話ターンで Claude にコンテキストとして配信されます。
+バックグラウンド プロセスが終了した後、フックが `additionalContext` フィールドを含む JSON レスポンスを生成した場合、そのコンテンツは次の会話ターンで Claude にコンテキストとして配信されます。`systemMessage` フィールドは Claude ではなく、あなたに表示されます。
 
 非同期フック完了通知はデフォルトで抑制されます。これらを表示するには、`Ctrl+O` で詳細モードを有効にするか、`--verbose` で Claude Code を開始します。
 
@@ -2550,15 +2587,16 @@ if [[ "$FILE_PATH" != *.ts && "$FILE_PATH" != *.js ]]; then
   exit 0
 fi
 
-# テストを実行し、systemMessage 経由で結果を報告
+# テストを実行し、additionalContext 経由で結果を Claude に報告
 RESULT=$(npm test 2>&1)
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
-  echo "{\"systemMessage\": \"Tests passed after editing $FILE_PATH\"}"
+  MSG="Tests passed after editing $FILE_PATH"
 else
-  echo "{\"systemMessage\": \"Tests failed after editing $FILE_PATH: $RESULT\"}"
+  MSG="Tests failed after editing $FILE_PATH: $RESULT"
 fi
+jq -nc --arg msg "$MSG" '{hookSpecificOutput: {hookEventName: "PostToolUse", additionalContext: $msg}}'
 ```
 
 次に、プロジェクト ルートの `.claude/settings.json` にこの設定を追加します。`async: true` フラグにより、Claude はテストの実行中に作業を続行できます。

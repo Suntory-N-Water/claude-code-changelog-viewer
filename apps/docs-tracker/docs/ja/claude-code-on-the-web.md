@@ -721,7 +721,7 @@ Claude は PR を解決する際に GitHub のレビューコメントスレッ�
 
 ### Remote Control セッションの有効期限切れまたはアクセス拒否
 
-`--teleport` はクラウドセッションが使用する同じ Remote Control セッションインフラストラクチャを通じて接続するため、認証およびセッション有効期限エラーは Remote Control の表現で表示されます。`Remote Control session has expired` または `Access denied` が表示される場合があります。接続トークンは短命で、アカウントにスコープされています。
+`--teleport` はクラウドセッションが使用する同じ Remote Control セッションインフラストラクチャを通じて接続するため、認証およびセッション有効期限エラーは Remote Control の表現で表示されます。`Remote Control session expired` または `Access denied` が表示される場合があります。接続トークンは短命で、アカウントにスコープされています。
 
 - ローカルで `/login` を実行して認証情報をリフレッシュし、再接続してください
 - セッションを所有する同じアカウントにサインインしていることを確認してください
