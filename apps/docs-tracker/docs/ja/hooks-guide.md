@@ -816,7 +816,10 @@ HTTP hooks は、Web サーバー、クラウド関数、または外部サー�
 ### 制限
 
 - コマンド hooks は stdout、stderr、および終了コードを通じてのみ通信します。これらは `/` コマンドまたはツール呼び出しをトリガーできません。`additionalContext` を通じて返されたテキストは、Claude が平文として読むシステムリマインダーとして注入されます。HTTP hooks はレスポンスボディを通じて通信します。
-- Hook タイムアウトはデフォルトで 10 分で、hook ごとに `timeout` フィールド（秒単位）で設定可能です。
+- Hook タイムアウトはタイプによって異なります。`timeout` フィールド（秒単位）で hook ごとにオーバーライドできます。
+  - `command`、`http`、`mcp_tool`：10 分。`UserPromptSubmit` はこれらを 30 秒に短縮します。
+  - `prompt`：30 秒。
+  - `agent`：60 秒。
 - `PostToolUse` hooks はツールが既に実行されているため、アクションを元に戻すことはできません。
 - `PermissionRequest` hooks は [非インタラクティブモード](/ja/headless)（`-p`）では発火しません。自動化された許可決定には `PreToolUse` hooks を使用します。
 - `Stop` hooks はタスク完了時だけでなく、Claude が応答を終了するたびに発火します。ユーザーの割り込みでは発火しません。API エラーは代わりに [StopFailure](/ja/hooks#stopfailure) を発火させます。
