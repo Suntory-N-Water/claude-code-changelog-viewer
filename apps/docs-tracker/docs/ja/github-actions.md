@@ -145,6 +145,13 @@ jobs:
 
 ### skills を使用する
 
+`prompt` 入力は、[skill](/ja/skills) の呼び出しだけでなく、プレーンテキストも受け入れます。
+
+- リポジトリの `.claude/skills/` ディレクトリ内のスキルの場合、アクションステップの前に `actions/checkout` を実行し、`/skill-name` を渡します。
+- プラグインにパッケージされたスキルの場合、`plugin_marketplaces` および `plugins` 入力でプラグインをインストールし、名前空間付きの `/plugin-name:skill-name` を渡します。
+
+次のワークフローは、`code-review` プラグインをインストールし、新規または更新されたプルリクエストごとにそのスキルを実行します。
+
 ```yaml
 name: Code Review
 on:
@@ -157,8 +164,9 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          prompt: "Review this pull request for code quality, correctness, and security. Analyze the diff, then post your findings as review comments."
-          claude_args: "--max-turns 5"
+          plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
+          plugins: "code-review@claude-code-plugins"
+          prompt: "/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
 ```
 
 ### プロンプトを使用したカスタム自動化
@@ -580,10 +588,12 @@ Claude Code Action v1 は、簡素化された設定を使用します。
 | - | - | - |
 | `prompt` | Claude の指示（プレーンテキストまたは [skill](/ja/skills) 名） | No\* |
 | `claude_args` | Claude Code に渡される CLI 引数 | No |
+| `plugin_marketplaces` | プラグインマーケットプレイス Git URL の改行区切りリスト | No |
+| `plugins` | 実行前にインストールするプラグイン名の改行区切りリスト | No |
 | `anthropic_api_key` | Claude API キー | Yes\*\* |
 | `github_token` | API アクセス用の GitHub トークン | No |
 | `trigger_phrase` | カスタムトリガーフレーズ（デフォルト：「@claude」） | No |
-| `use_bedrock` | Claude API の代わりに AWS Bedrock を使用 | No |
+| `use_bedrock` | Claude API の代わりに Amazon Bedrock を使用 | No |
 | `use_vertex` | Claude API の代わりに Google Vertex AI を使用 | No |
 
 \*プロンプトはオプションです。イシュー/PR コメントで省略された場合、Claude はトリガーフレーズに応答します\
