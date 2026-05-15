@@ -691,7 +691,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 # Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
 input=$(cat)
 title="Claude Code'
-body=$(jq -r '.message // "Needs your attention"' <<<"$input")
+body=$(jq -r '.message // 'Needs your attention"' <<<"$input")
 seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
@@ -1174,6 +1174,20 @@ Web を検索します。
 | `description` | 文字列 | `"Find API endpoints"` | タスクの短い説明 |
 | `subagent_type` | 文字列 | `"Explore"` | 使用する特殊エージェントのタイプ |
 | `model` | 文字列 | `"sonnet"` | デフォルトをオーバーライドするオプション モデル エイリアス |
+
+`PostToolUse` では、完了した Agent 呼び出しの `tool_response` はサブエージェントの最終テキストと使用テレメトリを含みます。フックからサブエージェント単位のコストを記録するためにこれらのフィールドを読み取ります。
+
+| フィールド | タイプ | 例 | 説明 |
+| :- | :- | :- | :- |
+| `status` | 文字列 | `"completed"` | 同期呼び出しの場合は `"completed"`、`run_in_background: true` の場合は `"async_launched"` |
+| `agentId` | 文字列 | `"a4d2c8f1e0b3a297"` | サブエージェント実行の識別子 |
+| `content` | 配列 | `[{"type": "text", "text": "Found 12 endpoints..."}]` | サブエージェントの最終テキスト ブロック |
+| `totalTokens` | 数値 | `12450` | サブエージェントのターン全体で請求されたトークン合計 |
+| `totalDurationMs` | 数値 | `48211` | サブエージェント実行の実時間 |
+| `totalToolUseCount` | 数値 | `7` | サブエージェントが行ったツール呼び出しの数 |
+| `usage` | オブジェクト | `{"input_tokens": 8320, ...}` | タイプ別トークン分解: `input_tokens`、`output_tokens`、`cache_creation_input_tokens`、`cache_read_input_tokens` |
+
+`run_in_background: true` 呼び出しの場合、ツールはサブエージェント起動後すぐに返されるため、`tool_response` は使用フィールドを含みません。`status: "async_launched"`、`agentId`、`description`、`prompt`、`outputFile` を含みます。
 
 ##### AskUserQuestion
 
