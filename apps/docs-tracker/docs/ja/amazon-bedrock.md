@@ -196,8 +196,9 @@ Bedrock を有効にするために、以下の環境変数を設定します。
 export CLAUDE_CODE_USE_BEDROCK=1
 export AWS_REGION=us-east-1  # または希望するリージョン
 
-# オプション：小型/高速モデル（Haiku）のリージョンをオーバーライド
-# Bedrock Mantle にも適用されます。
+# オプション：小型/高速モデル（Bedrock および Mantle）の AWS リージョンをオーバーライド
+# Bedrock では、ANTHROPIC_DEFAULT_HAIKU_MODEL
+# または非推奨の ANTHROPIC_SMALL_FAST_MODEL が設定されていない場合、効果がありません。
 export ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION=us-west-2
 
 # オプション：カスタムエンドポイントまたはゲートウェイ用に Bedrock エンドポイント URL をオーバーライド
@@ -233,7 +234,9 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:
 | モデルタイプ   | デフォルト値                                         |
 | :------- | :--------------------------------------------- |
 | プライマリモデル | `us.anthropic.claude-sonnet-4-5-20250929-v1:0` |
-| 小型/高速モデル | `us.anthropic.claude-haiku-4-5-20251001-v1:0`  |
+| 小型/高速モデル | プライマリモデルと同じ                                    |
+
+セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Bedrock では、すべてのアカウントまたはリージョンで Haiku が有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をアカウントで利用可能なモデル ID に設定してください。
 
 モデルをさらにカスタマイズするには、以下のいずれかの方法を使用します。
 
