@@ -44,17 +44,17 @@ for await (const message of query({
 
 ```python Python theme={null}
 import asyncio
-from claude_agent_sdk import query
+from claude_agent_sdk import query, ClaudeAgentOptions
 
 async def main():
     async for message in query(
         prompt="Hello",
-        options={
-            "plugins": [
+        options=ClaudeAgentOptions(
+            plugins=[
                 {"type": "local", "path": "./my-plugin"},
                 {"type": "local", "path": "/absolute/path/to/another-plugin"},
             ]
-        },
+        ),
     ):
         # Plugin commands, agents, and other features are now available
         pass
@@ -98,13 +98,16 @@ for await (const message of query({
 
 ```python Python theme={null}
 import asyncio
-from claude_agent_sdk import query
+from claude_agent_sdk import query, ClaudeAgentOptions, SystemMessage
 
 async def main():
     async for message in query(
-        prompt="Hello", options={"plugins": [{"type": "local", "path": "./my-plugin"}]}
+        prompt="Hello",
+        options=ClaudeAgentOptions(
+            plugins=[{"type": "local", "path": "./my-plugin"}]
+        ),
     ):
-        if message.type == "system" and message.subtype == "init":
+        if isinstance(message, SystemMessage) and message.subtype == "init":
             # Check loaded plugins
             print("Plugins:", message.data.get("plugins"))
             # Example: [{"name": "my-plugin", "path": "./my-plugin"}]
@@ -139,13 +142,15 @@ for await (const message of query({
 
 ```python Python theme={null}
 import asyncio
-from claude_agent_sdk import query, AssistantMessage, TextBlock
+from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, TextBlock
 
 async def main():
     # Load a plugin with a custom /greet skill
     async for message in query(
         prompt="/demo-plugin:greet",  # Use plugin skill with namespace
-        options={"plugins": [{"type": "local", "path": "./plugins/demo-plugin"}]},
+        options=ClaudeAgentOptions(
+            plugins=[{"type": "local", "path": "./plugins/demo-plugin"}]
+        ),
     ):
         # Claude executes the custom greeting skill from the plugin
         if isinstance(message, AssistantMessage):
@@ -201,6 +206,7 @@ import anyio
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
+    SystemMessage,
     TextBlock,
     query,
 )
@@ -219,7 +225,7 @@ async def run_with_plugin():
     async for message in query(
         prompt="What custom commands do you have available?", options=options
     ):
-        if message.type == "system" and message.subtype == "init":
+        if isinstance(message, SystemMessage) and message.subtype == "init":
             print(f"Loaded plugins: {message.data.get('plugins')}")
             print(f"Available commands: {message.data.get('slash_commands')}")
 

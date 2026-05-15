@@ -294,7 +294,7 @@ The message structure differs between SDKs. In Python, content blocks are access
 
 ```python Python theme={null}
 import asyncio
-from claude_agent_sdk import query, ClaudeAgentOptions, AgentDefinition
+from claude_agent_sdk import query, ClaudeAgentOptions, AgentDefinition, ToolUseBlock
 
 async def main():
     async for message in query(
@@ -314,7 +314,7 @@ async def main():
         # versions emitted "Task", current versions emit "Agent".
         if hasattr(message, "content") and message.content:
             for block in message.content:
-                if getattr(block, "type", None) == "tool_use" and block.name in (
+                if isinstance(block, ToolUseBlock) and block.name in (
                     "Task",
                     "Agent",
                 ):
@@ -389,7 +389,7 @@ import { query, type SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 // Helper to extract agentId from message content
 // Stringify to avoid traversing different block types (TextBlock, ToolResultBlock, etc.)
 function extractAgentId(message: SDKMessage): string | undefined {
-  if (!("message" in message)) return undefined;
+  if (message.type !== "assistant" && message.type !== "user") return undefined;
   // Stringify the content so we can search it without traversing nested blocks
   const content = JSON.stringify(message.message.content);
   const match = content.match(/agentId:\s*([a-f0-9-]+)/);
