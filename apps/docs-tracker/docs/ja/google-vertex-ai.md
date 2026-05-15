@@ -187,7 +187,7 @@ export VERTEX_REGION_CLAUDE_4_6_SONNET=europe-west1
 
 [prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は自動的に有効になります。これを無効にするには、`DISABLE_PROMPT_CACHING=1` を設定します。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、`ENABLE_PROMPT_CACHING_1H=1` を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます。レート制限を高くするには、Google Cloud サポートに連絡してください。Vertex AI を使用する場合、Google Cloud 認証情報を通じて認証が処理されるため、`/login` および `/logout` コマンドは無効になります。
 
-[MCP tool search](/ja/mcp#scale-with-mcp-tool-search)は、エンドポイントが必要なベータヘッダーを受け入れないため、Vertex AI ではデフォルトで無効になっています。すべての MCP ツール定義は代わりに事前にロードされます。オプトインするには、`ENABLE_TOOL_SEARCH=true` を設定します。
+[MCP tool search](/ja/mcp#scale-with-mcp-tool-search)は、エンドポイントが必要なベータヘッダーを受け入れないため、Vertex AI ではデフォルトで無効になっています。すべての MCP ツール定義は代わりに事前にロードされます。`ENABLE_TOOL_SEARCH=true` を設定すると、Claude Code はヘッダーを送信するように強制されます。これにより、Vertex AI がリクエストを拒否します。
 
 ### 5. モデルバージョンをピン留めする
 
@@ -212,7 +212,9 @@ Claude Code は、ピン留め変数が設定されていない場合、これ�
 | モデルタイプ   | デフォルト値                       |
 | :------- | :--------------------------- |
 | プライマリモデル | `claude-sonnet-4-5@20250929` |
-| 小型/高速モデル | `claude-haiku-4-5@20251001`  |
+| 小型/高速モデル | プライマリモデルと同じ                  |
+
+セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Vertex AI では、Haiku がすべてのプロジェクトまたはリージョンで有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をプロジェクトで利用可能なモデル ID に設定します。
 
 モデルをさらにカスタマイズするには、以下を実行します。
 
