@@ -1,0 +1,337 @@
+{
+  "id": "20260515-042305",
+  "timestamp": "2026-05-15T04:23:05.175Z",
+  "aiSummary": "エージェントビューのセッション表示名を任意に設定できる--nameフラグが追加されました。デバッグモードを有効化するためのDEBUG環境変数の導入や、サブエージェント実行時のコストや使用統計をPostToolUseフックで取得する方法が詳細に定義されています。/statusコマンドで確認できる設定ソースの表示内容が整理され、どの設定レイヤーが適用されているかより明確に把握できるようになりました。",
+  "files": [
+    {
+      "filename": "agent-view.md",
+      "additions": 6,
+      "deletions": 0,
+      "explanation": "セッションに自動生成された名前ではなく、任意の表示名を割り当てるための--nameフラグの使用方法が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -248,6 +248,12 @@ To run a specific subagent as the session's main agent, combine `--bg` with `--a",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude --agent code-reviewer --bg \"address review comments on PR 1234\""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Pass `--name` to set the session's display name in agent view instead of the auto-generated one:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude --bg --name \"flaky-test-fix\" \"investigate the flaky SettingsChangeDetector test\""
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After backgrounding, Claude prints the session's short ID and the commands for managing it:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "デバッグモードを有効にする新しいDEBUG環境変数と、CLAUDE_CODE_DEBUG_LOGS_DIR変数の挙動に関する詳細が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -70,7 +70,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_CERT` | Path to client certificate file for mTLS authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_KEY` | Path to client private key file for mTLS authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE` | Passphrase for encrypted CLAUDE\\_CODE\\_CLIENT\\_KEY (optional) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_DEBUG_LOGS_DIR` | Override the debug log file path. Despite the name, this is a file path, not a directory. Requires debug mode to be enabled separately via `--debug` or `/debug`: setting this variable alone does not enable logging. The [`--debug-file`](/en/cli-reference#cli-flags) flag does both at once. Defaults to `~/.claude/debug/<session-id>.txt` |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DEBUG_LOGS_DIR` | Override the debug log file path. Despite the name, this is a file path, not a directory. Requires debug mode to be enabled separately via `--debug`, `/debug`, or the `DEBUG` environment variable: setting this variable alone does not enable logging. The [`--debug-file`](/en/cli-reference#cli-flags) flag does both at once. Defaults to `~/.claude/debug/<session-id>.txt` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DEBUG_LOG_LEVEL` | Minimum log level written to the debug log file. Values: `verbose`, `debug` (default), `info`, `warn`, `error`. Set to `verbose` to include high-volume diagnostics like full status line command output, or raise to `error` to reduce noise |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_1M_CONTEXT` | Set to `1` to disable [1M context window](/en/model-config#extended-context) support. When set, 1M model variants are unavailable in the model picker. Useful for enterprise environments with compliance requirements |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Set to `1` to disable [adaptive reasoning](/en/model-config#adjust-effort-level) on Opus 4.6 and Sonnet 4.6 and fall back to the fixed thinking budget controlled by `MAX_THINKING_TOKENS`. Has no effect on Opus 4.7, which always uses adaptive reasoning |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -185,6 +185,7 @@ Claude Code supports the following environment variables to control its behavior",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENV_FILE` | Path to a shell script whose contents Claude Code runs before each Bash command in the same shell process, so exports in the file are visible to the command. Use to persist virtualenv or conda activation across commands. Also populated dynamically by [SessionStart](/en/hooks#persist-environment-variables), [Setup](/en/hooks#setup), [CwdChanged](/en/hooks#cwdchanged), and [FileChanged](/en/hooks#filechanged) hooks |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` | Prefix for auto-generated [Remote Control](/en/remote-control) session names when no explicit name is provided. Defaults to your machine's hostname, producing names like `myhost-graceful-unicorn`. The `--remote-control-session-name-prefix` CLI flag sets the same value for a single invocation |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_STREAM_IDLE_TIMEOUT_MS` | Timeout in milliseconds before the streaming idle watchdog closes a stalled connection. Default and minimum `300000` (5 minutes) for both the byte-level and event-level watchdogs; lower values are silently clamped to absorb extended thinking pauses and proxy buffering. For third-party providers, requires `CLAUDE_ENABLE_STREAM_WATCHDOG=1` |"
+            },
+            {
+              "type": "added",
+              "content": "| `DEBUG` | Set to `1` to enable debug mode, equivalent to launching with [`--debug`](/en/cli-reference#cli-flags). Debug logs are written to `~/.claude/debug/<session-id>.txt`, or to the path set by `CLAUDE_CODE_DEBUG_LOGS_DIR`. Only the truthy values `1`, `true`, `yes`, and `on` enable debug mode, so namespace patterns like `DEBUG=express:*` set for other tools do not trigger it |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_AUTOUPDATER` | Set to `1` to disable automatic background updates. Manual `claude update` still works. Use `DISABLE_UPDATES` to block both |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_AUTO_COMPACT` | Set to `1` to disable automatic compaction when approaching the context limit. The manual `/compact` command remains available. Use when you want explicit control over when compaction occurs |"
+            },
+            {
+              "type": "context",
+              "content": "| `DISABLE_COMPACT` | Set to `1` to disable all compaction: both automatic compaction and the manual `/compact` command |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "goal.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "/goalコマンドを使用するために必要となる最小バージョンの要件が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,6 +7,8 @@ source: https://code.claude.com/docs/en/goal.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Set a completion condition with /goal and Claude keeps working across turns until the condition is met."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`/goal` requires Claude Code v2.1.139 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `/goal` command sets a completion condition and Claude keeps working toward it without you prompting each step. After each turn, a small fast model checks whether the condition holds. If not, Claude starts another turn instead of returning control to you. The goal clears automatically once the condition is met."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use a goal for substantial work with a verifiable end state:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 14,
+      "deletions": 0,
+      "explanation": "PostToolUseフックにおいて、完了したサブエージェントのトークン使用量や実行時間などのテレメトリデータを取得するフィールド定義が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1178,6 +1178,20 @@ Spawns a [subagent](/en/sub-agents).",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `subagent_type` | string | `\"Explore\"` | Type of specialized agent to use |"
+            },
+            {
+              "type": "context",
+              "content": "| `model` | string | `\"sonnet\"` | Optional model alias to override the default |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In `PostToolUse`, `tool_response` for a completed Agent call carries the subagent's final text along with usage telemetry. Read these fields to record per-subagent cost from a hook:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Type | Example | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `status` | string | `\"completed\"` | `\"completed\"` for synchronous calls, `\"async_launched\"` for `run_in_background: true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `agentId` | string | `\"a4d2c8f1e0b3a297\"` | Identifier for the subagent run |"
+            },
+            {
+              "type": "added",
+              "content": "| `content` | array | `[{\"type\": \"text\", \"text\": \"Found 12 endpoints...\"}]` | The subagent's final text blocks |"
+            },
+            {
+              "type": "added",
+              "content": "| `totalTokens` | number | `12450` | Total tokens billed across the subagent's turns |"
+            },
+            {
+              "type": "added",
+              "content": "| `totalDurationMs` | number | `48211` | Wall-clock duration of the subagent run |"
+            },
+            {
+              "type": "added",
+              "content": "| `totalToolUseCount` | number | `7` | Count of tool calls the subagent made |"
+            },
+            {
+              "type": "added",
+              "content": "| `usage` | object | `{\"input_tokens\": 8320, ...}` | Per-type token breakdown: `input_tokens`, `output_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens` |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For `run_in_background: true` calls, the tool returns immediately after launching the subagent, so `tool_response` carries no usage fields. It has `status: \"async_launched\"`, `agentId`, `description`, `prompt`, and `outputFile` instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "##### AskUserQuestion"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Asks the user one to four multiple-choice questions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "/statusコマンドで表示される設定ソースの読み込み状況や、各設定レイヤーの表示形式に関する説明が詳しく更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -526,7 +526,9 @@ For example, if your user settings set `permissions.defaultMode` to `acceptEdits",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Verify active settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `/status` inside Claude Code to see which settings sources are active and where they come from. The output shows each configuration layer (managed, user, project) along with its origin, such as `Enterprise managed settings (remote)`, `Enterprise managed settings (plist)`, `Enterprise managed settings (HKLM)`, `Enterprise managed settings (HKCU)`, or `Enterprise managed settings (file)`. If a settings file contains errors, `/status` reports the issue so you can fix it."
+            },
+            {
+              "type": "added",
+              "content": "Run `/status` inside Claude Code to see which settings sources are active. The Status tab includes a `Setting sources` line that lists each layer Claude Code loaded for the current session, such as `User settings` or `Project local settings`. When [managed settings](/en/managed-settings) are in effect, the entry shows the delivery channel in parentheses, for example `Enterprise managed settings (remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. A layer appears in the list only when that source is loaded with at least one key, so an empty list means no settings sources were found."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `Setting sources` line confirms which sources are being read. It does not show which layer supplied each individual key. The Config tab in the same dialog is an editor for a fixed set of toggles such as theme and verbose output, not a view of your `settings.json` contents. If a settings file contains errors, such as invalid JSON or a value that fails validation, `/status` reports the issue so you can fix it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Key points about the configuration system"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
