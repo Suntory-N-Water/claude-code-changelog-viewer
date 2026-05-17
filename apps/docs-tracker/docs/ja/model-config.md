@@ -195,7 +195,7 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 - **`/model` 内**：モデルを選択する際に左右矢印キーを使用して努力スライダーを調整
 - **`--effort` フラグ**：Claude Code を起動する際にレベル名を渡して、単一セッションのレベルを設定
 - **環境変数**：`CLAUDE_CODE_EFFORT_LEVEL` をレベル名または `auto` に設定
-- **設定**：設定ファイルで `effortLevel` を設定
+- **設定**：設定ファイルで `effortLevel` を `low`、`medium`、`high`、`xhigh` に設定します。`max` は [セッションのみ](#adjust-effort-level) であり、ここでは受け入れられません
 - **Skill と subagent frontmatter**：[skill](/ja/skills#frontmatter-reference) または [subagent](/ja/sub-agents#supported-frontmatter-fields) markdown ファイルで `effort` を設定して、その skill または subagent が実行される際の努力レベルをオーバーライド
 
 環境変数がすべての他の方法より優先され、次に設定されたレベル、次にモデルのデフォルトが優先されます。Frontmatter 努力は、その skill または subagent がアクティブな場合に適用され、セッションレベルをオーバーライドしますが、環境変数はオーバーライドしません。
