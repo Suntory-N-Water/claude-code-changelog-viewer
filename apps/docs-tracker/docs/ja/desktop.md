@@ -668,6 +668,7 @@ Desktop と CLI は同じ設定ファイルを読み取るため、セットア�
 - **Linux**：デスクトップアプリは macOS と Windows でのみ利用可能です。Linux では、[CLI](/ja/quickstart)を使用します。
 - **インラインコード提案**：Desktop はオートコンプリートスタイルの提案を提供しません。会話型プロンプトと明示的なコード変更を通じて機能します。
 - **エージェントチーム**：マルチエージェントオーケストレーションは [CLI](/ja/agent-teams) および [Agent SDK](/ja/headless) を通じて利用可能であり、Desktop では利用できません。
+- **ターミナルダイアログコマンド**：`/permissions`、`/config`、`/agents`、`/doctor` などのターミナルで対話型パネルを開く組み込みコマンドは、Code タブでは利用できず、`isn't available in this environment` で応答します。[設定ファイル](/ja/settings)を直接編集して権限ルールと設定を管理するか、スタンドアロン CLI からコマンドを実行します。
 
 ## トラブルシューティング
 

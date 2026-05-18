@@ -1,0 +1,272 @@
+{
+  "id": "20260518-183510",
+  "timestamp": "2026-05-18T18:35:10.920Z",
+  "aiSummary": "Python SDKにおけるquery関数のセッション管理仕様が更新され、オプション指定による継続的な会話が可能になったことが明記されました。デスクトップ環境のCodeタブにおいて、設定や権限を管理する一部のターミナルダイアログコマンドが利用不可であるという制約事項が追加されています。Windows環境のステータスライン設定におけるパス記述の注意点が拡充され、Git Bashによるバックスラッシュの誤認識を防ぐためのフォワードスラッシュ使用が推奨されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 4,
+      "deletions": 4,
+      "explanation": "query関数で新しいセッションを作成する際のデフォルト挙動が修正され、オプションによる会話の継続方法が詳しく追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -21,17 +21,17 @@ The Python SDK provides two ways to interact with Claude Code:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Feature | `query()` | `ClaudeSDKClient` |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Session** | Creates new session each time | Reuses same session |"
+            },
+            {
+              "type": "added",
+              "content": "| **Session** | Creates a new session by default | Reuses same session |"
+            },
+            {
+              "type": "context",
+              "content": "| **Conversation** | Single exchange | Multiple exchanges in same context |"
+            },
+            {
+              "type": "context",
+              "content": "| **Connection** | Managed automatically | Manual control |"
+            },
+            {
+              "type": "context",
+              "content": "| **Streaming Input** | ✅ Supported | ✅ Supported |"
+            },
+            {
+              "type": "context",
+              "content": "| **Interrupts** | ❌ Not supported | ✅ Supported |"
+            },
+            {
+              "type": "context",
+              "content": "| **Hooks** | ✅ Supported | ✅ Supported |"
+            },
+            {
+              "type": "context",
+              "content": "| **Custom Tools** | ✅ Supported | ✅ Supported |"
+            },
+            {
+              "type": "removed",
+              "content": "| **Continue Chat** | ❌ New session each time | ✅ Maintains conversation |"
+            },
+            {
+              "type": "added",
+              "content": "| **Continue Chat** | Manual via `continue_conversation` or `resume` | ✅ Automatic |"
+            },
+            {
+              "type": "context",
+              "content": "| **Use Case** | One-off tasks | Continuous conversations |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### When to use `query()` (new session each time)"
+            },
+            {
+              "type": "added",
+              "content": "### When to use `query()` (one-off tasks)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Best for:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -54,7 +54,7 @@ The Python SDK provides two ways to interact with Claude Code:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `query()`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Creates a new session for each interaction with Claude Code. Returns an async iterator that yields messages as they arrive. Each call to `query()` starts fresh with no memory of previous interactions."
+            },
+            {
+              "type": "added",
+              "content": "Creates a new session for each interaction with Claude Code by default. Returns an async iterator that yields messages as they arrive. Each call to `query()` starts fresh with no memory of previous interactions unless you pass `continue_conversation=True` or `resume` in [`ClaudeAgentOptions`](#claudeagentoptions). See [Sessions](/en/agent-sdk/sessions)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python"
+            },
+            {
+              "type": "context",
+              "content": "async def query("
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "デスクトップ版のCodeタブでは特定の対話型コマンドが実行できない制約と、代替となる設定ファイル編集などの方法が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -668,6 +668,7 @@ The following features are only available in the CLI or VS Code extension:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Linux**: the desktop app is available on macOS and Windows only. On Linux, use the [CLI](/en/quickstart)."
+            },
+            {
+              "type": "context",
+              "content": "- **Inline code suggestions**: Desktop does not provide autocomplete-style suggestions. It works through conversational prompts and explicit code changes."
+            },
+            {
+              "type": "context",
+              "content": "- **Agent teams**: multi-agent orchestration is available via the [CLI](/en/agent-teams) and [Agent SDK](/en/headless), not in Desktop."
+            },
+            {
+              "type": "added",
+              "content": "- **Terminal-dialog commands**: built-in commands that open an interactive panel in the terminal, such as `/permissions`, `/config`, `/agents`, and `/doctor`, are not available in the Code tab and reply with `isn't available in this environment`. Edit [settings files](/en/settings) directly to manage permission rules and configuration, or run the command from the standalone CLI."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 6,
+      "deletions": 1,
+      "explanation": "Windows環境でのパス指定時にバックスラッシュがエスケープ文字として処理される問題への対策として、フォワードスラッシュの使用が推奨されています。",
+      "hunks": [
+        {
+          "header": "@@ -865,7 +865,11 @@ process.stdin.on('end', () => {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Windows configuration"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Windows, Claude Code runs status line commands through Git Bash when Git Bash is installed, or through PowerShell when Git Bash is absent. To run a PowerShell script as your status line, invoke it via `powershell`; this works from either shell:"
+            },
+            {
+              "type": "added",
+              "content": "On Windows, Claude Code runs status line commands through Git Bash when Git Bash is installed, or through PowerShell when Git Bash is absent."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Git Bash treats unquoted backslashes as escape characters, so a Windows-style path such as `C:\\Users\\username\\script.mjs` reaches the script runner with its separators removed and the command fails without a visible error. Write file paths in the `command` string with forward slashes, as shown in the examples below. The `~` shorthand also works and expands to your Windows home directory."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To run a PowerShell script as your status line, invoke it via `powershell`. This works whether Claude Code routes the command through Git Bash or PowerShell:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json settings.json theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -944,6 +948,7 @@ Community projects like [ccstatusline](https://github.com/sirmalloc/ccstatusline",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Verify your script is executable: `chmod +x ~/.claude/statusline.sh`"
+            },
+            {
+              "type": "context",
+              "content": "- Check that your script outputs to stdout, not stderr"
+            },
+            {
+              "type": "context",
+              "content": "- Run your script manually to verify it produces output"
+            },
+            {
+              "type": "added",
+              "content": "- On Windows with Git Bash installed, backslashes in the `command` path are likely being consumed as escape characters before the script runs. Use forward slashes in the path. See [Windows configuration](#windows-configuration)."
+            },
+            {
+              "type": "context",
+              "content": "- If `disableAllHooks` is set to `true` in your settings, the status line is also disabled. Remove this setting or set it to `false` to re-enable."
+            },
+            {
+              "type": "context",
+              "content": "- Run `claude --debug` to log the exit code and stderr from the first status line invocation in a session"
+            },
+            {
+              "type": "context",
+              "content": "- Ask Claude to read your settings file and execute the `statusLine` command directly to surface errors"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
