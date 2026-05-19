@@ -3,7 +3,7 @@ title: desktop
 source: https://code.claude.com/docs/ja/desktop.md
 ---
 
-# Claude Code Desktop を使用する
+# Desktop application
 
 > Claude Code Desktop をさらに活用する：Git 分離による並列セッション、ドラッグアンドドロップペインレイアウト、統合ターミナルとファイルエディタ、サイドチャット、コンピュータ使用、電話から Dispatch セッションを送信、ビジュアル diff レビュー、アプリプレビュー、PR 監視、コネクタ、エンタープライズ設定。
 

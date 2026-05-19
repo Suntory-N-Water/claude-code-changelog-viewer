@@ -19,7 +19,7 @@ source: https://code.claude.com/docs/ja/plugins-reference.md
 
 プラグインは Claude Code に skills を追加し、`/name` ショートカットを作成します。これらは、あなたまたは Claude が呼び出すことができます。
 
-**場所**: プラグインルートの `skills/` または `commands/` ディレクトリ
+**場所**: プラグインルートの `skills/` または `commands/` ディレクトリ、またはプラグインルートの単一の `SKILL.md` ファイル
 
 **ファイル形式**: Skills はディレクトリで `SKILL.md` を含みます。commands はシンプルなマークダウンファイルです。
 
@@ -360,6 +360,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 ```json
 {
   "name": "plugin-name",
+  "displayName": "Plugin Name",
   "version": "1.2.0",
   "description": "Brief plugin description",
   "author": {
@@ -404,6 +405,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
 | `$schema` | string | エディタのオートコンプリートと検証用の JSON Schema URL。Claude Code はロード時にこのフィールドを無視します。 | `"https://json.schemastore.org/claude-code-plugin-manifest.json"` |
+| `displayName` | string | `/plugin` ピッカーおよび他の UI サーフェスに表示される人間が読める名前。省略された場合は `name` にフォールバックします。`name` とは異なり、スペースと任意の大文字小文字を含むことができます。名前空間またはルックアップには使用されません。Claude Code v2.1.143 以降が必要です。 | `"Deployment Tools"` |
 | `version` | string | オプション。セマンティックバージョン。これを設定するとプラグインをそのバージョン文字列にピン留めするため、ユーザーはバージョンをバンプしたときのみ更新を受け取ります。省略された場合、Claude Code は git コミット SHA にフォールバックするため、すべてのコミットが新しいバージョンとして扱われます。マーケットプレイスエントリにも設定されている場合、`plugin.json` が優先されます。[バージョン管理](#version-management)を参照してください。 | `"2.1.0"` |
 | `description` | string | プラグインの目的の簡潔な説明 | `"Deployment automation tools"` |
 | `author` | object | 著者情報 | `{"name": "Dev Team", "email": "dev@company.com"}` |
@@ -517,6 +519,8 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 - カスタムパスからのコンポーネントは同じ命名と名前空間ルールを使用します
 - 複数のパスを配列として指定できます
 - skill パスが `SKILL.md` を直接含むディレクトリを指す場合（例: `"skills": ["./"]` がプラグインルートを指す）、`SKILL.md` の frontmatter `name` フィールドが skill の呼び出し名を決定します。これはインストールディレクトリに関係なく安定した名前を提供します。frontmatter に `name` が設定されていない場合、ディレクトリ basename がフォールバックとして使用されます。
+
+ルートに `SKILL.md` があり、`skills/` サブディレクトリがなく、`skills` マニフェストフィールドがないプラグインは、Claude Code v2.1.142 以降で単一 skill プラグインとして自動的に読み込まれます。このレイアウトの場合、`plugin.json` で `"skills": ["./"]` を設定する必要はありません。skill の呼び出し名は上記と同じルールに従います: frontmatter `name` フィールド、またはフォールバックとしてのディレクトリ basename。
 
 **パスの例**:
 
@@ -803,7 +807,7 @@ claude plugin prune [options]
 
 ### plugin enable
 
-無効なプラグインを有効にします。
+無効なプラグインを有効にします。プラグインが [dependencies](/ja/plugin-dependencies) を宣言している場合、Claude Code はそれらを同じスコープで推移的に有効にし、依存関係がインストールされていない場合はコマンドが失敗します。
 
 ```bash
 claude plugin enable <plugin> [options]
@@ -822,7 +826,7 @@ claude plugin enable <plugin> [options]
 
 ### plugin disable
 
-プラグインをアンインストールせずに無効にします。
+プラグインをアンインストールせずに無効にします。別の有効なプラグインが [ターゲットに依存している](/ja/plugin-dependencies#enable-or-disable-a-plugin-with-dependencies) 場合は失敗します。エラーメッセージには、最初にすべての依存プラグインを無効にするチェーンコマンドが含まれます。
 
 ```bash
 claude plugin disable <plugin> [options]
@@ -878,7 +882,7 @@ claude plugin list [options]
 
 ### plugin details
 
-プラグインのコンポーネントインベントリと予想トークンコストを表示します。出力には、プラグインが提供するすべてのコンポーネントがリストアップされ、Skills（スキルとコマンド）、Agents、Hooks、MCP サーバーとしてグループ化され、各セッションに追加されるトークン数の推定値が表示されます。
+プラグインのコンポーネントインベントリと予想トークンコストを表示します。出力には、プラグインが提供するすべてのコンポーネントがリストアップされ、Skills、Agents、Hooks、MCP サーバー、LSP サーバーとしてグループ化され、各セッションに追加されるトークン数の推定値が表示されます。Skills グループには `skills/` と `commands/` エントリの両方が含まれます。
 
 ```bash
 claude plugin details <name>
@@ -911,6 +915,7 @@ Component inventory
   Agents (0)
   Hooks (1)  (harness-only — no model context cost)
   MCP servers (0)
+  LSP servers (0)
 
 Projected token cost
   Always-on:   ~180 tok   added to every session

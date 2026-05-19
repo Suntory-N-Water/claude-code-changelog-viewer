@@ -143,7 +143,7 @@ Be concise and actionable.
 | `owner` | object | マーケットプレイスメンテナー情報（[以下のフィールドを参照](#owner-fields)） | |
 | `plugins` | array | 利用可能なプラグインのリスト | 以下を参照 |
 
-**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません。`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`knowledge-work-plugins`、`life-sciences`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-tools-v2` など）もブロックされています。
+**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません。`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`anthropic-agent-skills`、`knowledge-work-plugins`、`life-sciences`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-tools-v2` など）もブロックされています。
 
 ### 所有者フィールド
 
@@ -181,6 +181,7 @@ Be concise and actionable.
 
 | フィールド | タイプ | 説明 |
 | :- | :- | :- |
+| `displayName` | string | UI サーフェスに表示される人間が読める名前。省略された場合は `name` にフォールバックします。スペースと任意の大文字小文字を含めることができます。名前空間指定またはルックアップには使用されません。Claude Code v2.1.143 以降が必要です。 |
 | `description` | string | プラグインの簡潔な説明 |
 | `version` | string | プラグインバージョン。設定されている場合（ここまたは `plugin.json` で）、プラグインはこの文字列にピン留めされ、ユーザーは変更時にのみ更新を受け取ります。省略すると、git コミット SHA にフォールバックします。[バージョン解決](#version-resolution-and-release-channels)を参照してください。 |
 | `author` | object | プラグイン作成者情報（`name` は必須、`email` はオプション） |

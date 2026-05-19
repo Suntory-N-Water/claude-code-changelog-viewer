@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/en/agent-sdk/todo-tracking.md
 
 Todo tracking provides a structured way to manage tasks and display progress to users. The Claude Agent SDK includes built-in todo functionality that helps organize complex workflows and keep users informed about task progression.
 
-`TodoWrite` is the current default in the Agent SDK and the examples on this page use it. The replacement Task tools are available now behind `CLAUDE_CODE_ENABLE_TASKS=1` and will become the default in a future release. See [Migrate to Task tools](#migrate-to-task-tools) for how monitoring code changes.
+As of TypeScript Agent SDK 0.3.142 and Claude Code v2.1.142, sessions use the structured Task tools `TaskCreate`, `TaskUpdate`, `TaskGet`, and `TaskList` instead of `TodoWrite`. See [Migrate to Task tools](#migrate-to-task-tools) for how monitoring code changes. The examples on this page set `CLAUDE_CODE_ENABLE_TASKS=0` to keep showing `TodoWrite` for sessions that have not migrated yet.
 
 ### Todo Lifecycle
 
@@ -38,7 +38,9 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 
 for await (const message of query({
   prompt: "Optimize my React app performance and track progress with todos",
-  options: { maxTurns: 15 }
+  // Re-enable TodoWrite, which this example monitors. Without it, the SDK uses
+  // Task tools instead and these tool_use blocks never appear.
+  options: { maxTurns: 15, env: { ...process.env, CLAUDE_CODE_ENABLE_TASKS: "0" } }
 })) {
   // Todo updates are reflected in the message stream
   if (message.type === "assistant") {
@@ -63,7 +65,9 @@ from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ToolUs
 
 async for message in query(
     prompt="Optimize my React app performance and track progress with todos",
-    options=ClaudeAgentOptions(max_turns=15),
+    # Re-enable TodoWrite, which this example monitors. Without it, the SDK uses
+    # Task tools instead and these tool_use blocks never appear.
+    options=ClaudeAgentOptions(max_turns=15, env={"CLAUDE_CODE_ENABLE_TASKS": "0"}),
 ):
     # Todo updates are reflected in the message stream
     if isinstance(message, AssistantMessage):
@@ -112,7 +116,8 @@ class TodoTracker {
   async trackQuery(prompt: string) {
     for await (const message of query({
       prompt,
-      options: { maxTurns: 20 }
+      // Re-enable TodoWrite, which this tracker watches for.
+      options: { maxTurns: 20, env: { ...process.env, CLAUDE_CODE_ENABLE_TASKS: "0" } }
     })) {
       if (message.type === "assistant") {
         for (const block of message.message.content) {
@@ -166,7 +171,11 @@ class TodoTracker:
             print(f"{i + 1}. {icon} {text}")
 
     async def track_query(self, prompt: str):
-        async for message in query(prompt=prompt, options=ClaudeAgentOptions(max_turns=20)):
+        async for message in query(
+            prompt=prompt,
+            # Re-enable TodoWrite, which this tracker watches for.
+            options=ClaudeAgentOptions(max_turns=20, env={"CLAUDE_CODE_ENABLE_TASKS": "0"}),
+        ):
             if isinstance(message, AssistantMessage):
                 for block in message.content:
                     if isinstance(block, ToolUseBlock) and block.name == "TodoWrite":
@@ -180,7 +189,7 @@ await tracker.track_query("Build a complete authentication system with todos")
 
 ## Migrate to Task tools
 
-The Task tools split the single `TodoWrite` call into `TaskCreate` for each new item and `TaskUpdate` for each status change, with `TaskList` and `TaskGet` available for the model to read back the current list. Your monitoring code still inspects `tool_use` blocks in the assistant stream, but maintains a map keyed by task ID instead of replacing the whole list on every call. To opt in before the Task tools become the default, set `CLAUDE_CODE_ENABLE_TASKS=1` in `options.env`.
+The Task tools split the single `TodoWrite` call into `TaskCreate` for each new item and `TaskUpdate` for each status change, with `TaskList` and `TaskGet` available for the model to read back the current list. Your monitoring code still inspects `tool_use` blocks in the assistant stream, but maintains a map keyed by task ID instead of replacing the whole list on every call. The Task tools are the default as of TypeScript Agent SDK 0.3.142 and Claude Code v2.1.142, so no `options.env` change is needed.
 
 | With `TodoWrite` | With Task tools |
 | - | - |
@@ -196,7 +205,6 @@ import { query } from "@anthropic-ai/claude-agent-sdk";
 
 for await (const message of query({
   prompt: "Optimize my React app performance",
-  options: { env: { ...process.env, CLAUDE_CODE_ENABLE_TASKS: "1" } },
 })) {
   if (message.type !== "assistant") continue;
   for (const block of message.message.content) {
@@ -213,11 +221,10 @@ for await (const message of query({
 ```
 
 ```python Python theme={null}
-from claude_agent_sdk import query, ClaudeAgentOptions, AssistantMessage, ToolUseBlock
+from claude_agent_sdk import query, AssistantMessage, ToolUseBlock
 
 async for message in query(
     prompt="Optimize my React app performance",
-    options=ClaudeAgentOptions(env={"CLAUDE_CODE_ENABLE_TASKS": "1"}),
 ):
     if not isinstance(message, AssistantMessage):
         continue

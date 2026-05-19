@@ -262,6 +262,7 @@ v2.1.119 より前のバージョンでは、`autoScrollEnabled`、`editorMode`�
 | `worktree.baseRef` | 新しい worktrees がブランチする ref。`"fresh"`（デフォルト）は `origin/<default-branch>` からブランチして、リモートと一致するクリーンツリーを取得します。`"head"` は現在のローカル `HEAD` からブランチするため、プッシュされていないコミットとフィーチャーブランチの状態が worktree に存在します。`--worktree`、`EnterWorktree` ツール、および subagent 分離に適用されます | `"head"` |
 | `worktree.symlinkDirectories` | メインリポジトリから各 worktree にシンボリックリンクするディレクトリ。ディスク上の大規模なディレクトリの重複を避けるため。デフォルトではディレクトリはシンボリックリンクされません | `["node_modules", ".cache"]` |
 | `worktree.sparsePaths` | git sparse-checkout（cone モード）を通じて各 worktree でチェックアウトするディレクトリ。リストされたパスのみがディスクに書き込まれます。大規模なモノレポではより高速です | `["packages/my-app", "shared/utils"]` |
+| `worktree.bgIsolation` | [バックグラウンドセッション](/ja/agent-view#how-file-edits-are-isolated)の分離モード。`"worktree"`（デフォルト）は `EnterWorktree` が呼び出されるまでメインチェックアウトで `Edit`/`Write` をブロックします。`"none"` はバックグラウンドジョブがワーキングコピーを直接編集できるようにします。Claude Code v2.1.143 以降が必要です | `"none"` |
 
 gitignored ファイル（`.env` など）を新しい worktrees にコピーするには、設定の代わりにプロジェクトルートの [`.worktreeinclude` ファイル](/ja/worktrees#copy-gitignored-files-into-worktrees)を使用します。
 
@@ -273,7 +274,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `ask` | ツール使用時に確認を求める権限ルールの配列。[権限ルール構文](#permission-rule-syntax)を参照してください | `[ "Bash(git push *)" ]` |
 | `deny` | ツール使用を拒否する権限ルールの配列。これを使用して、機密ファイルを Claude Code アクセスから除外します。[権限ルール構文](#permission-rule-syntax)と [Bash 権限制限](/ja/permissions#tool-specific-permission-rules)を参照してください | `[ "WebFetch", "Bash(curl *)", "Read(./.env)", "Read(./secrets/**)" ]` |
 | `additionalDirectories` | Claude がアクセスできる追加の[作業ディレクトリ](/ja/permissions#working-directories) | `[ "../docs/" ]` |
-| `defaultMode` | Claude Code を開くときのデフォルト[権限モード](/ja/permission-modes)。有効な値：`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、`bypassPermissions`。`--permission-mode` CLI フラグは単一セッションのこの設定をオーバーライドします | `"acceptEdits"` |
+| `defaultMode` | Claude Code を開くときのデフォルト[権限モード](/ja/permission-modes)。有効な値：`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、`bypassPermissions`。Claude Code v2.1.142 以降、`auto` はプロジェクトまたはローカル設定（`.claude/settings.json`、`.claude/settings.local.json`）で設定されている場合は無視されるため、リポジトリはそれ自体に自動モードを付与できません。代わりに `~/.claude/settings.json` で設定します。`--permission-mode` CLI フラグは単一セッションのこの設定をオーバーライドします | `"acceptEdits"` |
 | `disableBypassPermissionsMode` | `"disable"` に設定して `bypassPermissions` モードの有効化を防止します。これにより `--dangerously-skip-permissions` フラグが無効になります。通常は [managed 設定](/ja/permissions#managed-settings)に配置されます。ユーザーはこれをオーバーライドできません | `"disable"` |
 | `skipDangerousModePermissionPrompt` | `--dangerously-skip-permissions` または `defaultMode: "bypassPermissions"` を通じてバイパス権限モードに入る前に表示される確認プロンプトをスキップします。信頼されていないリポジトリがプロンプトを自動バイパスするのを防ぐため、プロジェクト設定（`.claude/settings.json`）で設定されている場合は無視されます | `true` |
 
@@ -522,7 +523,9 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 
 ### アクティブな設定を確認
 
-Claude Code 内で `/status` を実行して、どの設定ソースがアクティブで、どこから来ているかを確認します。出力は、`Enterprise managed settings (remote)`、`Enterprise managed settings (plist)`、`Enterprise managed settings (HKLM)`、`Enterprise managed settings (HKCU)`、または `Enterprise managed settings (file)` などの出所を含む各構成レイヤー（managed、ユーザー、プロジェクト）を表示します。設定ファイルにエラーが含まれている場合、`/status` は問題を報告して修正できるようにします。
+Claude Code 内で `/status` を実行して、どの設定ソースがアクティブで、どこから来ているかを確認します。Status タブには、`Setting sources` 行が含まれており、Claude Code が現在のセッション用に読み込んだ各レイヤーをリストします。たとえば、`User settings` または `Project local settings` などです。[managed 設定](/ja/managed-settings)が有効な場合、エントリは配信チャネルを括弧内に表示します。たとえば、`Enterprise managed settings (remote)`、`(plist)`、`(HKLM)`、`(HKCU)`、または `(file)` などです。レイヤーは、そのソースが少なくとも 1 つのキーで読み込まれた場合にのみリストに表示されるため、空のリストは設定ソースが見つからなかったことを意味します。
+
+`Setting sources` 行は、どのソースが読み込まれているかを確認します。各個別キーがどのレイヤーから供給されたかは表示されません。同じダイアログの Config タブは、テーマや詳細出力などの固定されたトグルセットのエディターであり、`settings.json` コンテンツのビューではありません。設定ファイルに無効な JSON や検証に失敗した値などのエラーが含まれている場合、`/status` は問題を報告して修正できるようにします。
 
 ### 構成システムの重要なポイント
 

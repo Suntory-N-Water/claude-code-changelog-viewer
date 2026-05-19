@@ -419,10 +419,10 @@ git status --short
 
 | アプローチ | システムプロンプト | タスク | また読み込む |
 | :- | :- | :- | :- |
-| `context: fork` を持つスキル | エージェントタイプから（`Explore`、`Plan` など） | SKILL.md コンテンツ | CLAUDE.md |
+| `context: fork` を持つスキル | エージェントタイプから | SKILL.md コンテンツ | CLAUDE.md（エージェントが Explore または Plan の場合を除く） |
 | `skills` フィールドを持つサブエージェント | サブエージェントのマークダウン本体 | Claude の委任メッセージ | プリロードされたスキル + CLAUDE.md |
 
-`context: fork` を使用すると、スキルにタスクを記述し、実行するエージェントタイプを選択します。逆の場合（スキルをリファレンス資料として使用するカスタムサブエージェントを定義する）については、[サブエージェント](/ja/sub-agents#preload-skills-into-subagents)を参照してください。
+`context: fork` を使用すると、スキルにタスクを記述し、実行するエージェントタイプを選択します。組み込みの Explore および Plan エージェントは[CLAUDE.md と git status をスキップ](/ja/sub-agents#what-loads-at-startup)してコンテキストを小さく保つため、`agent: Explore` を使用するフォークされたスキルは SKILL.md コンテンツとエージェント自体のシステムプロンプトのみを見ます。逆の場合（スキルをリファレンス資料として使用するカスタムサブエージェントを定義する）については、[サブエージェント](/ja/sub-agents#preload-skills-into-subagents)を参照してください。
 
 #### 例：Explore エージェントを使用した研究スキル
 

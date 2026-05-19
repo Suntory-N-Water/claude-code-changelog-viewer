@@ -861,11 +861,11 @@ Hook は設定されていますが、実行されません。
 - JSON が有効であることを確認します（末尾のコンマとコメントは許可されていません）
 - 設定ファイルが正しい場所にあることを確認します：プロジェクト hooks の場合は `.claude/settings.json`、グローバル hooks の場合は `~/.claude/settings.json`
 
-### Stop hook が永遠に実行される
+### Stop hook がブロック上限に達する
 
-Claude は無限ループで作業を続け、停止する代わりに。
+Claude は無限ループで作業を続け、停止する代わりに、Stop hook が連続して 8 回ブロックしたという警告でターンを終了します。
 
-Stop hook スクリプトは、それが既にトリガーされたかどうかをチェックする必要があります。JSON 入力から `stop_hook_active` フィールドを解析し、`true` の場合は早期に終了します：
+Claude Code は Stop hook が進捗なしで 8 回連続でブロックした後、それをオーバーライドします。Hook スクリプトは、それが既にトリガーされたかどうかをチェックする必要があります。JSON 入力から `stop_hook_active` フィールドを解析し、`true` の場合は早期に終了します：
 
 ```bash
 #!/bin/bash
@@ -875,6 +875,8 @@ if [ "$(echo "$INPUT" | jq -r '.stop_hook_active')" = "true" ]; then
 fi
 # ... hook ロジックの残り
 ```
+
+Hook が収束するために 8 回以上の反復が正当に必要な場合は、[`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`](/ja/env-vars) で上限を引き上げます。
 
 ### JSON 検証に失敗しました
 
