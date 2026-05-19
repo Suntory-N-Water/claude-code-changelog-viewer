@@ -1,0 +1,398 @@
+{
+  "id": "20260519-042542",
+  "timestamp": "2026-05-19T04:25:42.853Z",
+  "aiSummary": "errorsにおいて、組織設定によるサブスクリプションログインの制限や利用規約違反時の対応方法が詳細に追記されました。glossaryとsecurityでは、ホームディレクトリで実行した際の信頼設定が永続化されない仕様変更が説明されています。voice-dictationでは、音声入力のカスタムキー設定がデフォルト設定を上書きする動作仕様が明確化されました。管理者がAnthropic APIキーの使用を推奨する場合などの具体的なトラブルシューティング手順が整備されています。",
+  "files": [
+    {
+      "filename": "errors.md",
+      "additions": 34,
+      "deletions": 0,
+      "explanation": "組織によるサブスクリプションアクセスの無効化エラーと、利用規約違反による応答拒否時の具体的な対処手順が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -32,6 +32,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Not logged in · Please run /login` | [Authentication](#not-logged-in) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Invalid API key` | [Authentication](#invalid-api-key) |"
+            },
+            {
+              "type": "context",
+              "content": "| `This organization has been disabled` | [Authentication](#this-organization-has-been-disabled) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Your organization has disabled Claude subscription access` | [Authentication](#your-organization-has-disabled-claude-subscription-access) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Routines are disabled by your organization's policy` | [Authentication](#routines-are-disabled-by-your-organizations-policy) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OAuth token revoked` / `OAuth token has expired` | [Authentication](#oauth-token-revoked-or-expired) |"
+            },
+            {
+              "type": "context",
+              "content": "| `does not meet scope requirement user:profile` | [Authentication](#oauth-scope-requirement) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -49,6 +50,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `thinking.type.enabled is not supported for this model` | [Request errors](#thinking-type-enabled-is-not-supported-for-this-model) |"
+            },
+            {
+              "type": "context",
+              "content": "| `max_tokens must be greater than thinking.budget_tokens` | [Request errors](#thinking-budget-exceeds-output-limit) |"
+            },
+            {
+              "type": "context",
+              "content": "| `API Error: 400 due to tool use concurrency issues` | [Request errors](#tool-use-or-thinking-block-mismatch) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Claude Code is unable to respond to this request, which appears to violate our Usage Policy` | [Request errors](#usage-policy-refusal) |"
+            },
+            {
+              "type": "context",
+              "content": "| Responses seem lower quality than usual | [Response quality](#responses-seem-lower-quality-than-usual) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Automatic retries"
+            }
+          ]
+        },
+        {
+          "header": "@@ -282,6 +284,22 @@ Environment variables take precedence over `/login`, so a key exported in your s",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Run `/status` afterward to confirm the active credential is your subscription"
+            },
+            {
+              "type": "context",
+              "content": "- If no environment variable is set and the error persists, the disabled organization is the one tied to your `/login`. Contact support or sign in with a different account."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Your organization has disabled Claude subscription access"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Your Claude organization does not allow signing in to Claude Code with a subscription login. Running `/login` again with the same account returns the same error."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Your organization has disabled Claude subscription access for Claude Code · Use an Anthropic API key instead, or ask your admin to enable access"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This is a server-side organization setting, so it cannot be overridden from local settings, environment variables, or CLI flags. The Agent SDK and `-p` non-interactive mode surface this as the `oauth_org_not_allowed` error code."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Ask your admin to enable Claude Code access for your organization"
+            },
+            {
+              "type": "added",
+              "content": "- Authenticate with a Console API key instead of your subscription. See [Claude Console authentication](/en/authentication#claude-console-authentication) for setup."
+            },
+            {
+              "type": "added",
+              "content": "- If you are the admin and do not see an option to enable access, contact [Anthropic support](https://support.claude.com)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Routines are disabled by your organization's policy"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Your Team or Enterprise admin has turned off routines at the organization level. The error appears when you try to create or run a routine, including from `/schedule` and the [Routines](/en/routines) UI on claude.ai/code."
+            }
+          ]
+        },
+        {
+          "header": "@@ -572,6 +590,22 @@ All three variants mean the same thing: the sequence of `tool_use`, `tool_result",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Run `/rewind`, or press Esc twice, to step back to a checkpoint before the corrupted turn and continue from there. See [Checkpointing](/en/checkpointing) for how checkpoints are created and restored."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Usage Policy refusal"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The API declined to respond because content in the conversation triggered a [Usage Policy](https://www.anthropic.com/legal/aup) check. The message includes a Request ID you can quote to support if you believe the refusal is incorrect."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "API Error: Claude Code is unable to respond to this request, which appears to violate our Usage Policy (https://www.anthropic.com/legal/aup). Please double press esc to edit your last message or start a new session for Claude Code to assist with a different task."
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The check evaluates the full conversation, not only your latest prompt, so sending a new message in the same session usually re-triggers the same refusal. The same applies after exiting and reopening the session with `--continue` or `--resume`, since the transcript on disk still contains the triggering content."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Press Esc twice or run `/rewind` to step back to a checkpoint before the turn that triggered the refusal, then rephrase or take a different approach. See [Checkpointing](/en/checkpointing)."
+            },
+            {
+              "type": "added",
+              "content": "- If you cannot identify which turn caused it, run `/clear` to start a fresh conversation in the same project. Your previous conversation is preserved on disk and remains available in `/resume`."
+            },
+            {
+              "type": "added",
+              "content": "- In [non-interactive mode](/en/headless) (`-p`), where rewind is unavailable, retry with a rephrased prompt or start a new session without `--continue`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Responses seem lower quality than usual"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude's answers seem less capable than you expect but no error is shown, the cause is usually conversation state rather than the model itself. Claude Code does not silently change model versions. It can switch to a fallback model in specific cases such as an Opus quota being reached or a Bedrock or Vertex AI region lacking your model; the Model selection check below catches both, and [Model configuration](/en/model-config) explains when fallback applies."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "glossary.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ホームディレクトリにおける信頼設定がセッション限定となり、起動のたびに確認ダイアログが表示される仕様変更が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -207,7 +207,7 @@ Learn more: [Plugins](/en/plugins)",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Project trust"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A one-time dialog accepting a directory before Claude Code loads its configuration. Trust gates auto-installation of marketplace plugins and execution of project-defined hooks. Trusting a directory means its `.claude/settings.json`, `.mcp.json`, and other config files take effect."
+            },
+            {
+              "type": "added",
+              "content": "A dialog accepting a directory before Claude Code loads its configuration. Acceptance is saved per project directory, except your home directory, where trust is held for the current session only and the prompt reappears on each launch. Trust gates auto-installation of marketplace plugins and execution of project-defined hooks. Trusting a directory means its `.claude/settings.json`, `.mcp.json`, and other config files take effect."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Learn more: [The `.claude` directory](/en/claude-directory)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "security.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "ホームディレクトリで直接実行する場合、セキュリティ上の理由から信頼設定がディスクに保存されない制限事項が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -61,6 +61,7 @@ For full details, please review our [Commercial Terms of Service](https://www.an",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Isolated context windows**: Web fetch uses a separate context window to avoid injecting potentially malicious prompts"
+            },
+            {
+              "type": "context",
+              "content": "- **Trust verification**: First-time codebase runs and new MCP servers require trust verification"
+            },
+            {
+              "type": "context",
+              "content": "  - Note: Trust verification is disabled when running non-interactively with the `-p` flag. The exception is [`--worktree`](/en/worktrees), which still requires that trust has been accepted for the directory"
+            },
+            {
+              "type": "added",
+              "content": "  - Note: When you start Claude Code directly in your home directory, trust acceptance is held for the current session only and is not written to disk, so the prompt reappears on each launch. There is no setting to persist it. Start Claude Code from a project subdirectory instead, where trust acceptance is saved per directory"
+            },
+            {
+              "type": "context",
+              "content": "- **Command injection detection**: Suspicious bash commands require manual approval even if previously allowlisted"
+            },
+            {
+              "type": "context",
+              "content": "- **Fail-closed matching**: Unmatched commands default to requiring manual approval"
+            },
+            {
+              "type": "context",
+              "content": "- **Natural language descriptions**: Complex bash commands include explanations for user understanding"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "voice-dictation.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "カスタムキーを割り当てた際にデフォルトのスペースキーが自動的に置換される動作仕様について補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -137,7 +137,7 @@ The dictation key is bound to `voice:pushToTalk` in the `Chat` context and defau",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Setting `\"space\": null` removes the default binding. Omit it if you want both keys active."
+            },
+            {
+              "type": "added",
+              "content": "The `voice:pushToTalk` action uses one key at a time. When you bind a custom key, it replaces the default `Space` binding rather than adding a second trigger, so the `\"space\": null` line in this example is for clarity and can be omitted without changing behavior."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In hold mode, avoid binding a bare letter key like `v` since hold detection relies on key-repeat and the letter types into the prompt during warmup. Use `Space`, or use a modifier combination like `meta+k` to start recording on the first keypress with no warmup. Tap mode has no warmup, so most keys work."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
