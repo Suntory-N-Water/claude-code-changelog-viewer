@@ -123,7 +123,7 @@ Run `/plugin` to open the plugin manager. This opens a tabbed interface with fou
 
 Go to the **Discover** tab to see plugins from the marketplace you just added.
 
-Select a plugin to view its details. On Claude Code v2.1.143 and later, the details pane includes a **Context cost** estimate so you can see how many tokens the plugin will add to your [context window](/en/features-overview#understand-context-costs) every turn before you install it.
+Select a plugin to view its details. On Claude Code v2.1.143 and later, the details pane includes a **Context cost** estimate so you can see how many tokens the plugin will add to your [context window](/en/features-overview#understand-context-costs) every turn before you install it. On v2.1.144 and later, the pane also shows the plugin's **Last updated** date.
 
 Choose an installation scope:
 

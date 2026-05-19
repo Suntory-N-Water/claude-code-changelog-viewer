@@ -35,7 +35,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `claude project purge [path]` | プロジェクトのすべてのローカル Claude Code 状態を削除します：トランスクリプト、タスクリスト、デバッグログ、ファイル編集履歴、プロンプト履歴行、および `~/.claude.json` 内のプロジェクトエントリ。`[path]` を省略して、インタラクティブリストから選択します。フラグ：`--dry-run` でプレビュー、`-y`/`--yes` で確認をスキップ、`-i`/`--interactive` で各項目を確認、`--all` ですべてのプロジェクト。[ローカルデータをクリア](/ja/claude-directory#clear-local-data) を参照してください | `claude project purge ~/work/repo --dry-run` |
 | `claude remote-control` | [Remote Control](/ja/remote-control) サーバーを開始して、Claude.ai または Claude アプリから Claude Code を制御します。サーバーモード（ローカルインタラクティブセッションなし）で実行されます。[サーバーモードフラグ](/ja/remote-control#start-a-remote-control-session) を参照してください | `claude remote-control --name "My Project"` |
 | `claude respawn <id>` | 会話を保持したまま、[バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) を再開します。実行中または停止中。`--all` を使用してすべての実行中セッションを再開します。たとえば、更新された Claude Code バイナリを取得するため | `claude respawn 7c5dcf5d` |
-| `claude rm <id>` | [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) をリストから削除します | `claude rm 7c5dcf5d` |
+| `claude rm <id>` | [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) をリストから削除します。会話トランスクリプトはローカルマシンに残り、`claude --resume` を通じて利用可能です | `claude rm 7c5dcf5d` |
 | `claude setup-token` | CI とスクリプト用の長期間有効な OAuth トークンを生成します。ターミナルにトークンを出力し、保存しません。Claude サブスクリプションが必要です。[長期間有効なトークンを生成](/ja/authentication#generate-a-long-lived-token) を参照してください | `claude setup-token` |
 | `claude stop <id>` | [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) を停止します。`claude kill` も受け入れます | `claude stop 7c5dcf5d` |
 | `claude ultrareview [target]` | [ultrareview](/ja/ultrareview#run-ultrareview-non-interactively) を非対話的に実行します。結果を stdout に出力し、成功時は 0 で終了し、失敗時は 1 で終了します。`--json` を使用して生のペイロードを取得し、`--timeout <minutes>` を使用して 30 分のデフォルトをオーバーライドできます | `claude ultrareview 1234 --json` |
@@ -98,7 +98,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--remote-control`, `--rc` | [Remote Control](/ja/remote-control#start-a-remote-control-session) を有効にしてインタラクティブセッションを開始し、claude.ai または Claude アプリからも制御できるようにします。オプションでセッションの名前を渡すことができます | `claude --remote-control "My Project"` |
 | `--remote-control-session-name-prefix <prefix>` | 明示的な名前が設定されていない場合、自動生成される [Remote Control](/ja/remote-control) セッション名のプレフィックス。デフォルトはマシンのホスト名で、`myhost-graceful-unicorn` のような名前が生成されます。同じ効果を得るには `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` を設定してください | `claude remote-control --remote-control-session-name-prefix dev-box` |
 | `--replay-user-messages` | stdin からのユーザーメッセージを stdout に再発行して確認します。`--input-format stream-json` と `--output-format stream-json` が必要です | `claude -p --input-format stream-json --output-format stream-json --replay-user-messages` |
-| `--resume`, `-r` | ID または名前で特定のセッションを再開するか、セッションを選択するためのインタラクティブピッカーを表示します。このディレクトリを `/add-dir` で追加したセッションを含みます | `claude --resume auth-refactor` |
+| `--resume`, `-r` | ID または名前で特定のセッションを再開するか、セッションを選択するためのインタラクティブピッカーを表示します。このディレクトリを `/add-dir` で追加したセッションを含みます。v2.1.144 以降、[バックグラウンドセッション](/ja/agent-view) はピッカーに `bg` でマークされて表示されます | `claude --resume auth-refactor` |
 | `--session-id` | 会話に特定のセッション ID を使用します（有効な UUID である必要があります） | `claude --session-id "550e8400-e29b-41d4-a716-446655440000"` |
 | `--setting-sources` | 読み込む設定ソースのカンマ区切りリスト（`user`、`project`、`local`） | `claude --setting-sources user,project` |
 | `--settings` | 設定 JSON ファイルまたはインライン JSON 文字列へのパス。ここで設定した値は、このセッションの `settings.json` ファイル内の同じキーをオーバーライドします。省略したキーはファイルベースの値を保持します。[設定の優先順位](/ja/settings#settings-precedence) を参照してください | `claude --settings ./settings.json` |
