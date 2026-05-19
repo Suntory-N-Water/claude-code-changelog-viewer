@@ -137,7 +137,7 @@ claude --model opus
 
 Claude Code は、Opus の使用量閾値に達した場合、自動的に Sonnet にフォールバックする可能性があります。
 
-2026 年 4 月 23 日に、Enterprise 従量課金および Anthropic API ユーザーのデフォルトモデルが Opus 4.7 に変更されます。別のデフォルトを保つには、[サーバー管理設定](/ja/server-managed-settings) で `ANTHROPIC_MODEL` または `model` フィールドを設定します。
+2026 年 4 月 23 日に、Enterprise 従量課金および Anthropic API ユーザーのデフォルトモデルが Opus 4.7 に変更されます。別のデフォルトを保つには、[サーバー管理設定](/ja/server-managed-settings)で `ANTHROPIC_MODEL` または `model` フィールドを設定します。
 
 ### `opusplan` モデル設定
 
@@ -148,11 +148,11 @@ Claude Code は、Opus の使用量閾値に達した場合、自動的に Sonne
 
 これにより、両方の長所が得られます。計画用の Opus の優れた推論と、実行用の Sonnet の効率性です。
 
-Plan Mode の Opus フェーズは標準的な 200K コンテキストウィンドウで実行されます。[拡張コンテキスト](#extended-context) で説明されている自動 1M アップグレードは `opus` モデル設定に適用され、`opusplan` には拡張されません。
+Plan Mode の Opus フェーズは標準的な 200K コンテキストウィンドウで実行されます。[拡張コンテキスト](#extended-context)で説明されている自動 1M アップグレードは `opus` モデル設定に適用され、`opusplan` には拡張されません。
 
 ### 努力レベルの調整
 
-[努力レベル](https://platform.claude.com/docs/ja/build-with-claude/effort) は適応的推論を制御し、タスクの複雑さに基づいて各ステップで思考するかどうか、どの程度思考するかをモデルが決定できるようにします。低い努力はシンプルなタスクではより高速で安価ですが、高い努力は複雑な問題に対してより深い推論を提供します。
+[努力レベル](https://platform.claude.com/docs/ja/build-with-claude/effort)は適応的推論を制御し、タスクの複雑さに基づいて各ステップで思考するかどうか、どの程度思考するかをモデルが決定できるようにします。低い努力はシンプルなタスクではより高速で安価ですが、高い努力は複雑な問題に対してより深い推論を提供します。
 
 努力は Opus 4.7、Opus 4.6、Sonnet 4.6 でサポートされています。利用可能なレベルはモデルによって異なります。
 
@@ -195,8 +195,8 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 - **`/model` 内**：モデルを選択する際に左右矢印キーを使用して努力スライダーを調整
 - **`--effort` フラグ**：Claude Code を起動する際にレベル名を渡して、単一セッションのレベルを設定
 - **環境変数**：`CLAUDE_CODE_EFFORT_LEVEL` をレベル名または `auto` に設定
-- **設定**：設定ファイルで `effortLevel` を `low`、`medium`、`high`、`xhigh` に設定します。`max` は [セッションのみ](#adjust-effort-level) であり、ここでは受け入れられません
-- **Skill と subagent frontmatter**：[skill](/ja/skills#frontmatter-reference) または [subagent](/ja/sub-agents#supported-frontmatter-fields) markdown ファイルで `effort` を設定して、その skill または subagent が実行される際の努力レベルをオーバーライド
+- **設定**：設定ファイルで `effortLevel` を `low`、`medium`、`high`、`xhigh` に設定します。`max` は[セッションのみ](#adjust-effort-level)であり、ここでは受け入れられません
+- **Skill と subagent frontmatter**：[skill](/ja/skills#frontmatter-reference)または[subagent](/ja/sub-agents#supported-frontmatter-fields)markdown ファイルで `effort` を設定して、その skill または subagent が実行される際の努力レベルをオーバーライド
 
 環境変数がすべての他の方法より優先され、次に設定されたレベル、次にモデルのデフォルトが優先されます。Frontmatter 努力は、その skill または subagent がアクティブな場合に適用され、セッションレベルをオーバーライドしますが、環境変数はオーバーライドしません。
 
@@ -208,33 +208,33 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 
 Opus 4.7 は常に適応的推論を使用します。固定思考予算モードと `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` はそれに適用されません。
 
-Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を設定して、`MAX_THINKING_TOKENS` で制御される以前の固定思考予算に戻すことができます。[環境変数](/ja/env-vars) を参照してください。
+Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を設定して、`MAX_THINKING_TOKENS` で制御される以前の固定思考予算に戻すことができます。[環境変数](/ja/env-vars)を参照してください。
 
 ### 拡張思考
 
-拡張思考は、Claude が応答する前に発する推論です。[適応的推論](#adjust-effort-level) をサポートするモデルでは、努力レベルは思考がどの程度発生するかの主要な制御です。以下の設定は思考をオンまたはオフにし、それがどのように表示されるかを制御します。
+拡張思考は、Claude が応答する前に発する推論です。[適応的推論](#adjust-effort-level)をサポートするモデルでは、努力レベルは思考がどの程度発生するかの主要な制御です。以下の設定は思考をオンまたはオフにし、それがどのように表示されるかを制御します。
 
 | 制御 | 設定方法 |
 | :- | :- |
 | 現在のセッションのトグル | macOS では `Option+T`、Windows と Linux では `Alt+T` を押します |
 | グローバルデフォルトを設定 | `/config` を実行して思考モードをトグルします。`~/.claude/settings.json` に `alwaysThinkingEnabled` として保存されます |
-| 努力に関係なく無効化 | [`MAX_THINKING_TOKENS=0`](/ja/env-vars) を設定します。他の値は [固定思考予算](#adaptive-reasoning-and-fixed-thinking-budgets) でのみ適用されます |
+| 努力に関係なく無効化 | [`MAX_THINKING_TOKENS=0`](/ja/env-vars)を設定します。他の値は[固定思考予算](#adaptive-reasoning-and-fixed-thinking-budgets)でのみ適用されます |
 
-思考出力はデフォルトで折りたたまれています。`Ctrl+O` を押して詳細モードをトグルし、推論をグレーのイタリック体テキストとして表示します。Anthropic API 上のインタラクティブセッションはデフォルトで編集された思考ブロックを受け取るため、展開時に完全な要約を利用可能にしたい場合は [設定](/ja/settings) で `showThinkingSummaries: true` を設定します。折りたたまれたまたは編集された場合でも、生成されたすべての思考トークンに対して課金されます。
+思考出力はデフォルトで折りたたまれています。`Ctrl+O` を押して詳細モードをトグルし、推論をグレーのイタリック体テキストとして表示します。Anthropic API 上のインタラクティブセッションはデフォルトで編集された思考ブロックを受け取るため、展開時に完全な要約を利用可能にしたい場合は[設定](/ja/settings)で `showThinkingSummaries: true` を設定します。折りたたまれたまたは編集された場合でも、生成されたすべての思考トークンに対して課金されます。
 
 ### 拡張コンテキスト
 
-Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) をサポートしています。
+Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に[100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。
 
-利用可能性はモデルとプランによって異なります。Max、Team、Enterprise プランでは、Opus は追加設定なしで自動的に 1M コンテキストにアップグレードされます。これは Team Standard と Team Premium の両方のシートに適用されます。Sonnet with 1M context は自動アップグレードの一部ではなく、Max を含むすべてのサブスクリプションプランで [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要です。
+利用可能性はモデルとプランによって異なります。Max、Team、Enterprise プランでは、Opus は追加設定なしで自動的に 1M コンテキストにアップグレードされます。これは Team Standard と Team Premium の両方のシートに適用されます。Sonnet with 1M context は自動アップグレードの一部ではなく、Max を含むすべてのサブスクリプションプランで[追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要です。
 
 | プラン | Opus with 1M context | Sonnet with 1M context |
 | - | - | - |
-| Max、Team、Enterprise | サブスクリプションに含まれる | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要 |
-| Pro | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要 | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans) が必要 |
+| Max、Team、Enterprise | サブスクリプションに含まれる | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 |
+| Pro | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 |
 | API と従量課金 | フルアクセス | フルアクセス |
 
-1M コンテキストを完全に無効にするには、`CLAUDE_CODE_DISABLE_1M_CONTEXT=1` を設定します。これにより、1M モデルバリアントがモデルピッカーから削除されます。[環境変数](/ja/env-vars) を参照してください。
+1M コンテキストを完全に無効にするには、`CLAUDE_CODE_DISABLE_1M_CONTEXT=1` を設定します。これにより、1M モデルバリアントがモデルピッカーから削除されます。[環境変数](/ja/env-vars)を参照してください。
 
 1M コンテキストウィンドウは標準モデル価格を使用し、200K を超えるトークンに対するプレミアムはありません。拡張コンテキストがサブスクリプションに含まれているプランでは、使用量はサブスクリプションでカバーされたままです。拡張コンテキストに追加使用でアクセスするプランでは、トークンは追加使用に請求されます。
 
@@ -283,7 +283,7 @@ Claude Code は `ANTHROPIC_CUSTOM_MODEL_OPTION` で設定されたモデル ID �
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | `opus` に使用するモデル、または Plan Mode がアクティブな場合の `opusplan` に使用するモデル。 |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | `sonnet` に使用するモデル、または Plan Mode がアクティブでない場合の `opusplan` に使用するモデル。 |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `haiku` に使用するモデル、または [バックグラウンド機能](/ja/costs#background-token-usage) に使用するモデル |
-| `CLAUDE_CODE_SUBAGENT_MODEL` | [subagents](/ja/sub-agents) に使用するモデル |
+| `CLAUDE_CODE_SUBAGENT_MODEL` | すべての [subagents](/ja/sub-agents#choose-a-model) に使用するモデル。呼び出しごとの `model` パラメータと subagent 定義の `model` frontmatter の両方をオーバーライドします |
 
 注：`ANTHROPIC_SMALL_FAST_MODEL` は `ANTHROPIC_DEFAULT_HAIKU_MODEL` の代わりに非推奨です。
 

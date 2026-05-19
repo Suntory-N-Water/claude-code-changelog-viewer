@@ -25,15 +25,16 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `claude auth login` | Anthropic アカウントにサインインします。`--email` を使用してメールアドレスを事前入力し、`--sso` を使用して SSO 認証を強制し、`--console` を使用して Claude サブスクリプションの代わりに Anthropic Console で API 使用料金をサインインできます | `claude auth login --console` |
 | `claude auth logout` | Anthropic アカウントからログアウト | `claude auth logout` |
 | `claude auth status` | 認証ステータスを JSON として表示します。`--text` を使用して人間が読める形式で表示できます。ログイン済みの場合はコード 0 で終了し、ログインしていない場合は 1 で終了します | `claude auth status` |
-| `claude agents` | [エージェントビュー](/ja/agent-view) を開いて、並列バックグラウンドセッションを監視およびディスパッチします。`--cwd <path>` を使用して、そのディレクトリの下で開始されたセッションのみを表示します | `claude agents` |
+| `claude agents` | [エージェントビュー](/ja/agent-view) を開いて、並列バックグラウンドセッションを監視およびディスパッチします。`--cwd <path>` を使用して、そのディレクトリの下で開始されたセッションのみを表示します。`--permission-mode`、`--model`、または `--effort` を渡して、[ディスパッチされたセッションのデフォルト](/ja/agent-view#permission-mode-model-and-effort) を設定します。トップレベルの `claude` コマンドと同様に `--settings`、`--add-dir`、`--plugin-dir`、および `--mcp-config` を受け入れます。インタラクティブターミナルが必要です | `claude agents --cwd ~/projects/my-app` |
 | `claude attach <id>` | このターミナルで [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) に接続します | `claude attach 7c5dcf5d` |
 | `claude auto-mode defaults` | 組み込み [auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) 分類器ルールを JSON として出力します。`claude auto-mode config` を使用して、設定が適用された有効な設定を確認してください | `claude auto-mode defaults > rules.json` |
+| `claude daemon status` | バックグラウンドセッション [スーパーバイザー](/ja/agent-view#the-supervisor-process) の状態、バージョン、ソケットディレクトリ、および診断用のワーカー数を出力します。スーパーバイザーが実行されていない場合は 1 で終了します | `claude daemon status` |
 | `claude logs <id>` | [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) からの最近の出力を出力します | `claude logs 7c5dcf5d` |
 | `claude mcp` | Model Context Protocol（MCP）サーバーを設定 | [Claude Code MCP ドキュメント](/ja/mcp) を参照してください。 |
 | `claude plugin` | Claude Code [plugins](/ja/plugins) を管理します。エイリアス：`claude plugins`。サブコマンドについては [plugin reference](/ja/plugins-reference#cli-commands-reference) を参照してください | `claude plugin install code-review@claude-plugins-official` |
 | `claude project purge [path]` | プロジェクトのすべてのローカル Claude Code 状態を削除します：トランスクリプト、タスクリスト、デバッグログ、ファイル編集履歴、プロンプト履歴行、および `~/.claude.json` 内のプロジェクトエントリ。`[path]` を省略して、インタラクティブリストから選択します。フラグ：`--dry-run` でプレビュー、`-y`/`--yes` で確認をスキップ、`-i`/`--interactive` で各項目を確認、`--all` ですべてのプロジェクト。[ローカルデータをクリア](/ja/claude-directory#clear-local-data) を参照してください | `claude project purge ~/work/repo --dry-run` |
 | `claude remote-control` | [Remote Control](/ja/remote-control) サーバーを開始して、Claude.ai または Claude アプリから Claude Code を制御します。サーバーモード（ローカルインタラクティブセッションなし）で実行されます。[サーバーモードフラグ](/ja/remote-control#start-a-remote-control-session) を参照してください | `claude remote-control --name "My Project"` |
-| `claude respawn <id>` | 会話を保持したまま、停止した [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) を再開します。`--all` を使用してすべての停止したセッションを再開します | `claude respawn 7c5dcf5d` |
+| `claude respawn <id>` | 会話を保持したまま、[バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) を再開します。実行中または停止中。`--all` を使用してすべての実行中セッションを再開します。たとえば、更新された Claude Code バイナリを取得するため | `claude respawn 7c5dcf5d` |
 | `claude rm <id>` | [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) をリストから削除します | `claude rm 7c5dcf5d` |
 | `claude setup-token` | CI とスクリプト用の長期間有効な OAuth トークンを生成します。ターミナルにトークンを出力し、保存しません。Claude サブスクリプションが必要です。[長期間有効なトークンを生成](/ja/authentication#generate-a-long-lived-token) を参照してください | `claude setup-token` |
 | `claude stop <id>` | [バックグラウンドセッション](/ja/agent-view#manage-sessions-from-the-shell) を停止します。`claude kill` も受け入れます | `claude stop 7c5dcf5d` |
@@ -69,7 +70,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--effort` | 現在のセッションの [努力レベル](/ja/model-config#adjust-effort-level) を設定します。オプション：`low`、`medium`、`high`、`xhigh`、`max`。利用可能なレベルはモデルによって異なります。[`effortLevel`](/ja/settings#available-settings) 設定をこのセッションでオーバーライドし、永続化されません | `claude --effort high` |
 | `--enable-auto-mode` | v2.1.111 で削除されました。Auto mode は現在 `Shift+Tab` サイクルにデフォルトで含まれています。`--permission-mode auto` を使用して開始してください | `claude --permission-mode auto` |
 | `--exclude-dynamic-system-prompt-sections` | システムプロンプトからマシンごとのセクション（作業ディレクトリ、環境情報、メモリパス、git リポジトリフラグ）を最初のユーザーメッセージに移動します。異なるユーザーとマシンで同じタスクを実行する場合、prompt-cache の再利用を改善します。デフォルトシステムプロンプトにのみ適用されます。`--system-prompt` または `--system-prompt-file` が設定されている場合は無視されます。スクリプト化された複数ユーザーのワークロードの場合は `-p` と一緒に使用してください | `claude -p --exclude-dynamic-system-prompt-sections "query"` |
-| `--fallback-model` | デフォルトモデルが過負荷の場合、指定されたモデルへの自動フォールバックを有効にします（プリントモードのみ） | `claude -p --fallback-model sonnet "query"` |
+| `--fallback-model` | デフォルトモデルが過負荷の場合、指定されたモデルへの自動フォールバックを有効にします。プリントモード（`-p`）と [バックグラウンドセッション](/ja/agent-view) で有効になります。バックグラウンドセッションは非インタラクティブで実行されます。インタラクティブセッションでは無視されます | `claude -p --fallback-model sonnet "query"` |
 | `--fork-session` | 再開時に、元のセッション ID を再利用する代わりに新しいセッション ID を作成します（`--resume` または `--continue` と一緒に使用） | `claude --resume abc123 --fork-session` |
 | `--from-pr` | 特定のプルリクエストにリンクされたセッションを再開します。PR 番号、GitHub または GitHub Enterprise PR URL、GitLab マージリクエスト URL、または Bitbucket プルリクエスト URL を受け入れます。Claude がプルリクエストを作成するときに、セッションは自動的にリンクされます | `claude --from-pr 123` |
 | `--ide` | 起動時に、正確に 1 つの有効な IDE が利用可能な場合、自動的に IDE に接続します | `claude --ide` |
