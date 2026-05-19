@@ -264,6 +264,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | :- | :- | :- |
 | `modelPicker:decreaseEffort` | Left | 努力レベルを低下 |
 | `modelPicker:increaseEffort` | Right | 努力レベルを増加 |
+| `modelPicker:setAsDefault` | d | ハイライトされたモデルを新しいセッションのデフォルトとして設定 |
 
 ### 選択アクション
 

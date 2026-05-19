@@ -177,7 +177,7 @@ Each event type matches on a different field:
 | `ConfigChange` | configuration source | `user_settings`, `project_settings`, `local_settings`, `policy_settings`, `skills` |
 | `CwdChanged` | no matcher support | always fires on every directory change |
 | `FileChanged` | literal filenames to watch (see [FileChanged](#filechanged)) | `.envrc\|.env` |
-| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, `unknown` |
+| `StopFailure` | error type | `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, `unknown` |
 | `InstructionsLoaded` | load reason | `session_start`, `nested_traversal`, `path_glob_match`, `include`, `compact` |
 | `UserPromptExpansion` | command name | your skill or command names |
 | `Elicitation` | MCP server name | your configured MCP server names |
@@ -1634,7 +1634,7 @@ In addition to the [common input fields](#common-input-fields), Notification hoo
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
   "hook_event_name": "Notification",
-  "message": "Claude needs your permission to use Bash",
+  "message": "Claude needs your permission",
   "title": "Permission needed",
   "notification_type": "permission_prompt"
 }
@@ -1864,7 +1864,7 @@ In addition to the [common input fields](#common-input-fields), StopFailure hook
 
 | Field | Description |
 | :- | :- |
-| `error` | Error type: `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `server_error`, `max_output_tokens`, or `unknown` |
+| `error` | Error type: `rate_limit`, `authentication_failed`, `oauth_org_not_allowed`, `billing_error`, `invalid_request`, `model_not_found`, `server_error`, `max_output_tokens`, or `unknown` |
 | `error_details` | Additional details about the error, when available |
 | `last_assistant_message` | The rendered error text shown in the conversation. Unlike `Stop` and `SubagentStop`, where this field holds Claude's conversational output, for `StopFailure` it contains the API error string itself, such as `"API Error: Rate limit reached"` |
 

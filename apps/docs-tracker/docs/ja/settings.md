@@ -190,7 +190,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `effortLevel` | [努力レベル](/ja/model-config#adjust-effort-level)をセッション全体で永続化します。`"low"`、`"medium"`、`"high"`、または `"xhigh"` を受け入れます。これらの値のいずれかで `/effort` を実行すると自動的に書き込まれます。`--effort` と [`CLAUDE_CODE_EFFORT_LEVEL`](/ja/env-vars)はこれを 1 セッション間オーバーライドします。[努力レベルを調整](/ja/model-config#adjust-effort-level)でサポートされているモデルを参照してください | `"xhigh"` |
 | `enableAllProjectMcpServers` | プロジェクト `.mcp.json` ファイルで定義されたすべての MCP サーバーを自動的に承認します | `true` |
 | `enabledMcpjsonServers` | `.mcp.json` ファイルから承認する特定の MCP サーバーのリスト | `["memory", "github"]` |
-| `env` | すべてのセッションに適用される環境変数 | `{"FOO": "bar"}` |
+| `env` | すべてのセッションに適用される環境変数。v2.1.143 以降、`NO_COLOR` と `FORCE_COLOR` がここで設定されている場合、サブプロセスに渡されますが、Claude Code 自体のインターフェイスの色は変更されません。インターフェイスの色を変更するには、`claude` を起動する前にシェルでこれらを設定します | `{"FOO": "bar"}` |
 | `fastModePerSessionOptIn` | `true` の場合、高速モードはセッション全体で永続化されません。各セッションは高速モードがオフで開始され、ユーザーが `/fast` で有効にする必要があります。ユーザーの高速モード設定は引き続き保存されます。[セッションごとのオプトインを要求](/ja/fast-mode#require-per-session-opt-in)を参照してください | `true` |
 | `feedbackSurveyRate` | [セッション品質調査](/ja/data-usage#session-quality-surveys)が適格な場合に表示される確率（0～1）。完全に抑制するには `0` に設定するか、`env` で [`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`](/ja/env-vars)を設定します。Bedrock、Vertex、または Foundry を使用する場合に役立ちます。デフォルトのサンプルレートは適用されません | `0.05` |
 | `fileSuggestion` | `@` ファイルオートコンプリート用のカスタムスクリプトを構成します。[ファイル提案設定](#file-suggestion-settings)を参照してください | `{"type": "command", "command": "~/.claude/file-suggestion.sh"}` |
@@ -219,14 +219,14 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 | `prUrlTemplate` | フッターおよびツール結果サマリーに表示される PR バッジの URL テンプレート。`gh` レポートされた PR URL から `{host}`、`{owner}`、`{repo}`、`{number}`、および `{url}` を置き換えます。PR リンクを `github.com` の代わりに内部コードレビューツールにポイントするために使用します。Claude の散文の `#123` オートリンクには影響しません | `"https://reviews.example.com/{owner}/{repo}/pull/{number}"` |
 | `respectGitignore` | `@` ファイルピッカーが `.gitignore` パターンを尊重するかどうかを制御します。`true`（デフォルト）の場合、`.gitignore` パターンに一致するファイルは提案から除外されます | `false` |
 | `showClearContextOnPlanAccept` | プラン受け入れ画面に「コンテキストをクリア」オプションを表示します。デフォルトは `false` です。`true` に設定してオプションを復元します | `true` |
-| `showThinkingSummaries` | [拡張思考](/ja/model-config#extended-thinking)サマリーをインタラクティブセッションに表示します。未設定または `false`（インタラクティブモードのデフォルト）の場合、思考ブロックは API によって編集され、折りたたまれたスタブとして表示されます。編集は表示内容のみを変更し、モデルが生成するものは変更しません：思考支出を削減するには、[予算を低下させるか思考を無効にする](/ja/model-config#extended-thinking)代わりに。非インタラクティブモード（`-p`）と SDK 呼び出し元は、この設定に関係なく常にサマリーを受け取ります | `true` |
+| `showThinkingSummaries` | [拡張思考](/ja/model-config#extended-thinking)サマリーをインタラクティブセッションに表示します。未設定または `false`（インタラクティブモードのデフォルト）の場合、思考ブロックは API によって編集され、折りたたまれたスタブとして表示されます。編集は表示内容のみを変更し、モデルが生成するものは変更しません：思考支出を削減するには、[予算を低下させるか思考を無効にする](/ja/model-config#extended-thinking)代わりに。この設定は非インタラクティブモード（`-p`）、Agent SDK、または VS Code などの IDE 拡張機能には影響しません | `true` |
 | `showTurnDuration` | レスポンス後のターン期間メッセージを表示します（例：「Cooked for 1m 6s」）。デフォルト：`true`。`/config` に**ターン期間を表示**として表示されます | `false` |
 | `skillListingBudgetFraction` | [スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見るモデルのコンテキストウィンドウ用に予約されたフラクション（デフォルト：`0.01` = 1%）。リスティングが予算を超える場合、最も使用頻度の低いスキルの説明は、Claude が引き続き呼び出すことができるが理由を見ることができないように、ベアネームに折りたたまれます。より多くの説明を表示するために上げるか、より多くのスキルを収めるために下げます。`/doctor` は現在の切り詰めカウントと影響を受けるスキルを表示します。Claude Code v2.1.105 以降が必要です | `0.02` |
 | `skillOverrides` | スキル名でキー付けされたスキルごとの可視性オーバーライド。値は `"on"`、`"name-only"`、`"user-invocable-only"`、または `"off"` です。スキルの SKILL.md を編集することなく、スキルを非表示または折りたたむことができます。プラグインスキルには適用されません。これらは `/plugin` を通じて管理されます。`/skills` メニューはこれらを `.claude/settings.local.json` に書き込みます。[設定からスキルの可視性をオーバーライド](/ja/skills#override-skill-visibility-from-settings)を参照してください。Claude Code v2.1.129 以降が必要です | `{"legacy-context": "name-only", "deploy": "off"}` |
 | `skipWebFetchPreflight` | [WebFetch ドメイン安全チェック](/ja/data-usage#webfetch-domain-safety-check)をスキップします。このチェックは、フェッチ前に各リクエストされたホスト名を `api.anthropic.com` に送信します。Bedrock、Vertex AI、または制限的な出力を持つ Foundry デプロイメントなど、Anthropic へのトラフィックをブロックする環境で `true` に設定します。スキップされた場合、WebFetch はブロックリストを参照せずに任意の URL を試みます | `true` |
 | `spinnerTipsEnabled` | Claude が作業中にスピナーにヒントを表示します。ヒントを無効にするには `false` に設定します（デフォルト：`true`） | `false` |
 | `spinnerTipsOverride` | スピナーヒントをカスタム文字列でオーバーライドします。`tips`：ヒント文字列の配列。`excludeDefault`：`true` の場合、カスタムヒントのみを表示します。`false` または不在の場合、カスタムヒントは組み込みヒントとマージされます | `{ "excludeDefault": true, "tips": ["Use our internal tool X"] }` |
-| `spinnerVerbs` | スピナーとターン期間メッセージに表示されるアクション動詞をカスタマイズします。`mode` を `"replace"` に設定して動詞のみを使用するか、`"append"` に設定してデフォルトに追加します | `{"mode": "append", "verbs": ["Pondering", "Crafting"]}` |
+| `spinnerVerbs` | スピナーに表示されるアクション動詞をカスタマイズします。`mode` を `"replace"` に設定して動詞のみを使用するか、`"append"` に設定してデフォルトに追加します | `{"mode": "append", "verbs": ["Pondering", "Crafting"]}` |
 | `sshConfigs` | [Desktop](/ja/desktop#pre-configure-ssh-connections-for-your-team)環境ドロップダウンに表示する SSH 接続。各エントリには `id`、`name`、および `sshHost` が必要です。`sshPort`、`sshIdentityFile`、および `startDirectory` はオプションです。managed 設定で設定されている場合、接続はユーザーに対して読み取り専用です。managed およびユーザー設定からのみ読み込まれます | `[{"id": "dev-vm", "name": "Dev VM", "sshHost": "user@dev.example.com"}]` |
 | `statusLine` | コンテキストを表示するカスタムステータスラインを構成します。[`statusLine` ドキュメント](/ja/statusline)を参照してください | `{"type": "command", "command": "~/.claude/statusline.sh"}` |
 | `strictKnownMarketplaces` | （Managed 設定のみ）プラグインマーケットプレイスソースのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。マーケットプレイス追加時およびプラグインのインストール、更新、リフレッシュ、自動更新時に適用されるため、ポリシーが設定される前に追加されたマーケットプレイスは使用できません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
@@ -261,7 +261,7 @@ v2.1.119 より前のバージョンでは、`autoScrollEnabled`、`editorMode`�
 | :- | :- | :- |
 | `worktree.baseRef` | 新しい worktrees がブランチする ref。`"fresh"`（デフォルト）は `origin/<default-branch>` からブランチして、リモートと一致するクリーンツリーを取得します。`"head"` は現在のローカル `HEAD` からブランチするため、プッシュされていないコミットとフィーチャーブランチの状態が worktree に存在します。`--worktree`、`EnterWorktree` ツール、および subagent 分離に適用されます | `"head"` |
 | `worktree.symlinkDirectories` | メインリポジトリから各 worktree にシンボリックリンクするディレクトリ。ディスク上の大規模なディレクトリの重複を避けるため。デフォルトではディレクトリはシンボリックリンクされません | `["node_modules", ".cache"]` |
-| `worktree.sparsePaths` | git sparse-checkout（cone モード）を通じて各 worktree でチェックアウトするディレクトリ。リストされたパスのみがディスクに書き込まれます。大規模なモノレポではより高速です | `["packages/my-app", "shared/utils"]` |
+| `worktree.sparsePaths` | git sparse-checkout を通じて各 worktree でチェックアウトするディレクトリ。リストされたパスのみがディスクに書き込まれます。大規模なモノレポではより高速です | `["packages/my-app", "shared/utils"]` |
 | `worktree.bgIsolation` | [バックグラウンドセッション](/ja/agent-view#how-file-edits-are-isolated)の分離モード。`"worktree"`（デフォルト）は `EnterWorktree` が呼び出されるまでメインチェックアウトで `Edit`/`Write` をブロックします。`"none"` はバックグラウンドジョブがワーキングコピーを直接編集できるようにします。Claude Code v2.1.143 以降が必要です | `"none"` |
 
 gitignored ファイル（`.env` など）を新しい worktrees にコピーするには、設定の代わりにプロジェクトルートの [`.worktreeinclude` ファイル](/ja/worktrees#copy-gitignored-files-into-worktrees)を使用します。

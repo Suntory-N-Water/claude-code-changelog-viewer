@@ -264,6 +264,7 @@ Actions available in the `ModelPicker` context:
 | :- | :- | :- |
 | `modelPicker:decreaseEffort` | Left | Decrease effort level |
 | `modelPicker:increaseEffort` | Right | Increase effort level |
+| `modelPicker:setAsDefault` | d | Set highlighted model as default for new sessions |
 
 ### Select actions
 

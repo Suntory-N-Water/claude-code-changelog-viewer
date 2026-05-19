@@ -589,7 +589,7 @@ Claude はまた、`Bash` ツールを通じてシェルコマンドを実行す
 | `PreCompact`、`PostCompact` | 圧縮をトリガーしたもの | `manual`、`auto` |
 | `SubagentStop` | エージェントタイプ | `SubagentStart` と同じ値 |
 | `ConfigChange` | 設定ソース | `user_settings`、`project_settings`、`local_settings`、`policy_settings`、`skills` |
-| `StopFailure` | エラータイプ | `rate_limit`、`authentication_failed`、`oauth_org_not_allowed`、`billing_error`、`invalid_request`、`server_error`、`max_output_tokens`、`unknown` |
+| `StopFailure` | エラータイプ | `rate_limit`、`authentication_failed`、`oauth_org_not_allowed`、`billing_error`、`invalid_request`、`model_not_found`、`server_error`、`max_output_tokens`、`unknown` |
 | `InstructionsLoaded` | ロード理由 | `session_start`、`nested_traversal`、`path_glob_match`、`include`、`compact` |
 | `Elicitation` | MCP サーバー名 | 設定した MCP サーバー名 |
 | `ElicitationResult` | MCP サーバー名 | `Elicitation` と同じ値 |
