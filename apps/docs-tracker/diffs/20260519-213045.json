@@ -1,0 +1,301 @@
+{
+  "id": "20260519-213045",
+  "timestamp": "2026-05-19T21:30:45.863Z",
+  "aiSummary": "拒否ルール設定においてツール名のみ（Bash等）を指定した場合の挙動が明確化され、対象ツールがコンテキストから完全に削除される仕組みが解説されました。プロンプトキャッシュへの影響について、ツールの完全拒否はキャッシュを無効化する一方で、特定の引数パターンを制限するスコープ付きルールはキャッシュを維持する仕様が追記されています。設定ファイルの変更が実行中のセッションに即時反映される仕組みと、モデル設定などの再起動が必要な例外項目が明示されました。",
+  "files": [
+    {
+      "filename": "agent-sdk/permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "拒否ルールにおける記述形式の定義を修正し、Bare-name（ツール名のみ）の指定が評価前にコンテキストからツールを削除することを明確にしています。",
+      "hunks": [
+        {
+          "header": "@@ -17,7 +17,7 @@ When Claude requests a tool, the SDK checks permissions in this order:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run [hooks](/en/agent-sdk/hooks) first. A hook can deny the call outright or pass it on. A hook that returns `allow` does not skip the deny and ask rules below; those are evaluated regardless of the hook result."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Check `deny` rules (from `disallowed_tools` and [settings.json](/en/settings#permission-settings)). If a deny rule matches, the tool is blocked, even in `bypassPermissions` mode. Bare-name `disallowed_tools` entries like `Bash` remove the tool from Claude's context before this evaluation begins, so only scoped rules like `Bash(rm *)` are checked at this step."
+            },
+            {
+              "type": "added",
+              "content": "Check `deny` rules (from `disallowed_tools` and [settings.json](/en/settings#permission-settings)). If a deny rule matches, the tool is blocked, even in `bypassPermissions` mode. Bare-name deny rules like `Bash` remove the tool from Claude's context before this evaluation begins, so only scoped rules like `Bash(rm *)` are checked at this step."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Apply the active [permission mode](#permission-modes). `bypassPermissions` approves everything that reaches this step. `acceptEdits` approves file operations. Other modes fall through."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "ツール名のみの拒否と特定パターン（スコープ付き）の拒否で挙動が異なる点、およびBash(*)がBash単体指定と同等であることを追記しています。",
+      "hunks": [
+        {
+          "header": "@@ -29,6 +29,8 @@ You can view and manage Claude Code's tool permissions with `/permissions`. This",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Rules are evaluated in order: **deny -> ask -> allow**. The first matching rule wins, so deny rules always take precedence."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Deny rules behave differently depending on whether they name a tool or scope a pattern within one. A bare tool name like `Bash` removes the tool from Claude's context entirely, so Claude never sees it. A scoped rule like `Bash(rm *)` leaves the tool available and blocks matching calls when Claude attempts them."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Permission rules are enforced by Claude Code, not by the model. Instructions in your prompt or `CLAUDE.md` shape what Claude tries to do, but they don't change what Claude Code allows. To grant or revoke access, use `/permissions`, the rules described here, a [permission mode](/en/permission-modes), or a [PreToolUse hook](#extend-permissions-with-hooks)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Permission modes"
+            }
+          ]
+        },
+        {
+          "header": "@@ -62,7 +64,7 @@ To match all uses of a tool, use just the tool name without parentheses:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `WebFetch` | Matches all web fetch requests |"
+            },
+            {
+              "type": "context",
+              "content": "| `Read` | Matches all file reads |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`Bash(*)` is equivalent to `Bash` and matches all Bash commands."
+            },
+            {
+              "type": "added",
+              "content": "`Bash(*)` is equivalent to `Bash` and matches all Bash commands. As a deny rule, both forms remove the tool from Claude's context."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Use specifiers for fine-grained control"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "prompt-caching.md",
+      "additions": 7,
+      "deletions": 0,
+      "explanation": "ツールの完全拒否ルールがシステムプロンプト層に影響を与え、セッションの途中で変更した際にキャッシュが無効化される仕組みを解説しています。",
+      "hunks": [
+        {
+          "header": "@@ -53,6 +53,7 @@ These actions cause the next request to miss part or all of the cache. You see a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Switching models](#switching-models)"
+            },
+            {
+              "type": "context",
+              "content": "- [Connecting or disconnecting an MCP server](#connecting-or-disconnecting-an-mcp-server)"
+            },
+            {
+              "type": "added",
+              "content": "- [Denying an entire tool](#denying-an-entire-tool)"
+            },
+            {
+              "type": "context",
+              "content": "- [Compacting the conversation](#compacting-the-conversation)"
+            },
+            {
+              "type": "context",
+              "content": "- [Upgrading Claude Code](#upgrading-claude-code)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -70,6 +71,12 @@ Editing your MCP config does not by itself change the cache. The new config take",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[MCP tool search](/en/mcp#scale-with-mcp-tool-search) reduces how much each tool contributes to the prefix by deferring full tool definitions, but the set of tool names still has to stay stable for the cache to remain valid."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Denying an entire tool"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Adding a bare tool name like `Bash` or `WebFetch` as a [deny rule](/en/permissions#manage-permissions) removes that tool from Claude's context entirely. Tool definitions sit in the system prompt layer, so adding or removing one of these rules mid-session invalidates the cache the same way an MCP server connecting or disconnecting does. The change takes effect on the next turn whether you add it through `/permissions` or by [editing a settings file directly](/en/settings#when-edits-take-effect)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Only a bare tool name, or the equivalent `Bash(*)` form, has this effect. Scoped deny rules like `Bash(rm *)`, and all allow and ask rules, don't change which tools Claude sees. Claude Code checks them when Claude attempts a call, leaving the prefix intact."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Compacting the conversation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Compaction](/en/context-window#what-survives-compaction) replaces your message history with a summary. By design, this invalidates the conversation layer, since the next request has a new, shorter history that doesn't share a prefix with the old one. Claude Code reuses the system prompt layer and reloads project context from disk, which cache-hits only if CLAUDE.md and memory are unchanged since the session started."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 9,
+      "deletions": 0,
+      "explanation": "設定ファイルの編集がセッション中に自動リロードされる対象項目と、再起動や特定コマンドが必要な例外項目（model、outputStyle等）を分類して記述しています。",
+      "hunks": [
+        {
+          "header": "@@ -149,6 +149,15 @@ The `$schema` line in the example above points to the [official JSON schema](htt",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The published schema is updated periodically and may not include settings added in the most recent CLI releases, so a validation warning on a recently documented field does not necessarily mean your configuration is invalid."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### When edits take effect"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code watches your settings files and reloads them when they change, so edits to most keys apply to the running session without a restart. This includes `permissions`, `hooks`, and credential helpers like `apiKeyHelper`. The reload covers user, project, local, and managed settings, and the [`ConfigChange` hook](/en/hooks#configchange) fires for each detected change."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A few keys are read once at session start and apply on the next restart instead:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `model`: use [`/model`](/en/model-config#setting-your-model) to switch mid-session"
+            },
+            {
+              "type": "added",
+              "content": "- [`outputStyle`](/en/output-styles): part of the system prompt, which is rebuilt on `/clear` or restart"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Available settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`settings.json` supports a number of options:"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
