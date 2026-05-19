@@ -327,14 +327,25 @@ claude --plugin-url "https://example.com/my-plugin.zip https://example.com/other
 
 プラグインがマーケットプレイスに登録されたら、他のユーザーは[プラグインを検出してインストールする](/ja/discover-plugins)の指示を使用してインストールできます。プラグインをチーム内に保つには、[プライベートリポジトリ](/ja/plugin-marketplaces#private-repositories)でマーケットプレイスをホストしてください。
 
-### プラグインを公式マーケットプレイスに送信する
+### プラグインをコミュニティマーケットプレイスに送信する
 
-プラグインを公式 Anthropic マーケットプレイスに送信するには、アプリ内送信フォームの 1 つを使用してください。
+Anthropic は Claude Code プラグイン用に 2 つの公開マーケットプレイスを管理しています。
+
+- **`claude-plugins-official`**：Anthropic によって管理されているキュレーションされたプラグインセット。すべての Claude Code インストールで自動的に利用可能です。
+- **`claude-community`**：レビュー後にサードパーティの送信が登録される公開コミュニティマーケットプレイス。ユーザーは `/plugin marketplace add anthropics/claude-plugins-community` で追加し、`@claude-community` としてインストールします。
+
+プラグインをコミュニティマーケットプレイスレビュー用に送信するには、アプリ内フォームの 1 つを使用してください。
 
 - **Claude.ai**：[claude.ai/settings/plugins/submit](https://claude.ai/settings/plugins/submit)
 - **Console**：[platform.claude.com/plugins/submit](https://platform.claude.com/plugins/submit)
 
-プラグインが登録されたら、独自の CLI で Claude Code ユーザーにインストールを促すことができます。[CLI からプラグインを推奨する](/ja/plugin-hints)を参照してください。
+送信する前に、ローカルで `claude plugin validate` を実行してください。レビューパイプラインはすべての送信に対して同じチェックを実行し、自動化されたセーフティスクリーニングも行います。
+
+承認されたプラグインは、[`anthropics/claude-plugins-community`](https://github.com/anthropics/claude-plugins-community) カタログ内の特定のコミット SHA にピン留めされ、CI はリポジトリに新しいコミットをプッシュするたびに自動的にピンをバンプします。公開カタログはレビューパイプラインから毎晩同期されるため、承認と `marketplace.json` にプラグインが表示されるまでの間に遅延が生じる可能性があります。プラグインがインストール可能かどうかを確認するには、[コミュニティカタログ](https://github.com/anthropics/claude-plugins-community/blob/main/.claude-plugin/marketplace.json)でその名前を検索してください。
+
+公式マーケットプレイス `claude-plugins-official` は別途キュレーションされています。Anthropic はどのプラグインを含めるかを裁量で決定します。申請プロセスはなく、送信フォームは公式マーケットプレイスにプラグインを追加しません。
+
+Anthropic がプラグインを公式マーケットプレイスにリストしている場合、CLI は Claude Code ユーザーにインストールを促すことができます。[CLI からプラグインを推奨する](/ja/plugin-hints)を参照してください。
 
 完全な技術仕様、デバッグ技術、配布戦略については、[プラグインリファレンス](/ja/plugins-reference)を参照してください。
 

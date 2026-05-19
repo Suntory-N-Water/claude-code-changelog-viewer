@@ -387,13 +387,13 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES='effort,xhigh_effort,
 
 ### プロンプトキャッシング設定
 
-Claude Code は [プロンプトキャッシング](https://platform.claude.com/docs/ja/build-with-claude/prompt-caching) を自動的に使用してパフォーマンスを最適化し、コストを削減します。プロンプトキャッシングをグローバルに、または特定のモデルティアに対して無効にできます。
+Claude Code は [プロンプトキャッシング](/ja/prompt-caching) を自動的に使用してパフォーマンスを最適化し、コストを削減します。プロンプトキャッシングをグローバルに、または特定のモデルティアに対して無効にできます。
 
 | 環境変数 | 説明 |
 | - | - |
-| `DISABLE_PROMPT_CACHING` | `1` に設定して、すべてのモデルのプロンプトキャッシングを無効にします（モデル固有の設定より優先） |
+| `DISABLE_PROMPT_CACHING` | `1` に設定して、すべてのモデルのプロンプトキャッシングを無効にします。モデル固有の設定より優先されます |
 | `DISABLE_PROMPT_CACHING_HAIKU` | `1` に設定して、Haiku モデルのみのプロンプトキャッシングを無効にします |
 | `DISABLE_PROMPT_CACHING_SONNET` | `1` に設定して、Sonnet モデルのみのプロンプトキャッシングを無効にします |
 | `DISABLE_PROMPT_CACHING_OPUS` | `1` に設定して、Opus モデルのみのプロンプトキャッシングを無効にします |
 
-これらの環境変数は、プロンプトキャッシング動作に対する細かい制御を提供します。グローバル `DISABLE_PROMPT_CACHING` 設定はモデル固有の設定より優先され、必要に応じてすべてのキャッシングをすばやく無効にできます。モデル固有の設定は、特定のモデルをデバッグする場合や、異なるキャッシング実装を持つ可能性があるクラウドプロバイダーと連携する場合など、選択的な制御に役立ちます。
+キャッシュ TTL を変更する方法、またはキャッシュミスをトリガーするものについて詳しくは、[Claude Code がプロンプトキャッシングを使用する方法](/ja/prompt-caching) を参照してください。

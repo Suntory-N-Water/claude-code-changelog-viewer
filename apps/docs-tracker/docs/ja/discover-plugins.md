@@ -13,7 +13,7 @@ source: https://code.claude.com/docs/ja/discover-plugins.md
 
 ## マーケットプレイスの仕組み
 
-マーケットプレイスは、他の誰かが作成して共有したプラグインのカタログです。マーケットプレイスを使用するのは 2 段階のプロセスです。
+マーケットプレイスは、他の誰かが作成して共有したプラグインのカタログです。マーケットプレイスを使用するのは 2 段階のプロセスです：
 
 これにより、カタログが Claude Code に登録され、利用可能なものを参照できるようになります。プラグインはまだインストールされていません。
 
@@ -33,14 +33,9 @@ source: https://code.claude.com/docs/ja/discover-plugins.md
 
 Claude Code がプラグインがどのマーケットプレイスにも見つからないと報告する場合、マーケットプレイスが見つからないか古い可能性があります。`/plugin marketplace update claude-plugins-official` を実行して更新するか、まだ追加していない場合は `/plugin marketplace add anthropics/claude-plugins-official` を実行してください。その後、インストールを再試行してください。
 
-公式マーケットプレイスは Anthropic によって管理されています。公式マーケットプレイスにプラグインを送信するには、アプリ内送信フォームのいずれかを使用してください。
+公式マーケットプレイスは Anthropic によって管理されており、掲載は Anthropic の裁量です。アプリ内送信フォームはプラグインを[コミュニティマーケットプレイス](#community-marketplace)に追加します。公式マーケットプレイスには追加されません。プラグインを独立して配布するには、[独自のマーケットプレイスを作成](/ja/plugin-marketplaces)してユーザーと共有してください。
 
-- **Claude.ai**: [claude.ai/settings/plugins/submit](https://claude.ai/settings/plugins/submit)
-- **Console**: [platform.claude.com/plugins/submit](https://platform.claude.com/plugins/submit)
-
-プラグインを独立して配布するには、[独自のマーケットプレイスを作成](/ja/plugin-marketplaces)してユーザーと共有してください。
-
-公式マーケットプレイスには、プラグインのいくつかのカテゴリが含まれています。
+公式マーケットプレイスには、プラグインのいくつかのカテゴリが含まれています：
 
 ### コード インテリジェンス
 
@@ -68,7 +63,7 @@ Claude Code がプラグインがどのマーケットプレイスにも見つ�
 
 #### コード インテリジェンス プラグインから Claude が得られるもの
 
-コード インテリジェンス プラグインがインストールされ、その言語サーバーバイナリが利用可能になると、Claude は 2 つの機能を得られます。
+コード インテリジェンス プラグインがインストールされ、その言語サーバーバイナリが利用可能になると、Claude は 2 つの機能を得られます：
 
 - **自動診断**: Claude が行うすべてのファイル編集後、言語サーバーは変更を分析し、エラーと警告を自動的に報告します。Claude はコンパイラやリンターを実行することなく、型エラー、不足しているインポート、構文の問題を確認します。Claude がエラーを導入した場合、それに気付いて同じターンで問題を修正します。これはプラグインをインストール以外の設定は必要ありません。「diagnostics found」インジケーターが表示されたときに **Ctrl+O** を押すと、診断をインラインで確認できます。
 - **コード ナビゲーション**: Claude は言語サーバーを使用して定義にジャンプしたり、参照を見つけたり、ホバーで型情報を取得したり、シンボルをリストしたり、実装を見つけたり、呼び出し階層をトレースしたりできます。これらの操作により、Claude は grep ベースの検索よりも正確なナビゲーションが可能になりますが、言語と環境によって可用性が異なる場合があります。
@@ -77,7 +72,7 @@ Claude Code がプラグインがどのマーケットプレイスにも見つ�
 
 ### 外部統合
 
-これらのプラグインは事前構成された [MCP サーバー](/ja/mcp)をバンドルしているため、手動セットアップなしで Claude を外部サービスに接続できます。
+これらのプラグインは事前構成された [MCP サーバー](/ja/mcp)をバンドルしているため、手動セットアップなしで Claude を外部サービスに接続できます：
 
 - **ソース管理**: `github`、`gitlab`
 - **プロジェクト管理**: `atlassian`（Jira/Confluence）、`asana`、`linear`、`notion`
@@ -101,6 +96,22 @@ Claude の応答方法をカスタマイズします：
 
 - **explanatory-output-style**: 実装の選択に関する教育的な洞察
 - **learning-output-style**: スキル構築のためのインタラクティブな学習モード
+
+## コミュニティ マーケットプレイス
+
+[`anthropics/claude-plugins-community`](https://github.com/anthropics/claude-plugins-community)のコミュニティ マーケットプレイスは、Anthropic の自動検証とセキュリティ スクリーニングに合格したサードパーティ プラグインをホストしています。各プラグインはカタログ内の特定のコミット SHA に固定されています。公式マーケットプレイスとは異なり、手動で追加します：
+
+```shell
+/plugin marketplace add anthropics/claude-plugins-community
+```
+
+その後、`claude-community` マーケットプレイス名を使用してプラグインをインストールします：
+
+```shell
+/plugin install <plugin-name>@claude-community
+```
+
+独自のプラグインをコミュニティ マーケットプレイスに送信するには、プラグイン作成ガイドの[プラグインをコミュニティ マーケットプレイスに送信する](/ja/plugins#submit-your-plugin-to-the-community-marketplace)を参照してください。
 
 ## 試してみる: デモマーケットプレイスを追加する
 
@@ -139,7 +150,7 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 /plugin install commit-commands@anthropics-claude-code
 ```
 
-スコープの詳細については、[構成スコープ](/ja/settings#configuration-scopes) を参照してください。
+スコープの詳細については、[構成スコープ](/ja/settings#configuration-scopes)を参照してください。
 
 インストール後、`/reload-plugins` を実行してプラグインをアクティブ化します。プラグインスキルはプラグイン名でネームスペース化されているため、**commit-commands** は `/commit-commands:commit` のようなスキルを提供します。
 

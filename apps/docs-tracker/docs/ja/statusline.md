@@ -275,6 +275,8 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 - `cache_creation_input_tokens`：キャッシュに書き込まれたトークン
 - `cache_read_input_tokens`：キャッシュから読み取られたトークン
 
+キャッシュフィールドの意味とそれらがどのように請求されるかについては、[キャッシュパフォーマンスの確認](/ja/prompt-caching#check-cache-performance) を参照してください。
+
 `used_percentage` フィールドは入力トークンのみから計算されます：`input_tokens + cache_creation_input_tokens + cache_read_input_tokens`。`output_tokens` は含まれません。
 
 `current_usage` から手動でコンテキスト割合を計算する場合、`used_percentage` と一致させるために同じ入力のみの式を使用します。

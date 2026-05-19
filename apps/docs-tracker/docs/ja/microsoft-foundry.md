@@ -152,7 +152,7 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
 
 現在および従来のモデル ID については、[モデル概要](https://platform.claude.com/docs/en/about-claude/models/overview)を参照してください。環境変数の完全なリストについては、[モデル構成](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 
-[プロンプトキャッシング](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)は自動的に有効になります。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、以下の変数を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます：
+[プロンプトキャッシング](/ja/prompt-caching)は自動的に有効になります。デフォルトの 5 分ではなく 1 時間のキャッシュ TTL をリクエストするには、以下の変数を設定します。1 時間の TTL でのキャッシュ書き込みはより高いレートで課金されます：
 
 ```bash
 export ENABLE_PROMPT_CACHING_1H=1

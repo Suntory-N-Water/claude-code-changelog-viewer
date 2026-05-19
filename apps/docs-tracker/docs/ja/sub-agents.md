@@ -810,7 +810,7 @@ Continue that code review and now analyze the authorization logic
 | 権限 | プロンプトがターミナルに表示 | バックグラウンド実行時に[自動拒否](#run-subagents-in-foreground-or-background) |
 | プロンプトキャッシュ | メインセッションと共有 | 別のキャッシュ |
 
-フォークのシステムプロンプトとツール定義は親と同じであるため、最初のリクエストは親のプロンプトキャッシュを再利用します。これにより、同じコンテキストが必要なタスクの場合、フォークは新しいサブエージェントを生成するよりも安価です。
+フォークのシステムプロンプトとツール定義は親と同じであるため、最初のリクエストは親の [prompt cache](/ja/prompt-caching#subagents-and-the-cache) を再利用します。これにより、同じコンテキストが必要なタスクの場合、フォークは新しいサブエージェントを生成するよりも安価です。
 
 Claude がフォークを Agent ツール経由で生成するときに、`isolation: "worktree"` を渡すことができるため、フォークのファイル編集は、チェックアウトではなく、別の git worktree に書き込まれます。
 

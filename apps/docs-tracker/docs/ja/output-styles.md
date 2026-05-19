@@ -37,7 +37,7 @@ Claude Code の **Default** 出力スタイルは既存のシステムプロン�
 }
 ```
 
-出力スタイルはセッション開始時にシステムプロンプトで設定されるため、変更は新しいセッションを開始した次回に有効になります。これにより、会話全体を通じてシステムプロンプトが安定し、プロンプトキャッシングがレイテンシとコストを削減できます。
+出力スタイルはシステムプロンプトの一部であり、Claude Code はセッション開始時に 1 回読み込みます。変更は `/clear` または新しいセッション後に有効になります。出力スタイルの変更がキャッシュに与える影響については、[Claude Code がプロンプトキャッシングを使用する方法](/ja/prompt-caching#changing-output-style) を参照してください。
 
 ## カスタム出力スタイルを作成する
 
@@ -67,7 +67,7 @@ When explaining code, architecture, or data flow, start with a Mermaid diagram s
 Use `flowchart TD` for control flow and `sequenceDiagram` for request paths. Keep diagrams under 15 nodes.
 ```
 
-`/config` を実行し、**Output style** でスタイルを選択します。次のセッションを開始したときに有効になります。
+`/config` を実行し、**Output style** でスタイルを選択します。`/clear` の後、または次のセッションを開始したときに有効になります。
 
 [プラグイン](/ja/plugins-reference) は `output-styles/` ディレクトリで出力スタイルを配布することもできます。
 
