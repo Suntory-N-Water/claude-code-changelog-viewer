@@ -23,7 +23,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 
 | ショートカット | 説明 | コンテキスト |
 | :- | :- | :- |
-| `Ctrl+C` | 現在の入力または生成をキャンセル | 標準割り込み |
+| `Ctrl+C` | 割り込み、または入力をクリア | 実行中の操作を割り込みます。何も実行されていない場合、最初の押下でプロンプト入力をクリアし、2 回目の押下で Claude Code を終了します |
 | `Ctrl+X Ctrl+K` | このセッション内のすべてのバックグラウンド [サブエージェント](/ja/sub-agents#run-subagents-in-foreground-or-background) を終了します。3 秒以内に 2 回押して確認 | サブエージェント制御 |
 | `Ctrl+D` | Claude Code セッションを終了 | EOF シグナル |
 | `Ctrl+G` または `Ctrl+X Ctrl+E` | デフォルトテキストエディタで開く | プロンプトまたはカスタム応答をデフォルトテキストエディタで編集します。`Ctrl+X Ctrl+E` は readline ネイティブバインディングです。`/config` で「外部エディタで最後の応答を表示」をオンにすると、Claude の前の応答を `#` でコメント化されたコンテキストとしてプロンプトの上に追加します。保存時にコメントブロックは削除されます |
@@ -36,7 +36,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | `Left/Right 矢印` | ダイアログタブを循環 | 権限ダイアログとメニューのタブ間を移動 |
 | `Up/Down 矢印` または `Ctrl+P`/`Ctrl+N` | カーソルを移動またはコマンド履歴を移動 | 複数行入力では、最初にカーソルをプロンプト内で移動します。カーソルが既に上端または下端にある場合、もう一度押すとコマンド履歴を移動します |
 | `Esc` | Claude を割り込み | 現在の応答またはツール呼び出しを途中で停止して、リダイレクトできます。Claude はこれまでの作業を保持します |
-| `Esc` + `Esc` | 巻き戻しまたは要約 | コードおよび/または会話を前の時点に復元するか、選択したメッセージから要約 |
+| `Esc` + `Esc` | 入力ドラフトをクリア、または巻き戻し | プロンプト入力にテキストが含まれている場合、ダブル `Esc` でクリアし、ドラフトを履歴に保存して `Up` で呼び出せます。入力が空の場合、ダブル `Esc` で [巻き戻しメニュー](/ja/checkpointing) を開き、前の時点からコードと会話を復元または要約できます |
 | `Shift+Tab` または `Alt+M`（一部の設定） | 権限モードを切り替え | `default`、`acceptEdits`、`plan`、および `auto` や `bypassPermissions` などの有効にしたモード間を循環します。[権限モード](/ja/permission-modes) を参照してください。 |
 | `Option+P`（macOS）または `Alt+P`（Windows/Linux） | モデルを切り替え | プロンプトをクリアせずにモデルを切り替え |
 | `Option+T`（macOS）または `Alt+T`（Windows/Linux） | 拡張思考を切り替え | 拡張思考モードを有効または無効にします。v2.1.132 以降、このショートカットは macOS で Option を Meta として設定しなくても機能します |
@@ -68,11 +68,11 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | :- | :- | :- |
 | クイック脱出 | `\` + `Enter` | すべてのターミナルで機能 |
 | Option キー | `Option+Enter` | macOS で [Option を Meta として](/ja/terminal-config#enable-option-key-shortcuts-on-macos) 有効にした後 |
-| Shift+Enter | `Shift+Enter` | iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal でネイティブ |
+| Shift+Enter | `Shift+Enter` | iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal、Windows Terminal でネイティブ |
 | 制御シーケンス | `Ctrl+J` | 設定なしで任意のターミナルで機能 |
 | ペーストモード | 直接貼り付け | コードブロック、ログの場合 |
 
-Shift+Enter は設定なしで iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal で機能します。VS Code、Cursor、Windsurf、Alacritty、Zed の場合は、`/terminal-setup` を実行してバインディングをインストールしてください。
+Shift+Enter は設定なしで iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal、Windows Terminal で機能します。VS Code、Cursor、Windsurf、Alacritty、Zed の場合は、`/terminal-setup` を実行してバインディングをインストールしてください。
 
 ### クイックコマンド
 
@@ -344,9 +344,8 @@ export CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION=false
 - 黄：レビュー保留中
 - 赤：変更をリクエスト
 - グレー：ドラフト
-- 紫：マージ済み
 
-`Cmd+click`（Mac）または `Ctrl+click`（Windows/Linux）でリンクをクリックして、プルリクエストをブラウザで開きます。ステータスは 60 秒ごとに自動的に更新されます。
+プルリクエストがマージされるか閉じられると、バッジは消えます。`Cmd+click`（Mac）または `Ctrl+click`（Windows/Linux）でリンクをクリックして、プルリクエストをブラウザで開きます。ステータスは 60 秒ごとに更新され、セッション内で `gh pr` または `git push` コマンドが実行された直後に即座に更新されます。
 
 PR ステータスには、`gh` CLI がインストールされ、認証されている必要があります（`gh auth login`）。
 
