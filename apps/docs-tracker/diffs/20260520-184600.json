@@ -1,0 +1,1139 @@
+{
+  "id": "20260520-184600",
+  "timestamp": "2026-05-20T18:46:00.288Z",
+  "aiSummary": "CLIツールから公式プラグインのインストールを促すためのマーカー発行機能であるplugin-hintsが新たに追加されました。セッション管理機能について、名前付けやブランチ作成、過去の会話のレジューム方法など詳細な手順が体系化されています。プロンプトライブラリやAgent SDKにおけるセッションストレージの活用方法に関するドキュメントも整備されました。全体として、外部ツールとの連携強化と、プロジェクトごとの作業履歴の柔軟な操作に重点が置かれています。",
+  "files": [
+    {
+      "filename": "agent-sdk/session-storage.md",
+      "additions": 253,
+      "deletions": 0,
+      "explanation": "Agent SDKにおけるセッションデータの保存と読み込みに関する仕様が詳細に記述されています。",
+      "hunks": []
+    },
+    {
+      "filename": "plugin-hints.md",
+      "additions": 147,
+      "deletions": 0,
+      "explanation": "自作のCLIやSDKがClaude Code内で実行された際、公式プラグインのインストールを推奨するタグをstderrに出力する方法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,147 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: plugin-hints"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/plugin-hints.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Recommend your plugin from your CLI"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Emit a one-line marker from your CLI so Claude Code prompts users to install your official plugin."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you maintain a CLI or SDK and have a plugin in the official Anthropic marketplace, your tool can prompt Claude Code users to install that plugin. Your CLI writes a one-line marker to stderr when it detects it is running inside Claude Code. Claude Code reads the marker, strips it from the output, and shows the user a one-time install prompt."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code strips the hint line from the command output before sending it to the model, so the marker never appears in the conversation and is not counted toward token usage. The protocol requires no extra commands and does not change what your CLI prints for users outside Claude Code."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page is for CLI and SDK maintainers. If you are looking to install plugins, see [Discover and install plugins](/en/discover-plugins)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## How it works"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code sets the [`CLAUDECODE`](/en/env-vars) environment variable to `1` for every command it runs through the Bash and PowerShell tools, and for [hook](/en/hooks) commands. When your CLI sees that variable, it writes a self-closing `<claude-code-hint />` tag to stderr. In hook commands the hint tag is stripped and ignored. Only Bash and PowerShell tool output triggers the install prompt."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude Code receives the command output, it:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "1. Scans for hint lines and removes them before the output reaches the model"
+            },
+            {
+              "type": "added",
+              "content": "2. Checks that the hint targets a plugin in an official Anthropic marketplace"
+            },
+            {
+              "type": "added",
+              "content": "3. Checks that the plugin is not already installed and has not been prompted before"
+            },
+            {
+              "type": "added",
+              "content": "4. Shows the user an install prompt that names the command that emitted the hint"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code never installs a plugin automatically. The user always confirms."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Emit the hint"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Gate emission on the `CLAUDECODE` environment variable so the marker never appears in a human user's terminal. Then write the tag to stderr on its own line."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The following examples emit a hint for a plugin named `example-cli` in the official marketplace:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```javascript Node.js theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "if (process.env.CLAUDECODE) {"
+            },
+            {
+              "type": "added",
+              "content": "  process.stderr.write("
+            },
+            {
+              "type": "added",
+              "content": "    '<claude-code-hint v=\"1\" type=\"plugin\" value=\"example-cli@claude-plugins-official\" />\\n',"
+            },
+            {
+              "type": "added",
+              "content": "  )"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "import os, sys"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "if os.environ.get(\"CLAUDECODE\"):"
+            },
+            {
+              "type": "added",
+              "content": "    print("
+            },
+            {
+              "type": "added",
+              "content": "        '<claude-code-hint v=\"1\" type=\"plugin\" value=\"example-cli@claude-plugins-official\" />',"
+            },
+            {
+              "type": "added",
+              "content": "        file=sys.stderr,"
+            },
+            {
+              "type": "added",
+              "content": "    )"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```go Go theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "if os.Getenv(\"CLAUDECODE\") != \"\" {"
+            },
+            {
+              "type": "added",
+              "content": "    fmt.Fprintln(os.Stderr,"
+            },
+            {
+              "type": "added",
+              "content": "        `<claude-code-hint v=\"1\" type=\"plugin\" value=\"example-cli@claude-plugins-official\" />`)"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```shell Shell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "[ -n \"$CLAUDECODE\" ] &&"
+            },
+            {
+              "type": "added",
+              "content": "  printf '%s\\n' '<claude-code-hint v=\"1\" type=\"plugin\" value=\"example-cli@claude-plugins-official\" />' >&2"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Replace `example-cli` with your plugin's name in the official marketplace."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Choose where to emit"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You control which code paths emit the hint. Claude Code deduplicates by plugin, so emitting on every invocation has no downside. Touchpoints that work well include:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Placement | Why it works |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `--help` output | Claude often runs help when exploring an unfamiliar CLI |"
+            },
+            {
+              "type": "added",
+              "content": "| Unknown-subcommand errors | Reaches the moment Claude is confused about your interface |"
+            },
+            {
+              "type": "added",
+              "content": "| Login or auth success | The user is already in a setup mindset |"
+            },
+            {
+              "type": "added",
+              "content": "| First-run welcome message | A natural onboarding moment |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## What the user sees"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the hint passes all checks, Claude Code shows a prompt like the following:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "─────────────────────────────────────────────────────────────"
+            },
+            {
+              "type": "added",
+              "content": "  Plugin Recommendation"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "    The example-cli command suggests installing a plugin."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "    Plugin: example-cli"
+            },
+            {
+              "type": "added",
+              "content": "    Marketplace: claude-plugins-official"
+            },
+            {
+              "type": "added",
+              "content": "    Official integration for example-cli deployments"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "    Would you like to install it?"
+            },
+            {
+              "type": "added",
+              "content": "    ❯ 1. Yes, install example-cli"
+            },
+            {
+              "type": "added",
+              "content": "      2. No"
+            },
+            {
+              "type": "added",
+              "content": "      3. No, and don't show plugin installation hints again"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "─────────────────────────────────────────────────────────────"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The prompt names the command that produced the hint so users can spot a mismatch between the tool and the plugin it recommends. If the user does not respond within 30 seconds, the prompt dismisses as **No**."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Prompt frequency is bounded:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Once per plugin**: after the prompt is shown, Claude Code records the plugin and never prompts for it again, regardless of the user's answer."
+            },
+            {
+              "type": "added",
+              "content": "- **Once per session**: across all CLIs on the machine, at most one hint prompt appears per Claude Code session."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Selecting **Yes** installs the plugin to user scope. Selecting **No, and don't show plugin installation hints again** disables all future hint prompts for the user."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Hint format"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The hint is a self-closing tag with three required attributes."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "<claude-code-hint v=\"1\" type=\"plugin\" value=\"example-cli@claude-plugins-official\" />"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Attribute | Required | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `v` | Yes | Protocol version. `1` is the only supported value |"
+            },
+            {
+              "type": "added",
+              "content": "| `type` | Yes | Hint kind. `plugin` is the only supported value |"
+            },
+            {
+              "type": "added",
+              "content": "| `value` | Yes | Plugin identifier in `name@marketplace` form |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Attribute values may be quoted with double quotes or left unquoted. Unquoted values cannot contain whitespace. Escape sequences are not supported."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Requirements"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code enforces two conditions before acting on a hint. Hints that fail either check are dropped:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Own line**: the tag must occupy its own line. A tag embedded mid-line, for example inside a log statement, is ignored. Leading and trailing whitespace on the line is allowed."
+            },
+            {
+              "type": "added",
+              "content": "- **Official marketplace**: the `value` must reference a plugin in an Anthropic-controlled marketplace such as `claude-plugins-official`. Hints that point to other marketplaces are silently dropped."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The hint line is always removed from the output before it reaches the model, even when the version or type is unrecognized, so the marker is never counted toward token usage."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The remaining guidance is recommended but not enforced. Claude Code cannot observe whether your CLI follows it:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Write to stderr**: stderr keeps the tag out of shell pipelines such as `example-cli deploy | jq`. Claude Code scans both streams, so stdout also works."
+            },
+            {
+              "type": "added",
+              "content": "- **Gate on `CLAUDECODE`**: only emit when the `CLAUDECODE` environment variable is set. This prevents the marker from appearing to users running your CLI directly."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Get your plugin into the official marketplace"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The hint protocol only takes effect for plugins listed in the official Anthropic marketplace, `claude-plugins-official`. Anthropic curates that marketplace at its discretion, and the in-app submission forms add plugins to the [community marketplace](/en/plugins#submit-your-plugin-to-the-community-marketplace) instead, which the hint protocol does not check. If you are working with an Anthropic partner contact, reach out to them to coordinate an official-marketplace listing."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## See also"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Create plugins](/en/plugins): build the plugin your CLI recommends"
+            },
+            {
+              "type": "added",
+              "content": "- [Create and distribute a plugin marketplace](/en/plugin-marketplaces): host plugins outside the official marketplace"
+            },
+            {
+              "type": "added",
+              "content": "- [Environment variables](/en/env-vars): full reference for `CLAUDECODE` and related variables"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "prompt-library.md",
+      "additions": 269,
+      "deletions": 0,
+      "explanation": "Claude Codeで再利用可能なプロンプトの記述例や、効率的な指示の構成方法がまとめられています。",
+      "hunks": []
+    },
+    {
+      "filename": "sessions.md",
+      "additions": 126,
+      "deletions": 0,
+      "explanation": "過去のセッションを再開するための--resumeフラグや、セッションに名前を付けて管理・切り替えを行う具体的な手順が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,126 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: sessions"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/sessions.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Manage sessions"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Name, resume, branch, and switch between Claude Code conversations. Covers `--continue`, `--resume`, `--from-pr`, the `/resume` picker, session naming, and where transcripts are stored."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A session is a saved conversation tied to a project directory. Claude Code stores it locally as you work, so you can resume where you left off, branch to try a different approach, or switch between tasks."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The [desktop app](/en/desktop#work-in-parallel-with-sessions), [Claude Code on the web](/en/claude-code-on-the-web), and the [VS Code extension](/en/vs-code#resume-past-conversations) each maintain their own session history. This page covers the CLI:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Resume](#resume-a-session) a previous conversation by flag, name, or PR"
+            },
+            {
+              "type": "added",
+              "content": "- [Name](#name-your-sessions) sessions so you can find them later"
+            },
+            {
+              "type": "added",
+              "content": "- [Browse](#use-the-session-picker) sessions with the `/resume` picker"
+            },
+            {
+              "type": "added",
+              "content": "- [Branch](#branch-a-session) a conversation to try a different approach"
+            },
+            {
+              "type": "added",
+              "content": "- [Export](#export-and-locate-session-data) transcripts and find them on disk"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Resume a session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Sessions are saved continuously to [local transcript files](#export-and-locate-session-data) as you work, so you can return to one after exiting or running `/clear`. Use these entry points:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Command | What it does |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude --continue` | Resumes the most recent session in the current directory |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude --resume` | Opens the [session picker](#use-the-session-picker) |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude --resume <name>` | Resumes the named session directly |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude --from-pr <number>` | Resumes the session linked to that pull request |"
+            },
+            {
+              "type": "added",
+              "content": "| `/resume` | Switches to a different conversation from inside an active session |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Sessions created with [`claude -p`](/en/headless) or the [Agent SDK](/en/agent-sdk/overview) do not appear in the session picker, but you can still resume one by passing its session ID to `claude --resume <session-id>`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Where the session picker looks"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Sessions are stored per project directory. By default the session picker shows interactive sessions from the current worktree, plus sessions started elsewhere that added the current directory with `/add-dir`. Use `Ctrl+W` to widen to all worktrees of the repository or `Ctrl+A` to widen to every project on this machine."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Selecting a session from another worktree of the same repository resumes it in place. Selecting a session from an unrelated project copies a `cd` and resume command to your clipboard instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Resuming by name resolves across the current repository and its worktrees. Both forms look for an exact match and resume it directly even if it lives in a different worktree:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Command | Exact match | Ambiguous name |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude --resume <name>` | Resumes directly | Opens the session picker with the name pre-filled as a search term |"
+            },
+            {
+              "type": "added",
+              "content": "| `/resume <name>` | Resumes directly | Reports an error; run `/resume` with no argument to open the session picker |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Name your sessions"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Give sessions descriptive names so they're findable in the session picker and resumable by name. This matters most when you're working on several tasks in parallel."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| When | How to set the name |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| At startup | `claude -n auth-refactor` |"
+            },
+            {
+              "type": "added",
+              "content": "| During a session | `/rename auth-refactor`. The name also appears on the prompt bar |"
+            },
+            {
+              "type": "added",
+              "content": "| From the session picker | Highlight a session and press `Ctrl+R` |"
+            },
+            {
+              "type": "added",
+              "content": "| On plan accept | Accepting a plan in [plan mode](/en/permission-modes#analyze-before-you-edit-with-plan-mode) names the session from the plan content unless you've already set one |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Once a session is named, return to it with `claude --resume <name>` or `/resume <name>`. See [Resume a session](#resume-a-session) for how name resolution behaves across worktrees."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Use the session picker"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/resume` inside a session, or `claude --resume` with no arguments, to open the interactive session picker. Use these keyboard shortcuts to navigate, search, and widen the list:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Shortcut | Action |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `↑` / `↓` | Navigate between sessions |"
+            },
+            {
+              "type": "added",
+              "content": "| `→` / `←` | Expand or collapse grouped sessions |"
+            },
+            {
+              "type": "added",
+              "content": "| `Enter` | Resume the highlighted session |"
+            },
+            {
+              "type": "added",
+              "content": "| `Space` | Preview the session content. `Ctrl+V` also works on terminals that don't capture it as paste |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+R` | Rename the highlighted session |"
+            },
+            {
+              "type": "added",
+              "content": "| `/` or any printable character other than `Space` | Enter search mode and filter sessions. Paste a GitHub, GitHub Enterprise, GitLab, or Bitbucket pull or merge request URL to find the session that created it |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+A` | Show sessions from all projects on this machine. Press again to return to the current repository |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+W` | Show sessions from all worktrees of the current repository. Press again to return to the current worktree. Only shown in multi-worktree repositories |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+B` | Filter to sessions from the current git branch. Press again to show all branches |"
+            },
+            {
+              "type": "added",
+              "content": "| `Esc` | Exit the session picker or search mode |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each row shows the session name if set, otherwise the conversation summary or first prompt, along with time since last activity, message count, and git branch. Project path appears after you widen to all projects with `Ctrl+A`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Forked sessions created with `/branch`, `/rewind`, or `--fork-session` are grouped under their root session. Press `→` to expand a group."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Branch a session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Branching creates a copy of the conversation so far and switches you into it, leaving the original intact. Use it to try a different approach without losing the path you were on."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "From inside a session, run `/branch` with an optional name:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "/branch try-streaming-approach"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "From the command line, combine `--continue` or `--resume` with `--fork-session`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude --continue --fork-session"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The original session is unchanged and remains available in the session picker. The `/branch` confirmation prints two session IDs: the new branch you are now in and the original. To return to the original, pass its ID to `/resume`, use the session picker, or run `/resume <original-name>`. Permissions you approved with \"allow for this session\" do not carry over to the new branch. If you resume the same session in two terminals without forking, messages from both interleave into one transcript."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For checkpoint-based rewind within a single session, see [Checkpointing](/en/checkpointing)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Manage context within a session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "These commands control what's in the context window without leaving the session:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **`/clear`**: start fresh with an empty context. The previous conversation is saved and resumable"
+            },
+            {
+              "type": "added",
+              "content": "- **`/compact [instructions]`**: replace history with a summary, optionally focused on what you specify"
+            },
+            {
+              "type": "added",
+              "content": "- **`/context`**: show what is currently consuming context"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For how compaction interacts with CLAUDE.md, skills, and rules, see the [context window guide](/en/context-window). For strategies on when to clear versus compact, see [Best practices](/en/best-practices#manage-your-session)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Export and locate session data"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/export` to copy the current conversation to your clipboard or save it as a plain-text file, with messages and tool outputs rendered as readable text. Pass a filename to write directly to that file."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Transcripts are stored as JSONL at `~/.claude/projects/<project>/<session-id>.jsonl`, where `<project>` is derived from your working directory path. Each line is a JSON object for a message, tool use, or metadata entry. To store sessions somewhere other than `~/.claude`, set [`CLAUDE_CONFIG_DIR`](/en/env-vars). These local files are removed after 30 days by default; change this with [`cleanupPeriodDays`](/en/settings#available-settings)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To suppress transcript writes entirely, set [`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/en/env-vars), or in non-interactive mode use `--no-session-persistence`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## See also"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "These pages cover related session and parallelism mechanics:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Worktrees](/en/worktrees): run isolated parallel sessions on separate branches"
+            },
+            {
+              "type": "added",
+              "content": "- [Checkpointing](/en/checkpointing): rewind code and conversation to an earlier point"
+            },
+            {
+              "type": "added",
+              "content": "- [Context window](/en/context-window): what fills context and what survives compaction"
+            },
+            {
+              "type": "added",
+              "content": "- [Non-interactive mode](/en/headless): session behavior under `claude -p`"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
