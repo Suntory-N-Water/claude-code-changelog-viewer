@@ -1,0 +1,272 @@
+{
+  "id": "20260520-161154",
+  "timestamp": "2026-05-20T16:11:54.906Z",
+  "aiSummary": "Escキーの2回押しによる挙動が整理され、入力欄にテキストがある場合は入力のクリア、空の場合はリワインドメニューの表示へと役割が明確化されました。Ctrl+Cによる操作中断および終了プロセスが詳細に定義され、1回押しで入力クリア、2回押しで終了する仕様が明記されています。プラグインのバリデーション機能において、マーケットプレイス全体と個別プラグインディレクトリを対象とした際のスキャン範囲の違いが詳しく説明されるようになりました。全体として、CLI操作時の直感的な動作と開発ツールとしてのデバッグ手順が強化されています。",
+  "files": [
+    {
+      "filename": "checkpointing.md",
+      "additions": 5,
+      "deletions": 1,
+      "explanation": "入力欄が空の時にEscを2回押すとリワインドメニューが開き、テキストがある場合は入力内容を履歴に保存しつつ消去する挙動が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -23,7 +23,11 @@ Claude Code tracks all changes made by its file editing tools:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Rewind and summarize"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Press `Esc` twice (`Esc` + `Esc`) or use the `/rewind` command to open the rewind menu. A scrollable list shows each of your prompts from the session. Select the point you want to act on, then choose an action:"
+            },
+            {
+              "type": "added",
+              "content": "Run `/rewind`, or press `Esc` twice when the prompt input is empty, to open the rewind menu."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the prompt input contains text, double `Esc` clears it instead of opening the menu. The cleared text is saved to your input history, so press `Up` to recall it after you finish in the rewind menu."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The rewind menu lists each prompt you sent during the session. Select the point you want to act on, then choose an action:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Restore code and conversation**: revert both code and conversation to that point"
+            },
+            {
+              "type": "context",
+              "content": "- **Restore conversation**: rewind to that message while keeping current code"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Ctrl+Cで入力消去やアプリ終了を行う手順と、Escキーの2回押しによるドラフト消去およびリワインド機能の使い分けが整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -23,7 +23,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Shortcut | Description | Context |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+C` | Cancel current input or generation | Standard interrupt |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+C` | Interrupt, or clear input | Interrupts a running operation. If nothing is running, the first press clears the prompt input and a second press exits Claude Code |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+X Ctrl+K` | Kill all running [background subagents](/en/sub-agents#run-subagents-in-foreground-or-background) in this session. Press twice within 3 seconds to confirm | Subagent control |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+D` | Exit Claude Code session | EOF signal |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+G` or `Ctrl+X Ctrl+E` | Open in default text editor | Edit your prompt or custom response in your default text editor. `Ctrl+X Ctrl+E` is the readline-native binding. Turn on Show last response in external editor in `/config` to prepend Claude's previous reply as `#`-commented context above your prompt; the comment block is stripped when you save |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -36,7 +36,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |"
+            },
+            {
+              "type": "context",
+              "content": "| `Up/Down arrows` or `Ctrl+P`/`Ctrl+N` | Move cursor or navigate command history | In multiline input, first moves the cursor within the prompt. Once the cursor is already on the top or bottom edge, pressing again navigates command history |"
+            },
+            {
+              "type": "context",
+              "content": "| `Esc` | Interrupt Claude | Stop the current response or tool call mid-turn so you can redirect. Claude keeps the work done so far |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Esc` + `Esc` | Rewind or summarize | Restore code and/or conversation to a previous point, or summarize from a selected message |"
+            },
+            {
+              "type": "added",
+              "content": "| `Esc` + `Esc` | Clear input draft, or rewind | When the prompt input contains text, double `Esc` clears it and saves the draft to history so `Up` recalls it. When the input is empty, double `Esc` opens the [rewind menu](/en/checkpointing) to restore or summarize code and conversation from a previous point |"
+            },
+            {
+              "type": "context",
+              "content": "| `Shift+Tab` or `Alt+M` (some configurations) | Cycle permission modes | Cycle through `default`, `acceptEdits`, `plan`, and any modes you have enabled, such as `auto` or `bypassPermissions`. See [permission modes](/en/permission-modes). |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+P` (macOS) or `Alt+P` (Windows/Linux) | Switch model | Switch models without clearing your prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `Option+T` (macOS) or `Alt+T` (Windows/Linux) | Toggle extended thinking | Enable or disable extended thinking mode. As of v2.1.132 this shortcut works on macOS without configuring Option as Meta |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 6,
+      "deletions": 4,
+      "explanation": "claude plugin validateコマンドの実行対象がマーケットプレイス全体か個別ディレクトリかによる、チェック対象ファイルの違いが詳細に記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -910,12 +910,14 @@ Both `remove` and `update` fail when run against a seed-managed marketplace, whi",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Verify the marketplace URL is accessible"
+            },
+            {
+              "type": "context",
+              "content": "- Check that `.claude-plugin/marketplace.json` exists at the specified path"
+            },
+            {
+              "type": "removed",
+              "content": "- Ensure JSON syntax is valid and frontmatter is well-formed using `claude plugin validate` or `/plugin validate`"
+            },
+            {
+              "type": "added",
+              "content": "- Ensure JSON syntax is valid using `claude plugin validate` or `/plugin validate`. To check skill, agent, and command frontmatter, run the command against each plugin directory"
+            },
+            {
+              "type": "context",
+              "content": "- For private repositories, confirm you have access permissions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Marketplace validation errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `claude plugin validate .` or `/plugin validate .` from your marketplace directory to check for issues. The validator checks `plugin.json`, skill/agent/command frontmatter, and `hooks/hooks.json` for syntax and schema errors. Common errors:"
+            },
+            {
+              "type": "added",
+              "content": "Run `claude plugin validate .` or `/plugin validate .` from your marketplace directory to check for issues. When pointed at a marketplace directory, the validator checks `marketplace.json` only: schema, duplicate plugin names, source path traversal, and version mismatches against each referenced `plugin.json`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To validate an individual plugin's `plugin.json` and its skill, agent, command, and hook files, run the command against the plugin directory itself, for example `claude plugin validate ./plugins/my-plugin`. Common errors:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Error | Cause | Solution |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -923,8 +925,8 @@ Run `claude plugin validate .` or `/plugin validate .` from your marketplace dir",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Invalid JSON syntax: Unexpected token...` | JSON syntax error in marketplace.json | Check for missing commas, extra commas, or unquoted strings |"
+            },
+            {
+              "type": "context",
+              "content": "| `Duplicate plugin name \"x\" found in marketplace` | Two plugins share the same name | Give each plugin a unique `name` value |"
+            },
+            {
+              "type": "context",
+              "content": "| `plugins[0].source: Path contains \"..\"` | Source path contains `..` | Use paths relative to the marketplace root without `..`. See [Relative paths](#relative-paths) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `YAML frontmatter failed to parse: ...` | Invalid YAML in a skill, agent, or command file | Fix the YAML syntax in the frontmatter block. At runtime this file loads with no metadata. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Invalid JSON syntax: ...` (hooks.json) | Malformed `hooks/hooks.json` | Fix JSON syntax. A malformed `hooks/hooks.json` prevents the entire plugin from loading. |"
+            },
+            {
+              "type": "added",
+              "content": "| `YAML frontmatter failed to parse: ...` | Invalid YAML in a skill, agent, or command file | Fix the YAML syntax in the frontmatter block. At runtime this file loads with no metadata. Reported only when validating a plugin directory |"
+            },
+            {
+              "type": "added",
+              "content": "| `Invalid JSON syntax: ...` (hooks.json) | Malformed `hooks/hooks.json` | Fix JSON syntax. A malformed `hooks/hooks.json` prevents the entire plugin from loading. Reported only when validating a plugin directory |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Warnings** (non-blocking):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

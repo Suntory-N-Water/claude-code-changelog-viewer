@@ -691,7 +691,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 # Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
 input=$(cat)
 title="Claude Code'
-body=$(jq -r '.message // 'Needs your attention'' <<<'$input")
+body=$(jq -r '.message // 'Needs your attention'' <<<'$input')
 seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
@@ -1681,6 +1681,8 @@ Claude Code サブエージェントが応答を終了したときに実行さ�
 
 [共通入力フィールド](#common-input-fields)に加えて、SubagentStop フックは `stop_hook_active`、`agent_id`、`agent_type`、`agent_transcript_path`、`last_assistant_message` を受け取ります。`agent_type` フィールドはマッチャー フィルタリングに使用される値です。`transcript_path` はメイン セッションのトランスクリプト、`agent_transcript_path` はネストされた `subagents/` フォルダに保存されたサブエージェント独自のトランスクリプトです。`last_assistant_message` フィールドはサブエージェントの最終応答のテキスト コンテンツを含むため、フックはトランスクリプト ファイルを解析せずにアクセスできます。
 
+SubagentStop フックは、Claude Code v2.1.145 以降で利用可能な、[Stop 入力](#stop-input)で説明されている `background_tasks` と `session_crons` 配列も受け取ります。両方の配列はサブエージェントではなく親セッションにスコープされています。
+
 ```json
 {
   "session_id": "abc123",
@@ -1692,7 +1694,9 @@ Claude Code サブエージェントが応答を終了したときに実行さ�
   "agent_id": "def456",
   "agent_type": "Explore",
   "agent_transcript_path": "~/.claude/projects/.../abc123/subagents/agent-def456.jsonl",
-  "last_assistant_message": "Analysis complete. Found 3 potential issues..."
+  "last_assistant_message": "Analysis complete. Found 3 potential issues...",
+  "background_tasks": [],
+  "session_crons": []
 }
 ```
 
@@ -1817,7 +1821,34 @@ exit 0
 
 #### Stop 入力
 
-[共通入力フィールド](#common-input-fields)に加えて、Stop フックは `stop_hook_active` と `last_assistant_message` を受け取ります。`stop_hook_active` フィールドは、Claude Code がすでに stop フックの結果として続行している場合は `true` です。この値をチェックするか、Claude Code が無限に実行されるのを防ぐためにトランスクリプトを処理します。`last_assistant_message` フィールドは Claude の最終応答のテキスト コンテンツを含むため、フックはトランスクリプト ファイルを解析せずにアクセスできます。
+[共通入力フィールド](#common-input-fields)に加えて、Stop フックは `stop_hook_active`、`last_assistant_message`、`background_tasks`、`session_crons` を受け取ります。`stop_hook_active` フィールドは、Claude Code がすでに stop フックの結果として続行している場合は `true` です。この値をチェックするか、Claude Code が無限に実行されるのを防ぐためにトランスクリプトを処理します。`last_assistant_message` フィールドは Claude の最終応答のテキスト コンテンツを含むため、フックはトランスクリプト ファイルを解析せずにアクセスできます。
+
+`background_tasks` と `session_crons` 配列は、Claude Code v2.1.145 以降で利用可能で、フックが「セッションが完了」と「セッションが一時停止してバックグラウンド作業が再開されるのを待機」を区別できます。タスク レジストリに到達可能な場合は両方の配列が存在し、何も進行中または予定されていない場合は空です。
+
+`background_tasks` の各エントリは 1 つの進行中のタスクを説明し、これらのフィールドを使用します。
+
+| フィールド | 説明 |
+| :- | :- |
+| `id` | タスク識別子 |
+| `type` | フレンドリーなタスク タイプ ラベル（`shell`、`subagent`、`monitor`、`workflow`、`teammate`、`cloud session`、`MCP task` など）。各ラベルは Claude Code のどの機能がタスクを作成したかを識別します。認識されないタイプの場合は生の判別式にフォールバック |
+| `status` | 現在のタスク ステータス |
+| `description` | フリー テキスト説明。1000 文字でキャップされ、クリップされた場合は文字列内に `… [+N chars]` マーカー |
+| `command` | シェル コマンド ライン。1000 文字でキャップ。`shell` タスクの場合のみ存在 |
+| `agent_type` | サブエージェント タイプ名。`subagent` タスクの場合のみ存在 |
+| `server` | MCP サーバー名。`monitor` と `MCP task` タスクの場合のみ存在 |
+| `tool` | MCP ツール名。`monitor` と `MCP task` タスクの場合のみ存在 |
+| `name` | ワークフロー名。`workflow` タスクの場合のみ存在 |
+
+`session_crons` の各エントリは 1 つのセッション スコープのスケジュール済みウェイクアップを説明し、`CronCreate` と `/loop` から取得されます。
+
+| フィールド | 説明 |
+| :- | :- |
+| `id` | Cron タスク識別子 |
+| `schedule` | Cron 式（例：`0 9 * * 1-5`） |
+| `recurring` | スケジュールが単一の発火時刻をエンコードする 1 回限りのウェイクアップの場合は `false`、すべてのマッチで再発火するタスクの場合は `true` |
+| `prompt` | Cron が発火するときに送信されるプロンプト。1000 文字でキャップされ、同じ `… [+N chars]` マーカー |
+
+この例は、1 つの進行中のシェル タスクと 1 つの定期的な cron を含む Stop 入力を示しています。
 
 ```json
 {
@@ -1827,7 +1858,24 @@ exit 0
   "permission_mode": "default",
   "hook_event_name": "Stop",
   "stop_hook_active": true,
-  "last_assistant_message": "I've completed the refactoring. Here's a summary..."
+  "last_assistant_message": "I've completed the refactoring. Here's a summary...",
+  "background_tasks": [
+    {
+      "id": "task-001",
+      "type": "shell",
+      "status": "running",
+      "description": "tail logs",
+      "command": "tail -f /var/log/syslog"
+    }
+  ],
+  "session_crons": [
+    {
+      "id": "cron-001",
+      "schedule": "0 9 * * 1-5",
+      "recurring": true,
+      "prompt": "check the build"
+    }
+  ]
 }
 ```
 

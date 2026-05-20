@@ -142,6 +142,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `workspace.project_dir` | Claude Code が起動されたディレクトリ。セッション中に作業ディレクトリが変更された場合、`cwd` と異なる場合があります |
 | `workspace.added_dirs` | `/add-dir` または `--add-dir` 経由で追加された追加ディレクトリ。追加されていない場合は空配列 |
 | `workspace.git_worktree` | 現在のディレクトリが `git worktree add` で作成されたリンク worktree 内にある場合の git worktree 名。メイン作業ツリーでは不在。`worktree.*` が `--worktree` セッションのみに適用されるのとは異なり、任意の git worktree に対して入力されます |
+| `workspace.repo.host`、`workspace.repo.owner`、`workspace.repo.name` | `origin` リモートから解析されたリポジトリ ID。例えば `"github.com"`、`"anthropics"`、`"claude-code"`。git リポジトリの外部または `origin` リモートが設定されていない場合は不在 |
 | `cost.total_cost_usd` | USD でのセッションの推定コスト。クライアント側で計算されます。実際の請求額と異なる場合があります |
 | `cost.total_duration_ms` | セッション開始からの総経過時間（ミリ秒） |
 | `cost.total_api_duration_ms` | API レスポンスを待つのに費やされた総時間（ミリ秒） |
@@ -163,6 +164,8 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `output_style.name` | 現在の出力スタイルの名前 |
 | `vim.mode` | [vim モード](/ja/interactive-mode#vim-editor-mode) が有効な場合の現在の vim モード（`NORMAL`、`INSERT`、`VISUAL`、または `VISUAL LINE`） |
 | `agent.name` | `--agent` フラグまたはエージェント設定が設定されている場合のエージェント名 |
+| `pr.number`、`pr.url` | 現在のブランチのオープンプルリクエスト。下部ステータスバーの PR バッジをミラーします。PR が見つかるまで不在。git リポジトリにない場合、または PR がマージまたはクローズされた後は不在 |
+| `pr.review_state` | オープン PR のレビューステータス：`approved`、`pending`、`changes_requested`、または `draft`。`pr` が存在する場合でも独立して不在の可能性があります |
 | `worktree.name` | アクティブな worktree の名前。`--worktree` セッション中のみ存在 |
 | `worktree.path` | worktree ディレクトリへの絶対パス |
 | `worktree.branch` | worktree の git ブランチ名（例：`"worktree-my-feature"`）。フックベースの worktree では不在 |
@@ -185,7 +188,12 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
     "current_dir": "/current/working/directory",
     "project_dir": "/original/project/directory",
     "added_dirs": [],
-    "git_worktree": "feature-xyz"
+    "git_worktree": "feature-xyz",
+    "repo": {
+      "host": "github.com",
+      "owner": "anthropics",
+      "name": "claude-code"
+    }
   },
   "version": "2.1.90",
   "output_style": {
@@ -234,6 +242,11 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
   "agent": {
     "name": "security-reviewer"
   },
+  "pr": {
+    "number": 1234,
+    "url": "https://github.com/anthropics/claude-code/pull/1234",
+    "review_state": "pending"
+  },
   "worktree": {
     "name": "my-feature",
     "path": "/path/to/.claude/worktrees/my-feature",
@@ -248,15 +261,17 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 - `session_name`：`--name` または `/rename` でカスタム名が設定されている場合のみ表示
 - `workspace.git_worktree`：現在のディレクトリがリンク git worktree 内にある場合のみ表示
+- `workspace.repo`：git リポジトリ内で `origin` リモートが設定されている場合のみ表示
 - `effort`：現在のモデルが推論努力パラメータをサポートしている場合のみ表示
 - `vim`：vim モードが有効な場合のみ表示
 - `agent`：`--agent` フラグまたはエージェント設定が設定されている場合のみ表示
+- `pr`：現在のブランチのオープン PR が見つかった場合のみ表示。PR がマージまたはクローズされると削除されます。`pr.review_state` は独立して不在の可能性があります
 - `worktree`：`--worktree` セッション中のみ表示。存在する場合、`branch` と `original_branch` もフックベースの worktree では不在の可能性があります
 - `rate_limits`：Claude.ai サブスクライバー（Pro/Max）がセッションの最初の API レスポンスの後のみ表示。各ウィンドウ（`five_hour`、`seven_day`）は独立して不在の可能性があります。`jq -r '.rate_limits.five_hour.used_percentage // empty'` を使用して、不在を適切に処理します。
 
 **`null` の可能性があるフィールド**：
 
-- `context_window.current_usage`：セッションの最初の API 呼び出しの前は `null`、および `/compact` の後は次の API 呼び出しが再度入力されるまで `null`
+- `context_window.current_usage`：セッションの最初の API 呼び出しの前は `null`。また `/compact` の直後は次の API 呼び出しが再度入力されるまで `null`
 - `context_window.used_percentage`、`context_window.remaining_percentage`：セッションの早期段階では `null` の可能性があります
 
 スクリプトで条件付きアクセスと null 値のフォールバックデフォルトを使用して、不在のフィールドを処理します。

@@ -910,21 +910,23 @@ claude plugin marketplace update [name]
 
 - マーケットプレイス URL がアクセス可能であることを確認します
 - `.claude-plugin/marketplace.json` が指定されたパスに存在することを確認します
-- `claude plugin validate` または `/plugin validate` を使用して JSON 構文が有効であることを確認します
+- `claude plugin validate` または `/plugin validate` を使用して JSON 構文が有効であることを確認します。skill、agent、command frontmatter をチェックするには、各プラグインディレクトリに対してコマンドを実行します
 - プライベートリポジトリの場合、アクセス権限があることを確認します
 
 ### マーケットプレイス検証エラー
 
-マーケットプレイスディレクトリから `claude plugin validate .` または `/plugin validate .` を実行して、問題をチェックします。バリデーターは `plugin.json`、skill/agent/command frontmatter、および `hooks/hooks.json` の構文とスキーマエラーをチェックします。一般的なエラー：
+マーケットプレイスディレクトリから `claude plugin validate .` または `/plugin validate .` を実行して、問題をチェックします。マーケットプレイスディレクトリを指定した場合、バリデーターは `marketplace.json` のみをチェックします：スキーマ、重複するプラグイン名、ソースパストラバーサル、および各参照される `plugin.json` に対するバージョン不一致。
+
+個別のプラグインの `plugin.json` およびその skill、agent、command、hook ファイルを検証するには、プラグインディレクトリ自体に対してコマンドを実行します。例えば `claude plugin validate ./plugins/my-plugin`。一般的なエラー：
 
 | エラー | 原因 | 解決策 |
 | :- | :- | :- |
 | `File not found: .claude-plugin/marketplace.json` | マニフェストが見つかりません | 必須フィールドを含む `.claude-plugin/marketplace.json` を作成します |
-| `Invalid JSON syntax: Unexpected token...` | JSON 構文エラー | コンマの欠落、余分なコンマ、または引用符なしの文字列をチェックします |
+| `Invalid JSON syntax: Unexpected token...` | marketplace.json の JSON 構文エラー | コンマの欠落、余分なコンマ、または引用符なしの文字列をチェックします |
 | `Duplicate plugin name "x" found in marketplace` | 2 つのプラグインが同じ名前を共有しています | 各プラグインに一意の `name` 値を指定します |
 | `plugins[0].source: Path contains ".."` | ソースパスに `..` が含まれています | マーケットプレイスルートに相対的なパスを使用し、`..` なしで使用します。[相対パス](#relative-paths)を参照してください |
-| `YAML frontmatter failed to parse: ...` | skill、agent、またはコマンドファイルの YAML が無効です | frontmatter ブロックの YAML 構文を修正します。実行時にこのファイルはメタデータなしで読み込まれます。 |
-| `Invalid JSON syntax: ...`（hooks.json） | 不正な形式の `hooks/hooks.json` | JSON 構文を修正します。不正な形式の `hooks/hooks.json` はプラグイン全体の読み込みを防ぎます。 |
+| `YAML frontmatter failed to parse: ...` | skill、agent、またはコマンドファイルの YAML が無効です | frontmatter ブロックの YAML 構文を修正します。実行時にこのファイルはメタデータなしで読み込まれます。プラグインディレクトリを検証する場合のみ報告されます |
+| `Invalid JSON syntax: ...`（hooks.json） | 不正な形式の `hooks/hooks.json` | JSON 構文を修正します。不正な形式の `hooks/hooks.json` はプラグイン全体の読み込みを防ぎます。プラグインディレクトリを検証する場合のみ報告されます |
 
 **警告**（ブロッキングなし）：
 

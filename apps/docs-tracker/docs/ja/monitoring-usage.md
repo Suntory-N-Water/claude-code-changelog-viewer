@@ -200,6 +200,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `tool_name` | ツール名 | |
 | `duration_ms` | 権限待機と実行を含む実時間 | |
 | `result_tokens` | ツール結果のおおよそのトークンサイズ | |
+| `agent_id` | ツールを実行したサブエージェントまたはチームメイトの識別子。メインセッションでは存在しません | |
+| `parent_agent_id` | このエージェントを生成したエージェントの識別子。メインセッションおよびそこから直接生成されたエージェントでは存在しません | |
 | `file_path` | Read、Edit、Write ツールのターゲットファイルパス | `OTEL_LOG_TOOL_DETAILS` |
 | `full_command` | Bash ツールのコマンド文字列 | `OTEL_LOG_TOOL_DETAILS` |
 | `skill_name` | Skill ツールのスキル名 | `OTEL_LOG_TOOL_DETAILS` |
