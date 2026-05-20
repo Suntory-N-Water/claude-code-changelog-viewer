@@ -1,0 +1,1862 @@
+{
+  "id": "20260520-042653",
+  "timestamp": "2026-05-20T04:26:53.372Z",
+  "aiSummary": "/run、/verify、/run-skill-generatorという3つの新しいスキルが導入され、アプリケーションのビルドから実行確認までを自動化できるようになりました。agent-sdkにおいてBunでコンパイルされた実行ファイルからバイナリを抽出するextractFromBunfsヘルパーが追加されています。フック機能やステータスラインのコンテキストに、実行中のバックグラウンドタスク、スケジュールされた定期実行タスク、Gitリポジトリやプルリクエストの詳細情報が新たに含まれるようになっています。プラグインの検証機能では未知のフィールドを許容する柔軟性が向上し、--strictオプションによる厳格なバリデーションもサポートされました。",
+  "files": [
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 53,
+      "deletions": 0,
+      "explanation": "Bunでコンパイルされた単一実行ファイルからSDKバイナリを抽出して実行するためのextractFromBunfsヘルパーと、バックグラウンドタスク情報の型定義が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -15,6 +15,36 @@ npm install @anthropic-ai/claude-agent-sdk",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The SDK bundles a native Claude Code binary for your platform as an optional dependency such as `@anthropic-ai/claude-agent-sdk-darwin-arm64`. You don't need to install Claude Code separately. If your package manager skips optional dependencies, the SDK throws `Native CLI binary for <platform> not found`; set [`pathToClaudeCodeExecutable`](#options) to a separately installed `claude` binary instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Compile to a single executable"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When you compile your application into a single-file executable with `bun build --compile`, the SDK cannot resolve the bundled CLI binary at runtime. `require.resolve` does not work inside the compiled executable's `$bunfs` virtual filesystem, so the SDK throws `Native CLI binary for <platform> not found`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To work around this, embed the platform binary as a file asset, extract it to a real path at startup with `extractFromBunfs()`, and pass that path to [`pathToClaudeCodeExecutable`](#options)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `extractFromBunfs()` helper requires `@anthropic-ai/claude-agent-sdk` v0.3.144 or later. The example below builds for macOS on Apple Silicon:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```typescript"
+            },
+            {
+              "type": "added",
+              "content": "import binPath from \"@anthropic-ai/claude-agent-sdk-darwin-arm64/claude\" with { type: \"file\" };"
+            },
+            {
+              "type": "added",
+              "content": "import { extractFromBunfs } from \"@anthropic-ai/claude-agent-sdk/extract\";"
+            },
+            {
+              "type": "added",
+              "content": "import { query } from \"@anthropic-ai/claude-agent-sdk\";"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "const cliPath = extractFromBunfs(binPath);"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "for await (const message of query({"
+            },
+            {
+              "type": "added",
+              "content": "  prompt: \"Hello\","
+            },
+            {
+              "type": "added",
+              "content": "  options: { pathToClaudeCodeExecutable: cliPath },"
+            },
+            {
+              "type": "added",
+              "content": "})) {"
+            },
+            {
+              "type": "added",
+              "content": "  console.log(message);"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`extractFromBunfs()` copies the embedded binary out of the compiled executable's virtual filesystem to a per-user temp directory and returns the real path. Outside a compiled executable it returns the input path unchanged, so the same code runs in development without modification."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each compiled executable embeds a single platform's binary. Match the platform package in the import to your `--target`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- To cross-compile, install the non-matching platform package, for example `npm install @anthropic-ai/claude-agent-sdk-linux-x64 --force`."
+            },
+            {
+              "type": "added",
+              "content": "- On Windows, the binary subpath is `claude.exe`, for example `@anthropic-ai/claude-agent-sdk-win32-x64/claude.exe`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Functions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `query()`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1392,6 +1422,8 @@ type StopHookInput = BaseHookInput & {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  hook_event_name: \"Stop\";"
+            },
+            {
+              "type": "context",
+              "content": "  stop_hook_active: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  last_assistant_message?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  background_tasks?: BackgroundTaskSummary[];"
+            },
+            {
+              "type": "added",
+              "content": "  session_crons?: SessionCronSummary[];"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1415,6 +1447,27 @@ type SubagentStopHookInput = BaseHookInput & {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  agent_transcript_path: string;"
+            },
+            {
+              "type": "context",
+              "content": "  agent_type: string;"
+            },
+            {
+              "type": "context",
+              "content": "  last_assistant_message?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  background_tasks?: BackgroundTaskSummary[];"
+            },
+            {
+              "type": "added",
+              "content": "  session_crons?: SessionCronSummary[];"
+            },
+            {
+              "type": "added",
+              "content": "};"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "type BackgroundTaskSummary = {"
+            },
+            {
+              "type": "added",
+              "content": "  id: string;"
+            },
+            {
+              "type": "added",
+              "content": "  type: string;"
+            },
+            {
+              "type": "added",
+              "content": "  status: string;"
+            },
+            {
+              "type": "added",
+              "content": "  description: string;"
+            },
+            {
+              "type": "added",
+              "content": "  command?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  agent_type?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  server?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  tool?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  name?: string;"
+            },
+            {
+              "type": "added",
+              "content": "};"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "type SessionCronSummary = {"
+            },
+            {
+              "type": "added",
+              "content": "  id: string;"
+            },
+            {
+              "type": "added",
+              "content": "  schedule: string;"
+            },
+            {
+              "type": "added",
+              "content": "  recurring: boolean;"
+            },
+            {
+              "type": "added",
+              "content": "  prompt: string;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-view.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "エージェントビューのターミナルタブに待機中の入力数が表示されるようになり、セッション一覧をJSON形式で出力する--jsonオプションが導入されています。",
+      "hunks": [
+        {
+          "header": "@@ -108,6 +108,8 @@ Separately, the icon's shape shows whether the underlying process is running:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `●` that can appear at the right edge of a row is the [pull request status](#pull-request-status) indicator, not part of the state icon. A number before it is the count of pull requests the session has opened."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The terminal tab title shows the awaiting-input count while agent view is open: `2 awaiting input · claude agents` when sessions need input, or `claude agents` when none do."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Background sessions don't need any terminal open to keep working. A separate [supervisor process](#the-supervisor-process) runs them, so you can close agent view, close your shell, or start a new interactive session and your dispatched work keeps going."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Session state persists on disk through auto-updates and supervisor restarts. Sessions are also preserved when your machine sleeps. Their processes resume on wake and the supervisor reconnects to them instead of treating the time gap as idle. Shutting down still stops running sessions; see [Sessions show as failed after shutdown](#sessions-show-as-failed-after-shutdown) for how to recover them."
+            }
+          ]
+        },
+        {
+          "header": "@@ -377,6 +379,7 @@ Every background session has a short ID you can use from the shell. The ID is pr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude agents` | Open agent view |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude agents --cwd <path>` | Open agent view scoped to sessions started under `<path>` |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude agents --json` | Print live sessions as a JSON array and exit. Each entry has `pid`, `cwd`, `kind`, and `startedAt`, plus `sessionId`, `name`, and `status` when set. Combine with `--cwd <path>` to filter |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude attach <id>` | Attach to a session in this terminal |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude logs <id>` | Print the session's recent output |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude stop <id>` | Stop a session. Also accepts `claude kill` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "claude agentsコマンドの説明に--jsonオプションによるスクリプト向けの出力機能が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -25,7 +25,7 @@ You can start sessions, pipe content, resume conversations, and manage updates w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude auth login` | Sign in to your Anthropic account. Use `--email` to pre-fill your email address, `--sso` to force SSO authentication, and `--console` to sign in with Anthropic Console for API usage billing instead of a Claude subscription | `claude auth login --console` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auth logout` | Log out from your Anthropic account | `claude auth logout` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auth status` | Show authentication status as JSON. Use `--text` for human-readable output. Exits with code 0 if logged in, 1 if not | `claude auth status` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude agents` | Open [agent view](/en/agent-view) to monitor and dispatch parallel background sessions. Use `--cwd <path>` to show only sessions started under that directory. Pass `--permission-mode`, `--model`, or `--effort` to set [defaults for dispatched sessions](/en/agent-view#permission-mode-model-and-effort). Accepts `--settings`, `--add-dir`, `--plugin-dir`, and `--mcp-config` like the top-level `claude` command. Requires an interactive terminal | `claude agents --cwd ~/projects/my-app` |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude agents` | Open [agent view](/en/agent-view) to monitor and dispatch parallel background sessions. Use `--cwd <path>` to show only sessions started under that directory, or `--json` to print live sessions as a JSON array for scripting. Pass `--permission-mode`, `--model`, or `--effort` to set [defaults for dispatched sessions](/en/agent-view#permission-mode-model-and-effort). Accepts `--settings`, `--add-dir`, `--plugin-dir`, and `--mcp-config` like the top-level `claude` command. Opening agent view requires an interactive terminal | `claude agents --json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude attach <id>` | Attach to a [background session](/en/agent-view#manage-sessions-from-the-shell) in this terminal | `claude attach 7c5dcf5d` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auto-mode defaults` | Print the built-in [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier rules as JSON. Use `claude auto-mode config` to see your effective config with settings applied | `claude auto-mode defaults > rules.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude daemon status` | Print the background-session [supervisor's](/en/agent-view#the-supervisor-process) state, version, socket directory, and worker count for diagnostics. Exits 1 if the supervisor isn't running | `claude daemon status` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 3,
+      "deletions": 0,
+      "explanation": "アプリの起動と検証を行う/run、/verify、およびその設定を生成する/run-skill-generatorの各スキルが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -100,6 +100,8 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/resume [session]` | Resume a conversation by ID or name, or open the session picker. As of v2.1.144, [background sessions](/en/agent-view) appear in the picker marked with `bg`. Alias: `/continue` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/review [PR]` | Review a pull request locally in your current session. For a deeper cloud-based review, see [`/ultrareview`](/en/ultrareview) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/rewind` | Rewind the conversation and/or code to a previous point, or summarize from a selected message. See [checkpointing](/en/checkpointing). Aliases: `/checkpoint`, `/undo` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/run` | **[Skill](/en/skills#bundled-skills).** Launch and drive your project's app to see a change working in the running app, not just in tests. See [Run and verify your app](/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            },
+            {
+              "type": "added",
+              "content": "| `/run-skill-generator` | **[Skill](/en/skills#bundled-skills).** Teach `/run` and `/verify` how to build, launch, and drive your project's app from a clean environment by writing a per-project [skill](/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/sandbox` | Toggle [sandbox mode](/en/sandboxing). Available on supported platforms only |"
+            },
+            {
+              "type": "context",
+              "content": "| `/schedule [description]` | Create, update, list, or run [routines](/en/routines), which execute on Anthropic-managed cloud infrastructure. Claude walks you through the setup conversationally. Alias: `/routines` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/scroll-speed` | Adjust mouse wheel [scroll speed](/en/fullscreen#mouse-wheel-scrolling) interactively, with a ruler you can scroll while the dialog is open to preview the change. Available in [fullscreen rendering](/en/fullscreen) only and not in the JetBrains IDE terminal |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -124,6 +126,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/upgrade` | Open the upgrade page to switch to a higher plan tier |"
+            },
+            {
+              "type": "context",
+              "content": "| `/usage` | Show session cost, plan usage limits, and activity stats. See the [cost tracking guide](/en/costs#using-the-%2Fusage-command) for subscription-specific details. `/cost` and `/stats` are aliases |"
+            },
+            {
+              "type": "context",
+              "content": "| `/usage-credits` | Configure usage credits to keep working when you hit a limit. Previously `/extra-usage` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/verify` | **[Skill](/en/skills#bundled-skills).** Confirm a code change does what it should by building your project's app, running it, and observing the result, rather than relying on tests or type checks. See [Run and verify your app](/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/vim` | Removed in v2.1.92. To toggle between Vim and Normal editing modes, use `/config` → Editor mode |"
+            },
+            {
+              "type": "context",
+              "content": "| `/voice [hold\\|tap\\|off]` | Toggle [voice dictation](/en/voice-dictation), or enable it in a specific mode. Requires a Claude.ai account |"
+            },
+            {
+              "type": "context",
+              "content": "| `/web-setup` | Connect your GitHub account to [Claude Code on the web](/en/web-quickstart#connect-from-your-terminal) using your local `gh` CLI credentials. `/schedule` prompts for this automatically if GitHub isn't connected |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "discover-plugins.md",
+      "additions": 6,
+      "deletions": 2,
+      "explanation": "プラグインの詳細画面にインストールされるコマンドやスキルの内訳を表示するWill installセクションが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -134,7 +134,11 @@ Run `/plugin` to open the plugin manager. This opens a tabbed interface with fou",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Go to the **Discover** tab to see plugins from the marketplace you just added."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Select a plugin to view its details. On Claude Code v2.1.143 and later, the details pane includes a **Context cost** estimate so you can see how many tokens the plugin will add to your [context window](/en/features-overview#understand-context-costs) every turn before you install it. On v2.1.144 and later, the pane also shows the plugin's **Last updated** date."
+            },
+            {
+              "type": "added",
+              "content": "Select a plugin to view its details. The details pane shows what the plugin contains and what it costs:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- A **Context cost** estimate so you can see how many tokens the plugin will add to your [context window](/en/features-overview#understand-context-costs) every turn (Claude Code v2.1.143 and later)"
+            },
+            {
+              "type": "added",
+              "content": "- The plugin's **Last updated** date (v2.1.144 and later)"
+            },
+            {
+              "type": "added",
+              "content": "- A **Will install** section listing the plugin's commands, agents, skills, hooks, and MCP and LSP servers, so you can review exactly what it adds before installing (v2.1.145 and later)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Choose an installation scope:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -162,7 +166,7 @@ Try it out by making a change to a file and running:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This stages your changes, generates a commit message, and creates the commit."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each plugin works differently. Check the plugin's description in the **Discover** tab or its homepage to learn what skills and capabilities it provides."
+            },
+            {
+              "type": "added",
+              "content": "Each plugin works differently. Check the plugin's details in the **Discover** tab to see the commands and skills it provides, or visit its homepage for usage guidance."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The rest of this guide covers all the ways you can add marketplaces, install plugins, and manage your configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "CLAUDECODEおよびCLAUDE_CODE_SESSION_ID環境変数が、フックやステータスラインなどのすべてのサブプロセスでも利用可能になったことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -122,7 +122,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `BASH_MAX_OUTPUT_LENGTH` | Maximum number of characters in bash outputs before the full output is saved to a file and Claude receives the path plus a short preview. See [Bash tool behavior](/en/tools-reference#bash-tool-behavior) |"
+            },
+            {
+              "type": "context",
+              "content": "| `BASH_MAX_TIMEOUT_MS` | Maximum timeout the model can set for long-running bash commands (default: 600000, or 10 minutes) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CCR_FORCE_BUNDLE` | Set to `1` to force [`claude --remote`](/en/claude-code-on-the-web#send-local-repositories-without-github) to bundle and upload your local repository even when GitHub access is available |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDECODE` | Set to `1` in shell environments Claude Code spawns (Bash tool, tmux sessions). Not set in [hooks](/en/hooks) or [status line](/en/statusline) commands. Use to detect when a script is running inside a shell spawned by Claude Code |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDECODE` | Set to `1` in subprocesses Claude Code spawns (Bash and PowerShell tools, tmux sessions, [hook](/en/hooks) commands, [status line](/en/statusline) commands). Use to detect when a script is running inside a subprocess spawned by Claude Code |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS` | Set to `1` to disable all built-in [subagent](/en/sub-agents) types such as Explore and Plan. Only applies in non-interactive mode (the `-p` flag). Useful for SDK users who want a blank slate |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AGENT_SDK_MCP_NO_PREFIX` | Set to `1` to skip the `mcp__<server>__` prefix on tool names from SDK-created MCP servers. Tools use their original names. SDK usage only |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS` | Stall timeout in milliseconds for background subagents. Default `600000` (10 minutes). The timer resets on each streaming progress event; if no progress arrives within the window, the subagent is aborted and the task is marked failed, surfacing any partial result to the parent |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -222,7 +222,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SCRIPT_CAPS` | JSON object limiting how many times specific scripts may be invoked per session when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set. Keys are substrings matched against the command text; values are integer call limits. For example, `{\"deploy.sh\": 2}` allows `deploy.sh` to be called at most twice. Matching is substring-based so shell-expansion tricks like `./scripts/deploy.sh $(evil)` still count against the cap. Runtime fan-out via `xargs` or `find -exec` is not detected; this is a defense-in-depth control |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SCROLL_SPEED` | Set the mouse wheel scroll multiplier in [fullscreen rendering](/en/fullscreen#mouse-wheel-scrolling). Accepts values from 1 to 20. Set to `3` to match `vim` if your terminal sends one wheel event per notch without amplification. Ignored in the JetBrains IDE terminal, where Claude Code uses its own scroll handling |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SESSIONEND_HOOKS_TIMEOUT_MS` | Override the time budget in milliseconds for [SessionEnd](/en/hooks#sessionend) hooks. Applies to session exit, `/clear`, and switching sessions via interactive `/resume`. By default the budget is 1.5 seconds, automatically raised to the highest per-hook `timeout` configured in settings files, up to 60 seconds. Timeouts on plugin-provided hooks do not raise the budget |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_SESSION_ID` | Set automatically in Bash and PowerShell tool subprocesses to the current session ID. Matches the `session_id` field passed to [hooks](/en/hooks). Updated on `/clear`. Use to correlate scripts and external tools with the Claude Code session that launched them |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_SESSION_ID` | Set automatically in Bash and PowerShell tool subprocesses and in [hook command](/en/hooks) subprocesses to the current session ID. Matches the `session_id` field in the hook JSON input. Updated on `/clear`. Use to correlate scripts and external tools with the Claude Code session that launched them |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SHELL` | Override automatic shell detection. Useful when your login shell differs from your preferred working shell (for example, `bash` vs `zsh`) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SHELL_PREFIX` | Command prefix that wraps shell commands Claude Code spawns: Bash tool calls, [hook](/en/hooks) commands, and stdio [MCP server](/en/mcp) startup commands. Useful for logging or auditing. Example: setting `/path/to/logger.sh` runs each command as `/path/to/logger.sh <command>` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SIMPLE` | Set to `1` to run with a minimal system prompt and only the Bash, file read, and file edit tools. MCP tools from `--mcp-config` are still available. Disables auto-discovery of hooks, skills, plugins, MCP servers, auto memory, and CLAUDE.md. OAuth tokens and keychain credentials are not read, so Anthropic authentication must come from `ANTHROPIC_API_KEY` or an `apiKeyHelper` in `--settings`. Equivalent to passing [`--bare`](/en/headless#start-faster-with-bare-mode) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "フルスクリーンのコマンド補完やファイルリストにおいて、マウスホバーによるハイライトとクリックによる選択が可能になったことが記述されています。",
+      "hunks": [
+        {
+          "header": "@@ -46,6 +46,7 @@ If mouse capture interferes with your workflow, you can [turn it off](#keep-nati",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Fullscreen rendering captures mouse events and handles them inside Claude Code:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Click in the prompt input** to position your cursor anywhere in the text you're typing."
+            },
+            {
+              "type": "added",
+              "content": "- **Click a suggestion in the `/` command or `@` file list** to accept it. Hovering highlights the row under your cursor."
+            },
+            {
+              "type": "context",
+              "content": "- **Click a collapsed tool result** to expand it and see the full output. Click again to collapse. The tool call and its result expand together. Only messages that have more to show are clickable."
+            },
+            {
+              "type": "context",
+              "content": "- **Click a URL or file path** to open it. File paths in tool output, like the ones printed after an Edit or Write, open in your default application. Plain `http://` and `https://` URLs open in your browser. In most terminals this replaces native `Cmd`-click or `Ctrl`-click, which mouse capture intercepts. In the VS Code integrated terminal and similar xterm.js-based terminals, keep using `Cmd`-click. Claude Code defers to the terminal's own link handler there to avoid opening links twice."
+            },
+            {
+              "type": "context",
+              "content": "- **Click and drag** to select text anywhere in the conversation. Double-click selects a word, matching iTerm2's word boundaries so a file path selects as one unit. Triple-click selects the line."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 51,
+      "deletions": 3,
+      "explanation": "StopフックとSubagentStopフックの入力データに、実行中のバックグラウンドタスクとスケジュールされたタスクの詳細情報が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1684,6 +1684,8 @@ Runs when a Claude Code subagent has finished responding. Matches on agent type,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In addition to the [common input fields](#common-input-fields), SubagentStop hooks receive `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, and `last_assistant_message`. The `agent_type` field is the value used for matcher filtering. The `transcript_path` is the main session's transcript, while `agent_transcript_path` is the subagent's own transcript stored in a nested `subagents/` folder. The `last_assistant_message` field contains the text content of the subagent's final response, so hooks can access it without parsing the transcript file."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "SubagentStop hooks also receive the `background_tasks` and `session_crons` arrays described under [Stop input](#stop-input), available in Claude Code v2.1.145 or later. Both arrays are scoped to the parent session, not the subagent."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"session_id\": \"abc123\","
+            }
+          ]
+        },
+        {
+          "header": "@@ -1695,7 +1697,9 @@ In addition to the [common input fields](#common-input-fields), SubagentStop hoo",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  \"agent_id\": \"def456\","
+            },
+            {
+              "type": "context",
+              "content": "  \"agent_type\": \"Explore\","
+            },
+            {
+              "type": "context",
+              "content": "  \"agent_transcript_path\": \"~/.claude/projects/.../abc123/subagents/agent-def456.jsonl\","
+            },
+            {
+              "type": "removed",
+              "content": "  \"last_assistant_message\": \"Analysis complete. Found 3 potential issues...\""
+            },
+            {
+              "type": "added",
+              "content": "  \"last_assistant_message\": \"Analysis complete. Found 3 potential issues...\","
+            },
+            {
+              "type": "added",
+              "content": "  \"background_tasks\": [],"
+            },
+            {
+              "type": "added",
+              "content": "  \"session_crons\": []"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1822,10 +1826,37 @@ The [`/goal`](/en/goal) command is a built-in shortcut for a session-scoped prom",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Stop input"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In addition to the [common input fields](#common-input-fields), Stop hooks receive `stop_hook_active` and `last_assistant_message`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks."
+            },
+            {
+              "type": "added",
+              "content": "In addition to the [common input fields](#common-input-fields), Stop hooks receive `stop_hook_active`, `last_assistant_message`, `background_tasks`, and `session_crons`. The `stop_hook_active` field is `true` when Claude Code is already continuing as a result of a stop hook. Check this value or process the transcript to avoid blocking on a condition that will never resolve. Claude Code overrides the hook and ends the turn after 8 consecutive blocks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `last_assistant_message` field contains the text content of Claude's final response, so hooks can access it without parsing the transcript file."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `background_tasks` and `session_crons` arrays, available in Claude Code v2.1.145 or later, let hooks distinguish \"session is done\" from \"session is paused waiting for background work to wake it back up\". Both arrays are present when the task registry is reachable and are empty when nothing is in flight or scheduled."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each entry in `background_tasks` describes one in-flight task and uses these fields:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `id` | Task identifier |"
+            },
+            {
+              "type": "added",
+              "content": "| `type` | Friendly task-type label such as `shell`, `subagent`, `monitor`, `workflow`, `teammate`, `cloud session`, or `MCP task`. Each label identifies which Claude Code feature created the task. Falls back to the raw discriminant for unrecognized types |"
+            },
+            {
+              "type": "added",
+              "content": "| `status` | Current task status |"
+            },
+            {
+              "type": "added",
+              "content": "| `description` | Free-text description, capped at 1000 characters with an in-string `… [+N chars]` marker when clipped |"
+            },
+            {
+              "type": "added",
+              "content": "| `command` | Shell command line, capped at 1000 characters. Present only for `shell` tasks |"
+            },
+            {
+              "type": "added",
+              "content": "| `agent_type` | Subagent type name. Present only for `subagent` tasks |"
+            },
+            {
+              "type": "added",
+              "content": "| `server` | MCP server name. Present only for `monitor` and `MCP task` tasks |"
+            },
+            {
+              "type": "added",
+              "content": "| `tool` | MCP tool name. Present only for `monitor` and `MCP task` tasks |"
+            },
+            {
+              "type": "added",
+              "content": "| `name` | Workflow name. Present only for `workflow` tasks |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each entry in `session_crons` describes one session-scoped scheduled wakeup, sourced from `CronCreate` and `/loop`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `id` | Cron task identifier |"
+            },
+            {
+              "type": "added",
+              "content": "| `schedule` | Cron expression, for example `0 9 * * 1-5` |"
+            },
+            {
+              "type": "added",
+              "content": "| `recurring` | `false` for one-shot wakeups whose schedule encodes a single fire time, `true` for tasks that re-fire on every match |"
+            },
+            {
+              "type": "added",
+              "content": "| `prompt` | Prompt submitted when the cron fires, capped at 1000 characters with the same `… [+N chars]` marker |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This example shows a Stop input with one in-flight shell task and one recurring cron:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"session_id\": \"abc123\","
+            }
+          ]
+        },
+        {
+          "header": "@@ -1834,7 +1865,24 @@ The `last_assistant_message` field contains the text content of Claude's final r",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  \"permission_mode\": \"default\","
+            },
+            {
+              "type": "context",
+              "content": "  \"hook_event_name\": \"Stop\","
+            },
+            {
+              "type": "context",
+              "content": "  \"stop_hook_active\": true,"
+            },
+            {
+              "type": "removed",
+              "content": "  \"last_assistant_message\": \"I've completed the refactoring. Here's a summary...\""
+            },
+            {
+              "type": "added",
+              "content": "  \"last_assistant_message\": \"I've completed the refactoring. Here's a summary...\","
+            },
+            {
+              "type": "added",
+              "content": "  \"background_tasks\": ["
+            },
+            {
+              "type": "added",
+              "content": "    {"
+            },
+            {
+              "type": "added",
+              "content": "      \"id\": \"task-001\","
+            },
+            {
+              "type": "added",
+              "content": "      \"type\": \"shell\","
+            },
+            {
+              "type": "added",
+              "content": "      \"status\": \"running\","
+            },
+            {
+              "type": "added",
+              "content": "      \"description\": \"tail logs\","
+            },
+            {
+              "type": "added",
+              "content": "      \"command\": \"tail -f /var/log/syslog\""
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  ],"
+            },
+            {
+              "type": "added",
+              "content": "  \"session_crons\": ["
+            },
+            {
+              "type": "added",
+              "content": "    {"
+            },
+            {
+              "type": "added",
+              "content": "      \"id\": \"cron-001\","
+            },
+            {
+              "type": "added",
+              "content": "      \"schedule\": \"0 9 * * 1-5\","
+            },
+            {
+              "type": "added",
+              "content": "      \"recurring\": true,"
+            },
+            {
+              "type": "added",
+              "content": "      \"prompt\": \"check the build\""
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  ]"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 2,
+      "explanation": "PRバッジのステータス更新タイミングに、gh prやgit pushコマンド実行直後の即時リフレッシュが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -344,9 +344,8 @@ When working on a branch with an open pull request, Claude Code displays a click",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Yellow: pending review"
+            },
+            {
+              "type": "context",
+              "content": "- Red: changes requested"
+            },
+            {
+              "type": "context",
+              "content": "- Gray: draft"
+            },
+            {
+              "type": "removed",
+              "content": "- Purple: merged"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`Cmd+click` (Mac) or `Ctrl+click` (Windows/Linux) the link to open the pull request in your browser. The status updates automatically every 60 seconds."
+            },
+            {
+              "type": "added",
+              "content": "The badge disappears once the pull request merges or closes. `Cmd+click` (Mac) or `Ctrl+click` (Windows/Linux) the link to open the pull request in your browser. The status refreshes every 60 seconds, and immediately after a `gh pr` or `git push` command runs in the session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "PR status requires the `gh` CLI to be installed and authenticated (`gh auth login`)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "ツール実行ログに、実行元となったサブエージェントやその親エージェントを特定するためのIDフィールドが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -200,6 +200,8 @@ Each retry attempt is also recorded as a `gen_ai.request.attempt` span event wit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `tool_name` | Tool name | |"
+            },
+            {
+              "type": "context",
+              "content": "| `duration_ms` | Wall-clock duration including permission wait and execution | |"
+            },
+            {
+              "type": "context",
+              "content": "| `result_tokens` | Approximate token size of the tool result | |"
+            },
+            {
+              "type": "added",
+              "content": "| `agent_id` | Identifier of the subagent or teammate that ran the tool. Absent on the main session | |"
+            },
+            {
+              "type": "added",
+              "content": "| `parent_agent_id` | Identifier of the agent that spawned this one. Absent for the main session and for agents spawned directly from it | |"
+            },
+            {
+              "type": "context",
+              "content": "| `file_path` | Target file path for Read, Edit, and Write tools | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `full_command` | Command string for the Bash tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `skill_name` | Skill name for the Skill tool | `OTEL_LOG_TOOL_DETAILS` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "output-styles.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Proactiveスタイルが、通常のAutoモードよりも強い自律的な実行ガイダンスを与えるものであることが明確化されました。",
+      "hunks": [
+        {
+          "header": "@@ -19,7 +19,7 @@ Claude Code's **Default** output style is the existing system prompt, designed t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "There are three additional built-in output styles:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Proactive**: Claude executes immediately, makes reasonable assumptions instead of pausing for routine decisions, and prefers action over planning. This applies the same guidance as [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) without changing your permission mode, so you still see permission prompts before tools run."
+            },
+            {
+              "type": "added",
+              "content": "- **Proactive**: Claude executes immediately, makes reasonable assumptions instead of pausing for routine decisions, and prefers action over planning. This is stronger autonomous-execution guidance than [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) applies, and it works without changing your permission mode, so you still see permission prompts before tools run."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Explanatory**: Provides educational \"Insights\" in between helping you complete software engineering tasks. Helps you understand implementation choices and codebase patterns."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -107,6 +107,6 @@ Several features customize how Claude Code behaves. Output styles modify the sys",
+          "lines": [
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Settings](/en/settings): where the `outputStyle` field lives and how settings precedence works"
+            },
+            {
+              "type": "removed",
+              "content": "- [Permission modes](/en/permission-modes): the Proactive style mirrors auto mode without changing your permission mode"
+            },
+            {
+              "type": "added",
+              "content": "- [Permission modes](/en/permission-modes): how the Proactive style compares to auto mode"
+            },
+            {
+              "type": "context",
+              "content": "- [Plugins](/en/plugins): package and distribute output styles alongside skills, hooks, and agents"
+            },
+            {
+              "type": "context",
+              "content": "- [Debug your configuration](/en/debug-your-config): diagnose why an output style isn't taking effect"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "AutoモードとProactiveスタイルの動作の違いについて、自律性の強さの観点から説明が調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -151,7 +151,7 @@ Auto mode requires Claude Code v2.1.83 or later.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto mode lets Claude execute without permission prompts. A separate classifier model reviews actions before they run, blocking anything that escalates beyond your request, targets unrecognized infrastructure, or appears driven by hostile content Claude read."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto mode also instructs Claude to execute immediately and minimize clarifying questions. To get that behavior while keeping permission prompts, set the [Proactive output style](/en/output-styles) instead."
+            },
+            {
+              "type": "added",
+              "content": "Auto mode also nudges Claude to keep working without stopping for clarifying questions. For stronger autonomous behavior while keeping permission prompts, set the [Proactive output style](/en/output-styles) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Auto mode is a research preview. It reduces prompts but does not guarantee safety. Use it for tasks where you trust the general direction, not as a replacement for review on sensitive operations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 25,
+      "deletions": 0,
+      "explanation": "plugin.json内の未知のフィールドを無視する仕様と、バリデーション時の警告表示および--strictオプションによる厳格モードについて追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -402,6 +402,31 @@ This name is used for namespacing components. For example, in the UI, the",
+          "lines": [
+            {
+              "type": "context",
+              "content": "agent `agent-creator` for the plugin with name `plugin-dev` will appear as"
+            },
+            {
+              "type": "context",
+              "content": "`plugin-dev:agent-creator`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Unrecognized fields"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code ignores top-level fields it does not recognize. You can keep"
+            },
+            {
+              "type": "added",
+              "content": "metadata from another ecosystem in `plugin.json` and the plugin still loads."
+            },
+            {
+              "type": "added",
+              "content": "This makes it practical to maintain one manifest that doubles as a VS Code or"
+            },
+            {
+              "type": "added",
+              "content": "Cursor extension manifest, an npm `package.json`, or an MCPB/DXT bundle"
+            },
+            {
+              "type": "added",
+              "content": "manifest."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`claude plugin validate` reports unrecognized fields as warnings, not errors."
+            },
+            {
+              "type": "added",
+              "content": "If a field is one or two characters off from a recognized one, the warning"
+            },
+            {
+              "type": "added",
+              "content": "suggests the likely intended name. A plugin with only unrecognized-field"
+            },
+            {
+              "type": "added",
+              "content": "warnings still passes validation and loads at runtime."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fields with the wrong type still fail. For example, a `keywords` value that is"
+            },
+            {
+              "type": "added",
+              "content": "a string instead of an array is a load error, and `claude plugin validate`"
+            },
+            {
+              "type": "added",
+              "content": "reports it as one."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Pass `--strict` to treat warnings as errors. Use it in CI to catch a misspelled"
+            },
+            {
+              "type": "added",
+              "content": "field name or a field left over from another tool's manifest before publishing,"
+            },
+            {
+              "type": "added",
+              "content": "even though the plugin would load at runtime."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin validate ./my-plugin --strict"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Metadata fields"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Type | Description | Example |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 18,
+      "deletions": 0,
+      "explanation": "アプリのビルドと起動レシピを記録して自動実行する「Run and verify your app」関連スキルの詳細な使い方が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -23,6 +23,22 @@ Claude Code includes a set of bundled skills that are available in every session",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Bundled skills are listed alongside built-in commands in the [commands reference](/en/commands), marked **Skill** in the Purpose column."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Run and verify your app"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Three bundled skills work together to launch your app and confirm changes against the running app instead of just tests:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Skill | Purpose |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `/run` | Launch and drive your app to see a change working |"
+            },
+            {
+              "type": "added",
+              "content": "| `/verify` | Build and run your app to confirm a code change does what it should, without falling back to tests or type checks |"
+            },
+            {
+              "type": "added",
+              "content": "| `/run-skill-generator` | Teach `/run` and `/verify` how to build and launch your project |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "All three skills require Claude Code v2.1.145 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`/run` and `/verify` work without setup. They infer the launch from your project type (CLI, server, TUI, browser-driven) and from what's in your README, `package.json`, or `Makefile`. That inference gets unreliable for projects that need anything beyond a standard launch: a database, an env file, a graphical session, a multi-step build."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`/run-skill-generator` records the recipe instead. It gets your app running from a clean environment, captures what worked (the install commands, the env vars, the launch script), and commits it as a per-project skill at `.claude/skills/run-<name>/`. After that, `/run`, `/verify`, and any other agent in the repo follow the recorded recipe instead of rediscovering it. Run `/run-skill-generator` once per project, and again if the build or launch process changes."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Getting started"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Create your first skill"
+            }
+          ]
+        },
+        {
+          "header": "@@ -394,6 +410,8 @@ This is preprocessing, not something Claude executes. Claude only sees the final",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Substitution runs once over the original file. Command output is inserted as plain text and is not re-scanned for further `` !`<command>` `` placeholders, so a command cannot emit a placeholder for a later pass to expand."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The inline form is only recognized when `!` appears at the start of a line or immediately after whitespace. If `!` follows another character, as in `` KEY=!`cmd` ``, the placeholder is left as literal text and the command does not run."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For multi-line commands, use a fenced code block opened with ` ```! ` instead of the inline form:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "````markdown theme={null}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 16,
+      "deletions": 1,
+      "explanation": "ステータスラインのコンテキストにGitリポジトリのホスト情報、プルリクエスト番号、レビュー状態などの新しい変数が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -142,6 +142,7 @@ Claude Code sends the following JSON fields to your script via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `workspace.project_dir` | Directory where Claude Code was launched, which may differ from `cwd` if the working directory changes during a session |"
+            },
+            {
+              "type": "context",
+              "content": "| `workspace.added_dirs` | Additional directories added via `/add-dir` or `--add-dir`. Empty array if none have been added |"
+            },
+            {
+              "type": "context",
+              "content": "| `workspace.git_worktree` | Git worktree name when the current directory is inside a linked worktree created with `git worktree add`. Absent in the main working tree. Populated for any git worktree, unlike `worktree.*` which applies only to `--worktree` sessions |"
+            },
+            {
+              "type": "added",
+              "content": "| `workspace.repo.host`, `workspace.repo.owner`, `workspace.repo.name` | Repository identity parsed from the `origin` remote, for example `\"github.com\"`, `\"anthropics\"`, `\"claude-code\"`. Absent outside a git repository or when no `origin` remote is configured |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_cost_usd` | Estimated session cost in USD, computed client-side. May differ from your actual bill |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_duration_ms` | Total wall-clock time since the session started, in milliseconds |"
+            },
+            {
+              "type": "context",
+              "content": "| `cost.total_api_duration_ms` | Total time spent waiting for API responses in milliseconds |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -163,6 +164,8 @@ Claude Code sends the following JSON fields to your script via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `output_style.name` | Name of the current output style |"
+            },
+            {
+              "type": "context",
+              "content": "| `vim.mode` | Current vim mode (`NORMAL`, `INSERT`, `VISUAL`, or `VISUAL LINE`) when [vim mode](/en/interactive-mode#vim-editor-mode) is enabled |"
+            },
+            {
+              "type": "context",
+              "content": "| `agent.name` | Agent name when running with the `--agent` flag or agent settings configured |"
+            },
+            {
+              "type": "added",
+              "content": "| `pr.number`, `pr.url` | Open pull request for the current branch. Mirrors the PR badge in the bottom status bar. Absent until a PR is found, when not in a git repository, or once the PR merges or closes |"
+            },
+            {
+              "type": "added",
+              "content": "| `pr.review_state` | Review status of the open PR: `approved`, `pending`, `changes_requested`, or `draft`. May be independently absent even when `pr` is present |"
+            },
+            {
+              "type": "context",
+              "content": "| `worktree.name` | Name of the active worktree. Present only during `--worktree` sessions |"
+            },
+            {
+              "type": "context",
+              "content": "| `worktree.path` | Absolute path to the worktree directory |"
+            },
+            {
+              "type": "context",
+              "content": "| `worktree.branch` | Git branch name for the worktree (for example, `\"worktree-my-feature\"`). Absent for hook-based worktrees |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -185,7 +188,12 @@ Your status line command receives this JSON structure via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    \"current_dir\": \"/current/working/directory\","
+            },
+            {
+              "type": "context",
+              "content": "    \"project_dir\": \"/original/project/directory\","
+            },
+            {
+              "type": "context",
+              "content": "    \"added_dirs\": [],"
+            },
+            {
+              "type": "removed",
+              "content": "    \"git_worktree\": \"feature-xyz\""
+            },
+            {
+              "type": "added",
+              "content": "    \"git_worktree\": \"feature-xyz\","
+            },
+            {
+              "type": "added",
+              "content": "    \"repo\": {"
+            },
+            {
+              "type": "added",
+              "content": "      \"host\": \"github.com\","
+            },
+            {
+              "type": "added",
+              "content": "      \"owner\": \"anthropics\","
+            },
+            {
+              "type": "added",
+              "content": "      \"name\": \"claude-code\""
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"version\": \"2.1.90\","
+            },
+            {
+              "type": "context",
+              "content": "  \"output_style\": {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -234,6 +242,11 @@ Your status line command receives this JSON structure via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  \"agent\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"name\": \"security-reviewer\""
+            },
+            {
+              "type": "context",
+              "content": "  },"
+            },
+            {
+              "type": "added",
+              "content": "  \"pr\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"number\": 1234,"
+            },
+            {
+              "type": "added",
+              "content": "    \"url\": \"https://github.com/anthropics/claude-code/pull/1234\","
+            },
+            {
+              "type": "added",
+              "content": "    \"review_state\": \"pending\""
+            },
+            {
+              "type": "added",
+              "content": "  },"
+            },
+            {
+              "type": "context",
+              "content": "  \"worktree\": {"
+            },
+            {
+              "type": "context",
+              "content": "    \"name\": \"my-feature\","
+            },
+            {
+              "type": "context",
+              "content": "    \"path\": \"/path/to/.claude/worktrees/my-feature\","
+            }
+          ]
+        },
+        {
+          "header": "@@ -248,9 +261,11 @@ Your status line command receives this JSON structure via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `session_name`: appears only when a custom name has been set with `--name` or `/rename`"
+            },
+            {
+              "type": "context",
+              "content": "- `workspace.git_worktree`: appears only when the current directory is inside a linked git worktree"
+            },
+            {
+              "type": "added",
+              "content": "- `workspace.repo`: appears only inside a git repository with an `origin` remote configured"
+            },
+            {
+              "type": "context",
+              "content": "- `effort`: appears only when the current model supports the reasoning effort parameter"
+            },
+            {
+              "type": "context",
+              "content": "- `vim`: appears only when vim mode is enabled"
+            },
+            {
+              "type": "context",
+              "content": "- `agent`: appears only when running with the `--agent` flag or agent settings configured"
+            },
+            {
+              "type": "added",
+              "content": "- `pr`: appears only while an open PR is found for the current branch, and is removed once the PR merges or closes. `pr.review_state` may be independently absent"
+            },
+            {
+              "type": "context",
+              "content": "- `worktree`: appears only during `--worktree` sessions. When present, `branch` and `original_branch` may also be absent for hook-based worktrees"
+            },
+            {
+              "type": "context",
+              "content": "- `rate_limits`: appears only for Claude.ai subscribers (Pro/Max) after the first API response in the session. Each window (`five_hour`, `seven_day`) may be independently absent. Use `jq -r '.rate_limits.five_hour.used_percentage // empty'` to handle absence gracefully."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ファイルの読み込み（Read）ツールにおいて、ファイルサイズ制限を超えた場合の動作に関する記述が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -246,7 +246,7 @@ The PowerShell tool has the following known limitations during the preview:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The Read tool takes a file path and returns the contents with line numbers. Claude is instructed to always pass absolute paths."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, Read returns the file from the start. Files over a size threshold return an error rather than partial content, prompting Claude to retry with `offset` and `limit` to read a specific range."
+            },
+            {
+              "type": "added",
+              "content": "By default, Read returns the file from the start. When a whole-file read exceeds the token limit, Read returns the first page with a `PARTIAL view` notice that tells Claude how much of the file it received and how to read more with `offset` and `limit`. A read that passes an explicit `offset` or `limit` and still exceeds the token limit returns an error."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Read handles several file types beyond plain text:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
