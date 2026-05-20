@@ -200,6 +200,8 @@ Each retry attempt is also recorded as a `gen_ai.request.attempt` span event wit
 | `tool_name` | Tool name | |
 | `duration_ms` | Wall-clock duration including permission wait and execution | |
 | `result_tokens` | Approximate token size of the tool result | |
+| `agent_id` | Identifier of the subagent or teammate that ran the tool. Absent on the main session | |
+| `parent_agent_id` | Identifier of the agent that spawned this one. Absent for the main session and for agents spawned directly from it | |
 | `file_path` | Target file path for Read, Edit, and Write tools | `OTEL_LOG_TOOL_DETAILS` |
 | `full_command` | Command string for the Bash tool | `OTEL_LOG_TOOL_DETAILS` |
 | `skill_name` | Skill name for the Skill tool | `OTEL_LOG_TOOL_DETAILS` |
