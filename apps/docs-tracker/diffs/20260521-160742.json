@@ -1,0 +1,275 @@
+{
+  "id": "20260521-160742",
+  "timestamp": "2026-05-21T16:07:42.372Z",
+  "aiSummary": "APIエラー（500や529）の発生源に関する説明が更新され、Anthropic単体だけでなくBedrock、Vertex AI、Foundry、カスタムゲートウェイといった各プロバイダーに対応した記述になりました。エラーメッセージにステータスコードと具体的なエラー内容が含まれるようになり、プロバイダーごとに異なるステータス確認ページの案内についても明文化されています。過負荷を示す529エラーがユーザーの利用制限やクォータにはカウントされないという注意点も改めて整理されました。",
+  "files": [
+    {
+      "filename": "errors.md",
+      "additions": 11,
+      "deletions": 9,
+      "explanation": "500や529エラーの発生源がインフラプロバイダーに依存することや、各環境に応じたサービス稼働状況の確認方法が具体的に追記されました。エラーメッセージの表示形式がステータスコードとメッセージを含む形に変更された点も反映されています。",
+      "hunks": [
+        {
+          "header": "@@ -19,7 +19,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Message | Section |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `API Error: 500 ... Internal server error` | [Server errors](#api-error-500-internal-server-error) |"
+            },
+            {
+              "type": "added",
+              "content": "| `API Error: 500 Internal server error` | [Server errors](#api-error-500-internal-server-error) |"
+            },
+            {
+              "type": "context",
+              "content": "| `API Error: Repeated 529 Overloaded errors` | [Server errors](#api-error-repeated-529-overloaded-errors) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Request timed out` | [Server errors](#request-timed-out), or [Network](#unable-to-connect-to-api) if the message mentions your internet connection |"
+            },
+            {
+              "type": "context",
+              "content": "| `<model> is temporarily unavailable, so auto mode cannot determine the safety of...` | [Server errors](#auto-mode-cannot-determine-the-safety-of-an-action) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -66,21 +66,23 @@ When you see one of the errors on this page, those retries have already been exh",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Server errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These errors come from Anthropic infrastructure rather than your account or request."
+            },
+            {
+              "type": "added",
+              "content": "These errors come from the inference provider rather than your account or request. On the Anthropic API that means Anthropic infrastructure. On Bedrock, Vertex AI, Foundry, or a custom gateway it means that provider's infrastructure."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### API Error: 500 Internal server error"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code shows the raw API response body for any 5xx status. The example below shows a 500 response:"
+            },
+            {
+              "type": "added",
+              "content": "Claude Code shows the status code and the API's error message for any 5xx response. The example below shows a 500 response on the Anthropic API:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "API Error: 500 {\"type\":\"error\",\"error\":{\"type\":\"api_error\",\"message\":\"Internal server error\"}} · check status.claude.com"
+            },
+            {
+              "type": "added",
+              "content": "API Error: 500 Internal server error. This is a server-side issue, usually temporary — try again in a moment. If it persists, check status.claude.com."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The trailing sentence names where to check service health and varies by provider. Bedrock, Vertex AI, and Foundry configurations name that provider's service status. A custom `ANTHROPIC_BASE_URL` names the gateway host."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This indicates an unexpected failure inside the API. It is not caused by your prompt, settings, or account."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Check [status.claude.com](https://status.claude.com) for active incidents"
+            },
+            {
+              "type": "added",
+              "content": "- Check [status.claude.com](https://status.claude.com), or the provider status page named in the message, for active incidents"
+            },
+            {
+              "type": "context",
+              "content": "- Wait a minute, then send your message again. Your original message is still in the conversation, so for a long prompt you can type `try again` instead of pasting the whole thing."
+            },
+            {
+              "type": "context",
+              "content": "- If the error persists with no posted incident, run `/feedback` so Anthropic can investigate with your request details. See [Report an error](#report-an-error) if `/feedback` is unavailable in your environment."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -89,14 +91,14 @@ This indicates an unexpected failure inside the API. It is not caused by your pr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "The API is temporarily at capacity across all users. Claude Code has already retried several times before showing this message:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "API Error: Repeated 529 Overloaded errors · check status.claude.com"
+            },
+            {
+              "type": "added",
+              "content": "API Error: Repeated 529 Overloaded errors. The API is at capacity — this is usually temporary. Try again in a moment. If it persists, check status.claude.com."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A 529 is not your usage limit and does not count against your quota."
+            },
+            {
+              "type": "added",
+              "content": "The trailing sentence varies by provider in the same way as the 500 error above. A 529 is not your usage limit and does not count against your quota."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Check [status.claude.com](https://status.claude.com) for capacity notices"
+            },
+            {
+              "type": "added",
+              "content": "- Check [status.claude.com](https://status.claude.com), or the provider status page named in the message, for capacity notices"
+            },
+            {
+              "type": "context",
+              "content": "- Try again in a few minutes"
+            },
+            {
+              "type": "context",
+              "content": "- Run `/model` and switch to a different model to keep working, since capacity is tracked per model. Claude Code prompts you to do this when one model is under particularly high load, for example `Opus is experiencing high load, please use /model to switch to Sonnet`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -207,7 +209,7 @@ You have hit the rate limit configured for your API key, Amazon Bedrock project,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "API Error: Request rejected (429) · this may be a temporary capacity issue. If it persists, check status.claude.com."
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The trailing sentence names where to check service health and varies by provider. Bedrock and Vertex AI configurations name that provider's service status instead of the Anthropic status page."
+            },
+            {
+              "type": "added",
+              "content": "The trailing sentence names where to check service health and varies by provider. Bedrock, Vertex AI, and Foundry configurations name that provider's service status instead of the Anthropic status page. A custom `ANTHROPIC_BASE_URL` names the gateway host."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
