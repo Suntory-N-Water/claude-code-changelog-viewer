@@ -72,7 +72,7 @@ Managed settings can lock down tools, sandbox execution, restrict MCP servers an
 | [Permission lockdown](/en/permissions#managed-only-settings) | Only managed permission rules apply; disable `--dangerously-skip-permissions` | `allowManagedPermissionRulesOnly`, `permissions.disableBypassPermissionsMode` |
 | [Sandboxing](/en/sandboxing) | OS-level filesystem and network isolation with domain allowlists | `sandbox.enabled`, `sandbox.network.allowedDomains` |
 | [Managed policy CLAUDE.md](/en/memory#deploy-organization-wide-claude-md) | Org-wide instructions loaded in every session, cannot be excluded | File at the managed policy path |
-| [MCP server control](/en/mcp#managed-mcp-configuration) | Restrict which MCP servers users can add or connect to | `allowedMcpServers`, `deniedMcpServers`, `allowManagedMcpServersOnly` |
+| [MCP server control](/en/managed-mcp) | Restrict which MCP servers users can add or connect to, or deploy a fixed set | `allowedMcpServers`, `deniedMcpServers`, `allowManagedMcpServersOnly`, or a deployed `managed-mcp.json` file |
 | [Plugin marketplace control](/en/plugin-marketplaces#managed-marketplace-restrictions) | Restrict which marketplace sources users can add and install from | `strictKnownMarketplaces`, `blockedMarketplaces` |
 | [Customization lockdown](/en/settings#strictpluginonlycustomization) | Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings | `strictPluginOnlyCustomization` |
 | [Hook restrictions](/en/settings#hook-configuration) | Only managed hooks load; restrict HTTP hook URLs | `allowManagedHooksOnly`, `allowedHttpHookUrls` |
