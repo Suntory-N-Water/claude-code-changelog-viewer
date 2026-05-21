@@ -692,7 +692,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 input=$(cat)
 title="Claude Code'
 body=$(jq -r '.message // 'Needs your attention'' <<<'$input')
-seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
+seq=$(printf '\033]777;notify;%s;%s\007' '$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
 
@@ -1839,7 +1839,7 @@ exit 0
 | `tool` | MCP ツール名。`monitor` と `MCP task` タスクの場合のみ存在 |
 | `name` | ワークフロー名。`workflow` タスクの場合のみ存在 |
 
-`session_crons` の各エントリは 1 つのセッション スコープのスケジュール済みウェイクアップを説明し、`CronCreate` と `/loop` から取得されます。
+`session_crons` の各エントリは 1 つのセッション スコープのスケジュール済みウェイクアップを説明し、`CronCreate`、`ScheduleWakeup`、`/loop` から取得されます。
 
 | フィールド | 説明 |
 | :- | :- |

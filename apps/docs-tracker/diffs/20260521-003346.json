@@ -1,0 +1,478 @@
+{
+  "id": "20260521-003346",
+  "timestamp": "2026-05-21T00:33:46.044Z",
+  "aiSummary": "デスクトップアプリの利用条件としてClaudeサブスクリプションが必要であることが明文化されました。実行中の動作を中断せずに修正指示を送る「リダイレクト」操作の仕様が詳しく説明されています。また、定期実行機能である/loopコマンドの利用制限や、自己調整型ループを支える新しいツールの詳細が追加されました。全体として、特定のプラットフォームやプランによる機能制限の明確化が図られています。",
+  "files": [
+    {
+      "filename": "commands.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "/desktopコマンドの利用にClaudeサブスクリプションが必要な点と、/loopコマンドのメンテナンスチェック機能に利用制限があることが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -35,7 +35,7 @@ The table below lists all the commands included in Claude Code. Entries marked *",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In the table below, `<arg>` indicates a required argument and `[arg]` indicates an optional one."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Not every command appears for every user. Availability depends on your platform, plan, and environment. For example, `/desktop` only shows on macOS and Windows, and `/upgrade` only shows on Pro and Max plans."
+            },
+            {
+              "type": "added",
+              "content": "Not every command appears for every user. Availability depends on your platform, plan, and environment. For example, `/desktop` only shows on macOS and Windows when signed in with a Claude subscription, and `/upgrade` only shows on Pro and Max plans."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Command | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -56,7 +56,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/copy [N]` | Copy the last assistant response to clipboard. Pass a number `N` to copy the Nth-latest response: `/copy 2` copies the second-to-last. When code blocks are present, shows an interactive picker to select individual blocks or the full response. Press `w` in the picker to write the selection to a file instead of the clipboard, which is useful over SSH |"
+            },
+            {
+              "type": "context",
+              "content": "| `/cost` | Alias for `/usage` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/debug [description]` | **[Skill](/en/skills#bundled-skills).** Enable debug logging for the current session and troubleshoot issues by reading the session debug log. Debug logging is off by default unless you started with `claude --debug`, so running `/debug` mid-session starts capturing logs from that point forward. Optionally describe the issue to focus the analysis |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/desktop` | Continue the current session in the Claude Code Desktop app. macOS and Windows only. Alias: `/app` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/desktop` | Continue the current session in the Claude Code Desktop app. Requires macOS or Windows and a Claude subscription. Alias: `/app` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/diff` | Open an interactive diff viewer showing uncommitted changes and per-turn diffs. Use left/right arrows to switch between the current git diff and individual Claude turns, and up/down to browse files |"
+            },
+            {
+              "type": "context",
+              "content": "| `/doctor` | Diagnose and verify your Claude Code installation and settings. Results show with status icons. Press `f` to have Claude fix any reported issues |"
+            },
+            {
+              "type": "context",
+              "content": "| `/effort [level\\|auto]` | Set the model [effort level](/en/model-config#adjust-effort-level). Accepts `low`, `medium`, `high`, `xhigh`, or `max`; available levels depend on the model and `max` is session-only. `auto` resets to the model default. Without an argument, opens an interactive slider; use left and right arrows to pick a level and `Enter` to apply. Takes effect immediately without waiting for the current response to finish |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -78,7 +78,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/keybindings` | Open or create your keybindings configuration file |"
+            },
+            {
+              "type": "context",
+              "content": "| `/login` | Sign in to your Anthropic account |"
+            },
+            {
+              "type": "context",
+              "content": "| `/logout` | Sign out from your Anthropic account |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/loop [interval] [prompt]` | **[Skill](/en/skills#bundled-skills).** Run a prompt repeatedly while the session stays open. Omit the interval and Claude self-paces between iterations. Omit the prompt and Claude runs an autonomous maintenance check, or the prompt in `.claude/loop.md` if present. Example: `/loop 5m check if the deploy finished`. See [Run prompts on a schedule](/en/scheduled-tasks). Alias: `/proactive` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/loop [interval] [prompt]` | **[Skill](/en/skills#bundled-skills).** Run a prompt repeatedly while the session stays open. Omit the interval and Claude self-paces between iterations. Omit the prompt and, [where available](/en/scheduled-tasks#run-the-built-in-maintenance-prompt), Claude runs an autonomous maintenance check or the prompt in `.claude/loop.md`. Example: `/loop 5m check if the deploy finished`. See [Run prompts on a schedule](/en/scheduled-tasks). Alias: `/proactive` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/mcp` | Manage MCP server connections and OAuth authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `/memory` | Edit `CLAUDE.md` memory files, enable or disable [auto-memory](/en/memory#auto-memory), and view auto-memory entries |"
+            },
+            {
+              "type": "context",
+              "content": "| `/mobile` | Show QR code to download the Claude mobile app. Aliases: `/ios`, `/android` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop-quickstart.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "実行中の動作を中断してステアリング（修正指示）を行う際の、停止ボタンとEnterキーの挙動の違いが具体的に説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -70,7 +70,7 @@ If you reject a change, Claude will ask how you'd like to proceed differently. Y",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You've made your first edit. For the full reference on everything Desktop can do, see [Use Claude Code Desktop](/en/desktop). Here are some things to try next."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Interrupt and steer.** You can interrupt Claude at any point. If it's going down the wrong path, click the stop button or type your correction and press **Enter**. Claude stops what it's doing and adjusts based on your input. You don't have to wait for it to finish or start over."
+            },
+            {
+              "type": "added",
+              "content": "**Interrupt and steer.** You can redirect Claude at any point. Click the stop button to interrupt immediately, or type a correction and press **Enter** to send it without stopping the running action. Either way, you don't have to wait for it to finish or start over."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Give Claude more context.** Type `@filename` in the prompt box to pull a specific file into the conversation, attach images and PDFs using the attachment button, or drag and drop files directly into the prompt. The more context Claude has, the better the results. See [Add files and context](/en/desktop#add-files-and-context-to-prompts)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "デスクトップアプリへのセッション移行機能がAPIキー認証やBedrockなどのプラットフォームでは利用できないことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -46,7 +46,7 @@ Give Claude the right context, control how much it does on its own, and review w",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Use the prompt box"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Type what you want Claude to do and press **Enter** to send. Claude reads your project files, makes changes, and runs commands based on your [permission mode](#choose-a-permission-mode). You can interrupt Claude at any point: click the stop button or type your correction and press **Enter**. Claude stops what it's doing and adjusts based on your input."
+            },
+            {
+              "type": "added",
+              "content": "Type what you want Claude to do and press **Enter** to send. Claude reads your project files, makes changes, and runs commands based on your [permission mode](#choose-a-permission-mode). You can redirect Claude at any point: click the stop button to interrupt immediately, or type a correction and press **Enter** to send it without stopping the running action. Claude reads the correction as soon as the current action completes and adjusts before its next step."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The **+** button next to the prompt box gives you access to file attachments, [skills](#use-skills), [connectors](#connect-external-tools), and [plugins](#install-plugins)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -607,7 +607,7 @@ For the full enterprise configuration reference, see the [enterprise configurati",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you already use the Claude Code CLI, Desktop runs the same underlying engine with a graphical interface. You can run both simultaneously on the same machine, even on the same project. Each maintains separate session history, but they share configuration and project memory via CLAUDE.md files."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To move a CLI session into Desktop, run `/desktop` in the terminal. Claude saves your session and opens it in the desktop app, then exits the CLI. This command is available on macOS and Windows only."
+            },
+            {
+              "type": "added",
+              "content": "To move a CLI session into Desktop, run `/desktop` in the terminal. Claude saves your session and opens it in the desktop app, then exits the CLI. This command is available on macOS and Windows when you are signed in with a Claude subscription. It is not available with API key authentication or on Bedrock, Vertex, or Foundry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When to use Desktop vs CLI: use Desktop when you want to manage parallel sessions in one window, arrange panes side by side, or review changes visually. Use the CLI when you need scripting, automation, or prefer a terminal workflow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セッションスコープのスケジュール起動を管理するsession_cronsの入力ソースに、新しくScheduleWakeupツールが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1846,7 +1846,7 @@ Each entry in `background_tasks` describes one in-flight task and uses these fie",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `tool` | MCP tool name. Present only for `monitor` and `MCP task` tasks |"
+            },
+            {
+              "type": "context",
+              "content": "| `name` | Workflow name. Present only for `workflow` tasks |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each entry in `session_crons` describes one session-scoped scheduled wakeup, sourced from `CronCreate` and `/loop`:"
+            },
+            {
+              "type": "added",
+              "content": "Each entry in `session_crons` describes one session-scoped scheduled wakeup, sourced from `CronCreate`, `ScheduleWakeup`, and `/loop`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Field | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "how-claude-code-works.md",
+      "additions": 4,
+      "deletions": 1,
+      "explanation": "Escキーによる即時停止と、Enterキーによる動作継続中の修正指示送信という、2種類の割り込み方法が詳細に解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -194,7 +194,10 @@ When the first attempt isn't right, you don't start over. You iterate.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Interrupt and steer"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can interrupt Claude at any point. If it's going down the wrong path, just type your correction and press Enter. Claude will stop what it's doing and adjust its approach based on your input. You don't have to wait for it to finish or start over."
+            },
+            {
+              "type": "added",
+              "content": "You can redirect Claude at any point without waiting for the turn to finish or starting over:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Press `Esc`** to stop Claude immediately. The running tool call is canceled and Claude waits for your next instruction."
+            },
+            {
+              "type": "added",
+              "content": "- **Type a correction and press `Enter`** to send it without stopping the running tool. Claude reads it as soon as the current action completes and adjusts before deciding its next step."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Be specific upfront"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "scheduled-tasks.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "内蔵メンテナンスプロンプトやloop.mdファイルの利用条件が、BedrockやVertex AIなどの環境では制限されることが詳しく記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -87,7 +87,7 @@ Claude does not start new initiatives outside that scope, and irreversible actio",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A bare `/loop` runs this prompt at a [dynamically chosen interval](#let-claude-choose-the-interval). Add an interval, for example `/loop 15m`, to run it on a fixed schedule instead. To replace the built-in prompt with your own default, see [Customize the default prompt with loop.md](#customize-the-default-prompt-with-loop-md)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Bedrock, Vertex AI, and Microsoft Foundry, `/loop` with no prompt prints the usage message instead of starting the maintenance loop."
+            },
+            {
+              "type": "added",
+              "content": "The built-in maintenance prompt isn't available to everyone yet, and isn't supported on Bedrock, Vertex AI, or Microsoft Foundry. Where it isn't active, `/loop` with no prompt prints the usage message instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Customize the default prompt with loop.md"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -111,6 +111,8 @@ quiet, say so in one line.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Edits to `loop.md` take effect on the next iteration, so you can refine the instructions while a loop is running. When no `loop.md` exists in either location, the loop falls back to the built-in maintenance prompt. Keep the file concise: content beyond 25,000 bytes is truncated."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`loop.md` follows the same availability as the [built-in maintenance prompt](#run-the-built-in-maintenance-prompt). Where the maintenance prompt isn't active, `/loop` with no prompt prints the usage message and the file isn't read."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Stop a loop"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To stop a `/loop` while it is waiting for the next iteration, press `Esc`. This clears the pending wakeup so the loop does not fire again. Tasks you scheduled by [asking Claude directly](#manage-scheduled-tasks) are not affected by `Esc` and stay in place until you delete them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "/loopの次回の実行タイミングを制御するScheduleWakeupツールの仕様と、プラットフォームごとの制約がツールのリファレンスに追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -35,6 +35,7 @@ To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Read` | Reads the contents of files. See [Read tool behavior](#read-tool-behavior) | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ReadMcpResourceTool` | Reads a specific MCP resource by URI | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `RemoteTrigger` | Creates, updates, runs, and lists [Routines](/en/routines) on claude.ai. Backs the `/schedule` command. Routines live on claude.ai and require a Pro, Max, Team, or Enterprise plan, so this tool is not accessible from Amazon Bedrock, Google Vertex AI, or Microsoft Foundry | No |"
+            },
+            {
+              "type": "added",
+              "content": "| `ScheduleWakeup` | Reschedules the next iteration of a [self-paced `/loop`](/en/scheduled-tasks#let-claude-choose-the-interval). Claude calls this at the end of each iteration to pick when the next one runs, between one minute and one hour out; you don't call it directly. The pending wakeup appears in `session_crons` in [Stop hook input](/en/hooks#stop-input). Not available on Amazon Bedrock, Google Vertex AI, or Microsoft Foundry, where a `/loop` prompt with no interval runs on a fixed schedule instead | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `SendMessage` | Sends a message to an [agent team](/en/agent-teams) teammate, or [resumes a subagent](/en/sub-agents#resume-subagents) by its agent ID. Stopped subagents auto-resume in the background. Only available when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ShareOnboardingGuide` | Uploads `ONBOARDING.md` and returns a share link teammates can open in Claude Code. Called from `/team-onboarding` after the guide is written. Available to claude.ai subscribers on Pro, Max, Team, and Enterprise plans | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `Skill` | Executes a [skill](/en/skills#control-who-invokes-a-skill) within the main conversation | Yes |"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
