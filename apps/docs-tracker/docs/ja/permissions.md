@@ -322,6 +322,7 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 | `sandbox.filesystem.allowManagedReadPathsOnly` | `true` の場合、管理設定からの `filesystem.allowRead` パスのみが尊重されます。`denyRead` はすべてのソースからマージされます |
 | `sandbox.network.allowManagedDomainsOnly` | `true` の場合、管理設定からの `allowedDomains` と `WebFetch(domain:...)` allow ルールのみが尊重されます。許可されていないドメインはユーザーに促すことなく自動的にブロックされます。拒否されたドメインはすべてのソースからマージされます |
 | `strictKnownMarketplaces` | ユーザーが追加およびインストールできるプラグインマーケットプレイスソースを制御します。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
+| `strictPluginOnlyCustomization` | ユーザーおよびプロジェクトソースからのスキル、エージェント、フック、および MCP サーバーをブロックして、プラグインまたは管理設定からのみ取得できるようにします。`true` は 4 つすべてのサーフェスをロックします。`["skills", "hooks"]` などの配列は、指定されたものだけをロックします。[`strictPluginOnlyCustomization`](/ja/settings#strictpluginonlycustomization)を参照してください |
 | `wslInheritsWindowsSettings` | Windows HKLM レジストリキーまたは `C:\Program Files\ClaudeCode\managed-settings.json` で `true` の場合、WSL は `/etc/claude-code` に加えて Windows ポリシーチェーンから管理設定を読み込みます。[設定ファイル](/ja/settings#settings-files)を参照してください |
 
 `disableBypassPermissionsMode` は通常、組織ポリシーを強制するために管理設定に配置されますが、任意のスコープから機能します。ユーザーは独自の設定で設定して、自分自身をバイパスモードからロックアウトできます。

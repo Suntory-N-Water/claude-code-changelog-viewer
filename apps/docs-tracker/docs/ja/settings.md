@@ -239,6 +239,7 @@ Claude Code は設定ファイルを監視し、変更時に再読み込みす�
 | `sshConfigs` | [Desktop](/ja/desktop#pre-configure-ssh-connections-for-your-team)環境ドロップダウンに表示する SSH 接続。各エントリには `id`、`name`、および `sshHost` が必要です。`sshPort`、`sshIdentityFile`、および `startDirectory` はオプションです。managed 設定で設定されている場合、接続はユーザーに対して読み取り専用です。managed およびユーザー設定からのみ読み込まれます | `[{"id": "dev-vm", "name": "Dev VM", "sshHost": "user@dev.example.com"}]` |
 | `statusLine` | コンテキストを表示するカスタムステータスラインを構成します。[`statusLine` ドキュメント](/ja/statusline)を参照してください | `{"type": "command", "command": "~/.claude/statusline.sh"}` |
 | `strictKnownMarketplaces` | （Managed 設定のみ）プラグインマーケットプレイスソースのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。マーケットプレイス追加時およびプラグインのインストール、更新、リフレッシュ、自動更新時に適用されるため、ポリシーが設定される前に追加されたマーケットプレイスは使用できません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
+| `strictPluginOnlyCustomization` | （Managed 設定のみ）ユーザーおよびプロジェクトソースからの skills、agents、hooks、および MCP サーバーをブロックして、プラグインまたは managed 設定からのみ取得できるようにします。`true` は 4 つすべてをロックします。配列は名前付きのものだけをロックします。[`strictPluginOnlyCustomization`](#strictpluginonlycustomization)を参照してください | `["skills", "hooks"]` |
 | `syntaxHighlightingDisabled` | diff、コードブロック、ファイルプレビューの構文強調表示を無効にします | `true` |
 | `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`in-process`、または `tmux`。`--teammate-mode` はこれを 1 セッション間オーバーライドします。[表示モードを選択](/ja/agent-teams#choose-a-display-mode)を参照してください | `"in-process"` |
 | `terminalProgressBarEnabled` | サポートされているターミナルでターミナル進行状況バーを表示します：ConEmu、Ghostty 1.2.0 以降、および iTerm2 3.6.6 以降。デフォルト：`true`。`/config` に**ターミナル進行状況バー**として表示されます | `false` |
@@ -943,6 +944,31 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 - Managed 設定は最高優先度を持ち、オーバーライドできません
 
 ユーザー向けドキュメントについては、[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください。
+
+#### `strictPluginOnlyCustomization`
+
+**Managed 設定のみ**：skills、agents、hooks、および MCP サーバーをユーザーおよびプロジェクトソースからブロックするため、プラグインまたは managed 設定からのみ取得できます。`strictKnownMarketplaces` と組み合わせて、カスタマイズサプライチェーン全体を制御します：マーケットプレイスホワイトリストはユーザーがインストールできるプラグインを制御し、この設定はプラグインまたは managed 設定から来ていないすべてをブロックします。
+
+`strictPluginOnlyCustomization` には Claude Code v2.1.82 以降が必要です。以前のバージョンはキーを無視し、ユーザーおよびプロジェクトのカスタマイズを読み込み続けるため、クライアントが更新されるまでロックダウンは強制されません。
+
+値は、すべての 4 つのサーフェスをロックするための `true`、またはロックするサーフェスを名前付けする配列です：
+
+```json
+{
+  "strictPluginOnlyCustomization": ["skills", "hooks"]
+}
+```
+
+ロックされた各サーフェスについて、Claude Code はユーザーレベルおよびプロジェクトレベルのソースをスキップし、プラグイン提供および managed ソースのみを読み込みます：
+
+| サーフェス | ロック時にブロック | 引き続き読み込み |
+| :- | :- | :- |
+| `skills` | `~/.claude/skills/`、`.claude/skills/` | プラグイン skills、バンドルされた skills、managed ポリシーディレクトリ内の skills |
+| `agents` | `~/.claude/agents/`、`.claude/agents/` | プラグイン agents、組み込み agents、managed ポリシーディレクトリ内の agents |
+| `hooks` | ユーザー、プロジェクト、およびローカル `settings.json` 内の Hooks | プラグイン hooks、managed 設定内の hooks |
+| `mcp` | `~/.claude.json` および `.mcp.json` 内のサーバー | プラグイン MCP サーバー、[`managed-mcp.json`](/ja/mcp#managed-mcp-configuration) サーバー |
+
+Claude Code バージョンが認識しないサーフェス名は、設定ファイルが失敗するのではなく無視されるため、すべてのクライアントが更新される前に新しいサーフェス名を追加できます。
 
 ### プラグインの管理
 
