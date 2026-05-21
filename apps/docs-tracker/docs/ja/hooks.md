@@ -89,7 +89,7 @@ if echo "$COMMAND" | grep -q 'rm -rf'; then
     }
   }'
 else
-  exit 0  # allow the command
+  exit 0  # no decision; normal permission flow applies
 fi
 ```
 
@@ -117,7 +117,7 @@ fi
 }
 ```
 
-コマンドが安全だった場合（`rm file.txt` など）、スクリプトは代わりに `exit 0` に到達し、これは Claude Code にツール呼び出しを許可するよう指示します。
+コマンドが安全な `rm` バリアント（`rm file.txt` など）だった場合、スクリプトは代わりに `exit 0` に到達します。出力なしの終了コード 0 は、フックが報告する決定がないことを意味するため、ツール呼び出しは通常の[権限フロー](/ja/permissions)を通じて続行されます。フックは呼び出しを拒否できますが、沈黙を保つことは承認を意味しません。
 
 Claude Code は JSON 決定を読み取り、ツール呼び出しをブロックし、Claude に理由を表示します。
 
@@ -691,8 +691,8 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 # Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
 input=$(cat)
 title="Claude Code'
-body=$(jq -r '.message // 'Needs your attention'' <<<'$input')
-seq=$(printf '\033]777;notify;%s;%s\007' '$title" "$body")
+body=$(jq -r '.message // "Needs your attention"' <<<"$input")
+seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
 
@@ -749,6 +749,7 @@ Claude が現在の環境の状態または実行されたばかりの操作に�
 | WorktreeCreate | パス戻り値 | コマンド フックは stdout にパスを出力します。HTTP フックは `hookSpecificOutput.worktreePath` 経由で返します。フック失敗またはパス欠落で作成が失敗 |
 | Elicitation | `hookSpecificOutput` | `action`（accept/decline/cancel）、`content`（accept の場合のフォーム フィールド値） |
 | ElicitationResult | `hookSpecificOutput` | `action`（accept/decline/cancel）、`content`（フォーム フィールド値をオーバーライド） |
+| SessionStart、Setup、SubagentStart | コンテキストのみ | `hookSpecificOutput.additionalContext` は Claude 用にコンテキストを追加します。SessionStart は [`initialUserMessage` と `watchPaths`](#sessionstart-decision-control)も受け入れます。ブロッキングまたは決定制御なし |
 | WorktreeRemove、Notification、SessionEnd、PostCompact、InstructionsLoaded、StopFailure、CwdChanged、FileChanged | なし | 決定制御なし。ログやクリーンアップなどの副作用に使用 |
 
 各パターンの実行例を以下に示します。
@@ -833,6 +834,8 @@ SessionStart はすべてのセッションで実行されるため、これら�
 | フィールド | 説明 |
 | :- | :- |
 | `additionalContext` | Claude のコンテキストの開始時に追加される文字列。最初のプロンプトの前。[Claude のコンテキストを追加](#add-context-for-claude)を参照して、テキストがどのように配信されるか、何を含めるかを確認してください |
+| `initialUserMessage` | セッションの最初のユーザー メッセージとして使用される文字列。[非対話型モード](/ja/headless)（`-p`）で適用され、プロンプトが提供されない場合でも最初のターンになります。プロンプトが提供される場合、次のターンとして続きます。`additionalContext` とは異なり、既存のターンに付加されるのではなく、このターンを作成します |
+| `watchPaths` | このセッション中に[FileChanged](#filechanged)イベントを監視する絶対パスの配列 |
 
 ```json
 {
@@ -1009,6 +1012,7 @@ InstructionsLoaded フックは決定制御がありません。命令ロード�
 | `reason` | `decision` が `"block"` のときにユーザーに表示されます。コンテキストに追加されません |
 | `additionalContext` | Claude のコンテキストに追加される文字列。[Claude のコンテキストを追加](#add-context-for-claude)を参照してください |
 | `sessionTitle` | セッション タイトルを設定します。プロンプト コンテンツに基づいてセッションを自動的に名前付けするのに使用 |
+| `suppressOriginalPrompt` | `decision` が `"block"` のときに `true` の場合、ユーザーに表示されるブロック メッセージから元のプロンプト テキストを省略 |
 
 ```json
 {
@@ -1350,7 +1354,7 @@ PermissionRequest フックは PreToolUse フックのような `tool_name` と 
 | `addRules` | `rules`、`behavior`、`destination` | 権限ルールを追加します。`rules` は `{toolName, ruleContent?}` オブジェクトの配列です。ツール全体にマッチするには `ruleContent` を省略します。`behavior` は `"allow"`、`"deny"`、または `"ask"` |
 | `replaceRules` | `rules`、`behavior`、`destination` | `destination` で指定された `behavior` のすべてのルールを提供されたルールに置き換えます |
 | `removeRules` | `rules`、`behavior`、`destination` | 指定された `behavior` の一致するルールを削除 |
-| `setMode` | `mode`、`destination` | 権限モードを変更します。有効なモードは `default`、`acceptEdits`、`dontAsk`、`bypassPermissions`、`plan` |
+| `setMode` | `mode`、`destination` | 権限モードを変更します。有効なモードは `default`、`auto`、`acceptEdits`、`dontAsk`、`bypassPermissions`、`plan` |
 | `addDirectories` | `directories`、`destination` | 作業ディレクトリを追加します。`directories` はパス文字列の配列 |
 | `removeDirectories` | `directories`、`destination` | 作業ディレクトリを削除 |
 
@@ -2421,6 +2425,7 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 
 5 つのフック タイプ（`command`、`http`、`mcp_tool`、`prompt`、`agent`）すべてをサポートするイベント：
 
+- `PermissionDenied`
 - `PermissionRequest`
 - `PostToolBatch`
 - `PostToolUse`
@@ -2430,6 +2435,7 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 - `SubagentStop`
 - `TaskCompleted`
 - `TaskCreated`
+- `TeammateIdle`
 - `UserPromptExpansion`
 - `UserPromptSubmit`
 
@@ -2442,13 +2448,11 @@ URL モード elicitation（ブラウザベースの認証）の場合。
 - `FileChanged`
 - `InstructionsLoaded`
 - `Notification`
-- `PermissionDenied`
 - `PostCompact`
 - `PreCompact`
 - `SessionEnd`
 - `StopFailure`
 - `SubagentStart`
-- `TeammateIdle`
 - `WorktreeCreate`
 - `WorktreeRemove`
 
@@ -2516,7 +2520,9 @@ LLM は以下を含む JSON で応答する必要があります：
 - `PostToolUse`：デフォルトではターンが終了し、理由は警告行としてチャットに表示されます。`continueOnBlock: true` を設定して、理由を Claude にフィードバックし、ターンを続行する代わりに使用します
 - `PostToolBatch`、`UserPromptSubmit`、`UserPromptExpansion`：ターンが終了し、理由は警告行として表示されます。これらのイベントは `continue` に関係なく `decision: "block"` でターンを終了します
 - `PostToolUseFailure`、`TaskCreated`、`TaskCompleted`：理由は Claude にツール エラーとして返されます。`PreToolUse` と同様です
+- `TeammateIdle`：デフォルトではチームメイトが停止し、理由は警告行として表示されます。`continueOnBlock: true` を設定して、理由をチームメイトにフィードバックし、代わりに作業を続行させます
 - `PermissionRequest`：`ok: false` は効果がありません。フックから承認を拒否するには、[コマンド フック](#command-hook-fields)を使用して `hookSpecificOutput.decision.behavior: "deny"` を返します
+- `PermissionDenied`：`ok: false` は効果がありません。拒否は既に発生しているためです。このイベントが読み取る唯一の出力は `hookSpecificOutput.retry` です。プロンプト フックとエージェント フックはこれを設定できません。これらはこのイベントで実行されますが、その出力は破棄されます。`retry` を返すには、[コマンド フック](#command-hook-fields)を使用してください
 
 任意のイベントでより細かい制御が必要な場合は、[決定制御](#decision-control)で説明されているイベント ごとのフィールドを使用して、[コマンド フック](#command-hook-fields)を使用してください。
 

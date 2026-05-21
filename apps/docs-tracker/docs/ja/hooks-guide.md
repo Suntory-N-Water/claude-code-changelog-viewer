@@ -512,18 +512,18 @@ if echo "$COMMAND" | grep -q "drop table"; then
   exit 2 # exit 2 = アクションをブロック
 fi
 
-exit 0  # exit 0 = 続行させる
+exit 0  # exit 0 = 決定なし。通常の許可フローが適用されます
 ```
 
 終了コードは次に何が起こるかを決定します：
 
-- **終了 0**：アクションが続行されます。`UserPromptSubmit`、`UserPromptExpansion`、および `SessionStart` hooks の場合、stdout に書き込むすべてのものが Claude のコンテキストに追加されます。
+- **終了 0**：hook は異議を報告せず、アクションは通常どおり進行します。`PreToolUse` hook の場合、これはツール呼び出しを承認しません：通常の [許可フロー](/ja/permissions) が引き続き適用されます。`UserPromptSubmit`、`UserPromptExpansion`、および `SessionStart` hooks の場合、stdout に書き込むすべてのものが Claude のコンテキストに追加されます。
 - **終了 2**：アクションがブロックされます。stderr に理由を書き込み、Claude はそれをフィードバックとして受け取るため、調整できます。一部のイベントはブロックできません：`SessionStart`、`Setup`、`Notification` などの場合、終了 2 は stderr をユーザーに表示し、実行は続行されます。[イベントごとの終了コード 2 の動作](/ja/hooks#exit-code-2-behavior-per-event) で完全なリストを参照してください。
 - **その他の終了コード**：アクションが続行されます。トランスクリプトは `<hook name> hook error` 通知を表示し、その後 stderr の最初の行が続きます。完全な stderr は [デバッグログ](/ja/hooks#debug-hooks) に記録されます。
 
 #### 構造化 JSON 出力
 
-終了コードは 2 つのオプションを提供します：許可またはブロック。より多くの制御のために、終了 0 して stdout に JSON オブジェクトを出力します。
+終了コードはブロックするか沈黙するかのみを許可します。より多くの制御のために、終了 0 して stdout に JSON オブジェクトを出力します。
 
 終了 2 で stderr メッセージでブロックするか、終了 0 で JSON で構造化制御を使用します。混在させないでください：Claude Code は終了 2 のときに JSON を無視します。
 
