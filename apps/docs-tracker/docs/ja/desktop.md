@@ -607,7 +607,7 @@ Desktop はエンタープライズデプロイメントツールを通じて配
 
 既に Claude Code CLI を使用している場合、Desktop は同じ基盤となるエンジンをグラフィカルインターフェイスで実行します。同じマシン上で、同じプロジェクト上でも、両方を同時に実行できます。各々は個別のセッション履歴を保持しますが、CLAUDE.md ファイルを通じて設定とプロジェクトメモリを共有します。
 
-CLI セッションを Desktop に移動するには、ターミナルで `/desktop` を実行します。Claude はセッションを保存し、デスクトップアプリで開いてから CLI を終了します。このコマンドは macOS と Windows でのみ利用可能です。
+CLI セッションを Desktop に移動するには、ターミナルで `/desktop` を実行します。Claude はセッションを保存し、デスクトップアプリで開いてから CLI を終了します。このコマンドは macOS と Windows でのみ利用可能です。Claude サブスクリプションでサインインしている場合に利用できます。API キー認証では利用できず、Bedrock、Vertex、Foundry でも利用できません。
 
 Desktop と CLI をいつ使用するか：並列セッションをウィンドウで管理したい場合、ペインを並べて配置したい場合、または変更をビジュアルで確認したい場合は Desktop を使用します。スクリプト、自動化、またはターミナルワークフローが必要な場合は CLI を使用します。
 
@@ -622,7 +622,7 @@ Desktop と CLI をいつ使用するか：並列セッションをウィンド�
 | `--permission-mode` | 送信ボタンの横のモードセレクタ |
 | `--dangerously-skip-permissions` | Bypass permissions モード。Settings → Claude Code → 「Allow bypass permissions mode」で有効にします。エンタープライズ管理者はこの設定を無効にできます。 |
 | `--add-dir` | リモートセッションで **+** ボタンで複数のリポジトリを追加 |
-| `--allowedTools`、`--disallowedTools` | [設定ファイル](/ja/settings)の権限ルールは引き続き適用されます。Desktop の同等物はありません。 |
+| `--allowedTools`、`--disallowedTools` | セッションごとの同等物はありません。[設定ファイル](/ja/settings)の権限ルールは引き続き適用されます。 |
 | `--verbose` | [Verbose ビューモード](#switch-view-modes)（Transcript view ドロップダウン） |
 | `--print`、`--output-format` | 利用できません。Desktop はインタラクティブのみです。 |
 | `ANTHROPIC_MODEL` 環境変数 | 送信ボタンの横のモデルドロップダウン |
