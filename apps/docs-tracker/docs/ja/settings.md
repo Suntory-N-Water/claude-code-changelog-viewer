@@ -105,7 +105,7 @@ Windows では、`~/.claude` として表示されるパスは `%USERPROFILE%\.c
 
     マージ順序を制御するには、数値プレフィックスを使用します。たとえば、`10-telemetry.json` と `20-security.json` です。
 
-  [managed 設定](/ja/permissions#managed-only-settings)と [Managed MCP 構成](/ja/mcp#managed-mcp-configuration)の詳細を参照してください。
+  [managed 設定](/ja/permissions#managed-only-settings)と [Managed MCP 構成](/ja/managed-mcp)の詳細を参照してください。
 
   このリポジトリには、Jamf、Iru（Kandji）、Intune、およびグループポリシー用のスターターデプロイメントテンプレートが含まれています。これらを出発点として使用し、ニーズに合わせて調整してください。
 
@@ -164,9 +164,9 @@ Claude Code は設定ファイルを監視し、変更時に再読み込みす�
 | `agent` | メインスレッドを名前付き subagent として実行します。その subagent のシステムプロンプト、ツール制限、およびモデルを適用します。[subagents を明示的に呼び出す](/ja/sub-agents#invoke-subagents-explicitly)を参照してください | `"code-reviewer"` |
 | `allowedChannelPlugins` | （Managed 設定のみ）メッセージをプッシュできるチャネルプラグインのホワイトリスト。設定されている場合、デフォルトの Anthropic ホワイトリストを置き換えます。未定義 = デフォルトにフォールバック、空配列 = すべてのチャネルプラグインをブロック。`channelsEnabled: true` が必要です。[チャネルプラグインが実行できるものを制限](/ja/channels#restrict-which-channel-plugins-can-run)を参照してください | `[{ "marketplace": "claude-plugins-official", "plugin": "telegram" }]` |
 | `allowedHttpHookUrls` | HTTP hooks がターゲットにできる URL パターンのホワイトリスト。`*` をワイルドカードとしてサポートします。設定されている場合、一致しない URL を持つ hooks はブロックされます。未定義 = 制限なし、空配列 = すべての HTTP hooks をブロック。配列はすべての設定ソース全体でマージされます。[Hook 構成](#hook-configuration)を参照してください | `["https://hooks.example.com/*"]` |
-| `allowedMcpServers` | managed-settings.json で設定されている場合、ユーザーが構成できる MCP サーバーのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。すべてのスコープに適用されます。拒否リストが優先されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `[{ "serverName": "github" }]` |
+| `allowedMcpServers` | managed-settings.json で設定されている場合、ユーザーが構成できる MCP サーバーのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。すべてのスコープに適用されます。拒否リストが優先されます。[Managed MCP 構成](/ja/managed-mcp)を参照してください | `[{ "serverName": "github" }]` |
 | `allowManagedHooksOnly` | （Managed 設定のみ）managed hooks、SDK hooks、および managed 設定 `enabledPlugins` で強制的に有効にされたプラグインからの hooks のみが読み込まれます。ユーザー、プロジェクト、およびその他すべてのプラグイン hooks はブロックされます。[Hook 構成](#hook-configuration)を参照してください | `true` |
-| `allowManagedMcpServersOnly` | （Managed 設定のみ）managed 設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。ユーザーは引き続き MCP サーバーを追加できますが、管理者定義のホワイトリストのみが適用されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `true` |
+| `allowManagedMcpServersOnly` | （Managed 設定のみ）managed 設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。ユーザーは引き続き MCP サーバーを追加できますが、管理者定義のホワイトリストのみが適用されます。[Managed MCP 構成](/ja/managed-mcp)を参照してください | `true` |
 | `allowManagedPermissionRulesOnly` | （Managed 設定のみ）ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義するのを防止します。managed 設定のルールのみが適用されます。[Managed のみの設定](/ja/permissions#managed-only-settings)を参照してください | `true` |
 | `alwaysThinkingEnabled` | すべてのセッションに対してデフォルトで[拡張思考](/ja/model-config#extended-thinking)を有効にします。通常は直接編集するのではなく `/config` コマンドを通じて構成されます。思考を強制的にオフにするには、`env` で [`CLAUDE_CODE_DISABLE_THINKING`](/ja/env-vars)を設定します | `true` |
 | `apiKeyHelper` | `/bin/sh` で実行される認証値を生成するカスタムスクリプト。この値は、モデルリクエストの `X-Api-Key` および `Authorization: Bearer` ヘッダーとして送信されます。[`CLAUDE_CODE_API_KEY_HELPER_TTL_MS`](/ja/env-vars)でリフレッシュ間隔を設定します | `/bin/generate_temp_api_key.sh` |
@@ -187,7 +187,7 @@ Claude Code は設定ファイルを監視し、変更時に再読み込みす�
 | `cleanupPeriodDays` | この期間より長く非アクティブなセッションは起動時に削除されます（デフォルト：30 日、最小 1）。`0` に設定するとバリデーションエラーで拒否されます。また、起動時に[孤立した subagent worktrees](/ja/worktrees#clean-up-worktrees)の自動削除の年齢カットオフも制御します。トランスクリプト書き込みを完全に無効にするには、[`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/ja/env-vars)環境変数を設定するか、非インタラクティブモード（`-p`）で `--no-session-persistence` フラグまたは `persistSession: false` SDK オプションを使用します。 | `20` |
 | `companyAnnouncements` | 起動時にユーザーに表示するアナウンス。複数のアナウンスが提供される場合、ランダムにサイクルされます。 | `["Welcome to Acme Corp! Review our code guidelines at docs.acme.com"]` |
 | `defaultShell` | 入力ボックス `!` コマンドのデフォルトシェル。`"bash"`（デフォルト）または `"powershell"` を受け入れます。`"powershell"` を設定すると、インタラクティブ `!` コマンドが Windows 上の PowerShell を通じてルーティングされます。`CLAUDE_CODE_USE_POWERSHELL_TOOL=1` が必要です。[PowerShell ツール](/ja/tools-reference#powershell-tool)を参照してください | `"powershell"` |
-| `deniedMcpServers` | managed-settings.json で設定されている場合、明示的にブロックされた MCP サーバーの拒否リスト。managed サーバーを含むすべてのスコープに適用されます。拒否リストがホワイトリストよりも優先されます。[Managed MCP 構成](/ja/mcp#managed-mcp-configuration)を参照してください | `[{ "serverName": "filesystem" }]` |
+| `deniedMcpServers` | managed-settings.json で設定されている場合、明示的にブロックされた MCP サーバーの拒否リスト。managed サーバーを含むすべてのスコープに適用されます。拒否リストがホワイトリストよりも優先されます。[Managed MCP 構成](/ja/managed-mcp)を参照してください | `[{ "serverName": "filesystem" }]` |
 | `disableAgentView` | [バックグラウンドエージェントとエージェントビュー](/ja/agent-view)をオフにするために `true` に設定します：`claude agents`、`--bg`、`/background`、およびオンデマンドスーパーバイザー。通常は [managed 設定](/ja/permissions#managed-settings)で設定されます。`CLAUDE_CODE_DISABLE_AGENT_VIEW` を `1` に設定するのと同等です | `true` |
 | `disableAllHooks` | すべての [hooks](/ja/hooks) とカスタム [ステータスライン](/ja/statusline)を無効にします | `true` |
 | `disableAutoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)の有効化を防ぐために `"disable"` に設定します。`Shift+Tab` サイクルから `auto` を削除し、起動時に `--permission-mode auto` を拒否します。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `"disable"` |
@@ -966,7 +966,7 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 | `skills` | `~/.claude/skills/`、`.claude/skills/` | プラグイン skills、バンドルされた skills、managed ポリシーディレクトリ内の skills |
 | `agents` | `~/.claude/agents/`、`.claude/agents/` | プラグイン agents、組み込み agents、managed ポリシーディレクトリ内の agents |
 | `hooks` | ユーザー、プロジェクト、およびローカル `settings.json` 内の Hooks | プラグイン hooks、managed 設定内の hooks |
-| `mcp` | `~/.claude.json` および `.mcp.json` 内のサーバー | プラグイン MCP サーバー、[`managed-mcp.json`](/ja/mcp#managed-mcp-configuration) サーバー |
+| `mcp` | `~/.claude.json` および `.mcp.json` 内のサーバー | プラグイン MCP サーバー、[`managed-mcp.json`](/ja/managed-mcp) サーバー |
 
 Claude Code バージョンが認識しないサーフェス名は、設定ファイルが失敗するのではなく無視されるため、すべてのクライアントが更新される前に新しいサーフェス名を追加できます。
 
