@@ -71,7 +71,7 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 
 `dontAsk`権限モードは[CLI](/ja/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)でのみ利用可能です。
 
-Auto mode は Max、Team、Enterprise、および API プランで利用可能な研究プレビューです。Pro プランまたはサードパーティプロバイダーでは利用できません。Team、Enterprise、および API プランでは Claude Sonnet 4.6、Opus 4.6、または Opus 4.7 が必要です。Max プランでは Claude Opus 4.7 が必要です。
+Auto mode は Anthropic API のすべてのユーザーが利用できる研究プレビューです。サードパーティプロバイダーでは利用できません。Claude Sonnet 4.6、Opus 4.6、または Opus 4.7 が必要です。
 
 複雑なタスクを Plan mode で開始して、Claude が変更を加える前にアプローチをマップアウトするようにします。プランを承認したら、Auto accept edits または Ask permissions に切り替えて実行します。このワークフローの詳細については、[最初に探索してからプランしてからコード化する](/ja/best-practices#explore-first-then-plan-then-code)を参照してください。
 
