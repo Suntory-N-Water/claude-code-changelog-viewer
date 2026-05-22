@@ -143,7 +143,7 @@ Be concise and actionable.
 | `owner` | object | マーケットプレイスメンテナー情報（[以下のフィールドを参照](#owner-fields)） | |
 | `plugins` | array | 利用可能なプラグインのリスト | 以下を参照 |
 
-**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません。`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`anthropic-agent-skills`、`knowledge-work-plugins`、`life-sciences`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-tools-v2` など）もブロックされています。
+**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません：`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`anthropic-agent-skills`、`knowledge-work-plugins`、`life-sciences`、`claude-for-legal`、`claude-for-financial-services`、`financial-services-plugins`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-tools-v2` など）もブロックされています。
 
 ### 所有者フィールド
 
