@@ -161,5 +161,6 @@ Claude Code が開発コンテナで実行されたら、以下のページは�
 - [ネットワークアクセス要件](/ja/network-config#network-access-requirements)：プロキシとファイアウォール用の完全なドメインアローリスト
 - [テレメトリサービスとオプトアウト](/ja/data-usage#telemetry-services)：Claude Code がデフォルトで送信するもの、およびそれを無効にする環境変数
 - [`.claude` ディレクトリを探索する](/ja/claude-directory)：ボリュームマウントが保持するもの（認証情報、設定、セッション履歴を含む）
+- [サンドボックス環境](/ja/sandbox-environments)：開発コンテナと組み込み Bash サンドボックス、カスタムコンテナ、VM を比較します
 - [セキュリティモデル](/ja/security)：Claude Code の権限システム、サンドボックス、プロンプトインジェクション保護がどのように組み合わさるか
 - [権限モード](/ja/permission-modes)：プランモードから自動モードからバイパスまでの完全な範囲、および各モードを使用する場合

@@ -132,8 +132,9 @@ Claude Code でセキュリティ脆弱性を発見した場合：
 
 ## 関連リソース
 
-- [Sandboxing](/ja/sandboxing) - bash コマンドのファイルシステムとネットワーク分離
-- [Permissions](/ja/permissions) - パーミッションとアクセス制御を設定します
-- [Monitoring usage](/ja/monitoring-usage) - Claude Code アクティビティを追跡および監査します
-- [Development containers](/ja/devcontainer) - セキュアで分離された環境
-- [Anthropic Trust Center](https://trust.anthropic.com) - セキュリティ認証とコンプライアンス
+- [Sandbox environments](/ja/sandbox-environments)：分離アプローチを比較し、脅威モデルに合わせて選択します
+- [Sandboxing](/ja/sandboxing)：Bash コマンドのファイルシステムとネットワーク分離
+- [Permissions](/ja/permissions)：パーミッションとアクセス制御を設定します
+- [Monitoring usage](/ja/monitoring-usage)：Claude Code アクティビティを追跡および監査します
+- [Development containers](/ja/devcontainer)：セキュアで分離された環境
+- [Anthropic Trust Center](https://trust.anthropic.com)：セキュリティ認証とコンプライアンス
