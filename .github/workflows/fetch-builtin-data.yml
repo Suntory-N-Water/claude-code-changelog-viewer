@@ -1,0 +1,125 @@
+name: Fetch Built-in Data
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # 毎日 JST 6:00
+  workflow_dispatch:
+
+# 同時実行を防止して git コンフリクトを回避
+concurrency:
+  group: fetch-builtin-data
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 環境セットアップ
+        uses: ./.github/actions/setup
+
+      - name: built-in データを取得
+        run: pnpm run --filter changelog-fetcher fetch:builtins
+        env:
+          NODE_ENV: production
+
+      - name: 変更確認
+        id: git-check
+        run: |
+          git add apps/changelog-fetcher/builtin-data/
+
+          CHANGED=$(git diff --staged --name-only | wc -l | tr -d ' ')
+          echo "changed_files=$CHANGED" >> "$GITHUB_OUTPUT"
+
+          if [ "$CHANGED" -gt 0 ]; then
+            echo "should_push=true" >> "$GITHUB_OUTPUT"
+            echo "✅ builtin-data に更新あり: $CHANGED ファイル"
+            git diff --staged --name-only
+          else
+            echo "should_push=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ builtin-data に更新なし"
+          fi
+
+      - name: PR メタデータ準備
+        id: pr-meta
+        if: steps.git-check.outputs.should_push == 'true'
+        env:
+          CHANGED_COUNT: ${{ steps.git-check.outputs.changed_files }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          COMMIT_MSG="chore: Update built-in data - $CHANGED_COUNT files changed"
+          COMMIT_BODY="Automated built-in data update at ${TIMESTAMP}"$'\n\n'"Modified files:"
+
+          for file in $(git diff --staged --name-only); do
+            COMMIT_BODY="${COMMIT_BODY}"$'\n'"- ${file}"
+          done
+
+          echo "title=${COMMIT_MSG}" >> "$GITHUB_OUTPUT"
+          {
+            echo "body<<EOF"
+            echo "${COMMIT_BODY}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: プルリクエストを作成
+        id: create-pr
+        if: steps.git-check.outputs.should_push == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          branch: chore/update-builtin-data
+          commit-message: ${{ steps.pr-meta.outputs.title }}
+          title: ${{ steps.pr-meta.outputs.title }}
+          body: ${{ steps.pr-meta.outputs.body }}
+          delete-branch: true
+
+      - name: PR をマージ
+        if: steps.git-check.outputs.should_push == 'true' &&
+          steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --admin \
+            --delete-branch
+          echo "✓ PR #${PR_NUMBER} をマージしました"
+
+      - name: 失敗時に Issue を作成
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const title = `Built-in data fetch 失敗 - ${new Date().toISOString()}`;
+            const body = `built-in データの自動取得に失敗しました。
+
+            **ワークフロー実行:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+            **時刻:** ${new Date().toISOString()}
+
+            ワークフローのログを確認してください。`;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'automated']
+            });
