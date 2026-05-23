@@ -210,7 +210,7 @@ for await (const message of query({
 
 Spawn specialized agents to handle focused subtasks. Your main agent delegates work, and subagents report back with results.
 
-Define custom agents with specialized instructions. Include `Agent` in `allowedTools` since subagents are invoked via the Agent tool:
+Define custom agents with specialized instructions. Subagents are invoked via the Agent tool, so include `Agent` in `allowedTools` to auto-approve those invocations:
 
 ```python Python theme={null}
 import asyncio

@@ -1,0 +1,851 @@
+{
+  "id": "20260523-041710",
+  "timestamp": "2026-05-23T04:17:10.179Z",
+  "aiSummary": "allowedToolsの設定に関する説明が更新され、特定のツールやサブエージェントの使用をプロンプトなしで自動承認するための設定であることが明示されました。スラッシュコマンドの定義において、コマンド名の先頭の「/」が削除され、新たにclearコマンドが追加されました。サブエージェントをワークツリーで実行する際、デフォルトで親セッションのHEADではなくリポジトリのデフォルトブランチから分岐する仕様が補足されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/mcp.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "allowedToolsの役割が、MCPツールをプロンプトなしで利用するための「自動承認」設定であることを明記するように修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -143,9 +143,9 @@ MCP tools require explicit permission before Claude can use them. Without permis",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "MCP tools follow the naming pattern `mcp__<server-name>__<tool-name>`. For example, a GitHub server named `\"github\"` with a `list_issues` tool becomes `mcp__github__list_issues`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Grant access with allowedTools"
+            },
+            {
+              "type": "added",
+              "content": "### Auto-approve with allowedTools"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `allowedTools` to specify which MCP tools Claude can use:"
+            },
+            {
+              "type": "added",
+              "content": "Use `allowedTools` to auto-approve specific MCP tools so Claude can use them without a permission prompt:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript hidelines={1,-1} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "const _ = {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -693,7 +693,7 @@ const _ = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    mcpServers: {"
+            },
+            {
+              "type": "context",
+              "content": "      // your servers"
+            },
+            {
+              "type": "context",
+              "content": "    },"
+            },
+            {
+              "type": "removed",
+              "content": "    allowedTools: [\"mcp__servername__*\"] // Required for Claude to use the tools"
+            },
+            {
+              "type": "added",
+              "content": "    allowedTools: [\"mcp__servername__*\"] // Auto-approve calls from this server"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/overview.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サブエージェントの呼び出しを自動承認するために、allowedToolsにAgentツールを含める必要がある旨が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -210,7 +210,7 @@ for await (const message of query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Spawn specialized agents to handle focused subtasks. Your main agent delegates work, and subagents report back with results."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Define custom agents with specialized instructions. Include `Agent` in `allowedTools` since subagents are invoked via the Agent tool:"
+            },
+            {
+              "type": "added",
+              "content": "Define custom agents with specialized instructions. Subagents are invoked via the Agent tool, so include `Agent` in `allowedTools` to auto-approve those invocations:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "import asyncio"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/plugins.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "プラグインのカスタムコマンド例から「/」が削除され、最新のコマンド形式に合わせた記述に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -91,7 +91,7 @@ for await (const message of query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    // Check available commands from plugins"
+            },
+            {
+              "type": "context",
+              "content": "    console.log(\"Commands:\", message.slash_commands);"
+            },
+            {
+              "type": "removed",
+              "content": "    // Example: [\"/help\", \"/compact\", \"my-plugin:custom-command\"]"
+            },
+            {
+              "type": "added",
+              "content": "    // Example: [\"compact\", \"context\", \"my-plugin:custom-command\"]"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -114,7 +114,7 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "            # Check available commands from plugins"
+            },
+            {
+              "type": "context",
+              "content": "            print(\"Commands:\", message.data.get(\"slash_commands\"))"
+            },
+            {
+              "type": "removed",
+              "content": "            # Example: [\"/help\", \"/compact\", \"my-plugin:custom-command\"]"
+            },
+            {
+              "type": "added",
+              "content": "            # Example: [\"compact\", \"context\", \"my-plugin:custom-command\"]"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/quickstart.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "コード例内のコメントにおいて、allowed_toolsがツールの自動承認を意味するものであることが明確化されました。",
+      "hunks": [
+        {
+          "header": "@@ -101,7 +101,7 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    async for message in query("
+            },
+            {
+              "type": "context",
+              "content": "        prompt=\"Review utils.py for bugs that would cause crashes. Fix any issues you find.\","
+            },
+            {
+              "type": "context",
+              "content": "        options=ClaudeAgentOptions("
+            },
+            {
+              "type": "removed",
+              "content": "            allowed_tools=[\"Read\", \"Edit\", \"Glob\"],  # Tools Claude can use"
+            },
+            {
+              "type": "added",
+              "content": "            allowed_tools=[\"Read\", \"Edit\", \"Glob\"],  # Auto-approve these tools"
+            },
+            {
+              "type": "context",
+              "content": "            permission_mode=\"acceptEdits\",  # Auto-approve file edits"
+            },
+            {
+              "type": "context",
+              "content": "        ),"
+            },
+            {
+              "type": "context",
+              "content": "    ):"
+            }
+          ]
+        },
+        {
+          "header": "@@ -125,7 +125,7 @@ import { query } from \"@anthropic-ai/claude-agent-sdk\";",
+          "lines": [
+            {
+              "type": "context",
+              "content": "for await (const message of query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: \"Review utils.py for bugs that would cause crashes. Fix any issues you find.\","
+            },
+            {
+              "type": "context",
+              "content": "  options: {"
+            },
+            {
+              "type": "removed",
+              "content": "    allowedTools: [\"Read\", \"Edit\", \"Glob\"], // Tools Claude can use"
+            },
+            {
+              "type": "added",
+              "content": "    allowedTools: [\"Read\", \"Edit\", \"Glob\"], // Auto-approve these tools"
+            },
+            {
+              "type": "context",
+              "content": "    permissionMode: \"acceptEdits\" // Auto-approve file edits"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "})) {"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/slash-commands.md",
+      "additions": 11,
+      "deletions": 7,
+      "explanation": "コンテキストをリセットするclearコマンドの説明が追加され、各コマンド名から先頭の「/」記号が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -22,7 +22,7 @@ for await (const message of query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": "})) {"
+            },
+            {
+              "type": "context",
+              "content": "  if (message.type === \"system\" && message.subtype === \"init\") {"
+            },
+            {
+              "type": "context",
+              "content": "    console.log(\"Available slash commands:\", message.slash_commands);"
+            },
+            {
+              "type": "removed",
+              "content": "    // Example output: [\"/compact\", \"/context\", \"/usage\"]"
+            },
+            {
+              "type": "added",
+              "content": "    // Example output: [\"clear\", \"compact\", \"context\", \"usage\"]"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -35,7 +35,7 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    async for message in query(prompt=\"Hello Claude\", options=ClaudeAgentOptions(max_turns=1)):"
+            },
+            {
+              "type": "context",
+              "content": "        if isinstance(message, SystemMessage) and message.subtype == \"init\":"
+            },
+            {
+              "type": "context",
+              "content": "            print(\"Available slash commands:\", message.data[\"slash_commands\"])"
+            },
+            {
+              "type": "removed",
+              "content": "            # Example output: [\"/compact\", \"/context\", \"/usage\"]"
+            },
+            {
+              "type": "added",
+              "content": "            # Example output: [\"clear\", \"compact\", \"context\", \"usage\"]"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -73,7 +73,7 @@ asyncio.run(main())",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Common Slash Commands"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### `/compact` - Compact Conversation History"
+            },
+            {
+              "type": "added",
+              "content": "### `/compact` - Compact conversation history"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `/compact` command reduces the size of your conversation history by summarizing older messages while preserving important context:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -106,9 +106,13 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Clearing the conversation"
+            },
+            {
+              "type": "added",
+              "content": "### `/clear` - Reset conversation context"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The interactive `/clear` command is not available in the SDK. Each `query()` call already starts a fresh conversation, so to clear context, end the current `query()` and start a new one. The previous conversation stays on disk and can be returned to by passing its session ID to the [`resume` option](/en/agent-sdk/sessions#resume-by-id)."
+            },
+            {
+              "type": "added",
+              "content": "The `/clear` command resets the conversation to an empty context, so subsequent prompts start with no prior conversation history. The previous conversation remains on disk and can be returned to by passing its session ID to the [`resume` option](/en/agent-sdk/sessions#resume-by-id)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This is useful in [streaming input mode](/en/agent-sdk/streaming-vs-single-mode), where you send multiple prompts over a single connection. For one-shot `query()` calls, each call already starts with empty context, so sending `/clear` has no practical effect; start a new `query()` instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`/clear` in the SDK requires Claude Code v2.1.117 or later. In earlier versions it is omitted from `slash_commands`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Creating Custom Slash Commands"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -185,7 +189,7 @@ for await (const message of query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  if (message.type === \"system\" && message.subtype === \"init\") {"
+            },
+            {
+              "type": "context",
+              "content": "    // Will include both built-in and custom commands"
+            },
+            {
+              "type": "context",
+              "content": "    console.log(\"Available commands:\", message.slash_commands);"
+            },
+            {
+              "type": "removed",
+              "content": "    // Example: [\"/compact\", \"/context\", \"/usage\", \"/refactor\", \"/security-check\"]"
+            },
+            {
+              "type": "added",
+              "content": "    // Example: [\"clear\", \"compact\", \"context\", \"usage\", \"refactor\", \"security-check\"]"
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -209,7 +213,7 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "        if isinstance(message, SystemMessage) and message.subtype == \"init\":"
+            },
+            {
+              "type": "context",
+              "content": "            # Will include both built-in and custom commands"
+            },
+            {
+              "type": "context",
+              "content": "            print(\"Available commands:\", message.data[\"slash_commands\"])"
+            },
+            {
+              "type": "removed",
+              "content": "            # Example: [\"/compact\", \"/context\", \"/usage\", \"/refactor\", \"/security-check\"]"
+            },
+            {
+              "type": "added",
+              "content": "            # Example: [\"clear\", \"compact\", \"context\", \"usage\", \"refactor\", \"security-check\"]"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "asyncio.run(main())"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/subagents.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "サブエージェント実行時の自動承認フローと、allowedToolsにAgentを登録しなかった場合の挙動に関する詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -54,7 +54,7 @@ Subagents can be limited to specific tools, reducing the risk of unintended acti",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Programmatic definition (recommended)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Define subagents directly in your code using the `agents` parameter. This example creates two subagents: a code reviewer with read-only access and a test runner that can execute commands. The `Agent` tool must be included in `allowedTools` since Claude invokes subagents through the Agent tool."
+            },
+            {
+              "type": "added",
+              "content": "Define subagents directly in your code using the `agents` parameter. This example creates two subagents: a code reviewer with read-only access and a test runner that can execute commands. Claude invokes subagents through the `Agent` tool, so include `Agent` in `allowedTools` to auto-approve subagent invocations without a permission prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "import asyncio"
+            }
+          ]
+        },
+        {
+          "header": "@@ -64,7 +64,7 @@ async def main():",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    async for message in query("
+            },
+            {
+              "type": "context",
+              "content": "        prompt=\"Review the authentication module for security issues\","
+            },
+            {
+              "type": "context",
+              "content": "        options=ClaudeAgentOptions("
+            },
+            {
+              "type": "removed",
+              "content": "            # Agent tool is required for subagent invocation"
+            },
+            {
+              "type": "added",
+              "content": "            # Auto-approve these tools, including Agent for subagent invocation"
+            },
+            {
+              "type": "context",
+              "content": "            allowed_tools=[\"Read\", \"Grep\", \"Glob\", \"Agent\"],"
+            },
+            {
+              "type": "context",
+              "content": "            agents={"
+            },
+            {
+              "type": "context",
+              "content": "                \"code-reviewer\": AgentDefinition("
+            }
+          ]
+        },
+        {
+          "header": "@@ -112,7 +112,7 @@ import { query } from \"@anthropic-ai/claude-agent-sdk\";",
+          "lines": [
+            {
+              "type": "context",
+              "content": "for await (const message of query({"
+            },
+            {
+              "type": "context",
+              "content": "  prompt: \"Review the authentication module for security issues\","
+            },
+            {
+              "type": "context",
+              "content": "  options: {"
+            },
+            {
+              "type": "removed",
+              "content": "    // Agent tool is required for subagent invocation"
+            },
+            {
+              "type": "added",
+              "content": "    // Auto-approve these tools, including Agent for subagent invocation"
+            },
+            {
+              "type": "context",
+              "content": "    allowedTools: [\"Read\", \"Grep\", \"Glob\", \"Agent\"],"
+            },
+            {
+              "type": "context",
+              "content": "    agents: {"
+            },
+            {
+              "type": "context",
+              "content": "      \"code-reviewer\": {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -179,7 +179,7 @@ Subagents cannot spawn their own subagents. Don't include `Agent` in a subagent'",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also define subagents as markdown files in `.claude/agents/` directories. See the [Claude Code subagents documentation](/en/sub-agents) for details on this approach. Programmatically defined agents take precedence over filesystem-based agents with the same name."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Even without defining custom subagents, Claude can spawn the built-in `general-purpose` subagent when `Agent` is in your `allowedTools`. This is useful for delegating research or exploration tasks without creating specialized agents."
+            },
+            {
+              "type": "added",
+              "content": "Even without defining custom subagents, Claude can spawn the built-in `general-purpose` subagent. This is useful for delegating research or exploration tasks without creating specialized agents. Include `Agent` in `allowedTools` so these invocations auto-approve without a permission prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## What subagents inherit"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -550,7 +550,7 @@ identify patterns, and suggest improvements without making changes.`,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude completes tasks directly instead of delegating to your subagent:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "1. **Include the Agent tool**: subagents are invoked via the Agent tool, so it must be in `allowedTools`"
+            },
+            {
+              "type": "added",
+              "content": "1. **Check Agent invocations are approved**: include `Agent` in `allowedTools` to auto-approve subagent calls. Without it, Agent invocations fall through to your `canUseTool` callback or, in `dontAsk` mode, are denied"
+            },
+            {
+              "type": "context",
+              "content": "2. **Use explicit prompting**: mention the subagent by name in your prompt (for example, \"Use the code-reviewer agent to...\")"
+            },
+            {
+              "type": "context",
+              "content": "3. **Write a clear description**: explain exactly when the subagent should be used so Claude can match tasks appropriately"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "隔離環境（isolation: worktree）で実行されるサブエージェントが、デフォルトでリポジトリのデフォルトブランチから分岐する仕様が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -238,7 +238,7 @@ The following fields can be used in the YAML frontmatter. Only `name` and `descr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `memory` | No | [Persistent memory scope](#enable-persistent-memory): `user`, `project`, or `local`. Enables cross-session learning |"
+            },
+            {
+              "type": "context",
+              "content": "| `background` | No | Set to `true` to always run this subagent as a [background task](#run-subagents-in-foreground-or-background). Default: `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `effort` | No | Effort level when this subagent is active. Overrides the session effort level. Default: inherits from session. Options: `low`, `medium`, `high`, `xhigh`, `max`; available levels depend on the model |"
+            },
+            {
+              "type": "removed",
+              "content": "| `isolation` | No | Set to `worktree` to run the subagent in a temporary [git worktree](/en/worktrees), giving it an isolated copy of the repository. The worktree is automatically cleaned up if the subagent makes no changes |"
+            },
+            {
+              "type": "added",
+              "content": "| `isolation` | No | Set to `worktree` to run the subagent in a temporary [git worktree](/en/worktrees), giving it an isolated copy of the repository branched by default from your [default branch](/en/worktrees#choose-the-base-branch) rather than the parent session's `HEAD`. The worktree is automatically cleaned up if the subagent makes no changes |"
+            },
+            {
+              "type": "context",
+              "content": "| `color` | No | Display color for the subagent in the task list and transcript. Accepts `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, or `cyan` |"
+            },
+            {
+              "type": "context",
+              "content": "| `initialPrompt` | No | Auto-submitted as the first user turn when this agent runs as the main session agent (via `--agent` or the `agent` setting). [Commands](/en/commands) and [skills](/en/skills) are processed. Prepended to any user-provided prompt |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "worktrees.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "サブエージェントのワークツリー作成時のベースブランチが、コマンドライン引数の--worktreeと同じルールに従うことが説明されました。",
+      "hunks": [
+        {
+          "header": "@@ -79,6 +79,8 @@ This applies to worktrees created with `--worktree`, [subagent worktrees](#isola",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Subagents can run in their own worktrees so parallel edits don't conflict. Ask Claude to \"use worktrees for your agents\", or set it permanently on a [custom subagent](/en/sub-agents#supported-frontmatter-fields) by adding `isolation: worktree` to the frontmatter. Each subagent gets a temporary worktree that is removed automatically when the subagent finishes without changes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Subagent worktrees use the same [base branch](#choose-the-base-branch) as `--worktree`, so they branch from your repository's default branch unless `worktree.baseRef` is set to `\"head\"`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Clean up worktrees"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you exit a worktree session, cleanup depends on whether you made changes:"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
