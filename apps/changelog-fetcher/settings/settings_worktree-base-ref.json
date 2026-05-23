@@ -1,0 +1,28 @@
+{
+  "key": "worktree.baseRef",
+  "leaf_name": "baseRef",
+  "slug": "worktree-base-ref",
+  "source": "settings",
+  "description_en": "Whether to branch worktrees from origin/<default> (fresh) or local HEAD (head). Default: fresh. Set to 'head' to preserve unpushed commits in new worktrees. See https://code.claude.com/docs/en/settings#worktree-settings",
+  "description_ja": "新しい作業ツリーをリモートのデフォルトブランチ（fresh）から作成するか、現在のローカルHEAD（head）から作成するかを選択します。",
+  "use_case_ja": "- サブエージェントの作業に、未プッシュのコミットや現在のブランチの状態を引き継がせたい場合に 'head' を指定します。\n- デフォルトではクリーンなリモートの状態から開始されますが、この設定により開発中のコンテキストを保ったまま作業を隔離できます。",
+  "parent_descriptions": [
+    "Configuration for --worktree sessions. See https://code.claude.com/docs/en/settings#worktree-settings"
+  ],
+  "doc_snippets": [
+    "Choose the base branch Worktrees branch from your repository's default branch, origin/HEAD , so they start from a clean tree matching the remote. If no remote is configured or the fetch fails, the worktree falls back to your current local HEAD . To always branch from local HEAD instead, set worktree.baseRef to \"head\" in settings . Setting baseRef to \"head\" makes new worktrees carry your unpushed commits and feature-branch state, which is useful when isolating subagents that need to operate on in-progress work. The setting accepts only \"fresh\" or \"head\" , not arbitrary git refs:",
+    "Subagents can run in their own worktrees so parallel edits don't conflict. Ask Claude to \"use worktrees for your agents\", or set it permanently on a custom subagent by adding isolation: worktree to the frontmatter. Each subagent gets a temporary worktree that is removed automatically when the subagent finishes without changes. Subagent worktrees use the same base branch as --worktree , so they branch from your repository's default branch unless worktree.baseRef is set to \"head\" . Clean up worktrees"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.133",
+      "content": "- Added `worktree.baseRef` setting (`fresh` | `head`) to choose whether `--worktree`, `EnterWorktree`, and agent-isolation worktrees branch from `origin/<default>` or local `HEAD`. **Note:** the default `fresh` changes `EnterWorktree`'s base back to `origin/<default>` (it has been local `HEAD` since 2.1.128) — set `worktree.baseRef: \"head\"` to keep unpushed commits in new worktrees",
+      "content_ja": "worktree.baseRef 設定を追加し、作業ツリー作成時のブランチ元を origin/<default> かローカルの HEAD か選択可能になりました",
+      "inference": {
+        "before": "新しい作業ツリー(worktree)を作成する際、ブランチの起点となるリファレンスがバージョンによって異なり、未プッシュのコミットが含まれない場合がありました。",
+        "after": "worktree.baseRef 設定により、fresh(デフォルトのブランチ)または head(現在のローカルコミット)のどちらを起点にするか明示的に指定できます。",
+        "benefit": "未プッシュの変更を作業ツリーに引き継ぎたい場合に head を指定することで、作業の中断や隔離をスムーズに行えるようになります。"
+      }
+    }
+  ]
+}

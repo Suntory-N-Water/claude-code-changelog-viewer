@@ -1,0 +1,31 @@
+{
+  "key": "sandbox.failIfUnavailable",
+  "leaf_name": "failIfUnavailable",
+  "slug": "sandbox-fail-if-unavailable",
+  "source": "settings",
+  "description_en": "When true, make sandbox startup a hard failure if required sandbox dependencies are missing. Default: false (sandbox is skipped with a warning). See https://code.claude.com/docs/en/sandboxing#enable-sandboxing",
+  "description_ja": "trueに設定すると、必要な依存関係が不足している場合にサンドボックスの起動を警告ではなく致命的なエラーとして扱います。",
+  "use_case_ja": "- セキュリティガバナンスが厳格な環境で、意図しない非保護状態（サンドボックスなし）でのコマンド実行を確実に阻止したい場合に有効化します。\n- サンドボックスの起動失敗を無視せずプロセスを停止させることで、安全性が確認できない状態での作業を防止します。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing"
+  ],
+  "doc_snippets": [
+    "Selecting a mode in the panel writes to your project's local settings at .claude/settings.local.json , which apply to the current project and are not checked into git. To enable the sandbox across all of your projects, set sandbox.enabled to true in your user settings at ~/.claude/settings.json . To enforce sandboxing for every developer in an organization, use managed settings . By default, if the sandbox cannot start because dependencies are missing or the platform is unsupported, Claude Code shows a warning and runs commands without sandboxing. To make this a hard failure instead, set sandbox.failIfUnavailable to true . This is intended for managed deployments that require sandboxing as a security gate. Set up Linux and WSL2",
+    "{ \"sandbox\": { \"enabled\": true, \"failIfUnavailable\": true, \"allowUnsandboxedCommands\": false } }",
+    "The two keys beyond enabled control what happens when the sandbox cannot run a command: failIfUnavailable : a missing dependency such as bubblewrap on Linux blocks Claude Code from starting rather than showing a warning and falling back to unsandboxed execution allowUnsandboxedCommands: false : the dangerouslyDisableSandbox escape hatch is ignored, so commands that fail under the sandbox cannot be retried outside it Two additions are worth considering alongside them. Add excludedCommands for any organization-approved tools that must run without isolation. Add denyRead entries for credential directories such as ~/.aws and ~/.ssh , which the default read policy still allows.",
+    "Keep developers from widening the policy For boolean keys such as enabled and failIfUnavailable , Claude Code uses the managed value and ignores anything a developer sets locally. For array keys such as excludedCommands and allowRead , Claude Code merges entries from every scope, so a developer can append entries that widen the policy. Set allowManagedReadPathsOnly to true in managed settings so that only allowRead entries from managed settings are honored. User, project, and local allowRead entries are ignored. This prevents developers from widening read access beyond the organization-approved paths. To lock network domains to the managed values the same way, set allowManagedDomainsOnly .",
+    "Keys Description Example enabled Enable bash sandboxing (macOS, Linux, and WSL2). Default: false true failIfUnavailable Exit with an error at startup if sandbox.enabled is true but the sandbox cannot start (missing dependencies or unsupported platform). When false (default), a warning is shown and commands run unsandboxed. Intended for managed settings deployments that require sandboxing as a hard gate autoAllowBashIfSandboxed Auto-approve bash commands when sandboxed. Default: true excludedCommands Commands that should run outside of the sandbox [\"docker *\"] allowUnsandboxedCommands Allow commands to run outside the sandbox via the dangerouslyDisableSandbox parameter. When set to false , the dangerouslyDisableSandbox escape hatch is completely disabled and all commands must run sandboxed (or be in excludedCommands ). Useful for enterprise policies that require strict sandboxing. Default: true false"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.83",
+      "content": "- Added `sandbox.failIfUnavailable` setting to exit with an error when sandbox is enabled but cannot start, instead of running unsandboxed",
+      "content_ja": "サンドボックスが有効な場合に起動できない時は、サンドボックスなしで実行せずエラーで終了する `sandbox.failIfUnavailable` 設定を追加しました",
+      "inference": {
+        "before": "サンドボックスが有効に設定されていても、依存関係の不足やプラットフォームの制限で起動できない場合、Claude Code は警告を表示した上でサンドボックスなし（保護なし）の状態でコマンドを実行してしました。",
+        "after": "`sandbox.failIfUnavailable` を `true` に設定することで、サンドボックスを起動できない場合にプロセスをエラーで停止させることができるようになりました。これにより、意図しない非保護状態での実行を防げます。",
+        "benefit": "厳格なセキュリティポリシーを必要とするエンタープライズ環境において、安全性が確認できない状態でのコマンド実行を確実に阻止できるようになり、セキュリティガバナンスが強化されます。"
+      }
+    }
+  ]
+}

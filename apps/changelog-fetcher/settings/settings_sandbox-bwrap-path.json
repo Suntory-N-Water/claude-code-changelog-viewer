@@ -1,0 +1,27 @@
+{
+  "key": "sandbox.bwrapPath",
+  "leaf_name": "bwrapPath",
+  "slug": "sandbox-bwrap-path",
+  "source": "settings",
+  "description_en": "(Managed setting only) Path to custom bubblewrap (bwrap) binary for Linux/WSL sandbox. Overrides default. See https://code.claude.com/docs/en/server-managed-settings",
+  "description_ja": "LinuxやWSLのサンドボックスで使用する、カスタムのbubblewrap（bwrap）バイナリへのパス。",
+  "use_case_ja": "- bubblewrap が OS 標準のパス以外にインストールされている特殊な環境で、サンドボックス機能を動作させるために指定します。\n- 管理設定を通じて指定することで、セキュリティ制限の厳しいシステムでも安全な隔離環境を維持できます。",
+  "parent_descriptions": [
+    "Sandbox execution configuration. See https://code.claude.com/docs/en/sandboxing"
+  ],
+  "doc_snippets": [
+    "| network.socksProxyPort | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | 8081 | | enableWeakerNestedSandbox | Enable weaker sandbox for unprivileged Docker environments (Linux and WSL2 only). Reduces security. Default: false | true | | enableWeakerNetworkIsolation | (macOS only) Allow access to the system TLS trust service ( com.apple.trustd.agent ) in the sandbox. Required for Go-based tools like gh , gcloud , and terraform to verify TLS certificates when using httpProxyPort with a MITM proxy and custom CA. Reduces security by opening a potential data exfiltration path. Default: false | true | | bwrapPath | (Managed settings only, Linux/WSL2) Absolute path to the bubblewrap ( bwrap ) binary. Overrides automatic detection via PATH . Only honored from managed settings , not from user or project settings. Useful when bwrap is installed at a non-standard location in managed environments. | /opt/admin/bwrap | | socatPath | (Managed settings only, Linux/WSL2) Absolute path to the socat binary used for the sandbox network proxy. Overrides automatic detection via PATH . Only honored from managed settings. | /opt/admin/socat | Sandbox path prefixes"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.133",
+      "content": "- Added `sandbox.bwrapPath` and `sandbox.socatPath` managed settings (Linux/WSL) to specify custom bubblewrap and socat binary locations",
+      "content_ja": "LinuxおよびWSL向けに、bubblewrapとsocatの実行ファイルのパスを指定する設定(sandbox.bwrapPath, sandbox.socatPath)を追加しました",
+      "inference": {
+        "before": "Linux環境でサンドボックス機能を使用する際、bubblewrap などのバイナリが標準以外のパスにインストールされていると、正常に動作させることが困難でした。",
+        "after": "管理設定でカスタムパスを指定できるようになったため、特殊な環境やセキュリティ制限のあるシステムでもサンドボックスを正しく利用できます。",
+        "benefit": "OS標準のパッケージ管理以外でツールを導入している環境でも、安全な隔離実行環境を維持できるようになります。"
+      }
+    }
+  ]
+}
