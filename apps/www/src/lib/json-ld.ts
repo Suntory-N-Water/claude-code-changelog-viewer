@@ -14,31 +14,26 @@ export type BreadcrumbItem = {
   url: string;
 };
 
+type WebSiteNodeParams = {
+  siteUrl: string;
+  title: string;
+  description: string;
+};
+
+type WebPageNodeParams = WebSiteNodeParams & {
+  url: string;
+};
+
+type ArticleNodeParams = WebPageNodeParams & {
+  version: string;
+  datePublished?: string;
+};
+
 export type JsonLdGraphParams =
-  | { type: 'website'; siteUrl: string; title: string; description: string }
-  | {
-      type: 'article';
-      siteUrl: string;
-      title: string;
-      description: string;
-      url: string;
-      version: string;
-      datePublished?: string;
-    }
-  | {
-      type: 'collection';
-      siteUrl: string;
-      title: string;
-      description: string;
-      url: string;
-    }
-  | {
-      type: 'page';
-      siteUrl: string;
-      title: string;
-      description: string;
-      url: string;
-    };
+  | ({ type: 'website' } & WebSiteNodeParams)
+  | ({ type: 'article' } & ArticleNodeParams)
+  | ({ type: 'collection' } & WebPageNodeParams)
+  | ({ type: 'page' } & WebPageNodeParams);
 
 // --- 内部ノードビルダー (@context なし・@id 付き) ---
 
@@ -59,11 +54,7 @@ function buildOrganizationNode(siteUrl: string) {
   };
 }
 
-function buildWebSiteNode(params: {
-  siteUrl: string;
-  title: string;
-  description: string;
-}) {
+function buildWebSiteNode(params: WebSiteNodeParams) {
   return {
     '@type': 'WebSite',
     '@id': `${params.siteUrl}/#website`,
@@ -91,12 +82,7 @@ function buildWebSiteNode(params: {
   };
 }
 
-function buildWebPageNode(params: {
-  url: string;
-  title: string;
-  description: string;
-  siteUrl: string;
-}) {
+function buildWebPageNode(params: WebPageNodeParams) {
   return {
     '@type': 'WebPage',
     '@id': `${params.url}#webpage`,
@@ -109,14 +95,7 @@ function buildWebPageNode(params: {
   };
 }
 
-export function buildArticleNode(params: {
-  siteUrl: string;
-  title: string;
-  description: string;
-  url: string;
-  version: string;
-  datePublished?: string;
-}) {
+export function buildArticleNode(params: ArticleNodeParams) {
   return {
     '@type': 'TechArticle',
     '@id': `${params.url}#article`,
@@ -138,12 +117,7 @@ export function buildArticleNode(params: {
   };
 }
 
-function buildCollectionPageNode(params: {
-  url: string;
-  title: string;
-  description: string;
-  siteUrl: string;
-}) {
+function buildCollectionPageNode(params: WebPageNodeParams) {
   return {
     '@type': 'CollectionPage',
     '@id': `${params.url}#webpage`,

@@ -2,11 +2,11 @@ import {
   DISCORD_BOT_AVATAR_URL,
   DISCORD_SUPPRESS_EMBEDS,
   type DiscordWebhookPayload,
-  getPrefixSortOrder,
   type Prefix,
   truncateForDiscord,
 } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
+import { groupChangelogItemsByPrefix } from './changelog-message';
 
 const BOT_USERNAME = 'CCログ超訳 Bot';
 
@@ -47,20 +47,7 @@ export function createChangelogMessage(
   content += `${data.summary || 'Claude Codeの新しいバージョンがリリースされました。'}\n`;
 
   if (data.items.length > 0) {
-    // prefix でグループ化
-    const groupMap = new Map<string, typeof data.items>();
-    for (const item of data.items) {
-      const group = groupMap.get(item.prefix) ?? [];
-      group.push(item);
-      groupMap.set(item.prefix, group);
-    }
-
-    // PREFIX_ORDER に従ってソート、未定義 prefix は末尾
-    const sortedEntries = [...groupMap.entries()].sort(
-      ([a], [b]) => getPrefixSortOrder(a) - getPrefixSortOrder(b),
-    );
-
-    for (const [prefix, items] of sortedEntries) {
+    for (const { prefix, items } of groupChangelogItemsByPrefix(data.items)) {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
       content += `\n## ${label} (${items.length}件)\n`;
       for (const item of items) {
