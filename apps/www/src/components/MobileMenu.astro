@@ -1,4 +1,5 @@
 ---
+
 type Props = {
   isDocsPage: boolean;
   isReferencePage: boolean;
@@ -49,7 +50,7 @@ const { isDocsPage, isReferencePage } = Astro.props;
 <!-- モバイルメニュードロワー(header基準で絶対配置) -->
 <div
   id='mobile-menu'
-  class='absolute top-full left-0 right-0 sm:hidden hidden border-t border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white)/0.98)]'
+  class='absolute top-full left-0 right-0 sm:hidden border-t border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white)/0.98)]'
 >
   <a
     href='/docs'
@@ -67,6 +68,38 @@ const { isDocsPage, isReferencePage } = Astro.props;
   </a>
 </div>
 
+<style>
+  #mobile-menu {
+    display: none;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition:
+      display 0.15s,
+      opacity 0.15s ease-out,
+      transform 0.15s ease-out;
+    transition-behavior: allow-discrete;
+  }
+
+  #mobile-menu.is-open {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @starting-style {
+    #mobile-menu.is-open {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #mobile-menu {
+      transition-duration: 0.01s;
+    }
+  }
+</style>
+
 <script>
   function initMobileMenu() {
     const button = document.getElementById('mobile-menu-btn');
@@ -79,7 +112,7 @@ const { isDocsPage, isReferencePage } = Astro.props;
     }
 
     function toggleMenu(open: boolean) {
-      menu?.classList.toggle('hidden', !open);
+      menu?.classList.toggle('is-open', open);
       button?.setAttribute('aria-expanded', String(open));
       button?.setAttribute(
         'aria-label',
