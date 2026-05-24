@@ -1,0 +1,171 @@
+{
+  "id": "20260524-042751",
+  "timestamp": "2026-05-24T04:27:51.033Z",
+  "aiSummary": "コードレビュー機能がアップデートされ、以前はsimplifyと呼ばれていたコマンドがcode-reviewに統合されました。サンドボックス環境においてGitワークツリーがサポートされ、メインリポジトリの共有.gitディレクトリへの書き込みが一部許可されるよう改善されています。また、シェルの起動ファイルで定義されたエイリアスや関数が、Claude Code内のBash実行環境でも利用可能になりました。これらの変更により、ローカルでの開発効率とコマンド実行の柔軟性が向上しています。",
+  "files": [
+    {
+      "filename": "code-review.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "コマンド名がsimplifyからcode-reviewに変更され、GitHub Appなしでローカルの差分をレビューする方法が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -24,6 +24,8 @@ This page covers:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Pricing](#pricing)"
+            },
+            {
+              "type": "context",
+              "content": "- [Troubleshooting](#troubleshooting) failed runs and missing comments"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To review a diff locally in your terminal without installing the GitHub App, run the [`/code-review` command](/en/commands) in any Claude Code session. It reports correctness bugs in the current diff at a chosen effort level and can post findings as inline PR comments with `--comment`. The command was named `/simplify` before v2.1.147."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## How reviews work"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once an admin [enables Code Review](#set-up-code-review) for your organization, reviews trigger when a PR opens, on every push, or when manually requested, depending on the repository's configured behavior. Commenting `@claude review` [starts reviews on a PR](#manually-trigger-reviews) in any mode."
+            }
+          ]
+        },
+        {
+          "header": "@@ -261,7 +263,7 @@ If the check run title says issues were found but you don't see inline review co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Code Review is designed to work alongside the rest of Claude Code. If you want to run reviews locally before opening a PR, need a self-hosted setup, or want to go deeper on how `CLAUDE.md` shapes Claude's behavior across tools, these pages are good next stops:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [Plugins](/en/discover-plugins): browse the plugin marketplace, including a `code-review` plugin for running on-demand reviews locally before pushing"
+            },
+            {
+              "type": "added",
+              "content": "- [Commands](/en/commands): run `/code-review` in a local Claude Code session to check a diff before pushing"
+            },
+            {
+              "type": "context",
+              "content": "- [GitHub Actions](/en/github-actions): run Claude in your own GitHub Actions workflows for custom automation beyond code review"
+            },
+            {
+              "type": "context",
+              "content": "- [GitLab CI/CD](/en/gitlab-ci-cd): self-hosted Claude integration for GitLab pipelines"
+            },
+            {
+              "type": "context",
+              "content": "- [Memory](/en/memory): how `CLAUDE.md` files work across Claude Code"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "Gitワークツリー使用時に共有.gitディレクトリへの一部書き込みを許可し、git commitなどのコマンド実行を可能にする設定が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -175,6 +175,7 @@ The sandboxed Bash tool restricts file system access to specific directories:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Default write behavior**: read and write access to the current working directory and its subdirectories"
+            },
+            {
+              "type": "context",
+              "content": "- **Default read behavior**: read access to the entire computer, except certain denied directories. Note that this default still allows reading credential files such as `~/.aws/credentials` and `~/.ssh/`. Add them to `denyRead` to block them."
+            },
+            {
+              "type": "context",
+              "content": "- **Blocked access**: cannot modify files outside the current working directory without explicit permission, including shell configuration files such as `~/.bashrc` and system binaries in `/bin/`"
+            },
+            {
+              "type": "added",
+              "content": "- **Git worktrees**: when the working directory is a [linked git worktree](/en/worktrees), the sandbox also allows writes to the main repository's shared `.git` directory so commands such as `git commit` can update refs and the index. Writes to `hooks/` and `config` inside that directory remain denied."
+            },
+            {
+              "type": "context",
+              "content": "- **Configurable**: define custom allowed and denied paths through settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can grant write access to additional paths using `sandbox.filesystem.allowWrite` in your settings. These restrictions are enforced at the OS level, so they apply to all subprocess commands, including tools like `kubectl`, `terraform`, and `npm`, not just Claude's file tools."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "シェルの起動ファイルからエイリアスや関数を自動的に読み込み、すべてのBashコマンドで利用可能にする仕組みが解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -112,6 +112,7 @@ The Bash tool runs each command in a separate process with the following persist",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - If `cd` lands outside those directories, Claude Code resets to the project directory and appends `Shell cwd was reset to <dir>` to the tool result."
+            },
+            {
+              "type": "context",
+              "content": "  - To disable this carry-over so every Bash command starts in the project directory, set `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1`."
+            },
+            {
+              "type": "context",
+              "content": "- Environment variables do not persist. An `export` in one command will not be available in the next."
+            },
+            {
+              "type": "added",
+              "content": "- Aliases and shell functions defined in your shell startup file are available. At session start, Claude Code sources `~/.zshrc`, `~/.bashrc`, or `~/.profile` depending on your shell, captures the resulting aliases, functions, and shell options, and applies them to every Bash command."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Activate your virtualenv or conda environment before launching Claude Code. To make environment variables persist across Bash commands, set [`CLAUDE_ENV_FILE`](/en/env-vars) to a shell script before launching Claude Code, or use a [SessionStart hook](/en/hooks#persist-environment-variables) to populate it dynamically."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
