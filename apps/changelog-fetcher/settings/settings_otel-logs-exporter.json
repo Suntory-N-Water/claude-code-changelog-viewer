@@ -1,0 +1,29 @@
+{
+  "key": "OTEL_LOGS_EXPORTER",
+  "leaf_name": "OTEL_LOGS_EXPORTER",
+  "slug": "otel-logs-exporter",
+  "source": "env",
+  "description_en": "Logs/events exporter types, comma-separated. Use none to disable",
+  "description_ja": "ログやイベントのエクスポーターの種類をカンマ区切りで指定し、無効にする場合は「none」を設定します。",
+  "use_case_ja": "- 監視基盤に合わせて、ログの出力先をOTLP（コレクター）やコンソールへ振り分ける際に使用します。\n- 不要なログ出力を停止してパフォーマンスや通信量を最適化したい場合、「none」を安全に指定して出力を無効化できます。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "2. Choose exporters (both are optional - configure only what you need) export OTEL_METRICS_EXPORTER=otlp # Options: otlp, prometheus, console, none export OTEL_LOGS_EXPORTER=otlp # Options: otlp, console, none 3. Configure OTLP endpoint (for OTLP exporter) export OTEL_EXPORTER_OTLP_PROTOCOL=grpc",
+    "\"env\": { \"CLAUDE_CODE_ENABLE_TELEMETRY\": \"1\", \"OTEL_METRICS_EXPORTER\": \"otlp\", \"OTEL_LOGS_EXPORTER\": \"otlp\", \"OTEL_EXPORTER_OTLP_PROTOCOL\": \"grpc\", \"OTEL_EXPORTER_OTLP_ENDPOINT\": \" http://collector.example.com:4317 \", \"OTEL_EXPORTER_OTLP_HEADERS\": \"Authorization=Bearer example-token\"",
+    "| - | - | - | | CLAUDE_CODE_ENABLE_TELEMETRY | Enables telemetry collection (required) | 1 | | OTEL_METRICS_EXPORTER | Metrics exporter types, comma-separated. Use none to disable | console , otlp , prometheus , none | | OTEL_LOGS_EXPORTER | Logs/events exporter types, comma-separated. Use none to disable | console , otlp , none | | OTEL_EXPORTER_OTLP_PROTOCOL | Protocol for OTLP exporter, applies to all signals | grpc , http/json , http/protobuf | | OTEL_EXPORTER_OTLP_ENDPOINT | OTLP collector endpoint for all signals | http://localhost:4317 | | OTEL_EXPORTER_OTLP_METRICS_PROTOCOL | Protocol for metrics, overrides general setting | grpc , http/json , http/protobuf |",
+    "Different endpoints/backends for metrics and logs export CLAUDE_CODE_ENABLE_TELEMETRY=1 export OTEL_METRICS_EXPORTER=otlp export OTEL_LOGS_EXPORTER=otlp export OTEL_EXPORTER_OTLP_METRICS_PROTOCOL=http/protobuf export OTEL_EXPORTER_OTLP_METRICS_ENDPOINT= http://metrics.example.com:4318 export OTEL_EXPORTER_OTLP_LOGS_PROTOCOL=grpc",
+    "Events/logs only (no metrics) export CLAUDE_CODE_ENABLE_TELEMETRY=1 export OTEL_LOGS_EXPORTER=otlp export OTEL_EXPORTER_OTLP_PROTOCOL=grpc export OTEL_EXPORTER_OTLP_ENDPOINT= http://localhost:4317"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.85",
+      "content": "- Fixed crash when `OTEL_LOGS_EXPORTER`, `OTEL_METRICS_EXPORTER`, or `OTEL_TRACES_EXPORTER` is set to `none`",
+      "content_ja": "OTEL_LOGS_EXPORTER等のエクスポート設定をnoneに指定するとクラッシュする問題を修正",
+      "inference": {
+        "before": "特定のテレメトリ出力を無効化するために標準的な「none」という値を設定すると、アプリケーションが予期せず終了することがありました。",
+        "after": "「none」値を無効化設定として正しく解釈し、クラッシュせずに動作するようになりました。",
+        "benefit": "監視設定の微調整を安全に行えるようになり、不要なログ出力を安心して停止できます。"
+      }
+    }
+  ]
+}
