@@ -1,0 +1,25 @@
+{
+  "key": "TRACESTATE",
+  "leaf_name": "TRACESTATE",
+  "slug": "tracestate",
+  "source": "env",
+  "description_en": "In Agent SDK and non-interactive sessions started with -p, Claude Code also reads TRACEPARENT and TRACESTATE from its own environment when starting each interaction span. This lets an embedding process pass its active W3C trace context into the subprocess so Claude Code's spans appear as children of the caller's distributed trace. Interactive sessions ignore inbound TRACEPARENT to avoid accidentally inheriting ambient values from CI or container environments.",
+  "description_ja": "分散トレーシングにおいて、ベンダー固有のトレースメタデータを伝播させるためのW3C準拠の環境変数を読み取ります。",
+  "use_case_ja": "- SDK経由や自動化パイプラインの中でClaude Codeを使用する際、外部の監視ツールと内部の挙動を一貫したフローとして紐付けるために利用します。\n- 上位プロセスから渡された既存のトレース情報を継承し、大規模な自動化ワークフロー内でのAIの振る舞いを追跡可能にします。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "When tracing is active and Claude Code is connected directly to the Anthropic API, each model request carries a W3C traceparent header set to the claude_code.llm_request span's context, and the API's traceresponse header is recorded as a span link. Together these connect Claude Code's client-side spans to the server-side trace through any compliant intermediary. The header is not sent to third-party providers. In Agent SDK and non-interactive sessions started with -p , Claude Code also reads TRACEPARENT and TRACESTATE from its own environment when starting each interaction span. This lets an embedding process pass its active W3C trace context into the subprocess so Claude Code's spans appear as children of the caller's distributed trace. Interactive sessions ignore inbound TRACEPARENT to avoid accidentally inheriting ambient values from CI or container environments. Span hierarchy"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.110",
+      "content": "- SDK/headless sessions now read `TRACEPARENT`/`TRACESTATE` from the environment for distributed trace linking",
+      "content_ja": "SDKおよびヘッドレスセッションにおいて、環境変数から`TRACEPARENT`/`TRACESTATE`を読み取り、分散トレーシングのリンクに対応",
+      "inference": {
+        "before": "SDK経由や非対話モードで実行している際、外部のモニタリングツールなどでシステム全体のトレースを確認しても、Claude Code内部の挙動と紐付けることが困難でした。",
+        "after": "W3C標準のトレースコンテキスト環境変数をサポートし、上位のプロセスから渡されたトレース情報をClaude Code内のスパンと統合して出力できるようになりました。",
+        "benefit": "大規模な自動化パイプラインやマイクロサービスの中でClaude Codeを使用する際、全体の処理フローとAIの挙動を一貫して可視化・デバッグできるようになります。"
+      }
+    }
+  ]
+}

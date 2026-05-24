@@ -1,0 +1,45 @@
+{
+  "key": "TRACEPARENT",
+  "leaf_name": "TRACEPARENT",
+  "slug": "traceparent",
+  "source": "env",
+  "description_en": "In Agent SDK and non-interactive sessions started with -p, Claude Code also reads TRACEPARENT and TRACESTATE from its own environment when starting each interaction span. This lets an embedding process pass its active W3C trace context into the subprocess so Claude Code's spans appear as children of the caller's distributed trace. Interactive sessions ignore inbound TRACEPARENT to avoid accidentally inheriting ambient values from CI or container environments.",
+  "description_ja": "非対話型セッションにおいて、外部プロセスから渡されたW3C標準のトレースコンテキストを読み取り、スパンを関連付けます。",
+  "use_case_ja": "- CI環境やマイクロサービス等の上位プロセスからClaude Codeを呼び出す際、AIの動作を親プロセスのトレースツリーに子スパンとして連結するために使用します。\n- AIが実行するBashコマンド等のサブプロセスに対してもこの情報を伝播させ、システム全体のEnd-to-Endでの可視化と詳細なデバッグを実現します。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "Spans redact user prompt text, tool input details, and tool content by default. Set OTEL_LOG_USER_PROMPTS=1 , OTEL_LOG_TOOL_DETAILS=1 , and OTEL_LOG_TOOL_CONTENT=1 to include them. When tracing is active, Bash and PowerShell subprocesses automatically inherit a TRACEPARENT environment variable containing the W3C trace context of the active tool execution span. This lets any subprocess that reads TRACEPARENT parent its own spans under the same trace, enabling end-to-end distributed tracing through scripts and commands that Claude runs. When tracing is active and Claude Code is connected directly to the Anthropic API, each model request carries a W3C traceparent header set to the claude_code.llm_request span's context, and the API's traceresponse header is recorded as a span link. Together these connect Claude Code's client-side spans to the server-side trace through any compliant intermediary. The header is not sent to third-party providers. In Agent SDK and non-interactive sessions started with -p , Claude Code also reads TRACEPARENT and TRACESTATE from its own environment when starting each interaction span. This lets an embedding process pass its active W3C trace context into the subprocess so Claude Code's spans appear as children of the caller's distributed trace. Interactive sessions ignore inbound TRACEPARENT to avoid accidentally inheriting ambient values from CI or container environments. Span hierarchy"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.110",
+      "content": "- SDK/headless sessions now read `TRACEPARENT`/`TRACESTATE` from the environment for distributed trace linking",
+      "content_ja": "SDKおよびヘッドレスセッションにおいて、環境変数から`TRACEPARENT`/`TRACESTATE`を読み取り、分散トレーシングのリンクに対応",
+      "inference": {
+        "before": "SDK経由や非対話モードで実行している際、外部のモニタリングツールなどでシステム全体のトレースを確認しても、Claude Code内部の挙動と紐付けることが困難でした。",
+        "after": "W3C標準のトレースコンテキスト環境変数をサポートし、上位のプロセスから渡されたトレース情報をClaude Code内のスパンと統合して出力できるようになりました。",
+        "benefit": "大規模な自動化パイプラインやマイクロサービスの中でClaude Codeを使用する際、全体の処理フローとAIの挙動を一貫して可視化・デバッグできるようになります。"
+      }
+    },
+    {
+      "version": "2.1.98",
+      "content": "- Added W3C `TRACEPARENT` env var to Bash tool subprocesses when OTEL tracing is enabled, so child-process spans correctly parent to Claude Code's trace tree",
+      "content_ja": "OpenTelemetry（OTEL）トレーシング有効時、Bash ツールのサブプロセスに W3C 標準の `TRACEPARENT` 環境変数を伝播させるようにしました。これにより、子プロセスのスパンが Claude Code のトレースツリーに正しく紐付けられます。",
+      "inference": {
+        "before": "AIが実行したコマンドの詳細なログ（スパン）が、Claude Code 本体のトレースと分離されてしまい、全体の実行フローを追跡するのが困難でした。",
+        "after": "本体とサブプロセスのトレーシング情報が連結され、分散トレーシングツール上で一連の動作として可視化されます。",
+        "benefit": "複雑なタスクのデバッグやパフォーマンス分析において、どのツールがどのタイミングで時間を要したかを正確に診断できるようになります。"
+      }
+    },
+    {
+      "version": "2.1.97",
+      "content": "- Improved Bash tool OTEL tracing: subprocesses now inherit a W3C `TRACEPARENT` env var when tracing is enabled",
+      "content_ja": "BashツールのOpenTelemetryトレースを改善しました。トレーシング有効時、サブプロセスがW3C標準の`TRACEPARENT`環境変数を継承するようになりました。",
+      "inference": {
+        "before": "Claudeが実行したシェルコマンドからさらに呼び出されるコマンド（ビルドツールなど）の動きが、分散トレーシング上で繋がらず、詳細な解析が難しい状態でした。",
+        "after": "親プロセスから子プロセスへとトレースIDが伝播し、一連の動作を一つの流れとして監視できるようになりました。",
+        "benefit": "大規模なシステム開発において、Claudeが行った変更がどのようにビルドやテストに影響したかを、組織全体の観測プラットフォームで正確に追跡・分析できます。"
+      }
+    }
+  ]
+}
