@@ -34,7 +34,7 @@ function extractSection(markdown: string, sectionName: string): string[] {
       continue;
     }
 
-    // ### レベルのサブセクション（Commands は ### Names のみ対象）
+    // ### レベルのサブセクション(Commands は ### Names のみ対象)
     if (line.startsWith('### ')) {
       inSubSection = sectionName === 'Commands' && line === '### Names';
       continue;
@@ -59,6 +59,7 @@ async function fetchMarckrenn(): Promise<{
   tools: string[];
   commands: string[];
   skills: string[];
+  envs: string[];
 }> {
   log.info('marckrenn/claude-code-changelog から cli-surface.md を取得中...');
   const res = await fetch(MARCKRENN_URL);
@@ -70,11 +71,12 @@ async function fetchMarckrenn(): Promise<{
   const tools = extractSection(markdown, 'Tools');
   const commands = extractSection(markdown, 'Commands');
   const skills = extractSection(markdown, 'Skills');
+  const envs = extractSection(markdown, 'Env Vars');
 
   log.info(
-    `取得完了: tools=${tools.length}, commands=${commands.length}, skills=${skills.length}`,
+    `取得完了: tools=${tools.length}, commands=${commands.length}, skills=${skills.length}, envs=${envs.length}`,
   );
-  return { tools, commands, skills };
+  return { tools, commands, skills, envs };
 }
 
 async function fetchPiebaldAgents(): Promise<string[]> {
@@ -109,7 +111,7 @@ function writeJson(filename: string, data: string[]): void {
 async function main(): Promise<void> {
   mkdirSync(OUTPUT_DIR, { recursive: true });
 
-  const [{ tools, commands, skills }, agents] = await Promise.all([
+  const [{ tools, commands, skills, envs }, agents] = await Promise.all([
     fetchMarckrenn(),
     fetchPiebaldAgents(),
   ]);
@@ -117,6 +119,7 @@ async function main(): Promise<void> {
   writeJson('tools.json', tools);
   writeJson('commands.json', commands);
   writeJson('skills.json', skills);
+  writeJson('envs.json', envs);
   writeJson('agents.json', agents);
 
   log.info('全ファイルの書き込みが完了しました');
