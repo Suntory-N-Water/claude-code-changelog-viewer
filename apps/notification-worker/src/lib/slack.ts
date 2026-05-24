@@ -1,8 +1,6 @@
-import {
-  getPrefixSortOrder,
-  type Prefix,
-} from '@claude-code-changelog-viewer/common';
+import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
+import { groupChangelogItemsByPrefix } from './changelog-message';
 
 export type SlackSendResult = {
   ok: boolean;
@@ -67,18 +65,7 @@ export function createSlackChangelogMessage(
   ];
 
   if (data.items.length > 0) {
-    const groupMap = new Map<string, typeof data.items>();
-    for (const item of data.items) {
-      const group = groupMap.get(item.prefix) ?? [];
-      group.push(item);
-      groupMap.set(item.prefix, group);
-    }
-
-    const sortedEntries = [...groupMap.entries()].sort(
-      ([a], [b]) => getPrefixSortOrder(a) - getPrefixSortOrder(b),
-    );
-
-    for (const [prefix, items] of sortedEntries) {
+    for (const { prefix, items } of groupChangelogItemsByPrefix(data.items)) {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
       let sectionText = `*${label}* (${items.length}件)\n`;
       for (const item of items) {
