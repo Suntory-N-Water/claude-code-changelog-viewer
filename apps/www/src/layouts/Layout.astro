@@ -1,4 +1,5 @@
 ---
+
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import Footer from '../components/Footer.astro';
@@ -266,6 +267,30 @@ if (jsonLd?.type === 'website') {
       }
       initHighlight();
       document.addEventListener('astro:after-swap', initHighlight);
+    </script>
+    <script is:inline>
+      // sibling-index() 非対応ブラウザ(Firefox 等)向けの CSS カスタムプロパティフォールバック
+      function initSiblingIndex() {
+        if (CSS.supports('animation-delay: calc(sibling-index() * 0.1s)')) {
+          return;
+        }
+        for (const cls of [
+          '.changelog-card',
+          '.version-card',
+          '.docs-diff-card',
+        ]) {
+          document.querySelectorAll(cls).forEach((el) => {
+            const parent = el.parentElement;
+            if (!parent) {
+              return;
+            }
+            const idx = Array.prototype.indexOf.call(parent.children, el) + 1;
+            el.style.setProperty('--sibling-index', String(idx));
+          });
+        }
+      }
+      initSiblingIndex();
+      document.addEventListener('astro:after-swap', initSiblingIndex);
     </script>
   </body>
 </html>

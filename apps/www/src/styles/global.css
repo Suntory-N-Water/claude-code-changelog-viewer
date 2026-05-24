@@ -110,7 +110,7 @@
     }
   }
 
-  /* 変更履歴カードのスタガードアニメーション */
+  /* カードのスタガードアニメーション */
   @keyframes stagger-fade-in {
     from {
       opacity: 0;
@@ -122,68 +122,22 @@
     }
   }
 
-  .changelog-card {
-    animation: stagger-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  }
-
-  .changelog-card:nth-child(1) { animation-delay: 0.05s; }
-  .changelog-card:nth-child(2) { animation-delay: 0.10s; }
-  .changelog-card:nth-child(3) { animation-delay: 0.15s; }
-  .changelog-card:nth-child(4) { animation-delay: 0.20s; }
-  .changelog-card:nth-child(5) { animation-delay: 0.25s; }
-  .changelog-card:nth-child(6) { animation-delay: 0.30s; }
-  .changelog-card:nth-child(7) { animation-delay: 0.35s; }
-  .changelog-card:nth-child(8) { animation-delay: 0.40s; }
-  .changelog-card:nth-child(9) { animation-delay: 0.45s; }
-  .changelog-card:nth-child(n+10) { animation-delay: 0.50s; }
-
-  @media (prefers-reduced-motion) {
-    .changelog-card {
-      animation: none !important;
-    }
-  }
-
-  /* バージョンカードのスタガードアニメーション */
-  .version-card {
-    animation: stagger-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  }
-
-  .version-card:nth-child(1) { animation-delay: 0.05s; }
-  .version-card:nth-child(2) { animation-delay: 0.10s; }
-  .version-card:nth-child(3) { animation-delay: 0.15s; }
-  .version-card:nth-child(4) { animation-delay: 0.20s; }
-  .version-card:nth-child(5) { animation-delay: 0.25s; }
-  .version-card:nth-child(6) { animation-delay: 0.30s; }
-  .version-card:nth-child(7) { animation-delay: 0.35s; }
-  .version-card:nth-child(8) { animation-delay: 0.40s; }
-  .version-card:nth-child(9) { animation-delay: 0.45s; }
-  .version-card:nth-child(n+10) { animation-delay: 0.50s; }
-
-  @media (prefers-reduced-motion) {
-    .version-card {
-      animation: none !important;
-    }
-  }
-
-  /* Docs diff カードのスタガードアニメーション */
+  .changelog-card,
+  .version-card,
   .docs-diff-card {
+    --stagger-time: 0.05s;
     animation: stagger-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    /* sibling-index() 非対応ブラウザ向けに JS が --sibling-index を設定する */
+    animation-delay: calc(var(--sibling-index, 1) * var(--stagger-time));
+    /* sibling-index() 対応ブラウザではこちらが上書きする */
+    animation-delay: calc(sibling-index() * var(--stagger-time));
   }
 
-  .docs-diff-card:nth-child(1) { animation-delay: 0.05s; }
-  .docs-diff-card:nth-child(2) { animation-delay: 0.10s; }
-  .docs-diff-card:nth-child(3) { animation-delay: 0.15s; }
-  .docs-diff-card:nth-child(4) { animation-delay: 0.20s; }
-  .docs-diff-card:nth-child(5) { animation-delay: 0.25s; }
-  .docs-diff-card:nth-child(6) { animation-delay: 0.30s; }
-  .docs-diff-card:nth-child(7) { animation-delay: 0.35s; }
-  .docs-diff-card:nth-child(8) { animation-delay: 0.40s; }
-  .docs-diff-card:nth-child(9) { animation-delay: 0.45s; }
-  .docs-diff-card:nth-child(n+10) { animation-delay: 0.50s; }
-
-  @media (prefers-reduced-motion) {
+  @media (prefers-reduced-motion: reduce) {
+    .changelog-card,
+    .version-card,
     .docs-diff-card {
-      animation: none !important;
+      animation: none;
     }
   }
 }
@@ -252,19 +206,38 @@
 /* モーダル オーバーレイ(body 直下に JS で移動済み)
  * overlay 自身に背景・ぼかしを直接指定する。
  * 子要素に別の backdrop div を作ると fixed 内で描画が限定される。
+ * @starting-style でエントリー/イグジットアニメーションを付与する。
  */
 .search-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 9999;
   display: none;
+  opacity: 0;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  transition:
+    display 0.2s,
+    opacity 0.2s ease-out;
+  transition-behavior: allow-discrete;
 }
 
 .search-modal-overlay.is-open {
   display: block;
+  opacity: 1;
+}
+
+@starting-style {
+  .search-modal-overlay.is-open {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-modal-overlay {
+    transition-duration: 0.01s;
+  }
 }
 
 /* モーダル位置決め */
@@ -293,6 +266,22 @@
   box-shadow:
     0 25px 50px -12px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease-out;
+}
+
+@starting-style {
+  .search-modal-overlay.is-open .search-modal-content {
+    transform: translateY(-8px) scale(0.97);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-modal-content {
+    transition-duration: 0.01s;
+  }
 }
 
 /* モーダルヘッダー */
