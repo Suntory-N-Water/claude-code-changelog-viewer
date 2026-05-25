@@ -251,10 +251,21 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `diff:dismiss` | Escape | Diff ビューアを閉じる |
 | `diff:previousSource` | Left | 前の Diff ソース |
 | `diff:nextSource` | Right | 次の Diff ソース |
-| `diff:previousFile` | Up | Diff の前のファイル |
-| `diff:nextFile` | Down | Diff の次のファイル |
+| `diff:previousFile` | Up、K | ファイルリストの前のファイル。詳細ビューで 1 行上にスクロール |
+| `diff:nextFile` | Down、J | ファイルリストの次のファイル。詳細ビューで 1 行下にスクロール |
 | `diff:viewDetails` | Enter | Diff の詳細を表示 |
 | `diff:back` | （コンテキスト固有） | Diff ビューアで戻る |
+
+Diff 詳細ビューは、ページャースタイルのキーを標準的な[スクロールアクション](#scroll-actions)にバインドします。これらのバインディングは `DiffDialog` コンテキストの一部であり、詳細ビューにのみ適用されます。[スクロールアクション](#scroll-actions)の下に記載されている `Scroll` コンテキストのデフォルトは変わりません。
+
+| アクション | デフォルト | 説明 |
+| :- | :- | :- |
+| `scroll:pageUp` | PageUp | ビューポートの半分だけ上にスクロール |
+| `scroll:pageDown` | PageDown | ビューポートの半分だけ下にスクロール |
+| `scroll:fullPageUp` | Shift+Space、B | ビューポート全体だけ上にスクロール |
+| `scroll:fullPageDown` | Space | ビューポート全体だけ下にスクロール |
+| `scroll:top` | G、Home | 最上部にジャンプ |
+| `scroll:bottom` | Shift+G、End | 最下部にジャンプ |
 
 ### モデルピッカーアクション
 

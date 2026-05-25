@@ -257,6 +257,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 }
 ```
 
+値は、スペースを含むパスを含む実行可能ファイルへのパス、またはシェルコマンドラインと引数です。Windows では、値は常にシェルを通じて実行されるため、JSON 値内にスペースを含むパスをクォートで囲みます。
+
 #### スクリプト要件
 
 スクリプトは HTTP ヘッダーを表す文字列キーと値のペアを持つ有効な JSON を出力する必要があります:
@@ -266,6 +268,12 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 # 例: 複数のヘッダー
 echo "{\"Authorization\": \"Bearer $(get-token.sh)\", \"X-API-Key\": \"$(get-api-key.sh)\"}"
 ```
+
+ヘルパーが失敗するか、これらの要件を満たさない出力を出力する場合、Claude Code は以下のエラーを報告します:
+
+- `/doctor` 出力
+- [`--debug`](/ja/cli-reference#cli-flags) で実行するか、セッション内で `/debug` を実行した後のデバッグログ
+- stderr、`-p` で開始された非対話型セッション内
 
 #### リフレッシュ動作
 
