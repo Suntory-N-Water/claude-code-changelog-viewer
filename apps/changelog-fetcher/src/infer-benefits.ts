@@ -34,54 +34,57 @@ function parseArgs(): CliArgs {
   return { version, skipAI };
 }
 
-function applyResult(analysis: Analysis, result: InferenceBatchResult): void {
-  for (const inferred of result.inferred_items) {
-    const item = analysis.items[inferred.id];
-    if (item) {
-      item.content_ja = inferred.content_ja;
-      item.inference = {
-        before: inferred.before,
-        after: inferred.after,
-        benefit: inferred.benefit,
-      };
+function applyResult(
+  analysis: Analysis,
+  result: InferenceBatchResult,
+): Analysis {
+  const inferredById = new Map(result.inferred_items.map((r) => [r.id, r]));
+  const translatedById = new Map(result.translated_items.map((r) => [r.id, r]));
+  const correctionById = new Map(
+    (result.feature_area_corrections ?? []).map((c) => [c.id, c]),
+  );
+
+  const items = analysis.items.map((item, i) => {
+    const correction = correctionById.get(i);
+    const featureAreas = correction
+      ? { feature_areas: correction.feature_areas }
+      : {};
+
+    const inferred = inferredById.get(i);
+    if (inferred) {
       log.info(`翻訳+推論完了: ${item.content.substring(0, 50)}...`);
+      return {
+        ...item,
+        ...featureAreas,
+        content_ja: inferred.content_ja,
+        inference: {
+          before: inferred.before,
+          after: inferred.after,
+          benefit: inferred.benefit,
+        },
+      };
     }
-  }
 
-  for (const translated of result.translated_items) {
-    const item = analysis.items[translated.id];
-    if (item) {
-      item.content_ja = translated.content_ja;
+    const translated = translatedById.get(i);
+    if (translated) {
       log.info(`翻訳完了: ${item.content.substring(0, 50)}...`);
+      return { ...item, ...featureAreas, content_ja: translated.content_ja };
     }
-  }
 
-  if (result.feature_area_corrections) {
-    for (const correction of result.feature_area_corrections) {
-      const item = analysis.items[correction.id];
-      if (item) {
-        item.feature_areas = correction.feature_areas;
-        log.info(
-          `機能領域補正: ${item.content.substring(0, 50)}... → [${correction.feature_areas.join(', ')}]`,
-        );
-      }
-    }
-  }
+    return correction ? { ...item, ...featureAreas } : item;
+  });
+
+  return { ...analysis, items, summary: result.summary ?? analysis.summary };
 }
 
 function findMissingItems(analysis: Analysis): IndexedItem[] {
   return analysis.items
     .map((item, i) => ({ item, originalIndex: i }))
-    .filter(({ item }) => item.content_ja === undefined);
-}
-
-function isRetryableGeminiError(error: Error): boolean {
-  const message = error.message;
-  return (
-    message.includes('429') ||
-    message.includes('503') ||
-    message.includes('UNAVAILABLE')
-  );
+    .filter(
+      ({ item }) =>
+        item.content_ja === undefined ||
+        (item.related_docs.length >= 1 && item.inference === undefined),
+    );
 }
 
 async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
@@ -93,7 +96,7 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
   // 1. analysis_{version}.json を読み込み
   log.msg('APLG0003', { params: [analysisPath] });
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
-  const analysis = AnalysisSchema.parse(JSON.parse(rawAnalysis));
+  let analysis = AnalysisSchema.parse(JSON.parse(rawAnalysis));
 
   // AI推論スキップモード
   if (skipAI) {
@@ -125,10 +128,7 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
 
   log.msg('APLG0001', {
     params: ['AI推論'],
-    attrs: {
-      model: 'gemini-3-flash-preview',
-      totalItems: analysis.items.length,
-    },
+    attrs: { totalItems: analysis.items.length },
   });
 
   // 4. 全項目を1回のリクエストで処理(未処理分は p-retry でリトライ)
@@ -144,8 +144,7 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
     modelContext,
   );
   const initialResult = await client.inferAll(initialPrompt);
-  applyResult(analysis, initialResult);
-  analysis.summary = initialResult.summary;
+  analysis = applyResult(analysis, initialResult);
   log.msg('APLG0002', { params: ['バージョンサマリー生成'] });
 
   // 未処理項目のリトライ
@@ -169,12 +168,12 @@ async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
         );
         try {
           const retryResult = await client.inferAll(retryPrompt);
-          applyResult(analysis, retryResult);
+          analysis = applyResult(analysis, retryResult);
         } catch (error) {
-          if (error instanceof Error && !isRetryableGeminiError(error)) {
-            throw new AbortError(error.message);
-          }
-          throw error;
+          // GeminiClient が全モデルのリトライ・フォールバック済みのためここで諦める
+          throw new AbortError(
+            error instanceof Error ? error.message : String(error),
+          );
         }
 
         const stillMissing = findMissingItems(analysis);

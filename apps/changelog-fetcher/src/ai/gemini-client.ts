@@ -5,14 +5,21 @@ import {
 } from '@claude-code-changelog-viewer/types';
 import { ApiError, GoogleGenAI, Type } from '@google/genai';
 import pRetry, { AbortError } from 'p-retry';
+import { z } from 'zod';
 
-export type SettingsTranslateResult = {
-  results: {
-    id: number;
-    description_ja: string;
-    use_case_ja: string;
-  }[];
-};
+const SettingsTranslateResultSchema = z.object({
+  results: z.array(
+    z.object({
+      id: z.number(),
+      description_ja: z.string(),
+      use_case_ja: z.string(),
+    }),
+  ),
+});
+
+export type SettingsTranslateResult = z.infer<
+  typeof SettingsTranslateResultSchema
+>;
 
 const RETRY_DELAY_MS = 60 * 1000;
 const MAX_RETRIES_PER_MODEL = 3;
@@ -402,7 +409,9 @@ export class GeminiClient {
               { method: 'translateSettings', model },
             );
 
-            const result = JSON.parse(response.text) as SettingsTranslateResult;
+            const result = SettingsTranslateResultSchema.parse(
+              JSON.parse(response.text),
+            );
             this.log.info(`モデル成功: ${model}`, {
               method: 'translateSettings',
             });

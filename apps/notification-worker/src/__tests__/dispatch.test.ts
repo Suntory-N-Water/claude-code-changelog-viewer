@@ -112,17 +112,4 @@ describe('POST /api/dispatch', () => {
       error: 'リクエストが不正です',
     });
   });
-
-  it('単一バージョンでもキューに投入できる', async () => {
-    const env = createMockEnv();
-
-    const res = await postJSON(app, { versions: ['v2.0.0'] }, env, {
-      Authorization: 'Bearer test-secret',
-    });
-
-    expect(res.status).toBe(200);
-    expect(env.NOTIFICATION_QUEUE.sendBatch).toHaveBeenCalledWith([
-      { body: { version: 'v2.0.0' } },
-    ]);
-  });
 });

@@ -205,4 +205,59 @@ describe('queueConsumer integration', () => {
     expect(mockedSendToDiscord).not.toHaveBeenCalled();
     expect(message.ack).toHaveBeenCalled();
   });
+
+  it('Discord から 429 が返ると message.retry が呼ばれる', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const message = createQueueMessage({ version: 'v1.0.0' });
+    const batch = createQueueBatch([message]);
+    const env = createTestEnv(db);
+    setupFetchSuccess();
+    await insertDiscordWebhook(db, {
+      id: 'active-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
+      token: 'active-token',
+    });
+    mockedSendToDiscord.mockResolvedValue({ ok: false, status: 429 });
+
+    // Act(実行)
+    await runWithTimers(callConsumer(batch, env));
+
+    // Assert(確認)
+    expect(message.retry).toHaveBeenCalled();
+    expect(message.ack).not.toHaveBeenCalled();
+  });
+
+  it('一部チャンネルで例外が発生しても他のチャンネルの DB 状態が正しく更新される', async () => {
+    // Arrange(準備)
+    db = new FakeD1Database();
+    const message = createQueueMessage({ version: 'v1.0.0' });
+    const batch = createQueueBatch([message]);
+    const env = createTestEnv(db);
+    setupFetchSuccess();
+    await insertDiscordWebhook(db, {
+      id: 'error-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/error',
+      token: 'error-token',
+    });
+    await insertDiscordWebhook(db, {
+      id: 'success-id',
+      webhookUrl: 'https://discord.com/api/webhooks/123456/success',
+      token: 'success-token',
+      failCount: 1,
+    });
+    mockedSendToDiscord
+      .mockRejectedValueOnce(new Error('ネットワーク障害'))
+      .mockResolvedValueOnce({ ok: true, status: 204 });
+
+    // Act(実行)
+    await runWithTimers(callConsumer(batch, env));
+
+    // Assert(確認)
+    expect(message.ack).toHaveBeenCalled();
+    expect(await findChannelByToken(db, 'success-token')).toMatchObject({
+      fail_count: 0,
+      is_active: 1,
+    });
+  });
 });
