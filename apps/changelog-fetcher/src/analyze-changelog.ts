@@ -5,10 +5,7 @@ import {
   normalizeMarkdownForAi,
   toError,
 } from '@claude-code-changelog-viewer/common';
-import {
-  type Analysis,
-  AnalysisSchema,
-} from '@claude-code-changelog-viewer/types';
+import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { parseChangelog } from './parsers/changelog-parser';
 import { extractKeywords } from './parsers/keyword-extractor';
 import { getTopDocs } from './scorers/context-scorer';
@@ -73,20 +70,10 @@ async function main() {
   );
 
   // 4. Zod検証
-  let result: Analysis;
-  try {
-    result = AnalysisSchema.parse({
-      version: version.replace('v', ''),
-      items: analyzedItems,
-    });
-  } catch (error) {
-    log.msg('APLG0022', {
-      params: ['解析結果'],
-      error: toError(error),
-      attrs: { data: JSON.stringify(analyzedItems, null, 2) },
-    });
-    process.exit(1);
-  }
+  const result = AnalysisSchema.parse({
+    version: version.replace('v', ''),
+    items: analyzedItems,
+  });
 
   // 5. JSON出力
   const outputPath = path.join(

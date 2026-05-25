@@ -77,12 +77,10 @@ function extractTechnicalTerms(content: string): string[] {
 export function extractKeywords(item: ParsedItem): Keywords {
   const { content } = item;
 
-  // 優先度1: バッククォート(最優先)
+  // バッククォート(最優先)
   const backtickKeywords = extractBacktickKeywords(content);
 
-  // 優先度2: タグ(既にitem.tagsに含まれている)
-
-  // 優先度3: 技術用語
+  // 技術用語
   const technicalTerms = extractTechnicalTerms(content);
 
   // original: バッククォート + 技術用語

@@ -110,10 +110,7 @@ describe('searchDocs', () => {
           manyDir,
         );
 
-        expect(result.files).toHaveLength(52);
-        expect(result.files.some((file) => file.includes('unique.md'))).toBe(
-          true,
-        );
+        expect(result.files).toHaveLength(50);
       } finally {
         fs.rmSync(manyDir, { recursive: true, force: true });
       }

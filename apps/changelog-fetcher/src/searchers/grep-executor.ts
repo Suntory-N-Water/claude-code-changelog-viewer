@@ -33,7 +33,7 @@ async function loadFileContents(files: string[]): Promise<Map<string, string>> {
 }
 
 /**
- * 戦略1: バッククォート完全一致検索
+ * バッククォート完全一致検索
  */
 function exactSearch(keywords: string[], cache: Map<string, string>): string[] {
   if (keywords.length === 0) {
@@ -53,7 +53,7 @@ function exactSearch(keywords: string[], cache: Map<string, string>): string[] {
 }
 
 /**
- * 正規表現でファイルを検索(戦略2, 3 共通)
+ * 正規表現でファイルを検索
  */
 function regexSearch(keywords: string[], cache: Map<string, string>): string[] {
   if (keywords.length === 0) {
@@ -82,19 +82,19 @@ export async function searchDocs(
   const files = getMdFiles(docsDir);
   const cache = await loadFileContents(files);
 
-  // 戦略1: バッククォート完全一致
+  // バッククォート完全一致
   const exactFiles = exactSearch(original, cache);
   if (exactFiles.length > 0 && exactFiles.length <= 50) {
     return { files: exactFiles };
   }
 
-  // 戦略2: 正規化キーワード
+  // 正規化キーワード
   const normalizedFiles = regexSearch(normalized, cache);
   if (normalizedFiles.length > 0 && normalizedFiles.length <= 50) {
     return { files: normalizedFiles };
   }
 
-  // 戦略3: 複数キーワードOR検索
+  // 複数キーワードOR検索(上限50件)
   const multiFiles = regexSearch([...original, ...normalized], cache);
-  return { files: multiFiles };
+  return { files: multiFiles.slice(0, 50) };
 }
