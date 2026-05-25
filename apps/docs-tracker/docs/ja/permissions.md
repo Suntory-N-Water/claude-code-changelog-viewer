@@ -307,10 +307,11 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 
 ### 管理のみの設定
 
-一部の設定は管理設定でのみ有効です。ユーザーまたはプロジェクト設定ファイルに配置しても効果がありません。
+以下の設定は管理設定からのみ読み込まれます。ユーザーまたはプロジェクト設定ファイルに配置しても効果がありません。
 
 | 設定 | 説明 |
 | :- | :- |
+| `allowAllClaudeAiMcps` | `true` の場合、claude.ai コネクタはデプロイされた `managed-mcp.json` と並行して読み込まれ、その排他的な制御によって抑制されません。[管理 MCP 設定](/ja/managed-mcp)を参照してください |
 | `allowedChannelPlugins` | メッセージをプッシュできるチャネルプラグインのホワイトリスト。設定されている場合、デフォルトの Anthropic ホワイトリストを置き換えます。`channelsEnabled: true` が必要です。[チャネルプラグインの実行を制限する](/ja/channels#restrict-which-channel-plugins-can-run)を参照してください |
 | `allowManagedHooksOnly` | `true` の場合、管理フック、SDK フック、および管理設定 `enabledPlugins` で強制有効にされたプラグインからのフックのみが読み込まれます。ユーザー、プロジェクト、およびその他すべてのプラグインフックはブロックされます |
 | `allowManagedMcpServersOnly` | `true` の場合、管理設定からの `allowedMcpServers` のみが尊重されます。`deniedMcpServers` はすべてのソースからマージされます。[管理 MCP 設定](/ja/managed-mcp)を参照してください |
