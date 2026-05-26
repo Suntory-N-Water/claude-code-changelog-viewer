@@ -920,9 +920,9 @@ claude plugin details <name>
 この例は、2 つのスキルを持つプラグインの出力がどのように見えるかを示しています。
 
 ```
-security-guidance 1.2.0
-  Real-time security analysis for Claude Code sessions
-  Source: security-guidance@claude-code-marketplace
+dependency-guard 1.2.0
+  Dependency analysis for Claude Code sessions
+  Source: dependency-guard@example-marketplace
 
 Component inventory
   Skills (2)  scan-dependencies, review-changes

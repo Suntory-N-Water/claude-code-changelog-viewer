@@ -1,0 +1,972 @@
+{
+  "id": "20260526-213254",
+  "timestamp": "2026-05-26T21:32:54.185Z",
+  "aiSummary": "サブエージェントによるコードレビューやセキュリティ脆弱性の自動修正など、開発の正確性を高めるベストプラクティスが追加されました。CLIのストリーミング出力において詳細ログを表示するverboseフラグの指定が必須となり、コマンドリファレンスが更新されています。セキュリティガイダンスに関する詳細なプラグイン説明が新設され、他ファイルからのインポートにおける再帰的な深さの上限が5回から4回に変更されました。",
+  "files": [
+    {
+      "filename": "best-practices.md",
+      "additions": 25,
+      "deletions": 3,
+      "explanation": "作業完了前にサブエージェントを使って差分をレビューさせる手順や、テスト結果などの証拠を提示させる手法が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -43,6 +43,8 @@ UI changes can be verified using the [Claude in Chrome extension](/en/chrome). I",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Your verification can also be a test suite, a linter, or a Bash command that checks output. Invest in making your verification rock-solid."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Have Claude show evidence rather than asserting success: the test output, the command it ran and what it returned, or a screenshot of the result. Reviewing evidence is faster than re-running the verification yourself, and it works for sessions you weren't watching."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "***"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Explore first, then plan, then code"
+            }
+          ]
+        },
+        {
+          "header": "@@ -177,7 +179,7 @@ You can place CLAUDE.md files in several locations:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Project root (`./CLAUDE.md`)**: check into git to share with your team"
+            },
+            {
+              "type": "context",
+              "content": "- **Project root (`./CLAUDE.local.md`)**: personal project-specific notes; add this file to your `.gitignore` so it isn't shared with your team"
+            },
+            {
+              "type": "context",
+              "content": "- **Parent directories**: useful for monorepos where both `root/CLAUDE.md` and `root/foo/CLAUDE.md` are pulled in automatically"
+            },
+            {
+              "type": "removed",
+              "content": "- **Child directories**: Claude pulls in child CLAUDE.md files on demand when working with files in those directories"
+            },
+            {
+              "type": "added",
+              "content": "- **Child directories**: Claude pulls in child CLAUDE.md files on demand when it reads a file in those directories"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Configure permissions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -323,6 +325,8 @@ Keep interviewing until we've covered everything, then write a complete spec to",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once the spec is complete, start a fresh session to execute it. The new session has clean context focused entirely on implementation, and you have a written spec to reference."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The most useful specs are self-contained: they name the files and interfaces involved, state what is out of scope, and end with an end-to-end verification step that proves the feature works. Time spent making the spec precise pays off more than time spent watching the implementation."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "***"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage your session"
+            }
+          ]
+        },
+        {
+          "header": "@@ -402,7 +406,7 @@ Everything so far assumes one human, one Claude, and one conversation. But Claud",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run non-interactive mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `claude -p \"prompt\"` in CI, pre-commit hooks, or scripts. Add `--output-format stream-json` for streaming JSON output."
+            },
+            {
+              "type": "added",
+              "content": "Use `claude -p \"prompt\"` in CI, pre-commit hooks, or scripts. Add `--output-format stream-json --verbose` for streaming JSON output."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "With `claude -p \"your prompt\"`, you can run Claude non-interactively, without a session. [Non-interactive mode](/en/headless) is how you integrate Claude into CI pipelines, pre-commit hooks, or any automated workflow. The output formats let you parse results programmatically: plain text, JSON, or streaming JSON."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -414,7 +418,7 @@ claude -p \"Explain what this project does\"",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude -p \"List all API endpoints\" --output-format json"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Streaming for real-time processing"
+            },
+            {
+              "type": "removed",
+              "content": "claude -p \"Analyze this log file\" --output-format stream-json"
+            },
+            {
+              "type": "added",
+              "content": "claude -p \"Analyze this log file\" --output-format stream-json --verbose"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run multiple Claude sessions"
+            }
+          ]
+        },
+        {
+          "header": "@@ -475,6 +479,24 @@ claude --permission-mode auto -p \"fix all lint errors\"",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For non-interactive runs with the `-p` flag, auto mode aborts if the classifier repeatedly blocks actions, since there is no user to fall back to. See [when auto mode falls back](/en/permission-modes#when-auto-mode-falls-back) for thresholds."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Add an adversarial review step"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Before treating a task as done, have a subagent review the diff in a fresh context and report gaps."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The longer Claude works unattended, the more an independent check matters before you count the work as done. A reviewer running in a fresh [subagent](/en/sub-agents) context sees only the diff and the criteria you give it, not the reasoning that produced the change, so it evaluates the result on its own terms."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For a correctness check, run the bundled [`/code-review` skill](/en/commands), which reviews the current diff for bugs in a fresh subagent and returns findings to the session. To check the diff against your plan instead, write the review prompt yourself. Name the work to check, the plan to check it against, and what counts as a finding:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Use a subagent to review the rate limiter diff against PLAN.md. Check that"
+            },
+            {
+              "type": "added",
+              "content": "every requirement is implemented, the listed edge cases have tests, and"
+            },
+            {
+              "type": "added",
+              "content": "nothing outside the task's scope changed. Report gaps, not style preferences."
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Because the reviewer runs as a subagent, the implementing session receives the gaps directly and can fix them and re-review without you copying findings between windows. For longer autonomous runs, an [agent team](/en/agent-teams) can keep this loop going across many tasks while you spot-check the recorded findings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A reviewer prompted to find gaps will usually report some, even when the work is sound, because that is what it was asked to do. Chasing every finding leads to over-engineering: extra abstraction layers, defensive code, and tests for cases that can't happen. Tell the reviewer to flag only gaps that affect correctness or the stated requirements, and treat the rest as optional."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "***"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Avoid common failure patterns"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "JSONストリーミング出力時に詳細なログを表示するためのverboseフラグの使用が各コマンド例に追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -76,8 +76,8 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--ide` | Automatically connect to IDE on startup if exactly one valid IDE is available | `claude --ide` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--init` | Run [Setup hooks](/en/hooks#setup) with the `init` matcher before the session (print mode only) | `claude -p --init \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--init-only` | Run [Setup](/en/hooks#setup) and `SessionStart` hooks, then exit without starting a conversation | `claude --init-only` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--include-hook-events` | Include all hook lifecycle events in the output stream. Requires `--output-format stream-json` | `claude -p --output-format stream-json --include-hook-events \"query\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--include-partial-messages` | Include partial streaming events in output. Requires `--print` and `--output-format stream-json` | `claude -p --output-format stream-json --include-partial-messages \"query\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--include-hook-events` | Include all hook lifecycle events in the output stream. Requires `--output-format stream-json` | `claude -p --output-format stream-json --verbose --include-hook-events \"query\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--include-partial-messages` | Include partial streaming events in output. Requires `--print` and `--output-format stream-json` | `claude -p --output-format stream-json --verbose --include-partial-messages \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--input-format` | Specify input format for print mode (options: `text`, `stream-json`) | `claude -p --output-format json --input-format stream-json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--json-schema` | Get validated JSON output matching a JSON Schema after agent completes its workflow (print mode only, see [structured outputs](/en/agent-sdk/structured-outputs)) | `claude -p --json-schema '{\"type\":\"object\",\"properties\":{...}}' \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--maintenance` | Run [Setup hooks](/en/hooks#setup) with the `maintenance` matcher before the session (print mode only) | `claude -p --maintenance \"query\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -97,7 +97,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--remote` | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description | `claude --remote \"Fix the login bug\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--remote-control`, `--rc` | Start an interactive session with [Remote Control](/en/remote-control#start-a-remote-control-session) enabled so you can also control it from claude.ai or the Claude app. Optionally pass a name for the session | `claude --remote-control \"My Project\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--remote-control-session-name-prefix <prefix>` | Prefix for auto-generated [Remote Control](/en/remote-control) session names when no explicit name is set. Defaults to your machine's hostname, producing names like `myhost-graceful-unicorn`. Set `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` for the same effect | `claude remote-control --remote-control-session-name-prefix dev-box` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--replay-user-messages` | Re-emit user messages from stdin back on stdout for acknowledgment. Requires `--input-format stream-json` and `--output-format stream-json` | `claude -p --input-format stream-json --output-format stream-json --replay-user-messages` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--replay-user-messages` | Re-emit user messages from stdin back on stdout for acknowledgment. Requires `--input-format stream-json` and `--output-format stream-json` | `claude -p --input-format stream-json --output-format stream-json --verbose --replay-user-messages` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--resume`, `-r` | Resume a specific session by ID or name, or show an interactive picker to choose a session. Includes sessions that added this directory with `/add-dir`. As of v2.1.144, [background sessions](/en/agent-view) appear in the picker marked with `bg` | `claude --resume auth-refactor` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--session-id` | Use a specific session ID for the conversation (must be a valid UUID) | `claude --session-id \"550e8400-e29b-41d4-a716-446655440000\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--setting-sources` | Comma-separated list of setting sources to load (`user`, `project`, `local`) | `claude --setting-sources user,project` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop-changelog.md",
+      "additions": 0,
+      "deletions": 79,
+      "explanation": "デスクトップ版の変更履歴に関する記述が大幅に削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -1,79 +0,0 @@",
+          "lines": [
+            {
+              "type": "removed",
+              "content": "---"
+            },
+            {
+              "type": "removed",
+              "content": "title: desktop-changelog"
+            },
+            {
+              "type": "removed",
+              "content": "source: https://code.claude.com/docs/en/desktop-changelog.md"
+            },
+            {
+              "type": "removed",
+              "content": "---"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Desktop changelog"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Release notes for Claude Code on Desktop, covering new features, improvements, and bug fixes by Desktop app version."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This page covers Claude Code-specific changes in the Desktop app. For changes to the Claude Code CLI bundled inside the app, see the [CLI changelog](/en/changelog)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed auto-update hanging indefinitely on Relaunch to Update when popout windows refused to close."
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed local sessions failing to start after a corrupted bundled Claude Code binary was cached."
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed the credential helper opening duplicate browser sign-in tabs when starting a new conversation."
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed Code tab PR status icons showing the wrong state for merged, merge-queued, and draft pull requests."
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed Quick Entry dropping characters entered with a Korean, Japanese, or Chinese input method."
+            },
+            {
+              "type": "removed",
+              "content": "- Added an \"Also delete files on disk\" option to the scheduled task delete dialog; checking it removes the task's `SKILL.md` file and associated data from `~/.claude/scheduled-tasks/`."
+            },
+            {
+              "type": "removed",
+              "content": "- Added support for mouse back and forward buttons for navigating the chat view."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**3P managed deployments**"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Added an organization banner across the top of the app window, configured by IT administrators."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "* Added MCP App widget rendering in Code tab sessions."
+            },
+            {
+              "type": "removed",
+              "content": "* Added an OS notification when a Code session finishes a task and you aren't currently viewing it."
+            },
+            {
+              "type": "removed",
+              "content": "* Added automatic detection and re-download of corrupted Claude Code CLI binaries on macOS."
+            },
+            {
+              "type": "removed",
+              "content": "* Added support for scheduled tasks to modify their own schedule or prompt during a run using the `update_scheduled_task` MCP tool."
+            },
+            {
+              "type": "removed",
+              "content": "* Updated the list of available MCP tools to reload automatically when the local MCP configuration changes."
+            },
+            {
+              "type": "removed",
+              "content": "* Updated PR auto-fix to post a reply on each review thread it addresses and mark the thread resolved."
+            },
+            {
+              "type": "removed",
+              "content": "* Improved SSH session startup speed by preconnecting saved SSH configurations at app launch."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed pasting a code block into a busy terminal; the app now opens a new terminal tab when the existing one has a process running."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed PR bar issues in Code sessions: each row now shows its own diff, and the sidebar status icon updates when a PR is merged."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed garbled scrollback, such as stray `%` marks and half-wrapped prompts, when opening the terminal pane after running a code block."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed Code session links opening with overlapping window controls when reached via Handoff or share links."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed git commit signing failing in local sessions when the signing key is held by 1Password or Secretive."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed locally installed plugins disappearing from sessions after the plugin registry file became corrupted by concurrent writes."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed scheduled tasks running with auto-approve echoing tool-use suggestions into the session."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed SSH plugin sync so a single problematic plugin no longer blocks sync for the rest."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**3P managed deployments**"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Added support for stdio-transport local MCP servers via the `managedMcpServers` managed-settings key; the connector detail panel now shows the command and arguments, and environment variable values are masked outside the admin Setup screen."
+            },
+            {
+              "type": "removed",
+              "content": "- Added a managed-settings option to disable `claude://` deep-link handling."
+            },
+            {
+              "type": "removed",
+              "content": "- Added support for customizing model display names in the model picker via `labelOverride`."
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed per-tool MCP server policies set by administrators not being enforced in all session types."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed scheduled tasks failing to run when a previous run was stuck waiting on a permission prompt."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed scheduled tasks repeatedly retrying a failed run instead of waiting for the next scheduled time."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed scheduled-task history incorrectly showing \"computer asleep\" for runs skipped due to a concurrency limit."
+            },
+            {
+              "type": "removed",
+              "content": "* Added per-plugin auto-install for organization-provisioned plugins via the plugin manifest."
+            },
+            {
+              "type": "removed",
+              "content": "* Added Unarchive to the Code session context menu; sending a message in an archived session now restores it automatically."
+            },
+            {
+              "type": "removed",
+              "content": "* Added a warning when archiving a Code session that has uncommitted changes in its worktree."
+            },
+            {
+              "type": "removed",
+              "content": "* Added a warning when quitting or restarting the app while local Code sessions are running."
+            },
+            {
+              "type": "removed",
+              "content": "* Added csh and tcsh login shell support when connecting to remote SSH hosts."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed folder permission rules failing to match when the connected folder is a drive root."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed Windows installs leaving an empty folder under `%LOCALAPPDATA%`."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Code sessions now default the working directory to the home folder when none is configured."
+            },
+            {
+              "type": "removed",
+              "content": "- `settings.json` project settings now cascade from the SSH host for SSH Code sessions."
+            },
+            {
+              "type": "removed",
+              "content": "- \"Always allow\" tool permissions now persist across app restarts and display their scope."
+            },
+            {
+              "type": "removed",
+              "content": "- Added automatic detection and re-download of corrupted Claude Code CLI binaries on Windows."
+            },
+            {
+              "type": "removed",
+              "content": "- The PR bar now shows stacked and sibling pull requests alongside the branch's own PR."
+            },
+            {
+              "type": "removed",
+              "content": "- Messages sent while a turn is running are now queued rather than dropped."
+            },
+            {
+              "type": "removed",
+              "content": "- Opening a Code session link on iOS now continues the session on macOS via Handoff."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "* Disabling the org Skills toggle in the admin console now removes the skill management tools `list_skills`, `save_skill`, and `propose_skills` from Code sessions."
+            },
+            {
+              "type": "removed",
+              "content": "* The preview pane now opens automatically when a session's working directory is a symlink."
+            },
+            {
+              "type": "removed",
+              "content": "* Improved login-shell PATH extraction for more reliable tool discovery."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Added a multi-tab terminal pane; click **+** in the terminal pane header to open a second tab, or right-click a folder in the chat to choose **Open in terminal**."
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed worktree pool re-lease creating a fresh worktree on checkout failure instead of re-using an existing one."
+            },
+            {
+              "type": "removed",
+              "content": "- Fixed rewind selecting the wrong assistant message after a previous rewind created a fork."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "* Added `list_sessions`, `search_session_transcripts`, and `archive_session` MCP tools for managing Code sessions from within a session."
+            },
+            {
+              "type": "removed",
+              "content": "* Improved SSH wake-path reliability and surfaced `ProxyCommand` stderr output for easier debugging."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed login-shell PATH extraction for fish shell users. It was returning a newline-separated list instead of a colon-separated one."
+            },
+            {
+              "type": "removed",
+              "content": "* Fixed the SSH remote control socket directory permissions so `~/.claude/remote` is no longer world-traversable."
+            },
+            {
+              "type": "removed",
+              "content": "* PR review bodies and issue comments are now forwarded to the auto-fix engine."
+            },
+            {
+              "type": "removed",
+              "content": "* Added a category-driven error UI for Code sessions that groups failures by type and surfaces actionable recovery steps."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "discover-plugins.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "変更内容をリアルタイムでスキャンして脆弱性を修正するsecurity-guidanceプラグインの紹介が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -81,6 +81,10 @@ These plugins bundle pre-configured [MCP servers](/en/mcp) so you can connect Cl",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Communication**: `slack`"
+            },
+            {
+              "type": "context",
+              "content": "- **Monitoring**: `sentry`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Automatic security review"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `security-guidance` plugin reviews each change Claude makes for common vulnerabilities and instructs Claude to fix what it finds in the same session. See [Catch security issues as Claude writes code](/en/security-guidance) for what it checks and how to add project-specific rules."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Development workflows"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugins that add skills and agents for common development tasks:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "モデルによるレビュー結果をセッションにフィードバックする具体例として、セキュリティガイダンスの統合方法が紹介されています。",
+      "hunks": [
+        {
+          "header": "@@ -82,6 +82,8 @@ Each example includes a ready-to-use configuration block that you add to a [sett",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Reload environment when directory or files change](#reload-environment-when-directory-or-files-change)"
+            },
+            {
+              "type": "context",
+              "content": "- [Auto-approve specific permission prompts](#auto-approve-specific-permission-prompts)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For a production example of hooks that run a separate model review and feed findings back into the session, see [how the `security-guidance` plugin integrates with Claude Code](/en/security-guidance#how-the-plugin-integrates-with-claude-code)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Get notified when Claude needs input"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Get a desktop notification whenever Claude finishes working and needs your input, so you can switch to other tasks without checking the terminal."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "メモ機能においてインポートされたファイルが再帰的に読み込める階層の深さが最大5層から4層に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -93,7 +93,7 @@ CLAUDE.md files are loaded into the context window at the start of every session",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "CLAUDE.md files can import additional files using `@path/to/import` syntax. Imported files are expanded and loaded into context at launch alongside the CLAUDE.md that references them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Both relative and absolute paths are allowed. Relative paths resolve relative to the file containing the import, not the working directory. Imported files can recursively import other files, with a maximum depth of five hops."
+            },
+            {
+              "type": "added",
+              "content": "Both relative and absolute paths are allowed. Relative paths resolve relative to the file containing the import, not the working directory. Imported files can recursively import other files, with a maximum depth of four hops."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To pull in a README, package.json, and a workflow guide, reference them with `@` syntax anywhere in your CLAUDE.md:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "プラグインの参照例がsecurity-guidanceからdependency-guardという名称に差し替えられました。",
+      "hunks": [
+        {
+          "header": "@@ -933,9 +933,9 @@ The output shows two cost figures for each component:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "This example shows what the output looks like for a plugin with two skills:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "removed",
+              "content": "security-guidance 1.2.0"
+            },
+            {
+              "type": "removed",
+              "content": "  Real-time security analysis for Claude Code sessions"
+            },
+            {
+              "type": "removed",
+              "content": "  Source: security-guidance@claude-code-marketplace"
+            },
+            {
+              "type": "added",
+              "content": "dependency-guard 1.2.0"
+            },
+            {
+              "type": "added",
+              "content": "  Dependency analysis for Claude Code sessions"
+            },
+            {
+              "type": "added",
+              "content": "  Source: dependency-guard@example-marketplace"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Component inventory"
+            },
+            {
+              "type": "context",
+              "content": "  Skills (2)  scan-dependencies, review-changes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "security-guidance.md",
+      "additions": 227,
+      "deletions": 0,
+      "explanation": "新規追加されたドキュメントであり、セキュリティ検証の自動化に関する詳細なガイダンスが含まれています。",
+      "hunks": []
+    },
+    {
+      "filename": "security.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "セッション中に脆弱性を修正するためのセキュリティガイダンスプラグインへのリンクが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -134,6 +134,7 @@ If you discover a security vulnerability in Claude Code:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Security guidance plugin](/en/security-guidance): have Claude review and fix vulnerabilities in its own code changes during the session"
+            },
+            {
+              "type": "context",
+              "content": "- [Sandbox environments](/en/sandbox-environments): compare isolation approaches and choose one for your threat model"
+            },
+            {
+              "type": "context",
+              "content": "- [Sandboxing](/en/sandboxing): filesystem and network isolation for Bash commands"
+            },
+            {
+              "type": "context",
+              "content": "- [Permissions](/en/permissions): configure permissions and access controls"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

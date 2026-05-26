@@ -82,6 +82,8 @@ Hooks を使用すると、Claude Code のライフサイクルの主要なポ�
 - [ディレクトリまたはファイルが変更されたときに環境をリロードする](#reload-environment-when-directory-or-files-change)
 - [特定の許可プロンプトを自動承認する](#auto-approve-specific-permission-prompts)
 
+本番環境での hooks の例として、別のモデルレビューを実行し、その結果をセッションにフィードバックする場合は、[`security-guidance` プラグインが Claude Code と統合する方法](/ja/security-guidance#how-the-plugin-integrates-with-claude-code) を参照してください。
+
 ### Claude が入力を必要とするときに通知を受け取る
 
 Claude が作業を完了して入力を必要とするときはいつでもデスクトップ通知を取得し、ターミナルをチェックせずに他のタスクに切り替えることができます。

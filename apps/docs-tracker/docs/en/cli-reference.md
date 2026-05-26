@@ -76,8 +76,8 @@ Customize Claude Code's behavior with these command-line flags. `claude --help` 
 | `--ide` | Automatically connect to IDE on startup if exactly one valid IDE is available | `claude --ide` |
 | `--init` | Run [Setup hooks](/en/hooks#setup) with the `init` matcher before the session (print mode only) | `claude -p --init "query"` |
 | `--init-only` | Run [Setup](/en/hooks#setup) and `SessionStart` hooks, then exit without starting a conversation | `claude --init-only` |
-| `--include-hook-events` | Include all hook lifecycle events in the output stream. Requires `--output-format stream-json` | `claude -p --output-format stream-json --include-hook-events "query"` |
-| `--include-partial-messages` | Include partial streaming events in output. Requires `--print` and `--output-format stream-json` | `claude -p --output-format stream-json --include-partial-messages "query"` |
+| `--include-hook-events` | Include all hook lifecycle events in the output stream. Requires `--output-format stream-json` | `claude -p --output-format stream-json --verbose --include-hook-events "query"` |
+| `--include-partial-messages` | Include partial streaming events in output. Requires `--print` and `--output-format stream-json` | `claude -p --output-format stream-json --verbose --include-partial-messages "query"` |
 | `--input-format` | Specify input format for print mode (options: `text`, `stream-json`) | `claude -p --output-format json --input-format stream-json` |
 | `--json-schema` | Get validated JSON output matching a JSON Schema after agent completes its workflow (print mode only, see [structured outputs](/en/agent-sdk/structured-outputs)) | `claude -p --json-schema '{"type":"object","properties":{...}}' "query"` |
 | `--maintenance` | Run [Setup hooks](/en/hooks#setup) with the `maintenance` matcher before the session (print mode only) | `claude -p --maintenance "query"` |
@@ -97,7 +97,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help` 
 | `--remote` | Create a new [web session](/en/claude-code-on-the-web) on claude.ai with the provided task description | `claude --remote "Fix the login bug"` |
 | `--remote-control`, `--rc` | Start an interactive session with [Remote Control](/en/remote-control#start-a-remote-control-session) enabled so you can also control it from claude.ai or the Claude app. Optionally pass a name for the session | `claude --remote-control "My Project"` |
 | `--remote-control-session-name-prefix <prefix>` | Prefix for auto-generated [Remote Control](/en/remote-control) session names when no explicit name is set. Defaults to your machine's hostname, producing names like `myhost-graceful-unicorn`. Set `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` for the same effect | `claude remote-control --remote-control-session-name-prefix dev-box` |
-| `--replay-user-messages` | Re-emit user messages from stdin back on stdout for acknowledgment. Requires `--input-format stream-json` and `--output-format stream-json` | `claude -p --input-format stream-json --output-format stream-json --replay-user-messages` |
+| `--replay-user-messages` | Re-emit user messages from stdin back on stdout for acknowledgment. Requires `--input-format stream-json` and `--output-format stream-json` | `claude -p --input-format stream-json --output-format stream-json --verbose --replay-user-messages` |
 | `--resume`, `-r` | Resume a specific session by ID or name, or show an interactive picker to choose a session. Includes sessions that added this directory with `/add-dir`. As of v2.1.144, [background sessions](/en/agent-view) appear in the picker marked with `bg` | `claude --resume auth-refactor` |
 | `--session-id` | Use a specific session ID for the conversation (must be a valid UUID) | `claude --session-id "550e8400-e29b-41d4-a716-446655440000"` |
 | `--setting-sources` | Comma-separated list of setting sources to load (`user`, `project`, `local`) | `claude --setting-sources user,project` |
