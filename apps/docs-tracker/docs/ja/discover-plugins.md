@@ -151,7 +151,7 @@ Claude Code 内から、`anthropics/claude-code` マーケットプレイスの 
 コマンドラインから直接インストールすることもできます：
 
 ```shell theme={null}
-/plugin install commit-commands@anthropics-claude-code
+/plugin install commit-commands@claude-code-plugins
 ```
 
 スコープの詳細については、[構成スコープ](/ja/settings#configuration-scopes)を参照してください。
