@@ -43,6 +43,8 @@ UI の変更は [Chrome 拡張機能の Claude](/ja/chrome) を使用して検�
 
 検証はテストスイート、リンター、または出力をチェックする Bash コマンドにすることもできます。検証を堅牢にすることに投資してください。
 
+Claude に成功を主張するのではなく、証拠を示すよう指示してください。テスト出力、実行したコマンドとその戻り値、または結果のスクリーンショットです。証拠を確認することは、検証を自分で再実行するよりも高速であり、監視していなかったセッションでも機能します。
+
 ***
 
 ## 最初に探索し、次に計画し、その後コーディングする
@@ -321,6 +323,8 @@ Keep interviewing until we've covered everything, then write a complete spec to 
 
 仕様が完成したら、新しいセッションを開始して実行します。新しいセッションはクリーンなコンテキストを持ち、実装に完全に焦点を当てており、参照する書かれた仕様があります。
 
+最も有用な仕様は自己完結型です。関連するファイルとインターフェースに名前を付け、スコープ外のものを述べ、機能が機能することを証明するエンドツーエンド検証ステップで終わります。仕様を正確にするのに費やした時間は、実装を見守るのに費やした時間よりも多くの見返りがあります。
+
 ***
 
 ## セッションを管理する
@@ -400,7 +404,7 @@ Claude Code は会話をローカルに保存するため、タスクが複数�
 
 ### 非対話型モードを実行する
 
-CI、プリコミットフック、またはスクリプトで `claude -p "prompt"` を使用します。ストリーミング JSON 出力の場合は `--output-format stream-json` を追加します。
+CI、プリコミットフック、またはスクリプトで `claude -p "prompt"` を使用します。ストリーミング JSON 出力の場合は `--output-format stream-json --verbose` を追加します。
 
 `claude -p "your prompt"` を使用すると、セッションなしで Claude を非対話的に実行できます。[非対話型モード](/ja/headless)は、Claude を CI パイプライン、プリコミットフック、または自動化されたワークフローに統合する方法です。出力形式を使用すると、結果をプログラムで解析できます。プレーンテキスト、JSON、またはストリーミング JSON です。
 
@@ -412,7 +416,7 @@ claude -p "Explain what this project does"
 claude -p "List all API endpoints" --output-format json
 
 # Streaming for real-time processing
-claude -p "Analyze this log file" --output-format stream-json
+claude -p "Analyze this log file" --output-format stream-json --verbose
 ```
 
 ### 複数の Claude セッションを実行する
@@ -472,6 +476,24 @@ claude --permission-mode auto -p "fix all lint errors"
 ```
 
 非対話型実行で `-p` フラグを使用する場合、分類器が繰り返しアクションをブロックするとき、フォールバックするユーザーがいないため、auto mode は中止します。[auto mode がフォールバックするとき](/ja/permission-modes#when-auto-mode-falls-back)のしきい値を参照してください。
+
+### 敵対的なレビューステップを追加する
+
+タスクが完了したと見なす前に、サブエージェントに新しいコンテキストで diff をレビューさせ、ギャップを報告させます。
+
+Claude が無人で作業する期間が長いほど、作業が完了したと見なす前に独立したチェックが重要になります。新しい[サブエージェント](/ja/sub-agents)コンテキストで実行されるレビュアーは、diff と提供されたクライテリアのみを見て、変更を生成した推論は見ないため、独自の条件で結果を評価します。
+
+正確性チェックの場合、バンドルされた [`/code-review` スキル](/ja/commands)を実行します。これは新しいサブエージェントで現在の diff をバグについてレビューし、検出結果をセッションに返します。代わりに diff をプランに対してチェックするには、レビュープロンプトを自分で作成します。チェックする作業、チェック対象のプラン、および検出結果として何がカウントされるかを名前付けします。
+
+```text
+Use a subagent to review the rate limiter diff against PLAN.md. Check that
+every requirement is implemented, the listed edge cases have tests, and
+nothing outside the task's scope changed. Report gaps, not style preferences.
+```
+
+レビュアーはサブエージェントとして実行されるため、実装セッションはギャップを直接受け取り、ウィンドウ間で検出結果をコピーすることなく、それらを修正して再レビューできます。より長い自律実行の場合、[エージェントチーム](/ja/agent-teams)は、スポットチェックされた検出結果を記録しながら、多くのタスク全体でこのループを続けることができます。
+
+ギャップを見つけるようにプロンプトされたレビュアーは、作業が健全であっても、通常はいくつかを報告します。それはそれが求められたことだからです。すべての検出結果を追求することは、過度なエンジニアリングにつながります。追加の抽象化レイヤー、防御的なコード、および発生できないケースのテストです。レビュアーに、正確性または記載された要件に影響するギャップのみをフラグ付けするよう指示し、残りはオプションとして扱います。
 
 ***
 

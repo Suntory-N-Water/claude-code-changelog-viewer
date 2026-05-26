@@ -132,6 +132,7 @@ Claude Code でセキュリティ脆弱性を発見した場合：
 
 ## 関連リソース
 
+- [Security guidance plugin](/ja/security-guidance)：Claude がセッション中に独自のコード変更の脆弱性をレビューして修正します
 - [Sandbox environments](/ja/sandbox-environments)：分離アプローチを比較し、脅威モデルに合わせて選択します
 - [Sandboxing](/ja/sandboxing)：Bash コマンドのファイルシステムとネットワーク分離
 - [Permissions](/ja/permissions)：パーミッションとアクセス制御を設定します
