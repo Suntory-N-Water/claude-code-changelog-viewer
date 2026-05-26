@@ -126,7 +126,7 @@ my-skill/
 
 #### 追加ディレクトリからのスキル
 
-`--add-dir` フラグは[ファイルアクセスを許可](/ja/permissions#additional-directories-grant-file-access-not-configuration)しますが、スキルは例外です。追加されたディレクトリ内の `.claude/skills/` は自動的に読み込まれます。[ライブ変更検出](#live-change-detection)を参照して、セッション中に編集がどのように取得されるかを確認してください。
+`--add-dir` フラグと `/add-dir` コマンドは[ファイルアクセスを許可](/ja/permissions#additional-directories-grant-file-access-not-configuration)しますが、スキルは例外です。追加されたディレクトリ内の `.claude/skills/` は自動的に読み込まれます。この例外は `--add-dir` と `/add-dir` にのみ適用されます。`settings.json` の `permissions.additionalDirectories` 設定はファイルアクセスのみを許可し、スキルは読み込みません。[ライブ変更検出](#live-change-detection)を参照して、セッション中に編集がどのように取得されるかを確認してください。
 
 その他の `.claude/` 設定（サブエージェント、コマンド、出力スタイル）は追加ディレクトリから読み込まれません。読み込まれるもの、読み込まれないもの、および設定をプロジェクト全体で共有するための推奨方法の完全なリストについては、[例外テーブル](/ja/permissions#additional-directories-grant-file-access-not-configuration)を参照してください。
 

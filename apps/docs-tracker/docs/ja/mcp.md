@@ -38,7 +38,7 @@ Claude Code セッションで、以下を実行します：
 /plugin install mcp-server-dev@claude-plugins-official
 ```
 
-次に `/reload-plugins` を実行して、現在のセッションでアクティブにします。
+Claude Code がマーケットプレイスが見つからないと報告する場合は、まず `/plugin marketplace add anthropics/claude-plugins-official` を実行してから、インストールを再試行してください。インストール後、`/reload-plugins` を実行して、現在のセッションでアクティブにします。
 
 ```
 /mcp-server-dev:build-mcp-server
