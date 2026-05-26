@@ -238,7 +238,7 @@ specific, actionable feedback on quality, security, and best practices.
 | `memory` | いいえ | [永続メモリスコープ](#enable-persistent-memory)：`user`、`project`、または `local`。クロスセッション学習を有効にします |
 | `background` | いいえ | `true` に設定して、このサブエージェントを常に[バックグラウンドタスク](#run-subagents-in-foreground-or-background)として実行します。デフォルト：`false` |
 | `effort` | いいえ | このサブエージェントがアクティブな場合の努力レベル。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`xhigh`、`max`。利用可能なレベルはモデルに依存します |
-| `isolation` | いいえ | `worktree` に設定して、サブエージェントを一時的な[git worktree](/ja/worktrees)で実行し、リポジトリの分離されたコピーを提供します。サブエージェントが変更を加えない場合、worktree は自動的にクリーンアップされます |
+| `isolation` | いいえ | `worktree` に設定して、サブエージェントを一時的な[git worktree](/ja/worktrees)で実行し、リポジトリの分離されたコピーを提供します。デフォルトでは[デフォルトブランチ](/ja/worktrees#choose-the-base-branch)から分岐し、親セッションの `HEAD` ではなく、サブエージェントが変更を加えない場合、worktree は自動的にクリーンアップされます |
 | `color` | いいえ | タスクリストとトランスクリプトでサブエージェントの表示色。`red`、`blue`、`green`、`yellow`、`purple`、`orange`、`pink`、または `cyan` を受け入れます |
 | `initialPrompt` | いいえ | このエージェントがメインセッションエージェント（`--agent` または `agent` 設定を通じて）として実行される場合、最初のユーザーターンとして自動送信されます。[コマンド](/ja/commands)および[スキル](/ja/skills)が処理されます。ユーザーが提供するプロンプトの前に付加されます |
 
@@ -264,7 +264,14 @@ Claude がサブエージェントを呼び出すときに、その特定の呼�
 
 #### 利用可能なツール
 
-サブエージェントは、Claude Code の[内部ツール](/ja/tools-reference)のいずれかを使用できます。デフォルトでは、サブエージェントは MCP ツールを含む、メイン会話からすべてのツールを継承します。
+サブエージェントは、デフォルトでメイン会話で利用可能な[内部ツール](/ja/tools-reference)と MCP ツールを継承します。以下のツールはメイン会話の UI またはセッション状態に依存し、`tools` フィールドにリストされている場合でも、サブエージェントでは利用できません：
+
+- `Agent`
+- `AskUserQuestion`
+- `EnterPlanMode`
+- `ExitPlanMode`（サブエージェントの [`permissionMode`](#permission-modes)が `plan` の場合を除く）
+- `ScheduleWakeup`
+- `WaitForMcpServers`
 
 ツールを制限するには、`tools` フィールド（許可リスト）または `disallowedTools` フィールド（拒否リスト）を使用します。この例は `tools` を使用して、Read、Grep、Glob、および Bash のみを排他的に許可します。サブエージェントはファイルを編集したり、ファイルを書き込んだり、MCP ツールを使用したりできません：
 

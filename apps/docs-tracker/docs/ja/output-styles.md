@@ -29,6 +29,8 @@ Claude Code の **Default** 出力スタイルは既存のシステムプロン�
 
 `/config` を実行し、**Output style** を選択してメニューからスタイルを選択します。選択内容は [ローカルプロジェクトレベル](/ja/settings) の `.claude/settings.local.json` に保存されます。
 
+スタンドアロン `/output-style` コマンドは v2.1.73 で廃止され、v2.1.91 で削除されました。`/config` を使用するか、`outputStyle` 設定を直接編集してください。
+
 メニューなしでスタイルを設定するには、設定ファイルの `outputStyle` フィールドを直接編集します。
 
 ```json
