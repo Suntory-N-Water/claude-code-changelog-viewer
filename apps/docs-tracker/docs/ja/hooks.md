@@ -30,6 +30,7 @@ source: https://code.claude.com/docs/ja/hooks.md
 | `PostToolUseFailure` | After a tool call fails |
 | `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
 | `Notification` | When Claude Code sends a notification |
+| `MessageDisplay` | While assistant message text is displayed |
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
 | `TaskCreated` | When a task is being created via `TaskCreate` |
@@ -182,7 +183,7 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 | `UserPromptExpansion` | コマンド名 | スキルまたはコマンド名 |
 | `Elicitation` | MCP サーバー名 | 設定された MCP サーバー名 |
 | `ElicitationResult` | MCP サーバー名 | `Elicitation` と同じ値 |
-| `UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove` | マッチャー サポートなし | すべての出現で常に発火 |
+| `UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`MessageDisplay` | マッチャー サポートなし | すべての出現で常に発火 |
 
 マッチャーは、Claude Code がフックに stdin で送信する[JSON 入力](#hook-input-and-output)からのフィールドに対して実行されます。ツール イベントの場合、そのフィールドは `tool_name` です。各[フック イベント](#hook-events)セクションでは、マッチャー値の完全なセットとそのイベントの入力スキーマをリストしています。
 
@@ -414,7 +415,7 @@ MCP ツール フックは、Claude Code が MCP サーバーに接続した後�
 フックが実行されるときの作業ディレクトリに関係なく、プロジェクトまたはプラグイン ルートを基準にしてフック スクリプトを参照するには、これらのプレースホルダーを使用します。
 
 - `${CLAUDE_PROJECT_DIR}`: プロジェクト ルート。
-- `${CLAUDE_PLUGIN_ROOT}`: プラグインの インストール ディレクトリ、[プラグイン](/ja/plugins)にバンドルされたスクリプト用。プラグイン更新時に変更されます。
+- `${CLAUDE_PLUGIN_ROOT}`: プラグインのインストール ディレクトリ、[プラグイン](/ja/plugins)にバンドルされたスクリプト用。プラグイン更新時に変更されます。
 - `${CLAUDE_PLUGIN_DATA}`: プラグインの[永続データ ディレクトリ](/ja/plugins-reference#persistent-data-directory)、プラグイン更新を通じて存続すべき依存関係と状態用。
 
 パス プレースホルダーを参照するフックには[exec フォーム](#exec-form-and-shell-form)を優先してください。Exec フォームは各 `args` 要素を引用符なしで 1 つの引数として渡すため、スペースまたは特殊文字を含むパスは引用符が不要です。シェル フォームでは、各プレースホルダーをダブル クォートで囲みます。
@@ -625,6 +626,7 @@ exit 0  # 成功: ツール呼び出しが進行
 | `WorktreeCreate` | はい | 0 以外の終了コードでワークツリー作成が失敗 |
 | `WorktreeRemove` | いいえ | 失敗はデバッグ モードでのみログ |
 | `InstructionsLoaded` | いいえ | 終了コードは無視 |
+| `MessageDisplay` | いいえ | 元のテキストが表示される |
 
 ### HTTP レスポンス処理
 
@@ -749,7 +751,8 @@ Claude が現在の環境の状態または実行されたばかりの操作に�
 | WorktreeCreate | パス戻り値 | コマンド フックは stdout にパスを出力します。HTTP フックは `hookSpecificOutput.worktreePath` 経由で返します。フック失敗またはパス欠落で作成が失敗 |
 | Elicitation | `hookSpecificOutput` | `action`（accept/decline/cancel）、`content`（accept の場合のフォーム フィールド値） |
 | ElicitationResult | `hookSpecificOutput` | `action`（accept/decline/cancel）、`content`（フォーム フィールド値をオーバーライド） |
-| SessionStart、Setup、SubagentStart | コンテキストのみ | `hookSpecificOutput.additionalContext` は Claude 用にコンテキストを追加します。SessionStart は [`initialUserMessage` と `watchPaths`](#sessionstart-decision-control)も受け入れます。ブロッキングまたは決定制御なし |
+| MessageDisplay | `hookSpecificOutput` | `displayContent` は画面に表示されるテキストを置き換えます。表示のみ: トランスクリプトと Claude が見るものは元のままです |
+| SessionStart、Setup、SubagentStart | コンテキストのみ | `hookSpecificOutput.additionalContext` は Claude 用にコンテキストを追加します。SessionStart は [`initialUserMessage`、`watchPaths`、`sessionTitle`、および `reloadSkills`](#sessionstart-decision-control)も受け入れます。ブロッキングまたは決定制御なし |
 | WorktreeRemove、Notification、SessionEnd、PostCompact、InstructionsLoaded、StopFailure、CwdChanged、FileChanged | なし | 決定制御なし。ログやクリーンアップなどの副作用に使用 |
 
 各パターンの実行例を以下に示します。
@@ -814,7 +817,7 @@ SessionStart はすべてのセッションで実行されるため、これら�
 
 #### SessionStart 入力
 
-[共通入力フィールド](#common-input-fields)に加えて、SessionStart フックは `source`、`model`、およびオプションで `agent_type` を受け取ります。`source` フィールドはセッションがどのように開始されたかを示します。新しいセッションの場合は `"startup"`、再開されたセッションの場合は `"resume"`、`/clear` の後は `"clear"`、コンパクション後は `"compact"`。`model` フィールドはモデル識別子を含みます。`claude --agent <name>` で Claude Code を開始する場合、`agent_type` フィールドはエージェント名を含みます。
+[共通入力フィールド](#common-input-fields)に加えて、SessionStart フックは `source`、`model`、およびオプションで `agent_type` と `session_title` を受け取ります。`source` フィールドはセッションがどのように開始されたかを示します。新しいセッションの場合は `"startup"`、再開されたセッションの場合は `"resume"`、`/clear` の後は `"clear"`、コンパクション後は `"compact"`。`model` フィールドはモデル識別子を含みます。`claude --agent <name>` で Claude Code を開始する場合、`agent_type` フィールドはエージェント名を含みます。`session_title` フィールドは、例えば `--name` または `/rename` 経由で既に設定されている場合、現在のセッション タイトルを含みます。`sessionTitle` を発行するフックは、ユーザーが明示的に設定したタイトルを上書きしないように、最初に `session_title` をチェックできます。
 
 ```json
 {
@@ -835,18 +838,32 @@ SessionStart はすべてのセッションで実行されるため、これら�
 | :- | :- |
 | `additionalContext` | Claude のコンテキストの開始時に追加される文字列。最初のプロンプトの前。[Claude のコンテキストを追加](#add-context-for-claude)を参照して、テキストがどのように配信されるか、何を含めるかを確認してください |
 | `initialUserMessage` | セッションの最初のユーザー メッセージとして使用される文字列。[非対話型モード](/ja/headless)（`-p`）で適用され、プロンプトが提供されない場合でも最初のターンになります。プロンプトが提供される場合、次のターンとして続きます。`additionalContext` とは異なり、既存のターンに付加されるのではなく、このターンを作成します |
+| `sessionTitle` | セッション タイトルを設定します。`/rename` と同じ効果があります。起動フォルダ、git ブランチ、またはワークツリー名からセッションを自動的に名前付けするのに使用します。`source` が `"startup"` または `"resume"` の場合のみ適用されます。`"clear"` と `"compact"` では無視されます |
 | `watchPaths` | このセッション中に[FileChanged](#filechanged)イベントを監視する絶対パスの配列 |
+| `reloadSkills` | ブール値。`true` の場合、Claude Code は SessionStart フックが完了した後に[スキル](/ja/skills)とコマンド ディレクトリを再スキャンするため、フックがインストールしたスキルは同じセッションで利用可能になり、最初のプロンプトから開始されます |
 
 ```json
 {
   "hookSpecificOutput": {
     "hookEventName": "SessionStart",
-    "additionalContext": "Current branch: feat/auth-refactor\nUncommitted changes: src/auth.ts, src/login.tsx\nActive issue: #4211 Migrate to OAuth2"
+    "additionalContext": "Current branch: feat/auth-refactor\nUncommitted changes: src/auth.ts, src/login.tsx\nActive issue: #4211 Migrate to OAuth2",
+    "sessionTitle": "auth-refactor"
   }
 }
 ```
 
-このイベントではプレーン stdout が既に Claude に到達するため、コンテキストのみをロードするフックは JSON を構築せずに stdout に直接出力できます。`suppressOutput` などの他のフィールドとコンテキストを組み合わせる必要がある場合は JSON 形式を使用します。
+このイベントではプレーン stdout が既に Claude に到達するため、コンテキストのみをロードするフックは JSON を構築せずに stdout に直接出力できます。`suppressOutput` や `sessionTitle` などの他のフィールドとコンテキストを組み合わせる必要がある場合は JSON 形式を使用します。
+
+SessionStart フックがスキルをインストールまたは更新する場合は `reloadSkills` を使用します。スキル検出は通常 SessionStart フックが完了する前に実行されるため、フックが `~/.claude/skills/` または `.claude/skills/` に書き込むファイルは、それ以外の場合は次のセッションにのみ表示されます。この例は共有スキル リポジトリを同期し、再スキャンをリクエストします。
+
+```bash
+#!/bin/bash
+
+git -C ~/.claude/skills/team-skills pull --quiet 2>/dev/null || \
+  git clone --quiet https://git.example.com/your-org/team-skills.git ~/.claude/skills/team-skills
+
+echo '{"hookSpecificOutput": {"hookEventName": "SessionStart", "reloadSkills": true}}'
+```
 
 #### 環境変数を永続化
 
@@ -1076,11 +1093,55 @@ JSON 形式は単純なユースケースには必須ではありません。コ
 }
 ```
 
+### MessageDisplay
+
+アシスタント メッセージが画面にストリーミングされている間に実行されます。Claude Code はメッセージを増分で表示します。新しく完了した行のバッチがレンダリング準備ができるたびに、フックはそれらの行で 1 回実行され、Claude Code はフックの置換テキストをその場所にレンダリングします。長いメッセージは複数の呼び出しを生成します。短いメッセージは 1 つだけ生成する可能性があります。これを使用して Claude の応答を画面に表示されるときに再フォーマット、編集、または圧縮します。
+
+MessageDisplay は表示のみです。置換テキストは画面にレンダリングされるものだけを変更します。トランスクリプトと Claude が見るものは元のテキストを保持するため、Claude は置換を見ず、詳細モードは元のテキストを表示します。MessageDisplay はマッチャーをサポートせず、テキストをストリーミングするすべてのアシスタント メッセージに対して発火します。テキストなしのメッセージ（ツール呼び出しのみの応答など）はそれをトリガーしません。
+
+非対話型実行（Agent SDK クエリと `claude -p` を含む）では、MessageDisplay はメッセージごとに行のバッチごとに 1 回ではなく 1 回実行されます。単一の呼び出しはメッセージが完了した後に到着し、完全なメッセージ テキストを含みます。`index` は `0`、`final` は `true`、`delta` は全体メッセージを保持します。各メッセージの `delta` テキストを収集するフックは、両方のモードで同じ合計テキストを受け取ります。
+
+#### MessageDisplay 入力
+
+[共通入力フィールド](#common-input-fields)に加えて、MessageDisplay フックはターンとメッセージの識別子、この呼び出しのメッセージ内での位置、および `delta` の新しいテキストを受け取ります。バッチ境界はテキストがどのようにストリーミングされるかに依存するため、行が特定の方法でグループ化されることを期待するのではなく、`index` と `final` を使用してメッセージを通じた進行状況を追跡します。
+
+| フィールド | 説明 |
+| :- | :- |
+| `turn_id` | 現在のターンの UUID |
+| `message_id` | 表示されるアシスタント メッセージの UUID。メッセージの同じバッチ全体で安定しています。これは API `msg_…` id ではないため、トランスクリプト メッセージ id と相関させることはできません |
+| `index` | メッセージ内のこのバッチのゼロベースのインデックス |
+| `final` | メッセージの最後のバッチで `true`。各メッセージは正確に 1 つの最終バッチを持ちます |
+| `delta` | 前のバッチ以降の新しく完了した行。終了改行を含みます。常に完全な行です。ただし、最終バッチは行の途中で終わる可能性があります。対話型実行では、メッセージが改行で終わるときの最終バッチの delta は空なので、`final` ではなく、メッセージの終了信号として `final` を処理します。Agent SDK と `claude -p` 実行では、単一の呼び出しが全体メッセージを含みます |
+
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../transcript.jsonl",
+  "cwd": "/Users/my-project",
+  "hook_event_name": "MessageDisplay",
+  "turn_id": "0c9e6a2f-7d41-4f4e-9a15-3f4f7c2b8d10",
+  "message_id": "5b2a9c8e-1f63-4d8a-b7c4-9e0d2a6f1c3b",
+  "index": 0,
+  "final": false,
+  "delta": "Here is the plan:\n"
+}
+```
+
+#### MessageDisplay 出力
+
+すべてのフックで利用可能な[JSON 出力フィールド](#json-output)に加えて、MessageDisplay フックは `displayContent` を返して画面上の delta を置き換えることができます。
+
+| フィールド | 説明 |
+| :- | :- |
+| `displayContent` | delta の代わりに表示されるテキスト。元のテキストを表示するには省略 |
+
+MessageDisplay フックは決定制御がありません。メッセージをブロックしたり、トランスクリプトに保存されたもの、または Claude に送信されたものを変更することはできません。
+
 ### PreToolUse
 
 Claude がツール パラメーターを作成した後、ツール呼び出しを処理する前に実行されます。ツール名でマッチします。`Bash`、`Edit`、`Write`、`Read`、`Glob`、`Grep`、`Agent`、`WebFetch`、`WebSearch`、`AskUserQuestion`、`ExitPlanMode`、および任意の[MCP ツール名](#match-mcp-tools)。
 
-[PreToolUse 決定制御](#pretooluse-decision-control)を使用して、ツールの使用を許可、拒否、質問、または遅延します。
+[PreToolUse 決定制御](#pretooluse-decision-control)を使用して、ツール呼び出しを許可、拒否、質問、または遅延します。
 
 #### PreToolUse 入力
 

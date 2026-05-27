@@ -204,7 +204,7 @@ claude -p "Look at my staged changes and create an appropriate commit" \
 
 `--allowedTools` フラグは [パーミッションルール構文](/ja/settings#permission-rule-syntax) を使用します。末尾の ` *` はプレフィックスマッチングを有効にするため、`Bash(git diff *)` は `git diff` で始まるすべてのコマンドを許可します。スペースは重要です。スペースがない場合、`Bash(git diff*)` は `git diff-index` にも一致します。
 
-ユーザーが呼び出した [skills](/ja/skills)（`/commit` など）および [組み込みコマンド](/ja/commands) は、対話モードでのみ利用可能です。`-p` モードでは、代わりに実行したいタスクを説明してください。
+ユーザーが呼び出した [skills](/ja/skills)（`/code-review` など）および [組み込みコマンド](/ja/commands) は、対話モードでのみ利用可能です。`-p` モードでは、代わりに実行したいタスクを説明してください。
 
 ### システムプロンプトをカスタマイズする
 

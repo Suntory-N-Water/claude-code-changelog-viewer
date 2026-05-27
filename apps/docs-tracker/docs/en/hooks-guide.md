@@ -420,6 +420,7 @@ Hook events fire at specific lifecycle points in Claude Code. When an event fire
 | `PostToolUseFailure` | After a tool call fails |
 | `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
 | `Notification` | When Claude Code sends a notification |
+| `MessageDisplay` | While assistant message text is displayed |
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
 | `TaskCreated` | When a task is being created via `TaskCreate` |
@@ -597,7 +598,7 @@ Each event type matches on a specific field:
 | `ElicitationResult` | MCP server name | same values as `Elicitation` |
 | `FileChanged` | literal filenames to watch (see [FileChanged](/en/hooks#filechanged)) | `.envrc\|.env` |
 | `UserPromptExpansion` | command name | your skill or command names |
-| `UserPromptSubmit`, `PostToolBatch`, `Stop`, `TeammateIdle`, `TaskCreated`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `CwdChanged` | no matcher support | always fires on every occurrence |
+| `UserPromptSubmit`, `PostToolBatch`, `Stop`, `TeammateIdle`, `TaskCreated`, `TaskCompleted`, `WorktreeCreate`, `WorktreeRemove`, `CwdChanged`, `MessageDisplay` | no matcher support | always fires on every occurrence |
 
 A few more examples showing matchers on different event types:
 

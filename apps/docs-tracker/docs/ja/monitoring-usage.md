@@ -108,6 +108,7 @@ OTLP エクスポーターのクライアント証明書を設定する方法は
 | `OTEL_METRICS_INCLUDE_SESSION_ID` | メトリクスに session.id 属性を含める | `true` | `false` |
 | `OTEL_METRICS_INCLUDE_VERSION` | メトリクスに app.version 属性を含める | `false` | `true` |
 | `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` | メトリクスに user.account\_uuid および user.account\_id 属性を含める | `true` | `false` |
+| `OTEL_METRICS_INCLUDE_ENTRYPOINT` | メトリクスに app.entrypoint 属性を含める | `false` | `true` |
 
 これらの変数は、メトリクスのカーディナリティを制御するのに役立ちます。これはメトリクスバックエンドのストレージ要件とクエリパフォーマンスに影響します。カーディナリティが低いほど、一般的にパフォーマンスが向上し、ストレージコストが低くなりますが、分析用のより詳細なデータは少なくなります。
 
@@ -129,7 +130,9 @@ OTLP エクスポーターのクライアント証明書を設定する方法は
 
 トレースがアクティブな場合、Bash および PowerShell サブプロセスは、アクティブなツール実行スパンの W3C トレースコンテキストを含む `TRACEPARENT` 環境変数を自動的に継承します。これにより、`TRACEPARENT` を読み取るサブプロセスは、同じトレースの下に独自のスパンを親にすることができ、Claude が実行するスクリプトとコマンドを通じたエンドツーエンドの分散トレースが可能になります。
 
-トレースがアクティブで Claude Code が Anthropic API に直接接続されている場合、各モデルリクエストは W3C `traceparent` ヘッダーを含み、これは `claude_code.llm_request` スパンのコンテキストに設定され、API の `traceresponse` ヘッダーはスパンリンクとして記録されます。これらは、Claude Code のクライアント側スパンをサーバー側トレースに接続し、準拠した仲介者を通じて接続します。ヘッダーはサードパーティプロバイダーには送信されません。
+トレースがアクティブで Claude Code が Anthropic API に直接接続されている場合、各モデルリクエストは W3C `traceparent` ヘッダーを含み、これは `claude_code.llm_request` スパンのコンテキストに設定され、API の `traceresponse` ヘッダーはスパンリンクとして記録されます。これらは、Claude Code のクライアント側スパンをサーバー側トレースに接続し、準拠した仲介者を通じて接続します。アウトバウンド HTTP MCP リクエストは同じ方法で `traceparent` を含みます。ヘッダーはサードパーティプロバイダーには送信されません。
+
+デフォルトでは、モデルおよび HTTP MCP リクエストの `traceparent` ヘッダーは、`ANTHROPIC_BASE_URL` が設定されていないか Anthropic API を指している場合にのみ送信されます。一部のプロキシは認識されないヘッダーを拒否するためです。サブプロセス `TRACEPARENT` 変数は一貫性のために同じスイッチで制御されます。カスタム `ANTHROPIC_BASE_URL` プロキシを通じて Claude Code を実行し、トレースコンテキストを伝播させたい場合は、`CLAUDE_CODE_PROPAGATE_TRACEPARENT=1` を設定します。
 
 Agent SDK および `-p` で開始された非対話型セッションでは、Claude Code は各インタラクションスパンを開始するときに独自の環境から `TRACEPARENT` と `TRACESTATE` も読み取ります。これにより、埋め込みプロセスがアクティブな W3C トレースコンテキストをサブプロセスに渡すことができるため、Claude Code のスパンは呼び出し元の分散トレースの子として表示されます。対話型セッションは、CI またはコンテナ環境からの環境値を誤って継承するのを避けるため、インバウンド `TRACEPARENT` を無視します。
 
@@ -377,6 +380,7 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 | - | - | - |
 | `session.id` | 一意のセッション識別子 | `OTEL_METRICS_INCLUDE_SESSION_ID` (デフォルト: true) |
 | `app.version` | 現在の Claude Code バージョン | `OTEL_METRICS_INCLUDE_VERSION` (デフォルト: false) |
+| `app.entrypoint` | セッションがどのように起動されたか。例: `cli`、`sdk-cli`、`sdk-ts`、`sdk-py`、または `claude-vscode` | `OTEL_METRICS_INCLUDE_ENTRYPOINT` (デフォルト: false) |
 | `organization.id` | 組織 UUID (認証時) | 利用可能な場合は常に含まれます |
 | `user.account_uuid` | アカウント UUID (認証時) | `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` (デフォルト: true) |
 | `user.account_id` | Anthropic 管理 API と一致するタグ付き形式のアカウント ID (認証時)。例: `user_01BWBeN28...` | `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` (デフォルト: true) |
@@ -457,6 +461,8 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - `skill.name`: リクエストに対してアクティブなスキル。Skill ツール、`/` コマンド、またはスポーンされたサブエージェントによって継承されます。組み込み、バンドル、ユーザー定義、および公式マーケットプレイスプラグインスキル名はそのまま表示されます。サードパーティプラグインスキル名は `"third-party"` に置き換えられます。アクティブなスキルがない場合は存在しません。
 - `plugin.name`: アクティブなスキルまたはサブエージェントがプラグインによって提供される場合の所有プラグイン。公式マーケットプレイスプラグイン名はそのまま表示されます。サードパーティプラグイン名は `"third-party"` に置き換えられます。スキルもサブエージェントも所有プラグインを持たない場合は存在しません。
 - `marketplace.name`: 所有プラグインがインストールされたマーケットプレイス。公式マーケットプレイスプラグインに対してのみ出力されます。それ以外の場合は存在しません。
+- `mcp_server.name`: リクエストを生成したターンで実行された MCP サーバー。組み込み、claude.ai プロキシ、および公式レジストリサーバー名はそのまま表示されます。ユーザー設定サーバー名は `"custom"` に置き換えられます。MCP ツールが実行されなかった場合は存在しません。
+- `mcp_tool.name`: リクエストを生成したターンで実行された MCP ツール。`mcp_server.name` と同じ編集が適用されます。MCP ツールが実行されなかった場合は存在しません。
 
 #### トークンカウンター
 
@@ -470,7 +476,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 - `query_source`: リクエストを発行したサブシステムのカテゴリ。`"main"`、`"subagent"`、または `"auxiliary"` のいずれか
 - `speed`: 高速モードを使用した場合は `"fast"`。それ以外の場合は存在しません
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。詳細は [コストカウンター](#cost-counter)を参照してください。
-- `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`: リクエストのスキル、プラグイン、およびエージェント属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
+- `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 #### コード編集ツール決定カウンター
 
@@ -579,6 +585,7 @@ Claude への各 API リクエストについてログされます。
 - `speed`: `"fast"` または `"normal"`、高速モードがアクティブであったかどうかを示します
 - `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level): `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。モデルが努力をサポートしない場合は存在しません。
+- `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 #### API エラーイベント
 
@@ -601,6 +608,7 @@ Claude への API リクエストが失敗するときにログされます。
 - `speed`: `"fast"` または `"normal"`、高速モードがアクティブであったかどうかを示します
 - `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。モデルが努力をサポートしない場合は存在しません。
+- `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 #### API リクエストボディイベント
 
