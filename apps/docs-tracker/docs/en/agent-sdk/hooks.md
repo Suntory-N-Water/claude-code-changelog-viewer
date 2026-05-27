@@ -135,6 +135,7 @@ The SDK provides hooks for different stages of agent execution. Some hooks are a
 | `PostToolUseFailure` | Yes | Yes | Tool execution failure | Handle or log tool errors |
 | `PostToolBatch` | No | Yes | A full batch of tool calls resolves, once per batch before the next model call | Inject conventions once for the whole batch |
 | `UserPromptSubmit` | Yes | Yes | User prompt submission | Inject additional context into prompts |
+| `MessageDisplay` | No | Yes | An assistant message with text completes, once per message with the full message text | Redact or reformat the displayed text without changing the transcript |
 | `Stop` | Yes | Yes | Agent execution stop | Save session state before exit |
 | `SubagentStart` | Yes | Yes | Subagent initialization | Track parallel task spawning |
 | `SubagentStop` | Yes | Yes | Subagent completion | Aggregate results from parallel tasks |

@@ -877,14 +877,20 @@ claude plugin marketplace list [options]
 設定されたマーケットプレイスを削除します。エイリアス `rm` も受け入れられます。
 
 ```bash
-claude plugin marketplace remove <name>
+claude plugin marketplace remove <name> [options]
 ```
 
 **引数：**
 
 - `<name>`：削除するマーケットプレイス名。`claude plugin marketplace list` で表示されます。これは渡したソースではなく、`marketplace.json` の `name` です
 
-マーケットプレイスを削除すると、そこからインストールしたプラグインもアンインストールされます。インストール済みプラグインを失わずにマーケットプレイスを更新するには、`claude plugin marketplace update` を使用してください。
+**オプション：**
+
+| オプション | 説明 | デフォルト |
+| :- | :- | :- |
+| `--scope <scope>` | 削除を単一の設定スコープに制限します：`user`、`project`、または `local`。[プラグインインストールスコープ](/ja/plugins-reference#plugin-installation-scopes)を参照してください。省略した場合、宣言はすべての編集可能なスコープから削除されます。指定した場合、そのスコープの宣言のみが削除されます。マーケットプレイスが別のスコープで引き続き宣言されている場合、共有状態、キャッシュ、およびインストール済みプラグインデータは保持されます | （すべてのスコープ） |
+
+マーケットプレイスを最後に残ったスコープから削除すると、そこからインストールしたプラグインもアンインストールされます。インストール済みプラグインを失わずにマーケットプレイスを更新するには、`claude plugin marketplace update` を使用してください。
 
 ### プラグインマーケットプレイス更新
 

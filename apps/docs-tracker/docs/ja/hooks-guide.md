@@ -420,6 +420,7 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 | `PostToolUseFailure` | After a tool call fails |
 | `PostToolBatch` | After a full batch of parallel tool calls resolves, before the next model call |
 | `Notification` | When Claude Code sends a notification |
+| `MessageDisplay` | While assistant message text is displayed |
 | `SubagentStart` | When a subagent is spawned |
 | `SubagentStop` | When a subagent finishes |
 | `TaskCreated` | When a task is being created via `TaskCreate` |
@@ -597,7 +598,7 @@ Claude はまた、`Bash` ツールを通じてシェルコマンドを実行す
 | `ElicitationResult` | MCP サーバー名 | `Elicitation` と同じ値 |
 | `FileChanged` | リテラルファイル名を監視（[FileChanged](/ja/hooks#filechanged) を参照） | `.envrc\|.env` |
 | `UserPromptExpansion` | コマンド名 | スキルまたはコマンド名 |
-| `UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` | マッチャーサポートなし | すべての発生で常に発火 |
+| `UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged`、`MessageDisplay` | マッチャーサポートなし | すべての発生で常に発火 |
 
 異なるイベントタイプのマッチャーを示すいくつかの例：
 
