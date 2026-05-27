@@ -115,7 +115,7 @@ az login
 ```
 
 <Note>
-  Microsoft Foundry を使用する場合、認証が Azure 認証情報を通じて処理されるため、`/login` および `/logout` コマンドは無効になります。
+  Microsoft Foundry を使用する場合、認証が Azure 認証情報を通じて処理されるため、`/logout` コマンドは利用できません。
 </Note>
 
 ### 3. Claude Code を構成する
