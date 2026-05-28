@@ -129,6 +129,10 @@ Claude Code はスクリプトを実行し、stdin 経由で [JSON セッショ�
 - **色**：`\033[32m` のような [ANSI エスケープコード](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors) を使用して緑色を表示します（ターミナルがサポートしている必要があります）。[git ステータスの例](#git-status-with-colors) を参照してください。
 - **リンク**：[OSC 8 エスケープシーケンス](https://en.wikipedia.org/wiki/ANSI_escape_code#OSC) を使用してテキストをクリック可能にします（macOS では Cmd+クリック、Windows/Linux では Ctrl+クリック）。iTerm2、Kitty、WezTerm などのハイパーリンクをサポートするターミナルが必要です。[クリック可能なリンクの例](#clickable-links) を参照してください。
 
+**ターミナルに出力をサイズ調整する**
+
+Claude Code はスクリプトの出力をキャプチャするため、ターミナルに直接接続しません。そのため、`tput cols` と言語レベルの幅検出はスクリプト内からターミナルサイズを読み取ることができません。`COLUMNS` および `LINES` 環境変数を代わりに読み取ってください。Claude Code はスクリプトを実行する前に、これらを現在のターミナルサイズに設定します。Claude Code v2.1.153 以降が必要です。
+
 ステータスラインはローカルで実行され、API トークンを消費しません。オートコンプリート提案、ヘルプメニュー、パーミッションプロンプトなど、特定の UI 相互作用中は一時的に非表示になります。
 
 ## 利用可能なデータ

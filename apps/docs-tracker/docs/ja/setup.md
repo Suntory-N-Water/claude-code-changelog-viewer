@@ -169,7 +169,11 @@ Claude Code には、Pro、Max、Team、Enterprise、または Console アカウ
 
 Claude Code は起動時と実行中に定期的に更新をチェックします。更新はバックグラウンドでダウンロードおよびインストールされ、次に Claude Code を起動するときに有効になります。
 
-Homebrew、WinGet、apt、dnf、および apk インストールは自動更新されません。Homebrew の場合は、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。Linux パッケージマネージャーの場合は、[Linux パッケージマネージャーでインストール](#install-with-linux-package-managers)のアップグレードコマンドを参照してください。
+`claude doctor` を実行して、最新の更新試行の結果を確認します。
+
+npm グローバルインストールが npm グローバルディレクトリが書き込み可能でないため自動更新できない場合、Claude Code は起動時に 1 回限りの通知を表示し、`claude doctor` は利用可能な修正を一覧表示します。詳細については、[インストール中の権限エラー](/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
+
+Homebrew、WinGet、apt、dnf、および apk インストールはデフォルトでは自動更新されません。Homebrew と WinGet でオプトインするには、以下を参照してください。Homebrew を手動でアップグレードするには、`brew upgrade claude-code` または `brew upgrade claude-code@latest` を実行します（インストールした cask によって異なります）。WinGet の場合は、`winget upgrade Anthropic.ClaudeCode` を実行します。Linux パッケージマネージャーの場合は、[Linux パッケージマネージャーでインストール](#install-with-linux-package-managers)のアップグレードコマンドを参照してください。
 
 Claude Code が Homebrew または WinGet で自動的にアップグレードコマンドを実行するようにするには、[`CLAUDE_CODE_PACKAGE_MANAGER_AUTO_UPDATE`](/ja/env-vars)を `1` に設定します。Claude Code は新しいバージョンが利用可能な場合、バックグラウンドでアップグレードを実行し、成功時に再起動プロンプトを表示します。アップグレードは Claude Code パッケージのみを対象とし、インストール済みの他のソフトウェアには影響しません。
 

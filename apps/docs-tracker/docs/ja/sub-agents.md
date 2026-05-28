@@ -353,6 +353,16 @@ Use the Playwright tools to navigate, screenshot, and interact with pages.
 
 MCP サーバーをメイン会話から完全に除外し、そのツール説明がコンテキストを消費するのを避けるには、`.mcp.json` ではなくここでインラインで定義します。サブエージェントはツールを取得します。親の会話は取得しません。
 
+v2.1.153 以降、メインセッションに適用される MCP 制限は、サブエージェントフロントマターで宣言されたサーバーもカバーします：
+
+- [`--strict-mcp-config`](/ja/cli-reference)および [`--bare`](/ja/cli-reference)
+- [Enterprise 管理 MCP 設定](/ja/managed-mcp)
+- [`allowedMcpServers` および `deniedMcpServers` ポリシー](/ja/managed-mcp#policy-based-control-with-allowlists-and-denylists)
+
+これらのいずれかがサーバーをブロックする場合、Claude Code はそれをスキップし、ブロックされたサーバーの名前を示す警告を表示します。
+
+管理設定の制限は、定義方法に関係なく、すべてのサブエージェントに適用されます。`--strict-mcp-config` は、`--agents` または SDK `agents` オプションを通じてインラインで渡すサーバーをフィルタリングしません。これらは明示的な呼び出し元入力であるためです。
+
 #### 権限モード
 
 `permissionMode` フィールドは、サブエージェントが権限プロンプトをどのように処理するかを制御します。サブエージェントはメイン会話から権限コンテキストを継承しますが、モードをオーバーライドできます。ただし、以下で説明するように、親モードが優先される場合があります。
