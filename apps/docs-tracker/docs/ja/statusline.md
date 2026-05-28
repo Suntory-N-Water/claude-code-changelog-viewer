@@ -157,7 +157,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `context_window.remaining_percentage` | 事前計算されたコンテキストウィンドウ残り割合 |
 | `context_window.current_usage` | 最後の API 呼び出しからのトークン数。[コンテキストウィンドウフィールド](#context-window-fields) で説明されています |
 | `exceeds_200k_tokens` | 最新の API レスポンスからの総トークン数（入力、キャッシュ、出力トークンの組み合わせ）が 200k を超えるかどうか。これは実際のコンテキストウィンドウサイズに関係なく固定閾値です。 |
-| `effort.level` | 現在の推論努力レベル（`low`、`medium`、`high`、`xhigh`、または `max`）。ライブセッション値を反映しており、セッション中の `/effort` 変更を含みます。現在のモデルが effort パラメータをサポートしていない場合は不在 |
+| `effort.level` | 現在の推論努力レベル（`low`、`medium`、`high`、`xhigh`、`max`、または `ultra`）。`ultra` 値は `/effort` の ultracode に対応します。フィールドは保存された値を報告し、表示ラベルではありません。ライブセッション値を反映しており、セッション中の `/effort` 変更を含みます。現在のモデルが effort パラメータをサポートしていない場合は不在 |
 | `thinking.enabled` | セッションで拡張思考が有効になっているかどうか |
 | `rate_limits.five_hour.used_percentage`、`rate_limits.seven_day.used_percentage` | 5 時間または 7 日のレート制限の消費割合（0～100） |
 | `rate_limits.five_hour.resets_at`、`rate_limits.seven_day.resets_at` | 5 時間または 7 日のレート制限ウィンドウがリセットされる Unix エポック秒 |

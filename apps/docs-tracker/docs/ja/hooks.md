@@ -534,7 +534,7 @@ macOS と Linux では、コマンド フックは v2.1.139 以降、制御端�
 | `transcript_path` | 会話 JSON へのパス |
 | `cwd` | フックが呼び出されるときの現在の作業ディレクトリ |
 | `permission_mode` | 現在の[権限モード](/ja/permissions#permission-modes): `"default"`、`"plan"`、`"acceptEdits"`、`"auto"`、`"dontAsk"`、または `"bypassPermissions"`。すべてのイベントがこのフィールドを受け取るわけではありません。各イベントの JSON 例を確認してください |
-| `effort` | アクティブな[努力レベル](/ja/model-config#adjust-effort-level)を保持する `level` フィールドを持つオブジェクト。ターンの場合: `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。リクエストされた努力レベルが現在のモデルがサポートしているものを超える場合、これはモデルが実際に使用したダウングレードされたレベルであり、リクエストしたレベルではありません。オブジェクトは[ステータス ライン](/ja/statusline#available-data)の `effort` フィールドと一致します。`PreToolUse`、`PostToolUse`、`Stop`、`SubagentStop` などのツール使用コンテキスト内で発火するイベント、および現在のモデルが努力パラメータをサポートする場合に存在します。レベルは、フック コマンドと Bash ツールに `$CLAUDE_EFFORT` 環境変数として利用可能です。 |
+| `effort` | アクティブな[努力レベル](/ja/model-config#adjust-effort-level)を保持する `level` フィールドを持つオブジェクト。ターンの場合: `"low"`、`"medium"`、`"high"`、`"xhigh"`、`"max"`、または `"ultra"`。リクエストされたモデル努力が現在のモデルがサポートしているものを超える場合、これはモデルが実際に使用したダウングレードされたレベルです。`"ultra"` は ultracode の保存値であり、モデルが `xhigh` を受け取る場合でもここで報告されます。オブジェクトは[ステータス ライン](/ja/statusline#available-data)の `effort` フィールドと一致します。`PreToolUse`、`PostToolUse`、`Stop`、`SubagentStop` などのツール使用コンテキスト内で発火するイベント、および現在のモデルが努力パラメータをサポートする場合に存在します。レベルは、フック コマンドと Bash ツールに `$CLAUDE_EFFORT` 環境変数として利用可能です。 |
 | `hook_event_name` | 発火したイベントの名前 |
 
 `--agent` で実行するか、サブエージェント内で実行する場合、2 つの追加フィールドが含まれます。
@@ -586,7 +586,7 @@ if [[ "$command" == rm* ]]; then
   exit 2  # ブロッキング エラー: ツール呼び出しが防止される
 fi
 
-exit 0  # 成功: ツール呼び出しが進行
+exit 0  # 決定なし: 通常の権限フローが適用される
 ```
 
 ほとんどのフック イベントでは、終了コード 2 のみがアクションをブロックします。Claude Code は終了コード 1 を非ブロッキング エラーとして扱い、1 が従来の Unix 失敗コードであっても、アクションを進行させます。フックがポリシーを実施することを目的としている場合は、`exit 2` を使用してください。例外は `WorktreeCreate` で、0 以外の終了コードはワークツリー作成を中止します。

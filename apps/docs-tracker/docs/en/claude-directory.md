@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/en/claude-directory.md
 
 # Explore the .claude directory
 
-> Where Claude Code reads CLAUDE.md, settings.json, hooks, skills, commands, subagents, rules, and auto memory. Explore the .claude directory in your project and \~/.claude in your home directory.
+> Where Claude Code reads CLAUDE.md, settings.json, hooks, skills, commands, subagents, workflows, rules, and auto memory. Explore the .claude directory in your project and \~/.claude in your home directory.
 
 Claude Code reads instructions, settings, skills, subagents, and memory from your project directory and from `~/.claude` in your home directory. Commit project files to git to share them with your team; files in `~/.claude` are personal configuration that applies across all your projects.
 
@@ -42,6 +42,7 @@ Different kinds of customization live in different files. Use this table to find
 | Keep personal overrides out of git | `settings.local.json` | project only | [Settings scopes](/en/settings#settings-files) |
 | Add a prompt or capability you invoke with `/name` | `skills/<name>/SKILL.md` | project or global | [Skills](/en/skills) |
 | Define a specialized subagent with its own tools | `agents/*.md` | project or global | [Subagents](/en/sub-agents) |
+| Orchestrate many subagents from a script | `workflows/*.js` | project or global | [Dynamic workflows](/en/workflows) |
 | Connect external tools over MCP | `.mcp.json` | project only | [MCP](/en/mcp) |
 | Change how Claude formats responses | `output-styles/*.md` | project or global | [Output styles](/en/output-styles) |
 
@@ -71,6 +72,7 @@ Click a filename to open that node in the explorer above.
 | [`commands/*.md`](#ce-commands) | Project and global | ✓ | Single-file prompts; same mechanism as skills | [Skills](/en/skills) |
 | [`output-styles/*.md`](#ce-output-styles) | Project and global | ✓ | Custom system-prompt sections | [Output styles](/en/output-styles) |
 | [`agents/*.md`](#ce-agents) | Project and global | ✓ | Subagent definitions with their own prompt and tools | [Subagents](/en/sub-agents) |
+| [`workflows/*.js`](#ce-workflows) | Project and global | ✓ | Dynamic workflow scripts written by Claude and saved from `/workflows`; each file becomes a `/<name>` command | [Dynamic workflows](/en/workflows) |
 | [`agent-memory/<name>/`](#ce-agent-memory) | Project and global | ✓ | Persistent memory for subagents | [Persistent memory](/en/sub-agents#enable-persistent-memory) |
 | [`~/.claude.json`](#ce-claude-json) | Global only | | App state, OAuth, UI toggles, personal MCP servers | [Global config](/en/settings#global-config-settings) |
 | [`projects/<project>/memory/`](#ce-global-projects) | Global only | | Auto memory: Claude's notes to itself across sessions | [Auto memory](/en/memory#auto-memory) |

@@ -180,6 +180,8 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 
 `low`、`medium`、`high`、`xhigh` はセッション全体で保持されます。`max` はトークン支出に制約がない最も深い推論を提供し、`CLAUDE_CODE_EFFORT_LEVEL` 環境変数を通じて設定された場合を除き、現在のセッションのみに適用されます。
 
+`/effort` メニューは `ultracode` も提供します。Ultracode はモデル努力レベルではなく Claude Code 設定です。モデルに `xhigh` を送信し、さらに Claude が実質的なタスク用に[動的ワークフロー](/ja/workflows)をオーケストレートします。現在のセッションのみに適用されます。`/effort` を通じて設定するか、`--settings` または Agent SDK 制御リクエストを通じて `"ultracode": true` を渡します。これは `effortLevel` 設定、`--effort` フラグ、`CLAUDE_CODE_EFFORT_LEVEL` の一部ではありません。
+
 #### 努力レベルの選択
 
 各レベルはトークン支出と機能をトレードオフします。デフォルトはほとんどのコーディングタスクに適しています。別のバランスが必要な場合は調整します。
@@ -191,6 +193,7 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 | `high` | トークン使用量とインテリジェンスのバランス。インテリジェンスに敏感な作業の最小値として使用するか、`xhigh` に対してトークン支出を削減するために使用 |
 | `xhigh` | ほとんどのコーディングおよび agentic coding タスクに最適な結果。Opus 4.7 での推奨デフォルト |
 | `max` | 難しいタスクのパフォーマンスを改善できますが、収益逓減を示す可能性があり、過度な思考の傾向があります。広く採用する前にテスト |
+| `ultracode` | 各実質的なタスク用に `xhigh` ごとのメッセージ推論で[動的ワークフロー](/ja/workflows)を計画する Claude Code 設定。セッションのみ |
 
 努力スケールはモデルごとに調整されるため、同じレベル名はモデル全体で同じ基盤値を表しません。
 
@@ -206,7 +209,7 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 - **`/model` 内**：モデルを選択する際に左右矢印キーを使用して努力スライダーを調整
 - **`--effort` フラグ**：Claude Code を起動する際にレベル名を渡して、単一セッションのレベルを設定
 - **環境変数**：`CLAUDE_CODE_EFFORT_LEVEL` をレベル名または `auto` に設定
-- **設定**：設定ファイルで `effortLevel` を `low`、`medium`、`high`、`xhigh` に設定します。`max` は[セッションのみ](#adjust-effort-level)であり、ここでは受け入れられません
+- **設定**：設定ファイルで `effortLevel` を `low`、`medium`、`high`、`xhigh` に設定します。`max` と `ultracode` は[セッションのみ](#adjust-effort-level)であり、ここでは受け入れられません
 - **Skill と subagent frontmatter**：[skill](/ja/skills#frontmatter-reference)または[subagent](/ja/sub-agents#supported-frontmatter-fields)markdown ファイルで `effort` を設定して、その skill または subagent が実行される際の努力レベルをオーバーライド
 
 環境変数がすべての他の方法より優先され、次に設定されたレベル、次にモデルのデフォルトが優先されます。Frontmatter 努力は、その skill または subagent がアクティブな場合に適用され、セッションレベルをオーバーライドしますが、環境変数はオーバーライドしません。
