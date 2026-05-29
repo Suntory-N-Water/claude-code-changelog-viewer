@@ -1,11 +1,13 @@
 import { vi } from 'vitest';
+import { CHANNEL_ACTIVE_SENTINEL } from '../../db/constants';
 import type { FakeD1Database } from './fake-d1';
 
 export type ChannelRow = {
   id: string;
   webhook_url: string;
   token: string;
-  is_active: number;
+  deactivated_at: string;
+  deactivated_reason: string;
   fail_count: number;
 };
 
@@ -31,7 +33,8 @@ type InsertDiscordWebhookParams = {
   id: string;
   webhookUrl: string;
   token: string;
-  isActive?: number;
+  deactivatedAt?: string;
+  deactivatedReason?: string;
   failCount?: number;
   frequency?: 'IMM' | 'WEK';
 };
@@ -44,17 +47,18 @@ export async function insertDiscordWebhook(
     id,
     webhookUrl,
     token,
-    isActive = 1,
+    deactivatedAt = CHANNEL_ACTIVE_SENTINEL,
+    deactivatedReason = 'none',
     failCount = 0,
     frequency = 'IMM',
   } = params;
 
   await db
     .prepare(
-      `INSERT INTO channels (id, channel_type, token, is_active, fail_count, created_at, updated_at)
-       VALUES (?, 'DSC', ?, ?, ?, '2026-01-01 00:00:00', '2026-01-01 00:00:00')`,
+      `INSERT INTO channels (id, channel_type, token, deactivated_at, deactivated_reason, fail_count, created_at, updated_at)
+       VALUES (?, 'DSC', ?, ?, ?, ?, '2026-01-01 00:00:00', '2026-01-01 00:00:00')`,
     )
-    .bind(id, token, isActive, failCount)
+    .bind(id, token, deactivatedAt, deactivatedReason, failCount)
     .run();
 
   await db
@@ -79,7 +83,7 @@ export async function findChannelByWebhookUrl(
 ): Promise<ChannelRow | null> {
   return db
     .prepare(
-      `SELECT c.id, d.webhook_url, c.token, c.is_active, c.fail_count
+      `SELECT c.id, d.webhook_url, c.token, c.deactivated_at, c.deactivated_reason, c.fail_count
        FROM channels c
        INNER JOIN discord_channels d ON c.id = d.channel_id
        WHERE d.webhook_url = ?`,
@@ -94,7 +98,7 @@ export async function findChannelByToken(
 ): Promise<ChannelRow | null> {
   return db
     .prepare(
-      `SELECT c.id, d.webhook_url, c.token, c.is_active, c.fail_count
+      `SELECT c.id, d.webhook_url, c.token, c.deactivated_at, c.deactivated_reason, c.fail_count
        FROM channels c
        INNER JOIN discord_channels d ON c.id = d.channel_id
        WHERE c.token = ?`,

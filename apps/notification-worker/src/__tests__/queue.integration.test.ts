@@ -106,12 +106,13 @@ describe('queueConsumer integration', () => {
       id: 'active-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      is_active: 1,
+      deactivated_at: '9999-12-31',
+      deactivated_reason: 'none',
       fail_count: 0,
     });
   });
 
-  it('恒久失敗が続くと fail_count が増えしきい値到達で channels.is_active が 0 になる', async () => {
+  it('恒久失敗が続くと fail_count が増えしきい値到達でチャンネルがシステム停止される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage({ version: 'v1.0.0' });
@@ -131,11 +132,10 @@ describe('queueConsumer integration', () => {
 
     // Assert(確認)
     expect(message.ack).toHaveBeenCalled();
-    expect(await findChannelByToken(db, 'active-token')).toEqual({
+    expect(await findChannelByToken(db, 'active-token')).toMatchObject({
       id: 'active-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
-      token: 'active-token',
-      is_active: 0,
+      deactivated_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}/),
+      deactivated_reason: 'system',
       fail_count: 3,
     });
   });
@@ -172,14 +172,14 @@ describe('queueConsumer integration', () => {
       id: 'success-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/success',
       token: 'success-token',
-      is_active: 1,
+      deactivated_at: '9999-12-31',
+      deactivated_reason: 'none',
       fail_count: 0,
     });
-    expect(await findChannelByToken(db, 'fail-token')).toEqual({
+    expect(await findChannelByToken(db, 'fail-token')).toMatchObject({
       id: 'fail-id',
-      webhook_url: 'https://discord.com/api/webhooks/123456/fail',
-      token: 'fail-token',
-      is_active: 0,
+      deactivated_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}/),
+      deactivated_reason: 'system',
       fail_count: 3,
     });
   });
@@ -257,7 +257,7 @@ describe('queueConsumer integration', () => {
     expect(message.ack).toHaveBeenCalled();
     expect(await findChannelByToken(db, 'success-token')).toMatchObject({
       fail_count: 0,
-      is_active: 1,
+      deactivated_at: '9999-12-31',
     });
   });
 });

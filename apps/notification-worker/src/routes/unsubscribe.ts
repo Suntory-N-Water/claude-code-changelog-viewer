@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
+import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
 import {
   channels,
   discordChannels,
@@ -127,7 +128,7 @@ async function findActiveChannel(
 
   const db = drizzle(c.env.DB);
   const rows = await db
-    .select({ isActive: channels.isActive })
+    .select({ deactivatedAt: channels.deactivatedAt })
     .from(channels)
     .where(eq(channels.token, token));
   const row = rows[0] ?? null;
@@ -146,7 +147,7 @@ async function findActiveChannel(
     };
   }
 
-  if (row.isActive === 0) {
+  if (row.deactivatedAt !== CHANNEL_ACTIVE_SENTINEL) {
     return {
       ok: false as const,
       response: c.html(
@@ -192,7 +193,11 @@ export const unsubscribeRoute = new Hono<{
 
     await db
       .update(channels)
-      .set({ isActive: 0, updatedAt: sql`datetime('now')` })
+      .set({
+        deactivatedAt: sql`datetime('now')`,
+        deactivatedReason: 'user',
+        updatedAt: sql`datetime('now')`,
+      })
       .where(eq(channels.token, lookup.token));
 
     try {

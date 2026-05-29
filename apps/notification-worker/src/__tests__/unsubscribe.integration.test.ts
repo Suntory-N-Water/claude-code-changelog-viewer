@@ -38,7 +38,7 @@ describe('/api/unsubscribe integration', () => {
     vi.clearAllMocks();
   });
 
-  it('有効な token で確認画面を開くと停止前の確認 HTML が返り channels.is_active は変わらない', async () => {
+  it('有効な token で確認画面を開くと停止前の確認 HTML が返り channels.deactivated_at は変わらない', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
@@ -46,7 +46,7 @@ describe('/api/unsubscribe integration', () => {
       id: 'active-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      isActive: 1,
+      deactivatedAt: '9999-12-31',
     });
 
     // Act(実行)
@@ -63,12 +63,13 @@ describe('/api/unsubscribe integration', () => {
       id: 'active-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      is_active: 1,
+      deactivated_at: '9999-12-31',
+      deactivated_reason: 'none',
       fail_count: 0,
     });
   });
 
-  it('有効な token で停止を実行すると channels.is_active が 0 になり停止通知が送信される', async () => {
+  it('有効な token で停止を実行するとチャンネルがユーザー停止になり停止通知が送信される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
@@ -81,7 +82,7 @@ describe('/api/unsubscribe integration', () => {
       id: 'active-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      isActive: 1,
+      deactivatedAt: '9999-12-31',
     });
 
     // Act(実行)
@@ -94,7 +95,8 @@ describe('/api/unsubscribe integration', () => {
       id: 'active-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      is_active: 0,
+      deactivated_at: expect.stringMatching(/^\d{4}-\d{2}-\d{2}/),
+      deactivated_reason: 'user',
       fail_count: 0,
     });
     expect(sendToDiscord).toHaveBeenCalledOnce();
@@ -104,7 +106,7 @@ describe('/api/unsubscribe integration', () => {
     );
   });
 
-  it('停止通知の送信が失敗しても停止 HTML が返り channels.is_active は 0 になる', async () => {
+  it('停止通知の送信が失敗しても停止 HTML が返りチャンネルはユーザー停止になる', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
@@ -118,7 +120,7 @@ describe('/api/unsubscribe integration', () => {
       id: 'active-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
-      isActive: 1,
+      deactivatedAt: '9999-12-31',
     });
 
     // Act(実行)
@@ -128,7 +130,7 @@ describe('/api/unsubscribe integration', () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toContain('通知を停止しました');
     expect(await findChannelByToken(db, 'active-token')).toMatchObject({
-      is_active: 0,
+      deactivated_reason: 'user',
     });
   });
 
@@ -162,7 +164,7 @@ describe('/api/unsubscribe integration', () => {
     expect(await response.text()).toContain('トークンが指定されていません');
   });
 
-  it('既に停止済みの token では停止済み画面が返り channels.is_active は 0 のまま', async () => {
+  it('既に停止済みの token では停止済み画面が返り deactivated_at は変わらない', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
@@ -175,7 +177,7 @@ describe('/api/unsubscribe integration', () => {
       id: 'inactive-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'inactive-token',
-      isActive: 0,
+      deactivatedAt: '2026-01-01 00:00:00',
     });
 
     // Act(実行)
@@ -188,7 +190,8 @@ describe('/api/unsubscribe integration', () => {
       id: 'inactive-id',
       webhook_url: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'inactive-token',
-      is_active: 0,
+      deactivated_at: '2026-01-01 00:00:00',
+      deactivated_reason: 'none',
       fail_count: 0,
     });
   });

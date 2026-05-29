@@ -54,12 +54,13 @@ export class FakeD1Database {
         id TEXT PRIMARY KEY,
         channel_type TEXT(3) NOT NULL,
         token TEXT NOT NULL UNIQUE,
-        is_active INTEGER NOT NULL DEFAULT 1,
+        deactivated_at TEXT NOT NULL DEFAULT '9999-12-31',
+        deactivated_reason TEXT NOT NULL DEFAULT 'none',
         fail_count INTEGER NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now'))
       );
-      CREATE INDEX idx_channels_is_active ON channels(is_active);
+      CREATE INDEX idx_channels_deactivated_at ON channels(deactivated_at);
 
       CREATE TABLE discord_channels (
         channel_id TEXT PRIMARY KEY,

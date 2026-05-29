@@ -79,7 +79,8 @@ describe('POST /api/webhooks integration', () => {
     expect(saved).toEqual({
       id: expect.any(String),
       webhook_url: validWebhookUrl,
-      is_active: 1,
+      deactivated_at: '9999-12-31',
+      deactivated_reason: 'none',
       fail_count: 0,
       token: expect.any(String),
     });
@@ -134,7 +135,7 @@ describe('POST /api/webhooks integration', () => {
       id: 'existing-id',
       webhookUrl: validWebhookUrl,
       token: 'existing-token',
-      isActive: 1,
+      deactivatedAt: '9999-12-31',
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
 
@@ -151,7 +152,8 @@ describe('POST /api/webhooks integration', () => {
       id: 'existing-id',
       webhook_url: validWebhookUrl,
       token: 'existing-token',
-      is_active: 1,
+      deactivated_at: '9999-12-31',
+      deactivated_reason: 'none',
       fail_count: 0,
     });
   });
@@ -164,7 +166,7 @@ describe('POST /api/webhooks integration', () => {
       id: 'existing-id',
       webhookUrl: validWebhookUrl,
       token: 'existing-token',
-      isActive: 0,
+      deactivatedAt: '2026-01-01 00:00:00',
       failCount: 2,
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
@@ -183,7 +185,8 @@ describe('POST /api/webhooks integration', () => {
       id: 'existing-id',
       webhook_url: validWebhookUrl,
       token: 'existing-token',
-      is_active: 1,
+      deactivated_at: '9999-12-31',
+      deactivated_reason: 'none',
       fail_count: 0,
     });
   });

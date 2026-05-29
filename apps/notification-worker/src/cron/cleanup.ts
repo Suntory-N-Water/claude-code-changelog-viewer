@@ -1,4 +1,4 @@
-import { and, eq, inArray, lt, sql } from 'drizzle-orm';
+import { inArray, lt, sql } from 'drizzle-orm';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
   channels,
@@ -12,15 +12,11 @@ export async function cleanupInactiveChannels(
   db: DrizzleD1Database<Record<string, never>>,
 ) {
   // 30日以上非アクティブなチャンネルのIDを取得
+  // deactivated_at が 30 日以上前 = 無効化済みかつ CHANNEL_ACTIVE_SENTINEL でない
   const inactiveChannels = await db
     .select({ id: channels.id })
     .from(channels)
-    .where(
-      and(
-        eq(channels.isActive, 0),
-        lt(channels.updatedAt, sql`(datetime('now', '-30 days'))`),
-      ),
-    );
+    .where(lt(channels.deactivatedAt, sql`(datetime('now', '-30 days'))`));
 
   if (inactiveChannels.length === 0) {
     return;
