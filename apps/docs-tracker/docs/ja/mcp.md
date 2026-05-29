@@ -48,7 +48,7 @@ Claude があなたのユースケースについて質問し、リモート HTT
 
 ## MCP サーバーのインストール
 
-MCP サーバーは、ニーズに応じて 3 つの異なる方法で設定できます：
+MCP サーバーは、ニーズに応じて複数の方法で設定できます：
 
 ### オプション 1：リモート HTTP サーバーを追加する
 
@@ -112,6 +112,19 @@ claude mcp add --transport stdio --env AIRTABLE_API_KEY=YOUR_KEY airtable \
 
 これにより、Claude のフラグとサーバーのフラグの間の競合を防ぎます。
 
+### オプション 4：リモート WebSocket サーバーを追加する
+
+WebSocket サーバーは永続的な双方向接続を保持し、Claude に予期しないイベントをプッシュするリモート MCP サーバーに適しています。サーバーがリクエストにのみ応答する場合は HTTP を使用してください。HTTP は OAuth と `claude mcp add --transport` フラグをサポートしていますが、WebSocket はどちらもサポートしていません。
+
+WebSocket サーバーを `.mcp.json` または `claude mcp add-json` で設定します：
+
+```bash
+claude mcp add-json events-server \
+  '{"type":"ws","url":"wss://mcp.example.com/socket","headers":{"Authorization":"Bearer YOUR_TOKEN"}}'
+```
+
+`type: "ws"` エントリは `http` と同じ `url`、`headers`、`headersHelper`、`timeout`、`alwaysLoad` フィールドを受け入れます。認証はヘッダーのみなので、`headers` に静的トークンを渡すか、[`headersHelper`](#use-dynamic-headers-for-custom-authentication) で接続時に生成してください。`claude mcp add --transport` フラグは `ws` を受け入れません。
+
 ### サーバーの管理
 
 設定後、これらのコマンドで MCP サーバーを管理できます：
@@ -129,6 +142,8 @@ claude mcp remove github
 # （Claude Code 内）サーバーのステータスを確認する
 /mcp
 ```
+
+`.mcp.json` からのプロジェクトスコープサーバーで承認待ちのものは、`claude mcp list` に `⏸ Pending approval` として表示されます。`claude` をインタラクティブに実行して、それらを確認して承認してください。`claude mcp get <name>` は保留中のサーバーを `⏸ Pending approval` として表示し、拒否されたサーバーを `✗ Rejected` として表示します。
 
 `/mcp` パネルは、接続されている各サーバーの横にツール数を表示し、ツール機能をアドバタイズしているが、ツールを公開していないサーバーにフラグを立てます。
 
@@ -212,7 +227,7 @@ MCP サーバーはセッションに直接メッセージをプッシュする�
 - **自動ライフサイクル**：セッション起動時に、有効なプラグインのサーバーが自動的に接続されます。セッション中にプラグインを有効または無効にする場合は、`/reload-plugins` を実行して MCP サーバーを接続または切断してください
 - **環境変数**：バンドルされたプラグインファイルに `${CLAUDE_PLUGIN_ROOT}` を使用し、プラグイン更新を通じて保持される [永続的な状態](/ja/plugins-reference#persistent-data-directory) に `${CLAUDE_PLUGIN_DATA}` を使用し、安定したプロジェクトルートに `${CLAUDE_PROJECT_DIR}` を使用します
 - **ユーザー環境アクセス**：手動で設定されたサーバーと同じ環境変数へのアクセス
-- **複数のトランスポートタイプ**：stdio、SSE、HTTP トランスポートをサポート（トランスポートサポートはサーバーによって異なる場合があります）
+- **複数のトランスポートタイプ**：stdio、SSE、HTTP、WebSocket トランスポートをサポート（トランスポートサポートはサーバーによって異なる場合があります）
 
 **プラグイン MCP サーバーの表示**：
 

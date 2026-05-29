@@ -139,7 +139,7 @@ Be concise and actionable.
 
 | フィールド | タイプ | 説明 | 例 |
 | :- | :- | :- | :- |
-| `name` | string | マーケットプレイス識別子（ケバブケース、スペースなし）。これは公開向けです。ユーザーはプラグインをインストールするときに表示されます（例：`/plugin install my-tool@your-marketplace`）。 | `"acme-tools"` |
+| `name` | string | マーケットプレイス識別子（ケバブケース、スペースなし）。これは公開向けです。ユーザーはプラグインをインストールするときに表示されます（例：`/plugin install my-tool@your-marketplace`）。各ユーザーは、マーケットプレイス名ごとに 1 つのマーケットプレイスのみを登録できます。同じ名前の 2 番目のマーケットプレイスを追加すると、最初のマーケットプレイスが置き換わります。1 つのマーケットプレイス名の下に複数のプラグインを公開するには、すべてを [単一の `marketplace.json`](#create-the-marketplace-file) にリストします。 | `"acme-tools"` |
 | `owner` | object | マーケットプレイスメンテナー情報（[以下のフィールドを参照](#owner-fields)） | |
 | `plugins` | array | 利用可能なプラグインのリスト | 以下を参照 |
 
@@ -192,6 +192,7 @@ Be concise and actionable.
 | `category` | string | 整理用のプラグインカテゴリ |
 | `tags` | array | 検索可能性用のタグ |
 | `strict` | boolean | `plugin.json` がコンポーネント定義の権限であるかどうかを制御します（デフォルト：true）。以下の[厳密モード](#strict-mode)を参照してください。 |
+| `defaultEnabled` | boolean | プラグインがインストール後に有効になるかどうか（デフォルト：true）。ユーザーがオプトインするまでプラグインを無効にしてインストールする場合は `false` に設定します。プラグインの `plugin.json` 内の同じフィールドより優先されます。[デフォルト有効化](/ja/plugins-reference#default-enablement)を参照してください。Claude Code v2.1.154 以降が必要です。 |
 
 **コンポーネント設定フィールド：**
 
@@ -871,6 +872,8 @@ claude plugin marketplace list [options]
 | オプション | 説明 |
 | :- | :- |
 | `--json` | JSON として出力 |
+
+`--json` を使用すると、各エントリには `name`、`source`、およびソース固有のフィールドが含まれます：GitHub ソースの場合は `repo`、Git および URL ソースの場合は `url`、ローカルソースの場合は `path`。GitHub および Git ソースには、マーケットプレイスが固定されたブランチまたはタグで追加された場合、`ref` フィールドも含まれます。
 
 ### プラグインマーケットプレイス削除
 
