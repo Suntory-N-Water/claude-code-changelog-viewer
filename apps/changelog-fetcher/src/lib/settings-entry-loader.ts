@@ -126,14 +126,6 @@ function isLikelyPublicEnvName(value: string): boolean {
   );
 }
 
-export async function loadBuiltinEnvNames(
-  builtinEnvsJsonPath: string,
-): Promise<Set<string>> {
-  const raw = await fs.readFile(builtinEnvsJsonPath, 'utf-8');
-  const parsed = JSON.parse(raw) as string[];
-  return new Set(parsed.filter(isEnvName));
-}
-
 function stripMarkdown(value: string): string {
   return value
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
@@ -144,7 +136,6 @@ function stripMarkdown(value: string): string {
 
 function parseEnvTableRows(
   markdown: string,
-  builtinEnvNames: Set<string>,
   opts: { environmentTableOnly?: boolean } = {},
 ) {
   const entries: RawEntry[] = [];
@@ -170,7 +161,7 @@ function parseEnvTableRows(
     }
 
     const match = trimmed.match(/^\|\s*`([A-Z_][A-Z0-9_]*)`\s*\|(.+)$/);
-    if (!match?.[1] || !match[2] || !builtinEnvNames.has(match[1])) {
+    if (!match?.[1] || !match[2]) {
       continue;
     }
 
@@ -191,7 +182,7 @@ function parseEnvTableRows(
         /`([A-Z_][A-Z0-9_]*)`/g,
       )) {
         const key = aliasMatch[1];
-        if (key && key !== match[1] && builtinEnvNames.has(key)) {
+        if (key && key !== match[1]) {
           entries.push({
             key,
             leaf_name: key,
@@ -212,15 +203,13 @@ function parseEnvTableRows(
  */
 export async function parseEnvVarsMd(
   envVarsMdPath: string,
-  builtinEnvNames: Set<string>,
 ): Promise<RawEntry[]> {
   const raw = await fs.readFile(envVarsMdPath, 'utf-8');
-  return parseEnvTableRows(raw, builtinEnvNames);
+  return parseEnvTableRows(raw);
 }
 
 export async function parsePublicEnvEntriesFromDocs(
   docsEnDir: string,
-  builtinEnvNames: Set<string>,
 ): Promise<RawEntry[]> {
   const files = globSync('**/*.md', { cwd: docsEnDir })
     .map(String)
@@ -231,21 +220,14 @@ export async function parsePublicEnvEntriesFromDocs(
 
   for (const file of files) {
     const raw = await fs.readFile(file, 'utf-8');
-    entries.push(
-      ...parseEnvTableRows(raw, builtinEnvNames, {
-        environmentTableOnly: true,
-      }),
-    );
-    entries.push(...extractPublicEnvMentions(raw, builtinEnvNames));
+    entries.push(...parseEnvTableRows(raw, { environmentTableOnly: true }));
+    entries.push(...extractPublicEnvMentions(raw));
   }
 
   return entries;
 }
 
-function extractPublicEnvMentions(
-  markdown: string,
-  builtinEnvNames: Set<string>,
-): RawEntry[] {
+function extractPublicEnvMentions(markdown: string): RawEntry[] {
   const entries: RawEntry[] = [];
   const lines = markdown.split('\n');
 
@@ -255,7 +237,7 @@ function extractPublicEnvMentions(
       continue;
     }
 
-    const keys = extractPublicEnvKeysFromLine(trimmed, builtinEnvNames);
+    const keys = extractPublicEnvKeysFromLine(trimmed);
     if (keys.length === 0) {
       continue;
     }
@@ -274,17 +256,14 @@ function extractPublicEnvMentions(
   return entries;
 }
 
-function extractPublicEnvKeysFromLine(
-  line: string,
-  builtinEnvNames: Set<string>,
-): string[] {
+function extractPublicEnvKeysFromLine(line: string): string[] {
   const keys = new Set<string>();
   const envPhrase =
     /Claude Code[^.]*\b(?:uses|reads|exports|injects|forwards|inherits)|\b(?:CLI|SDK)[^.]*\b(?:uses|reads|exports|injects|forwards|inherits)|\b(?:Claude Code|CLI|SDK)[^.]*\brequires/i;
   if (envPhrase.test(line)) {
     for (const match of line.matchAll(/`([A-Z_][A-Z0-9_]*)(?:=[^`]*)?`/g)) {
       const key = match[1];
-      if (key && builtinEnvNames.has(key) && isLikelyPublicEnvName(key)) {
+      if (key && isLikelyPublicEnvName(key)) {
         keys.add(key);
       }
     }
@@ -322,7 +301,6 @@ function findNearbyDescription(
 
 export function findUnmergedPublicEnvMentions(
   docsEnDir: string,
-  builtinEnvNames: Set<string>,
   mergedEnvEntries: RawEntry[],
 ): string[] {
   const mergedKeys = new Set(mergedEnvEntries.map((entry) => entry.key));
@@ -336,11 +314,7 @@ export function findUnmergedPublicEnvMentions(
     const raw = readFileSync(file, 'utf-8');
     for (const match of raw.matchAll(/\b[A-Z_][A-Z0-9_]*\b/g)) {
       const key = match[0];
-      if (
-        builtinEnvNames.has(key) &&
-        !mergedKeys.has(key) &&
-        isLikelyPublicEnvName(key)
-      ) {
+      if (!mergedKeys.has(key) && isLikelyPublicEnvName(key)) {
         publicKeys.add(key);
       }
     }

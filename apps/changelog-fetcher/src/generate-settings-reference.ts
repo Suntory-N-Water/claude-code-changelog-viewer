@@ -8,7 +8,6 @@ import {
 } from './lib/settings-related-context';
 import {
   findUnmergedPublicEnvMentions,
-  loadBuiltinEnvNames,
   mergeEnvEntries,
   parseEnvVarsMd,
   parsePublicEnvEntriesFromDocs,
@@ -49,13 +48,6 @@ const DOCS_EN_DIR = path.join(
   'docs',
   'en',
 );
-const BUILTIN_ENVS_JSON_PATH = path.join(
-  PROJECT_ROOT,
-  'apps',
-  'changelog-fetcher',
-  'builtin-data',
-  'envs.json',
-);
 const INFERRED_DIR = path.join(process.cwd(), 'inferred');
 const OUTPUT_DIR = path.join(process.cwd(), 'settings');
 
@@ -75,17 +67,11 @@ async function main() {
   const { settings: schemaSettings, envFromSchema: schemaEnvEntries } =
     await parseSettingsSchema(SCHEMA_PATH);
 
-  log.info('組み込み環境変数一覧を読み込み中...');
-  const builtinEnvNames = await loadBuiltinEnvNames(BUILTIN_ENVS_JSON_PATH);
-
   log.info('env-vars.md を解析中...');
-  const mdEnvEntries = await parseEnvVarsMd(ENV_VARS_MD_PATH, builtinEnvNames);
+  const mdEnvEntries = await parseEnvVarsMd(ENV_VARS_MD_PATH);
 
   log.info('docs/en から公開環境変数を解析中...');
-  const docsEnvEntries = await parsePublicEnvEntriesFromDocs(
-    DOCS_EN_DIR,
-    builtinEnvNames,
-  );
+  const docsEnvEntries = await parsePublicEnvEntriesFromDocs(DOCS_EN_DIR);
 
   const mergedEnvEntries = mergeEnvEntries(
     mdEnvEntries,
@@ -99,7 +85,6 @@ async function main() {
 
   const unmergedPublicEnvMentions = findUnmergedPublicEnvMentions(
     DOCS_EN_DIR,
-    builtinEnvNames,
     mergedEnvEntries,
   );
   if (unmergedPublicEnvMentions.length > 0) {
