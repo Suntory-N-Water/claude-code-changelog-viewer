@@ -192,6 +192,7 @@ Each plugin entry in the `plugins` array describes a plugin and where to find it
 | `category` | string | Plugin category for organization |
 | `tags` | array | Tags for searchability |
 | `strict` | boolean | Controls whether `plugin.json` is the authority for component definitions (default: true). See [Strict mode](#strict-mode) below. |
+| `defaultEnabled` | boolean | Whether the plugin is enabled after install (default: true). Set to `false` to install the plugin disabled until the user opts in. Takes precedence over the same field in the plugin's `plugin.json`. See [Default enablement](/en/plugins-reference#default-enablement). Requires Claude Code v2.1.154 or later. |
 
 **Component configuration fields:**
 
@@ -871,6 +872,8 @@ claude plugin marketplace list [options]
 | Option | Description |
 | :- | :- |
 | `--json` | Output as JSON |
+
+With `--json`, each entry includes `name`, `source`, and source-specific fields: `repo` for GitHub sources, `url` for git and URL sources, and `path` for local sources. GitHub and git sources also include a `ref` field when the marketplace was added with a pinned branch or tag.
 
 ### Plugin marketplace remove
 
