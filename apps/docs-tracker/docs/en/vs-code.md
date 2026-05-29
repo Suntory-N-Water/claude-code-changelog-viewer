@@ -274,7 +274,7 @@ Add `"$schema": "https://json.schemastore.org/claude-code-settings.json"` to you
 | `usePythonEnvironment` | `true` | Activate the workspace's Python environment when running Claude. Requires the Python extension. |
 | `environmentVariables` | `[]` | Set environment variables for the Claude process. Use Claude Code settings instead for shared config. |
 | `disableLoginPrompt` | `false` | Skip authentication prompts (for third-party provider setups) |
-| `allowDangerouslySkipPermissions` | `false` | Adds [Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) and Bypass permissions to the mode selector. Auto mode has [plan, admin, model, and provider requirements](/en/permission-modes#eliminate-prompts-with-auto-mode), so it may remain unavailable even with this toggle on. Use Bypass permissions only in sandboxes with no internet access. |
+| `allowDangerouslySkipPermissions` | `false` | Adds Bypass permissions to the mode selector. Use it only in sandboxes with no internet access. |
 | `claudeProcessWrapper` | - | Executable used to launch the Claude process. The bundled binary path is passed as an argument when present. Set this to a separately installed `claude` binary if the extension build doesn't include one for your platform. |
 
 ## VS Code extension vs. Claude Code CLI
