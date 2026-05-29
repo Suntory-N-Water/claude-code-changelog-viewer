@@ -40,6 +40,12 @@ resource "cloudflare_ruleset" "block_suspicious_crawlers" {
       expression  = "(http.request.uri.path contains \".php\" or http.request.uri.path contains \"/wp-admin\" or http.request.uri.path contains \"/wp-login\")"
       description = "PHPシェル・WordPressスキャナー - 非PHPサイトへのプローブ"
       enabled     = true
+    },
+    {
+      action      = "block"
+      expression  = "(ip.src in {216.73.162.14 136.144.17.4})"
+      description = "UA偽装PHPウェブシェルスキャナー"
+      enabled     = true
     }
   ]
 }
