@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { CHANNEL_ACTIVE_SENTINEL } from './constants';
 
 // スーパータイプ: 全チャンネル共通情報
 export const channels = sqliteTable(
@@ -10,12 +11,20 @@ export const channels = sqliteTable(
       .notNull()
       .$type<'DSC' | 'SLK' | 'EML'>(),
     token: text('token').notNull().unique(),
-    isActive: integer('is_active').notNull().default(1),
+    // CHANNEL_ACTIVE_SENTINEL = 有効中、それ以外 = 無効化日時
+    deactivatedAt: text('deactivated_at')
+      .notNull()
+      .default(CHANNEL_ACTIVE_SENTINEL),
+    // 'none' = 有効中、'user' = ユーザー停止、'system' = 失敗閾値超過
+    deactivatedReason: text('deactivated_reason')
+      .notNull()
+      .default('none')
+      .$type<'none' | 'user' | 'system'>(),
     failCount: integer('fail_count').notNull().default(0),
     createdAt: text('created_at').notNull().default(sql`(datetime('now'))`),
     updatedAt: text('updated_at').notNull().default(sql`(datetime('now'))`),
   },
-  (table) => [index('idx_channels_is_active').on(table.isActive)],
+  (table) => [index('idx_channels_deactivated_at').on(table.deactivatedAt)],
 );
 
 // サブタイプ: Discord 固有情報

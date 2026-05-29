@@ -2,6 +2,7 @@ import { eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
 import {
   channels,
   discordChannels,
@@ -75,14 +76,14 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
         .select({
           channelId: channels.id,
           token: channels.token,
-          isActive: channels.isActive,
+          deactivatedAt: channels.deactivatedAt,
         })
         .from(discordChannels)
         .innerJoin(channels, eq(discordChannels.channelId, channels.id))
         .where(eq(discordChannels.webhookUrl, data.webhook_url));
       const existing = rows[0] ?? null;
 
-      if (existing?.isActive === 1) {
+      if (existing?.deactivatedAt === CHANNEL_ACTIVE_SENTINEL) {
         return c.json({ error: '既に登録済みです' }, 409);
       }
 
@@ -100,7 +101,12 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       if (existing) {
         await db
           .update(channels)
-          .set({ isActive: 1, failCount: 0, updatedAt: sql`datetime('now')` })
+          .set({
+            deactivatedAt: CHANNEL_ACTIVE_SENTINEL,
+            deactivatedReason: 'none',
+            failCount: 0,
+            updatedAt: sql`datetime('now')`,
+          })
           .where(eq(channels.id, existing.channelId));
         return c.json({ success: true });
       }
@@ -126,14 +132,14 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
         .select({
           channelId: channels.id,
           token: channels.token,
-          isActive: channels.isActive,
+          deactivatedAt: channels.deactivatedAt,
         })
         .from(slackChannels)
         .innerJoin(channels, eq(slackChannels.channelId, channels.id))
         .where(eq(slackChannels.webhookUrl, data.webhook_url));
       const existing = rows[0] ?? null;
 
-      if (existing?.isActive === 1) {
+      if (existing?.deactivatedAt === CHANNEL_ACTIVE_SENTINEL) {
         return c.json({ error: '既に登録済みです' }, 409);
       }
 
@@ -151,7 +157,12 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       if (existing) {
         await db
           .update(channels)
-          .set({ isActive: 1, failCount: 0, updatedAt: sql`datetime('now')` })
+          .set({
+            deactivatedAt: CHANNEL_ACTIVE_SENTINEL,
+            deactivatedReason: 'none',
+            failCount: 0,
+            updatedAt: sql`datetime('now')`,
+          })
           .where(eq(channels.id, existing.channelId));
         return c.json({ success: true });
       }
@@ -186,14 +197,14 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       .select({
         channelId: channels.id,
         token: channels.token,
-        isActive: channels.isActive,
+        deactivatedAt: channels.deactivatedAt,
       })
       .from(emailChannels)
       .innerJoin(channels, eq(emailChannels.channelId, channels.id))
       .where(eq(emailChannels.emailHash, emailHash));
     const existing = rows[0] ?? null;
 
-    if (existing?.isActive === 1) {
+    if (existing?.deactivatedAt === CHANNEL_ACTIVE_SENTINEL) {
       return c.json({ error: '既に登録済みです' }, 409);
     }
 
@@ -212,7 +223,12 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     if (existing) {
       await db
         .update(channels)
-        .set({ isActive: 1, failCount: 0, updatedAt: sql`datetime('now')` })
+        .set({
+          deactivatedAt: CHANNEL_ACTIVE_SENTINEL,
+          deactivatedReason: 'none',
+          failCount: 0,
+          updatedAt: sql`datetime('now')`,
+        })
         .where(eq(channels.id, existing.channelId));
       return c.json({ success: true });
     }

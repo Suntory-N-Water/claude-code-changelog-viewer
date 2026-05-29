@@ -3,6 +3,7 @@ import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { and, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { z } from 'zod';
+import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
 import {
   channels,
   discordChannels,
@@ -28,10 +29,10 @@ const logger = getLogger({
 const GITHUB_RAW_BASE =
   'https://raw.githubusercontent.com/Suntory-N-Water/claude-code-changelog-viewer/main/apps/changelog-fetcher/inferred';
 
-// 失敗で is_active=0 にする閾値
+// 失敗で deactivated_at を更新する閾値
 const MAX_FAIL_COUNT = 3;
 
-// 送信失敗時に is_active=0 にする HTTP ステータス
+// 送信失敗時に deactivated_at を更新する HTTP ステータス
 const PERMANENT_FAILURE_STATUSES = [401, 403, 404];
 
 const NotificationMessageSchema = z.object({
@@ -115,7 +116,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           )
           .where(
             and(
-              eq(channels.isActive, 1),
+              eq(channels.deactivatedAt, CHANNEL_ACTIVE_SENTINEL),
               eq(notificationSettings.frequency, 'IMM'),
             ),
           );
@@ -137,7 +138,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           )
           .where(
             and(
-              eq(channels.isActive, 1),
+              eq(channels.deactivatedAt, CHANNEL_ACTIVE_SENTINEL),
               eq(notificationSettings.frequency, 'IMM'),
             ),
           );
@@ -159,7 +160,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           )
           .where(
             and(
-              eq(channels.isActive, 1),
+              eq(channels.deactivatedAt, CHANNEL_ACTIVE_SENTINEL),
               eq(notificationSettings.frequency, 'IMM'),
             ),
           );
@@ -227,16 +228,20 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
                 .update(channels)
                 .set({
                   failCount: sql`${channels.failCount} + 1`,
-                  isActive: sql`CASE WHEN ${channels.failCount} + 1 >= ${MAX_FAIL_COUNT} THEN 0 ELSE ${channels.isActive} END`,
+                  deactivatedAt: sql`CASE WHEN ${channels.failCount} + 1 >= ${MAX_FAIL_COUNT} THEN datetime('now') ELSE ${channels.deactivatedAt} END`,
+                  deactivatedReason: sql`CASE WHEN ${channels.failCount} + 1 >= ${MAX_FAIL_COUNT} THEN 'system' ELSE ${channels.deactivatedReason} END`,
                   updatedAt: sql`datetime('now')`,
                 })
                 .where(eq(channels.id, webhook.id))
                 .returning({
                   failCount: channels.failCount,
-                  isActive: channels.isActive,
+                  deactivatedAt: channels.deactivatedAt,
                 });
 
-              if (updateResult && updateResult.isActive === 0) {
+              if (
+                updateResult &&
+                updateResult.deactivatedAt !== CHANNEL_ACTIVE_SENTINEL
+              ) {
                 logger.warn('チャンネルを無効化', {
                   channelId: webhook.id,
                   failCount: updateResult.failCount,

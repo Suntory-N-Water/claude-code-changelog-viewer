@@ -1,0 +1,1 @@
+export const CHANNEL_ACTIVE_SENTINEL = '9999-12-31';
