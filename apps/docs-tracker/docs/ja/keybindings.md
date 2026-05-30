@@ -113,7 +113,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `chat:undo` | Ctrl+\_、Ctrl+Shift+- | 最後のアクションを元に戻す |
 | `chat:externalEditor` | Ctrl+G、Ctrl+X Ctrl+E | 外部エディタで開く |
 | `chat:stash` | Ctrl+S | 現在のプロンプトを保存 |
-| `chat:imagePaste` | Ctrl+V（Windows では Alt+V） | 画像を貼り付け |
+| `chat:imagePaste` | Ctrl+V（Windows では Alt+V） | クリップボードから画像を貼り付けます。WSL では、両方のショートカットがデフォルトでバインドされています |
 
 \*VT モードなし（Node \<24.2.0/\<22.17.0、Bun \<1.2.23）の Windows では、デフォルトは Meta+M です。
 
@@ -150,7 +150,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
-| `permission:toggleDebug` | （アンバインド） | 権限デバッグ情報を切り替え。Ctrl+D の以前のデフォルトは v2.1.146 で削除されました。これは `app:exit` をシャドウしていたためです |
+| `permission:toggleDebug` | （アンバインド） | 権限デバッグ情報を切り替えます。Ctrl+D の以前のデフォルトは v2.1.146 で削除されました。これは `app:exit` をシャドウしていたためです |
 
 ### トランスクリプトアクション
 

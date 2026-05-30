@@ -100,9 +100,13 @@ What did I change?
 
 スキルがレベル全体で同じ名前を共有する場合、enterprise は personal をオーバーライドし、personal はプロジェクトをオーバーライドします。プラグインスキルは `plugin-name:skill-name` 名前空間を使用するため、他のレベルと競合することはできません。`.claude/commands/` にファイルがある場合、それらは同じように機能しますが、スキルとコマンドが同じ名前を共有する場合、スキルが優先されます。
 
+スキルフォルダに `.claude-plugin/plugin.json` を追加すると、`<name>@skills-dir` という名前の[プラグイン](/ja/plugins-reference#skills-directory-plugins)として読み込まれるため、エージェント、hooks、および MCP サーバーをバンドルできます。プロジェクトの `.claude/skills/` では、これはまずワークスペーストラストダイアログを受け入れる必要があります。
+
 #### ライブ変更検出
 
 Claude Code はスキルディレクトリのファイル変更を監視します。`~/.claude/skills/`、プロジェクト `.claude/skills/`、または `--add-dir` ディレクトリ内の `.claude/skills/` の下でスキルを追加、編集、または削除すると、再起動せずに現在のセッション内で有効になります。セッション開始時に存在しなかった最上位のスキルディレクトリを作成するには、Claude Code を再起動して新しいディレクトリを監視できるようにする必要があります。
+
+ライブ変更検出は `SKILL.md` テキストのみをカバーします。スキルフォルダが[プラグイン](/ja/plugins-reference#skills-directory-plugins)でもある場合、`hooks/`、`.mcp.json`、`agents/`、および `output-styles/` への変更は `/reload-plugins` で有効になる必要があります。
 
 #### 親ディレクトリとネストされたディレクトリからの自動検出
 

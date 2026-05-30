@@ -138,7 +138,7 @@ Agent SDK および `-p` で開始された非対話型セッションでは、C
 
 #### スパン階層
 
-各ユーザープロンプトは `claude_code.interaction` ルートスパンを開始します。API 呼び出し、ツール呼び出し、フック実行はその子として記録されます。ツールスパンには 2 つの子スパンがあります: 1 つは権限決定の待機に費やされた時間用、もう 1 つは実行自体用です。Task ツールがサブエージェントを生成する場合、サブエージェントの API とツールスパンは親の `claude_code.tool` スパンの下にネストされます。
+各ユーザープロンプトは `claude_code.interaction` ルートスパンを開始します。API 呼び出し、ツール呼び出し、フック実行はその子として記録されます。ツールスパンには 2 つの子スパンがあります: 1 つは権限決定の待機に費やされた時間用、もう 1 つは実行自体用です。Agent ツール、またはレガシー Task ツールがサブエージェントを生成する場合、サブエージェントの API とツールスパンは親の `claude_code.tool` スパンの下にネストされます。
 
 ```text
 claude_code.interaction
@@ -147,7 +147,7 @@ claude_code.interaction
 └── claude_code.tool
     ├── claude_code.tool.blocked_on_user
     ├── claude_code.tool.execution
-    └── (Task ツール) サブエージェント claude_code.llm_request / claude_code.tool スパン
+    └── (Agent ツール) サブエージェント claude_code.llm_request / claude_code.tool スパン
 ```
 
 Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境に設定されている場合、`claude_code.interaction` 自体が呼び出し元のスパンの子になります。
@@ -208,7 +208,7 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `file_path` | Read、Edit、Write ツールのターゲットファイルパス | `OTEL_LOG_TOOL_DETAILS` |
 | `full_command` | Bash ツールのコマンド文字列 | `OTEL_LOG_TOOL_DETAILS` |
 | `skill_name` | Skill ツールのスキル名 | `OTEL_LOG_TOOL_DETAILS` |
-| `subagent_type` | Task ツールのサブエージェントタイプ | `OTEL_LOG_TOOL_DETAILS` |
+| `subagent_type` | Agent ツールまたはレガシー Task ツールのサブエージェントタイプ | `OTEL_LOG_TOOL_DETAILS` |
 
 `OTEL_LOG_TOOL_CONTENT=1` の場合、このスパンは、属性にツールの入力と出力ボディを含む `tool.output` スパンイベントも記録します。属性ごとに 60 KB で切り詰められます。
 
@@ -557,9 +557,10 @@ Claude Code は、OpenTelemetry ログ/イベント経由で以下のイベン�
 - `mcp_server_scope`: MCP サーバースコープ識別子 (MCP ツール用)
 - `tool_parameters` (`OTEL_LOG_TOOL_DETAILS=1` の場合): ツール固有のパラメーターを含む JSON 文字列:
   - Bash ツールの場合: `bash_command`、`full_command`、`timeout`、`description`、`dangerouslyDisableSandbox`、および `git_commit_id` (git commit コマンドが成功した場合のコミット SHA) を含む
+  - WorkspaceBash ツールの場合: `bash_command`、`full_command`、`timeout` を含む
   - MCP ツール: `mcp_server_name`、`mcp_tool_name` を含む
   - Skill ツール: `skill_name` を含む
-  - Task ツール: `subagent_type` を含む
+  - Agent ツールまたはレガシー Task ツール: `subagent_type` を含む
 - `tool_input` (`OTEL_LOG_TOOL_DETAILS=1` の場合): JSON シリアル化されたツール引数。512 文字を超える個別の値は切り詰められ、全体のペイロードは約 4 K 文字に制限されます。すべてのツール (MCP ツールを含む) に適用されます。
 
 #### API リクエストイベント
@@ -671,6 +672,12 @@ Claude への API リクエストが失敗するときにログされます。
   - `"user_temporary"`: ユーザーが権限プロンプトで「はい」を選択した場合、またはファイル編集または読み取りプロンプトで「このセッション中は...」オプションのいずれかを選択した場合に出力されます。インタラクティブ CLI では、その選択自体に対してのみ出力されます。後でそのセッションスコープの許可に一致する呼び出しは代わりに `"config"` を出力します。Agent SDK または非インタラクティブ `-p` セッションでは、選択と後の一致の両方が `"user_temporary"` を出力します。受け入れとして扱われます。
   - `"user_abort"`: ユーザーが権限プロンプトを回答なしで閉じた場合に出力されます。拒否として扱われます。
   - `"user_reject"`: ユーザーがプロンプトされたときに「いいえ」を選択した場合に出力されます。インタラクティブ CLI では、その選択自体に対してのみ出力されます。ユーザーの個人設定内の拒否ルールに一致する呼び出しは代わりに `"config"` を出力します。Agent SDK または非インタラクティブ `-p` セッションでは、個人設定内の拒否ルールに一致する呼び出しは `"user_reject"` を出力します。拒否として扱われます。
+- `tool_parameters` (`OTEL_LOG_TOOL_DETAILS=1` の場合): ツール固有のパラメーターを含む JSON 文字列。[ツール結果イベント](#tool-result-event)と同じ形状ですが、`git_commit_id` などの実行後フィールドを除きます。受け入れられた呼び出しの場合、`tool_result` と値が異なる場合があります。権限決定が `updatedInput` を介してツール入力を書き直す場合。この属性を使用して、`decision` が `"reject"` の場合にどのコマンドが拒否されたかを確認します。
+  - Bash ツールの場合: `bash_command`、`full_command`、`timeout`、`description`、`dangerouslyDisableSandbox` を含む
+  - WorkspaceBash ツールの場合: `bash_command`、`full_command`、`timeout` を含む
+  - MCP ツール: `mcp_server_name`、`mcp_tool_name` を含む
+  - Skill ツール: `skill_name` を含む
+  - Agent ツールまたはレガシー Task ツール: `subagent_type` を含む
 
 #### 権限モード変更イベント
 
@@ -1007,15 +1014,15 @@ Claude Code は失敗した API リクエストを内部的に再試行し、あ
 
 ## 監査セキュリティイベント
 
-OpenTelemetry イベントは Claude Code アクティビティの監査データソースです。すべてのイベントは、ツール呼び出し、MCP アクティビティ、権限決定をそれらをトリガーしたユーザーに結び付ける ID 属性を持ち、OTLP ログエクスポーターは、これらのイベントを OTLP レシーバーを持つセキュリティ情報およびイベント管理 (SIEM) プラットフォーム、または SIEM にフォワードする OpenTelemetry Collector に配信できます。
+OpenTelemetry イベントは Claude Code アクティビティの監査データソースです。すべてのイベントは、ツール呼び出し、MCP アクティビティ、権限決定をそれらをトリガーしたユーザーに結び付ける ID 属性を持ち、OTLP ログエクスポーターは、これらのイベントを OTLP レシーバーを持つセキュリティ情報およびイベント管理（SIEM）プラットフォーム、または SIEM にフォワードする OpenTelemetry Collector に配信できます。
 
 ### 属性アクションをユーザーに関連付ける
 
-各イベントの [標準属性](#standard-attributes)には、認証されたユーザーの ID が含まれます: Claude アカウントでサインインしている場合は `user.email`、`user.account_uuid`、`user.account_id`、および `organization.id`、さらにインストールスコープの `user.id` とセッションごとの `session.id`。
+各イベントの [標準属性](#standard-attributes) には、認証されたユーザーの ID が含まれます：Claude アカウントでサインインしている場合は `user.email`、`user.account_uuid`、`user.account_id`、および `organization.id`、さらにインストールスコープの `user.id` とセッションごとの `session.id`。
 
 MCP ツール呼び出し、Bash コマンド、ファイル編集は、セッションを開始した開発者に属性付けられます。Claude Code は個別のサービスアカウントの下では機能しません。各イベントに記録される ID は、開発者自身の Claude アカウントです。
 
-Claude Code が直接 API キーで認証する場合、または Bedrock、Vertex AI、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration)ファイルまたはローンチラッパーを通じてユーザーごとに設定します:
+Claude Code が直接 API キーで認証する場合、または Bedrock、Vertex AI、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration) ファイルまたはローンチラッパーを通じてユーザーごとに設定します：
 
 ```bash
 export OTEL_RESOURCE_ATTRIBUTES="enduser.id=jdoe@example.com,enduser.directory_id=S-1-5-21-..."
@@ -1023,35 +1030,39 @@ export OTEL_RESOURCE_ATTRIBUTES="enduser.id=jdoe@example.com,enduser.directory_i
 
 ### MCP アクティビティを監査する
 
-完全なコール詳細で MCP サーバーアクティビティをキャプチャするには、ログエクスポーターを有効にし、`OTEL_LOG_TOOL_DETAILS=1` を設定します。その後、各 MCP 操作は、標準 ID 属性と共にサーバー名、ツール名、呼び出し引数を含む構造化イベントを生成します:
+完全なコール詳細で MCP サーバーアクティビティをキャプチャするには、ログエクスポーターを有効にし、`OTEL_LOG_TOOL_DETAILS=1` を設定します。その後、各 MCP 操作は、標準 ID 属性と共にサーバー名、ツール名、呼び出し引数を含む構造化イベントを生成します：
 
 | イベント | MCP に対して記録するもの |
 | - | - |
 | `mcp_server_connection` | `server_name`、`transport_type`、`server_scope`、およびエラー詳細を含むサーバー接続、切断、接続失敗 |
 | `tool_result` | `tool_name` および `mcp_server_scope` を含む各 MCP ツール呼び出し、`mcp_server_name` および `mcp_tool_name` を含む `tool_parameters` ペイロード、および呼び出し引数を含む `tool_input` ペイロード |
-| `tool_decision` | 呼び出しが許可されたか拒否されたか、および決定が設定、フック、またはユーザーから来たかどうか |
+| `tool_decision` | 呼び出しが許可されたか拒否されたか、および決定が設定、フック、またはユーザーから来たかどうか、および `mcp_server_name` と `mcp_tool_name` を含む `tool_parameters` ペイロード |
 
-`OTEL_LOG_TOOL_DETAILS` がない場合、`tool_result` イベントは依然として `tool_name` および `mcp_server_scope` を持ちますが、`mcp_server_name`/`mcp_tool_name` の分類と引数を省略し、`mcp_server_connection` イベントは `server_name` とエラーメッセージを省略します。
+`OTEL_LOG_TOOL_DETAILS` がない場合、これらのイベントは識別詳細を削除します：
+
+- `tool_result`：`tool_name` と `mcp_server_scope` を保持し、`mcp_server_name`、`mcp_tool_name`、および引数を省略
+- `tool_decision`：`tool_name` を保持し、`tool_parameters` を省略
+- `mcp_server_connection`：`server_name` とエラーメッセージを省略
 
 ### セキュリティの質問をイベントにマップする
 
-検出ルールを構築する場合、監視したいシグナルを検索し、対応するイベントと属性についてバックエンドをクエリします:
+検出ルールを構築する場合、監視したいシグナルを検索し、対応するイベントと属性についてバックエンドをクエリします：
 
 | シグナル | イベント | キー属性 |
 | - | - | - |
-| ツール呼び出しが許可または拒否され、何によって | `tool_decision` | `decision`、`source`、`tool_name` |
+| ツール呼び出しが許可または拒否され、何によって | `tool_decision` | `decision`、`source`、`tool_name`、`tool_parameters` |
 | 権限モードのエスカレーション | `permission_mode_changed` | `from_mode`、`to_mode`、`trigger` |
 | ポリシーフックがアクションをブロック | `hook_execution_complete` | `hook_event`、`num_blocking` |
 | ログイン、ログアウト、認証失敗 | `auth` | `action`、`success`、`error_category` |
 | MCP サーバー接続または失敗 | `mcp_server_connection` | `status`、`server_name`、`error_code` |
 | プラグインがインストールされ、そのソース | `plugin_installed` | `plugin.name`、`marketplace.name`、`marketplace.is_official` |
-| 実行されたコマンドとタッチされたファイル | `tool_result` with `OTEL_LOG_TOOL_DETAILS=1` | `tool_parameters`、`tool_input` |
+| 実行されたコマンドとタッチされたファイル | `tool_result`（実行）または `tool_decision`（拒否）（`OTEL_LOG_TOOL_DETAILS=1` の場合） | `tool_parameters`；`tool_input`（`tool_result` のみ） |
 
 Claude Code は生のイベントストリームのみを出力します。異常検出、ベースライン化、セッション間の相関、アラートは SIEM または可観測性バックエンドの責任です。
 
 ### SIEM にイベントを送信する
 
-`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` を SIEM の OTLP レシーバーに、または SIEM のネイティブ取り込み API にフォワードする OpenTelemetry Collector に指定します。以下の管理設定の例は、MCP および Bash 監査のための完全なツール詳細を有効にして、イベントのみをエクスポートします:
+`OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` を SIEM の OTLP レシーバーに、または SIEM のネイティブ取り込み API にフォワードする OpenTelemetry Collector に指定します。以下の管理設定の例は、MCP および Bash 監査のための完全なツール詳細を有効にして、イベントのみをエクスポートします：
 
 ```json
 {
@@ -1113,8 +1124,12 @@ Claude Code は生のイベントストリームのみを出力します。異�
 - 生のファイルコンテンツとコードスニペットはメトリクスやイベントに含まれません。トレーススパンは別のデータパスです: 以下の `OTEL_LOG_TOOL_CONTENT` の項目を参照してください
 - OAuth 経由で認証された場合、`user.email` はテレメトリ属性に含まれます。これが組織にとって懸念事項である場合は、テレメトリバックエンドと協力してこのフィールドをフィルタリングまたはマスクしてください
 - ユーザープロンプトコンテンツはデフォルトでは収集されません。プロンプト長のみが記録されます。プロンプトコンテンツを含めるには、`OTEL_LOG_USER_PROMPTS=1` を設定します
-- ツール入力引数とパラメーターはデフォルトではログされません。これらを含めるには、`OTEL_LOG_TOOL_DETAILS=1` を設定します。有効にすると、`tool_result` イベントには Bash コマンド、MCP サーバーとツール名、スキル名を含む `tool_parameters` 属性、およびファイルパス、URL、検索パターン、その他の引数を含む `tool_input` 属性が含まれます。`user_prompt` イベントには、カスタム、プラグイン、MCP コマンドの逐語的な `command_name` が含まれます。トレーススパンには同じ `tool_input` 属性と `file_path` などの入力派生属性が含まれます。512 文字を超える個別の値は切り詰められ、合計は約 4 K 文字に制限されますが、引数には機密値が含まれる可能性があります。必要に応じてこれらの属性をフィルタリングまたはマスクするようにテレメトリバックエンドを設定してください
-- ツール入力と出力コンテンツはデフォルトではトレーススパンでログされません。これを含めるには、`OTEL_LOG_TOOL_CONTENT=1` を設定します。有効にすると、スパンイベントには 60 KB で切り詰められたツール入力と出力コンテンツが含まれます。これには Read ツール結果からの生のファイルコンテンツと Bash コマンド出力が含まれる可能性があります。必要に応じてこれらの属性をフィルタリングまたはマスクするようにテレメトリバックエンドを設定してください
+- ツール入力引数とパラメーターはデフォルトではログされません。これらを含めるには、`OTEL_LOG_TOOL_DETAILS=1` を設定します。このデータは設定した OTEL エンドポイントにのみ送信され、Anthropic には送信されません。引数には機密値が含まれる可能性があるため、必要に応じてテレメトリバックエンドを設定してこれらの属性をフィルタリングまたはマスクしてください。有効にすると:
+  - `tool_result` および `tool_decision` イベントには、Bash コマンド、MCP サーバーとツール名、スキル名を含む `tool_parameters` 属性が含まれます。`full_command` などのフィールドは切り詰められずに出力されます
+  - `tool_result` イベントには、ファイルパス、URL、検索パターン、その他の引数を含む `tool_input` 属性が追加で含まれます。512 文字を超える個別の値は切り詰められ、合計は約 4 K 文字に制限されます
+  - `user_prompt` イベントには、カスタム、プラグイン、MCP コマンドの逐語的な `command_name` が含まれます
+  - トレーススパンには同じ `tool_input` 属性と `file_path` などの入力派生属性が含まれ、`tool_input` と同じ切り詰めが適用されます
+- ツール入力と出力コンテンツはデフォルトではトレーススパンでログされません。これを含めるには、`OTEL_LOG_TOOL_CONTENT=1` を設定します。有効にすると、スパンイベントには 60 KB でスパンごとに切り詰められたツール入力と出力コンテンツが含まれます。これには Read ツール結果からの生のファイルコンテンツと Bash コマンド出力が含まれる可能性があります。必要に応じてテレメトリバックエンドを設定してこれらの属性をフィルタリングまたはマスクしてください
 - 生の Anthropic Messages API リクエストとレスポンスボディはデフォルトではログされません。これらを含めるには、`OTEL_LOG_RAW_API_BODIES` を設定します。`=1` の場合、各 API 呼び出しは `api_request_body` および `api_response_body` ログイベントを出力し、その `body` 属性は JSON シリアル化されたペイロードで、60 KB で切り詰められます。`=file:<dir>` の場合、切り詰められていないボディはそのディレクトリの下の `.request.json` および `.response.json` ファイルに書き込まれ、イベントはテレメトリストリームではなくログコレクターまたはサイドカーで配信されるディレクトリを含む `body_ref` パスを持ちます。両方のモードで、ボディには完全な会話履歴 (システムプロンプト、すべての前のユーザーとアシスタントターン、ツール結果) が含まれるため、これを有効にすることは他の `OTEL_LOG_*` コンテンツフラグが明かすすべてのものに同意することを意味します。Claude の拡張思考コンテンツは、他の設定に関係なく、これらのボディから常にマスクされます
 
 ## Amazon Bedrock での Claude Code の監視

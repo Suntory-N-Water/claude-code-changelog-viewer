@@ -229,7 +229,7 @@ specific, actionable feedback on quality, security, and best practices.
 | `description` | はい | Claude がこのサブエージェントに委譲する場合 |
 | `tools` | いいえ | サブエージェントが使用できる[ツール](#available-tools)。省略した場合はすべてのツールを継承します。スキルをコンテキストにプリロードするには、`tools` にリストするのではなく `skills` フィールドを使用します |
 | `disallowedTools` | いいえ | 拒否するツール。継承または指定されたリストから削除 |
-| `model` | いいえ | 使用する[モデル](#choose-a-model)：`sonnet`、`opus`、`haiku`、完全なモデル ID（例：`claude-opus-4-7`）、または `inherit`。デフォルトは `inherit` |
+| `model` | いいえ | 使用する[モデル](#choose-a-model)：`sonnet`、`opus`、`haiku`、完全なモデル ID（例：`claude-opus-4-8`）、または `inherit`。デフォルトは `inherit` |
 | `permissionMode` | いいえ | [権限モード](#permission-modes)：`default`、`acceptEdits`、`auto`、`dontAsk`、`bypassPermissions`、または `plan`。[プラグインサブエージェント](#choose-the-subagent-scope)では無視されます |
 | `maxTurns` | いいえ | サブエージェントが停止する前の最大 agentic ターン数 |
 | `skills` | いいえ | スタートアップ時にサブエージェントのコンテキストに[プリロード](/ja/skills)する[スキル](/ja/skills)。完全なスキルコンテンツが注入されます。説明だけでなく、スキル全体が注入されます。サブエージェントは、Skill ツールを通じて、リストされていないプロジェクト、ユーザー、およびプラグインスキルを引き続き呼び出すことができます |
@@ -247,7 +247,7 @@ specific, actionable feedback on quality, security, and best practices.
 `model` フィールドは、サブエージェントが使用する[AI モデル](/ja/model-config)を制御します：
 
 - **モデルエイリアス**：利用可能なエイリアスの 1 つを使用します：`sonnet`、`opus`、または `haiku`
-- **完全なモデル ID**：`claude-opus-4-7` または `claude-sonnet-4-6` などの完全なモデル ID を使用します。`--model` フラグと同じ値を受け入れます
+- **完全なモデル ID**：`claude-opus-4-8` または `claude-sonnet-4-6` などの完全なモデル ID を使用します。`--model` フラグと同じ値を受け入れます
 - **inherit**：メイン会話と同じモデルを使用します
 - **省略**：指定されていない場合、デフォルトは `inherit`（メイン会話と同じモデルを使用）です
 
@@ -376,7 +376,7 @@ v2.1.153 以降、メインセッションに適用される MCP 制限は、サ
 | `bypassPermissions` | すべての権限チェックをスキップ |
 | `plan` | プランモード（読み取り専用探索） |
 
-`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.claude`、`.vscode`、`.idea`、および `.husky` ディレクトリへの書き込みを含みます。`rm -rf /` などのルートおよびホームディレクトリの削除は、サーキットブレーカーとしてプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
+`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.claude`、`.vscode`、`.idea`、`.husky`、および `.cargo` ディレクトリへの書き込みを含みます。`rm -rf /` などのルートおよびホームディレクトリの削除は、サーキットブレーカーとしてプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
 
 親が `bypassPermissions` または `acceptEdits` を使用する場合、これが優先され、オーバーライドできません。親が[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)を使用する場合、サブエージェントは自動モードを継承し、フロントマター内の `permissionMode` は無視されます：分類器は、親セッションと同じブロックおよび許可ルールを使用してサブエージェントのツール呼び出しを評価します。
 
