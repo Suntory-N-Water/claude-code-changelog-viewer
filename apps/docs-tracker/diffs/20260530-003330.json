@@ -1,0 +1,2842 @@
+{
+  "id": "20260530-003330",
+  "timestamp": "2026-05-30T00:33:30.758Z",
+  "aiSummary": "動的ワークフロー（Dynamic Workflows）機能が導入され、単一セッション内で数百規模のサブエージェントをスクリプトで制御できるようになりました。CLIのagent viewコマンドに--agentフラグが追加され、特定のサブエージェントをデフォルトとして指定可能になっています。プラグインシステムが拡張され、スキルディレクトリ（.claude/skills/）内に設定ファイルを配置することで、インストール不要でプラグインを読み込めるようになりました。テレメトリや監視機能においては、詳細なツール実行パラメータを記録するためのオプション設定が拡充されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/hosting.md",
+      "additions": 237,
+      "deletions": 80,
+      "explanation": "ホスティングに関する記述が大幅に加筆・修正されています。",
+      "hunks": []
+    },
+    {
+      "filename": "agent-sdk/subagents.md",
+      "additions": 7,
+      "deletions": 0,
+      "explanation": "数十から数百のエージェントをスクリプトで調整する「Workflow」ツールの紹介と、既存のサブエージェントとの違いが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -544,6 +544,12 @@ identify patterns, and suggest improvements without making changes.`,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Code modification | `Read`, `Edit`, `Write`, `Grep`, `Glob` | Full read/write access without command execution |"
+            },
+            {
+              "type": "context",
+              "content": "| Full access | All tools | Inherits all tools from parent (omit `tools` field) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Scale up with dynamic workflows"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Subagents work well for a few delegated tasks per turn. For runs that coordinate dozens to hundreds of agents, use the `Workflow` tool, which moves the orchestration into a script the runtime executes outside the conversation context. See [dynamic workflows](/en/workflows) for how workflows differ from turn-by-turn subagent delegation."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `Workflow` tool is available in the TypeScript Agent SDK v0.3.149 and later. Include `Workflow` in `allowedTools` to auto-approve workflow runs. The tool input and output schemas are listed in the [TypeScript reference](/en/agent-sdk/typescript#workflow)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Claude not delegating to subagents"
+            }
+          ]
+        },
+        {
+          "header": "@@ -565,4 +571,5 @@ On Windows, subagents with very long prompts may fail due to command line length",
+          "lines": [
+            {
+              "type": "context",
+              "content": "## Related documentation"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Claude Code subagents](/en/sub-agents): comprehensive subagent documentation including filesystem-based definitions"
+            },
+            {
+              "type": "added",
+              "content": "- [Dynamic workflows](/en/workflows): orchestrate many subagents from a script for jobs too large for one conversation"
+            },
+            {
+              "type": "context",
+              "content": "- [SDK overview](/en/agent-sdk/overview): getting started with the Claude Agent SDK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 64,
+      "deletions": 4,
+      "explanation": "Workflowツールの型定義や、セッション中に動的に適用可能な設定項目（model、effortLevelなど）の詳細が追記されています。",
+      "hunks": [
+        {
+          "header": "@@ -533,7 +533,12 @@ interface Query extends AsyncGenerator<SDKMessage, void> {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### `applyFlagSettings()`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Changes any [setting](/en/settings) on a running session without restarting the query. Use it when a setting that has no dedicated setter needs to change mid-session, such as tightening `permissions` after the agent reads untrusted input. `setModel()` and `setPermissionMode()` are dedicated setters for those two keys; `applyFlagSettings()` is the general form that accepts any subset of the settings keys, and passing `model` here behaves the same as `setModel()`."
+            },
+            {
+              "type": "added",
+              "content": "Changes [settings](/en/settings) on a running session without restarting the query. Use it when a setting that has no dedicated setter needs to change mid-session, such as tightening `permissions` after the agent reads untrusted input. `setModel()` and `setPermissionMode()` are dedicated setters for those two keys; `applyFlagSettings()` is the general form that accepts any subset of the settings keys, and passing `model` here behaves the same as `setModel()`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Only some keys take effect mid-session:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Applied on the next turn**: `model`, `effortLevel`, `ultracode`, `permissions`, `hooks`, `skillOverrides`, `fastMode`, `awaySummaryEnabled`"
+            },
+            {
+              "type": "added",
+              "content": "- **No effect mid-session**: `agent` and the system prompt options. These are resolved once at startup, so the running session keeps the original value even though the call succeeds. To change them, start a new session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The values are written to the flag-settings layer, the same layer the inline `settings` option of `query()` populates at startup. Flag settings sit near the top of the [settings precedence order](/en/settings#settings-precedence): they override user, project, and local settings, and only managed policy settings can override them. This is the same tier the [on-page precedence section](#settings-precedence) calls programmatic options."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1696,7 +1701,8 @@ type ToolInputSchemas =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  | UnsubscribeMcpResourceInput"
+            },
+            {
+              "type": "context",
+              "content": "  | UnsubscribePollingInput"
+            },
+            {
+              "type": "context",
+              "content": "  | WebFetchInput"
+            },
+            {
+              "type": "removed",
+              "content": "  | WebSearchInput;"
+            },
+            {
+              "type": "added",
+              "content": "  | WebSearchInput"
+            },
+            {
+              "type": "added",
+              "content": "  | WorkflowInput;"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Agent"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1920,6 +1926,30 @@ type WebSearchInput = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Searches the web and returns formatted results."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Workflow"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Tool name:** `Workflow`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```typescript"
+            },
+            {
+              "type": "added",
+              "content": "type WorkflowInput = {"
+            },
+            {
+              "type": "added",
+              "content": "  script?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  name?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  scriptPath?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  args?: unknown;"
+            },
+            {
+              "type": "added",
+              "content": "  resumeFromRunId?: string;"
+            },
+            {
+              "type": "added",
+              "content": "};"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Runs a [dynamic workflow](/en/workflows): a script that orchestrates many subagents in the background and returns one consolidated result. The `Workflow` tool is available in Agent SDK v0.3.149 and later. At least one of `script`, `name`, or `scriptPath` is required."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Type | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `script` | `string` | Inline workflow script. Must begin with `export const meta = { name, description, phases }` as a literal, followed by the script body using `agent()`, `parallel()`, `pipeline()`, and `phase()` |"
+            },
+            {
+              "type": "added",
+              "content": "| `name` | `string` | Name of a built-in workflow or one saved in `.claude/workflows/`. Resolved to a script |"
+            },
+            {
+              "type": "added",
+              "content": "| `scriptPath` | `string` | Path to a workflow script file on disk. Takes precedence over `script` and `name`. Every invocation persists its script and returns the path in the result, so you can edit that file and re-invoke with the same `scriptPath` to iterate |"
+            },
+            {
+              "type": "added",
+              "content": "| `args` | `unknown` | Input value exposed to the script as the global `args`, for parameterized named workflows such as a research question or a list of file paths. Pass arrays and objects as actual JSON values, not as a JSON-encoded string |"
+            },
+            {
+              "type": "added",
+              "content": "| `resumeFromRunId` | `string` | Run ID of a prior `Workflow` invocation to resume. Completed `agent()` calls with unchanged inputs return cached results; only changed or new calls run live. Same session only |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### TodoWrite"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Tool name:** `TodoWrite`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2079,7 +2109,8 @@ type ToolOutputSchemas =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  | TaskUpdateOutput"
+            },
+            {
+              "type": "context",
+              "content": "  | TodoWriteOutput"
+            },
+            {
+              "type": "context",
+              "content": "  | WebFetchOutput"
+            },
+            {
+              "type": "removed",
+              "content": "  | WebSearchOutput;"
+            },
+            {
+              "type": "added",
+              "content": "  | WebSearchOutput"
+            },
+            {
+              "type": "added",
+              "content": "  | WorkflowOutput;"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Agent"
+            }
+          ]
+        },
+        {
+          "header": "@@ -2142,10 +2173,11 @@ type AskUserQuestionOutput = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    multiSelect: boolean;"
+            },
+            {
+              "type": "context",
+              "content": "  }>;"
+            },
+            {
+              "type": "context",
+              "content": "  answers: Record<string, string>;"
+            },
+            {
+              "type": "added",
+              "content": "  response?: string;"
+            },
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Returns the questions asked and the user's answers."
+            },
+            {
+              "type": "added",
+              "content": "Returns the questions asked and the user's answers. `response` is set when the user typed a freeform reply instead of answering the structured questions; when present, Claude receives \"The user responded: …\" instead of the per-question answer list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Bash"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -2410,6 +2442,34 @@ type WebSearchOutput = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Returns search results from the web."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Workflow"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Tool name:** `Workflow`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```typescript"
+            },
+            {
+              "type": "added",
+              "content": "type WorkflowOutput = {"
+            },
+            {
+              "type": "added",
+              "content": "  status: \"async_launched\";"
+            },
+            {
+              "type": "added",
+              "content": "  taskId: string;"
+            },
+            {
+              "type": "added",
+              "content": "  runId?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  summary?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  transcriptDir?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  scriptPath?: string;"
+            },
+            {
+              "type": "added",
+              "content": "  error?: string;"
+            },
+            {
+              "type": "added",
+              "content": "};"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Returns immediately after the tool accepts the invocation. The final result arrives later as a task completion. Check `error` before treating the run as started: a script that fails its syntax check returns `status: \"async_launched\"` with `error` set, and never runs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Type | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `status` | `\"async_launched\"` | The tool accepted the invocation. This is the only value the field takes |"
+            },
+            {
+              "type": "added",
+              "content": "| `taskId` | `string` | Background task identifier for the run |"
+            },
+            {
+              "type": "added",
+              "content": "| `runId` | `string` | Workflow run identifier to pass as `resumeFromRunId` on a later invocation |"
+            },
+            {
+              "type": "added",
+              "content": "| `summary` | `string` | One-line description of what the workflow does |"
+            },
+            {
+              "type": "added",
+              "content": "| `transcriptDir` | `string` | Directory where subagent transcripts are written during execution |"
+            },
+            {
+              "type": "added",
+              "content": "| `scriptPath` | `string` | Path to the persisted workflow script for this run. Edit it and pass back as `scriptPath` to rerun without resending the script |"
+            },
+            {
+              "type": "added",
+              "content": "| `error` | `string` | Set when the script fails its syntax check. When present, the run did not start despite the `async_launched` status |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### TodoWrite"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Tool name:** `TodoWrite`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/user-input.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "ユーザーからの自由形式の返答を処理するためのresponseフィールドの使い方が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -570,8 +570,9 @@ Return an `answers` object mapping each question's `question` field to the selec",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `questions` | Pass through the original questions array (required for tool processing) |"
+            },
+            {
+              "type": "context",
+              "content": "| `answers` | Object where keys are question text and values are selected labels |"
+            },
+            {
+              "type": "added",
+              "content": "| `response` | Optional freeform reply the user typed instead of answering the structured questions |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For multi-select questions, pass an array of labels or join them with `\", \"`. For free-text input, use the user's custom text directly."
+            },
+            {
+              "type": "added",
+              "content": "For multi-select questions, pass an array of labels or join them with `\", \"`. For per-question free text such as an \"Other\" option, put the user's text in `answers[question]` as shown in [Support free-text input](#support-free-text-input). Set `response` only when your UI lets the user dismiss the question card and type a general reply that isn't an answer to any specific question. When `response` is set, Claude receives \"The user responded: …\" instead of the per-question answer list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-view.md",
+      "additions": 12,
+      "deletions": 2,
+      "explanation": "agent viewでセッションをディスパッチする際のデフォルトエージェントを指定する--agentフラグの説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -360,15 +360,25 @@ The [permission mode](/en/permissions) depends on how you started the session. B",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The permission mode you start a background session with persists when the supervisor later [stops and restarts](#the-supervisor-process) the session's process. A session you launched with `claude --bg --dangerously-skip-permissions` or `claude --bg --permission-mode bypassPermissions` stays in `bypassPermissions` after that restart instead of falling back to the directory's `defaultMode`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To set defaults for every session you dispatch from agent view, pass any of `--permission-mode`, `--model`, or `--effort` when opening it:"
+            },
+            {
+              "type": "added",
+              "content": "To set defaults for every session you dispatch from agent view, pass any of `--permission-mode`, `--model`, `--effort`, or `--agent` when opening it:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "claude agents --permission-mode plan --model opus --effort high"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`--agent` sets the [subagent](/en/sub-agents) used when a dispatch prompt does not name one, either with `@name` or as the first word. It defaults to the [`agent` setting](/en/settings#available-settings) if one is set, otherwise the built-in catch-all `claude` agent. Naming a subagent in the dispatch input overrides both."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`claude agents` also accepts `--dangerously-skip-permissions` as shorthand for `--permission-mode bypassPermissions`, and `--allow-dangerously-skip-permissions` to make `bypassPermissions` available in each dispatched session's `Shift+Tab` cycle without starting in that mode. Both match the [top-level CLI flags](/en/cli-reference)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Passing `--permission-mode`, `--model`, `--effort`, or `--dangerously-skip-permissions` to `claude agents` requires Claude Code v2.1.142 or later. `--allow-dangerously-skip-permissions` on `claude agents` requires v2.1.143 or later. Earlier versions reject these flags with an unknown-option error."
+            },
+            {
+              "type": "added",
+              "content": "These flags were added across releases. Earlier versions reject them with an unknown-option error."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Flag or setting | Minimum version |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `--permission-mode`, `--model`, `--effort`, `--dangerously-skip-permissions` | v2.1.142  |"
+            },
+            {
+              "type": "added",
+              "content": "| `--allow-dangerously-skip-permissions` | v2.1.143  |"
+            },
+            {
+              "type": "added",
+              "content": "| `--agent`, and honoring the `agent` setting for dispatched sessions | v2.1.157  |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Before v2.1.157, agent view ignores the `agent` setting and dispatches the built-in `claude` agent."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The active defaults appear in the footer below the dispatch input."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "claude agentsコマンドのオプション一覧に--agentが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -25,7 +25,7 @@ You can start sessions, pipe content, resume conversations, and manage updates w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude auth login` | Sign in to your Anthropic account. Use `--email` to pre-fill your email address, `--sso` to force SSO authentication, and `--console` to sign in with Anthropic Console for API usage billing instead of a Claude subscription | `claude auth login --console` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auth logout` | Log out from your Anthropic account | `claude auth logout` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auth status` | Show authentication status as JSON. Use `--text` for human-readable output. Exits with code 0 if logged in, 1 if not | `claude auth status` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude agents` | Open [agent view](/en/agent-view) to monitor and dispatch parallel background sessions. Use `--cwd <path>` to show only sessions started under that directory, or `--json` to print live sessions as a JSON array for scripting. Pass `--permission-mode`, `--model`, or `--effort` to set [defaults for dispatched sessions](/en/agent-view#permission-mode-model-and-effort). Accepts `--settings`, `--add-dir`, `--plugin-dir`, and `--mcp-config` like the top-level `claude` command. Opening agent view requires an interactive terminal | `claude agents --json` |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude agents` | Open [agent view](/en/agent-view) to monitor and dispatch parallel background sessions. Use `--cwd <path>` to show only sessions started under that directory, or `--json` to print live sessions as a JSON array for scripting. Pass `--permission-mode`, `--model`, `--effort`, or `--agent` to set [defaults for dispatched sessions](/en/agent-view#permission-mode-model-and-effort). Accepts `--settings`, `--add-dir`, `--plugin-dir`, and `--mcp-config` like the top-level `claude` command. Opening agent view requires an interactive terminal | `claude agents --json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude attach <id>` | Attach to a [background session](/en/agent-view#manage-sessions-from-the-shell) in this terminal | `claude attach 7c5dcf5d` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auto-mode defaults` | Print the built-in [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier rules as JSON. Use `claude auto-mode config` to see your effective config with settings applied | `claude auto-mode defaults > rules.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude daemon status` | Print the background-session [supervisor's](/en/agent-view#the-supervisor-process) state, version, socket directory, and worker count for diagnostics. Exits 1 if the supervisor isn't running | `claude daemon status` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Desktop版のタスクペインで動的ワークフローが表示可能になったことや、マルチエージェント機能の対応状況が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -279,7 +279,7 @@ Press **Cmd+;** on macOS or **Ctrl+;** on Windows to open a side chat, or type `",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Watch background tasks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The tasks pane shows the background work running inside the current session: subagents, background shell commands, and dynamic workflows. Open it from the **Views** menu or drag it into your layout."
+            },
+            {
+              "type": "added",
+              "content": "The tasks pane shows the background work running inside the current session: subagents, background shell commands, and [dynamic workflows](/en/workflows). Open it from the **Views** menu or drag it into your layout."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Click any entry to see its output in the subagent pane or stop it. To see what other sessions are doing, use the [sidebar](#work-in-parallel-with-sessions)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -667,7 +667,7 @@ The following features are only available in the CLI or VS Code extension:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Third-party providers**: Desktop connects to Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers via [managed settings](https://support.claude.com/en/articles/12622667-enterprise-configuration). For Bedrock or Foundry, use the [CLI](/en/quickstart)."
+            },
+            {
+              "type": "context",
+              "content": "- **Linux**: the desktop app is available on macOS and Windows only. On Linux, use the [CLI](/en/quickstart)."
+            },
+            {
+              "type": "context",
+              "content": "- **Inline code suggestions**: Desktop does not provide autocomplete-style suggestions. It works through conversational prompts and explicit code changes."
+            },
+            {
+              "type": "removed",
+              "content": "- **Agent teams**: multi-agent orchestration is available via the [CLI](/en/agent-teams) and [Agent SDK](/en/headless), not in Desktop."
+            },
+            {
+              "type": "added",
+              "content": "- **Agent teams**: parallel Claude Code sessions that message each other are available in the [CLI](/en/agent-teams), not in Desktop. For multi-agent work inside one session, use [dynamic workflows](/en/workflows), which run in Desktop."
+            },
+            {
+              "type": "context",
+              "content": "- **Terminal-dialog commands**: built-in commands that open an interactive panel in the terminal, such as `/permissions`, `/config`, `/agents`, and `/doctor`, are not available in the Code tab and reply with `isn't available in this environment`. Edit [settings files](/en/settings) directly to manage permission rules and configuration, or run the command from the standalone CLI."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "CLAUDE_CODE_DISABLE_TERMINAL_TITLEの動作詳細と、CLAUDE_EFFORT環境変数におけるultracodeの扱いが修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -162,7 +162,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK` | Set to `1` to disable the non-streaming fallback when a streaming request fails mid-stream. Streaming errors propagate to the retry layer instead. Useful when a proxy or gateway causes the fallback to produce duplicate tool execution |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL` | Set to `1` to skip automatic addition of the official plugin marketplace on first run |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_POLICY_SKILLS` | Set to `1` to skip loading skills from the system-wide managed skills directory. Useful for container or CI sessions that should not load operator-provisioned skills |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` | Set to `1` to disable automatic terminal title updates based on conversation context |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` | Set to `1` to disable automatic terminal title updates based on conversation context. In Agent SDK and `claude -p` sessions, this also skips the background Haiku request that generates the session title |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_THINKING` | Set to `1` to force-disable [extended thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking) regardless of model support or other settings. More direct than `MAX_THINKING_TOKENS=0` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL` | Set to `1` to disable virtual scrolling in [fullscreen rendering](/en/fullscreen) and render every message in the transcript. Use this if scrolling in fullscreen mode shows blank regions where messages should appear |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_WORKFLOWS` | Set to `1` to disable [workflows](/en/workflows#turn-workflows-off). Equivalent to the [`disableWorkflows`](/en/settings#available-settings) setting |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -255,7 +255,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_POWERSHELL_TOOL` | Controls the PowerShell tool. On Windows without Git Bash, the tool is enabled automatically; set to `0` to disable it. On Windows with Git Bash installed, the tool is rolling out progressively: set to `1` to opt in or `0` to opt out. On Linux, macOS, and WSL, set to `1` to enable it, which requires `pwsh` on your `PATH`. When enabled on Windows, Claude can run PowerShell commands natively instead of routing through Git Bash. See [PowerShell tool](/en/tools-reference#powershell-tool) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_USE_VERTEX` | Use [Vertex](/en/google-vertex-ai) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CONFIG_DIR` | Override the configuration directory (default: `~/.claude`). All settings, credentials, session history, and plugins are stored under this path. Useful for running multiple accounts side by side: for example, `alias claude-work='CLAUDE_CONFIG_DIR=~/.claude-work claude'` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_EFFORT` | Set automatically in Bash tool subprocesses and hook commands to the active [effort level](/en/model-config#adjust-effort-level) for the turn: `low`, `medium`, `high`, `xhigh`, `max`, or `ultra`. The `ultra` value corresponds to ultracode in `/effort`; the variable reports the stored value, not the display label. Matches the `effort.level` field passed to [hooks](/en/hooks). Only set when the current model supports the effort parameter |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_EFFORT` | Set automatically in Bash tool subprocesses and hook commands to the active [effort level](/en/model-config#adjust-effort-level) for the turn: `low`, `medium`, `high`, `xhigh`, or `max`. Ultracode is not a distinct level and reports as `xhigh`. Matches the `effort.level` field passed to [hooks](/en/hooks). Only set when the current model supports the effort parameter |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENABLE_BYTE_WATCHDOG` | Set to `1` to force-enable the byte-level streaming idle watchdog, or set to `0` to force-disable it. When unset, the watchdog is enabled by default for Anthropic API connections. The byte watchdog aborts a connection when no bytes arrive on the wire for the duration set by `CLAUDE_STREAM_IDLE_TIMEOUT_MS`, with a minimum of 5 minutes, independent of the event-level watchdog |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENABLE_BYTE_WATCHDOG_BEDROCK` | Set to `1` to enable the byte-level streaming idle watchdog on Amazon Bedrock `vnd.amazon.eventstream` responses. Off by default. Configure the timeout with `CLAUDE_STREAM_IDLE_TIMEOUT_MS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ENABLE_STREAM_WATCHDOG` | Set to `1` to enable the event-level streaming idle watchdog. Off by default. Applies to all providers, including Bedrock. For Vertex and Foundry, this is the only idle watchdog available. On Bedrock, you can also enable the independent byte-level watchdog with `CLAUDE_ENABLE_BYTE_WATCHDOG_BEDROCK`; the two run together when both are set. Configure the timeout with `CLAUDE_STREAM_IDLE_TIMEOUT_MS` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "特定のOpusモデル使用時に発生するエラーを解決するために、v2.1.156以降へのアップデートを推奨する注記が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -609,6 +609,7 @@ All three variants mean the same thing: the sequence of `tool_use`, `tool_result",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- If you are using Opus 4.7 or Opus 4.8, run `claude update` first. Versions before v2.1.156 can trigger this error during normal tool use, and `/rewind` does not clear it."
+            },
+            {
+              "type": "context",
+              "content": "- Run `/rewind`, or press Esc twice, to step back to a checkpoint before the corrupted turn and continue from there. See [Checkpointing](/en/checkpointing) for how checkpoints are created and restored."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Usage Policy refusal"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "フックで使用されるeffortレベルの定義からultraが削除され、xhighとして報告される仕様に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -534,7 +534,7 @@ Hook events receive these fields as JSON, in addition to event-specific fields d",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `transcript_path` | Path to conversation JSON |"
+            },
+            {
+              "type": "context",
+              "content": "| `cwd` | Current working directory when the hook is invoked |"
+            },
+            {
+              "type": "context",
+              "content": "| `permission_mode` | Current [permission mode](/en/permissions#permission-modes): `\"default\"`, `\"plan\"`, `\"acceptEdits\"`, `\"auto\"`, `\"dontAsk\"`, or `\"bypassPermissions\"`. Not all events receive this field: see each event's JSON example below to check |"
+            },
+            {
+              "type": "removed",
+              "content": "| `effort` | Object with a `level` field holding the active [effort level](/en/model-config#adjust-effort-level) for the turn: `\"low\"`, `\"medium\"`, `\"high\"`, `\"xhigh\"`, `\"max\"`, or `\"ultra\"`. If the requested model effort exceeds what the current model supports, this is the downgraded level the model actually used. `\"ultra\"` is the stored value for ultracode and is reported here even though the model receives `xhigh`. The object matches the [status line](/en/statusline#available-data) `effort` field. Present for events that fire within a tool-use context, such as `PreToolUse`, `PostToolUse`, `Stop`, and `SubagentStop`, when the current model supports the effort parameter. The level is also available to hook commands and the Bash tool as the `$CLAUDE_EFFORT` environment variable. |"
+            },
+            {
+              "type": "added",
+              "content": "| `effort` | Object with a `level` field holding the active [effort level](/en/model-config#adjust-effort-level) for the turn: `\"low\"`, `\"medium\"`, `\"high\"`, `\"xhigh\"`, or `\"max\"`. If the requested model effort exceeds what the current model supports, this is the downgraded level the model actually used. Ultracode is not a distinct level and reports as `\"xhigh\"`. The object matches the [status line](/en/statusline#available-data) `effort` field. Present for events that fire within a tool-use context, such as `PreToolUse`, `PostToolUse`, `Stop`, and `SubagentStop`, when the current model supports the effort parameter. The level is also available to hook commands and the Bash tool as the `$CLAUDE_EFFORT` environment variable. |"
+            },
+            {
+              "type": "context",
+              "content": "| `hook_event_name` | Name of the event that fired |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When running with `--agent` or inside a subagent, two additional fields are included:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "WSL環境における画像貼り付けのキーバインド（Alt+V）に関する説明が補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -30,7 +30,7 @@ See [Terminal configuration](/en/terminal-config) for details.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Ctrl+L` | Redraw screen | Forces a full terminal redraw. Input and conversation history are kept. Use this to recover if the display becomes garbled or partially blank |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+O` | Toggle transcript viewer | Shows detailed tool usage and execution. Also expands MCP calls, which collapse to a single line like \"Called slack 3 times\" by default |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+R` | Reverse search command history | Search through previous commands interactively |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt |"
+            },
+            {
+              "type": "added",
+              "content": "| `Ctrl+V` or `Cmd+V` (iTerm2) or `Alt+V` (Windows and WSL) | Paste image from clipboard | Inserts an `[Image #N]` chip at the cursor so you can reference it positionally in your prompt. On WSL, both `Ctrl+V` and `Alt+V` are bound; use `Alt+V` if your terminal intercepts `Ctrl+V` |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+B` | Background running tasks | Backgrounds bash commands and agents. Tmux users press twice |"
+            },
+            {
+              "type": "context",
+              "content": "| `Ctrl+T` | Toggle task list | Show or hide the [task list](#task-list) in the terminal status area |"
+            },
+            {
+              "type": "context",
+              "content": "| `Left/Right arrows` | Cycle through dialog tabs | Navigate between tabs in permission dialogs and menus |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "keybindings.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "WSL環境での画像貼り付けショートカットキーの割り当てが更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -113,7 +113,7 @@ Actions available in the `Chat` context:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `chat:undo` | Ctrl+\\_, Ctrl+Shift+- | Undo last action |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:externalEditor` | Ctrl+G, Ctrl+X Ctrl+E | Open in external editor |"
+            },
+            {
+              "type": "context",
+              "content": "| `chat:stash` | Ctrl+S | Stash current prompt |"
+            },
+            {
+              "type": "removed",
+              "content": "| `chat:imagePaste` | Ctrl+V (Alt+V on Windows) | Paste image |"
+            },
+            {
+              "type": "added",
+              "content": "| `chat:imagePaste` | Ctrl+V (Alt+V on Windows and WSL) | Paste image from clipboard. On WSL, both shortcuts are bound by default |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "\\*On Windows without VT mode (Node \\<24.2.0/\\<22.17.0, Bun \\<1.2.23), defaults to Meta+M."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "MCPサーバーの認証ヘッダーが拒否された場合の挙動と、OAuthフローへのフォールバックに関する注意書きが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -447,6 +447,8 @@ Many cloud-based MCP servers require authentication. Claude Code supports OAuth",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code marks a remote server as needing authentication when the server responds with `401 Unauthorized` or `403 Forbidden`. Either status code flags the server in `/mcp` so you can complete the OAuth flow. A custom server that returns a `WWW-Authenticate` header pointing to its authorization server gets the same automatic discovery as any other remote server."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you configured `headers.Authorization` for the server and the server rejects that header, Claude Code reports the connection as failed instead of falling back to OAuth. Check that the token is valid for the MCP endpoint, or remove the header to use the OAuth flow."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For example:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "自動メモリの保存先設定がプロジェクト単位の設定ファイルでも有効になり、ワークスペースの信頼設定が必要である旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -332,7 +332,7 @@ To disable auto memory via environment variable, set `CLAUDE_CODE_DISABLE_AUTO_M",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each project gets its own memory directory at `~/.claude/projects/<project>/memory/`. The `<project>` path is derived from the git repository, so all worktrees and subdirectories within the same repo share one auto memory directory. Outside a git repo, the project root is used instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To store auto memory in a different location, set `autoMemoryDirectory` in your user settings at `~/.claude/settings.json`:"
+            },
+            {
+              "type": "added",
+              "content": "To store auto memory in a different location, set `autoMemoryDirectory` in your `settings.json`. It is read from any [settings scope](/en/settings#settings-precedence): user, project, local, policy, or `--settings`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        },
+        {
+          "header": "@@ -340,7 +340,7 @@ To store auto memory in a different location, set `autoMemoryDirectory` in your",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The value must be an absolute path or start with `~/`. This setting is accepted from policy and user settings, and from the `--settings` flag. It is not accepted from project or local settings, since both files live inside the project directory and a cloned repository could supply either to redirect auto memory writes to sensitive locations."
+            },
+            {
+              "type": "added",
+              "content": "The value must be an absolute path or start with `~/`. When set in a project's `.claude/settings.json` or `.claude/settings.local.json`, the value is honored only after you accept the workspace trust dialog for that folder, the same gate that governs hooks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The directory contains a `MEMORY.md` entrypoint and optional topic files:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 24,
+      "deletions": 9,
+      "explanation": "テレメトリログにおいて、ツールの実行パラメータや拒否されたコマンドの詳細を記録するための設定項目が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -138,7 +138,7 @@ In Agent SDK and non-interactive sessions started with `-p`, Claude Code also re",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Span hierarchy"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each user prompt starts a `claude_code.interaction` root span. API calls, tool calls, and hook executions are recorded as its children. Tool spans have two child spans of their own: one for the time spent waiting on a permission decision and one for the execution itself. When the Task tool spawns a subagent, the subagent's API and tool spans nest under the parent's `claude_code.tool` span."
+            },
+            {
+              "type": "added",
+              "content": "Each user prompt starts a `claude_code.interaction` root span. API calls, tool calls, and hook executions are recorded as its children. Tool spans have two child spans of their own: one for the time spent waiting on a permission decision and one for the execution itself. When the Agent tool, or legacy Task tool, spawns a subagent, the subagent's API and tool spans nest under the parent's `claude_code.tool` span."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "context",
+              "content": "claude_code.interaction"
+            }
+          ]
+        },
+        {
+          "header": "@@ -147,7 +147,7 @@ claude_code.interaction",
+          "lines": [
+            {
+              "type": "context",
+              "content": "└── claude_code.tool"
+            },
+            {
+              "type": "context",
+              "content": "    ├── claude_code.tool.blocked_on_user"
+            },
+            {
+              "type": "context",
+              "content": "    ├── claude_code.tool.execution"
+            },
+            {
+              "type": "removed",
+              "content": "    └── (Task tool) subagent claude_code.llm_request / claude_code.tool spans"
+            },
+            {
+              "type": "added",
+              "content": "    └── (Agent tool) subagent claude_code.llm_request / claude_code.tool spans"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In Agent SDK and `claude -p` sessions, `claude_code.interaction` itself becomes a child of the caller's span when `TRACEPARENT` is set in the environment."
+            }
+          ]
+        },
+        {
+          "header": "@@ -208,7 +208,7 @@ Each retry attempt is also recorded as a `gen_ai.request.attempt` span event wit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `file_path` | Target file path for Read, Edit, and Write tools | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `full_command` | Command string for the Bash tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `skill_name` | Skill name for the Skill tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `subagent_type` | Subagent type for the Task tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "added",
+              "content": "| `subagent_type` | Subagent type for the Agent tool or legacy Task tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When `OTEL_LOG_TOOL_CONTENT=1`, this span also records a `tool.output` span event whose attributes contain the tool's input and output bodies, truncated at 60 KB per attribute."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -557,9 +557,10 @@ Logged when a tool completes execution. Not emitted if the tool call was rejecte",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `mcp_server_scope`: MCP server scope identifier (for MCP tools)"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_parameters` (when `OTEL_LOG_TOOL_DETAILS=1`): JSON string containing tool-specific parameters:"
+            },
+            {
+              "type": "context",
+              "content": "  - For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `dangerouslyDisableSandbox`, and `git_commit_id` (the commit SHA, when a `git commit` command succeeds)"
+            },
+            {
+              "type": "added",
+              "content": "  - For WorkspaceBash tool: includes `bash_command`, `full_command`, `timeout`"
+            },
+            {
+              "type": "context",
+              "content": "  - For MCP tools: includes `mcp_server_name`, `mcp_tool_name`"
+            },
+            {
+              "type": "context",
+              "content": "  - For Skill tool: includes `skill_name`"
+            },
+            {
+              "type": "removed",
+              "content": "  - For Task tool: includes `subagent_type`"
+            },
+            {
+              "type": "added",
+              "content": "  - For Agent tool or legacy Task tool: includes `subagent_type`"
+            },
+            {
+              "type": "context",
+              "content": "- `tool_input` (when `OTEL_LOG_TOOL_DETAILS=1`): JSON-serialized tool arguments. Individual values over 512 characters are truncated, and the full payload is bounded to \\~4 K characters. Applies to all tools including MCP tools."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### API request event"
+            }
+          ]
+        },
+        {
+          "header": "@@ -671,6 +672,12 @@ Logged when a tool permission decision is made (accept/reject).",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - `\"user_temporary\"`: Emitted when the user chose \"Yes\" at a permission prompt for a one-time approval, or chose one of the \"... during this session\" options on a file edit or read prompt. In the interactive CLI this is emitted only for the choice itself; later calls allowed by that session-scoped grant emit `\"config\"` instead. In Agent SDK or non-interactive `-p` sessions, both the choice and later matches emit `\"user_temporary\"`. Treated as an accept."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"user_abort\"`: Emitted when the user dismissed the permission prompt without answering. Treated as a reject."
+            },
+            {
+              "type": "context",
+              "content": "  - `\"user_reject\"`: Emitted when the user chose \"No\" when prompted. In the interactive CLI this is emitted only for that choice itself; calls that match a deny rule in the user's personal settings emit `\"config\"` instead. In Agent SDK or non-interactive `-p` sessions, calls that match a deny rule in personal settings emit `\"user_reject\"`. Treated as a reject."
+            },
+            {
+              "type": "added",
+              "content": "- `tool_parameters` (when `OTEL_LOG_TOOL_DETAILS=1`): JSON string containing tool-specific parameters. Same shape as the [Tool result event](#tool-result-event), minus post-execution fields such as `git_commit_id`. Values may differ from `tool_result` for an accepted call if the permission decision rewrites the tool input via `updatedInput`. Use this attribute to see which command was rejected when `decision` is `\"reject\"`."
+            },
+            {
+              "type": "added",
+              "content": "  - For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `dangerouslyDisableSandbox`"
+            },
+            {
+              "type": "added",
+              "content": "  - For WorkspaceBash tool: includes `bash_command`, `full_command`, `timeout`"
+            },
+            {
+              "type": "added",
+              "content": "  - For MCP tools: includes `mcp_server_name`, `mcp_tool_name`"
+            },
+            {
+              "type": "added",
+              "content": "  - For Skill tool: includes `skill_name`"
+            },
+            {
+              "type": "added",
+              "content": "  - For Agent tool or legacy Task tool: includes `subagent_type`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Permission mode changed event"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1029,9 +1036,13 @@ To capture MCP server activity with full call detail, enable the logs exporter a",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `mcp_server_connection` | Server connect, disconnect, and connection failure with `server_name`, `transport_type`, `server_scope`, and error detail |"
+            },
+            {
+              "type": "context",
+              "content": "| `tool_result` | Each MCP tool call with `tool_name` and `mcp_server_scope`, a `tool_parameters` payload containing `mcp_server_name` and `mcp_tool_name`, and a `tool_input` payload containing the call arguments |"
+            },
+            {
+              "type": "removed",
+              "content": "| `tool_decision` | Whether the call was allowed or denied, and whether the decision came from config, a hook, or the user |"
+            },
+            {
+              "type": "added",
+              "content": "| `tool_decision` | Whether the call was allowed or denied, whether the decision came from config, a hook, or the user, and a `tool_parameters` payload containing `mcp_server_name` and `mcp_tool_name` |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Without `OTEL_LOG_TOOL_DETAILS`, these events drop the identifying detail:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Without `OTEL_LOG_TOOL_DETAILS`, `tool_result` events still carry `tool_name` and `mcp_server_scope` but omit the `mcp_server_name`/`mcp_tool_name` breakdown and the arguments, and `mcp_server_connection` events omit `server_name` and the error message."
+            },
+            {
+              "type": "added",
+              "content": "- `tool_result`: keeps `tool_name` and `mcp_server_scope`, omits `mcp_server_name`, `mcp_tool_name`, and arguments"
+            },
+            {
+              "type": "added",
+              "content": "- `tool_decision`: keeps `tool_name`, omits `tool_parameters`"
+            },
+            {
+              "type": "added",
+              "content": "- `mcp_server_connection`: omits `server_name` and the error message"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Map security questions to events"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1039,13 +1050,13 @@ When building detection rules, look up the signal you want to monitor and query",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Signal | Event | Key attributes |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| Tool call allowed or denied, and by what | `tool_decision` | `decision`, `source`, `tool_name` |"
+            },
+            {
+              "type": "added",
+              "content": "| Tool call allowed or denied, and by what | `tool_decision` | `decision`, `source`, `tool_name`, `tool_parameters` |"
+            },
+            {
+              "type": "context",
+              "content": "| Permission mode escalation | `permission_mode_changed` | `from_mode`, `to_mode`, `trigger` |"
+            },
+            {
+              "type": "context",
+              "content": "| Policy hook blocked an action | `hook_execution_complete` | `hook_event`, `num_blocking` |"
+            },
+            {
+              "type": "context",
+              "content": "| Login, logout, and authentication failure | `auth` | `action`, `success`, `error_category` |"
+            },
+            {
+              "type": "context",
+              "content": "| MCP server connect or failure | `mcp_server_connection` | `status`, `server_name`, `error_code` |"
+            },
+            {
+              "type": "context",
+              "content": "| Plugin installed and its source | `plugin_installed` | `plugin.name`, `marketplace.name`, `marketplace.is_official` |"
+            },
+            {
+              "type": "removed",
+              "content": "| Commands run and files touched | `tool_result` with `OTEL_LOG_TOOL_DETAILS=1` | `tool_parameters`, `tool_input` |"
+            },
+            {
+              "type": "added",
+              "content": "| Commands run and files touched | `tool_result` (executed) or `tool_decision` (rejected) with `OTEL_LOG_TOOL_DETAILS=1` | `tool_parameters`; `tool_input` (`tool_result` only) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code emits the raw event stream only. Anomaly detection, baselining, correlation across sessions, and alerting are the responsibility of your SIEM or observability backend."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1113,7 +1124,11 @@ For a comprehensive guide on measuring return on investment for Claude Code, inc",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Raw file contents and code snippets are not included in metrics or events. Trace spans are a separate data path: see the `OTEL_LOG_TOOL_CONTENT` bullet below"
+            },
+            {
+              "type": "context",
+              "content": "- When authenticated via OAuth, `user.email` is included in telemetry attributes. If this is a concern for your organization, work with your telemetry backend to filter or redact this field"
+            },
+            {
+              "type": "context",
+              "content": "- User prompt content is not collected by default. Only prompt length is recorded. To include prompt content, set `OTEL_LOG_USER_PROMPTS=1`"
+            },
+            {
+              "type": "removed",
+              "content": "- Tool input arguments and parameters are not logged by default. To include them, set `OTEL_LOG_TOOL_DETAILS=1`. When enabled, `tool_result` events include a `tool_parameters` attribute with Bash commands, MCP server and tool names, and skill names, plus a `tool_input` attribute with file paths, URLs, search patterns, and other arguments. `user_prompt` events include the verbatim `command_name` for custom, plugin, and MCP commands. Trace spans include the same `tool_input` attribute and input-derived attributes such as `file_path`. Individual values over 512 characters are truncated and the total is bounded to \\~4 K characters, but the arguments may still contain sensitive values. Configure your telemetry backend to filter or redact these attributes as needed"
+            },
+            {
+              "type": "added",
+              "content": "- Tool input arguments and parameters are not logged by default. To include them, set `OTEL_LOG_TOOL_DETAILS=1`. This data is sent only to the OTEL endpoint you configure, never to Anthropic. Arguments may still contain sensitive values, so configure your telemetry backend to filter or redact these attributes as needed. When enabled:"
+            },
+            {
+              "type": "added",
+              "content": "  - `tool_result` and `tool_decision` events include a `tool_parameters` attribute with Bash commands, MCP server and tool names, and skill names. Fields such as `full_command` are emitted untruncated"
+            },
+            {
+              "type": "added",
+              "content": "  - `tool_result` events additionally include a `tool_input` attribute with file paths, URLs, search patterns, and other arguments. Individual values over 512 characters are truncated and the total is bounded to \\~4 K characters"
+            },
+            {
+              "type": "added",
+              "content": "  - `user_prompt` events include the verbatim `command_name` for custom, plugin, and MCP commands"
+            },
+            {
+              "type": "added",
+              "content": "  - Trace spans include the same `tool_input` attribute and input-derived attributes such as `file_path`, with the same truncation as `tool_input`"
+            },
+            {
+              "type": "context",
+              "content": "- Tool input and output content is not logged in trace spans by default. To include it, set `OTEL_LOG_TOOL_CONTENT=1`. When enabled, span events include full tool input and output content truncated at 60 KB per span. This can include raw file contents from Read tool results and Bash command output. Configure your telemetry backend to filter or redact these attributes as needed"
+            },
+            {
+              "type": "context",
+              "content": "- Raw Anthropic Messages API request and response bodies are not logged by default. To include them, set `OTEL_LOG_RAW_API_BODIES`. With `=1`, each API call emits `api_request_body` and `api_response_body` log events whose `body` attribute is the JSON-serialized payload, truncated at 60 KB. With `=file:<dir>`, untruncated bodies are written to `.request.json` and `.response.json` files under that directory and the events carry a `body_ref` path instead of the inline body. Ship the directory with a log collector or sidecar rather than through the telemetry stream. In both modes, bodies contain the full conversation history (system prompt, every prior user and assistant turn, tool results), so enabling this implies consent to everything the other `OTEL_LOG_*` content flags would reveal. Claude's extended-thinking content is always redacted from these bodies regardless of other settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "一括許可の対象として.cargoディレクトリが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -275,6 +275,7 @@ Protected directories:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `.vscode`"
+            },
+            {
+              "type": "context",
+              "content": "- `.idea`"
+            },
+            {
+              "type": "context",
+              "content": "- `.husky`"
+            },
+            {
+              "type": "added",
+              "content": "- `.cargo`"
+            },
+            {
+              "type": "context",
+              "content": "- `.claude`, except for `.claude/commands`, `.claude/agents`, `.claude/skills`, and `.claude/worktrees` where Claude routinely creates content"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Protected files:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "バイパスモードでプロンプトをスキップする対象に.cargoディレクトリが含まれるようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -46,7 +46,7 @@ Claude Code supports several permission modes that control how tools are approve",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skips all permission prompts. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`bypassPermissions` mode skips all permission prompts, including writes to `.git`, `.claude`, `.vscode`, `.idea`, and `.husky`. Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `permissions.disableBypassPermissionsMode` to `\"disable\"` in [managed settings](#managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "`bypassPermissions` mode skips all permission prompts, including writes to `.git`, `.claude`, `.vscode`, `.idea`, `.husky`, and `.cargo`. Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `permissions.disableBypassPermissionsMode` to `\"disable\"` in [managed settings](#managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To prevent `bypassPermissions` or `auto` mode from being used, set `permissions.disableBypassPermissionsMode` or `permissions.disableAutoMode` to `\"disable\"` in any [settings file](/en/settings#settings-files). These are most useful in [managed settings](#managed-settings) where they cannot be overridden."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 95,
+      "deletions": 0,
+      "explanation": "スキルディレクトリから直接プラグインをロードする仕組みや、plugin initコマンドによる初期化方法が新設されました。",
+      "hunks": [
+        {
+          "header": "@@ -350,6 +350,47 @@ Plugins use the same scope system as other Claude Code configurations. For insta",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "***"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Skills-directory plugins"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Any folder under a skills directory that contains a `.claude-plugin/plugin.json` manifest is loaded as a plugin named `<name>@skills-dir` on the next session, with no marketplace and no install step. Scaffold one with [`plugin init`](#plugin-init). Unlike a marketplace install, the plugin is discovered in place rather than copied into the plugin cache."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A skills directory tree supports three distinct things:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| What you have | What it is |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `<skills-dir>/foo/SKILL.md` with no manifest | A plain [skill](/en/skills) named `foo` |"
+            },
+            {
+              "type": "added",
+              "content": "| `<skills-dir>/foo/.claude-plugin/plugin.json` | A plugin `foo@skills-dir`, which can bundle its own skills, agents, hooks, and more |"
+            },
+            {
+              "type": "added",
+              "content": "| `<plugin>/skills/bar/SKILL.md` | A skill `bar` packaged inside a plugin |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Choose where the plugin loads from"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Skills directory | Scope | Loads |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `~/.claude/skills/` | personal | In every project, since the location is yours alone |"
+            },
+            {
+              "type": "added",
+              "content": "| `<cwd>/.claude/skills/` | project | Only after you accept the workspace [trust dialog](/en/settings) for that folder |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A project-scope plugin is checked into the repository and reaches every collaborator who clones it. Because that content comes from the repository rather than from you, it loads only after the same trust gate that governs `.claude/settings.json`, and components that run code are restricted further:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- MCP servers it declares go through the [same per-server approval](/en/mcp) as a project `.mcp.json`"
+            },
+            {
+              "type": "added",
+              "content": "- LSP servers start only after you trust the workspace"
+            },
+            {
+              "type": "added",
+              "content": "- [Background monitors](#monitors) do not load"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Personal-scope plugins have none of these restrictions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Project-scope `@skills-dir` plugins load only from the `.claude/skills/` of the directory where you start Claude Code. They do not [walk up to the repository root](/en/skills#automatic-discovery-from-parent-and-nested-directories) the way plain skills and commands do, so launching from a subdirectory misses a plugin that lives at the repo root. Launch from the repository root, or run `/reload-plugins` after changing directories."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Edit, reload, and disable a skills-directory plugin"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Changes you make to a skill's `SKILL.md` take effect immediately in the current session. Changes to the plugin's other components, such as `hooks/`, `.mcp.json`, `agents/`, and `output-styles/`, do not. Run `/reload-plugins` or restart Claude Code to pick those up. See [Live change detection](/en/skills#live-change-detection)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To stop loading a skills-directory plugin, delete its folder or disable it by name. There is no `uninstall` step because nothing was installed from a marketplace."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin disable my-tool@skills-dir"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "***"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Plugin manifest schema"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `.claude-plugin/plugin.json` file defines your plugin's metadata and configuration. This section documents all supported fields and options."
+            }
+          ]
+        },
+        {
+          "header": "@@ -762,6 +803,60 @@ A `CLAUDE.md` file at the plugin root is not loaded as project context. Plugins",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code provides CLI commands for non-interactive plugin management, useful for scripting and automation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### plugin init"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Scaffold a new plugin at `~/.claude/skills/<name>/`. On the next Claude Code session it loads automatically as `<name>@skills-dir` and appears in `/plugin` and `claude plugin list` with no install step."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See [Skills-directory plugins](#skills-directory-plugins) for scope and trust requirements."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin init <name> [options]"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Arguments:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `<name>`: Plugin name. Becomes the skill namespace and the directory name under `~/.claude/skills/`, so it cannot contain spaces or path separators."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Options:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Option | Description | Default |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `--description <text>` | Manifest description | |"
+            },
+            {
+              "type": "added",
+              "content": "| `--author <name>` | Author name | `git config user.name` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--author-email <email>` | Author email | `git config user.email` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--with <components...>` | Also scaffold component folders. Valid values: `skills`, `agents`, `hooks`, `mcp`, `lsp`, `output-style`, `channel` | |"
+            },
+            {
+              "type": "added",
+              "content": "| `-f, --force` | Overwrite an existing `.claude-plugin/` at the target | |"
+            },
+            {
+              "type": "added",
+              "content": "| `-h, --help` | Display help for command | |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Aliases:** `new`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each `--with` value adds a starter file for that component, ready to edit:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Component | What it scaffolds |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `skills` | An extra namespaced `<name>:example` skill alongside the default one |"
+            },
+            {
+              "type": "added",
+              "content": "| `agents` | An `agents/` subagent definition |"
+            },
+            {
+              "type": "added",
+              "content": "| `hooks` | A `hooks/hooks.json` with a sample event handler |"
+            },
+            {
+              "type": "added",
+              "content": "| `mcp` | A `.mcp.json` with HTTP and stdio server examples |"
+            },
+            {
+              "type": "added",
+              "content": "| `lsp` | A `.lsp.json` language-server example |"
+            },
+            {
+              "type": "added",
+              "content": "| `output-style` | An `output-styles/<name>.md` that applies automatically while the plugin is enabled |"
+            },
+            {
+              "type": "added",
+              "content": "| `channel` | An MCP-based [channel](/en/channels): a stdio server (`server.ts`), its `.mcp.json`, and a `package.json` |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The scaffolded plugin uses the `@skills-dir` source rather than a marketplace. Admins can block this source with `strictKnownMarketplaces` or by adding `{\"source\": \"skills-dir\"}` to `blockedMarketplaces` in [managed settings](/en/plugin-marketplaces#managed-marketplace-restrictions). When blocked, `plugin init` fails before writing."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Examples:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "# Scaffold a minimal plugin"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin init my-helper"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Scaffold with skill and hook folders"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin init my-helper --with skills hooks"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Overwrite an existing scaffold"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin init my-helper --force"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### plugin install"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Install a plugin from available marketplaces."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins.md",
+      "additions": 12,
+      "deletions": 0,
+      "explanation": "プラグインの読み込みや管理に関する補足情報が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -152,6 +152,18 @@ You've successfully created and tested a plugin with these key components:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `--plugin-dir` flag is useful for development and testing. When you're ready to share your plugin with others, see [Create and distribute a plugin marketplace](/en/plugin-marketplaces)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Develop a plugin in your skills directory"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Instead of passing `--plugin-dir` on every launch, you can keep a plugin in your skills directory and have Claude Code load it automatically. `claude plugin init` scaffolds one:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin init my-tool"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This creates `~/.claude/skills/my-tool/` with a `.claude-plugin/plugin.json` manifest and a starter `SKILL.md`. On the next session it loads as `my-tool@skills-dir` with no marketplace or install step."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For the auto-load rules, personal vs. project scope, the workspace-trust requirement, and how to update or remove one, see [Skills-directory plugins](/en/plugins-reference#skills-directory-plugins)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Plugin structure overview"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You've created a plugin with a skill, but plugins can include much more: custom agents, hooks, MCP servers, LSP servers, and background monitors."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 3,
+      "deletions": 2,
+      "explanation": "利用可能な設定項目が微調整されています。",
+      "hunks": [
+        {
+          "header": "@@ -164,7 +164,7 @@ A few keys are read once at session start and apply on the next restart instead:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Key | Description | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| `agent` | Run the main thread as a named subagent. Applies that subagent's system prompt, tool restrictions, and model. See [Invoke subagents explicitly](/en/sub-agents#invoke-subagents-explicitly) | `\"code-reviewer\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `agent` | Run the main thread as a named subagent, and set the default agent for sessions dispatched from `claude agents`. Applies that subagent's system prompt, tool restrictions, and model. See [Invoke subagents explicitly](/en/sub-agents#invoke-subagents-explicitly) | `\"code-reviewer\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowAllClaudeAiMcps` | (Managed settings only) Load claude.ai connectors alongside a deployed `managed-mcp.json`, which otherwise takes exclusive control and suppresses them. See [Managed MCP configuration](/en/managed-mcp) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedChannelPlugins` | (Managed settings only) Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Undefined = fall back to the default, empty array = block all channel plugins. Requires `channelsEnabled: true`. See [Restrict which channel plugins can run](/en/channels#restrict-which-channel-plugins-can-run) | `[{ \"marketplace\": \"claude-plugins-official\", \"plugin\": \"telegram\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedHttpHookUrls` | Allowlist of URL patterns that HTTP hooks may target. Supports `*` as a wildcard. When set, hooks with non-matching URLs are blocked. Undefined = no restriction, empty array = block all HTTP hooks. Arrays merge across settings sources. See [Hook configuration](#hook-configuration) | `[\"https://hooks.example.com/*\"]` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -175,7 +175,7 @@ A few keys are read once at session start and apply on the next restart instead:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `alwaysThinkingEnabled` | Enable [extended thinking](/en/model-config#extended-thinking) by default for all sessions. Typically configured via the `/config` command rather than editing directly. To force thinking off regardless of this setting, set [`CLAUDE_CODE_DISABLE_THINKING`](/en/env-vars) in `env` | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `apiKeyHelper` | Custom script, to be executed in `/bin/sh`, to generate an auth value. This value will be sent as `X-Api-Key` and `Authorization: Bearer` headers for model requests. Set the refresh interval with [`CLAUDE_CODE_API_KEY_HELPER_TTL_MS`](/en/env-vars) | `/bin/generate_temp_api_key.sh` |"
+            },
+            {
+              "type": "context",
+              "content": "| `attribution` | Customize attribution for git commits and pull requests. See [Attribution settings](#attribution-settings) | `{\"commit\": \"🤖 Generated with Claude Code\", \"pr\": \"\"}` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `autoMemoryDirectory` | Custom directory for [auto memory](/en/memory#storage-location) storage. Accepts an absolute path or a `~/`-prefixed path. Accepted from policy and user settings, and from the `--settings` flag. Not accepted from project or local settings, since a cloned repository could supply either file to redirect memory writes to sensitive locations | `\"~/my-memory-dir\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `autoMemoryDirectory` | Custom directory for [auto memory](/en/memory#storage-location) storage. Accepts an absolute path or a `~/`-prefixed path. From project or local settings, this is honored only after you accept the workspace trust dialog, since a cloned repository can supply this file | `\"~/my-memory-dir\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoMemoryEnabled` | Enable [auto memory](/en/memory#enable-or-disable-auto-memory). When `false`, Claude does not read from or write to the auto memory directory. Default: `true`. You can also toggle this with `/memory` during a session. To disable via environment variable, set [`CLAUDE_CODE_DISABLE_AUTO_MEMORY`](/en/env-vars) in `env` | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoMode` | Customize what the [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier blocks and allows. Contains `environment`, `allow`, `soft_deny`, and `hard_deny` arrays of prose rules. Include the literal string `\"$defaults\"` in an array to inherit the built-in rules at that position. See [Configure auto mode](/en/auto-mode-config). Not read from shared project settings | `{\"soft_deny\": [\"$defaults\", \"Never run terraform apply\"]}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoScrollEnabled` | In [fullscreen rendering](/en/fullscreen), follow new output to the bottom of the conversation. Default: `true`. Appears in `/config` as **Auto-scroll**. Permission prompts still scroll into view when this is off | `false` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -255,6 +255,7 @@ A few keys are read once at session start and apply on the next restart instead:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `viewMode` | Default transcript view mode on startup: `\"default\"`, `\"verbose\"`, or `\"focus\"`. Overrides the sticky `/focus` selection when set. The `--verbose` flag overrides this for one session | `\"verbose\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `voice` | [Voice dictation](/en/voice-dictation) settings: `enabled` turns dictation on, `mode` selects `\"hold\"` or `\"tap\"`, and `autoSubmit` sends the prompt on key release in hold mode. Written automatically when you run `/voice`. Requires a Claude.ai account | `{ \"enabled\": true, \"mode\": \"tap\" }` |"
+            },
+            {
+              "type": "context",
+              "content": "| `voiceEnabled` | Legacy alias for `voice.enabled`. Prefer the `voice` object | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `workflowKeywordTriggerEnabled` | Whether the word `workflow` in a prompt triggers a [dynamic workflow](/en/workflows#ask-for-a-workflow-in-your-prompt). Set to `false` to type the word without triggering one. Ultracode, `/workflows`, and saved workflow commands are unaffected. Default: `true`. Appears in `/config` as **Workflow keyword trigger** | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `wslInheritsWindowsSettings` | (Windows managed settings only) When `true`, Claude Code on WSL reads managed settings from the Windows policy chain in addition to `/etc/claude-code`, with Windows sources taking priority. Only honored when set in the HKLM registry key or `C:\\Program Files\\ClaudeCode\\managed-settings.json`, both of which require Windows admin to write. For HKCU policy to also apply on WSL, the flag must additionally be set in HKCU itself. Has no effect on native Windows | `true` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Global config settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 5,
+      "deletions": 1,
+      "explanation": "スキルの自動発見や管理に関する記述が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -100,10 +100,14 @@ Where you store a skill determines who can use it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When skills share the same name across levels, enterprise overrides personal, and personal overrides project. Plugin skills use a `plugin-name:skill-name` namespace, so they cannot conflict with other levels. If you have files in `.claude/commands/`, those work the same way, but if a skill and a command share the same name, the skill takes precedence."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Add a `.claude-plugin/plugin.json` to a skill folder and it loads as a [plugin](/en/plugins-reference#skills-directory-plugins) named `<name>@skills-dir`, so it can bundle agents, hooks, and MCP servers. In a project's `.claude/skills/`, this requires accepting the workspace trust dialog first."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Live change detection"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code watches skill directories for file changes. Adding, editing, or removing a skill under `~/.claude/skills/`, the project `.claude/skills/`, or a `.claude/skills/` inside an `--add-dir` directory takes effect within the current session without restarting. Creating a top-level skills directory that did not exist when the session started requires restarting Claude Code so the new directory can be watched."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Live change detection covers `SKILL.md` text only. For a skill folder that is also a [plugin](/en/plugins-reference#skills-directory-plugins), changes to `hooks/`, `.mcp.json`, `agents/`, and `output-styles/` need `/reload-plugins` to take effect."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Automatic discovery from parent and nested directories"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Project skills load from `.claude/skills/` in your starting directory and in every parent directory up to the repository root, so starting Claude in a subdirectory still picks up skills defined at the root. When you work with files in subdirectories below your starting directory, Claude Code also discovers skills from nested `.claude/skills/` directories on demand. For example, if you're editing a file in `packages/frontend/`, Claude Code also looks for skills in `packages/frontend/.claude/skills/`. This supports monorepo setups where packages have their own skills."
+            }
+          ]
+        },
+        {
+          "header": "@@ -236,7 +240,7 @@ Skills support string substitution for dynamic values in the skill content:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `$N` | Shorthand for `$ARGUMENTS[N]`, such as `$0` for the first argument or `$1` for the second. |"
+            },
+            {
+              "type": "context",
+              "content": "| `$name` | Named argument declared in the [`arguments`](#frontmatter-reference) frontmatter list. Names map to positions in order, so with `arguments: [issue, branch]` the placeholder `$issue` expands to the first argument and `$branch` to the second. |"
+            },
+            {
+              "type": "context",
+              "content": "| `${CLAUDE_SESSION_ID}` | The current session ID. Useful for logging, creating session-specific files, or correlating skill output with sessions. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `${CLAUDE_EFFORT}` | The current effort level: `low`, `medium`, `high`, `xhigh`, `max`, or `ultra`. The `ultra` value is the stored value for ultracode. Use this to adapt skill instructions to the active effort setting. |"
+            },
+            {
+              "type": "added",
+              "content": "| `${CLAUDE_EFFORT}` | The current effort level: `low`, `medium`, `high`, `xhigh`, or `max`. Ultracode is not a distinct level and reports as `xhigh`. Use this to adapt skill instructions to the active effort setting. |"
+            },
+            {
+              "type": "context",
+              "content": "| `${CLAUDE_SKILL_DIR}` | The directory containing the skill's `SKILL.md` file. For plugin skills, this is the skill's subdirectory within the plugin, not the plugin root. Use this in bash injection commands to reference scripts or files bundled with the skill, regardless of the current working directory. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Indexed arguments use shell-style quoting, so wrap multi-word values in quotes to pass them as a single argument. For example, `/my-skill \"hello world\" second` makes `$0` expand to `hello world` and `$1` to `second`. The `$ARGUMENTS` placeholder always expands to the full argument string as typed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ステータスラインに表示されるデータ項目の定義が修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -157,7 +157,7 @@ Claude Code sends the following JSON fields to your script via stdin:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `context_window.remaining_percentage` | Pre-calculated percentage of context window remaining |"
+            },
+            {
+              "type": "context",
+              "content": "| `context_window.current_usage` | Token counts from the last API call, described in [context window fields](#context-window-fields) |"
+            },
+            {
+              "type": "context",
+              "content": "| `exceeds_200k_tokens` | Whether the total token count (input, cache, and output tokens combined) from the most recent API response exceeds 200k. This is a fixed threshold regardless of actual context window size. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `effort.level` | Current reasoning effort (`low`, `medium`, `high`, `xhigh`, `max`, or `ultra`). The `ultra` value corresponds to ultracode in `/effort`; the field reports the stored value, not the display label. Reflects the live session value, including mid-session `/effort` changes. Absent when the current model does not support the effort parameter |"
+            },
+            {
+              "type": "added",
+              "content": "| `effort.level` | Current reasoning effort (`low`, `medium`, `high`, `xhigh`, or `max`). Reflects the live session value, including mid-session `/effort` changes. Ultracode is not a distinct level and reports as `xhigh`. Absent when the current model does not support the effort parameter |"
+            },
+            {
+              "type": "context",
+              "content": "| `thinking.enabled` | Whether extended thinking is enabled for the session |"
+            },
+            {
+              "type": "context",
+              "content": "| `rate_limits.five_hour.used_percentage`, `rate_limits.seven_day.used_percentage` | Percentage of the 5-hour or 7-day rate limit consumed, from 0 to 100 |"
+            },
+            {
+              "type": "context",
+              "content": "| `rate_limits.five_hour.resets_at`, `rate_limits.seven_day.resets_at` | Unix epoch seconds when the 5-hour or 7-day rate limit window resets |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サブエージェントに関する説明が一部修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -376,7 +376,7 @@ The `permissionMode` field controls how the subagent handles permission prompts.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skip permission prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Plan mode (read-only exploration) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `bypassPermissions` with caution. It skips all permission prompts, allowing the subagent to execute operations without approval, including writes to `.git`, `.claude`, `.vscode`, `.idea`, and `.husky`. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "added",
+              "content": "Use `bypassPermissions` with caution. It skips all permission prompts, allowing the subagent to execute operations without approval, including writes to `.git`, `.claude`, `.vscode`, `.idea`, `.husky`, and `.cargo`. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the parent uses `bypassPermissions` or `acceptEdits`, this takes precedence and cannot be overridden. If the parent uses [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode), the subagent inherits auto mode and any `permissionMode` in its frontmatter is ignored: the classifier evaluates the subagent's tool calls with the same block and allow rules as the parent session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "terminal-config.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "ターミナルの設定に関する記述が微調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -30,7 +30,9 @@ In most terminals you can also press Shift+Enter, but support varies by terminal",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| VS Code, Cursor, Windsurf, Alacritty, Zed | Run `/terminal-setup` once |"
+            },
+            {
+              "type": "context",
+              "content": "| gnome-terminal, JetBrains IDEs such as PyCharm and Android Studio | Not available; use Ctrl+J or `\\` then Enter |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For VS Code, Cursor, Windsurf, Alacritty, and Zed, `/terminal-setup` writes Shift+Enter and other keybindings into the terminal's configuration file. In VS Code, Cursor, and Windsurf it also sets `terminal.integrated.mouseWheelScrollSensitivity` in the editor settings for smoother scrolling in [fullscreen mode](/en/fullscreen). Existing bindings and settings are left in place; if you see a message such as `VSCode terminal Shift+Enter key binding already configured`, no change was made. Run `/terminal-setup` directly in the host terminal rather than inside tmux or screen, since it needs to write to the host terminal's configuration."
+            },
+            {
+              "type": "added",
+              "content": "For VS Code, Cursor, Windsurf, Alacritty, and Zed, `/terminal-setup` writes Shift+Enter and other keybindings into the terminal's configuration file. Existing bindings are left in place; if you see a message such as `VSCode terminal Shift+Enter key binding already configured`, no change was made. Run `/terminal-setup` directly in the host terminal rather than inside tmux or screen, since it needs to write to the host terminal's configuration."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In VS Code, Cursor, and Windsurf, `/terminal-setup` also updates two editor settings: it sets `terminal.integrated.gpuAcceleration` to `\"off\"` to prevent garbled text in the integrated terminal, and it sets `terminal.integrated.mouseWheelScrollSensitivity` for smoother scrolling in [fullscreen mode](/en/fullscreen). To undo the GPU acceleration change, set it back to `\"auto\"` and reload the editor window."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you are running inside tmux, Shift+Enter also requires the [tmux configuration below](#configure-tmux) even when the outer terminal supports it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "ツールリファレンスの記載内容が一部更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -21,7 +21,7 @@ To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CronList` | Lists all scheduled tasks in the session | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `Edit` | Makes targeted edits to specific files. See [Edit tool behavior](#edit-tool-behavior) | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `EnterPlanMode` | Switches to plan mode to design an approach before coding | No |"
+            },
+            {
+              "type": "removed",
+              "content": "| `EnterWorktree` | Creates an isolated [git worktree](/en/worktrees) and switches into it. Pass a `path` to switch into an existing worktree of the current repository instead of creating a new one. Not available to subagents that already run in their own working directory, such as with [`isolation: worktree`](/en/sub-agents#supported-frontmatter-fields) | No |"
+            },
+            {
+              "type": "added",
+              "content": "| `EnterWorktree` | Creates an isolated [git worktree](/en/worktrees) and switches into it. Pass a `path` to switch into an existing worktree of the current repository instead of creating a new one. From within a worktree session, or from a subagent with a pinned working directory such as [`isolation: worktree`](/en/sub-agents#supported-frontmatter-fields), only the `path` form is available and the target must be under `.claude/worktrees/` | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ExitPlanMode` | Presents a plan for approval and exits plan mode | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `ExitWorktree` | Exits a worktree session and returns to the original directory. Not available to subagents that already run in their own working directory, such as with [`isolation: worktree`](/en/sub-agents#supported-frontmatter-fields) | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `Glob` | Finds files based on pattern matching. See [Glob tool behavior](#glob-tool-behavior) | No |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -52,6 +52,7 @@ To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `WaitForMcpServers` | Waits for one or more [MCP servers](/en/mcp) that are still connecting in the background, so a request can use their tools without restarting the session. Claude calls it when a needed server is not connected yet. Only appears when [tool search](/en/mcp#scale-with-mcp-tool-search) is disabled, since `ToolSearch` handles the wait when it's enabled | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `WebFetch` | Fetches content from a specified URL. See [WebFetch tool behavior](#webfetch-tool-behavior) | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `WebSearch` | Performs web searches. See [WebSearch tool behavior](#websearch-tool-behavior) | Yes |"
+            },
+            {
+              "type": "added",
+              "content": "| `Workflow` | Runs a [dynamic workflow](/en/workflows): a script that orchestrates many subagents in the background and returns one consolidated result | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `Write` | Creates or overwrites files. See [Write tool behavior](#write-tool-behavior) | Yes |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configure tools with permission rules and hooks"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "workflows.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ワークフロー機能の参照情報が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -115,7 +115,7 @@ Claude Code highlights the word in your input and Claude writes a workflow scrip",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the run does what you wanted, you can [save it as a command](#save-the-workflow-for-reuse) afterward."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If Claude Code highlights the word when you didn't mean to trigger one, press `alt+w` to ignore it for this prompt."
+            },
+            {
+              "type": "added",
+              "content": "If Claude Code highlights the word when you didn't mean to trigger one, press `alt+w` to ignore it for this prompt, or press backspace while the cursor is right after the highlighted word. To stop the word from triggering at all, turn off Workflow keyword trigger in `/config`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Let Claude decide with ultracode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "worktrees.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Gitワークツリーに関する記述が一部修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -33,7 +33,7 @@ If you omit the name, Claude generates one such as `bright-running-fox`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude --worktree"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also ask Claude to \"work in a worktree\" during a session, and it will create one with the [`EnterWorktree`](/en/tools-reference) tool."
+            },
+            {
+              "type": "added",
+              "content": "You can also ask Claude to \"work in a worktree\" during a session, and it will create one with the [`EnterWorktree`](/en/tools-reference) tool. Once in a worktree, Claude can switch directly to another one under `.claude/worktrees/` by calling `EnterWorktree` with the target path. The previous worktree stays on disk untouched."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before using `--worktree` in a directory for the first time, accept the workspace trust dialog by running `claude` once in that directory. If trust has not yet been accepted, `--worktree` exits with an error and prompts you to run `claude` in the directory first, including when combined with `-p`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -89,7 +89,7 @@ When you exit a worktree session, cleanup depends on whether you made changes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Uncommitted changes, untracked files, or new commits exist**: Claude prompts you to keep or remove the worktree. Keeping preserves the directory and branch so you can return later. Removing deletes the worktree directory and its branch, discarding any uncommitted changes, untracked files, and commits"
+            },
+            {
+              "type": "context",
+              "content": "- **Non-interactive runs**: worktrees created with `--worktree` alongside `-p` are not cleaned up automatically since there is no exit prompt. Remove them with `git worktree remove`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Subagent worktrees orphaned by a crash or interrupted run are removed at startup once they are older than your [`cleanupPeriodDays`](/en/settings#available-settings) setting, provided they have no uncommitted changes, no untracked files, and no unpushed commits. Worktrees you create with `--worktree` are never removed by this sweep."
+            },
+            {
+              "type": "added",
+              "content": "Worktrees that Claude created for subagents and [background sessions](/en/agent-view#how-file-edits-are-isolated) are removed automatically once they are older than your [`cleanupPeriodDays`](/en/settings#available-settings) setting, provided they have no uncommitted changes, no untracked files, and no unpushed commits. Worktrees you create with `--worktree` are never removed by this sweep."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage worktrees manually"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

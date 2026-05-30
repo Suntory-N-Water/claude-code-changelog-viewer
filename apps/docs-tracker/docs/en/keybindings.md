@@ -113,7 +113,7 @@ Actions available in the `Chat` context:
 | `chat:undo` | Ctrl+\_, Ctrl+Shift+- | Undo last action |
 | `chat:externalEditor` | Ctrl+G, Ctrl+X Ctrl+E | Open in external editor |
 | `chat:stash` | Ctrl+S | Stash current prompt |
-| `chat:imagePaste` | Ctrl+V (Alt+V on Windows) | Paste image |
+| `chat:imagePaste` | Ctrl+V (Alt+V on Windows and WSL) | Paste image from clipboard. On WSL, both shortcuts are bound by default |
 
 \*On Windows without VT mode (Node \<24.2.0/\<22.17.0, Bun \<1.2.23), defaults to Meta+M.
 
