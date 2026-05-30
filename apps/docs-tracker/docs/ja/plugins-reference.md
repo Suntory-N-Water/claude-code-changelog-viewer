@@ -350,6 +350,47 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 ***
 
+## Skills ディレクトリプラグイン
+
+`.claude-plugin/plugin.json` マニフェストを含む skills ディレクトリの下のフォルダは、次のセッションで `<name>@skills-dir` という名前のプラグインとして読み込まれます。マーケットプレイスもインストール手順もありません。[`plugin init`](#plugin-init)でスキャフォルドしてください。マーケットプレイスインストールとは異なり、プラグインはプラグインキャッシュにコピーされるのではなく、所定の場所で検出されます。
+
+skills ディレクトリツリーは 3 つの異なるものをサポートします:
+
+| 何を持っているか | それは何か |
+| :- | :- |
+| `<skills-dir>/foo/SKILL.md` マニフェストなし | `foo` という名前の単純な[skill](/ja/skills) |
+| `<skills-dir>/foo/.claude-plugin/plugin.json` | プラグイン `foo@skills-dir`。独自の skills、agents、hooks などをバンドルできます |
+| `<plugin>/skills/bar/SKILL.md` | プラグイン内にパッケージされた skill `bar` |
+
+### プラグインが読み込まれる場所を選択
+
+| Skills ディレクトリ | スコープ | 読み込み |
+| :- | :- | :- |
+| `~/.claude/skills/` | personal | すべてのプロジェクトで。場所があなただけのものだから |
+| `<cwd>/.claude/skills/` | project | そのフォルダのワークスペース[信頼ダイアログ](/ja/settings)を受け入れた後のみ |
+
+プロジェクトスコーププラグインはリポジトリにチェックインされ、クローンしたすべての共同作業者に到達します。そのコンテンツはあなたではなくリポジトリから来るため、`.claude/settings.json` を管理するのと同じ信頼ゲートの後にのみ読み込まれます。コードを実行するコンポーネントはさらに制限されます:
+
+- 宣言する MCP servers は、プロジェクト `.mcp.json` と同じ[サーバーごとの承認](/ja/mcp)を通過します
+- LSP servers はワークスペースを信頼した後にのみ開始します
+- [バックグラウンド monitors](#monitors)は読み込まれません
+
+個人スコーププラグインにはこれらの制限はありません。
+
+プロジェクトスコープ `@skills-dir` プラグインは、Claude Code を開始したディレクトリの `.claude/skills/` からのみ読み込まれます。plain skills と commands が行うように[リポジトリルートまでウォークアップ](/ja/skills#automatic-discovery-from-parent-and-nested-directories)しません。そのため、サブディレクトリから起動するとリポジトリルートに存在するプラグインが見つかりません。リポジトリルートから起動するか、ディレクトリを変更した後に `/reload-plugins` を実行してください。
+
+### Skills ディレクトリプラグインを編集、再読み込み、無効化
+
+skill の `SKILL.md` に加えた変更は現在のセッションで即座に有効になります。プラグインの他のコンポーネント（`hooks/`、`.mcp.json`、`agents/`、`output-styles/` など）への変更は有効になりません。`/reload-plugins` を実行するか Claude Code を再起動してそれらを取得してください。[ライブ変更検出](/ja/skills#live-change-detection)を参照してください。
+
+skills ディレクトリプラグインの読み込みを停止するには、そのフォルダを削除するか、名前で無効にしてください。マーケットプレイスから何もインストールされなかったため、`uninstall` ステップはありません。
+
+```bash
+claude plugin disable my-tool@skills-dir
+```
+
+***
+
 ## プラグインマニフェストスキーマ
 
 `.claude-plugin/plugin.json` ファイルはプラグインのメタデータと設定を定義します。このセクションでは、サポートされているすべてのフィールドとオプションを説明しています。
@@ -428,6 +469,18 @@ claude plugin validate ./my-plugin --strict
 | `repository` | string | ソースコード URL | `"https://github.com/user/plugin"` |
 | `license` | string | ライセンス識別子 | `"MIT"`、`"Apache-2.0"` |
 | `keywords` | array | 検出タグ | `["deployment", "ci-cd"]` |
+| `defaultEnabled` | boolean | ユーザーが設定を設定していない場合、プラグインが有効な状態で開始するかどうか。デフォルトは `true`。[デフォルト有効化](#default-enablement)を参照してください。Claude Code v2.1.154 以降が必要です。 | `false` |
+
+### デフォルト有効化
+
+`plugin.json` で `defaultEnabled: false` を設定して、無効な状態でインストールされるプラグインを配布します。ユーザーは `claude plugin enable <plugin>` または `/plugin` インターフェイスでそれをオンにします。外部サービスに接続するプラグインなど、ユーザーがオプトインすべきコストまたはスコープを追加するプラグインに使用します。これには Claude Code v2.1.154 以降が必要です。以前のバージョンはフィールドを無視し、インストール時にプラグインを有効にします。
+
+`defaultEnabled` は、他に何もプラグインの状態を決定していない場合のフォールバックです。2 つのことがそれより優先されます:
+
+- **ユーザーの設定**: 任意の設定スコープの `enabledPlugins` のプラグインのエントリ。書き込まれると、プラグイン更新と再インストール全体で保持されるため、後のリリースで `defaultEnabled` を変更しても既存ユーザーをフリップしません。
+- **依存関係要件**: プラグインがアクティブな別のプラグインによって必要とされる場合、Claude Code はインストール時または有効化時にそれに対して `true` を書き込みます。これにより明示的な設定が与えられるため、独自のデフォルトはもはや適用されません。[依存関係を持つプラグインを有効または無効にする](/ja/plugin-dependencies#enable-or-disable-a-plugin-with-dependencies)を参照してください。
+
+同じフィールドはプラグインのマーケットプレイスエントリに表示でき、`plugin.json` の値より優先されます。[オプションプラグインフィールド](/ja/plugin-marketplaces#optional-plugin-fields)を参照してください。
 
 ### コンポーネントパスフィールド
 
@@ -737,6 +790,60 @@ enterprise-plugin/
 
 Claude Code は非対話的なプラグイン管理用の CLI コマンドを提供します。スクリプトと自動化に役立ちます。
 
+### plugin init
+
+`~/.claude/skills/<name>/` に新しいプラグインをスキャフォルドします。次の Claude Code セッションで、マーケットプレイスもインストール手順もなく、`<name>@skills-dir` として自動的に読み込まれます。
+
+[Skills ディレクトリプラグイン](#skills-directory-plugins)のスコープと信頼要件を参照してください。
+
+```bash
+claude plugin init <name> [options]
+```
+
+**引数:**
+
+- `<name>`: プラグイン名。skill 名前空間と `~/.claude/skills/` の下のディレクトリ名になるため、スペースやパス区切り文字を含むことはできません。
+
+**オプション:**
+
+| オプション | 説明 | デフォルト |
+| :- | :- | :- |
+| `--description <text>` | マニフェスト説明 | |
+| `--author <name>` | 著者名 | `git config user.name` |
+| `--author-email <email>` | 著者メール | `git config user.email` |
+| `--with <components...>` | コンポーネントフォルダもスキャフォルド。有効な値: `skills`、`agents`、`hooks`、`mcp`、`lsp`、`output-style`、`channel` | |
+| `-f, --force` | ターゲットの既存 `.claude-plugin/` を上書き | |
+| `-h, --help` | コマンドのヘルプを表示 | |
+
+**エイリアス:** `new`
+
+各 `--with` 値は、そのコンポーネントのスターターファイルを追加し、編集準備ができています:
+
+| コンポーネント | スキャフォルドされるもの |
+| :- | :- |
+| `skills` | デフォルトの横に追加の名前空間 `<name>:example` skill |
+| `agents` | `agents/` subagent 定義 |
+| `hooks` | サンプルイベントハンドラー付き `hooks/hooks.json` |
+| `mcp` | HTTP と stdio サーバーの例を含む `.mcp.json` |
+| `lsp` | `.lsp.json` 言語サーバーの例 |
+| `output-style` | プラグインが有効な場合に自動的に適用される `output-styles/<name>.md` |
+| `channel` | MCP ベースの[チャネル](/ja/channels): stdio サーバー（`server.ts`）、その `.mcp.json`、および `package.json` |
+
+スキャフォルドされたプラグインはマーケットプレイスではなく `@skills-dir` ソースを使用します。管理者は `strictKnownMarketplaces` でこのソースをブロックするか、[管理設定](/ja/plugin-marketplaces#managed-marketplace-restrictions)の `blockedMarketplaces` に `{"source": "skills-dir"}` を追加することでブロックできます。ブロックされると、`plugin init` は書き込み前に失敗します。
+
+**例:**
+
+```bash
+# 最小限のプラグインをスキャフォルド
+claude plugin init my-helper
+
+# skill と hook フォルダでスキャフォルド
+claude plugin init my-helper --with skills hooks
+
+# 既存のスキャフォルドを上書き
+claude plugin init my-helper --force
+```
+
 ### plugin install
 
 利用可能なマーケットプレイスからプラグインをインストールします。
@@ -1009,7 +1116,7 @@ claude plugin tag [options]
 
 1. スクリプトが実行可能であることを確認: `chmod +x ./scripts/your-script.sh`
 2. shebang 行を確認: 最初の行は `#!/bin/bash` または `#!/usr/bin/env bash` である必要があります
-3. パスが `${CLAUDE_PLUGIN_ROOT}` を使用していることを確認: `"command": "${CLAUDE_PLUGIN_ROOT}/scripts/your-script.sh"`
+3. パスが `${CLAUDE_PLUGIN_ROOT}` を使用していることを確認: `"command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/your-script.sh"`
 4. スクリプトを手動でテスト: `./scripts/your-script.sh`
 
 **Hook が予期されたイベントでトリガーされない**:
