@@ -63,18 +63,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
-          COMMIT_MSG="chore: Update built-in data - $CHANGED_COUNT files changed"
-          COMMIT_BODY="Automated built-in data update at ${TIMESTAMP}"$'\n\n'"Modified files:"
+          BODY="built-in データの自動更新"$'\n\n'"自動更新時刻: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"$'\n\n'"変更ファイル:"
 
           for file in $(git diff --staged --name-only); do
-            COMMIT_BODY="${COMMIT_BODY}"$'\n'"- ${file}"
+            BODY="${BODY}"$'\n'"- ${file}"
           done
 
-          echo "title=${COMMIT_MSG}" >> "$GITHUB_OUTPUT"
           {
+            echo "title=chore: built-in データを更新 (${CHANGED_COUNT} files)"
             echo "body<<EOF"
-            echo "${COMMIT_BODY}"
+            echo "${BODY}"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -106,20 +104,11 @@ jobs:
       - name: 失敗時に Issue を作成
         if: failure()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_TITLE: built-in データ取得に失敗
+          ISSUE_SUMMARY: built-in データの自動取得に失敗しました。
+          ISSUE_LABELS: automated-failure,workflow:fetch-builtin-data,bug
         with:
           script: |
-            const title = `Built-in data fetch 失敗 - ${new Date().toISOString()}`;
-            const body = `built-in データの自動取得に失敗しました。
-
-            **ワークフロー実行:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
-            **時刻:** ${new Date().toISOString()}
-
-            ワークフローのログを確認してください。`;
-
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['bug', 'automated']
-            });
+            const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
+            await createIssue({ github, context, core });
