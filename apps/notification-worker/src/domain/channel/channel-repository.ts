@@ -1,4 +1,5 @@
 import type { Channel, ChannelId } from './channel';
+import type { ChannelToken } from './channel-token';
 import type { DiscordWebhookUrl } from './discord-webhook-url';
 import type { EmailAddress } from './email-address';
 import type { NotificationFrequency } from './notification-frequency';
@@ -11,6 +12,7 @@ export type ChannelAddress =
 
 export type ChannelRepository = {
   findById(id: ChannelId): Promise<Channel | null>;
+  findByToken(token: ChannelToken): Promise<Channel | null>;
   findByAddress(address: ChannelAddress): Promise<Channel | null>;
   save(channel: Channel): Promise<void>;
   findActiveByFrequency(frequency: NotificationFrequency): Promise<Channel[]>;
