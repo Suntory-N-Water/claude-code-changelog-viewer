@@ -53,7 +53,8 @@ jobs:
           exit 0
 
       - name: Handle fetch error
-        if: steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code != '1' &&
+        if:
+          steps.fetch.outcome == 'failure' && steps.fetch.outputs.exit_code != '1' &&
           steps.fetch.outputs.exit_code != '0'
         run: |
           echo "❌ Error occurred while fetching changelog."
@@ -156,24 +157,16 @@ jobs:
         env:
           NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
         run: |
-          VERSIONS="$NEW_VERSIONS"
-          VERSION_COUNT=$(echo "$VERSIONS" | wc -w)
-          FIRST_VERSION=$(echo "$VERSIONS" | awk '{print $1}')
-          TIMESTAMP=$(date +'%Y-%m-%d %H:%M:%S JST')
-
-          if [ "$VERSION_COUNT" -eq 1 ]; then
-            COMMIT_TITLE="chore: Process CHANGELOG updates - 1 version"
-          else
-            COMMIT_TITLE="chore: Process CHANGELOG updates - $VERSION_COUNT versions"
-          fi
+          VERSION_COUNT=$(echo "$NEW_VERSIONS" | wc -w | tr -d ' ')
+          FIRST_VERSION=$(echo "$NEW_VERSIONS" | awk '{print $1}')
 
           {
             echo "branch=chore/changelog-${FIRST_VERSION}"
-            echo "title=${COMMIT_TITLE}"
+            echo "title=chore: CHANGELOGを更新 (${VERSION_COUNT} versions)"
             echo "body<<EOF"
-            echo "Processed versions: ${VERSIONS}"
+            echo "対象バージョン: ${NEW_VERSIONS}"
             echo ""
-            echo "Automated update at ${TIMESTAMP}"
+            echo "自動更新時刻: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -221,11 +214,13 @@ jobs:
         if: failure()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          JOB_NAME: fetch-and-infer-changelog
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
-          SCRIPT_PATH: ${{ github.workspace
-            }}/.github/scripts/create-changelog-processing-issue.mjs
+          ISSUE_TITLE: CHANGELOG処理に失敗
+          ISSUE_SUMMARY: |
+            CHANGELOGの取得・解析・推論処理に失敗しました。
+
+            **対象バージョン**: ${{ steps.detect-updates.outputs.new_versions }}
+          ISSUE_LABELS: automated-failure,workflow:changelog-auto-inference,bug
         with:
           script: |
-            const scriptModule = await import(process.env.SCRIPT_PATH);
-            await scriptModule.default({ github, context, core });
+            const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
+            await createIssue({ github, context, core });

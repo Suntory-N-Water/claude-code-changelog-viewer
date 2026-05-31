@@ -28,11 +28,6 @@ jobs:
       pull-requests: write
       issues: write # Need write permission to create issues on failure
 
-    outputs:
-      should_push: ${{ steps.git-check.outputs.should_push }}
-      changed_files: ${{ steps.git-check.outputs.changed_files }}
-      commit_sha: ${{ steps.get-sha.outputs.sha }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -111,29 +106,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          TIMESTAMP=$(date -u +'%Y-%m-%d %H:%M:%S UTC')
-
-          if [ "$CHANGED_COUNT" -eq 1 ]; then
-            COMMIT_MSG="chore: Update Claude Code docs - 1 file changed"
-          else
-            COMMIT_MSG="chore: Update Claude Code docs - $CHANGED_COUNT files changed"
-          fi
-
-          COMMIT_BODY="Automated documentation update at ${TIMESTAMP}"$'\n\n'"Modified files:"
+          TITLE="chore: Claude Codeドキュメントを更新 (${CHANGED_COUNT} files)"
+          BODY="Claude Codeドキュメントの自動更新"$'\n\n'"自動更新時刻: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"$'\n\n'"変更ファイル:"
 
           for file in $(git diff --staged --name-only | head -20); do
-            COMMIT_BODY="${COMMIT_BODY}"$'\n'"- ${file}"
+            BODY="${BODY}"$'\n'"- ${file}"
           done
 
-          if [ "$CHANGED_COUNT" -gt 20 ]; then
-            REMAINING=$((CHANGED_COUNT - 20))
-            COMMIT_BODY="${COMMIT_BODY}"$'\n'"... and ${REMAINING} more files"
-          fi
-
-          echo "title=${COMMIT_MSG}" >> "$GITHUB_OUTPUT"
           {
+            echo "title=${TITLE}"
             echo "body<<EOF"
-            echo "${COMMIT_BODY}"
+            echo "${BODY}"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
@@ -149,8 +132,7 @@ jobs:
           body: ${{ steps.pr-meta.outputs.body }}
           delete-branch: true
 
-      - name: Get commit SHA
-        id: get-sha
+      - name: Merge pull request
         if: steps.git-check.outputs.should_push == 'true' &&
           steps.create-pr.outputs.pull-request-number != ''
         env:
@@ -162,11 +144,6 @@ jobs:
             --admin \
             --delete-branch
           echo "✓ PR #${PR_NUMBER} をマージしました"
-
-          git fetch origin main
-          COMMIT_SHA=$(git rev-parse origin/main)
-          echo "sha=$COMMIT_SHA" >> "$GITHUB_OUTPUT"
-          echo "✓ Commit SHA: $COMMIT_SHA"
 
       - name: Report status
         if: always()
@@ -192,38 +169,17 @@ jobs:
             cat apps/docs-tracker/metadata/last_schema_update.json
           fi
         env:
-          HAS_CHANGES: ${{ steps.git-check.outputs.changed }}
+          HAS_CHANGES: ${{ steps.git-check.outputs.should_push }}
           CHANGED_FILES: ${{ steps.git-check.outputs.changed_files }}
 
       - name: Create issue on failure
         if: failure()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_TITLE: Claude Codeドキュメント取得に失敗
+          ISSUE_SUMMARY: Claude Codeドキュメントと設定スキーマの自動取得に失敗しました。
+          ISSUE_LABELS: automated-failure,workflow:fetch-docs,bug,documentation
         with:
           script: |
-            const title = `Documentation fetch failed - ${new Date().toISOString()}`;
-            const body = `The automated documentation fetch failed.
-
-            **Workflow run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
-            **Time:** ${new Date().toISOString()}
-
-            Please check the workflow logs for more details.`;
-
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['bug', 'documentation', 'automated']
-            });
-
-  notify:
-    needs: fetch-docs
-    if: needs.fetch-docs.outputs.should_push == 'true'
-    permissions:
-      contents: read # Required by notify-docs.yml to checkout repository
-    uses: ./.github/workflows/notify-docs.yml
-    with:
-      commit_sha: ${{ needs.fetch-docs.outputs.commit_sha }}
-      changed_files_count: ${{ fromJSON(needs.fetch-docs.outputs.changed_files) }}
-    secrets:
-      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+            const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
+            await createIssue({ github, context, core });
