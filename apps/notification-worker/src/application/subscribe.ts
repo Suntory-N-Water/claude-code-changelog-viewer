@@ -1,19 +1,20 @@
 import type { Channel } from '../domain/channel/channel';
-import { createChannelId } from '../domain/channel/channel';
+import { createChannel } from '../domain/channel/channel';
 import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type {
   ChannelAddress,
   ChannelRepository,
 } from '../domain/channel/channel-repository';
-import { createChannelToken } from '../domain/channel/channel-token';
-import { prepareExistingChannelForSubscription } from '../domain/channel/channel-lifecycle';
+import { isActive, reactivate } from '../domain/channel/channel-lifecycle';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
 
+/** 通知購読ユースケースへ渡す入力。routes層でHTTP入力を値オブジェクトへ変換してから渡す。 */
 export type SubscribeInput = {
   readonly address: ChannelAddress;
   readonly frequency: NotificationFrequency;
 };
 
+/** 通知購読ユースケースの実行結果。HTTPステータスや表示文言への変換はroutes層で行う。 */
 export type SubscribeResult =
   | {
       readonly ok: true;
@@ -25,6 +26,13 @@ export type SubscribeResult =
       readonly error: 'already_registered' | 'invalid_notification_destination';
     };
 
+/**
+ * 通知先を購読登録する。
+ *
+ * 既存の有効チャンネルがあれば登録済みとして失敗を返し、
+ * 停止済みチャンネルなら再有効化、新しい通知先ならChannelを新規作成する。
+ * DB保存や外部通知の具体実装はRepository/Notifier portへ委譲する。
+ */
 export async function subscribe(
   repository: ChannelRepository,
   notifier: ChannelNotifier,
@@ -32,12 +40,11 @@ export async function subscribe(
 ): Promise<SubscribeResult> {
   const existing = await repository.findByAddress(input.address);
   if (existing) {
-    const subscription = prepareExistingChannelForSubscription(existing);
-    if (subscription.type === 'already_active') {
+    if (isActive(existing)) {
       return { ok: false, error: 'already_registered' };
     }
 
-    const channel = subscription.channel;
+    const channel = reactivate(existing);
     const testResult = await notifier.sendTestNotification(channel);
     if (!testResult.ok) {
       return { ok: false, error: 'invalid_notification_destination' };
@@ -47,7 +54,7 @@ export async function subscribe(
     return { ok: true, channel, status: 'reactivated' };
   }
 
-  const channel = createNewChannel(input.address, input.frequency);
+  const channel = createChannel(input.address, input.frequency);
   const testResult = await notifier.sendTestNotification(channel);
   if (!testResult.ok) {
     return { ok: false, error: 'invalid_notification_destination' };
@@ -55,38 +62,4 @@ export async function subscribe(
 
   await repository.save(channel);
   return { ok: true, channel, status: 'created' };
-}
-
-function createNewChannel(
-  address: ChannelAddress,
-  notificationFrequency: NotificationFrequency,
-): Channel {
-  const base = {
-    id: createChannelId(crypto.randomUUID()),
-    token: createChannelToken(crypto.randomUUID()),
-    notificationFrequency,
-    status: { type: 'active' },
-    failCount: 0,
-  } as const;
-
-  switch (address.type) {
-    case 'DSC':
-      return {
-        ...base,
-        type: 'DSC',
-        webhookUrl: address.value,
-      };
-    case 'SLK':
-      return {
-        ...base,
-        type: 'SLK',
-        webhookUrl: address.value,
-      };
-    case 'EML':
-      return {
-        ...base,
-        type: 'EML',
-        emailAddress: address.value,
-      };
-  }
 }

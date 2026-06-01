@@ -4,11 +4,13 @@ import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { createChannelToken } from '../domain/channel/channel-token';
 import { deactivate, isActive } from '../domain/channel/channel-lifecycle';
 
+/** 配信停止ユースケースへ渡す入力。tokenは外部入力の文字列として受け取る。 */
 export type UnsubscribeInput = {
   readonly token: string;
   readonly unsubscribedAt: Date;
 };
 
+/** 配信停止ユースケースの実行結果。HTTPレスポンスへの変換はroutes層で行う。 */
 export type UnsubscribeResult =
   | { readonly ok: true; readonly channel: Channel }
   | {
@@ -16,6 +18,11 @@ export type UnsubscribeResult =
       readonly error: 'missing_token' | 'not_found' | 'already_deactivated';
     };
 
+/**
+ * tokenに対応する有効チャンネルをユーザー理由で停止する。
+ *
+ * 停止状態の保存を優先し、停止通知の送信失敗はユースケース失敗として扱わない。
+ */
 export async function unsubscribe(
   repository: ChannelRepository,
   notifier: ChannelNotifier,
