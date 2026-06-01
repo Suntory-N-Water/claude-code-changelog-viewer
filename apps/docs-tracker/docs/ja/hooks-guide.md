@@ -820,7 +820,7 @@ HTTP hooks は、Web サーバー、クラウド関数、または外部サー�
 
 - コマンド hooks は stdout、stderr、および終了コードを通じてのみ通信します。これらは `/` コマンドまたはツール呼び出しをトリガーできません。`additionalContext` を通じて返されたテキストは、Claude が平文として読むシステムリマインダーとして注入されます。HTTP hooks はレスポンスボディを通じて通信します。
 - Hook タイムアウトはタイプによって異なります。`timeout` フィールド（秒単位）で hook ごとにオーバーライドできます。
-  - `command`、`http`、`mcp_tool`：10 分。`UserPromptSubmit` はこれらを 30 秒に短縮します。
+  - `command`、`http`、`mcp_tool`：10 分。`UserPromptSubmit` はこれらを 30 秒に短縮し、`MessageDisplay` はこれらを 10 秒に短縮します。
   - `prompt`：30 秒。
   - `agent`：60 秒。
 - `PostToolUse` hooks はツールが既に実行されているため、アクションを元に戻すことはできません。
