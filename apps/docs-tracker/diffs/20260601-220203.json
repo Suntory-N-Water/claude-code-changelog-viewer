@@ -1,0 +1,2291 @@
+{
+  "id": "20260601-220203",
+  "timestamp": "2026-06-01T22:02:03.170Z",
+  "aiSummary": "バックグラウンドセッションを管理するエージェントビューの機能が大幅に強化され、デーモンプロセスの再起動時におけるセッションの保持方法や、macOSでのフォルダアクセス権限のトラブルシューティングが追加されました。MCPサーバーの利用方法が拡張され、Claude Desktopの設定をインポートする機能や、claude.aiのコネクタを制限する設定オプションが導入されています。フック機能についてはMessageDisplayイベントの詳細な記述とサンプルコードが追加され、出力内容のフィルタリングが可能になりました。また、プロンプトキャッシュの挙動に関して、ツール検索の有無によるキャッシュ無効化条件の違いがより具体的に説明されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/claude-code-features.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "claude.aiのMCPコネクタを無効化するための環境変数や設定オプションの記述が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -85,6 +85,7 @@ The `cwd` option determines where the SDK looks for project-level inputs. CLAUDE",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Managed policy settings | Always loaded when present on the host | Remove the managed settings file |"
+            },
+            {
+              "type": "context",
+              "content": "| `~/.claude.json` global config | Always read | Relocate with `CLAUDE_CONFIG_DIR` in `env` |"
+            },
+            {
+              "type": "context",
+              "content": "| Auto memory at `~/.claude/projects/<project>/memory/` | Loaded by default into the system prompt | Set `autoMemoryEnabled: false` in settings, or `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` in `env` |"
+            },
+            {
+              "type": "added",
+              "content": "| [claude.ai MCP connectors](/en/mcp#use-mcp-servers-from-claude-ai) | Loaded when the active authentication method is a claude.ai subscription. Passing `mcpServers: {}` does not suppress them | Set `strictMcpConfig: true`, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` in `env` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Do not rely on default `query()` options for multi-tenant isolation. Because the inputs above are read regardless of `settingSources`, an SDK process can pick up host-level configuration and per-directory memory. For multi-tenant deployments, run each tenant in its own filesystem and set `settingSources: []` plus `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` in `env`. See [Secure deployment](/en/agent-sdk/secure-deployment)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Python SDKにおけるMCPの厳密な設定フラグにclaude.aiコネクタの扱いが追加され、サンドボックスのネットワーク設定の適用範囲が明確化されました。",
+      "hunks": [
+        {
+          "header": "@@ -779,7 +779,7 @@ class ClaudeAgentOptions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `allowed_tools` | `list[str]` | `[]` | Tools to auto-approve without prompting. This does not restrict Claude to only these tools; unlisted tools fall through to `permission_mode` and `can_use_tool`. Use `disallowed_tools` to block tools. See [Permissions](/en/agent-sdk/permissions#allow-and-deny-rules) |"
+            },
+            {
+              "type": "context",
+              "content": "| `system_prompt` | `str \\| SystemPromptPreset \\| None` | `None` | System prompt configuration. Pass a string for custom prompt, or use `{\"type\": \"preset\", \"preset\": \"claude_code\"}` for Claude Code's system prompt. Add `\"append\"` to extend the preset |"
+            },
+            {
+              "type": "context",
+              "content": "| `mcp_servers` | `dict[str, McpServerConfig] \\| str \\| Path` | `{}` | MCP server configurations or path to config file |"
+            },
+            {
+              "type": "removed",
+              "content": "| `strict_mcp_config` | `bool` | `False` | When `True`, use only the servers passed in `mcp_servers` and ignore project `.mcp.json`, user settings, and plugin-provided MCP servers. Maps to the CLI `--strict-mcp-config` flag |"
+            },
+            {
+              "type": "added",
+              "content": "| `strict_mcp_config` | `bool` | `False` | When `True`, use only the servers passed in `mcp_servers` and ignore project `.mcp.json`, user settings, plugin-provided MCP servers, and [claude.ai connectors](/en/mcp#use-mcp-servers-from-claude-ai). Maps to the CLI `--strict-mcp-config` flag |"
+            },
+            {
+              "type": "context",
+              "content": "| `permission_mode` | `PermissionMode \\| None` | `None` | Permission mode for tool usage |"
+            },
+            {
+              "type": "context",
+              "content": "| `continue_conversation` | `bool` | `False` | Continue the most recent conversation |"
+            },
+            {
+              "type": "context",
+              "content": "| `resume` | `str \\| None` | `None` | Session ID to resume |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -3253,7 +3253,7 @@ async for message in query(",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SandboxNetworkConfig`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Network-specific configuration for sandbox mode."
+            },
+            {
+              "type": "added",
+              "content": "Network-specific configuration for sandbox mode. These settings apply to sandboxed Bash commands when `enabled` is `True` in the parent [`SandboxSettings`](#sandboxsettings). They do not restrict the WebFetch tool, which uses [permission rules](/en/permissions#webfetch) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python"
+            },
+            {
+              "type": "context",
+              "content": "class SandboxNetworkConfig(TypedDict, total=False):"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "TypeScript SDKにおいて、strictMcpConfigフラグの影響範囲にclaude.aiコネクタが含まれることや、WebFetchツールの制限に関する注意書きが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -446,7 +446,7 @@ Configuration object for the `query()` function.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `skills` | `string[] \\| 'all'` | `undefined` | Skills available to the session. Pass `'all'` to enable every discovered skill, or a list of skill names. When set, the SDK enables the Skill tool automatically without listing it in `allowedTools`. See [Skills](/en/agent-sdk/skills) |"
+            },
+            {
+              "type": "context",
+              "content": "| `spawnClaudeCodeProcess` | `(options: SpawnOptions) => SpawnedProcess` | `undefined` | Custom function to spawn the Claude Code process. Use to run Claude Code in VMs, containers, or remote environments |"
+            },
+            {
+              "type": "context",
+              "content": "| `stderr` | `(data: string) => void` | `undefined` | Callback for stderr output |"
+            },
+            {
+              "type": "removed",
+              "content": "| `strictMcpConfig` | `boolean` | `false` | Use only the servers passed in `mcpServers` and ignore project `.mcp.json`, user settings, and plugin-provided MCP servers |"
+            },
+            {
+              "type": "added",
+              "content": "| `strictMcpConfig` | `boolean` | `false` | Use only the servers passed in `mcpServers` and ignore project `.mcp.json`, user settings, plugin-provided MCP servers, and [claude.ai connectors](/en/mcp#use-mcp-servers-from-claude-ai) |"
+            },
+            {
+              "type": "context",
+              "content": "| `systemPrompt` | `string \\| { type: 'preset'; preset: 'claude_code'; append?: string; excludeDynamicSections?: boolean }` | `undefined` (minimal prompt) | System prompt configuration. Pass a string for custom prompt, or `{ type: 'preset', preset: 'claude_code' }` to use Claude Code's system prompt. When using the preset object form, add `append` to extend it with additional instructions, and set `excludeDynamicSections: true` to move per-session context into the first user message for [better prompt-cache reuse across machines](/en/agent-sdk/modifying-system-prompts#improve-prompt-caching-across-users-and-machines) |"
+            },
+            {
+              "type": "context",
+              "content": "| `taskBudget` | `{ total: number }` | `undefined` | *Alpha.* API-side task budget in tokens. When set, the model is told its remaining token budget so it can pace tool use and wrap up before the limit |"
+            },
+            {
+              "type": "context",
+              "content": "| `thinking` | [`ThinkingConfig`](#thinkingconfig) | `{ type: 'adaptive' }` for supported models | Controls Claude's thinking/reasoning behavior. See [`ThinkingConfig`](#thinkingconfig) for options |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -3311,7 +3311,7 @@ for await (const message of query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SandboxNetworkConfig`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Network-specific configuration for sandbox mode."
+            },
+            {
+              "type": "added",
+              "content": "Network-specific configuration for sandbox mode. These settings apply to sandboxed Bash commands when `enabled` is `true` in the parent [`SandboxSettings`](#sandboxsettings). They do not restrict the WebFetch tool, which uses [permission rules](/en/permissions#webfetch) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type SandboxNetworkConfig = {"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-view.md",
+      "additions": 31,
+      "deletions": 3,
+      "explanation": "バックグラウンドセッションの永続性、音声入力の利用方法、およびデーモン停止時のオプションに関する詳細な説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -118,7 +118,7 @@ Session state persists on disk through auto-updates and supervisor restarts. Ses",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The one-line summary in each row is generated by a [Haiku-class model](/en/model-config) so the row can tell you what the session is doing, what it needs, or what it produced without opening the transcript. While a session is actively working, the summary refreshes at most once every 15 seconds, plus once when each turn ends."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each refresh is one short Haiku-class request through your normal provider, billed and handled under the same [data usage terms](/en/data-usage) as the session itself."
+            },
+            {
+              "type": "added",
+              "content": "Each refresh is one short Haiku-class request through your normal provider, billed and handled under the same [data usage terms](/en/data-usage) as the session itself. On third-party providers such as Bedrock, Vertex AI, Microsoft Foundry, and custom gateways, the request falls back to the session's main model when no Haiku model is configured. Set [`ANTHROPIC_DEFAULT_HAIKU_MODEL`](/en/model-config#environment-variables) to choose the model for these summaries on those providers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Pull request status"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -143,6 +143,8 @@ Press `Space` on a selected row to open the peek panel. It shows what the sessio",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Type a reply in the peek panel and press `Enter` to send it to that session. When the session is asking a multiple-choice question, the peek panel shows the options and you can press a number key to pick one. For other blocked sessions, press `Tab` to fill the input with a suggested reply you can edit before sending. Prefix a reply with `!` to send a Bash command instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With [voice dictation](/en/voice-dictation) enabled, hold or tap your push-to-talk key while the reply input is focused to dictate a reply instead of typing it. The same works in the dispatch input at the bottom of agent view."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use `↑` and `↓` to peek at adjacent sessions without closing the panel, or `→` to attach."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Attach to a session"
+            }
+          ]
+        },
+        {
+          "header": "@@ -231,6 +233,8 @@ Prefix or mention parts of the prompt to control how the session starts:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `#<number>` or a pull request URL | If a session is already working on that PR, select it instead of dispatching |"
+            },
+            {
+              "type": "context",
+              "content": "| `Shift+Enter` | Dispatch and immediately attach to the new session |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A small set of commands run in agent view itself instead of dispatching: `/exit` and `/quit` close agent view, and `/logout` signs you out. Every other command and skill is sent to a new background session as its first prompt."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Packaging a recurring task as a [skill](/en/skills) lets you start the same workflow from agent view repeatedly without retyping the prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the same `@name` matches both a subagent and a sibling repository, the subagent takes precedence. The bare first-word match also applies, so a prompt that happens to begin with one of your subagent names dispatches that subagent rather than treating the word as plain text. Use the `@` form when you want to be explicit, or start the prompt with a different word to avoid the match."
+            }
+          ]
+        },
+        {
+          "header": "@@ -340,7 +344,7 @@ Deleting a session in agent view (`Ctrl+X` twice) removes a worktree Claude crea",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To find a session's worktree path, peek the session or attach and check its working directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To make a subagent always run in its own worktree regardless of how it was started, set [`isolation: worktree`](/en/sub-agents#supported-frontmatter-fields) in its frontmatter."
+            },
+            {
+              "type": "added",
+              "content": "A [subagent](/en/sub-agents) the background session spawns inherits the session's working directory, so its file edits land in the session's worktree rather than your working copy. To give a subagent its own separate worktree instead, set [`isolation: worktree`](/en/sub-agents#supported-frontmatter-fields) in its frontmatter or pass `isolation: \"worktree\"` when spawning it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Set the model"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -358,7 +362,7 @@ A background session reads its [settings](/en/settings) from the directory it ru",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The [permission mode](/en/permissions) depends on how you started the session. Backgrounding an existing session with `/bg` or `←` keeps the current permission mode, so a session you switched to `acceptEdits` or `auto` stays in that mode after detaching. Dispatching from the agent view input or running `claude --bg` from your shell uses the `defaultMode` from that directory's settings, or the `permissionMode` from the dispatched [subagent's frontmatter](/en/sub-agents#supported-frontmatter-fields)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The permission mode you start a background session with persists when the supervisor later [stops and restarts](#the-supervisor-process) the session's process. A session you launched with `claude --bg --dangerously-skip-permissions` or `claude --bg --permission-mode bypassPermissions` stays in `bypassPermissions` after that restart instead of falling back to the directory's `defaultMode`."
+            },
+            {
+              "type": "added",
+              "content": "The permission mode, model, and effort a background session was started with, along with the [configuration flags it carries](#from-inside-a-session), all persist when the supervisor later [stops and restarts](#the-supervisor-process) its process. A session you launched with `claude --bg --dangerously-skip-permissions` or `claude --bg --permission-mode bypassPermissions` stays in `bypassPermissions` after that restart instead of falling back to the directory's `defaultMode`, and a model or effort you changed mid-session with `/model` or `/effort` is kept."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To set defaults for every session you dispatch from agent view, pass any of `--permission-mode`, `--model`, `--effort`, or `--agent` when opening it:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -422,6 +426,7 @@ Every background session has a short ID you can use from the shell. The ID is pr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude respawn --all` | Restart every running session, e.g. to move all sessions onto an updated Claude Code binary at once |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude rm <id>` | Remove a session from the list. Removes a worktree Claude created for the session if it has no uncommitted changes; otherwise prints the worktree path so you can clean it up. Leaves a worktree you created yourself in place. The conversation transcript stays on your local machine and remains available through `claude --resume` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude daemon status` | Print the [supervisor's](#the-supervisor-process) state, version, socket directory, and worker count |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude daemon stop --any` | Stop the supervisor process and the background sessions it hosts. Pass `--keep-workers` to leave background sessions running so the next supervisor reconnects to them. The next `claude agents` or `claude --bg` starts a fresh supervisor |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## How background sessions are hosted"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -437,6 +442,8 @@ Each background session is its own Claude Code process, managed by the superviso",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once a session finishes and sits unattached for about an hour, the supervisor stops its process to free resources. A session you have [pinned](#organize-the-list) with `Ctrl+T` is exempt and keeps its process running while idle. The transcript and state stay on disk either way, and the next time you attach, peek, or reply to a stopped session, the supervisor starts a fresh process from where it left off. When every session has finished and no terminal is connected, the supervisor itself exits and starts again the next time you need it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "An empty row left over from pressing `←` that was never given a prompt is removed entirely after about five minutes so the list clears on its own. Sessions started with `claude --bg` and sessions waiting on a setup prompt such as a trust dialog are not removed this way."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the host runs low on memory, the supervisor stops idle non-pinned sessions first and stops idle pinned ones only if that freed nothing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The supervisor watches the installed Claude Code binary on disk and restarts into the new version after the regular [auto-updater](/en/setup#auto-updates) replaces it. This is a local file watch, not a network check. Background sessions are detached processes, so they keep running through the restart and the new supervisor reconnects to them. An idle pinned session is also restarted in place onto the new version so it picks up the update without you reattaching."
+            }
+          ]
+        },
+        {
+          "header": "@@ -450,6 +457,9 @@ Session state is stored under your Claude Code config directory. If you set [`CL",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `~/.claude/daemon.log` | Supervisor log |"
+            },
+            {
+              "type": "context",
+              "content": "| `~/.claude/daemon/roster.json` | List of running background sessions, used to reconnect after a restart |"
+            },
+            {
+              "type": "context",
+              "content": "| `~/.claude/jobs/<id>/state.json` | Per-session state shown in agent view |"
+            },
+            {
+              "type": "added",
+              "content": "| `~/.claude/jobs/<id>/tmp/` | Per-session scratch directory. Writes here don't prompt for permission. Removed when the session is deleted |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each background session has the `CLAUDE_JOB_DIR` environment variable set to its `~/.claude/jobs/<id>` directory, so shell commands the session runs can write temporary files to `$CLAUDE_JOB_DIR/tmp` without colliding with parallel sessions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To inspect this state without reading the files directly, run `claude daemon status`. It reports whether the supervisor is reachable, its process ID and version, the socket directory, and how many background sessions are live. `/doctor` includes a summary of the same check. On Windows, `claude daemon status` surfaces the underlying file error when the daemon's pipe-key file is locked or unreadable instead of reporting a generic connection failure."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -483,6 +493,24 @@ Shutting down or restarting your machine stops running background sessions, so t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Sleep alone does not cause this. Sessions are preserved across sleep and the supervisor reconnects to them on wake."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Agent view says the background service did not respond"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If attaching, peeking, or `claude logs` reports that the background service did not respond, the supervisor process has likely stalled. Stop it and let the next `claude agents` start a fresh one. To keep your background sessions running through the restart, pass `--keep-workers`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude daemon stop --any --keep-workers"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The new supervisor reconnects to the running sessions. Without `--keep-workers`, the command ends the background sessions too. The `--any` flag confirms you want to stop a supervisor that started on demand rather than as an installed service, which is the default."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Windows, if the supervisor does not respond to the stop request, the command prints its process ID. End that process with `taskkill /PID <pid>` to finish the recovery. Background sessions are still preserved when you passed `--keep-workers`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Background sessions cannot read Desktop, Documents, or Downloads on macOS"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On macOS, the background session host runs as its own process and requests access to protected folders separately from your terminal. If a background session reports `Operation not permitted` when reading `~/Desktop`, `~/Documents`, `~/Downloads`, or another protected location, grant access in System Settings under Privacy & Security > Files and Folders, or enable Full Disk Access for the entry."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With the native installer, the entry appears as Claude Code and the grant persists across updates. With other install methods such as Homebrew or npm, the entry shows the binary path and may need to be granted again after updating."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### A session is slow to respond after attaching"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once a session has finished and sat unattached for about an hour, the supervisor stops its process to free resources. Attaching starts a fresh process from where it left off, which takes a moment. Sessions that are working, waiting on you, or [pinned](#organize-the-list) are not stopped this way, so pin a session with `Ctrl+T` to keep it responsive."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "バックグラウンドセッションのスーパーバイザーを停止しつつ、ワーカーを維持するためのコマンドオプションが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -29,6 +29,7 @@ You can start sessions, pipe content, resume conversations, and manage updates w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude attach <id>` | Attach to a [background session](/en/agent-view#manage-sessions-from-the-shell) in this terminal | `claude attach 7c5dcf5d` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auto-mode defaults` | Print the built-in [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier rules as JSON. Use `claude auto-mode config` to see your effective config with settings applied | `claude auto-mode defaults > rules.json` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude daemon status` | Print the background-session [supervisor's](/en/agent-view#the-supervisor-process) state, version, socket directory, and worker count for diagnostics. Exits 1 if the supervisor isn't running | `claude daemon status` |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude daemon stop --any` | Stop the background-session [supervisor](/en/agent-view#the-supervisor-process) and the sessions it hosts. Pass `--keep-workers` to leave background sessions running so the next supervisor reconnects to them. `--any` confirms stopping an on-demand supervisor, which is the default. Use this to recover from an [unresponsive supervisor](/en/agent-view#agent-view-says-the-background-service-did-not-respond) | `claude daemon stop --any --keep-workers` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude logs <id>` | Print recent output from a [background session](/en/agent-view#manage-sessions-from-the-shell) | `claude logs 7c5dcf5d` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude mcp` | Configure Model Context Protocol (MCP) servers | See the [Claude Code MCP documentation](/en/mcp). |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude plugin` | Manage Claude Code [plugins](/en/plugins). Alias: `claude plugins`. See [plugin reference](/en/plugins-reference#cli-commands-reference) for subcommands | `claude plugin install code-review@claude-plugins-official` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Claude Desktopの設定をインポートしてCLIで利用する方法や、両者のMCPサーバー共有に関する仕様が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -638,7 +638,9 @@ Desktop and CLI read the same configuration files, so your setup carries over:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **[Settings](/en/settings)** in `~/.claude.json` and `~/.claude/settings.json` are shared. Permission rules, allowed tools, and other settings in `settings.json` apply to Desktop sessions."
+            },
+            {
+              "type": "context",
+              "content": "- **Models**: Sonnet, Opus, and Haiku are available in both. In Desktop, select the model from the dropdown next to the send button. You can change the model mid-session from the same dropdown."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**MCP servers: desktop chat app vs Claude Code**: MCP servers configured for the Claude Desktop chat app in `claude_desktop_config.json` are separate from Claude Code and will not appear in the Code tab. To use MCP servers in Claude Code, configure them in `~/.claude.json` or your project's `.mcp.json` file. See [MCP configuration](/en/mcp#installing-mcp-servers) for details."
+            },
+            {
+              "type": "added",
+              "content": "**MCP servers from the Claude Desktop chat app**: the Desktop app loads MCP servers from `claude_desktop_config.json` into Code tab sessions, alongside servers from `~/.claude.json` and `.mcp.json`. A server defined in `claude_desktop_config.json` is available in both the Desktop chat surface and the Code tab."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The standalone CLI does not read `claude_desktop_config.json`. On macOS and WSL, run `claude mcp add-from-claude-desktop` to copy those servers into `~/.claude.json`. See [Import MCP servers from Claude Desktop](/en/mcp#import-mcp-servers-from-claude-desktop) for the import flow and scope options."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Feature comparison"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "discover-plugins.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "プラグインのリロード時に発生するトークンコストや、プロンプトキャッシュへの影響について補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -308,6 +308,8 @@ When you install, enable, or disable plugins during a session, run `/reload-plug",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code reloads all active plugins and shows counts for plugins, skills, agents, hooks, plugin MCP servers, and plugin LSP servers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Reloading has a token cost on the next request: newly loaded components announce themselves in content appended to the conversation, while the existing history still reads from the prompt cache. A plugin that provides MCP servers costs more when its tools aren't deferred by [tool search](/en/mcp#scale-with-mcp-tool-search): the change invalidates the cache and the next request re-reads the entire conversation. See [enabling or disabling a plugin](/en/prompt-caching#enabling-or-disabling-a-plugin) for details."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Manage marketplaces"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can manage marketplaces through the interactive `/plugin` interface or with CLI commands."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "features-overview.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "フック機能の役割に関する記述が、ワークフローの自動化からアクションの自動化へと調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -285,7 +285,7 @@ Coordinate multiple sessions working in parallel",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Connect Claude to external services"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Automate workflows with hooks"
+            },
+            {
+              "type": "added",
+              "content": "Automate actions with hooks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Bundle and share feature sets"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "glossary.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "CLAUDE.mdファイルがプロジェクト、ユーザー、組織の各スコープでどのように読み込まれ、連結されるかの優先順位が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -83,9 +83,9 @@ Learn more: [The `.claude` directory](/en/claude-directory)",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### CLAUDE.md"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A markdown file of persistent instructions you write for Claude, loaded at the start of every session as a user message after the system prompt. Put project conventions, architecture notes, and \"always do X\" rules here. CLAUDE.md survives [compaction](#compaction) and is re-read fresh from disk afterward."
+            },
+            {
+              "type": "added",
+              "content": "A markdown file of persistent instructions you write for Claude, loaded at the start of every session as a user message after the system prompt. Put project conventions, architecture notes, and \"always do X\" rules here. Project-root CLAUDE.md survives [compaction](#compaction) and is re-read fresh from disk afterward."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can place CLAUDE.md at project scope in `./CLAUDE.md` or `./.claude/CLAUDE.md`, at user scope in `~/.claude/CLAUDE.md`, or as [managed policy](#managed-settings) for your organization. More specific locations take precedence."
+            },
+            {
+              "type": "added",
+              "content": "You can place CLAUDE.md at project scope in `./CLAUDE.md` or `./.claude/CLAUDE.md`, at user scope in `~/.claude/CLAUDE.md`, or as [managed policy](#managed-settings) for your organization. All discovered files are concatenated into context rather than overriding each other, ordered from broadest scope to most specific."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Learn more: [CLAUDE.md files](/en/memory#claude-md-files)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "goal.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "セッションを継続させるための各種アプローチを比較するセクションの名称が変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -20,12 +20,12 @@ Use a goal for substantial work with a verifiable end state:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This page covers how to:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [Compare autonomous workflow approaches](#compare-to-other-autonomous-workflows): `/loop`, Stop hooks, and auto mode"
+            },
+            {
+              "type": "added",
+              "content": "- [Compare ways to keep a session running](#compare-ways-to-keep-a-session-running): `/loop`, Stop hooks, and auto mode"
+            },
+            {
+              "type": "context",
+              "content": "- [Set a goal](#set-a-goal) and [write an effective condition](#write-an-effective-condition)"
+            },
+            {
+              "type": "context",
+              "content": "- [Check status](#check-status), [clear early](#clear-a-goal), and [run non-interactively](#run-non-interactively)"
+            },
+            {
+              "type": "context",
+              "content": "- See [how evaluation works](#how-evaluation-works) and [requirements](#requirements)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Compare to other autonomous workflows"
+            },
+            {
+              "type": "added",
+              "content": "## Compare ways to keep a session running"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Three approaches keep the current session running between prompts. Pick based on what should start the next turn:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "MessageDisplayイベントの導入に伴い、各イベントにおけるデフォルトのタイムアウト時間の定義が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -3,7 +3,7 @@ title: hooks-guide",
+          "lines": [
+            {
+              "type": "context",
+              "content": "source: https://code.claude.com/docs/en/hooks-guide.md"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# Automate workflows with hooks"
+            },
+            {
+              "type": "added",
+              "content": "# Automate actions with hooks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Run shell commands automatically when Claude Code edits files, finishes tasks, or needs input. Format code, send notifications, validate commands, and enforce project rules."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -820,7 +820,7 @@ For full configuration options and response handling, see [HTTP hooks](/en/hooks",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Command hooks communicate through stdout, stderr, and exit codes only. They cannot trigger `/` commands or tool calls. Text returned via `additionalContext` is injected as a system reminder that Claude reads as plain text. HTTP hooks communicate through the response body instead."
+            },
+            {
+              "type": "context",
+              "content": "- Hook timeouts vary by type. Override per hook with the `timeout` field in seconds."
+            },
+            {
+              "type": "removed",
+              "content": "  - `command`, `http`, `mcp_tool`: 10 minutes. `UserPromptSubmit` lowers these to 30 seconds."
+            },
+            {
+              "type": "added",
+              "content": "  - `command`, `http`, `mcp_tool`: 10 minutes. `UserPromptSubmit` lowers these to 30 seconds, and `MessageDisplay` lowers them to 10 seconds."
+            },
+            {
+              "type": "context",
+              "content": "  - `prompt`: 30 seconds."
+            },
+            {
+              "type": "context",
+              "content": "  - `agent`: 60 seconds."
+            },
+            {
+              "type": "context",
+              "content": "- `PostToolUse` hooks cannot undo actions since the tool has already executed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 89,
+      "deletions": 5,
+      "explanation": "MessageDisplayイベントの具体的な使用例として、Markdownの削除や機密情報の秘匿を行うスクリプトが紹介されています。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/hooks.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, HTTP hooks, prompt hooks, and MCP tool hooks."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide)."
+            },
+            {
+              "type": "added",
+              "content": "For a quickstart guide with examples, see [Automate actions with hooks](/en/hooks-guide)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Hooks are user-defined shell commands, HTTP endpoints, or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks, HTTP hooks, and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -273,7 +273,7 @@ These fields apply to all hook types:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `type` | yes | `\"command\"`, `\"http\"`, `\"mcp_tool\"`, `\"prompt\"`, or `\"agent\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `if` | no | Permission rule syntax to filter when this hook runs, such as `\"Bash(git *)\"` or `\"Edit(*.ts)\"`. The hook only spawns if the tool call matches the pattern, or if a Bash command is too complex to parse. Only evaluated on tool events: `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`, and `PermissionDenied`. On other events, a hook with `if` set never runs. Uses the same syntax as [permission rules](/en/permissions) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `timeout` | no | Seconds before canceling. Defaults: 600 for `command`, `http`, and `mcp_tool`; 30 for `prompt`; 60 for `agent`. [`UserPromptSubmit`](#userpromptsubmit) lowers the `command`, `http`, and `mcp_tool` default to 30 |"
+            },
+            {
+              "type": "added",
+              "content": "| `timeout` | no | Seconds before canceling. Defaults: 600 for `command`, `http`, and `mcp_tool`; 30 for `prompt`; 60 for `agent`. [`UserPromptSubmit`](#userpromptsubmit) lowers the `command`, `http`, and `mcp_tool` default to 30, and [`MessageDisplay`](#messagedisplay) lowers it to 10 |"
+            },
+            {
+              "type": "context",
+              "content": "| `statusMessage` | no | Custom spinner message displayed while the hook runs |"
+            },
+            {
+              "type": "context",
+              "content": "| `once` | no | If `true`, runs once per session then is removed. Only honored for hooks declared in [skill frontmatter](#hooks-in-skills-and-agents); ignored in settings files and agent frontmatter |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -995,7 +995,7 @@ Runs when the user submits a prompt, before Claude processes it. This allows you",
+          "lines": [
+            {
+              "type": "context",
+              "content": "to add additional context based on the prompt/conversation, validate prompts, or"
+            },
+            {
+              "type": "context",
+              "content": "block certain types of prompts."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`UserPromptSubmit` hooks have a default timeout of 30 seconds for `command`, `http`, and `mcp_tool` types, shorter than the 600-second default for those types on other events. Because this hook runs before every prompt and blocks model processing until it completes, a stuck hook stalls the session. If your hook needs more time, set the `timeout` field in the hook entry."
+            },
+            {
+              "type": "added",
+              "content": "`UserPromptSubmit` hooks have a default timeout of 30 seconds for `command`, `http`, and `mcp_tool` types, shorter than the 600-second default for those types on most other events. Because this hook runs before every prompt and blocks model processing until it completes, a stuck hook stalls the session. If your hook needs more time, set the `timeout` field in the hook entry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### UserPromptSubmit input"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1098,9 +1098,19 @@ In addition to the [common input fields](#common-input-fields), UserPromptExpans",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### MessageDisplay"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Runs while an assistant message streams to the screen. Claude Code displays the message in increments: each time a batch of newly completed lines is ready to render, the hook runs once with those lines and Claude Code renders the hook's replacement text in their place. A long message produces several calls; a short message may produce only one. Use this to reformat, redact, or condense Claude's responses as they appear on screen."
+            },
+            {
+              "type": "added",
+              "content": "Runs while an assistant message streams to the screen. Claude Code displays the message in increments: each time a batch of newly completed lines is ready to render, the hook runs once with those lines and Claude Code renders the hook's replacement text in their place. A long message produces several calls; a short message may produce only one."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "MessageDisplay is display-only: the replacement text changes only what is rendered on screen. The transcript and what Claude sees keep the original text, so Claude never sees the replacement, and verbose mode shows the original. MessageDisplay does not support matchers and fires for every assistant message that streams text; messages with no text, such as tool-call-only responses, do not trigger it."
+            },
+            {
+              "type": "added",
+              "content": "Use MessageDisplay to:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- strip markdown for a minimal display"
+            },
+            {
+              "type": "added",
+              "content": "- transform the text an Agent SDK application shows its users"
+            },
+            {
+              "type": "added",
+              "content": "- redact API keys or internal hostnames from Claude's responses"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code holds each batch until your hook returns, so keep the hook fast. If the hook fails or times out, Claude Code displays the original text. The default timeout for this event is 10 seconds; if your hook needs more time, set the `timeout` field in the hook entry."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "MessageDisplay is display-only: the replacement text changes only what is rendered on screen. The transcript and what Claude sees keep the original text, so Claude never sees the replacement, and verbose mode shows the original. The hook receives assistant message text only, so tool results and the text you type render unchanged."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "MessageDisplay does not support matchers and fires for every assistant message that streams text; messages with no text, such as tool-call-only responses, do not trigger it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In non-interactive runs, including Agent SDK queries and `claude -p`, MessageDisplay runs once per assistant message instead of once per batch of lines. The single call arrives after the message completes and carries the full message text: `index` is `0`, `final` is `true`, and `delta` holds the entire message. A hook that collects the `delta` text for each message receives the same total text in both modes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -1140,6 +1150,80 @@ In addition to the [JSON output fields](#json-output) available to all hooks, Me",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "MessageDisplay hooks have no decision control. They cannot block the message or change what is stored in the transcript or sent to Claude."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This example strips markdown formatting from Claude's responses for a plain-text display. The script reads each batch from stdin, removes bold markers and inline code backticks from `delta`, and returns the result as `displayContent`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Register a command hook for the event in your settings file:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"hooks\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"MessageDisplay\": ["
+            },
+            {
+              "type": "added",
+              "content": "      {"
+            },
+            {
+              "type": "added",
+              "content": "        \"hooks\": ["
+            },
+            {
+              "type": "added",
+              "content": "          {"
+            },
+            {
+              "type": "added",
+              "content": "            \"type\": \"command\","
+            },
+            {
+              "type": "added",
+              "content": "            \"command\": \"${CLAUDE_PROJECT_DIR}/.claude/hooks/plain-display.sh\","
+            },
+            {
+              "type": "added",
+              "content": "            \"args\": []"
+            },
+            {
+              "type": "added",
+              "content": "          }"
+            },
+            {
+              "type": "added",
+              "content": "        ]"
+            },
+            {
+              "type": "added",
+              "content": "      }"
+            },
+            {
+              "type": "added",
+              "content": "    ]"
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Save this script to `.claude/hooks/plain-display.sh` in your project and make it executable with `chmod +x`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "#!/bin/bash"
+            },
+            {
+              "type": "added",
+              "content": "jq '{hookSpecificOutput: {hookEventName: \"MessageDisplay\", displayContent: (.delta | gsub(\"\\\\*\\\\*\"; \"\") | gsub(\"`\"; \"\"))}}'"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The script needs `jq` on your `PATH`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Register a command hook that runs the script through PowerShell:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"hooks\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"MessageDisplay\": ["
+            },
+            {
+              "type": "added",
+              "content": "      {"
+            },
+            {
+              "type": "added",
+              "content": "        \"hooks\": ["
+            },
+            {
+              "type": "added",
+              "content": "          {"
+            },
+            {
+              "type": "added",
+              "content": "            \"type\": \"command\","
+            },
+            {
+              "type": "added",
+              "content": "            \"command\": \"powershell.exe\","
+            },
+            {
+              "type": "added",
+              "content": "            \"args\": ["
+            },
+            {
+              "type": "added",
+              "content": "              \"-NoProfile\","
+            },
+            {
+              "type": "added",
+              "content": "              \"-ExecutionPolicy\","
+            },
+            {
+              "type": "added",
+              "content": "              \"Bypass\","
+            },
+            {
+              "type": "added",
+              "content": "              \"-File\","
+            },
+            {
+              "type": "added",
+              "content": "              \"${CLAUDE_PROJECT_DIR}/.claude/hooks/plain-display.ps1\""
+            },
+            {
+              "type": "added",
+              "content": "            ]"
+            },
+            {
+              "type": "added",
+              "content": "          }"
+            },
+            {
+              "type": "added",
+              "content": "        ]"
+            },
+            {
+              "type": "added",
+              "content": "      }"
+            },
+            {
+              "type": "added",
+              "content": "    ]"
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `-NoProfile` flag skips loading your PowerShell profile so the hook starts fast, and `-ExecutionPolicy Bypass` lets PowerShell run the local script file."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Save this script to `.claude/hooks/plain-display.ps1` in your project:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "$batch = [Console]::In.ReadToEnd() | ConvertFrom-Json"
+            },
+            {
+              "type": "added",
+              "content": "$text = $batch.delta -replace '\\*\\*', '' -replace '`', ''"
+            },
+            {
+              "type": "added",
+              "content": "@{"
+            },
+            {
+              "type": "added",
+              "content": "  hookSpecificOutput = @{"
+            },
+            {
+              "type": "added",
+              "content": "    hookEventName = \"MessageDisplay\""
+            },
+            {
+              "type": "added",
+              "content": "    displayContent = $text"
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "} | ConvertTo-Json"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Batches with no markdown pass through unchanged. If the script fails, for example because `jq` is missing, Claude Code displays the original text and notes the failure only in [debug output](#debug-hooks), not in the session."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### PreToolUse"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Runs after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Agent`, `WebFetch`, `WebSearch`, `AskUserQuestion`, `ExitPlanMode`, and any [MCP tool names](#match-mcp-tools)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "large-codebases.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "大規模コードベースにおけるフックの活用方法について、名称の変更に伴うリンクの更新が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -377,7 +377,7 @@ See [server-managed or endpoint-managed settings](/en/server-managed-settings#ch",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once conventions live in plugins, a teammate starting Claude in an unfamiliar part of the tree has no signal about which plugin that area's owners maintain. A [`SessionStart` hook](/en/hooks#sessionstart) can close that gap, since anything the hook prints to stdout is added to Claude's context before the first prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For example, you can write a script that reads the launch directory from the [hook input](/en/hooks#common-input-fields), looks it up in a path-to-plugin map committed to the repository, and prints the recommendation for Claude to relay in its first reply. See [Automate workflows with hooks](/en/hooks-guide) to write and register the hook."
+            },
+            {
+              "type": "added",
+              "content": "For example, you can write a script that reads the launch directory from the [hook input](/en/hooks#common-input-fields), looks it up in a path-to-plugin map committed to the repository, and prints the recommendation for Claude to relay in its first reply. See [Automate actions with hooks](/en/hooks-guide) to write and register the hook."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Put it together"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "コンテキストウィンドウを1Mに拡張するサフィックスの適用対象が、特定のモデルエイリアスに限定されることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -333,7 +333,7 @@ To enable [extended context](#extended-context) for a pinned model, append `[1m]",
+          "lines": [
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8[1m]'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `[1m]` suffix applies the 1M context window to all usage of that alias, including `opusplan`."
+            },
+            {
+              "type": "added",
+              "content": "The `[1m]` suffix applies the 1M context window to all usage of the `opus` and `sonnet` aliases. It does not extend the plan-mode Opus phase of `opusplan`, which [remains capped at 200K](#opusplan-model-setting)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Claude Code strips the suffix before sending the model ID to your provider."
+            },
+            {
+              "type": "context",
+              "content": "- Only append `[1m]` when the underlying model [supports 1M context](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "prompt-caching.md",
+      "additions": 20,
+      "deletions": 6,
+      "explanation": "ツール検索機能が有効な場合と無効な場合で、MCPサーバーの変更がキャッシュに与える影響の違いが詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -21,7 +21,7 @@ To get the most out of prefix matching, Claude Code orders each request so conte",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Layer | Content | Changes when |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| System prompt | Core instructions, tool definitions, output style | An MCP server connects or disconnects, or Claude Code is upgraded |"
+            },
+            {
+              "type": "added",
+              "content": "| System prompt | Core instructions, tool definitions, output style | The set of loaded tool definitions changes, or Claude Code is upgraded |"
+            },
+            {
+              "type": "context",
+              "content": "| Project context | CLAUDE.md, auto memory, unscoped rules | Session starts, or after `/clear` or `/compact` |"
+            },
+            {
+              "type": "context",
+              "content": "| Conversation | Your messages, Claude's responses, tool results | Every turn |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -34,7 +34,7 @@ Two settings aren't part of the prompt text at all, so they don't appear in the",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Model**: each model has its own cache. Switching models recomputes the entire request even when the content is identical. See [Switching models](#switching-models) below."
+            },
+            {
+              "type": "context",
+              "content": "- **Effort level**: each effort level has its own cache for the same model. Changing it mid-session recomputes the entire request, and Claude Code asks you to confirm before applying the change. See [Changing effort level](#changing-effort-level) below."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Pick your model, effort level, and MCP servers at the top of a session, then save `/compact` for natural breaks between tasks. The fewer changes you make mid-task, the higher your cache hit rate."
+            },
+            {
+              "type": "added",
+              "content": "Pick your model and effort level at the top of a session, then save `/compact` for natural breaks between tasks. The fewer changes you make mid-task, the higher your cache hit rate."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Where the cache lives"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -49,11 +49,12 @@ For what each provider stores and processes, see [data usage](/en/data-usage). W",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Actions that invalidate the cache"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These actions cause the next request to miss part or all of the cache. You see a one-time slower, more expensive turn, after which the new prefix is cached. Most of them are avoidable mid-task once you know they have a cost. A model switch or an MCP reconnect can feel free until you notice the slower turn that follows."
+            },
+            {
+              "type": "added",
+              "content": "These actions cause the next request to miss part or all of the cache. You see a one-time slower, more expensive turn, after which the new prefix is cached. Most of them are avoidable mid-task once you know they have a cost. A model switch can feel free until you notice the slower turn that follows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Switching models](#switching-models)"
+            },
+            {
+              "type": "context",
+              "content": "- [Changing effort level](#changing-effort-level)"
+            },
+            {
+              "type": "context",
+              "content": "- [Connecting or disconnecting an MCP server](#connecting-or-disconnecting-an-mcp-server)"
+            },
+            {
+              "type": "added",
+              "content": "- [Enabling or disabling a plugin](#enabling-or-disabling-a-plugin)"
+            },
+            {
+              "type": "context",
+              "content": "- [Denying an entire tool](#denying-an-entire-tool)"
+            },
+            {
+              "type": "context",
+              "content": "- [Compacting the conversation](#compacting-the-conversation)"
+            },
+            {
+              "type": "context",
+              "content": "- [Upgrading Claude Code](#upgrading-claude-code)"
+            }
+          ]
+        },
+        {
+          "header": "@@ -70,15 +71,28 @@ The cache is keyed by [effort level](/en/model-config#adjust-effort-level) as we",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Connecting or disconnecting an MCP server"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tool definitions sit in the system prompt layer, so the cache invalidates when the set of MCP tools available to Claude changes between turns. The most common cause is an [MCP server](/en/mcp) connecting or disconnecting mid-session, which can happen without any action on your part: a stdio server's process exits, an HTTP session expires, or a server [reconnects automatically after a transient failure](/en/mcp#automatic-reconnection). A connected server can also push a [dynamic tool update](/en/mcp#dynamic-tool-updates) that changes its tool list."
+            },
+            {
+              "type": "added",
+              "content": "Tool definitions sit in the system prompt layer, so the cache invalidates when the set of tool definitions in the request changes between turns. Whether an [MCP server](/en/mcp) change does this depends on whether its tools are deferred by [tool search](/en/mcp#scale-with-mcp-tool-search) or loaded into the prefix:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Deferred tools**, the default on supported models: a server connecting, disconnecting, or changing its tool list only appends new content and doesn't disturb anything already cached."
+            },
+            {
+              "type": "added",
+              "content": "- **Tools loaded into the prefix**: any change to them invalidates the cache. This happens when [tool search is unavailable or disabled](/en/mcp#configure-tool-search), such as on Haiku models, on Vertex AI, or with a custom `ANTHROPIC_BASE_URL` gateway. It also happens for a server or tool marked [`alwaysLoad`](/en/mcp#exempt-a-server-from-deferral), and for definitions kept upfront by [threshold-based loading](/en/mcp#configure-tool-search)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When tools load into the prefix, the most common cause of an invalidation is a server connecting or disconnecting mid-session, which can happen without any action on your part: a stdio server's process exits, an HTTP session expires, or a server [reconnects automatically after a transient failure](/en/mcp#automatic-reconnection). A connected server can also push a [dynamic tool update](/en/mcp#dynamic-tool-updates) that changes its tool list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Editing your MCP config does not by itself change the cache. The new config takes effect only after a restart, which is when the server connects or disconnects."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[MCP tool search](/en/mcp#scale-with-mcp-tool-search) reduces how much each tool contributes to the prefix by deferring full tool definitions, but the set of tool names still has to stay stable for the cache to remain valid."
+            },
+            {
+              "type": "added",
+              "content": "### Enabling or disabling a plugin"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "[Plugins](/en/plugins) bundle several component types, and the cost of a change depends on which components the plugin provides. Skills, commands, agents, hooks, LSP servers, monitors, and themes never invalidate the cache: anything they add to the request is appended after the existing conversation, so the next request pays for the new content but still reads everything before it from the cache."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The exception is a plugin that provides [MCP servers](/en/plugins-reference#mcp-servers). Enabling or disabling one follows the same rules as [connecting or disconnecting an MCP server](#connecting-or-disconnecting-an-mcp-server): the cache survives when the server's tools are deferred, and the next request re-reads the entire conversation when they load into the prefix."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Plugin changes apply when you run [`/reload-plugins`](/en/discover-plugins#apply-plugin-changes-without-restarting) or start a new session. The cost, whether appended announcements or a full re-read, shows up on the first turn after the reload, not when you run `/plugin install`, `/plugin enable`, or `/plugin disable`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Disabling a plugin you enabled earlier in the session restores the previous request shape. If that prefix is still within its [cache lifetime](#cache-lifetime), the next request reads the older cache entry instead of rebuilding."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Denying an entire tool"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Adding a bare tool name like `Bash` or `WebFetch` as a [deny rule](/en/permissions#manage-permissions) removes that tool from Claude's context entirely. Tool definitions sit in the system prompt layer, so adding or removing one of these rules mid-session invalidates the cache the same way an MCP server connecting or disconnecting does. The change takes effect on the next turn whether you add it through `/permissions` or by [editing a settings file directly](/en/settings#when-edits-take-effect)."
+            },
+            {
+              "type": "added",
+              "content": "Adding a bare tool name like `Bash` or `WebFetch` as a [deny rule](/en/permissions#manage-permissions) removes that tool from Claude's context entirely. Built-in tool definitions load into the system prompt layer, so adding or removing one of these rules mid-session invalidates the cache. The change takes effect on the next turn whether you add it through `/permissions` or by [editing a settings file directly](/en/settings#when-edits-take-effect)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Only a bare tool name, or the equivalent `Bash(*)` form, has this effect. Scoped deny rules like `Bash(rm *)`, and all allow and ask rules, don't change which tools Claude sees. Claude Code checks them when Claude attempts a call, leaving the prefix intact."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "scheduled-tasks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ループ実行時に指定できるプロンプトとして、保存済みのスキルやコマンドが利用可能であることが明示されました。",
+      "hunks": [
+        {
+          "header": "@@ -41,7 +41,7 @@ The `/loop` [bundled skill](/en/commands) is the quickest way to run a prompt on",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Prompt only | `/loop check the deploy` | Your prompt runs at an [interval Claude chooses](#let-claude-choose-the-interval) each iteration |"
+            },
+            {
+              "type": "context",
+              "content": "| Interval only, or nothing | `/loop` | The [built-in maintenance prompt](#run-the-built-in-maintenance-prompt) runs, or your `loop.md` if one exists |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "You can also pass another command as the prompt, for example `/loop 20m /review-pr 1234`, to re-run a packaged workflow each iteration."
+            },
+            {
+              "type": "added",
+              "content": "You can also pass another command as the prompt, for example `/loop 20m /review-pr 1234`, to re-run a saved skill or command each iteration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Run on a fixed interval"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "security-guidance.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セキュリティ上のチェックを自動化するフック機能の参照先名称が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -236,5 +236,5 @@ Common reasons a review layer skips without a message in the conversation:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "To go deeper on the pieces this page touches:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Code Review](/en/code-review): set up the PR-time multi-agent review"
+            },
+            {
+              "type": "removed",
+              "content": "- [Automate workflows with hooks](/en/hooks-guide): build your own checks at the same lifecycle points"
+            },
+            {
+              "type": "added",
+              "content": "- [Automate actions with hooks](/en/hooks-guide): build your own checks at the same lifecycle points"
+            },
+            {
+              "type": "context",
+              "content": "- [Discover and install plugins](/en/discover-plugins#official-anthropic-marketplace): browse other official plugins"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "voice-dictation.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "エージェントビューの入力欄や返信パネルにおいて、プッシュトークによる音声入力が利用可能であることが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,6 +11,8 @@ Speak your prompts instead of typing them in the Claude Code CLI. Your speech is",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Voice dictation requires Claude Code v2.1.69 or later. Tap mode requires v2.1.116 or later. Check your version with `claude --version`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Dictation also works in [agent view](/en/agent-view#peek-and-reply). Hold or tap your push-to-talk key while the dispatch input or a peek-panel reply is focused to dictate to a background session."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Requirements"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Voice dictation streams your recorded audio to Anthropic's servers for transcription. Audio is not processed locally. The speech-to-text service is only available when you authenticate with a Claude.ai account, and is not available when Claude Code is configured to use an Anthropic API key directly, Amazon Bedrock, Google Vertex AI, or Microsoft Foundry. Voice dictation is also not available when your organization has HIPAA compliance enabled. Transcription does not consume Claude messages or tokens and does not count toward the limits shown in `/usage`. See [data usage](/en/data-usage) for how Anthropic handles your data."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "workflows.md",
+      "additions": 17,
+      "deletions": 13,
+      "explanation": "マルチステップのタスクを実行する構成要素の比較対象に、エージェントチームが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -22,18 +22,18 @@ This page covers how to:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## When to use a workflow"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "[Subagents](/en/sub-agents), [skills](/en/skills), and workflows can all run a multi-step task. The difference is who holds the plan:"
+            },
+            {
+              "type": "added",
+              "content": "[Subagents](/en/sub-agents), [skills](/en/skills), [agent teams](/en/agent-teams), and workflows can all run a multi-step task. The difference is who holds the plan:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| | Subagents | Skills | Workflows |"
+            },
+            {
+              "type": "removed",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| What it is | A worker Claude spawns | Instructions Claude follows | A script the runtime executes |"
+            },
+            {
+              "type": "removed",
+              "content": "| Who decides what runs next | Claude, turn by turn | Claude, following the prompt | The script |"
+            },
+            {
+              "type": "removed",
+              "content": "| Where intermediate results live | Claude's context window | Claude's context window | Script variables |"
+            },
+            {
+              "type": "removed",
+              "content": "| What's repeatable | The worker definition | The instructions | The orchestration itself |"
+            },
+            {
+              "type": "removed",
+              "content": "| Scale | A few delegated tasks per turn | Same as subagents | Dozens to hundreds of agents per run |"
+            },
+            {
+              "type": "removed",
+              "content": "| Interruption | Restarts the turn | Restarts the turn | Resumable in the same session |"
+            },
+            {
+              "type": "added",
+              "content": "| | Subagents | Skills | Agent teams | Workflows |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| What it is | A worker Claude spawns | Instructions Claude follows | A lead agent supervising peer sessions | A script the runtime executes |"
+            },
+            {
+              "type": "added",
+              "content": "| Who decides what runs next | Claude, turn by turn | Claude, following the prompt | The lead agent, turn by turn | The script |"
+            },
+            {
+              "type": "added",
+              "content": "| Where intermediate results live | Claude's context window | Claude's context window | A shared task list | Script variables |"
+            },
+            {
+              "type": "added",
+              "content": "| What's repeatable | The worker definition | The instructions | The team definition | The orchestration itself |"
+            },
+            {
+              "type": "added",
+              "content": "| Scale | A few delegated tasks per turn | Same as subagents | A handful of long-running peers | Dozens to hundreds of agents per run |"
+            },
+            {
+              "type": "added",
+              "content": "| Interruption | Restarts the turn | Restarts the turn | Teammates keep running | Resumable in the same session |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A workflow moves the plan into code. With subagents and skills, Claude is the orchestrator: it decides turn by turn what to spawn next, and every result lands in Claude's context. A workflow script holds the loop, the branching, and the intermediate results itself, so Claude's context holds only the final answer."
+            },
+            {
+              "type": "added",
+              "content": "A workflow moves the plan into code. With subagents, skills, and agent teams, Claude is the orchestrator: it decides turn by turn what to spawn or assign next, and every result lands in a context window. A workflow script holds the loop, the branching, and the intermediate results itself, so Claude's context holds only the final answer."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Moving the plan into code also lets a workflow apply a repeatable quality pattern, not just run more agents: it can have independent agents adversarially review each other's findings before they're reported, or draft a plan from several angles and weigh them against each other, so you get a more trustworthy result than a single pass."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -111,11 +111,11 @@ To run a single task as a workflow without changing the session's effort level,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Run a workflow to audit every API endpoint under src/routes/ for missing auth checks"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code highlights the word in your input and Claude writes a workflow script for the task instead of working through it turn by turn."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code highlights the word in your input and Claude writes a workflow script for the task instead of working through it turn by turn. If you didn't mean to start a workflow, press `Option+W` on macOS or `Alt+W` on Windows and Linux to dismiss the highlight for this prompt, or press backspace while the cursor is right after the highlighted word. To stop the word from triggering at all, turn off Workflow keyword trigger in `/config`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the run does what you wanted, you can [save it as a command](#save-the-workflow-for-reuse) afterward."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If Claude Code highlights the word when you didn't mean to trigger one, press `alt+w` to ignore it for this prompt, or press backspace while the cursor is right after the highlighted word. To stop the word from triggering at all, turn off Workflow keyword trigger in `/config`."
+            },
+            {
+              "type": "added",
+              "content": "If you already have an orchestrator built another way, such as a folder of subagent prompts or a skill that fans work out, you can point Claude at it and ask for a workflow that does the same thing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Let Claude decide with ultracode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -173,6 +173,8 @@ If a project workflow and a personal workflow share a name, the project one runs",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The workflow runtime executes the script in an isolated environment, separate from your conversation. Intermediate results stay in script variables instead of landing in Claude's context."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Every run writes its script to a file under your session's directory in `~/.claude/projects/`. Claude receives the path when the run starts, so you can ask for it. You can open that file to read the orchestration Claude wrote, diff it against a previous run's script, or edit it and ask Claude to relaunch from the edited version."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The runtime tracks each agent's result as the run progresses, which is what makes a run [resumable](#resume-after-a-pause) within the same session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Behavior and limits"
+            }
+          ]
+        },
+        {
+          "header": "@@ -198,7 +200,9 @@ Resume works within the same Claude Code session. If you exit Claude Code while",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Cost"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation. Runs count toward your plan's usage and rate limits like any other session. You can stop a running workflow from `/workflows` at any time without losing completed work."
+            },
+            {
+              "type": "added",
+              "content": "A workflow spawns many agents, so a single run can use meaningfully more tokens than working through the same task in conversation. Runs count toward your plan's usage and rate limits like any other session."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To gauge the spend before committing to a large task, run the workflow on a small slice first: one directory instead of the whole repo, or a narrow question instead of a broad one. The `/workflows` view shows each agent's token usage as the run progresses, and you can stop the run there at any time without losing completed work. The runtime's [agent caps](#behavior-and-limits) limit how many agents a single run can spawn, which bounds the cost of a runaway script."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Every agent in a workflow uses your session's model unless the script routes a stage to a different one. To control the model cost:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

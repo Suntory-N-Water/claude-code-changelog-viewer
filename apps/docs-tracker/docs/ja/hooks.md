@@ -273,7 +273,7 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 | :- | :- | :- |
 | `type` | はい | `"command"`、`"http"`、`"mcp_tool"`、`"prompt"`、または `"agent"` |
 | `if` | いいえ | `"Bash(git *)"` または `"Edit(*.ts)"` などの権限ルール構文を使用してこのフックが実行されるタイミングをフィルタリングします。ツール呼び出しがパターンにマッチする場合のみ、フックが生成されます。または Bash コマンドが解析するには複雑すぎる場合。ツール イベントでのみ評価されます。`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、`PermissionDenied`。他のイベントでは、`if` が設定されたフックは実行されません。[権限ルール](/ja/permissions)と同じ構文を使用します |
-| `timeout` | いいえ | キャンセルまでの秒数。デフォルト: `command`、`http`、`mcp_tool` は 600、`prompt` は 30、`agent` は 60。[`UserPromptSubmit`](#userpromptsubmit) は `command`、`http`、`mcp_tool` のデフォルトを 30 に低下させます |
+| `timeout` | いいえ | キャンセルまでの秒数。デフォルト: `command`、`http`、`mcp_tool` は 600、`prompt` は 30、`agent` は 60。[`UserPromptSubmit`](#userpromptsubmit) は `command`、`http`、`mcp_tool` のデフォルトを 30 に低下させ、[`MessageDisplay`](#messagedisplay) はそれを 10 に低下させます |
 | `statusMessage` | いいえ | フックの実行中に表示されるカスタム スピナー メッセージ |
 | `once` | いいえ | `true` の場合、セッションごとに 1 回だけ実行してから削除されます。[スキル フロントマター](#hooks-in-skills-and-agents)でのみ尊重されます。設定ファイルとエージェント フロントマターでは無視されます |
 
@@ -693,7 +693,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 # Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
 input=$(cat)
 title="Claude Code'
-body=$(jq -r '.message // "Needs your attention"' <<<"$input")
+body=$(jq -r '.message // 'Needs your attention"' <<<"$input")
 seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
@@ -1095,9 +1095,15 @@ JSON 形式は単純なユースケースには必須ではありません。コ
 
 ### MessageDisplay
 
-アシスタント メッセージが画面にストリーミングされている間に実行されます。Claude Code はメッセージを増分で表示します。新しく完了した行のバッチがレンダリング準備ができるたびに、フックはそれらの行で 1 回実行され、Claude Code はフックの置換テキストをその場所にレンダリングします。長いメッセージは複数の呼び出しを生成します。短いメッセージは 1 つだけ生成する可能性があります。これを使用して Claude の応答を画面に表示されるときに再フォーマット、編集、または圧縮します。
+アシスタント メッセージが画面にストリーミングされている間に実行されます。Claude Code はメッセージを増分で表示します。新しく完了した行のバッチがレンダリング準備ができるたびに、フックはそれらの行で 1 回実行され、Claude Code はフックの置換テキストをその場所にレンダリングします。長いメッセージは複数の呼び出しを生成します。短いメッセージは 1 つだけ生成する可能性があります。
 
-MessageDisplay は表示のみです。置換テキストは画面にレンダリングされるものだけを変更します。トランスクリプトと Claude が見るものは元のテキストを保持するため、Claude は置換を見ず、詳細モードは元のテキストを表示します。MessageDisplay はマッチャーをサポートせず、テキストをストリーミングするすべてのアシスタント メッセージに対して発火します。テキストなしのメッセージ（ツール呼び出しのみの応答など）はそれをトリガーしません。
+MessageDisplay を使用して Claude の応答を画面に表示されるときに再フォーマット、編集、または圧縮します。
+
+Claude Code は各バッチをフックが返されるまで保持するため、フックを高速に保ちます。フックが失敗またはタイムアウトした場合、Claude Code は元のテキストを表示します。このイベントのデフォルト タイムアウトは 10 秒です。フックにより多くの時間が必要な場合は、フック エントリで `timeout` フィールドを設定します。
+
+MessageDisplay は表示のみです。置換テキストは画面にレンダリングされるものだけを変更します。トランスクリプトと Claude が見るものは元のテキストを保持するため、Claude は置換を見ず、詳細モードは元のテキストを表示します。フックはアシスタント メッセージ テキストのみを受け取るため、ツール結果とユーザーが入力したテキストは変更されずにレンダリングされます。
+
+MessageDisplay はマッチャーをサポートせず、テキストをストリーミングするすべてのアシスタント メッセージに対して発火します。テキストなしのメッセージ（ツール呼び出しのみの応答など）はそれをトリガーしません。
 
 非対話型実行（Agent SDK クエリと `claude -p` を含む）では、MessageDisplay はメッセージごとに行のバッチごとに 1 回ではなく 1 回実行されます。単一の呼び出しはメッセージが完了した後に到着し、完全なメッセージ テキストを含みます。`index` は `0`、`final` は `true`、`delta` は全体メッセージを保持します。各メッセージの `delta` テキストを収集するフックは、両方のモードで同じ合計テキストを受け取ります。
 
@@ -1136,6 +1142,80 @@ MessageDisplay は表示のみです。置換テキストは画面にレンダ�
 | `displayContent` | delta の代わりに表示されるテキスト。元のテキストを表示するには省略 |
 
 MessageDisplay フックは決定制御がありません。メッセージをブロックしたり、トランスクリプトに保存されたもの、または Claude に送信されたものを変更することはできません。
+
+この例は Claude の応答からマークダウン フォーマットを削除して、プレーン テキスト表示を行います。スクリプトは stdin から各バッチを読み取り、`delta` から太字マーカーとインライン コード バッククォートを削除し、結果を `displayContent` として返します。
+
+設定ファイルでイベントのコマンド フックを登録します。
+
+```json theme={null}
+{
+  "hooks": {
+    "MessageDisplay": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/plain-display.sh",
+            "args": []
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+このスクリプトをプロジェクトの `.claude/hooks/plain-display.sh` に保存し、`chmod +x` で実行可能にします。
+
+```bash theme={null}
+#!/bin/bash
+jq '{hookSpecificOutput: {hookEventName: "MessageDisplay", displayContent: (.delta | gsub("\\*\\*"; "") | gsub("`"; ""))}}'
+```
+
+スクリプトは `PATH` に `jq` が必要です。
+
+PowerShell 経由でスクリプトを実行するコマンド フックを登録します。
+
+```json theme={null}
+{
+  "hooks": {
+    "MessageDisplay": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe",
+            "args": [
+              "-NoProfile",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/plain-display.ps1"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+`-NoProfile` フラグは PowerShell プロファイルのロードをスキップしてフックを高速に開始し、`-ExecutionPolicy Bypass` は PowerShell がローカル スクリプト ファイルを実行できるようにします。
+
+このスクリプトをプロジェクトの `.claude/hooks/plain-display.ps1` に保存します。
+
+```powershell theme={null}
+$batch = [Console]::In.ReadToEnd() | ConvertFrom-Json
+$text = $batch.delta -replace '\*\*', '' -replace '`', ''
+@{
+  hookSpecificOutput = @{
+    hookEventName = "MessageDisplay"
+    displayContent = $text
+  }
+} | ConvertTo-Json
+```
+
+マークダウンなしのバッチは変更されずに通過します。スクリプトが失敗した場合（例えば、`jq` が欠落している場合）、Claude Code は元のテキストを表示し、セッションではなく[デバッグ出力](#debug-hooks)でのみ失敗を記録します。
 
 ### PreToolUse
 
@@ -1696,7 +1776,7 @@ Claude Code が通知を送信するときに実行されます。通知タイ�
   "transcript_path": "/Users/.../.claude/projects/.../00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
   "cwd": "/Users/...",
   "hook_event_name": "Notification",
-  "message": "Claude needs your permission to use Bash",
+  "message": "Claude needs your permission",
   "title": "Permission needed",
   "notification_type": "permission_prompt"
 }

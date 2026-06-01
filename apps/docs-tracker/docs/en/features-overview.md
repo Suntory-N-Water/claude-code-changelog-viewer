@@ -285,7 +285,7 @@ Coordinate multiple sessions working in parallel
 
 Connect Claude to external services
 
-Automate workflows with hooks
+Automate actions with hooks
 
 Bundle and share feature sets
 
