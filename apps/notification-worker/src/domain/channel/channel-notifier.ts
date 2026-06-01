@@ -12,10 +12,7 @@ export type NotificationResult = {
 };
 
 export type ChannelNotifier = {
-  sendTestNotification(
-    channel: Channel,
-    unsubscribeUrl: string,
-  ): Promise<{ readonly ok: boolean }>;
+  sendTestNotification(channel: Channel): Promise<{ readonly ok: boolean }>;
   sendChangelogNotification(
     channel: Channel,
     analysis: Analysis,
