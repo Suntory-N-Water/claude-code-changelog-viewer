@@ -1,0 +1,145 @@
+{
+  "id": "20260602-163141",
+  "timestamp": "2026-06-02T16:31:41.739Z",
+  "aiSummary": "エージェントSDKのフックにおけるマッチャー（matcher）の評価ルールが詳細に定義されました。単純な文字列、パイプ区切りによる複数指定、正規表現、およびワイルドカードの挙動が明確化されています。特に、特定の記号を含まない場合は完全一致として扱われ、それ以外は正規表現として評価されるという具体的な判別基準が追加されました。また、MCPツールのマッチングに関する注意点や、複数のツールをまとめて扱うための設定例も具体的に示されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/hooks.md",
+      "additions": 10,
+      "deletions": 4,
+      "explanation": "マッチャーが完全一致、正規表現、あるいは全一致として評価されるための条件と、パイプ区切りを利用した複数ツールの指定方法が追記されました。特定のMCPツールにマッチさせるための命名規則の注意点や、具体的な記述例が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -186,11 +186,13 @@ The `hooks` option is a dictionary (Python) or object (TypeScript) where:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Matchers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use matchers to filter when your callbacks fire. The `matcher` field is a regex string that matches against a different value depending on the hook event type. For example, tool-based hooks match against the tool name, while `Notification` hooks match against the notification type. See the [Claude Code hooks reference](/en/hooks#matcher-patterns) for the full list of matcher values for each event type."
+            },
+            {
+              "type": "added",
+              "content": "Use matchers to filter when your callbacks fire. The `matcher` field matches against a different value depending on the hook event type. For example, tool-based hooks match against the tool name, while `Notification` hooks match against the notification type. See the [Claude Code hooks reference](/en/hooks#matcher-patterns) for the full list of matcher values for each event type."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "SDK matchers follow the same rules as [matchers in settings files](/en/hooks#matcher-patterns): a matcher containing only letters, digits, `_`, and `|` is compared as an exact string, with `|` separating alternatives, so `Write|Edit` matches exactly those two tools. A matcher of `*`, an empty string, or omitting the matcher entirely matches every occurrence of the event; a matcher containing any other character is evaluated as a regular expression, so `^mcp__` matches every MCP tool. A matcher like `mcp__memory` contains only letters and underscores, so it is compared as an exact string and matches no tool; use `mcp__memory__.*` to match every tool from that server."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Option | Type | Default | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| `matcher` | `string` | `undefined` | Regex pattern matched against the event's filter field. For tool hooks, this is the tool name. Built-in tools include `Bash`, `Read`, `Write`, `Edit`, `Glob`, `Grep`, `WebFetch`, `Agent`, and others (see [Tool Input Types](/en/agent-sdk/typescript#tool-input-types) for the full list). MCP tools use the pattern `mcp__<server>__<action>`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `matcher` | `string` | `undefined` | Pattern matched against the event's filter field, following the comparison rules above. For tool hooks, this is the tool name. Built-in tools include `Bash`, `Read`, `Write`, `Edit`, `Glob`, `Grep`, `WebFetch`, `Agent`, and others (see [Tool Input Types](/en/agent-sdk/typescript#tool-input-types) for the full list). MCP tools use the pattern `mcp__<server>__<action>`. |"
+            },
+            {
+              "type": "context",
+              "content": "| `hooks` | `HookCallback[]` | - | Required. Array of callback functions to execute when the pattern matches |"
+            },
+            {
+              "type": "context",
+              "content": "| `timeout` | `number` | `60` | Timeout in seconds |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -418,9 +420,13 @@ const options = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": "};"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Filter with regex matchers"
+            },
+            {
+              "type": "added",
+              "content": "### Filter with multi-tool matchers"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use multi-tool matchers to share one callback across related tools. This example registers three matchers with different scopes:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use regex patterns to match multiple tools. This example registers three matchers with different scopes: the first triggers `file_security_hook` only for file modification tools, the second triggers `mcp_audit_hook` for any MCP tool (tools whose names start with `mcp__`), and the third triggers `global_logger` for every tool call regardless of name:"
+            },
+            {
+              "type": "added",
+              "content": "- A pipe-separated exact list (`Write|Edit|Delete`) triggers `file_security_hook` only for file modification tools."
+            },
+            {
+              "type": "added",
+              "content": "- A regex (`^mcp__`) triggers `mcp_audit_hook` for any MCP tool whose name starts with `mcp__`."
+            },
+            {
+              "type": "added",
+              "content": "- An omitted matcher triggers `global_logger` for every tool call regardless of name."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```python Python theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "options = ClaudeAgentOptions("
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
