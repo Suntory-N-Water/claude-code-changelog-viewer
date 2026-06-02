@@ -30,27 +30,25 @@ const PREFIX_LABELS: Record<Prefix, string> = {
   Enabled: '✅ 有効化',
 };
 
+/** Cloudflare Email Bindingでメールを送信する。 */
 export async function sendToEmail(
   sendEmail: SendEmail,
   options: { fromAddress: string; toAddress: string; payload: EmailPayload },
 ): Promise<EmailSendResult> {
   const { fromAddress, toAddress, payload } = options;
-  try {
-    const msg = createMimeMessage();
-    msg.setSender({ name: 'CCログ超訳', addr: fromAddress });
-    msg.setRecipient(toAddress);
-    msg.setSubject(payload.subject);
-    msg.addMessage({ contentType: 'text/plain', data: payload.text });
-    msg.addMessage({ contentType: 'text/html', data: payload.html });
+  const msg = createMimeMessage();
+  msg.setSender({ name: 'CCログ超訳', addr: fromAddress });
+  msg.setRecipient(toAddress);
+  msg.setSubject(payload.subject);
+  msg.addMessage({ contentType: 'text/plain', data: payload.text });
+  msg.addMessage({ contentType: 'text/html', data: payload.html });
 
-    const message = new EmailMessage(fromAddress, toAddress, msg.asRaw());
-    await sendEmail.send(message);
-    return { ok: true, status: 200 };
-  } catch {
-    return { ok: false, status: 500 };
-  }
+  const message = new EmailMessage(fromAddress, toAddress, msg.asRaw());
+  await sendEmail.send(message);
+  return { ok: true, status: 200 };
 }
 
+/** Email向けの変更ログ通知メッセージを生成する。 */
 export function createEmailChangelogMessage(
   data: Analysis,
   version: string,
@@ -71,7 +69,6 @@ export function createEmailChangelogMessage(
     ([a], [b]) => getPrefixSortOrder(a) - getPrefixSortOrder(b),
   );
 
-  // HTML 本文
   const sectionsHtml = sortedEntries
     .map(([prefix, items]) => {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
@@ -98,7 +95,6 @@ export function createEmailChangelogMessage(
 </body>
 </html>`;
 
-  // プレーンテキスト本文
   const sectionsText = sortedEntries
     .map(([prefix, items]) => {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
@@ -127,6 +123,7 @@ ${sectionsText}
   };
 }
 
+/** Email向けの登録テスト通知メッセージを生成する。 */
 export function createEmailTestMessage(unsubscribeUrl: string): EmailPayload {
   const html = `<!DOCTYPE html>
 <html lang="ja">
@@ -157,6 +154,7 @@ CCログ超訳 の更新通知登録が完了しました。
   };
 }
 
+/** Email向けの通知停止完了メッセージを生成する。 */
 export function createEmailUnsubscribeNotification(): EmailPayload {
   const html = `<!DOCTYPE html>
 <html lang="ja">

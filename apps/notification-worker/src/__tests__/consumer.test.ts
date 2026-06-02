@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../lib/discord', () => ({
-  buildUnsubscribeUrl: vi.fn(
-    (workerUrl: string, token: string) =>
-      `${workerUrl}/api/unsubscribe?token=${token}`,
-  ),
+vi.mock('../infrastructure/notification/discord', () => ({
   createChangelogMessage: vi.fn(() => ({
     content: 'テスト通知',
     username: 'Bot',
@@ -12,7 +8,7 @@ vi.mock('../lib/discord', () => ({
   sendToDiscord: vi.fn(),
 }));
 
-vi.mock('../lib/email', () => ({
+vi.mock('../infrastructure/notification/email', () => ({
   sendToEmail: vi.fn(),
   createEmailChangelogMessage: vi.fn(),
 }));

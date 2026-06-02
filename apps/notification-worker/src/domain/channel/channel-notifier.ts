@@ -1,16 +1,16 @@
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from './channel';
 
-/** 通知本文生成に必要なURL群。 */
-export type NotificationUrls = {
-  readonly unsubscribeUrl: string;
-  readonly siteUrl: string;
-};
-
 /** 外部通知APIへの送信結果。 */
 export type NotificationResult = {
   readonly ok: boolean;
   readonly status: number;
+};
+
+/** changelog通知に必要な入力。URL生成はinfrastructure層のNotifier実装が担う。 */
+export type ChangelogNotificationInput = {
+  readonly analysis: Analysis;
+  readonly version: string;
 };
 
 /** Channelへの外部通知送信を抽象化するport。実装はinfrastructure層に置く。 */
@@ -20,10 +20,8 @@ export type ChannelNotifier = {
   /** changelog更新通知を送る。 */
   sendChangelogNotification(
     channel: Channel,
-    analysis: Analysis,
-    version: string,
-    urls: NotificationUrls,
+    input: ChangelogNotificationInput,
   ): Promise<NotificationResult>;
   /** ユーザーによる配信停止完了通知を送る。 */
-  sendUnsubscribeNotification(channel: Channel): Promise<void>;
+  sendUnsubscribeNotification(channel: Channel): Promise<NotificationResult>;
 };

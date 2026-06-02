@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../lib/email', () => ({
+vi.mock('../infrastructure/notification/email', () => ({
   sendToEmail: vi.fn(),
   createEmailTestMessage: vi.fn(),
 }));

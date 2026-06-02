@@ -10,14 +10,12 @@ vi.mock('../lib/turnstile', () => ({
   verifyTurnstileToken: mockedVerifyTurnstile,
 }));
 
-vi.mock('../lib/discord', () => ({
-  buildUnsubscribeUrl: (workerUrl: string, token: string) =>
-    `${workerUrl}/api/unsubscribe?token=${token}`,
+vi.mock('../infrastructure/notification/discord', () => ({
   createTestMessage: mockedCreateTestMessage,
   sendToDiscord: mockedSendToDiscord,
 }));
 
-vi.mock('../lib/email', () => ({
+vi.mock('../infrastructure/notification/email', () => ({
   sendToEmail: vi.fn(),
   createEmailTestMessage: vi.fn(),
 }));

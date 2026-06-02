@@ -4,10 +4,18 @@ export type EmailAddress = string & {
   readonly [emailAddressBrand]: unknown;
 };
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+/**
+ * @see https://zenn.dev/igz0/articles/email-validation-regex-best-practices
+ */
+const EMAIL_REGEX =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+export function isValidEmailAddress(value: string): boolean {
+  return EMAIL_REGEX.test(value);
+}
 
 export function createEmailAddress(value: string): EmailAddress {
-  if (!EMAIL_REGEX.test(value)) {
+  if (!isValidEmailAddress(value)) {
     throw new Error('メールアドレスの形式が不正です');
   }
 

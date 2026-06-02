@@ -1,6 +1,6 @@
 import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
-import { groupChangelogItemsByPrefix } from './changelog-message';
+import { groupChangelogItemsByPrefix } from '../../lib/changelog-message';
 
 export type SlackSendResult = {
   ok: boolean;
@@ -31,6 +31,7 @@ const PREFIX_LABELS: Record<Prefix, string> = {
 
 const SLACK_SECTION_MAX_LENGTH = 3000;
 
+/** Slack Incoming Webhookへ通知を送信する。 */
 export async function sendToSlack(
   webhookUrl: string,
   payload: SlackPayload,
@@ -43,6 +44,7 @@ export async function sendToSlack(
   return { ok: response.ok, status: response.status };
 }
 
+/** Slack向けの変更ログ通知メッセージを生成する。 */
 export function createSlackChangelogMessage(
   data: Analysis,
   version: string,
@@ -96,6 +98,7 @@ export function createSlackChangelogMessage(
   };
 }
 
+/** Slack向けの登録テスト通知メッセージを生成する。 */
 export function createSlackTestMessage(unsubscribeUrl: string): SlackPayload {
   return {
     text: 'CCログ超訳 Bot の通知登録が完了しました',
@@ -114,6 +117,7 @@ export function createSlackTestMessage(unsubscribeUrl: string): SlackPayload {
   };
 }
 
+/** Slack向けの通知停止完了メッセージを生成する。 */
 export function createSlackUnsubscribeNotification(): SlackPayload {
   return {
     text: 'CCログ超訳 Bot の通知を停止しました',

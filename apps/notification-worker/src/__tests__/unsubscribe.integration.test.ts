@@ -1,17 +1,14 @@
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
-vi.mock('../lib/email', () => ({
+vi.mock('../infrastructure/notification/email', () => ({
   sendToEmail: vi.fn(),
   createEmailTestMessage: vi.fn(),
   createEmailUnsubscribeNotification: vi.fn().mockReturnValue({}),
 }));
-vi.mock('../lib/discord', () => ({
+vi.mock('../infrastructure/notification/discord', () => ({
   sendToDiscord: vi.fn().mockResolvedValue({ ok: true, status: 200 }),
   createUnsubscribeNotification: vi.fn().mockReturnValue({}),
-  buildUnsubscribeUrl: vi
-    .fn()
-    .mockReturnValue('https://example.com/unsubscribe'),
 }));
-vi.mock('../lib/slack', () => ({
+vi.mock('../infrastructure/notification/slack', () => ({
   sendToSlack: vi.fn().mockResolvedValue({ ok: true, status: 200 }),
   createSlackUnsubscribeNotification: vi.fn().mockReturnValue({}),
 }));
@@ -23,7 +20,7 @@ import {
   findChannelByToken,
   insertDiscordWebhook,
 } from './support/notification-test-support';
-import { sendToDiscord } from '../lib/discord';
+import { sendToDiscord } from '../infrastructure/notification/discord';
 
 describe('/api/unsubscribe integration', () => {
   let db: FakeD1Database | null = null;

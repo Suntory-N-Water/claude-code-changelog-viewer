@@ -1,19 +1,11 @@
-import { eq, sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
-import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
-import {
-  channels,
-  discordChannels,
-  emailChannels,
-  slackChannels,
-} from '../db/schema';
-import { createUnsubscribeNotification, sendToDiscord } from '../lib/discord';
-import { createEmailUnsubscribeNotification, sendToEmail } from '../lib/email';
-import { decryptEmail } from '../lib/email-crypto';
-import { createSlackUnsubscribeNotification, sendToSlack } from '../lib/slack';
+import { unsubscribe } from '../application/unsubscribe';
+import { createChannelToken } from '../domain/channel/channel-token';
+import { isActive } from '../domain/channel/channel-lifecycle';
+import { createChannelNotifier } from '../infrastructure/channel-notifier';
+import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
 const baseStyle = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -108,11 +100,29 @@ const renderConfirm = (siteUrl: string, token: string) => html`
   </html>
 `;
 
+const unsubscribeErrorMessages = {
+  missing_token: {
+    title: 'エラー',
+    message: 'トークンが指定されていません。',
+  },
+  not_found: {
+    title: 'エラー',
+    message: '該当する登録が見つかりません。',
+  },
+  already_deactivated: {
+    title: '通知停止済み',
+    message: 'この通知は既に停止されています。',
+  },
+} as const;
+
+type UnsubscribeError = keyof typeof unsubscribeErrorMessages;
+
 async function findActiveChannel(
   token: string | null | undefined,
   c: Context<{ Bindings: CloudflareBindings }>,
 ) {
-  if (!token) {
+  const tokenText = token?.trim() ?? '';
+  if (tokenText === '') {
     return {
       ok: false as const,
       response: c.html(
@@ -126,14 +136,13 @@ async function findActiveChannel(
     };
   }
 
-  const db = drizzle(c.env.DB);
-  const rows = await db
-    .select({ deactivatedAt: channels.deactivatedAt })
-    .from(channels)
-    .where(eq(channels.token, token));
-  const row = rows[0] ?? null;
+  const repository = createChannelRepository(
+    c.env.DB,
+    c.env.EMAIL_ENCRYPTION_KEY,
+  );
+  const channel = await repository.findByToken(createChannelToken(tokenText));
 
-  if (!row) {
+  if (!channel) {
     return {
       ok: false as const,
       response: c.html(
@@ -147,7 +156,7 @@ async function findActiveChannel(
     };
   }
 
-  if (row.deactivatedAt !== CHANNEL_ACTIVE_SENTINEL) {
+  if (!isActive(channel)) {
     return {
       ok: false as const,
       response: c.html(
@@ -160,7 +169,7 @@ async function findActiveChannel(
     };
   }
 
-  return { ok: true as const, token };
+  return { ok: true as const, token: channel.token };
 }
 
 export const unsubscribeRoute = new Hono<{
@@ -184,64 +193,18 @@ export const unsubscribeRoute = new Hono<{
       return lookup.response;
     }
 
-    const db = drizzle(c.env.DB);
+    const repository = createChannelRepository(
+      c.env.DB,
+      c.env.EMAIL_ENCRYPTION_KEY,
+    );
+    const notifier = createChannelNotifier(c.env);
+    const result = await unsubscribe(repository, notifier, {
+      token: lookup.token,
+      unsubscribedAt: new Date(),
+    });
 
-    const [channelRow] = await db
-      .select({ id: channels.id, channelType: channels.channelType })
-      .from(channels)
-      .where(eq(channels.token, lookup.token));
-
-    await db
-      .update(channels)
-      .set({
-        deactivatedAt: sql`datetime('now')`,
-        deactivatedReason: 'user',
-        updatedAt: sql`datetime('now')`,
-      })
-      .where(eq(channels.token, lookup.token));
-
-    try {
-      if (channelRow?.channelType === 'DSC') {
-        const [dscRow] = await db
-          .select({ webhookUrl: discordChannels.webhookUrl })
-          .from(discordChannels)
-          .where(eq(discordChannels.channelId, channelRow.id));
-        if (dscRow?.webhookUrl) {
-          await sendToDiscord(
-            dscRow.webhookUrl,
-            createUnsubscribeNotification(),
-          );
-        }
-      } else if (channelRow?.channelType === 'SLK') {
-        const [slkRow] = await db
-          .select({ webhookUrl: slackChannels.webhookUrl })
-          .from(slackChannels)
-          .where(eq(slackChannels.channelId, channelRow.id));
-        if (slkRow?.webhookUrl) {
-          await sendToSlack(
-            slkRow.webhookUrl,
-            createSlackUnsubscribeNotification(),
-          );
-        }
-      } else if (channelRow?.channelType === 'EML') {
-        const [emlRow] = await db
-          .select({ emailEncrypted: emailChannels.emailEncrypted })
-          .from(emailChannels)
-          .where(eq(emailChannels.channelId, channelRow.id));
-        if (emlRow?.emailEncrypted) {
-          const toAddress = await decryptEmail(
-            emlRow.emailEncrypted,
-            c.env.EMAIL_ENCRYPTION_KEY,
-          );
-          await sendToEmail(c.env.SEND_EMAIL, {
-            fromAddress: c.env.EMAIL_FROM,
-            toAddress,
-            payload: createEmailUnsubscribeNotification(),
-          });
-        }
-      }
-    } catch {
-      // 停止処理は完了しているため通知失敗は無視
+    if (!result.ok) {
+      return c.html(renderUnsubscribeError(c.env.SITE_URL, result.error));
     }
 
     return c.html(
@@ -252,3 +215,8 @@ export const unsubscribeRoute = new Hono<{
       ),
     );
   });
+
+function renderUnsubscribeError(siteUrl: string, error: UnsubscribeError) {
+  const content = unsubscribeErrorMessages[error];
+  return renderResult(siteUrl, content.title, content.message);
+}

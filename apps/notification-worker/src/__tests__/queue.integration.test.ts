@@ -4,9 +4,7 @@ const { mockedSendToDiscord } = vi.hoisted(() => ({
   mockedSendToDiscord: vi.fn(),
 }));
 
-vi.mock('../lib/discord', () => ({
-  buildUnsubscribeUrl: (workerUrl: string, token: string) =>
-    `${workerUrl}/api/unsubscribe?token=${token}`,
+vi.mock('../infrastructure/notification/discord', () => ({
   createChangelogMessage: () => ({
     content: 'テスト通知',
     username: 'Bot',
@@ -14,7 +12,7 @@ vi.mock('../lib/discord', () => ({
   sendToDiscord: mockedSendToDiscord,
 }));
 
-vi.mock('../lib/email', () => ({
+vi.mock('../infrastructure/notification/email', () => ({
   sendToEmail: vi.fn(),
   createEmailChangelogMessage: vi.fn(),
 }));

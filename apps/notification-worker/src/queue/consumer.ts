@@ -1,24 +1,10 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
-import { and, eq, sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { z } from 'zod';
-import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
-import {
-  channels,
-  discordChannels,
-  emailChannels,
-  notificationSettings,
-  slackChannels,
-} from '../db/schema';
-import {
-  buildUnsubscribeUrl,
-  createChangelogMessage,
-  sendToDiscord,
-} from '../lib/discord';
-import { createEmailChangelogMessage, sendToEmail } from '../lib/email';
-import { decryptEmail } from '../lib/email-crypto';
-import { createSlackChangelogMessage, sendToSlack } from '../lib/slack';
+import { dispatchChangelogNotifications } from '../application/dispatch-changelog-notifications';
+import { createNotificationFrequency } from '../domain/channel/notification-frequency';
+import { createChannelNotifier } from '../infrastructure/channel-notifier';
+import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
 const logger = getLogger({
   name: 'notification-worker',
@@ -29,33 +15,11 @@ const logger = getLogger({
 const GITHUB_RAW_BASE =
   'https://raw.githubusercontent.com/Suntory-N-Water/claude-code-changelog-viewer/main/apps/changelog-fetcher/inferred';
 
-// 失敗で deactivated_at を更新する閾値
-const MAX_FAIL_COUNT = 3;
-
-// 送信失敗時に deactivated_at を更新する HTTP ステータス
-const PERMANENT_FAILURE_STATUSES = [401, 403, 404];
+const SEND_INTERVAL_MS = 1000;
 
 const NotificationMessageSchema = z.object({
   version: z.string().startsWith('v'),
 });
-
-type WebhookChannelRow = {
-  id: string;
-  webhookUrl: string;
-  token: string;
-  failCount: number;
-  channelType: 'DSC' | 'SLK';
-};
-
-type EmailChannelRow = {
-  id: string;
-  emailEncrypted: string;
-  token: string;
-  failCount: number;
-  channelType: 'EML';
-};
-
-type ChannelRow = WebhookChannelRow | EmailChannelRow;
 
 export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
   async (batch, env) => {
@@ -94,176 +58,52 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
         }
         const data = parseResult.data;
 
-        const db = drizzle(env.DB);
+        const repository = createChannelRepository(
+          env.DB,
+          env.EMAIL_ENCRYPTION_KEY,
+        );
+        const notifier = createChannelNotifier(env);
+        const result = await dispatchChangelogNotifications(
+          repository,
+          notifier,
+          {
+            analysis: data,
+            version,
+            frequency: createNotificationFrequency('IMM'),
+            failedAt: new Date(),
+            sendIntervalMs: SEND_INTERVAL_MS,
+          },
+        );
 
-        // Discord チャンネル一覧を取得
-        const discordRows = await db
-          .select({
-            id: channels.id,
-            webhookUrl: discordChannels.webhookUrl,
-            token: channels.token,
-            failCount: channels.failCount,
-            channelType: sql<'DSC'>`'DSC'`,
-          })
-          .from(channels)
-          .innerJoin(
-            discordChannels,
-            eq(discordChannels.channelId, channels.id),
-          )
-          .innerJoin(
-            notificationSettings,
-            eq(notificationSettings.channelId, channels.id),
-          )
-          .where(
-            and(
-              eq(channels.deactivatedAt, CHANNEL_ACTIVE_SENTINEL),
-              eq(notificationSettings.frequency, 'IMM'),
-            ),
-          );
-
-        // Slack チャンネル一覧を取得
-        const slackRows = await db
-          .select({
-            id: channels.id,
-            webhookUrl: slackChannels.webhookUrl,
-            token: channels.token,
-            failCount: channels.failCount,
-            channelType: sql<'SLK'>`'SLK'`,
-          })
-          .from(channels)
-          .innerJoin(slackChannels, eq(slackChannels.channelId, channels.id))
-          .innerJoin(
-            notificationSettings,
-            eq(notificationSettings.channelId, channels.id),
-          )
-          .where(
-            and(
-              eq(channels.deactivatedAt, CHANNEL_ACTIVE_SENTINEL),
-              eq(notificationSettings.frequency, 'IMM'),
-            ),
-          );
-
-        // Email チャンネル一覧を取得
-        const emailRows = await db
-          .select({
-            id: channels.id,
-            emailEncrypted: emailChannels.emailEncrypted,
-            token: channels.token,
-            failCount: channels.failCount,
-            channelType: sql<'EML'>`'EML'`,
-          })
-          .from(channels)
-          .innerJoin(emailChannels, eq(emailChannels.channelId, channels.id))
-          .innerJoin(
-            notificationSettings,
-            eq(notificationSettings.channelId, channels.id),
-          )
-          .where(
-            and(
-              eq(channels.deactivatedAt, CHANNEL_ACTIVE_SENTINEL),
-              eq(notificationSettings.frequency, 'IMM'),
-            ),
-          );
-
-        const rows: ChannelRow[] = [...discordRows, ...slackRows, ...emailRows];
-
-        if (rows.length === 0) {
+        if (result.channelCount === 0) {
           logger.info('アクティブなチャンネルが存在しません');
           message.ack();
           continue;
         }
 
-        let hasRateLimitFailure = false;
-        const lastIndex = rows.length - 1;
-
-        for (const [i, webhook] of rows.entries()) {
-          try {
-            const unsubscribeUrl = buildUnsubscribeUrl(
-              env.WORKER_URL,
-              webhook.token,
-            );
-
-            const result =
-              webhook.channelType === 'EML'
-                ? await sendToEmail(env.SEND_EMAIL, {
-                    fromAddress: env.EMAIL_FROM,
-                    toAddress: await decryptEmail(
-                      webhook.emailEncrypted,
-                      env.EMAIL_ENCRYPTION_KEY,
-                    ),
-                    payload: createEmailChangelogMessage(data, version, {
-                      unsubscribeUrl,
-                      siteUrl: env.SITE_URL,
-                    }),
-                  })
-                : webhook.channelType === 'SLK'
-                  ? await sendToSlack(
-                      webhook.webhookUrl,
-                      createSlackChangelogMessage(data, version, {
-                        unsubscribeUrl,
-                        siteUrl: env.SITE_URL,
-                      }),
-                    )
-                  : await sendToDiscord(
-                      webhook.webhookUrl,
-                      createChangelogMessage(data, version, {
-                        unsubscribeUrl,
-                        siteUrl: env.SITE_URL,
-                      }),
-                    );
-
-            if (result.ok) {
-              if (webhook.failCount > 0) {
-                await db
-                  .update(channels)
-                  .set({ failCount: 0, updatedAt: sql`datetime('now')` })
-                  .where(eq(channels.id, webhook.id));
-              }
-            } else if (result.status === 429) {
-              logger.warn('レート制限を受信', { channelId: webhook.id });
-              hasRateLimitFailure = true;
-              break;
-            } else if (PERMANENT_FAILURE_STATUSES.includes(result.status)) {
-              const [updateResult] = await db
-                .update(channels)
-                .set({
-                  failCount: sql`${channels.failCount} + 1`,
-                  deactivatedAt: sql`CASE WHEN ${channels.failCount} + 1 >= ${MAX_FAIL_COUNT} THEN datetime('now') ELSE ${channels.deactivatedAt} END`,
-                  deactivatedReason: sql`CASE WHEN ${channels.failCount} + 1 >= ${MAX_FAIL_COUNT} THEN 'system' ELSE ${channels.deactivatedReason} END`,
-                  updatedAt: sql`datetime('now')`,
-                })
-                .where(eq(channels.id, webhook.id))
-                .returning({
-                  failCount: channels.failCount,
-                  deactivatedAt: channels.deactivatedAt,
-                });
-
-              if (
-                updateResult &&
-                updateResult.deactivatedAt !== CHANNEL_ACTIVE_SENTINEL
-              ) {
-                logger.warn('チャンネルを無効化', {
-                  channelId: webhook.id,
-                  failCount: updateResult.failCount,
-                });
-              }
-            } else {
-              logger.error('送信失敗', {
-                channelId: webhook.id,
-                status: result.status,
+        for (const failure of result.failures) {
+          switch (failure.type) {
+            case 'rate_limit':
+              logger.warn('レート制限を受信', {
+                channelId: failure.channel.id,
               });
-            }
-          } catch (error) {
-            logger.error('webhook送信中に例外が発生', toError(error));
-          }
-
-          // API rate limit を避けるため、各送信間に 1 秒間隔(最後は待たない)
-          if (i < lastIndex) {
-            await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+              break;
+            case 'temporary_failure':
+              logger.error('送信失敗', {
+                channelId: failure.channel.id,
+                status: failure.status,
+              });
+              break;
+            case 'exception':
+              logger.error('webhook送信中に例外が発生', {
+                channelId: failure.channel.id,
+                error: toError(failure.error),
+              });
+              break;
           }
         }
 
-        if (hasRateLimitFailure) {
+        if (result.shouldRetry) {
           message.retry();
         } else {
           message.ack();

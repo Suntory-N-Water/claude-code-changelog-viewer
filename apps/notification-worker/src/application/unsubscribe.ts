@@ -1,12 +1,12 @@
 import type { Channel } from '../domain/channel/channel';
 import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
-import { createChannelToken } from '../domain/channel/channel-token';
+import type { ChannelToken } from '../domain/channel/channel-token';
 import { deactivate, isActive } from '../domain/channel/channel-lifecycle';
 
-/** 配信停止ユースケースへ渡す入力。tokenは外部入力の文字列として受け取る。 */
+/** 配信停止ユースケースへ渡す入力。routes層で外部入力を値オブジェクトへ変換してから渡す。 */
 export type UnsubscribeInput = {
-  readonly token: string;
+  readonly token: ChannelToken;
   readonly unsubscribedAt: Date;
 };
 
@@ -15,27 +15,20 @@ export type UnsubscribeResult =
   | { readonly ok: true; readonly channel: Channel }
   | {
       readonly ok: false;
-      readonly error: 'missing_token' | 'not_found' | 'already_deactivated';
+      readonly error: 'not_found' | 'already_deactivated';
     };
 
 /**
  * tokenに対応する有効チャンネルをユーザー理由で停止する。
  *
- * 停止状態の保存を優先し、停止通知の送信失敗はユースケース失敗として扱わない。
+ * 停止状態を保存した後、停止完了通知を送信する。
  */
 export async function unsubscribe(
   repository: ChannelRepository,
   notifier: ChannelNotifier,
   input: UnsubscribeInput,
 ): Promise<UnsubscribeResult> {
-  const tokenText = input.token.trim();
-  if (tokenText === '') {
-    return { ok: false, error: 'missing_token' };
-  }
-
-  const token = createChannelToken(tokenText);
-
-  const channel = await repository.findByToken(token);
+  const channel = await repository.findByToken(input.token);
   if (!channel) {
     return { ok: false, error: 'not_found' };
   }
@@ -47,11 +40,7 @@ export async function unsubscribe(
   const deactivatedChannel = deactivate(channel, 'user', input.unsubscribedAt);
   await repository.save(deactivatedChannel);
 
-  try {
-    await notifier.sendUnsubscribeNotification(deactivatedChannel);
-  } catch {
-    // 停止処理は保存済みのため、停止通知の失敗はユーザー操作を失敗扱いにしない。
-  }
+  await notifier.sendUnsubscribeNotification(deactivatedChannel);
 
   return { ok: true, channel: deactivatedChannel };
 }

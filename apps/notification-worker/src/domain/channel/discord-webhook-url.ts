@@ -7,8 +7,12 @@ export type DiscordWebhookUrl = string & {
 const DISCORD_WEBHOOK_REGEX =
   /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
+export function isValidDiscordWebhookUrl(value: string): boolean {
+  return DISCORD_WEBHOOK_REGEX.test(value);
+}
+
 export function createDiscordWebhookUrl(value: string): DiscordWebhookUrl {
-  if (!DISCORD_WEBHOOK_REGEX.test(value)) {
+  if (!isValidDiscordWebhookUrl(value)) {
     throw new Error('Discord Webhook URL の形式が不正です');
   }
 
