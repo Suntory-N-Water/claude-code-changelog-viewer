@@ -443,7 +443,7 @@ Configuration object for the `query()` function.
 | `sessionStoreFlush` | `'batched' \| 'eager'` | `'batched'` | *Alpha.* Flush mode for `sessionStore`. Ignored when `sessionStore` is not set |
 | `settings` | `string \| Settings` | `undefined` | Inline [settings](/en/settings) object or path to a settings file. Populates the flag-settings layer in the [precedence order](/en/settings#settings-precedence). Change at runtime with [`applyFlagSettings()`](#applyflagsettings) |
 | `settingSources` | [`SettingSource`](#settingsource)`[]` | CLI defaults (all sources) | Control which filesystem settings to load. Pass `[]` to disable user, project, and local settings. Managed policy settings load regardless. See [Use Claude Code features](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) |
-| `skills` | `string[] \| 'all'` | `undefined` | Skills available to the session. Pass `'all'` to enable every discovered skill, or a list of skill names. When set, the SDK enables the Skill tool automatically without listing it in `allowedTools`. See [Skills](/en/agent-sdk/skills) |
+| `skills` | `string[] \| 'all'` | `undefined` | Skills available to the session. Pass `'all'` to enable every discovered skill, or a list of skill names. When set, the SDK adds the Skill tool to `allowedTools` automatically. If you also pass `tools`, include `'Skill'` in that list. See [Skills](/en/agent-sdk/skills) |
 | `spawnClaudeCodeProcess` | `(options: SpawnOptions) => SpawnedProcess` | `undefined` | Custom function to spawn the Claude Code process. Use to run Claude Code in VMs, containers, or remote environments |
 | `stderr` | `(data: string) => void` | `undefined` | Callback for stderr output |
 | `strictMcpConfig` | `boolean` | `false` | Use only the servers passed in `mcpServers` and ignore project `.mcp.json`, user settings, plugin-provided MCP servers, and [claude.ai connectors](/en/mcp#use-mcp-servers-from-claude-ai) |
@@ -2042,7 +2042,7 @@ Exits planning mode. Optionally specifies prompt-based permissions needed to imp
 
 ### ListMcpResources
 
-**Tool name:** `ListMcpResources`
+**Tool name:** `ListMcpResourcesTool`
 
 ```typescript
 type ListMcpResourcesInput = {
@@ -2054,7 +2054,7 @@ Lists available MCP resources from connected servers.
 
 ### ReadMcpResource
 
-**Tool name:** `ReadMcpResource`
+**Tool name:** `ReadMcpResourceTool`
 
 ```typescript
 type ReadMcpResourceInput = {
@@ -2583,7 +2583,7 @@ Returns the plan state after exiting plan mode.
 
 ### ListMcpResources
 
-**Tool name:** `ListMcpResources`
+**Tool name:** `ListMcpResourcesTool`
 
 ```typescript
 type ListMcpResourcesOutput = Array<{
@@ -2599,7 +2599,7 @@ Returns an array of available MCP resources.
 
 ### ReadMcpResource
 
-**Tool name:** `ReadMcpResource`
+**Tool name:** `ReadMcpResourceTool`
 
 ```typescript
 type ReadMcpResourceOutput = {
