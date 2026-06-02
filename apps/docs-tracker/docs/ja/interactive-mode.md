@@ -72,7 +72,7 @@ source: https://code.claude.com/docs/ja/interactive-mode.md
 | 制御シーケンス | `Ctrl+J` | 設定なしで任意のターミナルで機能 |
 | ペーストモード | 直接貼り付け | コードブロック、ログの場合 |
 
-Shift+Enter は設定なしで iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal、Windows Terminal で機能します。VS Code、Cursor、Windsurf、Alacritty、Zed の場合は、`/terminal-setup` を実行してバインディングをインストールしてください。
+Shift+Enter は設定なしで iTerm2、WezTerm、Ghostty、Kitty、Warp、Apple Terminal、Windows Terminal で機能します。VS Code、Cursor、Devin Desktop、Alacritty、Zed の場合は、`/terminal-setup` を実行してバインディングをインストールしてください。
 
 ### クイックコマンド
 
