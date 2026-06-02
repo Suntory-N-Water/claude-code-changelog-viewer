@@ -3,7 +3,7 @@ title: hooks-guide
 source: https://code.claude.com/docs/ja/hooks-guide.md
 ---
 
-# hooks でワークフローを自動化する
+# hooks でアクションを自動化する
 
 > Claude Code がファイルを編集したり、タスクを完了したり、入力が必要になったりしたときに、シェルコマンドを自動的に実行します。コードをフォーマットし、通知を送信し、コマンドを検証し、プロジェクトルールを適用します。
 
