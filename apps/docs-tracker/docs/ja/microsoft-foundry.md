@@ -140,10 +140,10 @@ export ANTHROPIC_FOUNDRY_RESOURCE={resource}
 
 モデル変数をステップ 1 で作成したデプロイメント名と一致するように設定します。
 
-`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Foundry の `opus` エイリアスは Opus 4.6 に解決されます。最新のモデルを使用するために Opus 4.7 ID に設定します：
+`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Foundry の `opus` エイリアスは Opus 4.6 に解決されます。最新のモデルを使用するために Opus 4.8 ID に設定します：
 
 ```bash
-export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'
+export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'
 export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'
 export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
 ```

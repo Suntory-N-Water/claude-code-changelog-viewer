@@ -249,8 +249,6 @@ LSP integration provides:
 | `settings` | Settings passed via `workspace/didChangeConfiguration` |
 | `workspaceFolder` | Workspace folder path for the server |
 | `startupTimeout` | Max time to wait for server startup (milliseconds) |
-| `shutdownTimeout` | Max time to wait for graceful shutdown (milliseconds) |
-| `restartOnCrash` | Whether to automatically restart the server if it crashes |
 | `maxRestarts` | Maximum number of restart attempts before giving up |
 
 **You must install the language server binary separately.** LSP plugins configure how Claude Code connects to a language server, but they don't include the server itself. If you see `Executable not found in $PATH` in the `/plugin` Errors tab, install the required binary for your language.

@@ -123,7 +123,7 @@ claude "commit my changes with a descriptive message"
 
 CI では、[GitHub Actions](/ja/github-actions) または [GitLab CI/CD](/ja/gitlab-ci-cd) でコードレビューと問題トリアージを自動化できます。
 
-[Model Context Protocol（MCP）](/ja/mcp) は、AI ツールを外部データソースに接続するためのオープンスタンダードです。MCP を使用すると、Claude Code は Google Drive のデザインドキュメントを読み取り、Jira のチケットを更新し、Slack からデータをプルするか、独自のカスタムツーリングを使用できます。
+[Model Context Protocol（MCP）](/ja/mcp) は、AI ツールを外部データソースに接続するためのオープンスタンダードです。MCP を使用すると、Claude Code は Google Drive のデザインドキュメントを読み取り、Jira のチケットを更新し、Slack からデータをプルするか、独自のカスタムツーリングを使用できます。[MCP クイックスタート](/ja/mcp-quickstart) は、最初のサーバーをエンドツーエンドで接続します。
 
 [`CLAUDE.md`](/ja/memory) はプロジェクトルートに追加するマークダウンファイルで、Claude Code はすべてのセッションの開始時に読み取ります。コーディング標準、アーキテクチャの決定、推奨ライブラリ、レビューチェックリストを設定するために使用します。Claude は [自動メモリ](/ja/memory#auto-memory) も構築し、ビルドコマンドやデバッグの洞察などの学習内容を保存し、何も書かずにセッション間で共有します。
 
