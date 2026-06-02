@@ -1,16 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../infrastructure/notification/discord', () => ({
-  createChangelogMessage: vi.fn(() => ({
-    content: 'テスト通知',
-    username: 'Bot',
-  })),
-  sendToDiscord: vi.fn(),
-}));
-
-vi.mock('../infrastructure/notification/email', () => ({
-  sendToEmail: vi.fn(),
-  createEmailChangelogMessage: vi.fn(),
+vi.mock('../infrastructure/channel-notifier', () => ({
+  createChannelNotifier: () => ({
+    sendTestNotification: vi.fn(),
+    sendChangelogNotification: vi.fn(),
+    sendUnsubscribeNotification: vi.fn(),
+  }),
 }));
 
 const mockFetch = vi.spyOn(globalThis, 'fetch');
