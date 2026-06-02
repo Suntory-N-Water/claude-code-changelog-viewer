@@ -11,23 +11,25 @@ Claude Code は、組織が開発者の使用パターンを理解し、貢献�
 
 | プラン | ダッシュボード URL | 含まれる内容 | 詳細 |
 | - | - | - | - |
-| Claude for Teams / Enterprise | [claude.ai/analytics/claude-code](https://claude.ai/analytics/claude-code) | 使用メトリクス、GitHub 統合による貢献メトリクス、リーダーボード、データエクスポート | [詳細](#access-analytics-for-teams-and-enterprise) |
+| Claude for Teams / Enterprise | [claude.ai/analytics/claude-code](https://claude.ai/analytics/claude-code) | 使用メトリクス、GitHub 統合による貢献メトリクス、リーダーボード、データエクスポート | [詳細](#access-analytics-for-team-and-enterprise) |
 | API（Claude Console） | [platform.claude.com/claude-code](https://platform.claude.com/claude-code) | 使用メトリクス、支出追跡、チームインサイト | [詳細](#access-analytics-for-api-customers) |
 
-## Teams と Enterprise の分析にアクセスする
+## Team と Enterprise の分析にアクセスする
 
 [claude.ai/analytics/claude-code](https://claude.ai/analytics/claude-code) に移動してください。管理者とオーナーがダッシュボードを表示できます。
 
-Teams と Enterprise ダッシュボードには以下が含まれます。
+Team と Enterprise ダッシュボードには以下が含まれます。
 
 - **使用メトリクス**：受け入れられたコード行数、提案受け入れ率、日次アクティブユーザー数とセッション数
 - **貢献メトリクス**：[GitHub 統合](#enable-contribution-metrics)を使用した Claude Code 支援による PR とシップされたコード行数
 - **リーダーボード**：Claude Code 使用量でランク付けされたトップコントリビューター
 - **データエクスポート**：カスタムレポート用に貢献データを CSV としてダウンロード
 
+ユーザーごとのトークン数とコスト推定については、[OpenTelemetry エクスポート](/ja/monitoring-usage)を構成してください。
+
 ### 貢献メトリクスを有効にする
 
-貢献メトリクスはパブリックベータ版であり、Claude for Teams と Claude for Enterprise プランで利用可能です。これらのメトリクスは、claude.ai 組織内のユーザーのみをカバーしています。Claude Console API または サードパーティ統合を通じた使用は含まれていません。
+貢献メトリクスはパブリックベータ版であり、Claude for Teams と Claude for Enterprise プランで利用可能です。これらのメトリクスは、claude.ai 組織内のユーザーのみをカバーしています。Claude Console API またはサードパーティ統合を通じた使用は含まれていません。
 
 使用状況と採用データは、すべての Claude for Teams と Claude for Enterprise アカウントで利用可能です。貢献メトリクスには、GitHub 組織を接続するための追加セットアップが必要です。
 

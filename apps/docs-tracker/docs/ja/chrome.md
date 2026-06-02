@@ -53,7 +53,7 @@ Go to code.claude.com/docs, click on the search box,
 type "hooks", and tell me what results appear
 ```
 
-いつでも `/chrome` を実行して接続ステータスを確認し、権限を管理するか、拡張機能を再接続できます。
+いつでも `/chrome` を実行して接続ステータスを確認し、権限を管理し、拡張機能を再接続するか、使用する接続されたブラウザを選択できます。ブラウザアクションが開始されるときに複数のブラウザが接続されている場合、Claude はいずれかを選択するよう促します。
 
 VS Code については、[VS Code でのブラウザ自動化](/ja/vs-code#automate-browser-tasks-with-chrome) を参照してください。
 

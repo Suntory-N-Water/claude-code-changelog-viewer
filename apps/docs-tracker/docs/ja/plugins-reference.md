@@ -249,8 +249,6 @@ LSP 統合は以下を提供します:
 | `settings` | `workspace/didChangeConfiguration` 経由で渡される設定 |
 | `workspaceFolder` | サーバーのワークスペースフォルダーパス |
 | `startupTimeout` | サーバー起動を待つ最大時間（ミリ秒） |
-| `shutdownTimeout` | グレースフルシャットダウンを待つ最大時間（ミリ秒） |
-| `restartOnCrash` | サーバーがクラッシュした場合に自動的に再起動するかどうか |
 | `maxRestarts` | 諦める前の最大再起動試行回数 |
 
 **言語サーバーバイナリを別途インストールする必要があります。** LSP プラグインは Claude Code が言語サーバーに接続する方法を設定しますが、サーバー自体は含まれていません。`/plugin` Errors タブに `Executable not found in $PATH` が表示される場合は、言語に必要なバイナリをインストールしてください。

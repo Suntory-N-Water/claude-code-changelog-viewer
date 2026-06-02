@@ -24,6 +24,8 @@ source: https://code.claude.com/docs/ja/common-workflows.md
 
 ### 新しいコードベースを理解する
 
+モノレポまたは大規模なコードベースで Claude Code を設定する場合は、[モノレポと大規模リポジトリ](/ja/large-codebases)を参照してください。
+
 #### コードベースの概要を素早く把握する
 
 新しいプロジェクトに参加したばかりで、その構造を素早く理解する必要があるとします。

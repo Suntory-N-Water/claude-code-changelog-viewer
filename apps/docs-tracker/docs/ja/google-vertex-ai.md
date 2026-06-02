@@ -197,10 +197,10 @@ Claude Code は Vertex AI でデフォルトで [MCP tool search](/ja/mcp#scale-
 
 これらの環境変数を特定の Vertex AI モデル ID に設定します。
 
-`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Vertex 上の `opus` エイリアスは Opus 4.6 に解決されます。最新モデルを使用するには、Opus 4.7 ID に設定します。
+`ANTHROPIC_DEFAULT_OPUS_MODEL` がない場合、Vertex 上の `opus` エイリアスは Opus 4.6 に解決されます。最新モデルを使用するには、Opus 4.8 ID に設定します。
 
 ```bash
-export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'
+export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'
 export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'
 export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
 ```
@@ -219,7 +219,7 @@ Claude Code は、ピン留め変数が設定されていない場合、これ�
 モデルをさらにカスタマイズするには、以下を実行します。
 
 ```bash
-export ANTHROPIC_MODEL='claude-opus-4-7'
+export ANTHROPIC_MODEL='claude-opus-4-8'
 export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
 ```
 
@@ -249,7 +249,7 @@ Claude Code デフォルトより古いモデルバージョンをピン留め�
 
 ## 100 万トークンコンテキストウィンドウ
 
-Claude Opus 4.7、Opus 4.6、および Sonnet 4.6 は、Vertex AI で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Claude Code は、100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
+Claude Opus 4.6 以降および Sonnet 4.6 は、Vertex AI で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Claude Code は、100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
 
 [セットアップウィザード](#sign-in-with-vertex-ai)は、モデルをピン留めするときに 100 万トークンコンテキストオプションを提供します。手動でピン留めされたモデルの代わりに有効にするには、モデル ID に `[1m]` を追加します。詳細については、[サードパーティデプロイメント用のモデルをピン留めする](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 

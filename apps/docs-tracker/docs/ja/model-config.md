@@ -35,11 +35,11 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
 | **`opus[1m]`** | 長いセッション用に [100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) を備えた Opus を使用 |
 | **`opusplan`** | Plan Mode 中は `opus` を使用し、実行中は `sonnet` に自動的に切り替わる特別なモード |
 
-Anthropic API および [Claude Platform on AWS](/ja/claude-platform-on-aws) では、`opus` は Opus 4.7 に解決され、`sonnet` は Sonnet 4.6 に解決されます。Bedrock、Vertex、Foundry では、`opus` は Opus 4.6 に解決され、`sonnet` は Sonnet 4.5 に解決されます。より新しいモデルは、完全なモデル名を明示的に選択するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` を設定することで、これらのプロバイダーで利用可能です。
+Anthropic API では、`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet 4.6 に解決されます。[Claude Platform on AWS](/ja/claude-platform-on-aws) では、`opus` は Opus 4.7 に解決され、`sonnet` は Sonnet 4.6 に解決されます。Bedrock、Vertex、Foundry では、`opus` は Opus 4.6 に解決され、`sonnet` は Sonnet 4.5 に解決されます。より新しいモデルは、完全なモデル名を明示的に選択するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` を設定することで、これらのプロバイダーで利用可能です。
 
-エイリアスはプロバイダーの推奨バージョンを指し、時間とともに更新されます。特定のバージョンに固定するには、完全なモデル名（例：`claude-opus-4-7`）を使用するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` などの対応する環境変数を設定します。
+エイリアスはプロバイダーの推奨バージョンを指し、時間とともに更新されます。特定のバージョンに固定するには、完全なモデル名（例：`claude-opus-4-8`）を使用するか、`ANTHROPIC_DEFAULT_OPUS_MODEL` などの対応する環境変数を設定します。
 
-Opus 4.7 には Claude Code v2.1.111 以降が必要です。`claude update` を実行してアップグレードしてください。
+Opus 4.8 には Claude Code v2.1.154 以降が必要です。`claude update` を実行してアップグレードしてください。
 
 ### モデルの設定
 
@@ -142,13 +142,14 @@ claude --model opus
 
 `default` の動作はアカウントタイプによって異なります。
 
-- **Max と Team Premium**：Opus 4.7 がデフォルト
-- **Pro、Team Standard、Enterprise、Anthropic API**：Sonnet 4.6 がデフォルト
+- **Max、Team Premium、Enterprise 従量課金、Anthropic API**：Opus 4.8 がデフォルト
+- **AWS 上の Claude Platform**：Opus 4.7 がデフォルト
+- **Pro、Team Standard、Enterprise サブスクリプションシート**：Sonnet 4.6 がデフォルト
 - **Bedrock、Vertex、Foundry**：Sonnet 4.5 がデフォルト
 
-Claude Code は、Opus の使用量閾値に達した場合、自動的に Sonnet にフォールバックする可能性があります。
+Enterprise 従量課金とは、サブスクリプションシートではなく使用量で請求される Enterprise 組織を意味します。
 
-2026 年 4 月 23 日に、Enterprise 従量課金および Anthropic API ユーザーのデフォルトモデルが Opus 4.7 に変更されます。別のデフォルトを保つには、[サーバー管理設定](/ja/server-managed-settings)で `ANTHROPIC_MODEL` または `model` フィールドを設定します。
+Claude Code は、Opus の使用量閾値に達した場合、自動的に Sonnet にフォールバックする可能性があります。
 
 ### `opusplan` モデル設定
 
@@ -165,18 +166,18 @@ Plan Mode の Opus フェーズは標準的な 200K コンテキストウィン�
 
 [努力レベル](https://platform.claude.com/docs/ja/build-with-claude/effort)は適応的推論を制御し、タスクの複雑さに基づいて各ステップで思考するかどうか、どの程度思考するかをモデルが決定できるようにします。低い努力はシンプルなタスクではより高速で安価ですが、高い努力は複雑な問題に対してより深い推論を提供します。
 
-努力は Opus 4.7、Opus 4.6、Sonnet 4.6 でサポートされています。利用可能なレベルはモデルによって異なります。
+利用可能な努力レベルはモデルによって異なります。ここに記載されていないモデルは努力をサポートしていません。
 
 | モデル | レベル |
 | :- | :- |
-| Opus 4.7 | `low`、`medium`、`high`、`xhigh`、`max` |
+| Opus 4.8 と Opus 4.7 | `low`、`medium`、`high`、`xhigh`、`max` |
 | Opus 4.6 と Sonnet 4.6 | `low`、`medium`、`high`、`max` |
 
 アクティブなモデルがサポートしないレベルを設定した場合、Claude Code は設定したレベル以下の最高サポートレベルにフォールバックします。例えば、`xhigh` は Opus 4.6 では `high` として実行されます。
 
-v2.1.117 以降、Opus 4.7 のデフォルト努力は `xhigh` で、Opus 4.6 と Sonnet 4.6 のデフォルト努力は `high` です。
+デフォルト努力は Opus 4.8、Opus 4.6、Sonnet 4.6 では `high` で、Opus 4.7 では `xhigh` です。
 
-Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 または Sonnet 4.6 に対して別の努力レベルを設定していても、`xhigh` を適用します。切り替え後に `/effort` を再度実行して、別のレベルを選択します。
+Opus 4.8 または Opus 4.7 を初めて実行する場合、Claude Code は、別のモデルに対して以前に異なるレベルを設定していても、そのモデルのデフォルト努力を適用します。Opus 4.8 では `high`、Opus 4.7 では `xhigh` です。切り替え後に `/effort` を再度実行して、別のレベルを選択します。
 
 `low`、`medium`、`high`、`xhigh` はセッション全体で保持されます。`max` はトークン支出に制約がない最も深い推論を提供し、`CLAUDE_CODE_EFFORT_LEVEL` 環境変数を通じて設定された場合を除き、現在のセッションのみに適用されます。
 
@@ -190,8 +191,8 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 | :- | :- |
 | `low` | インテリジェンスに敏感でない短くスコープされたレイテンシに敏感なタスク用に予約 |
 | `medium` | インテリジェンスをトレードオフできるコスト敏感な作業のトークン使用量を削減 |
-| `high` | トークン使用量とインテリジェンスのバランス。インテリジェンスに敏感な作業の最小値として使用するか、`xhigh` に対してトークン支出を削減するために使用 |
-| `xhigh` | ほとんどのコーディングおよび agentic coding タスクに最適な結果。Opus 4.7 での推奨デフォルト |
+| `high` | トークン使用量とインテリジェンスのバランス。Opus 4.8、Opus 4.6、Sonnet 4.6 でのデフォルト |
+| `xhigh` | より高いトークン支出での深い推論。Opus 4.7 でのデフォルト |
 | `max` | 難しいタスクのパフォーマンスを改善できますが、収益逓減を示す可能性があり、過度な思考の傾向があります。広く採用する前にテスト |
 | `ultracode` | 各実質的なタスク用に `xhigh` ごとのメッセージ推論で[動的ワークフロー](/ja/workflows)を計画する Claude Code 設定。セッションのみ |
 
@@ -220,7 +221,7 @@ Opus 4.7 を初めて実行する場合、Claude Code は、以前に Opus 4.6 �
 
 適応的推論は各ステップで思考をオプションにするため、Claude はルーチンプロンプトにより速く応答でき、より深い思考から利益を得るステップのために深い思考を予約できます。現在のレベルが生成するよりも Claude がより頻繁に、またはより少なく思考することを望む場合、プロンプトまたは `CLAUDE.md` で直接そう言うことができます。モデルはその努力設定内でそのガイダンスに応答します。
 
-Opus 4.7 は常に適応的推論を使用します。固定思考予算モードと `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` はそれに適用されません。
+Opus 4.7 以降は常に適応的推論を使用します。固定思考予算モードと `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` はそれに適用されません。
 
 Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を設定して、`MAX_THINKING_TOKENS` で制御される以前の固定思考予算に戻すことができます。[環境変数](/ja/env-vars)を参照してください。
 
@@ -238,19 +239,19 @@ Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を�
 
 ### 拡張コンテキスト
 
-Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に[100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。
+Opus 4.6 以降と Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に[100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。
 
-利用可能性はモデルとプランによって異なります。Max、Team、Enterprise プランでは、Opus は追加設定なしで自動的に 1M コンテキストにアップグレードされます。これは Team Standard と Team Premium の両方のシートに適用されます。Sonnet with 1M context は自動アップグレードの一部ではなく、Max を含むすべてのサブスクリプションプランで[追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要です。
+利用可能性はモデルとプランによって異なります。Max、Team、Enterprise プランでは、Opus は追加設定なしで自動的に 1M コンテキストにアップグレードされます。これは Team Standard と Team Premium の両方のシートに適用されます。Sonnet with 1M context は自動アップグレードの一部ではなく、Max を含むすべてのサブスクリプションプランで[使用クレジット](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要です。
 
 | プラン | Opus with 1M context | Sonnet with 1M context |
 | - | - | - |
-| Max、Team、Enterprise | サブスクリプションに含まれる | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 |
-| Pro | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 | [追加使用](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 |
+| Max、Team、Enterprise | サブスクリプションに含まれる | [使用クレジット](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 |
+| Pro | [使用クレジット](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 | [使用クレジット](https://support.claude.com/ja/articles/12429409-extra-usage-for-paid-claude-plans)が必要 |
 | API と従量課金 | フルアクセス | フルアクセス |
 
 1M コンテキストを完全に無効にするには、`CLAUDE_CODE_DISABLE_1M_CONTEXT=1` を設定します。これにより、1M モデルバリアントがモデルピッカーから削除されます。[環境変数](/ja/env-vars)を参照してください。
 
-1M コンテキストウィンドウは標準モデル価格を使用し、200K を超えるトークンに対するプレミアムはありません。拡張コンテキストがサブスクリプションに含まれているプランでは、使用量はサブスクリプションでカバーされたままです。拡張コンテキストに追加使用でアクセスするプランでは、トークンは追加使用に請求されます。
+1M コンテキストウィンドウは標準モデル価格を使用し、200K を超えるトークンに対するプレミアムはありません。拡張コンテキストがサブスクリプションに含まれているプランでは、使用量はサブスクリプションでカバーされたままです。拡張コンテキストに使用クレジットでアクセスするプランでは、トークンは使用クレジットに請求されます。
 
 アカウントが 1M コンテキストをサポートしている場合、オプションは Claude Code の最新バージョンのモデルピッカー（`/model`）に表示されます。表示されない場合は、セッションを再起動してみてください。
 
@@ -262,7 +263,7 @@ Opus 4.7、Opus 4.6、Sonnet 4.6 は、大規模なコードベースを持つ�
 /model sonnet[1m]
 
 # または完全なモデル名に [1m] を追加
-/model claude-opus-4-7[1m]
+/model claude-opus-4-8[1m]
 ```
 
 ## 現在のモデルの確認
@@ -313,19 +314,19 @@ Claude Code は `ANTHROPIC_CUSTOM_MODEL_OPTION` で設定されたモデル ID �
 
 | プロバイダー | 例 |
 | :- | :- |
-| Bedrock | `export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-7'` |
-| Vertex AI | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'` |
-| Foundry | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7'` |
+| Bedrock | `export ANTHROPIC_DEFAULT_OPUS_MODEL='us.anthropic.claude-opus-4-8'` |
+| Vertex AI | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'` |
+| Foundry | `export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'` |
 
 `ANTHROPIC_DEFAULT_SONNET_MODEL` と `ANTHROPIC_DEFAULT_HAIKU_MODEL` に同じパターンを適用します。すべてのプロバイダー全体の現在および従来のモデル ID については、[モデル概要](https://platform.claude.com/docs/ja/about-claude/models/overview) を参照してください。ユーザーを新しいモデルバージョンにアップグレードするには、これらの環境変数を更新して再デプロイします。
 
 ピン留めされたモデルの [拡張コンテキスト](#extended-context) を有効にするには、`ANTHROPIC_DEFAULT_OPUS_MODEL` または `ANTHROPIC_DEFAULT_SONNET_MODEL` のモデル ID に `[1m]` を追加します。
 
 ```bash
-export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-7[1m]'
+export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8[1m]'
 ```
 
-`[1m]` サフィックスは、`opusplan` を含むそのエイリアスのすべての使用に 1M コンテキストウィンドウを適用します。
+`[1m]` サフィックスは、`opus` と `sonnet` エイリアスのすべての使用に 1M コンテキストウィンドウを適用します。これは `opusplan` の plan-mode Opus フェーズを拡張しません。これは [200K で上限が設定されたままです](#opusplan-model-setting)。
 
 - Claude Code は、モデル ID をプロバイダーに送信する前にサフィックスを削除します。
 - 基盤となるモデルが [1M コンテキストをサポート](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window) する場合にのみ `[1m]` を追加します。

@@ -24,7 +24,7 @@ Claude Code プラグインは、以下を含むほとんどの JetBrains IDEs �
 
 - **クイック起動**: `Cmd+Esc`（Mac）または `Ctrl+Esc`（Windows/Linux）を使用してエディタから Claude Code を直接開くか、UI の Claude Code ボタンをクリックします
 - **Diff ビューイング**: コードの変更をターミナルではなく IDE の diff ビューアに直接表示できます
-- **選択コンテキスト**: IDE の現在の選択またはタブが Claude Code と自動的に共有されます
+- **選択コンテキスト**: IDE の現在の選択またはタブが Claude Code と自動的に共有されます。[`Read` 拒否ルール](/ja/permissions#read-and-edit)は、一致するファイルのこの共有をブロックします
 - **ファイル参照ショートカット**: `Cmd+Option+K`（Mac）または `Alt+Ctrl+K`（Linux/Windows）を使用して `@src/auth.ts#L1-99` などのファイル参照を挿入します
 - **診断共有**: IDE からの診断エラー（lint、構文エラーなど）が作業中に Claude と自動的に共有されます
 
