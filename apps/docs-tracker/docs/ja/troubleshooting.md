@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 
 # トラブルシューティング
 
-> Claude Code の実行中のパフォーマンス、安定性、検索の問題を修正し、その他の問題に対応する適切なページを見つけます。
+> Claude Code の高い CPU またはメモリ使用量、ハング、auto-compact スラッシング、検索の問題を修正し、その他の問題に対応する適切なページを見つけます。
 
 このページでは、Claude Code が実行中のパフォーマンス、安定性、検索の問題について説明します。その他の問題については、問題が発生している場所に一致するページから始めてください：
 
@@ -13,9 +13,9 @@ source: https://code.claude.com/docs/ja/troubleshooting.md
 | :- | :- |
 | `command not found`、インストール失敗、PATH の問題、`EACCES`、TLS エラー | [インストールとログインのトラブルシューティング](/ja/troubleshoot-install) |
 | ログインループ、OAuth エラー、`403 Forbidden`、「organization disabled」、Bedrock/Vertex/Foundry 認証情報 | [インストールとログインのトラブルシューティング](/ja/troubleshoot-install#login-and-authentication) |
-| 設定が適用されない、フック が実行されない、MCP サーバーがロードされない | [設定をデバッグする](/ja/debug-your-config) |
+| 設定が適用されない、hooks が実行されない、MCP サーバーがロードされない | [設定をデバッグする](/ja/debug-your-config) |
 | `API Error: 5xx`、`529 Overloaded`、`429`、リクエスト検証エラー | [エラーリファレンス](/ja/errors) |
-| `model not found` または `you may not have access to it` | [エラーリファレンス](/ja/errors#theres-an-issue-with-the-selected-model) |
+| `model not found` または `you may not have access to it` | [エラーリファレンス](/ja/errors#there%E2%80%99s-an-issue-with-the-selected-model) |
 | VS Code 拡張機能が接続されていない、または Claude を検出していない | [VS Code 統合](/ja/vs-code#fix-common-issues) |
 | JetBrains プラグインまたは IDE が検出されない | [JetBrains 統合](/ja/jetbrains#troubleshooting) |
 | CPU またはメモリ使用量が多い、応答が遅い、ハング、検索がファイルを見つけられない | [パフォーマンスと安定性](#performance-and-stability)（下記） |
