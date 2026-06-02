@@ -27,12 +27,12 @@ Enter キーを押すとメッセージが送信されます。送信せずに�
 | ターミナル | Shift+Enter で改行 |
 | :- | :- |
 | Ghostty、Kitty、iTerm2、WezTerm、Warp、Apple Terminal、Windows Terminal | セットアップなしで機能 |
-| VS Code、Cursor、Windsurf、Alacritty、Zed | 1 回 `/terminal-setup` を実行 |
+| VS Code、Cursor、Devin Desktop、Alacritty、Zed | 1 回 `/terminal-setup` を実行 |
 | gnome-terminal、PyCharm や Android Studio などの JetBrains IDE | 利用不可。Ctrl+J または `\` の後に Enter を使用 |
 
-VS Code、Cursor、Windsurf、Alacritty、Zed の場合、`/terminal-setup` は Shift+Enter およびその他のキーバインディングをターミナルの設定ファイルに書き込みます。既存のバインディングはそのまま保持されます。`VSCode terminal Shift+Enter key binding already configured` などのメッセージが表示された場合は、変更は加えられていません。tmux または screen 内ではなく、ホストターミナル内で直接 `/terminal-setup` を実行してください。ホストターミナルの設定に書き込む必要があるためです。
+VS Code、Cursor、Devin Desktop、Alacritty、Zed の場合、`/terminal-setup` は Shift+Enter およびその他のキーバインディングをターミナルの設定ファイルに書き込みます。既存のバインディングはそのまま保持されます。`VSCode terminal Shift+Enter key binding already configured` などのメッセージが表示された場合は、変更は加えられていません。tmux または screen 内ではなく、ホストターミナル内で直接 `/terminal-setup` を実行してください。ホストターミナルの設定に書き込む必要があるためです。
 
-VS Code、Cursor、Windsurf では、`/terminal-setup` はさらに 2 つのエディタ設定も更新します。統合ターミナルでのテキストの乱れを防ぐために `terminal.integrated.gpuAcceleration` を `"off"` に設定し、[フルスクリーンモード](/ja/fullscreen) でのスムーズなスクロールのために `terminal.integrated.mouseWheelScrollSensitivity` を設定します。GPU アクセラレーション変更を元に戻すには、`"auto"` に設定し直してエディタウィンドウをリロードしてください。
+VS Code、Cursor、Devin Desktop では、`/terminal-setup` はさらに 2 つのエディタ設定も更新します。統合ターミナルでのテキストの乱れを防ぐために `terminal.integrated.gpuAcceleration` を `"off"` に設定し、[フルスクリーンモード](/ja/fullscreen) でのスムーズなスクロールのために `terminal.integrated.mouseWheelScrollSensitivity` を設定します。GPU アクセラレーション変更を元に戻すには、`"auto"` に設定し直してエディタウィンドウをリロードしてください。
 
 tmux 内で実行している場合、外側のターミナルがサポートしている場合でも、Shift+Enter には以下の [tmux 設定](#configure-tmux) が必要です。
 
