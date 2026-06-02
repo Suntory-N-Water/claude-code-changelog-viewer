@@ -1,9 +1,9 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
+import { prepareUnsubscribe } from '../application/prepare-unsubscribe';
 import { unsubscribe } from '../application/unsubscribe';
 import { createChannelToken } from '../domain/channel/channel-token';
-import { isActive } from '../domain/channel/channel-lifecycle';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
@@ -102,14 +102,17 @@ const renderConfirm = (siteUrl: string, token: string) => html`
 
 const unsubscribeErrorMessages = {
   missing_token: {
+    status: 400,
     title: 'エラー',
     message: 'トークンが指定されていません。',
   },
   not_found: {
+    status: 404,
     title: 'エラー',
     message: '該当する登録が見つかりません。',
   },
   already_deactivated: {
+    status: 200,
     title: '通知停止済み',
     message: 'この通知は既に停止されています。',
   },
@@ -117,59 +120,15 @@ const unsubscribeErrorMessages = {
 
 type UnsubscribeError = keyof typeof unsubscribeErrorMessages;
 
-async function findActiveChannel(
-  token: string | null | undefined,
+function renderUnsubscribeErrorResponse(
   c: Context<{ Bindings: CloudflareBindings }>,
+  error: UnsubscribeError,
 ) {
-  const tokenText = token?.trim() ?? '';
-  if (tokenText === '') {
-    return {
-      ok: false as const,
-      response: c.html(
-        renderResult(
-          c.env.SITE_URL,
-          'エラー',
-          'トークンが指定されていません。',
-        ),
-        400,
-      ),
-    };
-  }
-
-  const repository = createChannelRepository(
-    c.env.DB,
-    c.env.EMAIL_ENCRYPTION_KEY,
+  const content = unsubscribeErrorMessages[error];
+  return c.html(
+    renderResult(c.env.SITE_URL, content.title, content.message),
+    content.status,
   );
-  const channel = await repository.findByToken(createChannelToken(tokenText));
-
-  if (!channel) {
-    return {
-      ok: false as const,
-      response: c.html(
-        renderResult(
-          c.env.SITE_URL,
-          'エラー',
-          '該当する登録が見つかりません。',
-        ),
-        404,
-      ),
-    };
-  }
-
-  if (!isActive(channel)) {
-    return {
-      ok: false as const,
-      response: c.html(
-        renderResult(
-          c.env.SITE_URL,
-          '通知停止済み',
-          'この通知は既に停止されています。',
-        ),
-      ),
-    };
-  }
-
-  return { ok: true as const, token: channel.token };
 }
 
 export const unsubscribeRoute = new Hono<{
@@ -177,20 +136,32 @@ export const unsubscribeRoute = new Hono<{
 }>()
   // GET: 確認ページを表示(クローラー対策で実際の停止処理は行わない)
   .get('/', async (c) => {
-    const lookup = await findActiveChannel(c.req.query('token'), c);
-    if (!lookup.ok) {
-      return lookup.response;
+    const tokenText = c.req.query('token')?.trim() ?? '';
+    if (tokenText === '') {
+      return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
-    return c.html(renderConfirm(c.env.SITE_URL, lookup.token));
+
+    const repository = createChannelRepository(
+      c.env.DB,
+      c.env.EMAIL_ENCRYPTION_KEY,
+    );
+    const result = await prepareUnsubscribe(repository, {
+      token: createChannelToken(tokenText),
+    });
+
+    if (!result.ok) {
+      return renderUnsubscribeErrorResponse(c, result.error);
+    }
+
+    return c.html(renderConfirm(c.env.SITE_URL, result.token));
   })
   // POST: 実際に配信停止を実行
   .post('/', async (c) => {
     const body = await c.req.parseBody();
-    const token = typeof body['token'] === 'string' ? body['token'] : null;
-
-    const lookup = await findActiveChannel(token, c);
-    if (!lookup.ok) {
-      return lookup.response;
+    const tokenText =
+      typeof body['token'] === 'string' ? body['token'].trim() : '';
+    if (tokenText === '') {
+      return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
 
     const repository = createChannelRepository(
@@ -199,12 +170,12 @@ export const unsubscribeRoute = new Hono<{
     );
     const notifier = createChannelNotifier(c.env);
     const result = await unsubscribe(repository, notifier, {
-      token: lookup.token,
+      token: createChannelToken(tokenText),
       unsubscribedAt: new Date(),
     });
 
     if (!result.ok) {
-      return c.html(renderUnsubscribeError(c.env.SITE_URL, result.error));
+      return renderUnsubscribeErrorResponse(c, result.error);
     }
 
     return c.html(
@@ -215,8 +186,3 @@ export const unsubscribeRoute = new Hono<{
       ),
     );
   });
-
-function renderUnsubscribeError(siteUrl: string, error: UnsubscribeError) {
-  const content = unsubscribeErrorMessages[error];
-  return renderResult(siteUrl, content.title, content.message);
-}

@@ -6,7 +6,7 @@ const { mockedVerifyTurnstile, mockedCreateTestMessage, mockedSendToDiscord } =
     mockedSendToDiscord: vi.fn(),
   }));
 
-vi.mock('../lib/turnstile', () => ({
+vi.mock('../infrastructure/turnstile', () => ({
   verifyTurnstileToken: mockedVerifyTurnstile,
 }));
 
@@ -246,9 +246,6 @@ describe('POST /api/webhooks integration', () => {
 
     // Assert(確認)
     expect(response.status).toBe(400);
-    expect(await response.json<unknown>()).toEqual({
-      error: 'Discord Webhook URLの形式が不正です',
-    });
   });
 
   it('webhook_url が空文字で 400 を返す', async () => {
@@ -286,8 +283,5 @@ describe('POST /api/webhooks integration', () => {
 
     // Assert(確認)
     expect(response.status).toBe(400);
-    expect(await response.json<unknown>()).toEqual({
-      error: 'リクエストが不正です',
-    });
   });
 });

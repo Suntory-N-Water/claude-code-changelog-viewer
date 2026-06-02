@@ -29,7 +29,7 @@ import {
   createNotificationFrequency,
 } from '../../domain/channel/notification-frequency';
 import { createSlackWebhookUrl } from '../../domain/channel/slack-webhook-url';
-import { decryptEmail, encryptEmail, hashEmail } from '../../lib/email-crypto';
+import { decryptEmail, encryptEmail, hashEmail } from './email-crypto';
 
 type CommonChannelRow = {
   readonly id: string;

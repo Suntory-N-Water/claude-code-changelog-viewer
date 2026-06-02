@@ -12,7 +12,11 @@ export type UnsubscribeInput = {
 
 /** 配信停止ユースケースの実行結果。HTTPレスポンスへの変換はroutes層で行う。 */
 export type UnsubscribeResult =
-  | { readonly ok: true; readonly channel: Channel }
+  | {
+      readonly ok: true;
+      readonly channel: Channel;
+      readonly notification: 'sent' | 'failed';
+    }
   | {
       readonly ok: false;
       readonly error: 'not_found' | 'already_deactivated';
@@ -40,7 +44,15 @@ export async function unsubscribe(
   const deactivatedChannel = deactivate(channel, 'user', input.unsubscribedAt);
   await repository.save(deactivatedChannel);
 
-  await notifier.sendUnsubscribeNotification(deactivatedChannel);
+  const notificationResult =
+    await notifier.sendUnsubscribeNotification(deactivatedChannel);
+  if (!notificationResult.ok) {
+    return {
+      ok: true,
+      channel: deactivatedChannel,
+      notification: 'failed',
+    };
+  }
 
-  return { ok: true, channel: deactivatedChannel };
+  return { ok: true, channel: deactivatedChannel, notification: 'sent' };
 }

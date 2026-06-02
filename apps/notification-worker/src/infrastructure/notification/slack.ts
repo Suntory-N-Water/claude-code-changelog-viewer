@@ -1,6 +1,6 @@
 import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
-import { groupChangelogItemsByPrefix } from '../../lib/changelog-message';
+import { groupChangelogItemsByPrefix } from './changelog-message';
 
 export type SlackSendResult = {
   ok: boolean;

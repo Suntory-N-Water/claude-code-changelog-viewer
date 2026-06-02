@@ -19,7 +19,7 @@ import {
 } from '../domain/channel/slack-webhook-url';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
-import { verifyTurnstileToken } from '../lib/turnstile';
+import { verifyTurnstileToken } from '../infrastructure/turnstile';
 
 const RequestSchema = z.discriminatedUnion('channel_type', [
   z.object({
