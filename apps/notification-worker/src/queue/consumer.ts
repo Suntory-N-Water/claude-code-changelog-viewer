@@ -91,7 +91,6 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
             case 'temporary_failure':
               logger.error('送信失敗', {
                 channelId: failure.channel.id,
-                status: failure.status,
               });
               break;
             case 'exception':

@@ -85,10 +85,7 @@ describe('queueConsumer integration', () => {
       token: 'active-token',
       failCount: 2,
     });
-    mockedSendChangelogNotification.mockResolvedValue({
-      ok: true,
-      status: 204,
-    });
+    mockedSendChangelogNotification.mockResolvedValue({ ok: true });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));
@@ -120,7 +117,7 @@ describe('queueConsumer integration', () => {
     });
     mockedSendChangelogNotification.mockResolvedValue({
       ok: false,
-      status: 404,
+      failureKind: 'permanent',
     });
 
     // Act(実行)
@@ -156,8 +153,8 @@ describe('queueConsumer integration', () => {
       failCount: 2,
     });
     mockedSendChangelogNotification
-      .mockResolvedValueOnce({ ok: true, status: 204 })
-      .mockResolvedValueOnce({ ok: false, status: 401 });
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: false, failureKind: 'permanent' });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));
@@ -216,7 +213,7 @@ describe('queueConsumer integration', () => {
     });
     mockedSendChangelogNotification.mockResolvedValue({
       ok: false,
-      status: 429,
+      failureKind: 'rate_limit',
     });
 
     // Act(実行)
@@ -247,7 +244,7 @@ describe('queueConsumer integration', () => {
     });
     mockedSendChangelogNotification
       .mockRejectedValueOnce(new Error('ネットワーク障害'))
-      .mockResolvedValueOnce({ ok: true, status: 204 });
+      .mockResolvedValueOnce({ ok: true });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));

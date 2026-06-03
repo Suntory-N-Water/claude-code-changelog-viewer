@@ -1,11 +1,13 @@
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from './channel';
 
-/** 外部通知APIへの送信結果。 */
-export type NotificationResult = {
-  readonly ok: boolean;
-  readonly status: number;
-};
+/** 外部通知APIへの送信結果。インフラ層がHTTPステータスをkindに変換して返す。 */
+export type NotificationResult =
+  | { readonly ok: true }
+  | {
+      readonly ok: false;
+      readonly failureKind: 'permanent' | 'rate_limit' | 'temporary';
+    };
 
 /** changelog通知に必要な入力。URL生成はinfrastructure層のNotifier実装が担う。 */
 export type ChangelogNotificationInput = {

@@ -5,8 +5,6 @@ import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { recordFailure, resetFailure } from '../domain/channel/channel-failure';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
 
-const PERMANENT_FAILURE_STATUSES = [401, 403, 404];
-
 export type DispatchChangelogNotificationsInput = {
   readonly analysis: Analysis;
   readonly version: string;
@@ -25,12 +23,10 @@ export type DispatchFailure =
   | {
       readonly type: 'rate_limit';
       readonly channel: Channel;
-      readonly status: number;
     }
   | {
       readonly type: 'temporary_failure';
       readonly channel: Channel;
-      readonly status: number;
     }
   | {
       readonly type: 'exception';
@@ -61,20 +57,13 @@ export async function dispatchChangelogNotifications(
         version: input.version,
       });
 
-      if (!result.ok && result.status === 429) {
-        failures.push({ type: 'rate_limit', channel, status: result.status });
+      if (!result.ok && result.failureKind === 'rate_limit') {
+        failures.push({ type: 'rate_limit', channel });
         shouldStop = true;
-      } else if (
-        !result.ok &&
-        PERMANENT_FAILURE_STATUSES.includes(result.status)
-      ) {
+      } else if (!result.ok && result.failureKind === 'permanent') {
         await repository.save(recordFailure(channel, input.failedAt));
       } else if (!result.ok) {
-        failures.push({
-          type: 'temporary_failure',
-          channel,
-          status: result.status,
-        });
+        failures.push({ type: 'temporary_failure', channel });
       } else {
         const resetChannel = resetFailure(channel);
         if (channel !== resetChannel) {

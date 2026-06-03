@@ -85,22 +85,28 @@ export class InfrastructureChannelNotifier implements ChannelNotifier {
     channel: Channel,
   ): Promise<NotificationResult> {
     switch (channel.type) {
-      case 'DSC':
-        return sendToDiscord(
+      case 'DSC': {
+        const raw = await sendToDiscord(
           channel.webhookUrl,
           createUnsubscribeNotification(),
         );
-      case 'SLK':
-        return sendToSlack(
+        return toNotificationResult(raw);
+      }
+      case 'SLK': {
+        const raw = await sendToSlack(
           channel.webhookUrl,
           createSlackUnsubscribeNotification(),
         );
-      case 'EML':
-        return sendToEmail(this.config.sendEmail, {
+        return toNotificationResult(raw);
+      }
+      case 'EML': {
+        const raw = await sendToEmail(this.config.sendEmail, {
           fromAddress: this.config.emailFrom,
           toAddress: channel.emailAddress,
           payload: createEmailUnsubscribeNotification(),
         });
+        return toNotificationResult(raw);
+      }
     }
   }
 
@@ -108,33 +114,35 @@ export class InfrastructureChannelNotifier implements ChannelNotifier {
     channel: DiscordChannel,
     input: ChangelogNotificationInput,
   ): Promise<NotificationResult> {
-    return sendToDiscord(
+    const raw = await sendToDiscord(
       channel.webhookUrl,
       createChangelogMessage(input.analysis, input.version, {
         unsubscribeUrl: this.createUnsubscribeUrl(channel),
         siteUrl: this.config.siteUrl,
       }),
     );
+    return toNotificationResult(raw);
   }
 
   private async sendSlackChangelogNotification(
     channel: SlackChannel,
     input: ChangelogNotificationInput,
   ): Promise<NotificationResult> {
-    return sendToSlack(
+    const raw = await sendToSlack(
       channel.webhookUrl,
       createSlackChangelogMessage(input.analysis, input.version, {
         unsubscribeUrl: this.createUnsubscribeUrl(channel),
         siteUrl: this.config.siteUrl,
       }),
     );
+    return toNotificationResult(raw);
   }
 
   private async sendEmailChangelogNotification(
     channel: EmailChannel,
     input: ChangelogNotificationInput,
   ): Promise<NotificationResult> {
-    return sendToEmail(this.config.sendEmail, {
+    const raw = await sendToEmail(this.config.sendEmail, {
       fromAddress: this.config.emailFrom,
       toAddress: channel.emailAddress,
       payload: createEmailChangelogMessage(input.analysis, input.version, {
@@ -142,11 +150,29 @@ export class InfrastructureChannelNotifier implements ChannelNotifier {
         siteUrl: this.config.siteUrl,
       }),
     });
+    return toNotificationResult(raw);
   }
 
   private createUnsubscribeUrl(channel: Channel): string {
     return `${this.config.workerUrl}/api/unsubscribe?token=${channel.token}`;
   }
+}
+
+/** HTTPステータスをドメインの失敗種別に変換する。 */
+function toNotificationResult(raw: {
+  ok: boolean;
+  status: number;
+}): NotificationResult {
+  if (raw.ok) {
+    return { ok: true };
+  }
+  if (raw.status === 429) {
+    return { ok: false, failureKind: 'rate_limit' };
+  }
+  if (raw.status === 401 || raw.status === 403 || raw.status === 404) {
+    return { ok: false, failureKind: 'permanent' };
+  }
+  return { ok: false, failureKind: 'temporary' };
 }
 
 /** Cloudflare BindingsからChannelNotifier portの実装を作成する。 */
