@@ -153,7 +153,7 @@ API リクエストが再試行可能なエラーで失敗すると、Claude Cod
 | `max_retries` | 整数 | 許可される再試行の合計 |
 | `retry_delay_ms` | 整数 | 次の試行までのミリ秒 |
 | `error_status` | 整数または null | HTTP ステータスコード、または HTTP レスポンスのない接続エラーの場合は `null` |
-| `error` | 文字列 | エラーカテゴリ：`authentication_failed`、`oauth_org_not_allowed`、`billing_error`、`rate_limit`、`invalid_request`、`model_not_found`、`server_error`、`max_output_tokens`、または `unknown` |
+| `error` | 文字列 | エラーカテゴリ：`authentication_failed`、`oauth_org_not_allowed`、`billing_error`、`rate_limit`、`overloaded`、`invalid_request`、`model_not_found`、`server_error`、`max_output_tokens`、または `unknown` |
 | `uuid` | 文字列 | 一意のイベント識別子 |
 | `session_id` | 文字列 | イベントが属するセッション |
 
