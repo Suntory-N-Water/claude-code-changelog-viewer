@@ -1,46 +1,42 @@
-import { eq, sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
+import { subscribe, type SubscribeInput } from '../application/subscribe';
 import {
-  channels,
-  discordChannels,
-  emailChannels,
-  notificationSettings,
-  slackChannels,
-} from '../db/schema';
-import {
-  buildUnsubscribeUrl,
-  createTestMessage,
-  sendToDiscord,
-} from '../lib/discord';
-import { createEmailTestMessage, sendToEmail } from '../lib/email';
-import { encryptEmail, hashEmail } from '../lib/email-crypto';
-import { createSlackTestMessage, sendToSlack } from '../lib/slack';
-import { verifyTurnstileToken } from '../lib/turnstile';
-import {
+  createDiscordWebhookUrl,
   isValidDiscordWebhookUrl,
-  isValidEmail,
+} from '../domain/channel/discord-webhook-url';
+import {
+  createEmailAddress,
+  isValidEmailAddress,
+} from '../domain/channel/email-address';
+import {
+  createNotificationFrequency,
+  type NotificationFrequency,
+} from '../domain/channel/notification-frequency';
+import {
+  createSlackWebhookUrl,
   isValidSlackWebhookUrl,
-} from '../lib/validation';
+} from '../domain/channel/slack-webhook-url';
+import { createChannelNotifier } from '../infrastructure/channel-notifier';
+import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
+import { verifyTurnstileToken } from '../infrastructure/turnstile';
 
 const RequestSchema = z.discriminatedUnion('channel_type', [
   z.object({
     channel_type: z.literal('DSC'),
-    webhook_url: z.string(),
+    webhook_url: z.string().refine(isValidDiscordWebhookUrl),
     turnstile_token: z.string(),
     frequency: z.enum(['IMM', 'WEK']),
   }),
   z.object({
     channel_type: z.literal('SLK'),
-    webhook_url: z.string(),
+    webhook_url: z.string().refine(isValidSlackWebhookUrl),
     turnstile_token: z.string(),
     frequency: z.enum(['IMM', 'WEK']),
   }),
   z.object({
     channel_type: z.literal('EML'),
-    email_address: z.string(),
+    email_address: z.string().refine(isValidEmailAddress),
     turnstile_token: z.string(),
     frequency: z.enum(['IMM', 'WEK']),
   }),
@@ -64,184 +60,57 @@ export const webhooksRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
       return c.json({ error: 'Turnstile検証に失敗しました' }, 403);
     }
 
-    const db = drizzle(c.env.DB);
-    const workerUrl = c.env.WORKER_URL;
-
-    if (data.channel_type === 'DSC') {
-      if (!isValidDiscordWebhookUrl(data.webhook_url)) {
-        return c.json({ error: 'Discord Webhook URLの形式が不正です' }, 400);
-      }
-
-      const rows = await db
-        .select({
-          channelId: channels.id,
-          token: channels.token,
-          deactivatedAt: channels.deactivatedAt,
-        })
-        .from(discordChannels)
-        .innerJoin(channels, eq(discordChannels.channelId, channels.id))
-        .where(eq(discordChannels.webhookUrl, data.webhook_url));
-      const existing = rows[0] ?? null;
-
-      if (existing?.deactivatedAt === CHANNEL_ACTIVE_SENTINEL) {
-        return c.json({ error: '既に登録済みです' }, 409);
-      }
-
-      const token = existing?.token ?? crypto.randomUUID();
-      const unsubscribeUrl = buildUnsubscribeUrl(workerUrl, token);
-
-      const testResult = await sendToDiscord(
-        data.webhook_url,
-        createTestMessage(unsubscribeUrl),
-      );
-      if (!testResult.ok) {
-        return c.json({ error: 'Webhook URLが無効です' }, 400);
-      }
-
-      if (existing) {
-        await db
-          .update(channels)
-          .set({
-            deactivatedAt: CHANNEL_ACTIVE_SENTINEL,
-            deactivatedReason: 'none',
-            failCount: 0,
-            updatedAt: sql`datetime('now')`,
-          })
-          .where(eq(channels.id, existing.channelId));
-        return c.json({ success: true });
-      }
-
-      const id = crypto.randomUUID();
-      await db.insert(channels).values({ id, channelType: 'DSC', token });
-      await db
-        .insert(discordChannels)
-        .values({ channelId: id, webhookUrl: data.webhook_url });
-      await db
-        .insert(notificationSettings)
-        .values({ id: `ns_${id}`, channelId: id, frequency: data.frequency });
-
-      return c.json({ success: true });
-    }
-
-    if (data.channel_type === 'SLK') {
-      if (!isValidSlackWebhookUrl(data.webhook_url)) {
-        return c.json({ error: 'Slack Webhook URLの形式が不正です' }, 400);
-      }
-
-      const rows = await db
-        .select({
-          channelId: channels.id,
-          token: channels.token,
-          deactivatedAt: channels.deactivatedAt,
-        })
-        .from(slackChannels)
-        .innerJoin(channels, eq(slackChannels.channelId, channels.id))
-        .where(eq(slackChannels.webhookUrl, data.webhook_url));
-      const existing = rows[0] ?? null;
-
-      if (existing?.deactivatedAt === CHANNEL_ACTIVE_SENTINEL) {
-        return c.json({ error: '既に登録済みです' }, 409);
-      }
-
-      const token = existing?.token ?? crypto.randomUUID();
-      const unsubscribeUrl = buildUnsubscribeUrl(workerUrl, token);
-
-      const testResult = await sendToSlack(
-        data.webhook_url,
-        createSlackTestMessage(unsubscribeUrl),
-      );
-      if (!testResult.ok) {
-        return c.json({ error: 'Webhook URLが無効です' }, 400);
-      }
-
-      if (existing) {
-        await db
-          .update(channels)
-          .set({
-            deactivatedAt: CHANNEL_ACTIVE_SENTINEL,
-            deactivatedReason: 'none',
-            failCount: 0,
-            updatedAt: sql`datetime('now')`,
-          })
-          .where(eq(channels.id, existing.channelId));
-        return c.json({ success: true });
-      }
-
-      const id = crypto.randomUUID();
-      await db.insert(channels).values({ id, channelType: 'SLK', token });
-      await db
-        .insert(slackChannels)
-        .values({ channelId: id, webhookUrl: data.webhook_url });
-      await db
-        .insert(notificationSettings)
-        .values({ id: `ns_${id}`, channelId: id, frequency: data.frequency });
-
-      return c.json({ success: true });
-    }
-
-    // Email 登録
-    if (!isValidEmail(data.email_address)) {
-      return c.json({ error: 'メールアドレスの形式が不正です' }, 400);
-    }
-
-    const emailHash = await hashEmail(
-      data.email_address,
+    const repository = createChannelRepository(
+      c.env.DB,
       c.env.EMAIL_ENCRYPTION_KEY,
     );
-    const emailEncrypted = await encryptEmail(
-      data.email_address,
-      c.env.EMAIL_ENCRYPTION_KEY,
-    );
+    const notifier = createChannelNotifier(c.env);
+    const frequency = createNotificationFrequency(data.frequency);
+    const input = createSubscribeInput(data, frequency);
 
-    const rows = await db
-      .select({
-        channelId: channels.id,
-        token: channels.token,
-        deactivatedAt: channels.deactivatedAt,
-      })
-      .from(emailChannels)
-      .innerJoin(channels, eq(emailChannels.channelId, channels.id))
-      .where(eq(emailChannels.emailHash, emailHash));
-    const existing = rows[0] ?? null;
+    const result = await subscribe(repository, notifier, input);
 
-    if (existing?.deactivatedAt === CHANNEL_ACTIVE_SENTINEL) {
-      return c.json({ error: '既に登録済みです' }, 409);
+    if (!result.ok) {
+      switch (result.error) {
+        case 'already_registered':
+          return c.json({ error: '既に登録済みです' }, 409);
+        case 'invalid_notification_destination':
+          return c.json({ error: '通知先が無効です' }, 400);
+      }
     }
-
-    const token = existing?.token ?? crypto.randomUUID();
-    const unsubscribeUrl = buildUnsubscribeUrl(workerUrl, token);
-
-    const testResult = await sendToEmail(c.env.SEND_EMAIL, {
-      fromAddress: c.env.EMAIL_FROM,
-      toAddress: data.email_address,
-      payload: createEmailTestMessage(unsubscribeUrl),
-    });
-    if (!testResult.ok) {
-      return c.json({ error: 'メールの送信に失敗しました' }, 400);
-    }
-
-    if (existing) {
-      await db
-        .update(channels)
-        .set({
-          deactivatedAt: CHANNEL_ACTIVE_SENTINEL,
-          deactivatedReason: 'none',
-          failCount: 0,
-          updatedAt: sql`datetime('now')`,
-        })
-        .where(eq(channels.id, existing.channelId));
-      return c.json({ success: true });
-    }
-
-    const id = crypto.randomUUID();
-    await db.insert(channels).values({ id, channelType: 'EML', token });
-    await db
-      .insert(emailChannels)
-      .values({ channelId: id, emailHash, emailEncrypted });
-    await db
-      .insert(notificationSettings)
-      .values({ id: `ns_${id}`, channelId: id, frequency: data.frequency });
 
     return c.json({ success: true });
   },
 );
+
+function createSubscribeInput(
+  data: z.infer<typeof RequestSchema>,
+  frequency: NotificationFrequency,
+): SubscribeInput {
+  switch (data.channel_type) {
+    case 'DSC':
+      return {
+        address: {
+          type: 'DSC',
+          value: createDiscordWebhookUrl(data.webhook_url),
+        },
+        frequency,
+      };
+    case 'SLK':
+      return {
+        address: {
+          type: 'SLK',
+          value: createSlackWebhookUrl(data.webhook_url),
+        },
+        frequency,
+      };
+    case 'EML':
+      return {
+        address: {
+          type: 'EML',
+          value: createEmailAddress(data.email_address),
+        },
+        frequency,
+      };
+  }
+}

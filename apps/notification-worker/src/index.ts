@@ -1,4 +1,3 @@
-import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
@@ -35,11 +34,9 @@ export default {
     env: CloudflareBindings,
     ctx: ExecutionContext,
   ) {
-    const db = drizzle(env.DB);
-
     switch (event.cron) {
       case '0 15 * * *':
-        ctx.waitUntil(cleanupInactiveChannels(db));
+        ctx.waitUntil(cleanupInactiveChannels(env));
         break;
       default:
         console.warn(`Unhandled cron trigger: ${event.cron}`);

@@ -1,22 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { mockedSendToDiscord } = vi.hoisted(() => ({
-  mockedSendToDiscord: vi.fn(),
+const { mockedSendChangelogNotification } = vi.hoisted(() => ({
+  mockedSendChangelogNotification: vi.fn(),
 }));
 
-vi.mock('../lib/discord', () => ({
-  buildUnsubscribeUrl: (workerUrl: string, token: string) =>
-    `${workerUrl}/api/unsubscribe?token=${token}`,
-  createChangelogMessage: () => ({
-    content: 'テスト通知',
-    username: 'Bot',
+vi.mock('../infrastructure/channel-notifier', () => ({
+  createChannelNotifier: () => ({
+    sendTestNotification: vi.fn(),
+    sendChangelogNotification: mockedSendChangelogNotification,
+    sendUnsubscribeNotification: vi.fn(),
   }),
-  sendToDiscord: mockedSendToDiscord,
-}));
-
-vi.mock('../lib/email', () => ({
-  sendToEmail: vi.fn(),
-  createEmailChangelogMessage: vi.fn(),
 }));
 
 const mockFetch = vi.spyOn(globalThis, 'fetch');
@@ -57,10 +50,7 @@ function setupFetchSuccess() {
 
 async function runWithTimers(promise: Promise<void>) {
   const result = promise;
-  for (let i = 0; i < 50; i += 1) {
-    vi.advanceTimersByTime(1000);
-    await Promise.resolve();
-  }
+  await vi.runAllTimersAsync();
   return result;
 }
 
@@ -95,7 +85,7 @@ describe('queueConsumer integration', () => {
       token: 'active-token',
       failCount: 2,
     });
-    mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
+    mockedSendChangelogNotification.mockResolvedValue({ ok: true });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));
@@ -125,7 +115,10 @@ describe('queueConsumer integration', () => {
       token: 'active-token',
       failCount: 2,
     });
-    mockedSendToDiscord.mockResolvedValue({ ok: false, status: 404 });
+    mockedSendChangelogNotification.mockResolvedValue({
+      ok: false,
+      failureKind: 'permanent',
+    });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));
@@ -159,9 +152,9 @@ describe('queueConsumer integration', () => {
       token: 'fail-token',
       failCount: 2,
     });
-    mockedSendToDiscord
-      .mockResolvedValueOnce({ ok: true, status: 204 })
-      .mockResolvedValueOnce({ ok: false, status: 401 });
+    mockedSendChangelogNotification
+      .mockResolvedValueOnce({ ok: true })
+      .mockResolvedValueOnce({ ok: false, failureKind: 'permanent' });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));
@@ -202,11 +195,11 @@ describe('queueConsumer integration', () => {
     await runWithTimers(callConsumer(batch, env));
 
     // Assert(確認)
-    expect(mockedSendToDiscord).not.toHaveBeenCalled();
+    expect(mockedSendChangelogNotification).not.toHaveBeenCalled();
     expect(message.ack).toHaveBeenCalled();
   });
 
-  it('Discord から 429 が返ると message.retry が呼ばれる', async () => {
+  it('通知で 429 が返ると message.retry が呼ばれる', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const message = createQueueMessage({ version: 'v1.0.0' });
@@ -218,7 +211,10 @@ describe('queueConsumer integration', () => {
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
       token: 'active-token',
     });
-    mockedSendToDiscord.mockResolvedValue({ ok: false, status: 429 });
+    mockedSendChangelogNotification.mockResolvedValue({
+      ok: false,
+      failureKind: 'rate_limit',
+    });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));
@@ -246,9 +242,9 @@ describe('queueConsumer integration', () => {
       token: 'success-token',
       failCount: 1,
     });
-    mockedSendToDiscord
+    mockedSendChangelogNotification
       .mockRejectedValueOnce(new Error('ネットワーク障害'))
-      .mockResolvedValueOnce({ ok: true, status: 204 });
+      .mockResolvedValueOnce({ ok: true });
 
     // Act(実行)
     await runWithTimers(callConsumer(batch, env));

@@ -1,19 +1,11 @@
-import { eq, sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
-import { CHANNEL_ACTIVE_SENTINEL } from '../db/constants';
-import {
-  channels,
-  discordChannels,
-  emailChannels,
-  slackChannels,
-} from '../db/schema';
-import { createUnsubscribeNotification, sendToDiscord } from '../lib/discord';
-import { createEmailUnsubscribeNotification, sendToEmail } from '../lib/email';
-import { decryptEmail } from '../lib/email-crypto';
-import { createSlackUnsubscribeNotification, sendToSlack } from '../lib/slack';
+import { prepareUnsubscribe } from '../application/prepare-unsubscribe';
+import { unsubscribe } from '../application/unsubscribe';
+import { createChannelToken } from '../domain/channel/channel-token';
+import { createChannelNotifier } from '../infrastructure/channel-notifier';
+import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
 const baseStyle = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -108,59 +100,35 @@ const renderConfirm = (siteUrl: string, token: string) => html`
   </html>
 `;
 
-async function findActiveChannel(
-  token: string | null | undefined,
+const unsubscribeErrorMessages = {
+  missing_token: {
+    status: 400,
+    title: 'エラー',
+    message: 'トークンが指定されていません。',
+  },
+  not_found: {
+    status: 404,
+    title: 'エラー',
+    message: '該当する登録が見つかりません。',
+  },
+  already_deactivated: {
+    status: 200,
+    title: '通知停止済み',
+    message: 'この通知は既に停止されています。',
+  },
+} as const;
+
+type UnsubscribeError = keyof typeof unsubscribeErrorMessages;
+
+function renderUnsubscribeErrorResponse(
   c: Context<{ Bindings: CloudflareBindings }>,
+  error: UnsubscribeError,
 ) {
-  if (!token) {
-    return {
-      ok: false as const,
-      response: c.html(
-        renderResult(
-          c.env.SITE_URL,
-          'エラー',
-          'トークンが指定されていません。',
-        ),
-        400,
-      ),
-    };
-  }
-
-  const db = drizzle(c.env.DB);
-  const rows = await db
-    .select({ deactivatedAt: channels.deactivatedAt })
-    .from(channels)
-    .where(eq(channels.token, token));
-  const row = rows[0] ?? null;
-
-  if (!row) {
-    return {
-      ok: false as const,
-      response: c.html(
-        renderResult(
-          c.env.SITE_URL,
-          'エラー',
-          '該当する登録が見つかりません。',
-        ),
-        404,
-      ),
-    };
-  }
-
-  if (row.deactivatedAt !== CHANNEL_ACTIVE_SENTINEL) {
-    return {
-      ok: false as const,
-      response: c.html(
-        renderResult(
-          c.env.SITE_URL,
-          '通知停止済み',
-          'この通知は既に停止されています。',
-        ),
-      ),
-    };
-  }
-
-  return { ok: true as const, token };
+  const content = unsubscribeErrorMessages[error];
+  return c.html(
+    renderResult(c.env.SITE_URL, content.title, content.message),
+    content.status,
+  );
 }
 
 export const unsubscribeRoute = new Hono<{
@@ -168,80 +136,46 @@ export const unsubscribeRoute = new Hono<{
 }>()
   // GET: 確認ページを表示(クローラー対策で実際の停止処理は行わない)
   .get('/', async (c) => {
-    const lookup = await findActiveChannel(c.req.query('token'), c);
-    if (!lookup.ok) {
-      return lookup.response;
+    const tokenText = c.req.query('token')?.trim() ?? '';
+    if (tokenText === '') {
+      return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
-    return c.html(renderConfirm(c.env.SITE_URL, lookup.token));
+
+    const repository = createChannelRepository(
+      c.env.DB,
+      c.env.EMAIL_ENCRYPTION_KEY,
+    );
+    const result = await prepareUnsubscribe(repository, {
+      token: createChannelToken(tokenText),
+    });
+
+    if (!result.ok) {
+      return renderUnsubscribeErrorResponse(c, result.error);
+    }
+
+    return c.html(renderConfirm(c.env.SITE_URL, result.token));
   })
   // POST: 実際に配信停止を実行
   .post('/', async (c) => {
     const body = await c.req.parseBody();
-    const token = typeof body['token'] === 'string' ? body['token'] : null;
-
-    const lookup = await findActiveChannel(token, c);
-    if (!lookup.ok) {
-      return lookup.response;
+    const tokenText =
+      typeof body['token'] === 'string' ? body['token'].trim() : '';
+    if (tokenText === '') {
+      return renderUnsubscribeErrorResponse(c, 'missing_token');
     }
 
-    const db = drizzle(c.env.DB);
+    const repository = createChannelRepository(
+      c.env.DB,
+      c.env.EMAIL_ENCRYPTION_KEY,
+    );
+    const notifier = createChannelNotifier(c.env);
+    const result = await unsubscribe(repository, notifier, {
+      token: createChannelToken(tokenText),
+      unsubscribedAt: new Date(),
+    });
 
-    const [channelRow] = await db
-      .select({ id: channels.id, channelType: channels.channelType })
-      .from(channels)
-      .where(eq(channels.token, lookup.token));
-
-    await db
-      .update(channels)
-      .set({
-        deactivatedAt: sql`datetime('now')`,
-        deactivatedReason: 'user',
-        updatedAt: sql`datetime('now')`,
-      })
-      .where(eq(channels.token, lookup.token));
-
-    try {
-      if (channelRow?.channelType === 'DSC') {
-        const [dscRow] = await db
-          .select({ webhookUrl: discordChannels.webhookUrl })
-          .from(discordChannels)
-          .where(eq(discordChannels.channelId, channelRow.id));
-        if (dscRow?.webhookUrl) {
-          await sendToDiscord(
-            dscRow.webhookUrl,
-            createUnsubscribeNotification(),
-          );
-        }
-      } else if (channelRow?.channelType === 'SLK') {
-        const [slkRow] = await db
-          .select({ webhookUrl: slackChannels.webhookUrl })
-          .from(slackChannels)
-          .where(eq(slackChannels.channelId, channelRow.id));
-        if (slkRow?.webhookUrl) {
-          await sendToSlack(
-            slkRow.webhookUrl,
-            createSlackUnsubscribeNotification(),
-          );
-        }
-      } else if (channelRow?.channelType === 'EML') {
-        const [emlRow] = await db
-          .select({ emailEncrypted: emailChannels.emailEncrypted })
-          .from(emailChannels)
-          .where(eq(emailChannels.channelId, channelRow.id));
-        if (emlRow?.emailEncrypted) {
-          const toAddress = await decryptEmail(
-            emlRow.emailEncrypted,
-            c.env.EMAIL_ENCRYPTION_KEY,
-          );
-          await sendToEmail(c.env.SEND_EMAIL, {
-            fromAddress: c.env.EMAIL_FROM,
-            toAddress,
-            payload: createEmailUnsubscribeNotification(),
-          });
-        }
-      }
-    } catch {
-      // 停止処理は完了しているため通知失敗は無視
+    if (!result.ok) {
+      return renderUnsubscribeErrorResponse(c, result.error);
     }
 
     return c.html(

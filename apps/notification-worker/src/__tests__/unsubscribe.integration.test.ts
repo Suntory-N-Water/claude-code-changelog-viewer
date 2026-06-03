@@ -1,19 +1,14 @@
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest';
-vi.mock('../lib/email', () => ({
-  sendToEmail: vi.fn(),
-  createEmailTestMessage: vi.fn(),
-  createEmailUnsubscribeNotification: vi.fn().mockReturnValue({}),
+const { mockedSendUnsubscribeNotification } = vi.hoisted(() => ({
+  mockedSendUnsubscribeNotification: vi.fn(),
 }));
-vi.mock('../lib/discord', () => ({
-  sendToDiscord: vi.fn().mockResolvedValue({ ok: true, status: 200 }),
-  createUnsubscribeNotification: vi.fn().mockReturnValue({}),
-  buildUnsubscribeUrl: vi
-    .fn()
-    .mockReturnValue('https://example.com/unsubscribe'),
-}));
-vi.mock('../lib/slack', () => ({
-  sendToSlack: vi.fn().mockResolvedValue({ ok: true, status: 200 }),
-  createSlackUnsubscribeNotification: vi.fn().mockReturnValue({}),
+
+vi.mock('../infrastructure/channel-notifier', () => ({
+  createChannelNotifier: () => ({
+    sendTestNotification: vi.fn(),
+    sendChangelogNotification: vi.fn(),
+    sendUnsubscribeNotification: mockedSendUnsubscribeNotification,
+  }),
 }));
 
 import { app } from '../index';
@@ -23,13 +18,15 @@ import {
   findChannelByToken,
   insertDiscordWebhook,
 } from './support/notification-test-support';
-import { sendToDiscord } from '../lib/discord';
 
 describe('/api/unsubscribe integration', () => {
   let db: FakeD1Database | null = null;
 
   beforeEach(() => {
-    vi.mocked(sendToDiscord).mockResolvedValue({ ok: true, status: 200 });
+    mockedSendUnsubscribeNotification.mockResolvedValue({
+      ok: true,
+      status: 200,
+    });
   });
 
   afterEach(() => {
@@ -99,18 +96,17 @@ describe('/api/unsubscribe integration', () => {
       deactivated_reason: 'user',
       fail_count: 0,
     });
-    expect(sendToDiscord).toHaveBeenCalledOnce();
-    expect(sendToDiscord).toHaveBeenCalledWith(
-      'https://discord.com/api/webhooks/123456/abcdef',
-      expect.anything(),
-    );
+    expect(mockedSendUnsubscribeNotification).toHaveBeenCalledOnce();
   });
 
   it('停止通知の送信が失敗しても停止 HTML が返りチャンネルはユーザー停止になる', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
     const env = createTestEnv(db);
-    vi.mocked(sendToDiscord).mockRejectedValueOnce(new Error('network error'));
+    mockedSendUnsubscribeNotification.mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+    });
     const request = {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

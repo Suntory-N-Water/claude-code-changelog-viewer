@@ -22,18 +22,30 @@ const PREFIX_LABELS: Record<Prefix, string> = {
   Enabled: '✅ 有効化',
 };
 
-export function buildUnsubscribeUrl(workerUrl: string, token: string): string {
-  return `${workerUrl}/api/unsubscribe?token=${token}`;
-}
-
 type CreateChangelogMessageOptions = {
   unsubscribeUrl: string;
   siteUrl: string;
 };
 
-/**
- * 変更ログの通知メッセージを生成する
- */
+export type DiscordSendResult = {
+  ok: boolean;
+  status: number;
+};
+
+/** Discord Webhookへ通知を送信する。 */
+export async function sendToDiscord(
+  webhookUrl: string,
+  payload: DiscordWebhookPayload,
+): Promise<DiscordSendResult> {
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  return { ok: response.ok, status: response.status };
+}
+
+/** Discord向けの変更ログ通知メッセージを生成する。 */
 export function createChangelogMessage(
   data: Analysis,
   version: string,
@@ -67,11 +79,7 @@ export function createChangelogMessage(
   };
 }
 
-export { sendToDiscord } from '@claude-code-changelog-viewer/common';
-
-/**
- * 登録時のテスト通知メッセージを生成する
- */
+/** Discord向けの登録テスト通知メッセージを生成する。 */
 export function createTestMessage(
   unsubscribeUrl: string,
 ): DiscordWebhookPayload {
@@ -86,9 +94,7 @@ export function createTestMessage(
   };
 }
 
-/**
- * 通知停止完了メッセージを生成する
- */
+/** Discord向けの通知停止完了メッセージを生成する。 */
 export function createUnsubscribeNotification(): DiscordWebhookPayload {
   return {
     content:

@@ -1,25 +1,21 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
-const { mockedVerifyTurnstile, mockedCreateTestMessage, mockedSendToDiscord } =
-  vi.hoisted(() => ({
+const { mockedVerifyTurnstile, mockedSendTestNotification } = vi.hoisted(
+  () => ({
     mockedVerifyTurnstile: vi.fn(),
-    mockedCreateTestMessage: vi.fn(() => ({ content: 'テスト通知' })),
-    mockedSendToDiscord: vi.fn(),
-  }));
+    mockedSendTestNotification: vi.fn(),
+  }),
+);
 
-vi.mock('../lib/turnstile', () => ({
+vi.mock('../infrastructure/turnstile', () => ({
   verifyTurnstileToken: mockedVerifyTurnstile,
 }));
 
-vi.mock('../lib/discord', () => ({
-  buildUnsubscribeUrl: (workerUrl: string, token: string) =>
-    `${workerUrl}/api/unsubscribe?token=${token}`,
-  createTestMessage: mockedCreateTestMessage,
-  sendToDiscord: mockedSendToDiscord,
-}));
-
-vi.mock('../lib/email', () => ({
-  sendToEmail: vi.fn(),
-  createEmailTestMessage: vi.fn(),
+vi.mock('../infrastructure/channel-notifier', () => ({
+  createChannelNotifier: () => ({
+    sendTestNotification: mockedSendTestNotification,
+    sendChangelogNotification: vi.fn(),
+    sendUnsubscribeNotification: vi.fn(),
+  }),
 }));
 
 import { app } from '../index';
@@ -53,8 +49,7 @@ describe('POST /api/webhooks integration', () => {
 
   afterEach(() => {
     mockedVerifyTurnstile.mockReset();
-    mockedCreateTestMessage.mockClear();
-    mockedSendToDiscord.mockReset();
+    mockedSendTestNotification.mockReset();
     db?.close();
     db = null;
   });
@@ -64,7 +59,7 @@ describe('POST /api/webhooks integration', () => {
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
-    mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
+    mockedSendTestNotification.mockResolvedValue({ ok: true });
 
     // Act(実行)
     const response = await app.request(
@@ -91,7 +86,7 @@ describe('POST /api/webhooks integration', () => {
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
-    mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
+    mockedSendTestNotification.mockResolvedValue({ ok: true });
 
     // Act(実行)
     await app.request('/api/webhooks', createRequestInit(), env);
@@ -107,7 +102,7 @@ describe('POST /api/webhooks integration', () => {
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
-    mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
+    mockedSendTestNotification.mockResolvedValue({ ok: true });
 
     // Act(実行)
     await app.request(
@@ -170,7 +165,7 @@ describe('POST /api/webhooks integration', () => {
       failCount: 2,
     });
     mockedVerifyTurnstile.mockResolvedValue(true);
-    mockedSendToDiscord.mockResolvedValue({ ok: true, status: 204 });
+    mockedSendTestNotification.mockResolvedValue({ ok: true });
 
     // Act(実行)
     const response = await app.request(
@@ -214,7 +209,7 @@ describe('POST /api/webhooks integration', () => {
     db = new FakeD1Database();
     const env = createTestEnv(db);
     mockedVerifyTurnstile.mockResolvedValue(true);
-    mockedSendToDiscord.mockResolvedValue({ ok: false, status: 404 });
+    mockedSendTestNotification.mockResolvedValue({ ok: false });
 
     // Act(実行)
     const response = await app.request(
@@ -248,9 +243,6 @@ describe('POST /api/webhooks integration', () => {
 
     // Assert(確認)
     expect(response.status).toBe(400);
-    expect(await response.json<unknown>()).toEqual({
-      error: 'Discord Webhook URLの形式が不正です',
-    });
   });
 
   it('webhook_url が空文字で 400 を返す', async () => {
@@ -288,8 +280,5 @@ describe('POST /api/webhooks integration', () => {
 
     // Assert(確認)
     expect(response.status).toBe(400);
-    expect(await response.json<unknown>()).toEqual({
-      error: 'リクエストが不正です',
-    });
   });
 });

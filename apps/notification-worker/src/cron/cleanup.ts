@@ -1,42 +1,16 @@
-import { inArray, lt, sql } from 'drizzle-orm';
-import type { DrizzleD1Database } from 'drizzle-orm/d1';
-import {
-  channels,
-  discordChannels,
-  emailChannels,
-  notificationSettings,
-  slackChannels,
-} from '../db/schema';
+import { cleanupInactiveChannels as cleanupInactiveChannelsUsecase } from '../application/cleanup-inactive-channels';
+import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
 export async function cleanupInactiveChannels(
-  db: DrizzleD1Database<Record<string, never>>,
-) {
-  // 30日以上非アクティブなチャンネルのIDを取得
-  // deactivated_at が 30 日以上前 = 無効化済みかつ CHANNEL_ACTIVE_SENTINEL でない
-  const inactiveChannels = await db
-    .select({ id: channels.id })
-    .from(channels)
-    .where(lt(channels.deactivatedAt, sql`(datetime('now', '-30 days'))`));
+  bindings: CloudflareBindings,
+  now = new Date(),
+): Promise<void> {
+  const cutoffDate = new Date(now);
+  cutoffDate.setDate(cutoffDate.getDate() - 30);
 
-  if (inactiveChannels.length === 0) {
-    return;
-  }
-  const channelIds = inactiveChannels.map((c) => c.id);
-
-  // D1の batch を用いて同一トランザクションとして一括削除
-  await db.batch([
-    db
-      .delete(discordChannels)
-      .where(inArray(discordChannels.channelId, channelIds)),
-    db
-      .delete(slackChannels)
-      .where(inArray(slackChannels.channelId, channelIds)),
-    db
-      .delete(emailChannels)
-      .where(inArray(emailChannels.channelId, channelIds)),
-    db
-      .delete(notificationSettings)
-      .where(inArray(notificationSettings.channelId, channelIds)),
-    db.delete(channels).where(inArray(channels.id, channelIds)),
-  ]);
+  const repository = createChannelRepository(
+    bindings.DB,
+    bindings.EMAIL_ENCRYPTION_KEY,
+  );
+  await cleanupInactiveChannelsUsecase(repository, { cutoffDate });
 }

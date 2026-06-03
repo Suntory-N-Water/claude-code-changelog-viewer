@@ -1,8 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../lib/email', () => ({
-  sendToEmail: vi.fn(),
-  createEmailTestMessage: vi.fn(),
+vi.mock('../infrastructure/channel-notifier', () => ({
+  createChannelNotifier: () => ({
+    sendTestNotification: vi.fn(),
+    sendChangelogNotification: vi.fn(),
+    sendUnsubscribeNotification: vi.fn(),
+  }),
 }));
 
 import { app } from '../index';

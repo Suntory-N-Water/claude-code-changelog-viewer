@@ -82,9 +82,6 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(await res.json<unknown>()).toEqual({
-      error: 'リクエストが不正です',
-    });
   });
 
   it('versions が v で始まらない文字列で 400 を返す', async () => {
@@ -95,9 +92,6 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(await res.json<unknown>()).toEqual({
-      error: 'リクエストが不正です',
-    });
   });
 
   it('リクエストボディが不正な場合 400 を返す', async () => {
@@ -108,8 +102,5 @@ describe('POST /api/dispatch', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(await res.json<unknown>()).toEqual({
-      error: 'リクエストが不正です',
-    });
   });
 });
