@@ -59,7 +59,7 @@ VS Code については、[VS Code でのブラウザ自動化](/ja/vs-code#auto
 
 ### Chrome をデフォルトで有効にする
 
-各セッションで `--chrome` を渡すことを避けるには、`/chrome` を実行して「Enabled by default」を選択します。
+各セッションで `--chrome` を渡すことを避けるには、`/chrome` を実行して「デフォルトで有効」を選択します。
 
 [VS Code 拡張機能](/ja/vs-code#automate-browser-tasks-with-chrome) では、Chrome 拡張機能がインストールされている場合、Chrome はいつでも利用可能です。追加のフラグは必要ありません。
 
@@ -157,7 +157,7 @@ Claude はインタラクションシーケンスを記録し、GIF ファイル
 
 ### 拡張機能が検出されない
 
-Claude Code が「Chrome extension not detected」を表示する場合：
+Claude Code の setup-issues 行に `chrome` がリストされている場合：
 
 1. Chrome 拡張機能が `chrome://extensions` にインストールされ、有効になっていることを確認します
 2. `claude --version` を実行して Claude Code が最新であることを確認します

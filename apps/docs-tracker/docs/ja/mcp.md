@@ -699,6 +699,8 @@ Claude Code で、以下のコマンドを使用します：
 
 Claude.ai サーバーはリストに表示され、Claude.ai から来ていることを示すインジケータが付きます。
 
+v2.1.161 以降、以前にサインインしたことのないコネクタは、claude.ai セクションの最後にある `Show unused connectors` 行の背後に折りたたまれているため、組織がプロビジョニングしたリストがパネルを埋めることはありません。その行を選択して展開します。以前にサインインしたコネクタは、現在再認証が必要な場合でも表示されたままです。
+
 Claude.ai コネクタは、アクティブな [認証方法](/ja/authentication#authentication-precedence) が Claude.ai サブスクリプションである場合にのみ取得されます。`ANTHROPIC_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、`apiKeyHelper`、または Bedrock や Vertex などのサードパーティプロバイダーがアクティブな場合は読み込まれません。以前に `/login` を実行した場合でも同様です。`/mcp` で追加したコネクタがリストされない場合は、`/status` を実行してアクティブな認証方法を確認し、その環境変数を設定解除するか `apiKeyHelper` 設定を削除してから、`/login` を実行して Claude.ai アカウントを選択します。
 
 Claude Code で追加したサーバーは、同じ URL を指す claude.ai コネクタより [優先](#scope-hierarchy-and-precedence) されます。この場合、`/mcp` はコネクタを非表示としてリストし、代わりにコネクタを使用する場合は重複を削除する方法を表示します。
