@@ -252,7 +252,7 @@ Claude Code は設定ファイルを監視し、変更時に再読み込みす�
 | `viewMode` | 起動時のデフォルトトランスクリプトビューモード：`"default"`、`"verbose"`、または `"focus"`。設定されている場合、スティッキー `/focus` 選択をオーバーライドします。`--verbose` フラグはこれを 1 セッション間オーバーライドします | `"verbose"` |
 | `voice` | [音声ディクテーション](/ja/voice-dictation)設定：`enabled` はディクテーションをオンにし、`mode` は `"hold"` または `"tap"` を選択し、`autoSubmit` はホールドモードでキーリリース時にプロンプトを送信します。`/voice` を実行すると自動的に書き込まれます。Claude.ai アカウントが必要です | `{ "enabled": true, "mode": "tap" }` |
 | `voiceEnabled` | `voice.enabled` のレガシーエイリアス。`voice` オブジェクトを優先します | `true` |
-| `workflowKeywordTriggerEnabled` | プロンプト内の単語 `workflow` が[動的ワークフロー](/ja/workflows#ask-for-a-workflow-in-your-prompt)をトリガーするかどうか。単語を入力してトリガーしないようにするには `false` に設定します。Ultracode、`/workflows`、および保存されたワークフローコマンドは影響を受けません。デフォルト：`true`。`/config` に**ワークフローキーワードトリガー**として表示されます | `false` |
+| `workflowKeywordTriggerEnabled` | プロンプト内の単語 `ultracode` が[動的ワークフロー](/ja/workflows#ask-for-a-workflow-in-your-prompt)をトリガーするかどうか。単語を入力してトリガーしないようにするには `false` に設定します。ultracode 努力設定、`/workflows`、および保存されたワークフローコマンドは影響を受けません。デフォルト：`true`。`/config` に**ワークフローキーワードトリガー**として表示されます | `false` |
 | `wslInheritsWindowsSettings` | （Windows managed 設定のみ）`true` の場合、WSL 上の Claude Code は `/etc/claude-code` に加えて Windows ポリシーチェーンから managed 設定を読み込み、Windows ソースが優先されます。HKLM レジストリキーまたは `C:\Program Files\ClaudeCode\managed-settings.json` で設定されている場合のみ尊重されます。どちらも Windows 管理者が書き込む必要があります。HKCU ポリシーが WSL でも適用されるようにするには、フラグを HKCU 自体にも設定する必要があります。ネイティブ Windows には影響しません | `true` |
 
 ### グローバル構成設定

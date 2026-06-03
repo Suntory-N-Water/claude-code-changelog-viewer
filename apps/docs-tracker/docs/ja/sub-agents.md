@@ -376,7 +376,7 @@ v2.1.153 以降、メインセッションに適用される MCP 制限は、サ
 | `bypassPermissions` | すべての権限チェックをスキップ |
 | `plan` | プランモード（読み取り専用探索） |
 
-`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.claude`、`.vscode`、`.idea`、`.husky`、および `.cargo` ディレクトリへの書き込みを含みます。`rm -rf /` などのルートおよびホームディレクトリの削除は、サーキットブレーカーとしてプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
+`bypassPermissions` は注意して使用してください。権限プロンプトをスキップし、サブエージェントが承認なしで操作を実行できるようにします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、および `.mvn` ディレクトリへの書き込みを含みます。`rm -rf /` などのルートおよびホームディレクトリの削除は、サーキットブレーカーとしてプロンプトが表示されます。詳細については、[権限モード](/ja/permission-modes#skip-all-checks-with-bypasspermissions-mode)を参照してください。
 
 親が `bypassPermissions` または `acceptEdits` を使用する場合、これが優先され、オーバーライドできません。親が[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)を使用する場合、サブエージェントは自動モードを継承し、フロントマター内の `permissionMode` は無視されます：分類器は、親セッションと同じブロックおよび許可ルールを使用してサブエージェントのツール呼び出しを評価します。
 

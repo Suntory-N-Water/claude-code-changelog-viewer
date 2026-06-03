@@ -1,0 +1,1251 @@
+{
+  "id": "20260603-004315",
+  "timestamp": "2026-06-03T00:43:15.599Z",
+  "aiSummary": "Amazon Bedrock、Google Cloud Vertex AI、Microsoft Foundryにおいて、環境変数CLAUDE_CODE_ENABLE_AUTO_MODEを設定することでAuto modeが利用可能になりました。ワークフローを起動するためのキーワードが従来のworkflowからultracodeに変更され、自然言語による依頼でも起動できるよう改善されています。また、agent viewからセッションを再開した際は常にフルスクリーンモードが適用されるようになり、保護対象となる重要ファイルやディレクトリのリストも大幅に拡充されました。",
+  "files": [
+    {
+      "filename": "agent-view.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "バックグラウンドセッションにアタッチした際の挙動が更新され、設定に関わらず常にフルスクリーンモードで起動する旨が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -45,7 +45,7 @@ Each session uses your subscription quota independently, so see [Limitations](#l",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Select a row with the arrow keys and press `Space` to open the peek panel. It shows the session's most recent output, or the question it's waiting on, rather than the full transcript. Type a reply and press `Enter` to send it without leaving agent view."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Press `Enter` or `→` on a row to attach when you want the full conversation. The session takes over the terminal exactly as if you had run `claude`. Press `←` on an empty prompt to detach and return to the table."
+            },
+            {
+              "type": "added",
+              "content": "Press `Enter` or `→` on a row to attach when you want the full conversation. The session takes over the terminal as a full interactive Claude Code session. Press `←` on an empty prompt to detach and return to the table."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To move a session you already have open into agent view, run `/bg` inside it, or press `←` on an empty prompt to background it and open agent view in one step. The session keeps running and appears as a row alongside the ones you dispatched."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -149,10 +149,12 @@ Use `↑` and `↓` to peek at adjacent sessions without closing the panel, or `",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Attach to a session"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Press `Enter` or `→` on a selected row to attach. Agent view is replaced by the full interactive session, exactly as if you had run `claude` in that directory. When you attach, Claude posts a short recap of what happened while you were away."
+            },
+            {
+              "type": "added",
+              "content": "Press `Enter` or `→` on a selected row to attach. Agent view is replaced by the full interactive session. When you attach, Claude posts a short recap of what happened while you were away."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "While attached, the session behaves like any other Claude Code session: every [command](/en/commands), keyboard shortcut, and feature works."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Attached sessions always render in [fullscreen mode](/en/fullscreen), regardless of your `tui` setting, because a background session has no terminal scrollback to append to. Scroll with `PgUp`, `PgDn`, or the mouse wheel, and press `Ctrl+O` for transcript mode. Your terminal's native scroll and tmux copy mode show only the current viewport, the same as when you run any fullscreen application."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Press `←` on an empty prompt to detach and return to agent view. If a dialog has focus and isn't responding to `←`, press `Ctrl+Z` to detach immediately."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`Ctrl+C` keeps its standard interrupt behavior while attached: it cancels a running response or `!` shell command rather than detaching. Pressing `Ctrl+C` twice on an empty prompt detaches, the same as in any session."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "auto-mode-config.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "Anthropic API以外のプロバイダーでAuto modeを有効化するための手順と、ルールのカスタマイズに関する説明が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/en/auto-mode-config.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) lets Claude Code run without permission prompts by routing each tool call through a classifier that blocks anything irreversible, destructive, or aimed outside your environment. Use the `autoMode` settings block to tell that classifier which repos, buckets, and domains your organization trusts, so it stops blocking routine internal operations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto mode is available to all users on the Anthropic API. It is not available on Bedrock, Vertex, or Foundry. If Claude Code reports auto mode as unavailable for your account, check the [full requirements](/en/permission-modes#eliminate-prompts-with-auto-mode), which also cover the supported models and admin enablement on Team and Enterprise plans."
+            },
+            {
+              "type": "added",
+              "content": "Auto mode is available to all users on the Anthropic API. On Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry, you must first [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry). If Claude Code reports auto mode as unavailable for your account, check the [full requirements](/en/permission-modes#eliminate-prompts-with-auto-mode), which also cover the supported models and admin enablement on Team and Enterprise plans."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Out of the box, the classifier trusts only the working directory and the current repo's configured remotes. Actions like pushing to your company's source-control org or writing to a team cloud bucket are blocked until you add them to `autoMode.environment`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -107,7 +107,9 @@ Inside the classifier, precedence works in four tiers:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "General requests don't count as explicit intent. Asking Claude to \"clean up the repo\" does not authorize force-pushing, but asking Claude to \"force-push this branch\" does."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To loosen, add to `allow` when the classifier repeatedly flags a routine pattern the default exceptions don't cover. To tighten, add to `soft_deny` for destructive risks specific to your environment that the defaults miss, or to `hard_deny` for security boundaries that must never be crossed. To keep the built-in rules while adding your own, include the literal string `\"$defaults\"` in the array. The default rules are spliced in at that position, so your custom rules can go before or after them, and you continue to inherit updates as the built-in list changes across releases."
+            },
+            {
+              "type": "added",
+              "content": "To loosen, add to `allow` when the classifier repeatedly flags a routine pattern the default exceptions don't cover. To tighten, add to `soft_deny` for destructive risks specific to your environment that the defaults miss, or to `hard_deny` for security boundaries that must never be crossed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To keep the built-in rules while adding your own, include the literal string `\"$defaults\"` in the array. The default rules are spliced in at that position, so your custom rules can go before or after them, and you continue to inherit updates as the built-in list changes across releases."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "デスクトップ版のエンタープライズ展開において、Vertex AI利用時にAuto modeを有効化するための条件と対応モデルが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -71,7 +71,7 @@ Permission modes control how much autonomy Claude has during a session: whether",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `dontAsk` permission mode is available only in the [CLI](/en/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto mode is a research preview available to all users on the Anthropic API. It is not available on third-party providers. It requires Claude Opus 4.6 or later, or Sonnet 4.6."
+            },
+            {
+              "type": "added",
+              "content": "Auto mode is a research preview available to all users on the Anthropic API and requires Claude Opus 4.6 or later, or Sonnet 4.6. In Enterprise deployments that route Desktop to Google Cloud Vertex AI, auto mode is off until you [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry), and only Claude Opus 4.7 and Opus 4.8 are supported there."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Start complex tasks in Plan mode so Claude maps out an approach before making changes. Once you approve the plan, switch to Auto accept edits or Ask permissions to execute it. See [explore first, then plan, then code](/en/best-practices#explore-first-then-plan-then-code) for more on this workflow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "Auto mode有効化のための新しい環境変数が追加され、Opus 4.6に関連する古いファストモード用変数が廃止されたことが反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -145,7 +145,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_1M_CONTEXT` | Set to `1` to disable [1M context window](/en/model-config#extended-context) support. When set, 1M model variants are unavailable in the model picker. Useful for enterprise environments with compliance requirements |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Set to `1` to disable [adaptive reasoning](/en/model-config#adjust-effort-level) on Opus 4.6 and Sonnet 4.6 and fall back to the fixed thinking budget controlled by `MAX_THINKING_TOKENS`. Has no effect on Opus 4.7 and later, which always use adaptive reasoning |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_AGENT_VIEW` | Set to `1` to turn off [background agents and agent view](/en/agent-view): `claude agents`, `--bg`, `/background`, and the on-demand supervisor. Equivalent to the [`disableAgentView`](/en/settings#available-settings) setting |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN` | Set to `1` to disable [fullscreen rendering](/en/fullscreen) and use the classic main-screen renderer. The conversation stays in your terminal's native scrollback so `Cmd+f` and tmux copy mode work as usual. Takes precedence over `CLAUDE_CODE_NO_FLICKER` and the [`tui`](/en/settings#available-settings) setting. You can also switch with `/tui default` |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN` | Set to `1` to disable [fullscreen rendering](/en/fullscreen) and use the classic main-screen renderer. The conversation stays in your terminal's native scrollback so `Cmd+f` and tmux copy mode work as usual. Takes precedence over `CLAUDE_CODE_NO_FLICKER` and the [`tui`](/en/settings#available-settings) setting. You can also switch with `/tui default`. Does not apply to background sessions opened from [agent view](/en/agent-view), which always use fullscreen rendering |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ATTACHMENTS` | Set to `1` to disable attachment processing. File mentions with `@` syntax are sent as plain text instead of being expanded into file content |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_AUTO_MEMORY` | Set to `1` to disable [auto memory](/en/memory#auto-memory). Set to `0` to force auto memory on even when `--bare` mode or [`autoMemoryEnabled: false`](/en/settings#available-settings) would otherwise disable it. When disabled, Claude does not create or load auto memory files |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` | Set to `1` to disable all background task functionality, including the `run_in_background` parameter on Bash and subagent tools, auto-backgrounding, and the Ctrl+B shortcut |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -167,12 +167,13 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL` | Set to `1` to disable virtual scrolling in [fullscreen rendering](/en/fullscreen) and render every message in the transcript. Use this if scrolling in fullscreen mode shows blank regions where messages should appear |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_WORKFLOWS` | Set to `1` to disable [workflows](/en/workflows#turn-workflows-off). Equivalent to the [`disableWorkflows`](/en/settings#available-settings) setting |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EFFORT_LEVEL` | Set the effort level for supported models. Values: `low`, `medium`, `high`, `xhigh`, `max`, or `auto` to use the model default. Available levels depend on the model. Takes precedence over `/effort` and the `effortLevel` setting. See [Adjust effort level](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ENABLE_AUTO_MODE` | Set to `1` to make [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) available on Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry. Has no effect on the Anthropic API, where auto mode is available by default. See [Enable auto mode on Bedrock, Vertex AI, or Foundry](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` | Override [session recap](/en/interactive-mode#session-recap) availability. Set to `0` to force recaps off regardless of the `/config` toggle. Set to `1` to force recaps on when [`awaySummaryEnabled`](/en/settings#available-settings) is `false`. Takes precedence over the setting and `/config` toggle |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_BACKGROUND_PLUGIN_REFRESH` | Set to `1` to refresh plugin state at turn boundaries in [non-interactive mode](/en/headless) after a background install completes. Off by default because the refresh changes the system prompt mid-session, which invalidates [prompt caching](/en/prompt-caching) for that turn |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` | Set to `1` to route the \"How is Claude doing?\" session quality survey to your own [OpenTelemetry collector](/en/monitoring-usage) when Anthropic-bound nonessential traffic is blocked. Survey ratings are emitted only as OTEL events to your configured collector. No survey data is sent to Anthropic in this mode. Applies when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY`, or `DO_NOT_TRACK` is set, and has no effect otherwise. `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` and the organization product feedback policy take precedence |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING` | Controls whether tool call inputs stream from the API as Claude generates them. With this off, a large tool input such as a long file write arrives only after Claude finishes generating it, which can look like it's hanging. Enabled by default on the Anthropic API. On Bedrock and Vertex, enabled per model where the deployed container supports it. Set to `0` to opt out. Set to `1` to force on when routing through a proxy via `ANTHROPIC_BASE_URL`, `ANTHROPIC_VERTEX_BASE_URL`, or `ANTHROPIC_BEDROCK_BASE_URL`. Off by default on Foundry and [gateway](/en/llm-gateway) connections |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY` | Set to `1` to populate the `/model` picker from your gateway's `/v1/models` endpoint when `ANTHROPIC_BASE_URL` points at an Anthropic-compatible gateway such as LiteLLM, Kong, or an internal proxy. Off by default because gateways backed by a shared API key would otherwise show every user every model the key can access. Discovered models are still filtered by the [`availableModels`](/en/settings#available-settings) allowlist |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE` | Removed in v2.1.142, when the [fast mode](/en/fast-mode) default moved from Opus 4.6 to Opus 4.7. Set `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE=1` to keep Opus 4.6 instead |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE` | Removed in v2.1.142, when the [fast mode](/en/fast-mode) default moved from Opus 4.6 to Opus 4.7 |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION` | Set to `false` to disable prompt suggestions (the \"Prompt suggestions\" toggle in `/config`). These are the grayed-out predictions that appear in your prompt input after Claude responds. See [Prompt suggestions](/en/interactive-mode#prompt-suggestions) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TASKS` | Controls whether sessions use the structured Task tools (`TaskCreate`, `TaskUpdate`, `TaskGet`, `TaskList`) or the legacy `TodoWrite` tool. As of Claude Code v2.1.142, Task tools are the default in all modes. Set to `0` to revert to `TodoWrite`. See [Task list](/en/interactive-mode#task-list) and [Migrate to Task tools](/en/agent-sdk/todo-tracking#migrate-to-task-tools) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_TELEMETRY` | Set to `1` to enable OpenTelemetry data collection for metrics and logging. Required before configuring OTel exporters. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -202,7 +203,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OAUTH_REFRESH_TOKEN` | OAuth refresh token for Claude.ai authentication. When set, `claude auth login` exchanges this token directly instead of opening a browser. Requires `CLAUDE_CODE_OAUTH_SCOPES`. Useful for provisioning authentication in automated environments |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OAUTH_SCOPES` | Space-separated OAuth scopes the refresh token was issued with, such as `\"user:profile user:inference user:sessions:claude_code\"`. Required when `CLAUDE_CODE_OAUTH_REFRESH_TOKEN` is set |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OAUTH_TOKEN` | OAuth access token for Claude.ai authentication. Alternative to `/login` for SDK and automated environments. Takes precedence over keychain-stored credentials. Generate one with [`claude setup-token`](/en/authentication#generate-a-long-lived-token) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE` | Set to `1` to pin fast mode to Claude Opus 4.6 instead of the [current fast mode default](/en/fast-mode#toggle-fast-mode), which depends on your Claude Code version. With the variable set, `/fast` runs on Opus 4.6. Fast mode for Opus 4.6 is deprecated, and this variable will be removed when it is retired |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE` | Removed in v2.1.160 and now a no-op. Previously pinned [fast mode](/en/fast-mode) to Claude Opus 4.6 instead of the current default. To run fast mode on Opus 4.6 until it is retired, select the model with `/model` first, then `/fast on` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_FLUSH_TIMEOUT_MS` | Timeout in milliseconds for flushing pending OpenTelemetry spans (default: 5000). See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS` | Interval for refreshing dynamic OpenTelemetry headers in milliseconds (default: 1740000 / 29 minutes). See [Dynamic headers](/en/monitoring-usage#dynamic-headers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_SHUTDOWN_TIMEOUT_MS` | Timeout in milliseconds for the OpenTelemetry exporter to finish on shutdown (default: 2000). Increase if metrics are dropped at exit. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fast-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ファストモードのデフォルトモデルに関する記述が更新され、Opus 4.6への固定オプションに関する説明が削除されました。",
+      "hunks": [
+        {
+          "header": "@@ -46,7 +46,7 @@ When you enable fast mode:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you disable fast mode with `/fast` again, you remain on Opus. The model does not revert to your previous model. To switch to a different model, use `/model`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Opus 4.8 is the fast mode default in Claude Code v2.1.154 and later. On v2.1.142 through v2.1.153, fast mode defaults to Opus 4.7. To pin fast mode to Opus 4.6 instead, set `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE=1`; this override will be removed when fast mode for Opus 4.6 is retired."
+            },
+            {
+              "type": "added",
+              "content": "Opus 4.8 is the fast mode default in Claude Code v2.1.154 and later. On v2.1.142 through v2.1.153, fast mode defaults to Opus 4.7."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Understand the cost tradeoff"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "エージェントビューやclaude attach経由で開かれたセッションでは、常にフルスクリーンレンダリングが強制される制限事項が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -165,3 +165,5 @@ Fullscreen rendering is a research preview feature. It has been tested on common",
+          "lines": [
+            {
+              "type": "context",
+              "content": "If you encounter a problem, run `/feedback` inside Claude Code to report it, or open an issue on the [claude-code GitHub repo](https://github.com/anthropics/claude-code/issues). Include your terminal emulator name and version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To turn fullscreen rendering off, run `/tui default`, or unset `CLAUDE_CODE_NO_FLICKER` if you enabled it that way. To force the classic renderer regardless of the saved `tui` setting, set `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1`. The classic renderer keeps the conversation in your terminal's native scrollback so `Cmd+f` and tmux copy mode work as usual."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Background sessions opened from [agent view](/en/agent-view) or `claude attach` always use fullscreen rendering. The attaching terminal enters the alternate screen buffer to show the session, and the classic renderer has no scrollback or mouse handling there, so the `tui` setting and `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN` do not apply to them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "glossary.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "用語集におけるAuto modeの説明が簡略化され、特定のプロバイダーに限定されない一般的な記述に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -43,7 +43,7 @@ Learn more: [Auto memory](/en/memory#auto-memory)",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Auto mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A [permission mode](#permission-mode) where a separate classifier model reviews each action in the background instead of showing you approval prompts. The classifier blocks scope escalation, untrusted infrastructure, and [prompt injection](#prompt-injection). It never sees tool results, so injected instructions cannot influence its decisions. Auto mode is a research preview available to all users on the Anthropic API."
+            },
+            {
+              "type": "added",
+              "content": "A [permission mode](#permission-mode) where a separate classifier model reviews each action in the background instead of showing you approval prompts. The classifier blocks scope escalation, untrusted infrastructure, and [prompt injection](#prompt-injection). It never sees tool results, so injected instructions cannot influence its decisions. Auto mode is a research preview."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Learn more: [Eliminate prompts with auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 43,
+      "deletions": 5,
+      "explanation": "サードパーティプロバイダーでのAuto mode有効化手順が新設され、保護されるファイルパスのリストに設定ファイルやパッケージマネージャー関連が多数追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -159,13 +159,35 @@ Auto mode is available only when your account meets all of these requirements:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Plan**: All plans."
+            },
+            {
+              "type": "context",
+              "content": "- **Admin**: on Team and Enterprise, an admin must enable it in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) before users can turn it on. Admins can also lock it off by setting `permissions.disableAutoMode` to `\"disable\"` in [managed settings](/en/permissions#managed-settings)."
+            },
+            {
+              "type": "removed",
+              "content": "- **Model**: Claude Opus 4.6 or later, or Sonnet 4.6. Older models, including Sonnet 4.5, Opus 4.5, Haiku, and claude-3 models, are not supported."
+            },
+            {
+              "type": "removed",
+              "content": "- **Provider**: Anthropic API only. Not available on Bedrock, Vertex, or Foundry."
+            },
+            {
+              "type": "added",
+              "content": "- **Model**: on the Anthropic API, Claude Opus 4.6 or later, or Sonnet 4.6. On Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry, only Claude Opus 4.7 and Opus 4.8. Older models, including Sonnet 4.5, Opus 4.5, Haiku, and claude-3 models, are not supported on any provider."
+            },
+            {
+              "type": "added",
+              "content": "- **Provider**: available by default on the Anthropic API. On Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry, auto mode is off until you [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports auto mode as unavailable, one of these requirements is unmet; this is not a transient outage. A separate message that names a model and says auto mode \"cannot determine the safety\" of an action is a transient classifier outage; see the [error reference](/en/errors#auto-mode-cannot-determine-the-safety-of-an-action)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you set `defaultMode: \"auto\"` in [settings](/en/settings#available-settings) and the session starts in `default` mode with no error, the setting is likely in `.claude/settings.json` or `.claude/settings.local.json`. Claude Code ignores `auto` from those files so a repository cannot grant itself auto mode. Move it to `~/.claude/settings.json`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Enable auto mode on Bedrock, Vertex AI, or Foundry"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud Vertex AI](/en/google-vertex-ai), and [Microsoft Foundry](/en/microsoft-foundry), auto mode does not appear in the `Shift+Tab` cycle until `CLAUDE_CODE_ENABLE_AUTO_MODE` is set to `1`. Only Claude Opus 4.7 and Opus 4.8 are supported on these providers."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To enable it for one developer, add the variable to the `env` block in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"env\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"CLAUDE_CODE_ENABLE_AUTO_MODE\": \"1\""
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To enable it for your organization, add the same `env` block to [managed settings](/en/settings#settings-files)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Once the variable is set, auto mode appears in the `Shift+Tab` cycle for every session. To make it the default starting mode, also set `\"permissions\": {\"defaultMode\": \"auto\"}` in user or managed settings. On these providers, Claude Code ignores `defaultMode: \"auto\"` unless `CLAUDE_CODE_ENABLE_AUTO_MODE` is also set."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To prevent developers from enabling auto mode, set `disableAutoMode` to `\"disable\"` in managed settings. This overrides the enable variable."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you connect through an [LLM gateway](/en/llm-gateway) configured with `ANTHROPIC_BASE_URL`, auto mode may already be reachable without the enable variable, because the gateway routes requests through the Anthropic API. The `disableAutoMode` setting applies the same way in that configuration."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### What the classifier blocks by default"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The classifier trusts your working directory and your repo's configured remotes. Everything else is treated as external until you [configure trusted infrastructure](/en/auto-mode-config)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -267,22 +289,38 @@ The check is skipped automatically inside a recognized sandbox. To run autonomou",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Protected paths"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Writes to a small set of paths are never auto-approved, in every mode except `bypassPermissions`. This prevents accidental corruption of repository state and Claude's own configuration. In `default`, `acceptEdits`, and `plan` these writes prompt; in `auto` they route to the classifier; in `dontAsk` they are denied; in `bypassPermissions` they are allowed."
+            },
+            {
+              "type": "added",
+              "content": "Writes to a small set of paths are never auto-approved, in every mode except `bypassPermissions`. This prevents accidental corruption of repository state and Claude's own configuration."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Mode | Protected-path writes |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `default`, `acceptEdits`, `plan` | Prompted |"
+            },
+            {
+              "type": "added",
+              "content": "| `auto` | Routed to the classifier |"
+            },
+            {
+              "type": "added",
+              "content": "| `dontAsk` | Denied |"
+            },
+            {
+              "type": "added",
+              "content": "| `bypassPermissions` | Allowed |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Protected directories:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `.git`"
+            },
+            {
+              "type": "added",
+              "content": "- `.config/git`"
+            },
+            {
+              "type": "context",
+              "content": "- `.vscode`"
+            },
+            {
+              "type": "context",
+              "content": "- `.idea`"
+            },
+            {
+              "type": "context",
+              "content": "- `.husky`"
+            },
+            {
+              "type": "context",
+              "content": "- `.cargo`"
+            },
+            {
+              "type": "added",
+              "content": "- `.devcontainer`"
+            },
+            {
+              "type": "added",
+              "content": "- `.yarn`"
+            },
+            {
+              "type": "added",
+              "content": "- `.mvn`"
+            },
+            {
+              "type": "context",
+              "content": "- `.claude`, except for `.claude/commands`, `.claude/agents`, `.claude/skills`, and `.claude/worktrees` where Claude routinely creates content"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Protected files:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `.gitconfig`, `.gitmodules`"
+            },
+            {
+              "type": "removed",
+              "content": "- `.bashrc`, `.bash_profile`, `.zshrc`, `.zprofile`, `.profile`"
+            },
+            {
+              "type": "removed",
+              "content": "- `.ripgreprc`"
+            },
+            {
+              "type": "added",
+              "content": "- `.bashrc`, `.bash_profile`, `.bash_login`, `.bash_aliases`, `.bash_logout`, `.zshrc`, `.zprofile`, `.zshenv`, `.zlogin`, `.zlogout`, `.profile`, `.envrc`"
+            },
+            {
+              "type": "added",
+              "content": "- `.npmrc`, `.yarnrc`, `.yarnrc.yml`, `.pnp.cjs`, `.pnp.loader.mjs`, `.pnpmfile.cjs`, `bunfig.toml`, `.bunfig.toml`"
+            },
+            {
+              "type": "added",
+              "content": "- `.bazelrc`, `.bazelversion`, `.bazeliskrc`"
+            },
+            {
+              "type": "added",
+              "content": "- `.pre-commit-config.yaml`, `lefthook.yml`, `lefthook.yaml`, `.lefthook.yml`, `.lefthook.yaml`"
+            },
+            {
+              "type": "added",
+              "content": "- `gradle-wrapper.properties`, `maven-wrapper.properties`"
+            },
+            {
+              "type": "added",
+              "content": "- `.devcontainer.json`"
+            },
+            {
+              "type": "added",
+              "content": "- `.ripgreprc`, `pyrightconfig.json`"
+            },
+            {
+              "type": "context",
+              "content": "- `.mcp.json`, `.claude.json`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## See also"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "bypassPermissionsモード時にスキップされる保護対象ディレクトリのリストに、.config/gitや.devcontainerなどが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -46,7 +46,7 @@ Claude Code supports several permission modes that control how tools are approve",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `dontAsk` | Auto-denies tools unless pre-approved via `/permissions` or `permissions.allow` rules |"
+            },
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skips all permission prompts. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`bypassPermissions` mode skips all permission prompts, including writes to `.git`, `.claude`, `.vscode`, `.idea`, `.husky`, and `.cargo`. Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `permissions.disableBypassPermissionsMode` to `\"disable\"` in [managed settings](#managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "`bypassPermissions` mode skips all permission prompts, including writes to `.git`, `.config/git`, `.claude`, `.vscode`, `.idea`, `.husky`, `.cargo`, `.devcontainer`, `.yarn`, and `.mvn`. Removals targeting the filesystem root or home directory, such as `rm -rf /` and `rm -rf ~`, still prompt as a circuit breaker against model error. Only use this mode in isolated environments like containers or VMs where Claude Code cannot cause damage. Administrators can prevent this mode by setting `permissions.disableBypassPermissionsMode` to `\"disable\"` in [managed settings](#managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To prevent `bypassPermissions` or `auto` mode from being used, set `permissions.disableBypassPermissionsMode` or `permissions.disableAutoMode` to `\"disable\"` in any [settings file](/en/settings#settings-files). These are most useful in [managed settings](#managed-settings) where they cannot be overridden."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ワークフローを起動するキーワード設定の名前がworkflowからultracodeに変更され、UI上での表示名も更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -249,13 +249,13 @@ A few keys are read once at session start and apply on the next restart instead:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `syntaxHighlightingDisabled` | Disable syntax highlighting in diffs, code blocks, and file previews | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `auto` (picks split panes in tmux or iTerm2, in-process otherwise), `in-process`, or `tmux`. `--teammate-mode` overrides this for one session. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `\"in-process\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `tui` | Terminal UI renderer. Use `\"fullscreen\"` for the flicker-free [alt-screen renderer](/en/fullscreen) with virtualized scrollback. Use `\"default\"` for the classic main-screen renderer. Set via `/tui`. You can also set the [`CLAUDE_CODE_NO_FLICKER`](/en/env-vars) environment variable | `\"fullscreen\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `tui` | Terminal UI renderer. Use `\"fullscreen\"` for the flicker-free [alt-screen renderer](/en/fullscreen) with virtualized scrollback. Use `\"default\"` for the classic main-screen renderer. Set via `/tui`. You can also set the [`CLAUDE_CODE_NO_FLICKER`](/en/env-vars) environment variable. Background sessions opened from [agent view](/en/agent-view) always use the fullscreen renderer regardless of this setting | `\"fullscreen\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `ultracode` | Turn on [ultracode](/en/workflows#let-claude-decide-with-ultracode) for the session. Session-only and not read from `settings.json`. Set through `/effort ultracode`, `--settings`, or an Agent SDK control request | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `useAutoModeDuringPlan` | Whether plan mode uses auto mode semantics when auto mode is available. Default: `true`. Not read from shared project settings. Appears in `/config` as \"Use auto mode during plan\" | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `viewMode` | Default transcript view mode on startup: `\"default\"`, `\"verbose\"`, or `\"focus\"`. Overrides the sticky `/focus` selection when set. The `--verbose` flag overrides this for one session | `\"verbose\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `voice` | [Voice dictation](/en/voice-dictation) settings: `enabled` turns dictation on, `mode` selects `\"hold\"` or `\"tap\"`, and `autoSubmit` sends the prompt on key release in hold mode. Written automatically when you run `/voice`. Requires a Claude.ai account | `{ \"enabled\": true, \"mode\": \"tap\" }` |"
+            },
+            {
+              "type": "context",
+              "content": "| `voiceEnabled` | Legacy alias for `voice.enabled`. Prefer the `voice` object | `true` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `workflowKeywordTriggerEnabled` | Whether the word `workflow` in a prompt triggers a [dynamic workflow](/en/workflows#ask-for-a-workflow-in-your-prompt). Set to `false` to type the word without triggering one. Ultracode, `/workflows`, and saved workflow commands are unaffected. Default: `true`. Appears in `/config` as **Workflow keyword trigger** | `false` |"
+            },
+            {
+              "type": "added",
+              "content": "| `workflowKeywordTriggerEnabled` | Whether the keyword `ultracode` in a prompt triggers a [dynamic workflow](/en/workflows#ask-for-a-workflow-in-your-prompt). Set to `false` to type the word without triggering one. The `ultracode` effort setting, `/workflows`, and saved workflow commands are unaffected. Default: `true`. Appears in `/config` as **Ultracode keyword trigger** | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `wslInheritsWindowsSettings` | (Windows managed settings only) When `true`, Claude Code on WSL reads managed settings from the Windows policy chain in addition to `/etc/claude-code`, with Windows sources taking priority. Only honored when set in the HKLM registry key or `C:\\Program Files\\ClaudeCode\\managed-settings.json`, both of which require Windows admin to write. For HKCU policy to also apply on WSL, the flag must additionally be set in HKCU itself. Has no effect on native Windows | `true` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Global config settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サブエージェントが権限をスキップする際に保護されるディレクトリのリストが更新され、より多くの設定ディレクトリが含まれるようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -376,7 +376,7 @@ The `permissionMode` field controls how the subagent handles permission prompts.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `bypassPermissions` | Skip permission prompts |"
+            },
+            {
+              "type": "context",
+              "content": "| `plan` | Plan mode (read-only exploration) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `bypassPermissions` with caution. It skips all permission prompts, allowing the subagent to execute operations without approval, including writes to `.git`, `.claude`, `.vscode`, `.idea`, `.husky`, and `.cargo`. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "added",
+              "content": "Use `bypassPermissions` with caution. It skips all permission prompts, allowing the subagent to execute operations without approval, including writes to `.git`, `.config/git`, `.claude`, `.vscode`, `.idea`, `.husky`, `.cargo`, `.devcontainer`, `.yarn`, and `.mvn`. Root and home directory removals such as `rm -rf /` still prompt as a circuit breaker. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the parent uses `bypassPermissions` or `acceptEdits`, this takes precedence and cannot be overridden. If the parent uses [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode), the subagent inherits auto mode and any `permissionMode` in its frontmatter is ignored: the classifier evaluates the subagent's tool calls with the same block and allow rules as the parent session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "編集前の読み取り要件を満たすコマンドにgrep系が追加され、拒否ルールが適用されるコマンドセットとの違いが明確化されました。",
+      "hunks": [
+        {
+          "header": "@@ -134,9 +134,9 @@ Three checks must pass for an edit to apply:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Match**: `old_string` must appear in the file exactly as written. A single character of whitespace or indentation difference is enough to miss."
+            },
+            {
+              "type": "context",
+              "content": "- **Uniqueness**: `old_string` must appear exactly once. When it appears more than once, Claude either supplies a longer string with enough surrounding context to pin down one occurrence, or sets `replace_all: true` to replace them all."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Viewing a file with Bash also satisfies the read-before-edit requirement when the command is `cat`, `head`, `tail`, or `sed -n 'X,Yp'` on a single file with no pipes, redirects, or other flags. Piped output and other Bash commands do not count, and Claude must use Read before editing in those cases."
+            },
+            {
+              "type": "added",
+              "content": "Viewing a file with Bash also satisfies the read-before-edit requirement when the command is `cat`, `head`, `tail`, `sed -n 'X,Yp'`, `grep`, `egrep`, or `fgrep` on a single file with no pipes or redirects. Piped output and other Bash commands do not count, and Claude must use Read before editing in those cases."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This affects edit eligibility only, not permissions. [Read and Edit deny rules](/en/permissions#tool-specific-permission-rules) also apply to file commands Claude Code recognizes in Bash, such as `cat`, `head`, `tail`, and `sed`, but not to arbitrary subprocesses that read or write files indirectly, like a Python or Node script that opens files itself. For OS-level enforcement that covers every process, [enable the sandbox](/en/sandboxing)."
+            },
+            {
+              "type": "added",
+              "content": "This affects edit eligibility only, not permissions. [Read and Edit deny rules](/en/permissions#tool-specific-permission-rules) also apply to file commands Claude Code recognizes in Bash, such as `cat`, `head`, `tail`, `sed`, and `grep`, but not to arbitrary subprocesses that read or write files indirectly, like a Python or Node script that opens files itself. The set of commands recognized for deny rules is not the same as the read-before-edit list above: for example, `egrep` and `fgrep` count for read-before-edit but are not checked against Read deny rules. For OS-level enforcement that covers every process, [enable the sandbox](/en/sandboxing)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Glob tool behavior"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "whats-new/2026-w22.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ワークフローを依頼する際の推奨フレーズに関する記述が微修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -28,7 +28,7 @@ research preview",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A workflow is an orchestration script Claude writes for your task and runs across many subagents in the background. Use one when a task is too large for one conversation to coordinate: a codebase-wide audit, a large migration, a research question that needs cross-checking. Manage runs with /workflows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Describe the task and include the word workflow:"
+            },
+            {
+              "type": "added",
+              "content": "Describe the task and ask for a workflow:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text Claude Code theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "> create a workflow that migrates every internal fetch() call to the new HttpClient wrapper"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "workflows.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "ワークフロー起動キーワードがultracodeに変更されたことや、自然言語による依頼でも同様に機能することが詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -98,20 +98,20 @@ The progress view shows each phase with its agent counts, token totals, and elap",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can have Claude write a workflow for your task in two ways:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [Ask for a workflow](#ask-for-a-workflow-in-your-prompt) in your prompt with the word `workflow`, and Claude writes one for the task."
+            },
+            {
+              "type": "added",
+              "content": "- [Ask for a workflow](#ask-for-a-workflow-in-your-prompt) in your prompt, either in your own words or by including the keyword `ultracode`, and Claude writes one for the task."
+            },
+            {
+              "type": "context",
+              "content": "- [Let Claude decide with ultracode](#let-claude-decide-with-ultracode): set `/effort ultracode` and Claude plans a workflow for every substantive task in the session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can also run a workflow command that already exists: a [bundled workflow](#bundled-workflows) like `/deep-research`, or one you've [saved](#save-the-workflow-for-reuse)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Ask for a workflow in your prompt"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To run a single task as a workflow without changing the session's effort level, include the word `workflow` anywhere in your prompt."
+            },
+            {
+              "type": "added",
+              "content": "To run a single task as a workflow without changing the session's effort level, include the keyword `ultracode` in your prompt. Asking in your own words, for example \"use a workflow\" or \"run a workflow\", also works: Claude treats a direct request as the same opt-in. Before v2.1.160 the literal trigger keyword was `workflow`; natural-language requests work in both versions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            },
+            {
+              "type": "removed",
+              "content": "Run a workflow to audit every API endpoint under src/routes/ for missing auth checks"
+            },
+            {
+              "type": "added",
+              "content": "ultracode: audit every API endpoint under src/routes/ for missing auth checks"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code highlights the word in your input and Claude writes a workflow script for the task instead of working through it turn by turn. If you didn't mean to start a workflow, press `Option+W` on macOS or `Alt+W` on Windows and Linux to dismiss the highlight for this prompt, or press backspace while the cursor is right after the highlighted word. To stop the word from triggering at all, turn off Workflow keyword trigger in `/config`."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code highlights the keyword in your input and Claude writes a workflow script for the task instead of working through it turn by turn. If you didn't mean to start a workflow, press `Option+W` on macOS or `Alt+W` on Windows and Linux to dismiss the highlight for this prompt, or press backspace while the cursor is right after the highlighted keyword. To stop the keyword from triggering at all, turn off Ultracode keyword trigger in `/config`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the run does what you wanted, you can [save it as a command](#save-the-workflow-for-reuse) afterward."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -233,7 +233,7 @@ To turn workflows off for yourself:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To turn workflows off for your whole organization, set `\"disableWorkflows\": true` in [managed settings](/en/server-managed-settings), or use the toggle on the [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) page."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When workflows are disabled, the bundled workflow commands are unavailable, the `workflow` keyword no longer triggers a run, and `ultracode` is removed from the `/effort` menu."
+            },
+            {
+              "type": "added",
+              "content": "When workflows are disabled, the bundled workflow commands are unavailable, the `ultracode` keyword no longer triggers a run, and `ultracode` is removed from the `/effort` menu."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
