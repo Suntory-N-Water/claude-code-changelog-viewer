@@ -71,7 +71,7 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 
 `dontAsk`権限モードは[CLI](/ja/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)でのみ利用可能です。
 
-Auto mode は Anthropic API のすべてのユーザーが利用できる研究プレビューです。サードパーティプロバイダーでは利用できません。Claude Opus 4.6 以降、または Sonnet 4.6 が必要です。
+Auto mode は Anthropic API のすべてのユーザーが利用できる研究プレビューです。Claude Opus 4.6 以降、または Sonnet 4.6 が必要です。Google Cloud Vertex AI にルーティングするエンタープライズデプロイメントでは、[`CLAUDE_CODE_ENABLE_AUTO_MODE`を設定](/ja/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)するまで auto mode はオフになり、そこでは Claude Opus 4.7 と Opus 4.8 のみがサポートされています。
 
 複雑なタスクを Plan mode で開始して、Claude が変更を加える前にアプローチをマップアウトするようにします。プランを承認したら、Auto accept edits または Ask permissions に切り替えて実行します。このワークフローの詳細については、[最初に探索してからプランしてからコード化する](/ja/best-practices#explore-first-then-plan-then-code)を参照してください。
 
@@ -558,7 +558,7 @@ Team または Enterprise プランの組織は、管理コンソールコント
 - **Code in the desktop**：組織内のユーザーがデスクトップアプリで Claude Code にアクセスできるかどうかを制御します
 - **Code in the web**：組織の[Web セッション](/ja/claude-code-on-the-web)を有効または無効にします
 - **Remote Control**：組織の[Remote Control](/ja/remote-control)を有効または無効にします
-- **Disable Bypass permissions mode**：組織内のユーザーが bypass permissions モードを有効にするのを防ぎます
+- **Bypass permissions モードを無効化**：組織内のユーザーが bypass permissions モードを有効にするのを防ぎます
 
 ### 管理設定
 

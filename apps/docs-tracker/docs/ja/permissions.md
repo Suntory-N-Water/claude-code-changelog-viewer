@@ -46,7 +46,7 @@ Claude Code は、ツールの承認方法を制御するいくつかの権限�
 | `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します |
 | `bypassPermissions` | すべての権限プロンプトをスキップします。ファイルシステムルートまたはホームディレクトリの削除（`rm -rf /` など）は回路遮断器として引き続きプロンプトを表示します |
 
-`bypassPermissions` モードはすべての権限プロンプトをスキップします。`.git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo` への書き込みを含みます。ファイルシステムルートまたはホームディレクトリを対象とした削除（`rm -rf /` や `rm -rf ~` など）は、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
+`bypassPermissions` モードはすべての権限プロンプトをスキップします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、`.mvn` への書き込みを含みます。ファイルシステムルートまたはホームディレクトリを対象とした削除（`rm -rf /` や `rm -rf ~` など）は、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
 
 `bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `permissions.disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
 
