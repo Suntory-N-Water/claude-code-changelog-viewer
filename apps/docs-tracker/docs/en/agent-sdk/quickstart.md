@@ -178,11 +178,17 @@ This example uses streaming to show progress in real-time. If you don't need liv
 Your agent is ready. Run it with the following command:
 
 ```bash theme={null}
-python3 agent.py
+npx tsx agent.ts
 ```
 
 ```bash theme={null}
-npx tsx agent.ts
+uv run agent.py
+```
+
+With your virtual environment still activated:
+
+```bash theme={null}
+python agent.py
 ```
 
 After running, check `utils.py`. You'll see defensive code handling empty lists and null users. Your agent autonomously:
