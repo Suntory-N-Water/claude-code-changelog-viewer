@@ -4,6 +4,12 @@
 
 Accepted
 
+## TLDL
+
+2026-06-04 時点では、ADR の作成と `apps/changelog-fetcher/src/domain/` への初期実装まで完了している。ただし、NotebookLM の DDD 資料に基づくレビューで、現在の domain 実装は「Functional Core としては前進しているが、DDD としては境界と概念分類の修正が必要」と判断した。
+
+次のタスクは、domain 層を DDD の基準に合わせて再整理することである。具体的には、`changelog` から `analysis` への依存を取り除く、Entity と Value Object を再分類する、`InferenceBatch` のような AI/API DTO を domain から外す、Markdown・ファイル・CLI 表面のパース処理を infrastructure または application 側へ移す。テストは、この再整理後に domain に残る業務ルールだけを対象に、実装ファイルと同じ階層へ置く。
+
 ## Context
 
 `apps/changelog-fetcher` は Claude Code の CHANGELOG と関連ドキュメントを取得・解析し、通知や表示で使う JSON データを生成する CLI アプリケーションである。現在は `parse-changelog.ts` / `analyze-changelog.ts` / `infer-benefits.ts` / `generate-settings-reference.ts` などのスクリプトが主なエントリーポイントで、`parsers/` `searchers/` `scorers/` `ai/` `lib/` に処理が分散している。
@@ -207,15 +213,48 @@ await analysisStore.save(version, output);
 
 移行はデータ破壊リスクの低い純粋処理から進める。
 
-1. `domain/changelog` に version、entry、diff event、CHANGELOG パースを移す
-2. `domain/analysis` に prefix、tags、importanceScore、keyword、related doc scoring を移す
-3. `application/analyze-changelog.ts` を作り、既存 `analyze-changelog.ts` を CLI に薄くする
-4. `domain/settings-reference` に setting key、slug、entry merge、reference 組み立てを移す
-5. Gemini と GitHub / fetch / fs を infrastructure port に閉じ込める
-6. `src/types.ts` を文脈ごとの型へ分解し、外部契約だけを `packages/types` に残す
+1. `[初期実装済み・要見直し]` `domain/changelog` に version、entry、diff event、CHANGELOG パースを移す
+2. `[初期実装済み・要見直し]` `domain/analysis` に prefix、tags、importanceScore、keyword、related doc scoring を移す
+3. `[未着手]` `application/analyze-changelog.ts` を作り、既存 `analyze-changelog.ts` を CLI に薄くする
+4. `[初期実装済み・要見直し]` `domain/settings-reference` に setting key、slug、entry merge、reference 組み立てを移す
+5. `[未着手]` Gemini と GitHub / fetch / fs を infrastructure port に閉じ込める
+6. `[未着手]` `src/types.ts` を文脈ごとの型へ分解し、外部契約だけを `packages/types` に残す
 
 各ステップでは、移した domain 関数にユニットテストを先に付ける。既存の実データテストは、移行中の回帰検知として残す。
 テストコードは 実装する関数と 同じ階層に置き、テスト対象関数がどの文脈のどの概念に属するかを明確にする。
+
+### 8. 2026-06-04 時点の実装状況
+
+完了したことは以下である。
+
+- この ADR を `Accepted` にした
+- 作業ブランチ `feat/changelog-fetcher-domain-ddd` を作成した
+- `apps/changelog-fetcher/src/domain/` 配下に、`changelog`、`analysis`、`inference`、`settings-reference`、`builtin-surface` の初期ファイルを追加した
+- domain 層の exported function に JSDoc を追加した
+- 今回追加したテストは、価値の低いものが混ざっていたため削除済みである
+
+まだ完了していないことは以下である。
+
+- 既存 CLI から application 層への切り出し
+- GitHub、Gemini、filesystem、docs search、schema 読み込みの infrastructure 分離
+- 既存の JSON 出力契約と domain モデルの変換境界
+- `packages/types` と domain 型の責務整理
+- DDD 資料に照らした domain 層の再設計
+
+### 9. DDD レビューで分かった修正方針
+
+NotebookLM の `ドメイン駆動設計入門.md` を基準にレビューした結果、現在の初期実装には以下の修正が必要である。
+
+| 優先度 | 対象 | 方針 |
+|--------|------|------|
+| P1 | `domain/changelog/changelog-entry.ts` | `analysis/importance-score` への依存を外す。重要度は `analysis` 文脈の `AnalyzedChangelogEntry` 側へ寄せる |
+| P1 | Entity と Value Object の分類 | ライフサイクルや同一性を持たない概念を Entity と呼ばない。`ChangelogRelease` なども snapshot / Value Object として再評価する |
+| P1 | `domain/inference/inference-batch.ts` | AI 応答 DTO / application DTO として domain から外す。domain には `InferenceResult` のような値だけを残す |
+| P2 | `changelog-parser`、Markdown list extraction、builtin surface extraction | 外部形式のパースや収集は infrastructure または application 側へ移す。domain には正規化後の概念と判断だけを置く |
+| P2 | `RelatedDoc`、`AnalyzedChangelogEntry` など | 不正状態を作れない factory / discriminated union を検討する |
+| P2 | `SettingReference` | domain entity ではなく出力 read model / DTO として扱うべきか再評価する |
+
+次に実装する時は、このレビュー結果を先に反映し、その後で application / infrastructure の移行へ進む。
 
 ## Consequences
 
