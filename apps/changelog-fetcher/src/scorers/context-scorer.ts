@@ -1,80 +1,21 @@
 import type { RelatedDoc } from '@claude-code-changelog-viewer/types';
 import type { SnippetResult } from '../types';
 
-/**
- * 単一のスニペットのコンテキストスコアを計算
- */
-function calculateSnippetScore(snippet: string): number {
-  let score = 1; // 基本スコア
-
-  // 見出しを含む(## で始まる行)
-  if (/^##+ /m.test(snippet)) {
-    score += 5;
-  }
-
-  // コードブロックを含む(```)
-  if (/```/.test(snippet)) {
-    score += 3;
-  }
-
-  // 解説キーワードを含む
-  if (/(how to|example|usage|説明|使い方)/i.test(snippet)) {
-    score += 2;
-  }
-
-  return score;
-}
+// context_score / total_score は出力 schema 互換のためだけに残す。現在は意味のある評価値として使わない。
+const SCHEMA_COMPATIBILITY_SCORE = 0;
 
 /**
- * スニペット結果からコンテキストスコアを計算
- */
-function calculateContextScore(snippetResult: SnippetResult): number {
-  const { snippets } = snippetResult;
-
-  if (snippets.length === 0) {
-    return 0;
-  }
-
-  // 各スニペットのスコアを合計
-  return snippets.reduce(
-    (total, snippet) => total + calculateSnippetScore(snippet),
-    0,
-  );
-}
-
-/**
- * 総合スコアを計算(ヒット数 × コンテキストスコア)
- */
-function calculateTotalScore(hit_count: number, context_score: number): number {
-  return hit_count * context_score;
-}
-
-/**
- * スニペット結果をRelatedDocに変換(スコア付き)
- */
-function scoreSnippetResult(snippetResult: SnippetResult): RelatedDoc {
-  const { file, snippets, hit_count } = snippetResult;
-  const context_score = calculateContextScore(snippetResult);
-  const total_score = calculateTotalScore(hit_count, context_score);
-
-  return {
-    file,
-    snippets,
-    hit_count,
-    context_score,
-    total_score,
-  };
-}
-
-/**
- * スニペット結果リストをスコアリングして上位N件を取得
+ * スニペット結果リストから先頭N件を取得する。
  */
 export function getTopDocs(
   snippetResults: SnippetResult[],
   topN = 3,
 ): RelatedDoc[] {
-  return snippetResults
-    .map(scoreSnippetResult)
-    .sort((a, b) => b.total_score - a.total_score)
-    .slice(0, topN);
+  return snippetResults.slice(0, topN).map(({ file, snippets, hit_count }) => ({
+    file,
+    snippets,
+    hit_count,
+    context_score: SCHEMA_COMPATIBILITY_SCORE,
+    total_score: SCHEMA_COMPATIBILITY_SCORE,
+  }));
 }

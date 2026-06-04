@@ -6,9 +6,11 @@ Accepted
 
 ## TLDL
 
-2026-06-04 時点では、ADR の作成と `apps/changelog-fetcher/src/domain/` への初期実装まで完了している。ただし、NotebookLM の DDD 資料に基づくレビューで、現在の domain 実装は「Functional Core としては前進しているが、DDD としては境界と概念分類の修正が必要」と判断した。
+2026-06-04 時点では、ADR の作成と `apps/changelog-fetcher/src/domain/` への初期実装まで完了している。したがって、次の作業は domain 層を新規実装することではない。ただし、NotebookLM の `ドメイン駆動設計入門.md` を使った再調査で、現在の domain 実装は「Functional Core としては前進しているが、DTO・外部形式パース・schema 互換だけの値が混ざっている可能性がある」と分かった。
 
-次のタスクは、domain 層を DDD の基準に合わせて再整理することである。具体的には、`changelog` から `analysis` への依存を取り除く、Entity と Value Object を再分類する、`InferenceBatch` のような AI/API DTO を domain から外す、Markdown・ファイル・CLI 表面のパース処理を infrastructure または application 側へ移す。テストは、この再整理後に domain に残る業務ルールだけを対象に、実装ファイルと同じ階層へ置く。
+この ADR では ADR 0018 と同じく、`domain` / `application` / `infrastructure` / `cli` の4分類だけを使う。CQRS 由来の追加層は導入しない。
+
+次のタスクは、実装済み domain 層を DDD の基準に合わせて棚卸しし、domain に残すものと application / infrastructure へ移すものを分けることである。具体的には、`changelog` から `analysis` への依存を取り除く、Entity と Value Object を再分類する、`InferenceBatch` のような AI/API DTO を domain から外す、Markdown・ファイル・CLI 表面のパース処理を infrastructure または application 側へ移す。`needsInference` は1つの解析項目が推論未完了かを判断する純粋なルールであり、現時点では `domain/analysis` に置く。テストは、この再整理後に domain に残る業務ルールだけを対象に、実装ファイルと同じ階層へ置く。
 
 ## Context
 
@@ -19,7 +21,7 @@ Accepted
 ### 解決したい課題
 
 - CHANGELOG のパース、差分検知、ファイル読み書き、GitHub 取得、ログ出力が `parse-changelog.ts` に混在している
-- 解析処理で、項目の分類・キーワード抽出・ドキュメント検索・スコアリング・AI 向け整形が1つの流れに直書きされている
+- 解析処理で、項目の分類・キーワード抽出・ドキュメント検索・関連ドキュメント整形・AI 向け整形が1つの流れに直書きされている
 - AI 推論では、未処理項目の判定、推論結果の反映、Gemini API のリトライ・フォールバックが同じファイルにある
 - 設定リファレンス生成では、設定エントリの抽出・重複排除・関連コンテキスト収集・翻訳・ファイル出力が `lib/` 配下に技術分類で置かれており、どれが業務ルールか分かりにくい
 - `types.ts` と `packages/types` に出力形式の型があり、ドメイン概念と外部 JSON 契約の境界が曖昧になっている
@@ -74,31 +76,47 @@ Accepted
 
 `domain/` は文脈ごとに分け、巨大な共通 `types.ts` に全型を集めない。型と振る舞いは概念名に対応するファイルへ置く。
 
-### 2. エンティティと値オブジェクト
+### 2. ドメイン概念と DTO / 出力用データの分類
 
 DDD 移行時に扱う主要なドメイン概念は以下とする。
 
+以下の表は、初期実装時点の候補一覧を NotebookLM の `ドメイン駆動設計入門.md` 調査に基づいて再分類したものである。Entity は同一性とライフサイクルを持つもの、Value Object は値の等価性・不変条件・ガード節を持つもの、DTO / 出力用データは外部公開・出力・ユースケース結果の入れ物として扱う。
+
 | 種別 | 概念 | 識別子 | 主な責務 |
 |------|------|--------|----------|
-| Entity | `ChangelogRelease` | `ChangelogVersion` | 1バージョン分の CHANGELOG 本文と項目を保持する |
-| Entity | `ChangelogEntry` | release 内の順序、または本文ハッシュ | 項目本文、prefix、tags、importanceScore を保持する |
-| Entity | `ChangelogDiffEvent` | version + type + added/removed items | 項目変更・バージョン削除の重複判定を行う |
-| Entity | `ChangelogAnalysis` | `ChangelogVersion` | 解析済み項目とバージョンサマリーを保持する |
-| Entity | `AnalyzedChangelogEntry` | analysis 内の順序 | 関連ドキュメント、機能領域、推論結果を保持する |
-| Entity | `SettingsEntry` | `SettingKey` | 設定・環境変数の説明、親説明、生成対象かどうかを保持する |
-| Entity | `SettingReference` | `SettingSlug` | 出力用の設定リファレンス内容を保持する |
-| Entity | `BuiltinSurfaceCatalog` | surface 種別 | tools / commands / skills / envs / agents の一覧を保持する |
 | Value Object | `ChangelogVersion` | なし | `v2.1.19` と `2.1.19` の表記ゆれを吸収する |
 | Value Object | `ChangelogEntryContent` | なし | 箇条書き本文の正規化と空文字拒否を行う |
-| Value Object | `ImportanceScore` | なし | prefix と tag から算出した重要度を表す |
+| Value Object | `ChangelogPrefix` | なし | CHANGELOG 項目の変更種別を表す |
+| Value Object / Snapshot | `ChangelogEntry` | なし | 項目本文、prefix、tags を保持する。永続識別子やライフサイクルは持たない |
+| Value Object / Snapshot | `ChangelogRelease` | なし | 1バージョン分の CHANGELOG 本文と項目を保持する。更新ライフサイクルは持たない |
+| Domain Event / Value Object | `ChangelogDiffEvent` | version + type + added/removed items | 項目変更・バージョン削除の重複判定を行う |
 | Value Object | `KeywordSet` | なし | original / normalized keywords を表す |
-| Value Object | `RelatedDoc` | なし | file、snippet、hitCount、contextScore、totalScore を表す |
 | Value Object | `InferenceResult` | なし | before / after / benefit を表す |
 | Value Object | `SettingKey` | なし | `permissions.allow` や `CLAUDE_CODE_*` のキーを表す |
 | Value Object | `SettingSlug` | なし | settings ファイル名に使う slug を表す |
 | Value Object | `SettingSource` | なし | `settings` / `env` の発生元を表す |
+| Value Object | `BuiltinSurfaceCatalog` | なし | tools / commands / skills / envs / agents の一覧を重複なしで保持する |
+| Value Object / Snapshot | `ChangelogAnalysis` | なし | 1バージョン分の解析結果を保持する |
+| Value Object / Snapshot | `AnalyzedChangelogEntry` | なし | 翻訳、関連ドキュメント、推論結果を含む解析済み項目を保持し、推論未完了判定の対象になる |
+| Value Object / Snapshot | `RelatedDoc` | なし | 解析項目に紐づく docs 情報を保持する |
+| schema 互換フィールド | `importance_score`, `context_score`, `total_score` | なし | 既存 JSON schema 互換のため `0` 固定で残す。意味のある評価値としては使わない |
+| DTO | `SettingsEntry` | なし | schema / docs から抽出した設定情報を保持する |
+| DTO / 出力用データ | `SettingReference` | なし | `settings_*.json` 出力用の内容を保持する |
+| DTO / 出力用データ | `RelatedChangelog` | なし | 設定リファレンス出力に紐づく CHANGELOG 情報を保持する |
 
 `AnalysisSchema` など `packages/types` にある型は、外部 JSON 契約として扱う。ドメイン層は必要に応じて専用の型を持ち、application または infrastructure 境界で JSON 契約へ変換する。
+
+2026-06-04 時点の NotebookLM 再調査では、domain に残すかどうかを以下の基準で判断する。
+
+| 判断 | 対象 | 理由 |
+|------|------|------|
+| domain に残す | `ChangelogVersion`, `ChangelogEntryContent`, `ChangelogPrefix`, `ChangelogEntry`, `ChangelogRelease`, `ChangelogDiffEvent`, `KeywordSet`, `InferenceResult`, `SettingKey`, `SettingSlug`, `BuiltinSurfaceCatalog` | 不正値を防ぐガード節、表記ゆれの正規化、変更種別や重複なし一覧のような domain の値・ルールを持つ |
+| domain に残す | `ChangelogAnalysis`, `AnalyzedChangelogEntry`, `RelatedDoc`, `needsInference` | 解析文脈の値と、1項目が推論未完了かどうかの純粋な判定を表す |
+| domain に残す | prefix 判定、tag 抽出、差分イベント重複判定 | 外部 I/O に依存せず、domain の評価・分類ルールを表す |
+| domain から外す | `computeChangelogItemDiff`, `changelog-parser`, Markdown list extraction、`extractMarkdownListItems` | Markdown という特定の外部形式に依存するパース / 抽出処理である |
+| domain から外す | `extractKeywordSetFromContent`, `ImportanceScore`, `calculateImportanceScore` | docs 検索や Markdown 断片の構造に依存した処理、または現在意味を持たない評価値である |
+| domain から外す | `InferenceBatch`, `InferredBatchItem`, `TranslatedBatchItem`, `FeatureAreaCorrection` | AI 応答を application 側で扱うための DTO であり、domain 概念ではない |
+| domain から外す候補として再確認する | `SettingsEntry`, `dedupeSettingsEntries`, `mergeEnvEntries`, `SettingReference`, `RelatedChangelog` | 設定リファレンス文脈の値として扱える部分と、抽出結果・JSON 出力用データにすぎない部分が混ざっている |
 
 ### 3. レイヤー構成
 
@@ -112,27 +130,25 @@ apps/changelog-fetcher/src/
       changelog-release.ts
       changelog-entry.ts
       changelog-diff-event.ts
-      changelog-parser.ts
     analysis/
-      changelog-analysis.ts
-      analyzed-changelog-entry.ts
       keyword-set.ts
-      importance-score.ts
       related-doc.ts
+      analyzed-changelog-entry.ts
+      changelog-analysis.ts
     inference/
       inference-result.ts
-      inference-batch.ts
     settings-reference/
       setting-key.ts
+      setting-slug.ts
       setting-entry.ts
       setting-reference.ts
-      setting-slug.ts
     builtin-surface/
       builtin-surface-catalog.ts
   application/
     fetch-changelog.ts
     analyze-changelog.ts
     infer-benefits.ts
+    inference-batch.ts
     generate-settings-reference.ts
     fetch-builtin-surface.ts
   infrastructure/
@@ -145,6 +161,8 @@ apps/changelog-fetcher/src/
       settings-reference-file-store.ts
       builtin-surface-file-store.ts
     docs/
+      changelog-markdown-parser.ts
+      builtin-surface-markdown-parser.ts
       docs-searcher.ts
       snippet-extractor.ts
     ai/
@@ -183,7 +201,7 @@ export function isDuplicateDiffEvent(
 
 ### 5. port インターフェースは副作用境界にだけ置く
 
-過度な抽象化を避けるため、port は DB・ファイルシステム・外部 API・AI API・ドキュメント検索のような副作用境界に限定する。prefix 算出、slug 生成、重複排除、差分判定のような純粋処理には port を作らない。
+過度な抽象化を避けるため、port は DB・ファイルシステム・外部 API・AI API・ドキュメント検索のような副作用境界に限定する。prefix 判定、差分イベント重複判定、値オブジェクトの形式検証のような純粋処理には port を作らない。
 
 | 副作用 | port 例 | 実装場所 |
 |--------|---------|----------|
@@ -213,15 +231,17 @@ await analysisStore.save(version, output);
 
 移行はデータ破壊リスクの低い純粋処理から進める。
 
-1. `[初期実装済み・要見直し]` `domain/changelog` に version、entry、diff event、CHANGELOG パースを移す
-2. `[初期実装済み・要見直し]` `domain/analysis` に prefix、tags、importanceScore、keyword、related doc scoring を移す
-3. `[未着手]` `application/analyze-changelog.ts` を作り、既存 `analyze-changelog.ts` を CLI に薄くする
-4. `[初期実装済み・要見直し]` `domain/settings-reference` に setting key、slug、entry merge、reference 組み立てを移す
-5. `[未着手]` Gemini と GitHub / fetch / fs を infrastructure port に閉じ込める
-6. `[未着手]` `src/types.ts` を文脈ごとの型へ分解し、外部契約だけを `packages/types` に残す
+1. `[実装済み]` ADR 0018 と同じ4分類だけを使い、追加層を導入しない方針を明記する
+2. `[実装済み]` `domain/changelog` から `analysis` への依存を外し、`ChangelogEntry` は content / prefix / tags までに絞る。`importance_score` は schema 互換の固定値として application 境界で扱う
+3. `[実装済み]` `InferenceBatch` 系を application 境界へ移し、domain には `InferenceResult` を残す
+4. `[実装済み]` `needsInference` は `AnalyzedChangelogEntry` の推論未完了を判定する純粋ルールとして `domain/analysis` に置く
+5. `[一部実装済み]` `parsers/` の Markdown パース、Markdown list extraction、`computeChangelogItemDiff`、docs 検索結果整形、builtin surface extraction を domain から infrastructure または application 側へ移す。意味のある score を扱わなくなった `scorers/` は削除する
+6. `[未着手]` `application/analyze-changelog.ts` を作り、既存 `analyze-changelog.ts` を CLI に薄くする
+7. `[未着手]` Gemini と GitHub / fetch / fs を infrastructure port に閉じ込める
+8. `[未着手]` `src/types.ts` を文脈ごとの型へ分解し、外部契約だけを `packages/types` に残す
 
-各ステップでは、移した domain 関数にユニットテストを先に付ける。既存の実データテストは、移行中の回帰検知として残す。
-テストコードは 実装する関数と 同じ階層に置き、テスト対象関数がどの文脈のどの概念に属するかを明確にする。
+domain に残すと判断した関数にはユニットテストを付ける。domain から外す DTO や外部形式パースには、移動先の責務に応じて application / infrastructure 側で必要なテストを付ける。既存の実データテストは、移行中の回帰検知として残す。
+テストコードは実装する関数と同じ階層に置き、テスト対象関数がどの文脈のどの概念に属するかを明確にする。
 
 ### 8. 2026-06-04 時点の実装状況
 
@@ -235,33 +255,42 @@ await analysisStore.save(version, output);
 
 まだ完了していないことは以下である。
 
+- `parsers/` 配下の Markdown パース処理、`computeChangelogItemDiff`、builtin surface extraction の domain 外への移動
+- `scorers/` 配下の不要処理削除
 - 既存 CLI から application 層への切り出し
 - GitHub、Gemini、filesystem、docs search、schema 読み込みの infrastructure 分離
 - 既存の JSON 出力契約と domain モデルの変換境界
 - `packages/types` と domain 型の責務整理
-- DDD 資料に照らした domain 層の再設計
+- NotebookLM の `ドメイン駆動設計入門.md` 調査結果に照らした Entity / Value Object / DTO / 出力用データの分類修正
 
-### 9. DDD レビューで分かった修正方針
+### 9. NotebookLM 再調査で分かった修正方針
 
-NotebookLM の `ドメイン駆動設計入門.md` を基準にレビューした結果、現在の初期実装には以下の修正が必要である。
+NotebookLM の `ドメイン駆動設計入門.md` を基準に、対象ソース `4bbc10f9-247d-4f68-b3d8-90e582530836` へ確認した。判断基準は「そこに domain のルールが存在するか」「単体で扱いたい値か」「同一性とライフサイクルを持つか」「外部形式や DTO ではないか」である。ただし、このプロジェクトでは ADR 0018 と同じ4分類だけを使うため、追加層を作らない。現在の初期実装には以下の修正が必要である。
 
 | 優先度 | 対象 | 方針 |
 |--------|------|------|
-| P1 | `domain/changelog/changelog-entry.ts` | `analysis/importance-score` への依存を外す。重要度は `analysis` 文脈の `AnalyzedChangelogEntry` 側へ寄せる |
-| P1 | Entity と Value Object の分類 | ライフサイクルや同一性を持たない概念を Entity と呼ばない。`ChangelogRelease` なども snapshot / Value Object として再評価する |
+| P1 | `domain/changelog/changelog-entry.ts` | `analysis/importance-score` への依存を外す。`importance_score` は schema 互換の固定値として出力データ生成時に付与する |
+| P1 | Entity と Value Object の分類 | `ChangelogEntry`、`ChangelogRelease`、`BuiltinSurfaceCatalog` は domain に残すが Entity ではなく Value Object / snapshot として扱う |
+| P1 | `domain/analysis/changelog-analysis.ts`, `domain/analysis/analyzed-changelog-entry.ts` | 解析文脈の値として domain に残す。外部 JSON 契約への変換は application 境界で扱う |
+| P1 | `domain/analysis/related-doc.ts` | 解析項目に紐づく docs 情報として domain に残す。docs 検索・スニペット抽出そのものは infrastructure 側へ移す。`context_score` / `total_score` は schema 互換の固定値にする |
 | P1 | `domain/inference/inference-batch.ts` | AI 応答 DTO / application DTO として domain から外す。domain には `InferenceResult` のような値だけを残す |
+| P1 | `needsInference` | `AnalyzedChangelogEntry` の推論未完了を判定する純粋ルールとして `domain/analysis` に置く |
+| P1 | `domain/settings-reference/setting-entry.ts`, `domain/settings-reference/setting-reference.ts` | 設定リファレンス文脈の値として domain に残すか、出力用 DTO として application 側へ移すかを再確認する。`SettingKey` と `SettingSlug` は domain に残す |
 | P2 | `changelog-parser`、Markdown list extraction、builtin surface extraction | 外部形式のパースや収集は infrastructure または application 側へ移す。domain には正規化後の概念と判断だけを置く |
-| P2 | `RelatedDoc`、`AnalyzedChangelogEntry` など | 不正状態を作れない factory / discriminated union を検討する |
-| P2 | `SettingReference` | domain entity ではなく出力 read model / DTO として扱うべきか再評価する |
+| P2 | `extractKeywordSetFromContent` | backtick や大文字技術語の抽出は文字列フォーマット依存の処理として domain から外す。`KeywordSet` 自体は重複排除ルールを持つ値として domain に残す |
+| P2 | `apps/changelog-fetcher/src/parsers/` | 旧構成の技術分類ディレクトリなので、Markdown パースは infrastructure、docs 検索用 keyword 抽出は application 側へ移して削除する |
+| P2 | `apps/changelog-fetcher/src/scorers/` | score が意味を持たなくなったため、残っている `getTopDocs` は呼び出し元へインライン化してディレクトリを削除する |
+| P2 | `domain/analysis/importance-score.ts` | 意味のある評価値として使っていないため domain から外す。schema 互換が必要な間は `importance_score: 0` をコメント付きで出力する |
+| P2 | `dedupeSettingsEntries`, `mergeEnvEntries` | 配列操作、特定ファイル群の優先順位統合として application / infrastructure 側へ移す候補にする |
 
-次に実装する時は、このレビュー結果を先に反映し、その後で application / infrastructure の移行へ進む。
+次に実装する時は、このレビュー結果を先に反映し、その後で application / infrastructure の移行へ進む。ここでいう「domain 層の作業」は新規実装ではなく、実装済みファイルから domain ではないものを外す作業である。
 
 ## Consequences
 
 ### Positive
 
 - 「CHANGELOG を扱う」「解析する」「推論する」「設定リファレンスを作る」という文脈ごとに責務を追える
-- prefix 判定、重要度算出、差分重複判定、slug 生成などの業務ルールを DB・fs・AI なしでテストできる
+- prefix 判定、差分イベント重複判定、値オブジェクトの形式検証を DB・fs・AI なしでテストできる
 - Gemini API、GitHub API、ファイル出力の変更が infrastructure に閉じやすくなる
 - CLI は引数・環境変数・終了コードの処理に集中し、処理本体を application から読める
 - ADR 0018 の Functional DDD 方針と揃い、アプリ間で判断基準が共通化される
@@ -280,7 +309,7 @@ NotebookLM の `ドメイン駆動設計入門.md` を基準にレビューし�
 - 既存の生成済み JSON と同じ出力を維持できず、notification-worker や表示側に影響するリスクがある
   - → 移行中は `AnalysisSchema` による検証と実データテストを維持し、出力契約の変更は別 ADR で扱う
 - `application/` に業務ルールが残り、実質的に domain が型置き場になるリスクがある
-  - → prefix 判定、差分判定、slug 生成、重複排除など判断を含む処理は domain の純粋関数へ置く
+  - → prefix 判定、差分イベント重複判定、値オブジェクトの形式検証など判断を含む処理は domain の純粋関数へ置く
 - `infrastructure/` が便利関数置き場になり、責務が再び曖昧になるリスクがある
   - → infrastructure は外部世界との接続と外部形式への変換に限定する
 

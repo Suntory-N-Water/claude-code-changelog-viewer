@@ -2,12 +2,12 @@ import {
   type AnalyzedChangelogEntry,
   createAnalyzedChangelogEntry,
   needsInference,
-} from '../analysis/analyzed-changelog-entry';
+} from '../domain/analysis/analyzed-changelog-entry';
 import {
   type ChangelogAnalysis,
   createChangelogAnalysis,
-} from '../analysis/changelog-analysis';
-import { createInferenceResult } from './inference-result';
+} from '../domain/analysis/changelog-analysis';
+import { createInferenceResult } from '../domain/inference/inference-result';
 
 export type InferredBatchItem = {
   readonly id: number;
@@ -40,7 +40,7 @@ export type IndexedAnalyzedEntry = {
 };
 
 /**
- * AI 応答から得た一括推論結果をドメイン値として生成する。
+ * AI 応答から得た一括推論結果を生成する。
  */
 export function createInferenceBatch(input: {
   readonly inferredItems?: readonly InferredBatchItem[];

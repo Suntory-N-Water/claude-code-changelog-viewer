@@ -7,7 +7,8 @@ function makeItem(content: string): ParsedItem {
     content,
     prefix: 'Changed',
     tags: [],
-    importance_score: 6,
+    // importance_score は schema 互換の固定値で、キーワード抽出では使わない。
+    importance_score: 0,
   };
 }
 

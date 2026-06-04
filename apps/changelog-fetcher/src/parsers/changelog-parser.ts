@@ -1,26 +1,7 @@
 import type { ParsedItem } from '../types';
 
-// プリフィックスごとの重要度スコア
-const IMPORTANCE_SCORES: Record<string, number> = {
-  Added: 8,
-  Fixed: 4,
-  Changed: 6,
-  Improved: 6,
-  Updated: 6,
-  Removed: 5,
-  Enabled: 6,
-  Deprecated: 7,
-  Breaking: 9,
-};
-
-/**
- * プリフィックスとタグから重要度スコアを算出
- */
-function calculateImportance(prefix: string, tags: string[]): number {
-  const baseScore = IMPORTANCE_SCORES[prefix] || 5;
-  const breakingBonus = tags.includes('Breaking') ? 3 : 0;
-  return baseScore + breakingBonus;
-}
+// importance_score は出力 schema 互換のためだけに残す。現在は意味のある評価値として使わない。
+const SCHEMA_COMPATIBILITY_SCORE = 0;
 
 /**
  * プリフィックスを抽出(Added, Fixed など)
@@ -133,12 +114,11 @@ export function parseChangelog(changelog: string): ParsedItem[] {
 function parseItem(itemText: string): ParsedItem {
   const prefix = extractPrefix(itemText);
   const tags = extractTags(itemText);
-  const importance_score = calculateImportance(prefix, tags);
 
   return {
     content: itemText,
     prefix,
     tags,
-    importance_score,
+    importance_score: SCHEMA_COMPATIBILITY_SCORE,
   };
 }

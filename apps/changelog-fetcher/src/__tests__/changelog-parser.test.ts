@@ -168,49 +168,6 @@ describe('parseChangelog', () => {
     });
   });
 
-  describe('重要度スコア', () => {
-    test.each([
-      ['Breaking', 9],
-      ['Added', 8],
-      ['Deprecated', 7],
-      ['Changed', 6],
-      ['Improved', 6],
-      ['Updated', 6],
-      ['Enabled', 6],
-      ['Removed', 5],
-      ['Fixed', 4],
-    ])('prefix "%s" → スコア %d', (prefix, expectedScore) => {
-      const prefixToContent: Record<string, string> = {
-        Breaking: '- Breaking change in API',
-        Added: '- Added new feature',
-        Deprecated: '- Deprecated old method',
-        Changed: '- Changed default behavior',
-        Improved: '- Improved performance',
-        Updated: '- Updated dependencies',
-        Enabled: '- Enabled new feature',
-        Removed: '- Removed old code',
-        Fixed: '- Fixed a bug',
-      };
-      const items = parseChangelog(`## 2.1.0\n\n${prefixToContent[prefix]}`);
-      expect(items[0].importance_score).toBe(expectedScore);
-    });
-
-    test('[Breaking] タグで +3 ボーナスが加算される', () => {
-      const items = parseChangelog(
-        '## 2.1.0\n\n- [Breaking] Changed API signature',
-      );
-      // Changed(6) + Breaking bonus(3) = 9
-      expect(items[0].importance_score).toBe(9);
-    });
-
-    test('未知の prefix はデフォルトスコア 5', () => {
-      // "Some" は既知の prefix にマッチしないので Changed(6) になる
-      // ただし内部的に Changed にマップされるのでスコアは 6
-      const items = parseChangelog('## 2.1.0\n\n- Some unknown prefix content');
-      expect(items[0].importance_score).toBe(6); // Changed のデフォルト
-    });
-  });
-
   describe('パースのエッジケース', () => {
     test('複数行項目の2行目以降にあるタグも抽出する', () => {
       const changelog = [

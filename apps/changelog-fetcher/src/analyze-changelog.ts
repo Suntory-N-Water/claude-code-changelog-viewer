@@ -51,7 +51,7 @@ async function main() {
         keywords,
       );
 
-      // スコアリング & 上位3件取得
+      // スコアは schema 互換の固定値なので、検索結果の先頭3件だけ取得する
       const topDocs = getTopDocs(snippetResults, 3).map((doc) => ({
         ...doc,
         snippets: doc.snippets

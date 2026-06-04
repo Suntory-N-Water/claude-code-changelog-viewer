@@ -1,8 +1,3 @@
-import {
-  type ImportanceScore,
-  calculateImportanceScore,
-} from '../analysis/importance-score';
-
 declare const changelogEntryContentBrand: unique symbol;
 
 export type ChangelogEntryContent = string & {
@@ -24,7 +19,6 @@ export type ChangelogEntry = {
   readonly content: ChangelogEntryContent;
   readonly prefix: ChangelogPrefix;
   readonly tags: readonly string[];
-  readonly importanceScore: ImportanceScore;
 };
 
 /**
@@ -111,7 +105,7 @@ export function extractChangelogTags(
 }
 
 /**
- * CHANGELOG 項目を prefix / tags / importanceScore 付きのエンティティに変換する。
+ * CHANGELOG 項目を prefix / tags 付きのドメイン値に変換する。
  */
 export function createChangelogEntry(value: string): ChangelogEntry {
   const content = createChangelogEntryContent(value);
@@ -122,6 +116,5 @@ export function createChangelogEntry(value: string): ChangelogEntry {
     content,
     prefix,
     tags,
-    importanceScore: calculateImportanceScore(prefix, tags),
   };
 }

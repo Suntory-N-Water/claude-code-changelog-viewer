@@ -4,7 +4,9 @@ import { z } from 'zod';
 export const RelatedDocSchema = z.object({
   file: z.string(),
   hit_count: z.number(),
+  // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
   context_score: z.number(),
+  // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
   total_score: z.number(),
   snippets: z.array(z.string()),
 });
@@ -63,6 +65,7 @@ export const ChangelogItemSchema = z.object({
   content: z.string(), // 英語原文
   content_ja: z.string().optional(), // 日本語翻訳
   prefix: z.string(),
+  // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
   importance_score: z.number(),
   feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),

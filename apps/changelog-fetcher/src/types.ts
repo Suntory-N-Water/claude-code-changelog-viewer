@@ -4,6 +4,7 @@ export type ParsedItem = {
   content: string;
   prefix: string;
   tags: string[];
+  // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
   importance_score: number;
 };
 

@@ -3,14 +3,12 @@ import type {
   ChangelogPrefix,
 } from '../changelog/changelog-entry';
 import type { InferenceResult } from '../inference/inference-result';
-import type { ImportanceScore } from './importance-score';
 import type { RelatedDoc } from './related-doc';
 
 export type AnalyzedChangelogEntry = {
   readonly content: ChangelogEntryContent;
   readonly contentJa?: string;
   readonly prefix: ChangelogPrefix;
-  readonly importanceScore: ImportanceScore;
   readonly featureAreas: readonly string[];
   readonly relatedDocs: readonly RelatedDoc[];
   readonly inference?: InferenceResult;
@@ -20,7 +18,6 @@ export type CreateAnalyzedChangelogEntryInput = {
   readonly content: ChangelogEntryContent;
   readonly contentJa?: string;
   readonly prefix: ChangelogPrefix;
-  readonly importanceScore: ImportanceScore;
   readonly featureAreas?: readonly string[];
   readonly relatedDocs?: readonly RelatedDoc[];
   readonly inference?: InferenceResult;
@@ -36,7 +33,6 @@ export function createAnalyzedChangelogEntry(
     content: input.content,
     ...(input.contentJa !== undefined ? { contentJa: input.contentJa } : {}),
     prefix: input.prefix,
-    importanceScore: input.importanceScore,
     featureAreas: input.featureAreas ?? [],
     relatedDocs: input.relatedDocs ?? [],
     ...(input.inference !== undefined ? { inference: input.inference } : {}),
