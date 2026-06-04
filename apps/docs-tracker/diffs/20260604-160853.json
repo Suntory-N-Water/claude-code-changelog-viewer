@@ -1,0 +1,372 @@
+{
+  "id": "20260604-160853",
+  "timestamp": "2026-06-04T16:08:53.073Z",
+  "aiSummary": "モデル概要のリンク先がHTTPSへ修正され、MCPサーバー追加時のコマンド引数とダブルダッシュの使い方が詳細化されました。PowerShell環境でのcurl実行時における注意点とエイリアス問題への対処法が追記されています。VS Code拡張機能のデータを完全にリセットするための、OSごとのストレージディレクトリ削除コマンドが新たに追加されました。",
+  "files": [
+    {
+      "filename": "about-claude/models/overview.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Claude 4のブログポストや公式サイトへのリンクが、より安全なHTTPSプロトコルに更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -96,7 +96,7 @@ _<sup>6 - Claude Opus 4.7 is available on Bedrock through [Claude in Amazon Bedr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "## Prompt and output performance"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude 4 models excel in:"
+            },
+            {
+              "type": "removed",
+              "content": "- **Performance**: Top-tier results in reasoning, coding, multilingual tasks, long-context handling, honesty, and image processing. See the [Claude 4 blog post](http://www.anthropic.com/news/claude-4) for more information."
+            },
+            {
+              "type": "added",
+              "content": "- **Performance**: Top-tier results in reasoning, coding, multilingual tasks, long-context handling, honesty, and image processing. See the [Claude 4 blog post](https://www.anthropic.com/news/claude-4) for more information."
+            },
+            {
+              "type": "context",
+              "content": "- **Engaging responses**: Claude models are ideal for applications that require rich, human-like interactions."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    - If you prefer more concise responses, you can adjust your prompts to guide the model toward the desired output length. Refer to the [prompt engineering guides](/docs/en/build-with-claude/prompt-engineering) for details."
+            }
+          ]
+        },
+        {
+          "header": "@@ -115,7 +115,7 @@ If you're currently using Claude Opus 4.6 or older Claude models, see [Migrating",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you're ready to start exploring what Claude can do for you, dive in! Whether you're a developer looking to integrate Claude into your applications or a user wanting to experience the power of AI firsthand, the following resources can help."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "<Note>Looking to chat with Claude? Visit [claude.ai](http://www.claude.ai)!</Note>"
+            },
+            {
+              "type": "added",
+              "content": "<Note>Looking to chat with Claude? Visit [claude.ai](https://claude.ai)!</Note>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "<CardGroup cols={3}>"
+            },
+            {
+              "type": "context",
+              "content": "  <Card title=\"Intro to Claude\" icon=\"check\" href=\"/docs/en/intro\">"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 7,
+      "deletions": 5,
+      "explanation": "MCPサーバー追加時にオプションとサーバー引数を区切るダブルダッシュの役割が詳細に説明され、オプションの順序に関する注意が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -99,20 +99,22 @@ This variable is set in the server's environment, not in Claude Code's own envir",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude mcp add [options] <name> -- <command> [args...]"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Real example: Add Airtable server"
+            },
+            {
+              "type": "removed",
+              "content": "claude mcp add --transport stdio --env AIRTABLE_API_KEY=YOUR_KEY airtable \\"
+            },
+            {
+              "type": "added",
+              "content": "claude mcp add --env AIRTABLE_API_KEY=YOUR_KEY --transport stdio airtable \\"
+            },
+            {
+              "type": "context",
+              "content": "  -- npx -y airtable-mcp-server"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Important: Option ordering**"
+            },
+            {
+              "type": "added",
+              "content": "**Important: Separate server arguments with `--`**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "All options (`--transport`, `--env`, `--scope`, `--header`) must come **before** the server name. The `--` (double dash) then separates the server name from the command and arguments that get passed to the MCP server."
+            },
+            {
+              "type": "added",
+              "content": "For stdio servers, the `--` (double dash) separates Claude's own options, such as `--transport`, `--env`, and `--scope`, from the command and arguments that run the server. Everything after `--` is passed to the server untouched."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For example:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `claude mcp add --transport stdio myserver -- npx server` → runs `npx server`"
+            },
+            {
+              "type": "removed",
+              "content": "- `claude mcp add --transport stdio --env KEY=value myserver -- python server.py --port 8080` → runs `python server.py --port 8080` with `KEY=value` in environment"
+            },
+            {
+              "type": "added",
+              "content": "- `claude mcp add --env KEY=value --transport stdio myserver -- python server.py --port 8080` → runs `python server.py --port 8080` with `KEY=value` in environment"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This prevents conflicts between Claude's flags and the server's flags."
+            },
+            {
+              "type": "added",
+              "content": "Without `--`, Claude Code would try to parse the server's flags, like `--port` above, as its own options."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`--env` accepts multiple `KEY=value` pairs. If the server name comes directly after `--env`, the CLI reads the name as another pair and rejects it, so place at least one other option between `--env` and the server name, as in the examples above."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Option 4: Add a remote WebSocket server"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshoot-install.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "PowerShellのcurlエイリアスが原因でエラーが発生する問題に対し、curl.exeを直接実行する回避策が記載されました。",
+      "hunks": [
+        {
+          "header": "@@ -54,6 +54,8 @@ The installer downloads from `downloads.claude.ai`. Verify you can reach it:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "curl -sI https://downloads.claude.ai/claude-code-releases/latest"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In PowerShell, run `curl.exe -sI` instead. PowerShell aliases `curl` to `Invoke-WebRequest`, which rejects the `-sI` flags."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "An `HTTP/2 200` line means you reached the server. If you see no output, `Could not resolve host`, or a connection timeout, your network is blocking the connection. Common causes:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Corporate firewalls or proxies blocking `downloads.claude.ai`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "vs-code.md",
+      "additions": 16,
+      "deletions": 2,
+      "explanation": "設定をリセットするために必要な拡張機能ストレージディレクトリの削除パスが、macOS、Linux、Windowsの各OSごとに追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -453,10 +453,24 @@ To uninstall the Claude Code extension:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "2. Search for \"Claude Code\""
+            },
+            {
+              "type": "context",
+              "content": "3. Click **Uninstall**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To also remove extension data and reset all settings:"
+            },
+            {
+              "type": "added",
+              "content": "To also remove extension data and reset all settings, delete the extension's storage directory for your platform."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On macOS:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "rm -rf ~/Library/\"Application Support\"/Code/User/globalStorage/anthropic.claude-code"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Linux:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "rm -rf ~/.vscode/globalStorage/anthropic.claude-code"
+            },
+            {
+              "type": "added",
+              "content": "rm -rf ~/.config/Code/User/globalStorage/anthropic.claude-code"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On Windows, in PowerShell:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```powershell"
+            },
+            {
+              "type": "added",
+              "content": "Remove-Item -Recurse -Force \"$env:APPDATA\\Code\\User\\globalStorage\\anthropic.claude-code\""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For additional help, see the [troubleshooting guide](/en/troubleshooting)."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
