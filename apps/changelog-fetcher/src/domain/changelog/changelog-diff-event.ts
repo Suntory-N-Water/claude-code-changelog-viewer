@@ -1,4 +1,3 @@
-import { extractChangelogItemLines } from './changelog-parser';
 import type { ChangelogVersion } from './changelog-version';
 
 export type ChangelogDiffEventType = 'items_changed' | 'version_removed';
@@ -15,11 +14,6 @@ export type ChangelogDiffEventCandidate = Omit<
   ChangelogDiffEvent,
   'detectedAt'
 >;
-
-export type ChangelogItemDiff = {
-  readonly added: readonly string[];
-  readonly removed: readonly string[];
-};
 
 /**
  * 項目追加・削除を検知した差分イベントを生成する。
@@ -76,22 +70,4 @@ export function isDuplicateDiffEvent(
       event.itemsAdded.every((item) => candidateAddedSet.has(item)) &&
       event.itemsRemoved.every((item) => candidateRemovedSet.has(item)),
   );
-}
-
-/**
- * ローカル保存済み本文と upstream 本文の項目差分を計算する。
- */
-export function computeChangelogItemDiff(
-  localContent: string,
-  remoteContent: string,
-): ChangelogItemDiff {
-  const localItems = extractChangelogItemLines(localContent);
-  const remoteItems = extractChangelogItemLines(remoteContent);
-  const localSet = new Set(localItems);
-  const remoteSet = new Set(remoteItems);
-
-  return {
-    added: remoteItems.filter((item) => !localSet.has(item)),
-    removed: localItems.filter((item) => !remoteSet.has(item)),
-  };
 }

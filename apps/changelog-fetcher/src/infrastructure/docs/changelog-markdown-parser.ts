@@ -1,13 +1,13 @@
-import { type ChangelogEntry, createChangelogEntry } from './changelog-entry';
 import {
-  type ChangelogRelease,
+  createChangelogEntry,
+  type ChangelogEntry,
+} from '../../domain/changelog/changelog-entry';
+import {
   createChangelogRelease,
-} from './changelog-release';
-import { createChangelogVersion } from './changelog-version';
+  type ChangelogRelease,
+} from '../../domain/changelog/changelog-release';
+import { createChangelogVersion } from '../../domain/changelog/changelog-version';
 
-/**
- * 1つの CHANGELOG 本文から箇条書き項目だけを抽出してパースする。
- */
 export function parseChangelogEntries(changelog: string): ChangelogEntry[] {
   const items: ChangelogEntry[] = [];
   let currentItem: string | null = null;
@@ -39,9 +39,6 @@ export function parseChangelogEntries(changelog: string): ChangelogEntry[] {
   return items;
 }
 
-/**
- * 差分検知で使う `- ` 始まりの項目行だけを抽出する。
- */
 export function extractChangelogItemLines(content: string): string[] {
   return content
     .split('\n')
@@ -49,9 +46,6 @@ export function extractChangelogItemLines(content: string): string[] {
     .filter((line) => line.startsWith('- '));
 }
 
-/**
- * upstream CHANGELOG 全体をバージョン単位のリリースに分割する。
- */
 export function parseChangelogReleases(markdown: string): ChangelogRelease[] {
   const releases: ChangelogRelease[] = [];
   let currentVersion: string | null = null;
@@ -94,4 +88,24 @@ export function parseChangelogReleases(markdown: string): ChangelogRelease[] {
   }
 
   return releases;
+}
+
+export type ChangelogItemDiff = {
+  readonly added: readonly string[];
+  readonly removed: readonly string[];
+};
+
+export function computeChangelogItemDiff(
+  localContent: string,
+  remoteContent: string,
+): ChangelogItemDiff {
+  const localItems = extractChangelogItemLines(localContent);
+  const remoteItems = extractChangelogItemLines(remoteContent);
+  const localSet = new Set(localItems);
+  const remoteSet = new Set(remoteItems);
+
+  return {
+    added: remoteItems.filter((item) => !localSet.has(item)),
+    removed: localItems.filter((item) => !remoteSet.has(item)),
+  };
 }

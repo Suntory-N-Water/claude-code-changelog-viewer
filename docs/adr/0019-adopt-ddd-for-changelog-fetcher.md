@@ -6,11 +6,11 @@ Accepted
 
 ## TLDL
 
-2026-06-04 時点では、ADR の作成と `apps/changelog-fetcher/src/domain/` への初期実装まで完了している。したがって、次の作業は domain 層を新規実装することではない。ただし、NotebookLM の `ドメイン駆動設計入門.md` を使った再調査で、現在の domain 実装は「Functional Core としては前進しているが、DTO・外部形式パース・schema 互換だけの値が混ざっている可能性がある」と分かった。
+2026-06-04 時点では、移行順序のステップ 1〜6 がすべて完了している。domain 層の棚卸し・application 層の切り出し・infrastructure への Markdown パース移動がひと通り終わった状態である。
 
-この ADR では ADR 0018 と同じく、`domain` / `application` / `infrastructure` / `cli` の4分類だけを使う。CQRS 由来の追加層は導入しない。
+この ADR では ADR 0018 と同じく、`domain` / `application` / `infrastructure` / `cli` の4分類だけを使う。CQRS 由来の追加層は導入しない。層分類の判断基準は ADR 0020 にまとめた。
 
-次のタスクは、実装済み domain 層を DDD の基準に合わせて棚卸しし、domain に残すものと application / infrastructure へ移すものを分けることである。具体的には、`changelog` から `analysis` への依存を取り除く、Entity と Value Object を再分類する、`InferenceBatch` のような AI/API DTO を domain から外す、Markdown・ファイル・CLI 表面のパース処理を infrastructure または application 側へ移す。`needsInference` は1つの解析項目が推論未完了かを判断する純粋なルールであり、現時点では `domain/analysis` に置く。テストは、この再整理後に domain に残る業務ルールだけを対象に、実装ファイルと同じ階層へ置く。
+次のタスクはステップ 7 である。Gemini・GitHub / fetch / fs・docs search・schema 読み込みを infrastructure port に閉じ込め、`application/` が直接 `searchers/` や `ai/` に依存しない構造にする。あわせてステップ 8 として `src/types.ts` を文脈ごとの型へ分解し、外部 JSON 契約だけを `packages/types` に残す作業が続く。
 
 ## Context
 
@@ -235,8 +235,8 @@ await analysisStore.save(version, output);
 2. `[実装済み]` `domain/changelog` から `analysis` への依存を外し、`ChangelogEntry` は content / prefix / tags までに絞る。`importance_score` は schema 互換の固定値として application 境界で扱う
 3. `[実装済み]` `InferenceBatch` 系を application 境界へ移し、domain には `InferenceResult` を残す
 4. `[実装済み]` `needsInference` は `AnalyzedChangelogEntry` の推論未完了を判定する純粋ルールとして `domain/analysis` に置く
-5. `[一部実装済み]` `parsers/` の Markdown パース、Markdown list extraction、`computeChangelogItemDiff`、docs 検索結果整形、builtin surface extraction を domain から infrastructure または application 側へ移す。意味のある score を扱わなくなった `scorers/` は削除する
-6. `[未着手]` `application/analyze-changelog.ts` を作り、既存 `analyze-changelog.ts` を CLI に薄くする
+5. `[実装済み]` `parsers/` の Markdown パース、Markdown list extraction、`computeChangelogItemDiff`、docs 検索結果整形を domain から infrastructure または application 側へ移す。`infrastructure/docs/changelog-markdown-parser.ts` と `infrastructure/docs/keyword-extractor.ts` を新設し、`parsers/`・`scorers/` を削除した
+6. `[実装済み]` `application/analyze-changelog.ts` を作り、既存 `analyze-changelog.ts` を CLI に薄くする
 7. `[未着手]` Gemini と GitHub / fetch / fs を infrastructure port に閉じ込める
 8. `[未着手]` `src/types.ts` を文脈ごとの型へ分解し、外部契約だけを `packages/types` に残す
 
@@ -251,17 +251,22 @@ domain に残すと判断した関数にはユニットテストを付ける。d
 - 作業ブランチ `feat/changelog-fetcher-domain-ddd` を作成した
 - `apps/changelog-fetcher/src/domain/` 配下に、`changelog`、`analysis`、`inference`、`settings-reference`、`builtin-surface` の初期ファイルを追加した
 - domain 層の exported function に JSDoc を追加した
-- 今回追加したテストは、価値の低いものが混ざっていたため削除済みである
+- `domain/changelog/changelog-parser.ts`(Markdown パース)を `infrastructure/docs/changelog-markdown-parser.ts` へ移動した
+- `computeChangelogItemDiff` を domain 外(`infrastructure/docs/changelog-markdown-parser.ts`)へ移動した
+- `extractKeywordSetFromContent` を domain から外し、`infrastructure/docs/keyword-extractor.ts` へ移動した
+- `parsers/changelog-parser.ts`・`parsers/keyword-extractor.ts`・`parsers/` ディレクトリを削除した
+- `scorers/context-scorer.ts`(`getTopDocs`)をインライン化し、`scorers/` ディレクトリを削除した
+- `application/analyze-changelog.ts` を新設し、解析ユースケースの orchestration を切り出した
+- `analyze-changelog.ts` を薄い CLI(引数・ファイル I/O・JSON 変換境界のみ)にした
+- テストを `infrastructure/docs/changelog-markdown-parser.ts` と `infrastructure/docs/keyword-extractor.ts` に対応する形に更新した
+- DDD 層分類の判断ヒューリスティックを ADR 0020 に記録した
 
 まだ完了していないことは以下である。
 
-- `parsers/` 配下の Markdown パース処理、`computeChangelogItemDiff`、builtin surface extraction の domain 外への移動
-- `scorers/` 配下の不要処理削除
-- 既存 CLI から application 層への切り出し
-- GitHub、Gemini、filesystem、docs search、schema 読み込みの infrastructure 分離
-- 既存の JSON 出力契約と domain モデルの変換境界
+- GitHub、Gemini、filesystem、docs search、schema 読み込みの infrastructure port 分離(ステップ 7)
+- `src/types.ts` の文脈ごとの型への分解(ステップ 8)
 - `packages/types` と domain 型の責務整理
-- NotebookLM の `ドメイン駆動設計入門.md` 調査結果に照らした Entity / Value Object / DTO / 出力用データの分類修正
+- builtin surface extraction の domain 外への移動
 
 ### 9. NotebookLM 再調査で分かった修正方針
 

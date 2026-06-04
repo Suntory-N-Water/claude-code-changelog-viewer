@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'vitest';
-import { parseChangelog } from '../parsers/changelog-parser';
+import { parseChangelogEntries } from '../infrastructure/docs/changelog-markdown-parser';
 
-describe('parseChangelog', () => {
+describe('parseChangelogEntries', () => {
   describe('基本的なパース', () => {
     test('単一項目をパースする', () => {
       const changelog = '## 2.1.25\n\n- Fixed a bug in the login flow';
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
       expect(items[0].content).toBe('- Fixed a bug in the login flow');
@@ -20,7 +20,7 @@ describe('parseChangelog', () => {
         '- Fixed a critical bug',
         '- Updated dependency versions',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(3);
       expect(items[0].prefix).toBe('Added');
@@ -36,7 +36,7 @@ describe('parseChangelog', () => {
         '  spans multiple lines in the changelog',
         '- Added another feature',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(2);
       expect(items[0].content).toBe(
@@ -54,23 +54,25 @@ describe('parseChangelog', () => {
         '## Notes',
         '',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
     });
 
     test('空文字列は空配列を返す', () => {
-      expect(parseChangelog('')).toEqual([]);
+      expect(parseChangelogEntries('')).toEqual([]);
     });
 
     test('項目がない CHANGELOG は空配列を返す', () => {
-      expect(parseChangelog('## 2.1.30\n\n')).toEqual([]);
+      expect(parseChangelogEntries('## 2.1.30\n\n')).toEqual([]);
     });
   });
 
   describe('prefix 分類', () => {
     test('タグが先頭にある項目でも Added に分類される', () => {
-      const items = parseChangelog('## 2.1.0\n\n- [SDK] Added new SDK feature');
+      const items = parseChangelogEntries(
+        '## 2.1.0\n\n- [SDK] Added new SDK feature',
+      );
       expect(items[0].prefix).toBe('Added');
     });
 
@@ -99,7 +101,7 @@ describe('parseChangelog', () => {
       ['- Breaking change to API', 'Breaking'],
       ['- Breaking: removed support', 'Breaking'],
     ])('"%s" → prefix: "%s"', (content, expectedPrefix) => {
-      const items = parseChangelog(`## 2.1.0\n\n${content}`);
+      const items = parseChangelogEntries(`## 2.1.0\n\n${content}`);
       expect(items[0].prefix).toBe(expectedPrefix);
     });
 
@@ -115,52 +117,58 @@ describe('parseChangelog', () => {
       ] as const;
 
       for (const [content, expectedPrefix] of patterns) {
-        const items = parseChangelog(`## 2.1.0\n\n${content}`);
+        const items = parseChangelogEntries(`## 2.1.0\n\n${content}`);
         expect(items[0].prefix).toBe(expectedPrefix);
       }
     });
 
     test('Made/Make/Moved は Changed に分類される', () => {
-      const madeItems = parseChangelog('## 2.1.0\n\n- Made the UI responsive');
+      const madeItems = parseChangelogEntries(
+        '## 2.1.0\n\n- Made the UI responsive',
+      );
       expect(madeItems[0].prefix).toBe('Changed');
 
-      const makeItems = parseChangelog(
+      const makeItems = parseChangelogEntries(
         '## 2.1.0\n\n- Make error messages clearer',
       );
       expect(makeItems[0].prefix).toBe('Changed');
 
-      const movedItems = parseChangelog(
+      const movedItems = parseChangelogEntries(
         '## 2.1.0\n\n- Moved config to new location',
       );
       expect(movedItems[0].prefix).toBe('Changed');
     });
 
     test('マッチしないパターンは Changed がデフォルト', () => {
-      const items = parseChangelog('## 2.1.0\n\n- Some random changelog entry');
+      const items = parseChangelogEntries(
+        '## 2.1.0\n\n- Some random changelog entry',
+      );
       expect(items[0].prefix).toBe('Changed');
     });
   });
 
   describe('タグ抽出', () => {
     test('[SDK] タグを抽出する', () => {
-      const items = parseChangelog('## 2.1.0\n\n- [SDK] Added new SDK feature');
+      const items = parseChangelogEntries(
+        '## 2.1.0\n\n- [SDK] Added new SDK feature',
+      );
       expect(items[0].tags).toEqual(['SDK']);
     });
 
     test('複数タグを抽出する', () => {
-      const items = parseChangelog(
+      const items = parseChangelogEntries(
         '## 2.1.0\n\n- [SDK] [API] Updated interface',
       );
       expect(items[0].tags).toEqual(['SDK', 'API']);
     });
 
     test('タグがない場合は空配列', () => {
-      const items = parseChangelog('## 2.1.0\n\n- Fixed a bug');
+      const items = parseChangelogEntries('## 2.1.0\n\n- Fixed a bug');
       expect(items[0].tags).toEqual([]);
     });
 
     test('大文字で始まるタグのみ抽出する', () => {
-      const items = parseChangelog(
+      const items = parseChangelogEntries(
         '## 2.1.0\n\n- [VSCode] Fixed [editor] issue',
       );
       // [editor] は小文字始まりなので抽出されない
@@ -176,7 +184,7 @@ describe('parseChangelog', () => {
         '- Added multi-line feature description',
         '  with follow-up details for [SDK] support',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
       expect(items[0].tags).toEqual(['SDK']);
@@ -190,17 +198,17 @@ describe('parseChangelog', () => {
         '1. Numbered item',
         '- Actual changelog item',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
       expect(items[0].content).toBe('- Actual changelog item');
     });
 
     test('近似語は既知の prefix に誤分類しない', () => {
-      const enablementItems = parseChangelog(
+      const enablementItems = parseChangelogEntries(
         '## 2.1.0\n\n- Enablement guidance for enterprise rollout',
       );
-      const fixingItems = parseChangelog(
+      const fixingItems = parseChangelogEntries(
         '## 2.1.0\n\n- Fixing build output formatting for docs preview',
       );
 
@@ -218,7 +226,7 @@ describe('parseChangelog', () => {
         '  - Sub-feature B',
         '- Fixed a bug',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       // サブアイテムも独立した項目として扱われる
       expect(items).toHaveLength(4);
@@ -234,7 +242,7 @@ describe('parseChangelog', () => {
         '- Fixed a very long description that',
         'continues on the next line without indent',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
       expect(items[0].content).toBe(
@@ -251,7 +259,7 @@ describe('parseChangelog', () => {
         '- Fixed handling of',
         '  `--verbose` flag in CLI',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
       expect(items[0].content).toBe(
@@ -267,7 +275,7 @@ describe('parseChangelog', () => {
         '- First item',
         '  - This becomes a separate item',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(2);
     });
@@ -284,7 +292,7 @@ describe('parseChangelog', () => {
         '',
         '- Added a feature',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       // ### も ## で startsWith するのでスキップされる
       expect(items).toHaveLength(2);
@@ -292,7 +300,7 @@ describe('parseChangelog', () => {
 
     test('タブ文字を含む行の処理', () => {
       const changelog = '## 2.1.0\n\n-\tFixed with tab';
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       // trim() でタブは除去されないが、startsWith('-') で始まる
       expect(items).toHaveLength(1);
@@ -305,7 +313,7 @@ describe('parseChangelog', () => {
         '',
         "- Fixed `$ARGUMENTS[0]` causing `grep: invalid option -- '|'` error when pattern contains `(regex)` characters like `*.md` or `path\\to\\file`",
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
       expect(items[0].prefix).toBe('Fixed');
@@ -316,7 +324,7 @@ describe('parseChangelog', () => {
 
   describe('タグ抽出のエッジケース', () => {
     test('文中の角括弧はタグとして抽出されうる', () => {
-      const items = parseChangelog(
+      const items = parseChangelogEntries(
         '## 2.1.0\n\n- Added support for [Breaking] changes',
       );
       expect(items[0].tags).toContain('Breaking');
@@ -331,7 +339,7 @@ describe('parseChangelog', () => {
         '',
         '- BashTool now skips login shell (`-l` flag) by default when a shell snapshot is available, improving command execution performance.',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(1);
       expect(items[0].content).toContain('`-l`');
@@ -347,7 +355,7 @@ describe('parseChangelog', () => {
         '- Fixed a security issue where `statusLine` hook commands could execute without trust',
         '- Tool results larger than 50K characters are now persisted to disk',
       ].join('\n');
-      const items = parseChangelog(changelog);
+      const items = parseChangelogEntries(changelog);
 
       expect(items).toHaveLength(4);
       expect(items[0].prefix).toBe('Added');
