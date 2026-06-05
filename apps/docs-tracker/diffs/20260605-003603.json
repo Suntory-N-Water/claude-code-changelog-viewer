@@ -1,0 +1,515 @@
+{
+  "id": "20260605-003603",
+  "timestamp": "2026-06-05T00:36:03.570Z",
+  "aiSummary": "エージェントセッションのステータス詳細や、ディープリンク使用時の警告表示方法が改善されました。MCPのタイムアウト設定に関する仕様変更や、一部の認証が必要なコネクタをウェブ版で設定する手順が追加されています。また、外部ツールの設定ファイル読み込み対象の拡大や、テレメトリにおけるOpenTelemetry準拠のID付与、WebFetchでのドメイン許可ルールの更新も含まれます。",
+  "files": [
+    {
+      "filename": "agent-view.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セッションのステータスが待機中の場合に、権限確認や入力待ちといった具体的な理由を表示する機能が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -424,7 +424,7 @@ Every background session has a short ID you can use from the shell. The ID is pr",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude agents` | Open agent view |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude agents --cwd <path>` | Open agent view scoped to sessions started under `<path>` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `claude agents --json` | Print live sessions as a JSON array and exit. Each entry has `pid`, `cwd`, `kind`, and `startedAt`, plus `sessionId`, `name`, and `status` when set. Combine with `--cwd <path>` to filter |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude agents --json` | Print live sessions as a JSON array and exit. Each entry has `pid`, `cwd`, `kind`, and `startedAt`, plus `sessionId`, `name`, and `status` when set. When `status` is `waiting`, `waitingFor` says what the session is blocked on, such as `permission prompt` or `input needed`. Combine with `--cwd <path>` to filter |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude attach <id>` | Attach to a session in this terminal |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude logs <id>` | Print the session's recent output |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude stop <id>` | Stop a session. Also accepts `claude kill` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "deep-links.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "外部リンクから起動した際の警告表示が入力欄の下部に変更され、1,000文字を超える場合は文字数も表示されるようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -39,7 +39,7 @@ The platform that displays the link must allow custom URL schemes. GitHub-render",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A deep link never executes anything on its own. The link only chooses a directory and fills the prompt box. If you click a link from a page you do not trust, the prompt is still inert: nothing reaches the model until you read what was filled in and press Enter."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When the session opens, a banner above the input shows that an external link launched it and which directory it selected. For prompts over 1,000 characters, the banner tells you to scroll and review the full text before pressing Enter, since long prompts can push instructions off screen. Permission rules, `CLAUDE.md`, and trust prompts for the selected directory apply the same way as for any other session."
+            },
+            {
+              "type": "added",
+              "content": "When the session opens, a warning line below the input box reads `Prompt from an external link` and stays visible until you send or clear the prompt. For prompts over 1,000 characters, the warning includes the character count and tells you to scroll and review the full text before pressing Enter, since long prompts can push instructions off screen. Permission rules, `CLAUDE.md`, and trust prompts for the selected directory apply the same way as for any other session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Build a link"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -85,7 +85,7 @@ Use `repo` when the link is shared and each person clones to a different locatio",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- The lookup only finds paths where you have already run Claude Code at least once."
+            },
+            {
+              "type": "context",
+              "content": "- The link does not change which branch is checked out. The session opens in whatever state that directory is currently in."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The launched session shows which path it picked and when that clone last fetched from the remote, so you can tell if you are looking at stale code."
+            },
+            {
+              "type": "added",
+              "content": "The welcome header shows which path it picked so you can confirm the right clone opened."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Examples"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "MCPツール実行のタイムアウト設定において、設定ファイル内の個別フィールドで1000未満の値を指定した際の挙動が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -306,7 +306,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `MCP_REMOTE_SERVER_CONNECTION_BATCH_SIZE` | Maximum number of remote MCP servers (HTTP/SSE) to connect in parallel during startup (default: 20) |"
+            },
+            {
+              "type": "context",
+              "content": "| `MCP_SERVER_CONNECTION_BATCH_SIZE` | Maximum number of local MCP servers (stdio) to connect in parallel during startup (default: 3) |"
+            },
+            {
+              "type": "context",
+              "content": "| `MCP_TIMEOUT` | Timeout in milliseconds for MCP server startup (default: 30000, or 30 seconds) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `MCP_TOOL_TIMEOUT` | Timeout in milliseconds for MCP tool execution (default: 100000000, about 28 hours). A per-server `timeout` field in `.mcp.json` overrides this for that server. Values below 1000 are floored to one second |"
+            },
+            {
+              "type": "added",
+              "content": "| `MCP_TOOL_TIMEOUT` | Timeout in milliseconds for MCP tool execution (default: 100000000, about 28 hours). A per-server `timeout` field in `.mcp.json` overrides this for that server. For the env variable, values below 1000 are floored to one second; for the per-server field, values below 1000 are ignored |"
+            },
+            {
+              "type": "context",
+              "content": "| `NO_PROXY` | List of domains and IPs to which requests will be directly issued, bypassing proxy |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Emit Anthropic Messages API request and response JSON as `api_request_body` / `api_response_body` log events. Set to `1` for inline bodies truncated at 60 KB, or `file:<dir>` to write untruncated bodies to disk and emit a `body_ref` path instead. Disabled by default; bodies include the entire conversation history. See [Monitoring](/en/monitoring-usage#api-request-body-event) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_TOOL_CONTENT` | Set to `1` to include tool input and output content in OpenTelemetry span events. Disabled by default to protect sensitive data. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Microsoft 365やGoogle等のコネクタはローカル認証に非対応となったため、ウェブ版の設定画面へ誘導する案内が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -181,7 +181,7 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Claude Code will display a warning when MCP tool output exceeds 10,000 tokens. To increase this limit, set the `MAX_MCP_OUTPUT_TOKENS` environment variable (for example, `MAX_MCP_OUTPUT_TOKENS=50000`)"
+            },
+            {
+              "type": "context",
+              "content": "- Use `/mcp` to authenticate with remote servers that require OAuth 2.0 authentication"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The per-server `timeout` is a hard wall-clock limit per tool call, and progress notifications from the server do not extend it. Values below 1000 are floored to one second. For HTTP and SSE servers, the per-request fetch first-byte budget has a 60-second minimum regardless of this value, so only the tool-call watchdog honors smaller values."
+            },
+            {
+              "type": "added",
+              "content": "The per-server `timeout` is a hard wall-clock limit per tool call, and progress notifications from the server do not extend it. Values below 1000 are ignored and fall through to `MCP_TOOL_TIMEOUT`, or to its default of about 28 hours when that variable is unset. Before v2.1.162, values below 1000 were floored to one second instead. For HTTP and SSE servers, the per-request fetch first-byte budget has a 60-second minimum."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Plugin-provided MCP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -707,6 +707,8 @@ Claude.ai connectors are fetched only when your active [authentication method](/",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A server you've added in Claude Code takes [precedence](#scope-hierarchy-and-precedence) over a claude.ai connector that points at the same URL. When this happens, `/mcp` lists the connector as hidden and shows how to remove the duplicate if you'd rather use the connector."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Some Anthropic-hosted connectors, such as Microsoft 365, Gmail, and Google Calendar, do not support local OAuth from Claude Code because the upstream identity provider only accepts the redirect URL that claude.ai registered. From v2.1.162, authenticating one of these hosts in `/mcp` shows a message directing you to connect it at Settings → Connectors on claude.ai instead. Once connected there, the connector appears in Claude Code automatically."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To disable claude.ai MCP servers in Claude Code, set the `ENABLE_CLAUDEAI_MCP_SERVERS` environment variable to `false`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "memory.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "初期化コマンドの実行時に、Devinの設定ファイルである.devin/rules/も自動的に読み取ってCLAUDE.mdへ統合するようになりました。",
+      "hunks": [
+        {
+          "header": "@@ -137,7 +137,7 @@ ln -s AGENTS.md CLAUDE.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "On Windows, creating a symlink requires Administrator privileges or Developer Mode, so use the `@AGENTS.md` import instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Running [`/init`](/en/commands) in a repo that already has an `AGENTS.md` reads it and incorporates the relevant parts into the generated `CLAUDE.md`. It also reads other tool configs like `.cursorrules` and `.windsurfrules`."
+            },
+            {
+              "type": "added",
+              "content": "Running [`/init`](/en/commands) in a repo that already has an `AGENTS.md` reads it and incorporates the relevant parts into the generated `CLAUDE.md`. It also reads other tool configs like `.cursorrules`, `.devin/rules/`, and `.windsurfrules`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### How CLAUDE.md files load"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 5,
+      "deletions": 0,
+      "explanation": "モニタリング用のイベントにOpenTelemetry規格に準拠したIDフィールドが追加され、ツール実行の追跡が容易になりました。",
+      "hunks": [
+        {
+          "header": "@@ -206,6 +206,8 @@ Each retry attempt is also recorded as a `gen_ai.request.attempt` span event wit",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `result_tokens` | Approximate token size of the tool result | |"
+            },
+            {
+              "type": "context",
+              "content": "| `agent_id` | Identifier of the subagent or teammate that ran the tool. Absent on the main session | |"
+            },
+            {
+              "type": "context",
+              "content": "| `parent_agent_id` | Identifier of the agent that spawned this one. Absent for the main session and for agents spawned directly from it | |"
+            },
+            {
+              "type": "added",
+              "content": "| `tool_use_id` | The model's `tool_use` block id for this call. Matches the `tool_use_id` on the [tool\\_result](#tool-result-event) and [tool\\_decision](#tool-decision-event) events and in hook payloads, so you can join the span to those records | |"
+            },
+            {
+              "type": "added",
+              "content": "| `gen_ai.tool.call.id` | Same value as `tool_use_id`. OpenTelemetry GenAI semantic convention | |"
+            },
+            {
+              "type": "context",
+              "content": "| `file_path` | Target file path for Read, Edit, and Write tools | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `full_command` | Command string for the Bash tool | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": "| `skill_name` | Skill name for the Skill tool | `OTEL_LOG_TOOL_DETAILS` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -226,6 +228,8 @@ When `OTEL_LOG_TOOL_CONTENT=1`, this span also records a `tool.output` span even",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Attribute | Description | Gated by |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `duration_ms` | Time spent running the tool body | |"
+            },
+            {
+              "type": "added",
+              "content": "| `tool_use_id` | Same value as on the parent `claude_code.tool` span | |"
+            },
+            {
+              "type": "added",
+              "content": "| `gen_ai.tool.call.id` | Same value as `tool_use_id`. OpenTelemetry GenAI semantic convention | |"
+            },
+            {
+              "type": "context",
+              "content": "| `success` | `true` or `false` | |"
+            },
+            {
+              "type": "context",
+              "content": "| `error` | Error category string when execution failed, such as `Error:ENOENT` or `ShellError`. Contains the full error message instead when the gate is set | `OTEL_LOG_TOOL_DETAILS` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -811,6 +815,7 @@ Logged when a skill is invoked, whether Claude calls it through the Skill tool o",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `skill.name`: Name of the skill. For user-defined and third-party plugin skills the value is the placeholder `\"custom_skill\"` unless `OTEL_LOG_TOOL_DETAILS=1`"
+            },
+            {
+              "type": "context",
+              "content": "- `invocation_trigger`: How the skill was triggered (`\"user-slash\"`, `\"claude-proactive\"`, or `\"nested-skill\"`)"
+            },
+            {
+              "type": "context",
+              "content": "- `skill.source`: Where the skill was loaded from (for example, `\"bundled\"`, `\"userSettings\"`, `\"projectSettings\"`, `\"plugin\"`)"
+            },
+            {
+              "type": "added",
+              "content": "- `skill.kind`: `\"workflow\"` when the skill is a workflow skill. Absent otherwise"
+            },
+            {
+              "type": "context",
+              "content": "- `plugin.name` (when `OTEL_LOG_TOOL_DETAILS=1` or the plugin is from an official marketplace): Name of the owning plugin when the skill is provided by a plugin"
+            },
+            {
+              "type": "context",
+              "content": "- `marketplace.name` (when `OTEL_LOG_TOOL_DETAILS=1` or the plugin is from an official marketplace): Marketplace the owning plugin was installed from, when the skill is provided by a plugin"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 5,
+      "deletions": 2,
+      "explanation": "WebFetch機能において一部のドキュメントドメインが事前承認されたほか、許可・拒否ルールの優先順位に関する説明が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -173,7 +173,8 @@ The LSP tool gives Claude code intelligence from a running language server. Afte",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Jump to a symbol's definition"
+            },
+            {
+              "type": "context",
+              "content": "- Find all references to a symbol"
+            },
+            {
+              "type": "context",
+              "content": "- Get type information at a position"
+            },
+            {
+              "type": "removed",
+              "content": "- List symbols in a file or workspace"
+            },
+            {
+              "type": "added",
+              "content": "- List symbols in a file"
+            },
+            {
+              "type": "added",
+              "content": "- Search for a symbol by name across the workspace"
+            },
+            {
+              "type": "context",
+              "content": "- Find implementations of an interface"
+            },
+            {
+              "type": "context",
+              "content": "- Trace call hierarchies"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -274,7 +275,9 @@ A few behaviors shape the response Claude receives:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Responses are cached for 15 minutes, so repeated fetches of the same URL return quickly."
+            },
+            {
+              "type": "context",
+              "content": "- When a URL redirects to a different host, WebFetch returns a text result that names the original URL and the redirect target instead of following it. Claude then fetches the new URL with a second WebFetch call."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In the default and `acceptEdits` permission modes, WebFetch prompts the first time it reaches a new domain. To allow a domain in advance without a prompt, add a permission rule like `WebFetch(domain:example.com)`. The `auto` and `bypassPermissions` [permission modes](/en/permissions#permission-modes) skip the prompt entirely."
+            },
+            {
+              "type": "added",
+              "content": "In the default and `acceptEdits` permission modes, WebFetch prompts the first time it reaches a new domain, except for a built-in set of preapproved documentation domains that fetch without a prompt. To allow another domain in advance without a prompt, add a permission rule like `WebFetch(domain:example.com)`. The `auto` and `bypassPermissions` [permission modes](/en/permissions#permission-modes) skip the prompt entirely."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "An explicit `WebFetch(domain:...)` rule in `deny`, `ask`, or `allow` takes precedence over the preapproved set, so you can block a preapproved domain or require a prompt for it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "WebFetch sets a `User-Agent` header beginning with `Claude-User`, and an `Accept` header that prefers Markdown over HTML so servers that support content negotiation can return Markdown directly. [Sandbox](/en/sandboxing) network rules are configured separately, so a domain you want a sandboxed process to reach still needs an explicit sandbox permission rule."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
