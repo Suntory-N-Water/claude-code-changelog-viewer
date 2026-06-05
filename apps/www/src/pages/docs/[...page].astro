@@ -30,11 +30,21 @@ type Props = {
     }[];
     currentPage: number;
     lastPage: number;
-    url: { prev?: string; next?: string };
+    url: { first?: string; prev?: string; next?: string };
   };
 };
 
 const { page } = Astro.props;
+
+const firstPageUrl = page.url.first ?? '/docs';
+const pageUrlBase = firstPageUrl.replace(/\/$/, '');
+const paginationPages = Array.from({ length: page.lastPage }, (_, index) => {
+  const pageNumber = index + 1;
+  return {
+    number: pageNumber,
+    url: pageNumber === 1 ? firstPageUrl : `${pageUrlBase}/${pageNumber}`,
+  };
+});
 
 const pageNum = page.currentPage > 1 ? ` (${page.currentPage}ページ目)` : '';
 const pageTitle = `公式ドキュメント更新履歴${pageNum}`;
@@ -113,41 +123,78 @@ const pageDescription =
       page.lastPage > 1 && (
         <nav
           aria-label='ページナビゲーション'
-          class='flex items-center justify-between mt-10 pt-6 border-t border-[hsl(var(--cc-gray))]'
+          class='flex items-center justify-between gap-3 mt-10 pt-6 border-t border-[hsl(var(--cc-gray))]'
         >
-          <div>
+          <div class='shrink-0'>
             {page.url.prev ? (
               <a
                 href={page.url.prev}
-                class='inline-flex items-center justify-center w-9 h-9 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.5)] hover:border-[hsl(var(--cc-main-orange)/0.4)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+                class='inline-flex items-center justify-center w-11 h-11 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.55)] hover:border-[hsl(var(--cc-main-orange)/0.45)] hover:text-[hsl(var(--cc-main-orange))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)] transition-colors'
               >
                 <span class='sr-only'>新しい更新へ</span>
                 <Icon name='arrow-left' class='w-4 h-4' aria-hidden='true' />
               </a>
             ) : (
-              <span />
+              <span class='block w-11 h-11' aria-hidden='true' />
             )}
           </div>
 
-          <span class='text-xs text-[hsl(var(--cc-main-black)/0.4)] tabular-nums'>
-            {page.currentPage} / {page.lastPage}
-          </span>
+          <div class='relative min-w-0'>
+            <label for='docs-page-select' class='sr-only'>
+              表示するページ
+            </label>
+            <select
+              id='docs-page-select'
+              data-docs-pagination-select
+              class='w-36 sm:w-40 h-11 appearance-none rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] px-4 pr-10 text-center text-sm font-medium tabular-nums text-[hsl(var(--cc-main-black)/0.72)] cursor-pointer hover:border-[hsl(var(--cc-main-orange)/0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)] transition-colors'
+            >
+              {paginationPages.map((paginationPage) => (
+                <option
+                  value={paginationPage.url}
+                  selected={paginationPage.number === page.currentPage}
+                >
+                  {paginationPage.number} / {page.lastPage} ページ
+                </option>
+              ))}
+            </select>
+            <Icon
+              name='chevron-down'
+              class='pointer-events-none absolute right-3 top-1/2 w-4 h-4 -translate-y-1/2 text-[hsl(var(--cc-main-black)/0.42)]'
+              aria-hidden='true'
+            />
+          </div>
 
-          <div>
+          <div class='shrink-0'>
             {page.url.next ? (
               <a
                 href={page.url.next}
-                class='inline-flex items-center justify-center w-9 h-9 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.5)] hover:border-[hsl(var(--cc-main-orange)/0.4)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+                class='inline-flex items-center justify-center w-11 h-11 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] text-[hsl(var(--cc-main-black)/0.55)] hover:border-[hsl(var(--cc-main-orange)/0.45)] hover:text-[hsl(var(--cc-main-orange))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--cc-main-orange)/0.45)] transition-colors'
               >
                 <span class='sr-only'>古い更新へ</span>
                 <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
               </a>
             ) : (
-              <span />
+              <span class='block w-11 h-11' aria-hidden='true' />
             )}
           </div>
         </nav>
       )
     }
   </div>
+
+  <script>
+    document.addEventListener('change', (event) => {
+      const target = event.target;
+      if (
+        !(target instanceof HTMLSelectElement) ||
+        !target.matches('[data-docs-pagination-select]')
+      ) {
+        return;
+      }
+
+      if (target.value) {
+        window.location.href = target.value;
+      }
+    });
+  </script>
 </Layout>
