@@ -1,0 +1,23 @@
+{
+  "key": "API_FORCE_IDLE_TIMEOUT",
+  "leaf_name": "API_FORCE_IDLE_TIMEOUT",
+  "slug": "api-force-idle-timeout",
+  "source": "env",
+  "description_en": "Override the 5-minute idle timeout that aborts a streaming model response when no bytes arrive. Set to 0 to disable the timeout, for example when a slow gateway or local model pauses longer than 5 minutes between chunks. Set to 1 to keep the timeout on every provider. When unset, the timeout is inactive on direct Anthropic API and Claude Platform on AWS connections, where Claude Code's own byte-level stream watchdog runs, and active on every other provider, including Vertex AI, Foundry, Mantle, Bedrock, and gateway connections, so a stalled stream aborts instead of hanging. As of v2.1.169",
+  "description_ja": "ストリーミングレスポンスでデータが届かない場合に、5分で処理を中断するアイドルタイムアウト設定を上書きします。",
+  "use_case_ja": "- ゲートウェイの遅延やローカルモデルの推論が非常に遅く、レスポンスの合間が5分を超えてしまう場合に、タイムアウトを無効化（0を設定）してセッションが切れるのを防ぎます。\n- ネットワークの不調でストリームが停止したままフリーズするのを防ぐため、標準でタイムアウトが有効でないプロバイダーに対しても強制的に有効化（1を設定）できます。\n- Vertex AIやBedrockなどの環境で、応答が途絶えた際に適切にエラーとして中断・復帰させることで、レジリエンスを向上させます。",
+  "parent_descriptions": [],
+  "doc_snippets": [],
+  "related_changelog": [
+    {
+      "version": "2.1.169",
+      "content": "- Restored a default 5-minute idle timeout on Vertex/Foundry so a stalled stream aborts instead of hanging indefinitely; set `API_FORCE_IDLE_TIMEOUT=0` to opt out",
+      "content_ja": "Vertex/Foundry環境において、ストリームが停止したままになるのを防ぐため、5分間のデフォルトアイドルタイムアウトを復元",
+      "inference": {
+        "before": "特定のクラウドプロバイダー環境で、ストリーミングが途絶えた際に永遠に待ち続けてしまい、セッションがフリーズしたようになることがありました。",
+        "after": "5分間のタイムアウトが標準で適用されるようになり、問題発生時に適切に処理を中断・復帰できるようになりました。",
+        "benefit": "ネットワークやAPIの一時的な不調で作業が完全に止まってしまうのを防ぎ、レジリエンスが向上します。"
+      }
+    }
+  ]
+}

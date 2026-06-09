@@ -1,0 +1,25 @@
+{
+  "key": "CLAUDE_CODE_SAFE_MODE",
+  "leaf_name": "CLAUDE_CODE_SAFE_MODE",
+  "slug": "claude-code-safe-mode",
+  "source": "env",
+  "description_en": "Set to 1 to start in safe mode: CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, custom keybindings, status line and file-suggestion commands, LSP servers, and auto-memory do not load, for troubleshooting a broken configuration. Managed settings policy still applies, including policy-configured hooks, status line, and file-suggestion commands; managed plugins, managed skills, managed CLAUDE.md, and policy-configured MCP servers do not. Equivalent to passing --safe-mode. Directly spawned child processes inherit the variable",
+  "description_ja": "すべてのカスタマイズ（CLAUDE.md、スキル、プラグイン、MCPサーバー等）を無効化したセーフモードで起動します。",
+  "use_case_ja": "- 設定ファイルや導入したプラグインが原因で Claude Code が正常に動作しない場合の切り分けとトラブルシューティングに使用します。\n- ユーザー設定を一時的に無視したクリーンな状態で起動し、不具合の原因がツール本体にあるのかカスタマイズにあるのかを素早く特定できます。\n- フォールバックの動作確認など、意図しない設定の干渉を排除して動作を検証したい場合に役立ちます。",
+  "parent_descriptions": [],
+  "doc_snippets": [
+    "| --remote-control-session-name-prefix | Prefix for auto-generated Remote Control session names when no explicit name is set. Defaults to your machine's hostname, producing names like myhost-graceful-unicorn . Set CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX for the same effect | claude remote-control --remote-control-session-name-prefix dev-box | | --replay-user-messages | Re-emit user messages from stdin back on stdout for acknowledgment. Requires --input-format stream-json and --output-format stream-json | claude -p --input-format stream-json --output-format stream-json --verbose --replay-user-messages | | --resume , -r | Resume a specific session by ID or name, or show an interactive picker to choose a session. Includes sessions that added this directory with /add-dir . As of v2.1.144, background sessions appear in the picker marked with bg | claude --resume auth-refactor | | --safe-mode | Start with all customizations disabled to troubleshoot a broken configuration: CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, custom keybindings, status line and file-suggestion commands, LSP servers, and auto-memory do not load. Authentication, model selection, built-in tools, and permissions work normally, which differs from --bare . Managed settings policy still applies, including policy-configured hooks, status line, and file-suggestion commands; managed plugins, managed skills, managed CLAUDE.md, and policy-configured MCP servers do not. Useful for checking whether a customization is what triggers automatic fallback from Fable 5 . Sets CLAUDE_CODE_SAFE_MODE | claude --safe-mode | | --session-id | Use a specific session ID for the conversation (must be a valid UUID) | claude --session-id \"550e8400-e29b-41d4-a716-446655440000\" | | --setting-sources | Comma-separated list of setting sources to load ( user , project , local ) | claude --setting-sources user,project | | --settings | Path to a settings JSON file or an inline JSON string. Values you set here override the same keys in your settings.json files for this session. Keys you omit keep their file-based values. See settings precedence | claude --settings ./settings.json |"
+  ],
+  "related_changelog": [
+    {
+      "version": "2.1.169",
+      "content": "- Added `--safe-mode` flag (and `CLAUDE_CODE_SAFE_MODE`) to start Claude Code with all customizations (CLAUDE.md, plugins, skills, hooks, MCP servers) disabled for troubleshooting",
+      "content_ja": "トラブルシューティング用にすべてのカスタマイズ（CLAUDE.md、プラグイン、スキル、フック、MCPサーバー）を無効にして起動する `--safe-mode` フラグを追加",
+      "inference": {
+        "before": "トラブルシューティングを行う際、CLAUDE.mdの指示や多数のプラグイン、MCPサーバーが干渉して問題の切り分けが困難になることがありました。",
+        "after": "`--safe-mode` フラグ（または環境変数 `CLAUDE_CODE_SAFE_MODE`）を使用することで、すべてのカスタマイズを一時的に無効化したクリーンな状態で起動できます。",
+        "benefit": "不具合の原因が自分の設定にあるのか、ツール本体にあるのかを素早く特定できるようになり、問題解決のスピードが向上します。"
+      }
+    }
+  ]
+}
