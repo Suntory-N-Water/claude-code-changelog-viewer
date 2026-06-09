@@ -81,7 +81,7 @@ When the hint passes all checks, Claude Code shows a prompt like the following:
 
 ```text
 ─────────────────────────────────────────────────────────────
-  Plugin Recommendation
+  Plugin recommendation
 
     The example-cli command suggests installing a plugin.
 
