@@ -19,19 +19,19 @@ To install Claude Code, use one of the following methods:
 
 **macOS, Linux, WSL:**
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 **Windows PowerShell:**
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 irm https://claude.ai/install.ps1 | iex
 ```
 
 **Windows CMD:**
 
-```batch theme={null}
+```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd
 ```
 
@@ -41,7 +41,7 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS
 
 Native installations automatically update in the background to keep you on the latest version.
 
-```bash theme={null}
+```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 brew install --cask claude-code
 ```
 
@@ -49,7 +49,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic
 
 Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes.
 
-```powershell theme={null}
+```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}
 winget install Anthropic.ClaudeCode
 ```
 
@@ -160,7 +160,7 @@ Sessions aren't tied to a single surface. Move work between environments as your
 
 - Step away from your desk and keep working from your phone or any browser with [Remote Control](/en/remote-control)
 - Message [Dispatch](/en/desktop#sessions-from-dispatch) a task from your phone and open the Desktop session it creates
-- Kick off a long-running task on the [web](/en/claude-code-on-the-web) or [iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684), then pull it into your terminal with `claude --teleport`
+- Kick off a long-running task on the [web](/en/claude-code-on-the-web) or [iOS app](https://apps.apple.com/app/claude-by-anthropic/id6473753684), then pull it into your terminal with `claude --teleport`. Teleport requires a claude.ai subscription.
 - Hand off a terminal session to the [Desktop app](/en/desktop) with `/desktop` for visual diff review
 - Route tasks from team chat: mention `@Claude` in [Slack](/en/slack) with a bug report and get a pull request back
 

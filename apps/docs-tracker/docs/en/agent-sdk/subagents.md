@@ -162,7 +162,7 @@ Focus on:
 | `prompt` | `string` | Yes | The agent's system prompt defining its role and behavior |
 | `tools` | `string[]` | No | Array of allowed tool names. If omitted, inherits all tools |
 | `disallowedTools` | `string[]` | No | Array of tool names to remove from the agent's tool set |
-| `model` | `string` | No | Model override for this agent. Accepts an alias such as `'sonnet'`, `'opus'`, `'haiku'`, `'inherit'`, or a full model ID. Defaults to main model if omitted |
+| `model` | `string` | No | Model override for this agent. Accepts an alias such as `'fable'`, `'opus'`, `'sonnet'`, `'haiku'`, `'inherit'`, or a full model ID. Defaults to main model if omitted |
 | `skills` | `string[]` | No | List of skill names to preload into the agent's context at startup. Unlisted skills remain invocable through the Skill tool |
 | `memory` | `'user' \| 'project' \| 'local'` | No | Memory source for this agent |
 | `mcpServers` | `(string \| object)[]` | No | MCP servers available to this agent, by name or inline config |
