@@ -144,7 +144,7 @@ Where you define a hook determines its scope:
 | :- | :- | :- |
 | `~/.claude/settings.json` | All your projects | No, local to your machine |
 | `.claude/settings.json` | Single project | Yes, can be committed to the repo |
-| `.claude/settings.local.json` | Single project | No, gitignored |
+| `.claude/settings.local.json` | Single project | No, gitignored when Claude Code creates it |
 | Managed policy settings | Organization-wide | Yes, admin-controlled |
 | [Plugin](/en/plugins) `hooks/hooks.json` | When plugin is enabled | Yes, bundled with the plugin |
 | [Skill](/en/skills) or [agent](/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file |

@@ -163,6 +163,8 @@ Check the three locations a `claude` binary can come from. `~/.local/bin/claude`
 ls -la ~/.local/bin/claude
 ```
 
+If either `ls` command prints `No such file or directory`, that's not an error. It means nothing is installed at that location, so move on to the next check.
+
 ```bash theme={null}
 ls -la ~/.claude/local/
 ```
