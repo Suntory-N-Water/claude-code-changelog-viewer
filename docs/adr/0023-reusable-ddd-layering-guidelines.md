@@ -6,7 +6,7 @@ Proposed
 
 ## Context
 
-このリポジトリでは、notification-worker と changelog-fetcher で Functional DDD の導入を進めてきた。ADR 0016-0018 では notification-worker、ADR 0019-0022 では changelog-fetcher を対象に、`domain` / `application` / `infrastructure` / entrypoint の分離、port の使い方、DTO と外部 JSON 契約の扱いを整理した。
+このリポジトリでは、notification-worker と changelog-fetcher で Functional DDD の導入を進めてきた。ADR 0016-0018 では notification-worker、ADR 0019-0022 では changelog-fetcher を対象に、ドメイン層 / ユースケース層 / インフラ層 / エントリポイントの分離、port の使い方、DTO と外部 JSON 契約の扱いを整理した。
 
 ただし、これらの ADR には対象プロジェクト固有の語彙が多く含まれる。今後、別の CLI、Worker、バッチ処理、データ生成ツールでも DDD を使う場合に、同じ判断を再利用できるよう、プロジェクト非依存の層分類ガイドラインを残す。
 
@@ -16,9 +16,9 @@ Proposed
 
 ### 解決したい課題
 
-- 「domain に置くべきか infrastructure に置くべきか」の判断が、対象プロジェクトの具体例に引きずられやすい
-- 純粋関数なら domain、外部 API なら infrastructure のような単純化で誤分類が起きる
-- application service に usecase 進行と domain rule が混ざり、後から説明しづらくなる
+- 「ドメイン層に置くべきかインフラ層に置くべきか」の判断が、対象プロジェクトの具体例に引きずられやすい
+- 純粋関数ならドメイン層、外部 API ならインフラ層のような単純化で誤分類が起きる
+- ユースケース層に usecase 進行と domain rule が混ざり、後から説明しづらくなる
 - DTO、外部 JSON 契約、AI 応答 schema、domain snapshot の境界が曖昧になりやすい
 - port や helper を増やす判断が抽象化そのものを目的にしてしまう
 
@@ -40,7 +40,16 @@ Proposed
 
 ## Decision
 
-**DDD の層分類は、対象プロジェクトの前提条件を明示したうえで、domain / application / infrastructure / entrypoint の責務として判断する。具体例は前提条件なしに一般化しない。**
+**DDD の層分類は、対象プロジェクトの前提条件を明示したうえで、ドメイン層 / ユースケース層 / インフラ層 / エントリポイントの責務として判断する。具体例は前提条件なしに一般化しない。**
+
+本 ADR では以下の層の呼び方とディレクトリ名を対応させる。
+
+| 層の呼び方 | ディレクトリ名 | 説明 |
+|------------|---------------|------|
+| ドメイン層 | `domain/` | 業務ルール・不変条件・状態遷移を置く |
+| ユースケース層 | `application/` | usecase の進行管理を置く(DDD の Application layer / Clean Architecture の Use Case layer に相当) |
+| インフラ層 | `infrastructure/` | 外部形式・技術基盤・副作用を置く |
+| エントリポイント | プロジェクトごとに決める | 実行環境への接続だけを置く |
 
 ### 1. まず対象プロジェクトの前提条件を明示する
 
@@ -54,25 +63,36 @@ Proposed
 | 守りたい判断 | 分類、重複判定、状態遷移、優先順位、権限制御、通知可否、公開可否など |
 | 変わりやすい技術詳細 | 保存先、外部 API、ファイル形式、SDK、AI provider、ログ基盤など |
 
-この前提がないまま「この関数は domain」と決めない。
+この前提がないまま「この関数はドメイン層」と決めない。
 
-### 2. domain は入力形式を変えても残る判断を置く
+### 2. ドメイン層は入力形式を変えても残る判断を置く
 
-domain には、対象プロジェクトが守りたい業務上の不変条件、分類、重複判定、優先順位、状態遷移を置く。実装が純粋関数であることは domain の十分条件ではない。重要なのは、その判断が技術形式や保存形式を変えても残るかである。
+ドメイン層には、対象プロジェクトが守りたい業務上の不変条件、分類、重複判定、優先順位、状態遷移を置く。実装が純粋関数であることはドメイン層の十分条件ではない。重要なのは、その判断が技術形式や保存形式を変えても残るかである。
 
-ただし、「入力形式を変えても残るか」は有力なヒューリスティックであり、唯一の条件ではない。最終的には、その判断が対象ドメインの問題解決に必要な知識であり、ドメインの言葉で説明できるかを確認する。逆に、Markdown、CSV、JSON、帳票、特定ファイル形式のように技術形式に見えるものでも、利用者が業務上その形式を概念として扱うなら domain に含まれる可能性がある。
+ただし、「入力形式を変えても残るか」は有力なヒューリスティックであり、唯一の条件ではない。最終的には、その判断が対象ドメインの問題解決に必要な知識であり、ドメインの言葉で説明できるかを確認する。逆に、Markdown、CSV、JSON、帳票、特定ファイル形式のように技術形式に見えるものでも、利用者が業務上その形式を概念として扱うならドメイン層に含まれる可能性がある。
 
-また、「入力形式を変えても残るか」だけでは application との区別がつかないことがある。追加の判断軸として「それはドメインの不変条件・業務ルールか、それとも usecase の進行管理か」を合わせて確認する。
+また、「入力形式を変えても残るか」だけではユースケース層との区別がつかないことがある。追加の判断軸として「それはドメインの不変条件・業務ルールか、それとも usecase の進行管理か」を合わせて確認する。
 
 #### ドメインモデル貧血症に注意する
 
-Functional DDD で純粋関数ベースのアプローチを採用する場合、domain の業務ルールをすべてドメインサービス相当の関数に切り出し続けると、domain 型がデータを保持するだけの入れ物になる(ドメインモデル貧血症)。データとふるまいが断絶し、ロジックが散在して変更コストが高くなる。
+Functional DDD で純粋関数ベースのアプローチを採用する場合、ドメイン層の業務ルールをすべてドメインサービス相当の関数に切り出し続けると、domain 型がデータを保持するだけの入れ物になる(ドメインモデル貧血症)。データとふるまいが断絶し、ロジックが散在して変更コストが高くなる。
 
-ふるまいの配置に迷った場合は、まず domain 型(値オブジェクト・エンティティ相当の型)にロジックを持たせることを検討する。複数オブジェクトを横断する処理など、特定の型に持たせると不自然になるものに限って、ドメインサービス相当の関数として切り出す。
+ふるまいの配置に迷った場合は、まず domain 型(値オブジェクト・エンティティ相当の型)にロジックを持たせることを検討する。複数オブジェクトを横断する処理など、特定の型に持たせると不自然になるものに限って、ドメインサービス相当の関数として切り出す。ドメインサービス相当の関数は最後の手段として位置付ける。
+
+ここで「ドメインサービス相当の関数」とは、単一の domain 型に自然に属さない複数オブジェクトを横断する業務ルール(重複判定、複数エンティティ間の整合性検証など)を置くドメイン層の純粋関数を指す。OOP DDD のドメインサービスに対応するが、Functional DDD では状態を持たない純粋関数として実装する。
+
+#### Functional DDD における値オブジェクトとエンティティの区別
+
+OOP DDD では値オブジェクト(等価性で識別・不変)とエンティティ(同一性で識別・ライフサイクルを持つ可変)を明確に区別する。Functional DDD でこれを実装するときの指針は以下のとおりである。
+
+- **値オブジェクト相当の型**: 同じフィールド値を持つ 2 つのオブジェクトは同一とみなす。不変として扱い、変更時は新しい値を返す。TypeScript では `readonly` なレコード型で表現する。
+- **エンティティ相当の型**: ID フィールドによって同一性を判断する。ライフサイクル(生成・更新・削除)を domain 関数または domain ファクトリが管理する。フィールドを更新するときはスプレッド構文などで新しいオブジェクトを返す。
+
+どちらを選ぶかは「業務上、値が変わっても同じものか(エンティティ)、値が変わったら別ものか(値オブジェクト)」で判断する。詳細な実装ガイドは各プロジェクトの ADR で決める。
 
 ```ts
 // 前提: 対象プロジェクトでは「同じ key は一度だけ扱う」ことが業務ルールである。
-// 判断: 入力が Markdown でも JSON でも DB record でも残るため domain。
+// 判断: 入力が Markdown でも JSON でも DB record でも残るためドメイン層。
 export function dedupeByBusinessKey<T extends { key: string }>(items: T[]): T[] {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -85,7 +105,7 @@ export function dedupeByBusinessKey<T extends { key: string }>(items: T[]): T[] 
 
 ```ts
 // 前提: 対象プロジェクトでは "- " で始まる行だけを項目として読む入力形式を採用している。
-// 判断: Markdown の読み方であり、入力形式を JSON に変えると消えるため infrastructure。
+// 判断: Markdown の読み方であり、入力形式を JSON に変えると消えるためインフラ層。
 export function parseMarkdownListItems(markdown: string): string[] {
   return markdown
     .split("\n")
@@ -93,17 +113,19 @@ export function parseMarkdownListItems(markdown: string): string[] {
 }
 ```
 
-### 3. application は usecase の進行を置く
+### 3. ユースケース層(application)はユースケースの進行を置く
 
-application は、domain の判断と infrastructure の外部能力を組み合わせて usecase を完了させる層である。ここには、どの port を呼ぶか、retry するか、既存結果を再利用するか、どのタイミングで保存するかを置く。
+ユースケース層は、ドメイン層の判断とインフラ層の外部能力を組み合わせて usecase を完了させる層である。ここには、どの port を呼ぶか、retry するか、既存結果を再利用するか、どのタイミングで保存するかを置く。
 
-application がやってはいけないことを明示する。
+**トランザクション境界はユースケース層の責務である。** 1 回のトランザクションで変更する集約は原則 1 つとする。複数の集約をまたぐ変更が必要な場合は、結果整合性(eventual consistency)の設計を検討する。トランザクション範囲を集約単位に限定することで、ロック競合による処理失敗を防ぐ。
 
-- **domain rule を自ら記述しない。** 業務上の不変条件・分類・重複判定・状態遷移は domain 関数へ委譲する。application が domain object の内部状態を細かく組み立て続けると、domain rule が application に漏れる。
+ユースケース層がやってはいけないことを明示する。
+
+- **domain rule を自ら記述しない。** 業務上の不変条件・分類・重複判定・状態遷移は domain 関数へ委譲する。ユースケース層が domain object の内部状態を細かく組み立て続けると、domain rule がユースケース層に漏れる。
 
 ```ts
 // 前提: 対象プロジェクトでは、外部 AI の結果を既存分析へ反映する usecase がある。
-// 判断: AI batch id と元データの対応付けは usecase 進行なので application。
+// 判断: AI batch id と元データの対応付けは usecase 進行なのでユースケース層(application/)。
 // ただし、分析済み item がどの状態へ更新されるかは domain 状態遷移に委ねる。
 export async function applyExternalInference(input: {
   batch: InferenceBatch;
@@ -118,18 +140,18 @@ export async function applyExternalInference(input: {
 }
 ```
 
-### 4. infrastructure は外部形式と技術基盤を置く
+### 4. インフラ層(infrastructure)は外部形式と技術基盤を置く
 
-infrastructure には、DB、filesystem、HTTP、SDK、AI provider、Markdown parser、JSON schema、snake_case / camelCase 変換、Date 文字列変換などを置く。
+インフラ層には、DB、filesystem、HTTP、SDK、AI provider、Markdown parser、JSON schema、snake_case / camelCase 変換、Date 文字列変換などを置く。
 
-外部データから domain object を再構築するために、infrastructure が domain factory や domain の純粋関数を呼ぶことは許容する。ただし、重要な domain policy を adapter の内部事情として隠さない。policy として説明したい判断は domain に置き、application から見える形で使うことを検討する。
+外部データから domain object を再構築するために、インフラ層が domain factory や domain の純粋関数を呼ぶことは許容する。ただし、重要な domain policy を adapter の内部事情として隠さない。policy として説明したい判断はドメイン層に置き、ユースケース層から見える形で使うことを検討する。
 
-domain type ↔ 外部 JSON 契約の変換(snake_case 変換、スキーマ整形、branded type の解除など)は infrastructure のシリアライザーに置く。entrypoint が domain 型のフィールドに逐一アクセスしてこの変換を書くのは infrastructure の仕事が entrypoint に漏れている状態であり、domain のフィールド名変更が entrypoint まで波及する原因になる。
+domain type ↔ 外部 JSON 契約の変換(snake_case 変換、スキーマ整形、branded type の解除など)はインフラ層のシリアライザーに置く。エントリポイントが domain 型のフィールドに逐一アクセスしてこの変換を書くのはインフラ層の仕事がエントリポイントに漏れている状態であり、domain のフィールド名変更がエントリポイントまで波及する原因になる。
 
 ```ts
 // 前提: 保存ファイルは snake_case JSON、アプリ内部は camelCase の domain 型を使う。
-// 判断: snake_case 変換と外部スキーマ整形は保存契約なので infrastructure のシリアライザーに置く。
-// infrastructure が domain factory を呼んで domain object を再構築することも許容する。
+// 判断: snake_case 変換と外部スキーマ整形は保存契約なのでインフラ層のシリアライザーに置く。
+// インフラ層が domain factory を呼んで domain object を再構築することも許容する。
 export function toStoredJson(analysis: ChangelogAnalysis): StoredAnalysis {
   return {
     version: toVersionNumber(analysis.version),           // domain 関数を呼ぶ
@@ -152,13 +174,13 @@ export function fromStoredJson(stored: StoredAnalysis): ChangelogAnalysis {
 }
 ```
 
-### 5. entrypoint は実行環境への接続だけを置く
+### 5. エントリポイントは実行環境への接続だけを置く
 
-entrypoint は、CLI、HTTP route、queue handler、cron handler、test fixture runner などの入口である。ここには argv / env / request / response / exit code / wiring / 表示ログを置く。
+エントリポイントは、CLI、HTTP route、queue handler、cron handler、test fixture runner などの入口である。ここには argv / env / request / response / exit code / wiring / 表示ログを置く。エントリポイントの責務は「実行環境から受け取った入力を解釈し、usecase を起動し、結果を環境に返す」ことに徹する。
 
-entrypoint に domain rule を置かない。entrypoint でしか使わない変換でも、外部契約の変換なら infrastructure、usecase input の組み立てなら application 境界として扱う。
+エントリポイントに domain rule を置かない。エントリポイントでしか使わない変換でも、外部契約の変換ならインフラ層、usecase input の組み立てならユースケース層の境界として扱う。エントリポイントに業務ルールや変換ロジックが混在すると、実行環境が変わったとき(例: CLI から HTTP route への移行)に業務ルールを移植する必要が生じ、変更コストが高くなる。
 
-entrypoint は domain 型のフィールドに直接アクセスして変換処理を書かない。domain 型 ↔ 外部 JSON 契約の変換(snake_case 変換・スキーマ整形)は infrastructure のシリアライザーに置く。entrypoint が変換を書くと domain のフィールド名変更が entrypoint まで波及する。
+エントリポイントは domain 型のフィールドに直接アクセスして変換処理を書かない。domain 型 ↔ 外部 JSON 契約の変換(snake_case 変換・スキーマ整形)はインフラ層のシリアライザーに置く。エントリポイントが変換を書くと domain のフィールド名変更がエントリポイントまで波及する。
 
 ### 6. DTO と外部契約は公開範囲で分類する
 
@@ -167,37 +189,50 @@ DTO は domain object ではない。DTO の置き場所は「誰との契約か
 | DTO の種類 | 置き場所 | 判断理由 |
 |------------|----------|----------|
 | 他アプリも読む保存 JSON 契約 | shared package または contract package | 公開契約であり、複数プロジェクトが依存する |
-| そのアプリ内部だけの外部 API response | infrastructure | provider や SDK の応答形式に依存する |
-| usecase の入力・出力 | application | usecase 境界の入れ物であり、domain rule ではない |
-| domain snapshot | domain | 不変条件や状態遷移の対象として扱う値である |
+| そのアプリ内部だけの外部 API response | インフラ層(`infrastructure/`) | provider や SDK の応答形式に依存する |
+| usecase の入力・出力 | ユースケース層(`application/`) | usecase 境界の入れ物であり、domain rule ではない |
+| domain snapshot | ドメイン層(`domain/`) | 不変条件や状態遷移の対象として扱う値である |
 
 特定プロジェクトで shared package を使う場合も、内部 provider 応答 schema を shared package に置かない。shared package に置くのは、他プロジェクトが読むことを約束した契約だけにする。
 
 ### 7. port は依存を逆転させるために置く
 
-domain と application は infrastructure に直接依存しない。infrastructure の変更がビジネスロジックに波及することを防ぎ、テストで差し替えられる状態を保つために、port(interface)を介して依存の方向を逆転させる。
+ドメイン層とユースケース層はインフラ層に直接依存しない。インフラ層の変更がビジネスロジックに波及することを防ぎ、テストで差し替えられる状態を保つために、port(interface)を介して依存の方向を逆転させる。
 
 ```
-application → port (interface) ← infrastructure (実装)
+ユースケース層(application/) → port (interface) ← インフラ層(infrastructure/)の実装
 ```
 
-domain は port すら呼ばない。port を呼ぶのは application だけである。domain は純粋関数として引数を受け取り値を返すだけで、外部への依存を持たない。
+ドメイン層は port すら呼ばない。port を呼ぶのはユースケース層だけである。ドメイン層は純粋関数として引数を受け取り値を返すだけで、外部への依存を持たない。
+
+これは OOP DDD との意図的な違いである。OOP DDD ではドメインサービスが port(リポジトリ)越しに問い合わせることを許容するが、Functional DDD でこれを禁止するのはドメイン関数の純粋性を保つためである。複数オブジェクトを横断するドメインルール(例: 重複判定)は、ユースケース層が repository 経由でデータを取得したうえでドメイン関数に引数として渡すパターンで実現する。domain rule はあくまでドメイン層の関数に置き、ユースケース層はデータを揃えてドメイン関数を呼ぶ役割に徹する。
+
+```ts
+// 前提: 対象プロジェクトでは「同じ key のエントリは一度だけ処理する」ことが業務ルールである。
+// 判断: 重複判定ルールはドメイン層に置く。ユースケース層が既存データを取得してドメイン関数に渡す。
+// ユースケース層(application/):
+const existing = await entryRepository.findAll();
+const newEntries = dedupeByBusinessKey([...existing, ...fetched]); // ドメイン層の関数を呼ぶ
+await entryRepository.saveAll(newEntries);
+```
 
 port は、外部 API、DB、filesystem、AI provider、queue、mail、検索基盤など、差し替えたい副作用境界にだけ置く。
 
-純粋な形式変換、domain rule、単なる map 処理を interface で包まない。port を作る理由を「テストで差し替えたい」「外部 provider を隠したい」「usecase が技術基盤へ依存しないようにしたい」と説明できない場合は追加しない。
+**集約と repository の関係について補足する。** 集約とは、複数のオブジェクトのグループにおいて常に維持されるべきデータの整合性(不変条件)を守るための変更の単位である。集約ルートが集約を操作するための唯一の外部インターフェースとなり、外部からは集約ルートを経由してのみ操作する。他の集約を参照する場合はインスタンスを直接保持するのではなく ID による参照を使う。集約の詳細な定義と境界の引き方は各プロジェクトの ADR で決める。
 
-repository port は、単なる DB / filesystem 操作の隠蔽ではなく、集約、domain snapshot、または usecase が扱う永続化対象の保存と再構築を表す境界として定義する。`executeSql`、`readJsonFile`、`putObject` のような技術語彙を application へ公開せず、`saveAnalysis`、`findChangelogByKey`、`loadNotificationState` のように、対象プロジェクトの概念に沿った操作として表現する。
+純粋な形式変換、domain rule、単なる map 処理を interface で包まない。port を作る理由を「テストで差し替えたい」「外部 provider を隠したい」「ユースケース層が技術基盤へ依存しないようにしたい」と説明できない場合は追加しない。
+
+repository port は、単なる DB / filesystem 操作の隠蔽ではなく、集約、domain snapshot、または usecase が扱う永続化対象の保存と再構築を表す境界として定義する。`executeSql`、`readJsonFile`、`putObject` のような技術語彙をユースケース層へ公開せず、`saveAnalysis`、`findChangelogByKey`、`loadNotificationState` のように、対象プロジェクトの概念に沿った操作として表現する。
 
 repository は変更の単位(集約または domain snapshot)ごとに用意する。複数の集約をまたぐ操作を一つの repository に混在させると、domain policy が repository 実装に紛れ込みやすい。
 
-一方で、重複判定、状態遷移、分類、優先順位付けなどの domain policy を repository 実装へ押し込まない。repository が返す取得結果を使って判断することはあっても、何をもって重複とみなすか、どの状態へ遷移できるかといった判断は domain または application から見える domain 関数に置く。
+一方で、重複判定、状態遷移、分類、優先順位付けなどの domain policy を repository 実装へ押し込まない。repository が返す取得結果を使って判断することはあっても、何をもって重複とみなすか、どの状態へ遷移できるかといった判断はドメイン層またはユースケース層から見えるドメイン関数に置く。
 
-### 8. 複雑なオブジェクト生成は domain 層にまとめる
+### 8. 複雑なオブジェクト生成はドメイン層にまとめる
 
-domain object の生成が複数ステップにわたる場合、その生成知識を domain 層の関数(ファクトリ相当)にまとめる。生成ロジックを application や infrastructure に置くと、domain rule が層をまたいで散らばる。
+domain object の生成が複数ステップにわたる場合、その生成知識をドメイン層の関数(ファクトリ相当)にまとめる。生成ロジックをユースケース層やインフラ層に置くと、domain rule が層をまたいで散らばる。
 
-単純な生成(フィールドをそのまま詰めるだけ)はインラインで十分である。生成条件の検証、複数フィールドの組み合わせ判断、生成失敗のハンドリングが必要な場合に domain 層の生成関数として切り出す。
+単純な生成(フィールドをそのまま詰めるだけ)はインラインで十分である。生成条件の検証、複数フィールドの組み合わせ判断、生成失敗のハンドリングが必要な場合にドメイン層の生成関数として切り出す。
 
 ### 9. helper は抽象化ではなく可読性と責務で判断する
 
@@ -207,13 +242,13 @@ helper は原則として追加しない。追加してよいのは、2箇所以
 
 ### 10. `readonly` は層分類ではなく mutation 意図で判断する
 
-`readonly` が付いているから domain、付いていないから application とは判断しない。`readonly` は、値を snapshot / value object / external contract として扱い、mutation しない意図を表すために使う。
+`readonly` が付いているからドメイン層、付いていないからユースケース層とは判断しない。`readonly` は、値を snapshot / value object / external contract として扱い、mutation しない意図を表すために使う。
 
 戻す候補は次である。
 
-- domain の value object / snapshot
-- application の usecase input / output
-- infrastructure の外部 JSON 契約 DTO
+- ドメイン層の value object / snapshot
+- ユースケース層の usecase input / output
+- インフラ層の外部 JSON 契約 DTO
 - port input / result 型
 
 ローカル accumulator や一時的に組み立てる mutable object にまで機械的に付けない。
@@ -240,14 +275,14 @@ helper は原則として追加しない。追加してよいのは、2箇所以
 
 - この ADR の具体例だけをコピーして、前提条件を確認せずに別プロジェクトへ適用するリスクがある
   - → 具体例はすべて「前提」を含めて読む。前提が違う場合は結論も変わる
-- 「domain に置く」ことが目的化し、DTO や provider 応答まで domain に入れるリスクがある
+- 「ドメイン層に置く」ことが目的化し、DTO や provider 応答までドメイン層に入れるリスクがある
   - → DTO は誰との契約かで置き場所を決める
 - 「外部依存は port」という言葉だけが一人歩きし、薄い interface が増えるリスクがある
   - → port は副作用差し替えのためだけに使う
 - Functional DDD で純粋関数に切り出し続け、domain 型がデータ保持専用の入れ物になるリスクがある(ドメインモデル貧血症)
-  - → ふるまいはまず domain 型に持たせる。複数オブジェクトを横断する処理だけ関数として切り出す
-- entrypoint が domain 型のフィールドに逐一アクセスして変換処理を書き、infrastructure の仕事が entrypoint に漏れるリスクがある
-  - → domain 型 ↔ 外部 JSON 契約の変換は infrastructure に置く
+  - → ふるまいはまずドメイン層の型に持たせる。複数オブジェクトを横断する処理だけ関数として切り出す
+- エントリポイントが domain 型のフィールドに逐一アクセスして変換処理を書き、インフラ層の仕事がエントリポイントに漏れるリスクがある
+  - → domain 型 ↔ 外部 JSON 契約の変換はインフラ層に置く
 
 ## 決めていないこと
 
@@ -256,8 +291,8 @@ helper は原則として追加しない。追加してよいのは、2箇所以
 | 具体的なディレクトリ名 | プロジェクトごとに runtime や既存構成が異なるため | 各プロジェクトの ADR で決める |
 | class ベース DDD か Functional DDD か | この ADR は層分類の判断基準が対象であり、実装スタイルは別判断であるため | プロジェクトの言語・既存設計に合わせて決める |
 | shared package の具体名 | モノレポ構成に依存するため | 外部契約を共有するプロジェクトで決める |
-| ユビキタス言語、境界づけられたコンテキスト、集約境界、コンテキストマップ | この ADR は層分類の共通指針であり、戦略的設計やモデル境界は対象ドメインごとの議論が必要なため | 新規プロジェクトの立ち上げ時、または既存モデルの語彙や責務が衝突したときに別 ADR で決める |
-| repository port を domain package / application package / ports package のどこに置くか | 言語機能、モノレポ構成、依存方向、テスト方針によって最適解が変わるため | 各プロジェクトで依存方向と公開範囲を決めるときに議論する |
+| ユビキタス言語、境界づけられたコンテキスト、集約境界、コンテキストマップ | この ADR は層分類の共通指針であり、戦略的設計やモデル境界は対象ドメインごとの議論が必要なため | 新規プロジェクトの立ち上げ時、または既存モデルの語彙や責務が衝突したときに別 ADR で決める。なお、shared package に概念を置く前に、その概念が複数のコンテキストに跨がるかを確認すること。同名の概念を単一モデルに無理に統合すると、巨大で硬直したオブジェクトになる。 |
+| repository port をドメイン層 / ユースケース層 / ports パッケージのどこに置くか | 言語機能、モノレポ構成、依存方向、テスト方針によって最適解が変わるため | 各プロジェクトで依存方向と公開範囲を決めるときに議論する |
 | 「入力形式に見えるが業務概念でもあるもの」の扱い | 帳票、Markdown、CSV、外部規格などは技術形式にも業務語彙にもなり得るため | 対象利用者がその形式を業務上の概念として扱うかを確認して決める |
 
 ## Notes
@@ -267,14 +302,18 @@ helper は原則として追加しない。追加してよいのは、2箇所以
 - この処理は、入力形式を変えても残るか
 - この処理は、ドメインの不変条件・業務ルールか、それとも usecase の進行管理か
 - この処理は、業務の人が変更理由を説明できる判断か
-- domain 型はデータを保持するだけの入れ物になっていないか(ドメインモデル貧血症)
-- ふるまいを関数に切り出す前に、domain 型に持たせることを検討したか
+- ドメイン層の型はデータを保持するだけの入れ物になっていないか(ドメインモデル貧血症)
+- ふるまいを関数に切り出す前に、ドメイン層の型に持たせることを検討したか
 - この型は、domain snapshot か、usecase DTO か、外部契約 DTO か
 - この DTO は、誰との契約か
-- entrypoint が domain 型のフィールドに直接アクセスして変換処理を書いていないか(変換は infrastructure のシリアライザーに置く)
-- 翻訳・検索結果・domain データを混合した出力は application DTO として定義しているか
-- この port は、依存を逆転させるために必要か(domain/application が infrastructure に直接依存しないためか)
-- domain が port を呼んでいないか(port を呼ぶのは application だけ)
+- エントリポイントが domain 型のフィールドに直接アクセスして変換処理を書いていないか(変換はインフラ層のシリアライザーに置く)
+- 翻訳・検索結果・domain データを混合した出力はユースケース層の DTO として定義しているか
+- この port は、依存を逆転させるために必要か(ドメイン層/ユースケース層がインフラ層に直接依存しないためか)
+- ドメイン層が port を呼んでいないか(port を呼ぶのはユースケース層だけ)
+- 複数オブジェクトを横断するドメインルール(重複判定など)は、ユースケース層が repository 経由でデータを取得してドメイン関数に渡しているか(ドメイン関数自身が repository を呼んでいないか)
+- トランザクション境界はユースケース層に置いているか
+- 1 トランザクションで変更している集約は 1 つか(複数集約をまたぐ場合は結果整合性を検討したか)
+- ドメインサービス相当の関数を新たに作る前に、ドメイン層の型にふるまいを持たせることを先に検討したか(ドメインサービス相当の関数は最後の手段)
 - この helper は、責務の名前を与える価値があるか
 - この `readonly` は、mutation しない意図を説明しているか
 
