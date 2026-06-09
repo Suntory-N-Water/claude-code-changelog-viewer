@@ -5,21 +5,21 @@ import {
 } from './setting-key';
 
 export type SettingsEntry = {
-  readonly key: SettingKey;
-  readonly leafName: string;
-  readonly source: SettingSource;
-  readonly descriptionEn: string;
-  readonly parentDescriptions: readonly string[];
+  key: SettingKey;
+  leafName: string;
+  source: SettingSource;
+  descriptionEn: string;
+  parentDescriptions: string[];
 };
 
 /**
  * settings schema や env docs から抽出した設定エントリを生成する。
  */
 export function createSettingsEntry(input: {
-  readonly key: SettingKey;
-  readonly source: SettingSource;
-  readonly descriptionEn: string;
-  readonly parentDescriptions?: readonly string[];
+  key: SettingKey;
+  source: SettingSource;
+  descriptionEn: string;
+  parentDescriptions?: string[];
 }): SettingsEntry {
   return {
     key: input.key,
@@ -34,7 +34,7 @@ export function createSettingsEntry(input: {
  * 同じキーの設定エントリを最初の1件にまとめる。
  */
 export function dedupeSettingsEntries(
-  entries: readonly SettingsEntry[],
+  entries: SettingsEntry[],
 ): SettingsEntry[] {
   const map = new Map<SettingKey, SettingsEntry>();
 
@@ -51,9 +51,9 @@ export function dedupeSettingsEntries(
  * env-vars.md、schema.env、docs/en の順に環境変数エントリを統合する。
  */
 export function mergeEnvEntries(input: {
-  readonly markdownEntries: readonly SettingsEntry[];
-  readonly schemaEntries: readonly SettingsEntry[];
-  readonly docsEntries: readonly SettingsEntry[];
+  markdownEntries: SettingsEntry[];
+  schemaEntries: SettingsEntry[];
+  docsEntries: SettingsEntry[];
 }): SettingsEntry[] {
   const markdownKeys = new Set(input.markdownEntries.map((entry) => entry.key));
   const schemaOnly = input.schemaEntries.filter(

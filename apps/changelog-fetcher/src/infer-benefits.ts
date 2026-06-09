@@ -4,15 +4,29 @@ import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import {
   type Analysis,
   AnalysisSchema,
-  type InferenceBatchResult,
 } from '@claude-code-changelog-viewer/types';
-import pRetry, { AbortError } from 'p-retry';
-import { GeminiClient } from './ai/gemini-client';
-import { loadModelContext } from './ai/model-context';
 import {
-  buildBatchInferencePrompt,
-  type IndexedItem,
-} from './ai/prompts/inference-prompt';
+  inferBenefits,
+  type InferencePort,
+} from './application/infer-benefits';
+import { createAnalyzedChangelogEntry } from './domain/analysis/analyzed-changelog-entry';
+import {
+  createChangelogAnalysis,
+  type ChangelogAnalysis,
+} from './domain/analysis/changelog-analysis';
+import {
+  type ChangelogPrefix,
+  createChangelogEntryContent,
+} from './domain/changelog/changelog-entry';
+import {
+  createChangelogVersion,
+  toVersionNumber,
+} from './domain/changelog/changelog-version';
+import { createInferenceResult } from './domain/inference/inference-result';
+import { GeminiInferenceClient } from './infrastructure/ai/gemini-inference-client';
+
+// schema 互換のため残す固定値。現在は意味のある評価値として使わない。
+const SCHEMA_COMPATIBILITY_SCORE = 0;
 
 const log = getLogger({ name: 'benefit-inferrer' });
 
@@ -34,198 +48,114 @@ function parseArgs(): CliArgs {
   return { version, skipAI };
 }
 
-function applyResult(
-  analysis: Analysis,
-  result: InferenceBatchResult,
-): Analysis {
-  const inferredById = new Map(result.inferred_items.map((r) => [r.id, r]));
-  const translatedById = new Map(result.translated_items.map((r) => [r.id, r]));
-  const correctionById = new Map(
-    (result.feature_area_corrections ?? []).map((c) => [c.id, c]),
-  );
-
-  const items = analysis.items.map((item, i) => {
-    const correction = correctionById.get(i);
-    const featureAreas = correction
-      ? { feature_areas: correction.feature_areas }
-      : {};
-
-    const inferred = inferredById.get(i);
-    if (inferred) {
-      log.info(`翻訳+推論完了: ${item.content.substring(0, 50)}...`);
-      return {
-        ...item,
-        ...featureAreas,
-        content_ja: inferred.content_ja,
-        inference: {
-          before: inferred.before,
-          after: inferred.after,
-          benefit: inferred.benefit,
-        },
-      };
-    }
-
-    const translated = translatedById.get(i);
-    if (translated) {
-      log.info(`翻訳完了: ${item.content.substring(0, 50)}...`);
-      return { ...item, ...featureAreas, content_ja: translated.content_ja };
-    }
-
-    return correction ? { ...item, ...featureAreas } : item;
+function toChangelogAnalysis(analysis: Analysis): ChangelogAnalysis {
+  return createChangelogAnalysis({
+    version: createChangelogVersion(analysis.version),
+    ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
+    items: analysis.items.map((item) =>
+      createAnalyzedChangelogEntry({
+        content: createChangelogEntryContent(item.content),
+        prefix: item.prefix as ChangelogPrefix,
+        featureAreas: item.feature_areas ?? [],
+        relatedDocs: item.related_docs.map((doc) => ({
+          file: doc.file,
+          snippets: doc.snippets,
+          hitCount: doc.hit_count,
+        })),
+        ...(item.inference !== undefined
+          ? {
+              inference: createInferenceResult({
+                before: item.inference.before,
+                after: item.inference.after,
+                benefit: item.inference.benefit,
+              }),
+            }
+          : {}),
+        ...(item.content_ja !== undefined
+          ? { contentJa: item.content_ja }
+          : {}),
+      }),
+    ),
   });
-
-  return { ...analysis, items, summary: result.summary ?? analysis.summary };
 }
 
-function findMissingItems(analysis: Analysis): IndexedItem[] {
-  return analysis.items
-    .map((item, i) => ({ item, originalIndex: i }))
-    .filter(
-      ({ item }) =>
-        item.content_ja === undefined ||
-        (item.related_docs.length >= 1 && item.inference === undefined),
-    );
+function toAnalysisJson(analysis: ChangelogAnalysis): Analysis {
+  return AnalysisSchema.parse({
+    version: toVersionNumber(analysis.version),
+    ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
+    items: analysis.items.map((entry) => ({
+      content: entry.content,
+      ...(entry.contentJa !== undefined ? { content_ja: entry.contentJa } : {}),
+      prefix: entry.prefix,
+      importance_score: SCHEMA_COMPATIBILITY_SCORE,
+      feature_areas: [...entry.featureAreas],
+      related_docs: entry.relatedDocs.map((doc) => ({
+        file: doc.file,
+        snippets: [...doc.snippets],
+        hit_count: doc.hitCount,
+        context_score: SCHEMA_COMPATIBILITY_SCORE,
+        total_score: SCHEMA_COMPATIBILITY_SCORE,
+      })),
+      ...(entry.inference !== undefined
+        ? {
+            inference: {
+              before: entry.inference.before,
+              after: entry.inference.after,
+              benefit: entry.inference.benefit,
+            },
+          }
+        : {}),
+    })),
+  });
 }
 
-async function inferBenefits(version: string, skipAI: boolean): Promise<void> {
+async function main(): Promise<void> {
+  const { version, skipAI } = parseArgs();
   const analysisDir = join(process.cwd(), 'analysis');
   const inferredDir = join(process.cwd(), 'inferred');
   const analysisPath = join(analysisDir, `analysis_${version}.json`);
   const inferredPath = join(inferredDir, `inferred_${version}.json`);
 
-  // 1. analysis_{version}.json を読み込み
   log.msg('APLG0003', { params: [analysisPath] });
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
-  let analysis = AnalysisSchema.parse(JSON.parse(rawAnalysis));
-
-  // AI推論スキップモード
-  if (skipAI) {
-    log.info('AI推論をスキップ (コピーモード)', {
-      totalItems: analysis.items.length,
-    });
-
-    mkdirSync(inferredDir, { recursive: true });
-    writeFileSync(inferredPath, JSON.stringify(analysis, null, 2), 'utf-8');
-    log.msg('APLG0021', { params: [inferredPath] });
-
-    log.msg('APLG0009', {
-      attrs: {
-        totalItems: analysis.items.length,
-        aiInference: 'Skipped',
-      },
-    });
-    return;
-  }
-
-  // 2. Gemini API キー取得
-  const apiKey = process.env['GEMINI_API_KEY'] || '';
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is required');
-  }
-
-  // 3. Gemini クライアント初期化
-  const client = new GeminiClient(apiKey, log.child({ component: 'gemini' }));
-
-  log.msg('APLG0001', {
-    params: ['AI推論'],
-    attrs: { totalItems: analysis.items.length },
-  });
-
-  // 4. 全項目を1回のリクエストで処理(未処理分は p-retry でリトライ)
-  const modelContext = loadModelContext();
-  const allIndexedItems = analysis.items.map((item, i) => ({
-    item,
-    originalIndex: i,
-  }));
-
-  const initialPrompt = buildBatchInferencePrompt(
-    allIndexedItems,
-    version,
-    modelContext,
+  const analysis = toChangelogAnalysis(
+    AnalysisSchema.parse(JSON.parse(rawAnalysis)),
   );
-  const initialResult = await client.inferAll(initialPrompt);
-  analysis = applyResult(analysis, initialResult);
-  log.msg('APLG0002', { params: ['バージョンサマリー生成'] });
 
-  // 未処理項目のリトライ
-  const missingAfterInitial = findMissingItems(analysis);
-  if (missingAfterInitial.length > 0) {
-    log.info(`未処理項目あり: ${missingAfterInitial.length}件、リトライ開始`, {
-      missingIds: missingAfterInitial.map((m) => m.originalIndex),
-    });
-
-    await pRetry(
-      async () => {
-        const missing = findMissingItems(analysis);
-        if (missing.length === 0) {
-          return;
-        }
-
-        const retryPrompt = buildBatchInferencePrompt(
-          missing,
-          version,
-          modelContext,
-        );
-        try {
-          const retryResult = await client.inferAll(retryPrompt);
-          analysis = applyResult(analysis, retryResult);
-        } catch (error) {
-          // GeminiClient が全モデルのリトライ・フォールバック済みのためここで諦める
-          throw new AbortError(
-            error instanceof Error ? error.message : String(error),
-          );
-        }
-
-        const stillMissing = findMissingItems(analysis);
-        if (stillMissing.length > 0) {
-          throw new Error(
-            `未処理項目が残存: ${stillMissing.length}件 (ids: ${stillMissing.map((m) => m.originalIndex).join(', ')})`,
-          );
-        }
-      },
-      {
-        retries: 3,
-        onFailedAttempt: (context) => {
-          log.info(
-            `リトライ ${context.attemptNumber}/3 失敗: ${context.error.message}`,
-            { retriesLeft: context.retriesLeft },
-          );
+  const inference: InferencePort = skipAI
+    ? {
+        infer: async () => {
+          throw new Error('AI推論スキップ時に inference port が呼ばれました');
         },
-      },
-    ).catch(() => {
-      const stillMissing = findMissingItems(analysis);
-      log.info(`リトライ上限到達、未処理項目が残存: ${stillMissing.length}件`, {
-        missingIds: stillMissing.map((m) => m.originalIndex),
-      });
-    });
-  }
+      }
+    : new GeminiInferenceClient(
+        process.env['GEMINI_API_KEY'] || '',
+        log.child({ component: 'gemini' }),
+      );
 
-  // 5. inferred_{version}.json に保存
-  // Zod で最終検証
-  const validated = AnalysisSchema.parse(analysis);
+  const inferred = toAnalysisJson(
+    await inferBenefits({ version, analysis, skipAI, inference }),
+  );
 
   mkdirSync(inferredDir, { recursive: true });
-  writeFileSync(inferredPath, JSON.stringify(validated, null, 2), 'utf-8');
+  writeFileSync(inferredPath, JSON.stringify(inferred, null, 2), 'utf-8');
   log.msg('APLG0021', { params: [inferredPath] });
 
-  // 統計表示
-  const completedCount = validated.items.filter(
+  const completedCount = inferred.items.filter(
     (item) => item.inference !== undefined && item.content_ja !== undefined,
   ).length;
-
   log.msg('APLG0009', {
-    attrs: {
-      completed: completedCount,
-      versionSummary: validated.summary ? 'Yes' : 'No',
-      totalItems: validated.items.length,
-    },
+    attrs: skipAI
+      ? { totalItems: inferred.items.length, aiInference: 'Skipped' }
+      : {
+          completed: completedCount,
+          versionSummary: inferred.summary ? 'Yes' : 'No',
+          totalItems: inferred.items.length,
+        },
   });
 }
 
-// エントリーポイント
-const { version, skipAI } = parseArgs();
-
-inferBenefits(version, skipAI).catch((error) => {
+main().catch((error) => {
   log.msg('APLG0018', { error: toError(error) });
   process.exit(1);
 });

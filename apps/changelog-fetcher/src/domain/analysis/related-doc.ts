@@ -1,5 +1,5 @@
 export type RelatedDoc = {
-  readonly file: string;
-  readonly snippets: readonly string[];
-  readonly hitCount: number;
+  file: string;
+  snippets: string[];
+  hitCount: number;
 };

@@ -1,7 +1,7 @@
 export type InferenceResult = {
-  readonly before: string;
-  readonly after: string;
-  readonly benefit: string;
+  before: string;
+  after: string;
+  benefit: string;
 };
 
 /**

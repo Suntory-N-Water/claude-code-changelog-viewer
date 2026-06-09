@@ -3,9 +3,9 @@ import * as fsPromises from 'node:fs/promises';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { extractSnippets } from '../searchers/snippet-extractor';
+import { extractSnippets } from '../infrastructure/docs/docs-searcher';
 
-// snippet-extractor 内の PROJECT_ROOT と同じ計算
+// docs-searcher 内の PROJECT_ROOT と同じ計算
 const PROJECT_ROOT = path.join(process.cwd(), '..', '..');
 const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'snippet-test-'));
 

@@ -1,27 +1,26 @@
-import {
-  getLogger,
-  normalizeMarkdownForAi,
-} from '@claude-code-changelog-viewer/common';
+import { getLogger } from '@claude-code-changelog-viewer/common';
 import { createAnalyzedChangelogEntry } from '../domain/analysis/analyzed-changelog-entry';
 import {
   createChangelogAnalysis,
   type ChangelogAnalysis,
 } from '../domain/analysis/changelog-analysis';
 import type { RelatedDoc } from '../domain/analysis/related-doc';
+import type { ChangelogEntry } from '../domain/changelog/changelog-entry';
 import { createChangelogVersion } from '../domain/changelog/changelog-version';
-import { parseChangelogEntries } from '../infrastructure/docs/changelog-markdown-parser';
-import { extractKeywords } from '../infrastructure/docs/keyword-extractor';
-import { searchDocs } from '../searchers/grep-executor';
-import { extractSnippets } from '../searchers/snippet-extractor';
 
 const log = getLogger({ name: 'changelog-analyzer' });
 
+export type DocsSearchPort = {
+  findRelatedDocs: (entry: ChangelogEntry) => Promise<RelatedDoc[]>;
+};
+
 export async function analyzeChangelog(input: {
-  readonly version: string;
-  readonly changelogContent: string;
+  version: string;
+  entries: ChangelogEntry[];
+  docsSearch: DocsSearchPort;
 }): Promise<ChangelogAnalysis> {
   const version = createChangelogVersion(input.version);
-  const entries = parseChangelogEntries(input.changelogContent);
+  const entries = input.entries;
 
   log.msg('APLG0010', { params: [`${entries.length} 件の項目`] });
 
@@ -31,27 +30,7 @@ export async function analyzeChangelog(input: {
         `[${index + 1}/${entries.length}] ${entry.content.slice(0, 60)}...`,
       );
 
-      const keywordSet = extractKeywords(entry);
-      const keywords = {
-        original: [...keywordSet.original],
-        normalized: [...keywordSet.normalized],
-      };
-
-      const searchResult = await searchDocs(keywords);
-      const snippetResults = await extractSnippets(
-        searchResult.files,
-        keywords,
-      );
-
-      const relatedDocs: RelatedDoc[] = snippetResults
-        .slice(0, 3)
-        .map(({ file, snippets, hit_count }) => ({
-          file,
-          snippets: snippets
-            .map(normalizeMarkdownForAi)
-            .filter((s) => s.length > 0),
-          hitCount: hit_count,
-        }));
+      const relatedDocs = await input.docsSearch.findRelatedDocs(entry);
 
       return createAnalyzedChangelogEntry({
         content: entry.content,

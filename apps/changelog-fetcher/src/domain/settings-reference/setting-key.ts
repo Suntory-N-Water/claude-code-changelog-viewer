@@ -1,7 +1,7 @@
 declare const settingKeyBrand: unique symbol;
 
 export type SettingKey = string & {
-  readonly [settingKeyBrand]: unknown;
+  [settingKeyBrand]: unknown;
 };
 
 export type SettingSource = 'settings' | 'env';

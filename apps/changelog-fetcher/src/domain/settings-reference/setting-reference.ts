@@ -4,34 +4,34 @@ import { type SettingSlug, createSettingSlugFromKey } from './setting-slug';
 import type { SettingsEntry } from './setting-entry';
 
 export type RelatedChangelog = {
-  readonly version: string;
-  readonly content: string;
-  readonly contentJa?: string;
-  readonly inference?: InferenceResult;
+  version: string;
+  content: string;
+  contentJa?: string;
+  inference?: InferenceResult;
 };
 
 export type SettingReference = {
-  readonly key: SettingKey;
-  readonly leafName: string;
-  readonly slug: SettingSlug;
-  readonly source: SettingSource;
-  readonly descriptionEn: string;
-  readonly descriptionJa: string;
-  readonly useCaseJa?: string;
-  readonly parentDescriptions: readonly string[];
-  readonly docSnippets: readonly string[];
-  readonly relatedChangelog: readonly RelatedChangelog[];
+  key: SettingKey;
+  leafName: string;
+  slug: SettingSlug;
+  source: SettingSource;
+  descriptionEn: string;
+  descriptionJa: string;
+  useCaseJa?: string;
+  parentDescriptions: string[];
+  docSnippets: string[];
+  relatedChangelog: RelatedChangelog[];
 };
 
 /**
  * 設定エントリと翻訳・関連情報から出力用リファレンスを組み立てる。
  */
 export function createSettingReference(input: {
-  readonly entry: SettingsEntry;
-  readonly descriptionJa: string;
-  readonly useCaseJa?: string;
-  readonly docSnippets?: readonly string[];
-  readonly relatedChangelog?: readonly RelatedChangelog[];
+  entry: SettingsEntry;
+  descriptionJa: string;
+  useCaseJa?: string;
+  docSnippets?: string[];
+  relatedChangelog?: RelatedChangelog[];
 }): SettingReference {
   return {
     key: input.entry.key,

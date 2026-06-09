@@ -2,15 +2,15 @@ import type { ChangelogEntry } from './changelog-entry';
 import type { ChangelogVersion } from './changelog-version';
 
 export type ChangelogRelease = {
-  readonly version: ChangelogVersion;
-  readonly content: string;
-  readonly entries: readonly ChangelogEntry[];
+  version: ChangelogVersion;
+  content: string;
+  entries: ChangelogEntry[];
 };
 
 export type CreateChangelogReleaseInput = {
-  readonly version: ChangelogVersion;
-  readonly content: string;
-  readonly entries: readonly ChangelogEntry[];
+  version: ChangelogVersion;
+  content: string;
+  entries: ChangelogEntry[];
 };
 
 /**

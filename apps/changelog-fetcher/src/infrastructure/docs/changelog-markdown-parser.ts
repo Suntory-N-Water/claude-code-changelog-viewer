@@ -8,6 +8,35 @@ import {
 } from '../../domain/changelog/changelog-release';
 import { createChangelogVersion } from '../../domain/changelog/changelog-version';
 
+export function parseChangelog(markdown: string): Record<string, string> {
+  const versions: Record<string, string> = {};
+  let currentVersion: string | null = null;
+  const lines: string[] = [];
+
+  for (const line of markdown.split('\n')) {
+    const match = line.match(/^## (\d+\.\d+\.\d+)/);
+
+    if (!match) {
+      if (currentVersion) {
+        lines.push(line);
+      }
+      continue;
+    }
+
+    if (currentVersion) {
+      versions[currentVersion] = lines.join('\n').trim();
+      lines.length = 0;
+    }
+    currentVersion = match[1] ?? null;
+  }
+
+  if (currentVersion) {
+    versions[currentVersion] = lines.join('\n').trim();
+  }
+
+  return versions;
+}
+
 export function parseChangelogEntries(changelog: string): ChangelogEntry[] {
   const items: ChangelogEntry[] = [];
   let currentItem: string | null = null;
@@ -91,8 +120,8 @@ export function parseChangelogReleases(markdown: string): ChangelogRelease[] {
 }
 
 export type ChangelogItemDiff = {
-  readonly added: readonly string[];
-  readonly removed: readonly string[];
+  added: string[];
+  removed: string[];
 };
 
 export function computeChangelogItemDiff(

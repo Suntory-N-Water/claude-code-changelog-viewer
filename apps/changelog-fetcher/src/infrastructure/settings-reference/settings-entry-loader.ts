@@ -1,7 +1,13 @@
 import { globSync, readFileSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import type { RawEntry, SettingSource } from './settings-entry-types';
+import type { SettingSource } from '../../domain/settings-reference/setting-key';
+import { createSettingKey } from '../../domain/settings-reference/setting-key';
+import {
+  createSettingsEntry,
+  type SettingsEntry,
+  mergeEnvEntries,
+} from '../../domain/settings-reference/setting-entry';
 
 type SchemaEnvProperty = {
   description?: string;
@@ -19,6 +25,15 @@ type SettingsJsonSchema = {
   properties?: Record<string, SchemaProperty>;
 };
 
+export type LoadedSettingsEntries = {
+  schemaSettings: SettingsEntry[];
+  mergedEnvEntries: SettingsEntry[];
+  mdEnvCount: number;
+  schemaEnvCount: number;
+  docsEnvCount: number;
+  unmergedPublicEnvMentions: string[];
+};
+
 type CollectLeafCtx = {
   parentDescriptions: string[];
   source: SettingSource;
@@ -32,19 +47,18 @@ function collectLeafEntries(
   obj: SchemaProperty,
   keyPath: string,
   ctx: CollectLeafCtx,
-): RawEntry[] {
-  const results: RawEntry[] = [];
+): SettingsEntry[] {
+  const results: SettingsEntry[] = [];
 
   if (!obj.properties) {
-    const segments = keyPath.split('.');
-    const leaf_name = segments.at(-1) ?? keyPath;
-    results.push({
-      key: keyPath,
-      leaf_name,
-      source: ctx.source,
-      description_en: obj.description ?? '',
-      parent_descriptions: ctx.parentDescriptions,
-    });
+    results.push(
+      createLoadedSettingsEntry({
+        key: keyPath,
+        source: ctx.source,
+        descriptionEn: obj.description ?? '',
+        parentDescriptions: ctx.parentDescriptions,
+      }),
+    );
     return results;
   }
 
@@ -71,14 +85,14 @@ function collectLeafEntries(
  * env セクションは別処理、それ以外のプロパティを再帰的に収集
  */
 export async function parseSettingsSchema(schemaPath: string): Promise<{
-  settings: RawEntry[];
-  envFromSchema: RawEntry[];
+  settings: SettingsEntry[];
+  envFromSchema: SettingsEntry[];
 }> {
   const raw = await fs.readFile(schemaPath, 'utf-8');
   const schema = JSON.parse(raw) as SettingsJsonSchema;
 
-  const settings: RawEntry[] = [];
-  const envFromSchema: RawEntry[] = [];
+  const settings: SettingsEntry[] = [];
+  const envFromSchema: SettingsEntry[] = [];
   const props = schema.properties ?? {};
 
   for (const [key, value] of Object.entries(props)) {
@@ -89,13 +103,14 @@ export async function parseSettingsSchema(schemaPath: string): Promise<{
     if (key === 'env') {
       const envProps = value.properties ?? {};
       for (const [envKey, envValue] of Object.entries(envProps)) {
-        envFromSchema.push({
-          key: envKey,
-          leaf_name: envKey,
-          source: 'env',
-          description_en: (envValue as SchemaEnvProperty).description ?? '',
-          parent_descriptions: [],
-        });
+        envFromSchema.push(
+          createLoadedSettingsEntry({
+            key: envKey,
+            source: 'env',
+            descriptionEn: (envValue as SchemaEnvProperty).description ?? '',
+            parentDescriptions: [],
+          }),
+        );
       }
       continue;
     }
@@ -138,7 +153,7 @@ function parseEnvTableRows(
   markdown: string,
   opts: { environmentTableOnly?: boolean } = {},
 ) {
-  const entries: RawEntry[] = [];
+  const entries: SettingsEntry[] = [];
   let inEnvironmentTable = false;
 
   for (const line of markdown.split('\n')) {
@@ -167,13 +182,14 @@ function parseEnvTableRows(
 
     const descriptionRaw = match[2].split('|')[0]?.trim() ?? '';
     const description = stripMarkdown(descriptionRaw);
-    entries.push({
-      key: match[1],
-      leaf_name: match[1],
-      source: 'env',
-      description_en: description,
-      parent_descriptions: [],
-    });
+    entries.push(
+      createLoadedSettingsEntry({
+        key: match[1],
+        source: 'env',
+        descriptionEn: description,
+        parentDescriptions: [],
+      }),
+    );
 
     if (
       /(?:also accepted|older name|legacy name|alias)/i.test(descriptionRaw)
@@ -183,13 +199,14 @@ function parseEnvTableRows(
       )) {
         const key = aliasMatch[1];
         if (key && key !== match[1]) {
-          entries.push({
-            key,
-            leaf_name: key,
-            source: 'env',
-            description_en: description,
-            parent_descriptions: [],
-          });
+          entries.push(
+            createLoadedSettingsEntry({
+              key,
+              source: 'env',
+              descriptionEn: description,
+              parentDescriptions: [],
+            }),
+          );
         }
       }
     }
@@ -203,20 +220,20 @@ function parseEnvTableRows(
  */
 export async function parseEnvVarsMd(
   envVarsMdPath: string,
-): Promise<RawEntry[]> {
+): Promise<SettingsEntry[]> {
   const raw = await fs.readFile(envVarsMdPath, 'utf-8');
   return parseEnvTableRows(raw);
 }
 
 export async function parsePublicEnvEntriesFromDocs(
   docsEnDir: string,
-): Promise<RawEntry[]> {
+): Promise<SettingsEntry[]> {
   const files = globSync('**/*.md', { cwd: docsEnDir })
     .map(String)
     .filter((file) => file !== 'changelog.md' && file !== 'env-vars.md')
     .map((file) => path.join(docsEnDir, file));
 
-  const entries: RawEntry[] = [];
+  const entries: SettingsEntry[] = [];
 
   for (const file of files) {
     const raw = await fs.readFile(file, 'utf-8');
@@ -227,8 +244,8 @@ export async function parsePublicEnvEntriesFromDocs(
   return entries;
 }
 
-function extractPublicEnvMentions(markdown: string): RawEntry[] {
-  const entries: RawEntry[] = [];
+function extractPublicEnvMentions(markdown: string): SettingsEntry[] {
+  const entries: SettingsEntry[] = [];
   const lines = markdown.split('\n');
 
   for (const [index, line] of lines.entries()) {
@@ -243,13 +260,14 @@ function extractPublicEnvMentions(markdown: string): RawEntry[] {
     }
 
     for (const key of keys) {
-      entries.push({
-        key,
-        leaf_name: key,
-        source: 'env',
-        description_en: findNearbyDescription(lines, index, key),
-        parent_descriptions: [],
-      });
+      entries.push(
+        createLoadedSettingsEntry({
+          key,
+          source: 'env',
+          descriptionEn: findNearbyDescription(lines, index, key),
+          parentDescriptions: [],
+        }),
+      );
     }
   }
 
@@ -301,7 +319,7 @@ function findNearbyDescription(
 
 export function findUnmergedPublicEnvMentions(
   docsEnDir: string,
-  mergedEnvEntries: RawEntry[],
+  mergedEnvEntries: SettingsEntry[],
 ): string[] {
   const mergedKeys = new Set(mergedEnvEntries.map((entry) => entry.key));
   const publicKeys = new Set<string>();
@@ -314,7 +332,10 @@ export function findUnmergedPublicEnvMentions(
     const raw = readFileSync(file, 'utf-8');
     for (const match of raw.matchAll(/\b[A-Z_][A-Z0-9_]*\b/g)) {
       const key = match[0];
-      if (!mergedKeys.has(key) && isLikelyPublicEnvName(key)) {
+      if (
+        !mergedKeys.has(createSettingKey(key)) &&
+        isLikelyPublicEnvName(key)
+      ) {
         publicKeys.add(key);
       }
     }
@@ -323,27 +344,44 @@ export function findUnmergedPublicEnvMentions(
   return [...publicKeys].sort();
 }
 
-/**
- * env-vars.md(一次ソース)、schema.env(補完)、docs/en の公開環境変数をマージ
- */
-export function mergeEnvEntries(
-  mdEntries: RawEntry[],
-  schemaEntries: RawEntry[],
-  docsEntries: RawEntry[],
-): RawEntry[] {
-  const mdKeys = new Set(mdEntries.map((e) => e.key));
-  const schemaOnly = schemaEntries.filter((e) => !mdKeys.has(e.key));
-  const existingKeys = new Set([...mdEntries, ...schemaOnly].map((e) => e.key));
-  const docsOnly = docsEntries.filter((e) => !existingKeys.has(e.key));
-  return dedupeRawEntries([...mdEntries, ...schemaOnly, ...docsOnly]);
+export async function loadSettingsEntries(input: {
+  schemaPath: string;
+  envVarsMdPath: string;
+  docsEnDir: string;
+}): Promise<LoadedSettingsEntries> {
+  const { settings: schemaSettings, envFromSchema: schemaEnvEntries } =
+    await parseSettingsSchema(input.schemaPath);
+  const mdEnvEntries = await parseEnvVarsMd(input.envVarsMdPath);
+  const docsEnvEntries = await parsePublicEnvEntriesFromDocs(input.docsEnDir);
+  const mergedEnvEntries = mergeEnvEntries({
+    markdownEntries: mdEnvEntries,
+    schemaEntries: schemaEnvEntries,
+    docsEntries: docsEnvEntries,
+  });
+
+  return {
+    schemaSettings,
+    mergedEnvEntries,
+    mdEnvCount: mdEnvEntries.length,
+    schemaEnvCount: schemaEnvEntries.length,
+    docsEnvCount: docsEnvEntries.length,
+    unmergedPublicEnvMentions: findUnmergedPublicEnvMentions(
+      input.docsEnDir,
+      mergedEnvEntries,
+    ),
+  };
 }
 
-function dedupeRawEntries(entries: RawEntry[]): RawEntry[] {
-  const map = new Map<string, RawEntry>();
-  for (const entry of entries) {
-    if (!map.has(entry.key)) {
-      map.set(entry.key, entry);
-    }
-  }
-  return [...map.values()];
+function createLoadedSettingsEntry(input: {
+  key: string;
+  source: SettingSource;
+  descriptionEn: string;
+  parentDescriptions: string[];
+}): SettingsEntry {
+  return createSettingsEntry({
+    key: createSettingKey(input.key),
+    source: input.source,
+    descriptionEn: input.descriptionEn,
+    parentDescriptions: input.parentDescriptions,
+  });
 }

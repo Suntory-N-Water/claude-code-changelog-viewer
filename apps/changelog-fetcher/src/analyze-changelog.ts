@@ -4,6 +4,8 @@ import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { analyzeChangelog } from './application/analyze-changelog';
 import { toVersionNumber } from './domain/changelog/changelog-version';
+import { parseChangelogEntries } from './infrastructure/docs/changelog-markdown-parser';
+import { docsSearcher } from './infrastructure/docs/docs-searcher';
 
 // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
 const SCHEMA_COMPATIBILITY_SCORE = 0;
@@ -23,7 +25,11 @@ async function main() {
   const changelogPath = path.join(process.cwd(), 'changelogs', `${version}.md`);
   const changelogContent = await fs.readFile(changelogPath, 'utf-8');
 
-  const analysis = await analyzeChangelog({ version, changelogContent });
+  const analysis = await analyzeChangelog({
+    version,
+    entries: parseChangelogEntries(changelogContent),
+    docsSearch: docsSearcher,
+  });
 
   const output = AnalysisSchema.parse({
     version: toVersionNumber(analysis.version),

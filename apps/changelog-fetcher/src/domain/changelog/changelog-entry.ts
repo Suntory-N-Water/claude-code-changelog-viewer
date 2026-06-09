@@ -1,7 +1,7 @@
 declare const changelogEntryContentBrand: unique symbol;
 
 export type ChangelogEntryContent = string & {
-  readonly [changelogEntryContentBrand]: unknown;
+  [changelogEntryContentBrand]: unknown;
 };
 
 export type ChangelogPrefix =
@@ -16,9 +16,9 @@ export type ChangelogPrefix =
   | 'Breaking';
 
 export type ChangelogEntry = {
-  readonly content: ChangelogEntryContent;
-  readonly prefix: ChangelogPrefix;
-  readonly tags: readonly string[];
+  content: ChangelogEntryContent;
+  prefix: ChangelogPrefix;
+  tags: string[];
 };
 
 /**
@@ -95,9 +95,7 @@ export function classifyChangelogPrefix(
 /**
  * `[SDK]` など大文字始まりの角括弧タグを抽出する。
  */
-export function extractChangelogTags(
-  content: ChangelogEntryContent,
-): readonly string[] {
+export function extractChangelogTags(content: ChangelogEntryContent): string[] {
   const tagPattern = /\[([A-Z][A-Za-z]*)\]/g;
   return [...content.matchAll(tagPattern)]
     .map((match) => match[1])

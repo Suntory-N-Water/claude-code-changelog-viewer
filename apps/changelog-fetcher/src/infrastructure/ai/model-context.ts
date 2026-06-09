@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PROJECT_ROOT } from '../searchers/paths';
+import { PROJECT_ROOT } from '../docs/docs-paths';
 
 const MODELS_OVERVIEW_PATH = join(
   PROJECT_ROOT,

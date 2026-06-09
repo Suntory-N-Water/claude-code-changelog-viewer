@@ -6,21 +6,21 @@ import type { InferenceResult } from '../inference/inference-result';
 import type { RelatedDoc } from './related-doc';
 
 export type AnalyzedChangelogEntry = {
-  readonly content: ChangelogEntryContent;
-  readonly contentJa?: string;
-  readonly prefix: ChangelogPrefix;
-  readonly featureAreas: readonly string[];
-  readonly relatedDocs: readonly RelatedDoc[];
-  readonly inference?: InferenceResult;
+  content: ChangelogEntryContent;
+  contentJa?: string;
+  prefix: ChangelogPrefix;
+  featureAreas: string[];
+  relatedDocs: RelatedDoc[];
+  inference?: InferenceResult;
 };
 
 export type CreateAnalyzedChangelogEntryInput = {
-  readonly content: ChangelogEntryContent;
-  readonly contentJa?: string;
-  readonly prefix: ChangelogPrefix;
-  readonly featureAreas?: readonly string[];
-  readonly relatedDocs?: readonly RelatedDoc[];
-  readonly inference?: InferenceResult;
+  content: ChangelogEntryContent;
+  contentJa?: string;
+  prefix: ChangelogPrefix;
+  featureAreas?: string[];
+  relatedDocs?: RelatedDoc[];
+  inference?: InferenceResult;
 };
 
 /**

@@ -10,43 +10,43 @@ import {
 import { createInferenceResult } from '../domain/inference/inference-result';
 
 export type InferredBatchItem = {
-  readonly id: number;
-  readonly contentJa: string;
-  readonly before: string;
-  readonly after: string;
-  readonly benefit: string;
+  id: number;
+  contentJa: string;
+  before: string;
+  after: string;
+  benefit: string;
 };
 
 export type TranslatedBatchItem = {
-  readonly id: number;
-  readonly contentJa: string;
+  id: number;
+  contentJa: string;
 };
 
 export type FeatureAreaCorrection = {
-  readonly id: number;
-  readonly featureAreas: readonly string[];
+  id: number;
+  featureAreas: string[];
 };
 
 export type InferenceBatch = {
-  readonly inferredItems: readonly InferredBatchItem[];
-  readonly translatedItems: readonly TranslatedBatchItem[];
-  readonly featureAreaCorrections: readonly FeatureAreaCorrection[];
-  readonly summary?: string;
+  inferredItems: InferredBatchItem[];
+  translatedItems: TranslatedBatchItem[];
+  featureAreaCorrections: FeatureAreaCorrection[];
+  summary?: string;
 };
 
 export type IndexedAnalyzedEntry = {
-  readonly entry: AnalyzedChangelogEntry;
-  readonly originalIndex: number;
+  entry: AnalyzedChangelogEntry;
+  originalIndex: number;
 };
 
 /**
  * AI 応答から得た一括推論結果を生成する。
  */
 export function createInferenceBatch(input: {
-  readonly inferredItems?: readonly InferredBatchItem[];
-  readonly translatedItems?: readonly TranslatedBatchItem[];
-  readonly featureAreaCorrections?: readonly FeatureAreaCorrection[];
-  readonly summary?: string;
+  inferredItems?: InferredBatchItem[];
+  translatedItems?: TranslatedBatchItem[];
+  featureAreaCorrections?: FeatureAreaCorrection[];
+  summary?: string;
 }): InferenceBatch {
   return {
     inferredItems: input.inferredItems ?? [],

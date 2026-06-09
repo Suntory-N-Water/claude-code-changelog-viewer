@@ -1,7 +1,7 @@
 declare const changelogVersionBrand: unique symbol;
 
 export type ChangelogVersion = string & {
-  readonly [changelogVersionBrand]: unknown;
+  [changelogVersionBrand]: unknown;
 };
 
 const CHANGELOG_VERSION_PATTERN = /^v?\d+\.\d+\.\d+$/;

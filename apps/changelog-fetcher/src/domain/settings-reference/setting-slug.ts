@@ -3,7 +3,7 @@ import type { SettingKey, SettingSource } from './setting-key';
 declare const settingSlugBrand: unique symbol;
 
 export type SettingSlug = string & {
-  readonly [settingSlugBrand]: unknown;
+  [settingSlugBrand]: unknown;
 };
 
 /**

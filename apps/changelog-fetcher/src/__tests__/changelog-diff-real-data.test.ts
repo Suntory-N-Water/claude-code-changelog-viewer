@@ -6,11 +6,11 @@
  *   コミット2 (a833523): v2.1.66 追加、v2.1.64 がまるごと消えた
  *   コミット3 (0b3f7cb): v2.1.68 追加、v2.1.64 は消えたまま
  *
- * この実データを使って extractItems / items_changed / version_removed の
+ * この実データを使って extractChangelogItemLines / items_changed / version_removed の
  * 検知が正しく動作することを検証する。
  */
 import { describe, expect, test } from 'vitest';
-import { extractItems } from '../parse-changelog';
+import { extractChangelogItemLines } from '../infrastructure/docs/changelog-markdown-parser';
 
 // コミット1 (9c63e98) 時点の v2.1.64 の内容(実データ)
 const V2_1_64_COMMIT1 = `## 2.1.64
@@ -27,8 +27,8 @@ const V2_1_64_COMMIT1 = `## 2.1.64
 `;
 
 function computeDiff(localContent: string, remoteContent: string) {
-  const localItems = extractItems(localContent);
-  const remoteItems = extractItems(remoteContent);
+  const localItems = extractChangelogItemLines(localContent);
+  const remoteItems = extractChangelogItemLines(remoteContent);
   const localSet = new Set(localItems);
   const remoteSet = new Set(remoteItems);
 
@@ -40,7 +40,7 @@ function computeDiff(localContent: string, remoteContent: string) {
 
 describe('実データ検証: v2.1.64 の変遷', () => {
   test('コミット1 の v2.1.64 から項目を正しく抽出できる', () => {
-    const items = extractItems(V2_1_64_COMMIT1);
+    const items = extractChangelogItemLines(V2_1_64_COMMIT1);
     // 上記テストデータには9項目ある(実際は38項目だが代表的な9項目で検証)
     expect(items).toHaveLength(9);
     expect(items[0]?.startsWith('- Added persistent session support')).toBe(
@@ -60,8 +60,8 @@ describe('実データ検証: items_changed のシミュレーション', () => 
 - Fixed terminal flicker caused by animated elements at the scrollback boundary
 `;
 
-    const localItems = extractItems(localContent);
-    const remoteItems = extractItems(remoteContent);
+    const localItems = extractChangelogItemLines(localContent);
+    const remoteItems = extractChangelogItemLines(remoteContent);
     const localSet = new Set(localItems);
     const remoteSet = new Set(remoteItems);
     const added = remoteItems.filter((item) => !localSet.has(item));

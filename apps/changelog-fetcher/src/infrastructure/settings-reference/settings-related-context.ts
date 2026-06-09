@@ -6,9 +6,10 @@ import {
   normalizeMarkdownForAi,
 } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
-import type { RawEntry, RelatedChangelog } from './settings-entry-types';
-import { searchDocs } from '../searchers/grep-executor';
-import { extractSnippets } from '../searchers/snippet-extractor';
+import type { SettingsReferenceContext } from '../../application/settings-translation';
+import type { RelatedChangelog } from '../../domain/settings-reference/setting-reference';
+import type { SettingsEntry } from '../../domain/settings-reference/setting-entry';
+import { extractSnippets, searchDocs } from '../docs/docs-searcher';
 
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
 
@@ -23,9 +24,9 @@ type FlatChangelogItem = {
   };
 };
 
-export type RelatedContext = {
-  changelogsMap: Map<string, RelatedChangelog[]>;
-  docSnippetsMap: Map<string, string[]>;
+export type LoadedSettingsReferenceContext = {
+  allInferredCount: number;
+  relatedContext: SettingsReferenceContext;
 };
 
 /**
@@ -74,13 +75,20 @@ function findRelatedChangelogs(
   allItems: FlatChangelogItem[],
 ): RelatedChangelog[] {
   const searchTerms = buildChangelogSearchTerms(key);
-  return allItems.filter((item) =>
-    searchTerms.some(
-      (term) =>
-        item.content.includes(term) ||
-        (item.content_ja?.includes(term) ?? false),
-    ),
-  );
+  return allItems
+    .filter((item) =>
+      searchTerms.some(
+        (term) =>
+          item.content.includes(term) ||
+          (item.content_ja?.includes(term) ?? false),
+      ),
+    )
+    .map((item) => ({
+      version: item.version,
+      content: item.content,
+      ...(item.content_ja !== undefined ? { contentJa: item.content_ja } : {}),
+      ...(item.inference !== undefined ? { inference: item.inference } : {}),
+    }));
 }
 
 /**
@@ -105,11 +113,11 @@ async function searchRelatedDocs(leaf_name: string): Promise<string[]> {
 }
 
 export async function collectRelatedContext(
-  entries: RawEntry[],
+  entries: SettingsEntry[],
   allInferred: FlatChangelogItem[],
-): Promise<RelatedContext> {
-  const changelogsMap = new Map<string, RelatedChangelog[]>();
-  const docSnippetsMap = new Map<string, string[]>();
+): Promise<SettingsReferenceContext> {
+  const changelogsMap: SettingsReferenceContext['changelogsMap'] = new Map();
+  const docSnippetsMap: SettingsReferenceContext['docSnippetsMap'] = new Map();
 
   await Promise.all(
     entries.map(async (entry) => {
@@ -117,20 +125,34 @@ export async function collectRelatedContext(
         entry.key,
         findRelatedChangelogs(entry.key, allInferred),
       );
-      docSnippetsMap.set(entry.key, await searchRelatedDocs(entry.leaf_name));
+      docSnippetsMap.set(entry.key, await searchRelatedDocs(entry.leafName));
     }),
   );
 
-  return { changelogsMap, docSnippetsMap };
+  return {
+    changelogsMap,
+    docSnippetsMap,
+  };
 }
 
 export function countEntriesWithContext(
-  entries: RawEntry[],
-  ctx: RelatedContext,
+  entries: SettingsEntry[],
+  ctx: SettingsReferenceContext,
 ): number {
   return entries.filter(
     (e) =>
       (ctx.docSnippetsMap.get(e.key)?.length ?? 0) > 0 ||
       (ctx.changelogsMap.get(e.key)?.length ?? 0) > 0,
   ).length;
+}
+
+export async function loadSettingsReferenceContext(input: {
+  inferredDir: string;
+  entries: SettingsEntry[];
+}): Promise<LoadedSettingsReferenceContext> {
+  const allInferred = await loadAllInferred(input.inferredDir);
+  return {
+    allInferredCount: allInferred.length,
+    relatedContext: await collectRelatedContext(input.entries, allInferred),
+  };
 }
