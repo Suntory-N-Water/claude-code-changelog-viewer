@@ -4,7 +4,7 @@ import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { analyzeChangelog } from './application/analyze-changelog';
 import { parseChangelogEntries } from './infrastructure/docs/changelog-markdown-parser';
 import { docsSearcher } from './infrastructure/docs/docs-searcher';
-import { toAnalysisJson } from './infrastructure/serializers/analysis-serializer';
+import { createAnalysisFileStore } from './infrastructure/filesystem/changelog-file-store';
 
 const log = getLogger({ name: 'changelog-analyzer' });
 
@@ -25,20 +25,17 @@ async function main() {
     version,
     entries: parseChangelogEntries(changelogContent),
     docsSearch: docsSearcher,
+    store: createAnalysisFileStore(process.cwd()),
   });
-
-  const output = toAnalysisJson(analysis);
 
   const outputPath = path.join(
     process.cwd(),
     'analysis',
     `analysis_${version}.json`,
   );
-  await fs.writeFile(outputPath, JSON.stringify(output, null, 2));
-
   log.msg('APLG0002', {
     params: ['解析'],
-    attrs: { outputPath, totalItems: output.items.length },
+    attrs: { outputPath, totalItems: analysis.items.length },
   });
 }
 

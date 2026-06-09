@@ -6,7 +6,6 @@ import { createSettingKey } from '../../domain/settings-reference/setting-key';
 import {
   createSettingsEntry,
   type SettingsEntry,
-  mergeEnvEntries,
 } from '../../domain/settings-reference/setting-entry';
 
 type SchemaEnvProperty = {
@@ -25,13 +24,11 @@ type SettingsJsonSchema = {
   properties?: Record<string, SchemaProperty>;
 };
 
-export type LoadedSettingsEntries = {
+export type RawSettingsEntries = {
   schemaSettings: SettingsEntry[];
-  mergedEnvEntries: SettingsEntry[];
-  mdEnvCount: number;
-  schemaEnvCount: number;
-  docsEnvCount: number;
-  unmergedPublicEnvMentions: string[];
+  mdEnvEntries: SettingsEntry[];
+  schemaEnvEntries: SettingsEntry[];
+  docsEnvEntries: SettingsEntry[];
 };
 
 type CollectLeafCtx = {
@@ -318,10 +315,9 @@ function findNearbyDescription(
 }
 
 export function findUnmergedPublicEnvMentions(
+  mergedKeys: Set<string>,
   docsEnDir: string,
-  mergedEnvEntries: SettingsEntry[],
 ): string[] {
-  const mergedKeys = new Set(mergedEnvEntries.map((entry) => entry.key));
   const publicKeys = new Set<string>();
   const files = globSync('**/*.md', { cwd: docsEnDir })
     .map(String)
@@ -348,27 +344,17 @@ export async function loadSettingsEntries(input: {
   schemaPath: string;
   envVarsMdPath: string;
   docsEnDir: string;
-}): Promise<LoadedSettingsEntries> {
+}): Promise<RawSettingsEntries> {
   const { settings: schemaSettings, envFromSchema: schemaEnvEntries } =
     await parseSettingsSchema(input.schemaPath);
   const mdEnvEntries = await parseEnvVarsMd(input.envVarsMdPath);
   const docsEnvEntries = await parsePublicEnvEntriesFromDocs(input.docsEnDir);
-  const mergedEnvEntries = mergeEnvEntries({
-    markdownEntries: mdEnvEntries,
-    schemaEntries: schemaEnvEntries,
-    docsEntries: docsEnvEntries,
-  });
 
   return {
     schemaSettings,
-    mergedEnvEntries,
-    mdEnvCount: mdEnvEntries.length,
-    schemaEnvCount: schemaEnvEntries.length,
-    docsEnvCount: docsEnvEntries.length,
-    unmergedPublicEnvMentions: findUnmergedPublicEnvMentions(
-      input.docsEnDir,
-      mergedEnvEntries,
-    ),
+    mdEnvEntries,
+    schemaEnvEntries,
+    docsEnvEntries,
   };
 }
 

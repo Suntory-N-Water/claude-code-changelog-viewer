@@ -1,5 +1,9 @@
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from '../domain/channel/channel';
+
+export type AnalysisSourcePort = {
+  fetch: (version: string) => Promise<Analysis>;
+};
 import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { recordFailure, resetFailure } from '../domain/channel/channel-failure';

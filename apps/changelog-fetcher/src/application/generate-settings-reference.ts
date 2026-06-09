@@ -1,5 +1,6 @@
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
 import type { SettingsEntry } from '../domain/settings-reference/setting-entry';
+import type { SettingKey } from '../domain/settings-reference/setting-key';
 import { createSettingSlugFromKey } from '../domain/settings-reference/setting-slug';
 import {
   buildNoAiTranslationMap,
@@ -12,13 +13,11 @@ import type {
   SettingsTranslationMap,
 } from './settings-translation';
 
-export type LoadedSettingsEntries = {
+export type RawSettingsEntries = {
   schemaSettings: SettingsEntry[];
-  mergedEnvEntries: SettingsEntry[];
-  mdEnvCount: number;
-  schemaEnvCount: number;
-  docsEnvCount: number;
-  unmergedPublicEnvMentions: string[];
+  mdEnvEntries: SettingsEntry[];
+  schemaEnvEntries: SettingsEntry[];
+  docsEnvEntries: SettingsEntry[];
 };
 
 export type LoadedSettingsReferenceContext = {
@@ -39,8 +38,44 @@ export type SettingsEntrySourcePort = {
     schemaPath: string;
     envVarsMdPath: string;
     docsEnDir: string;
-  }) => Promise<LoadedSettingsEntries>;
+  }) => Promise<RawSettingsEntries>;
+  findUnmergedPublicEnvMentions: (
+    mergedKeys: Set<SettingKey>,
+    docsEnDir: string,
+  ) => string[];
 };
+
+function dedupeSettingsEntries(entries: SettingsEntry[]): SettingsEntry[] {
+  const map = new Map<SettingKey, SettingsEntry>();
+  for (const entry of entries) {
+    if (!map.has(entry.key)) {
+      map.set(entry.key, entry);
+    }
+  }
+  return [...map.values()];
+}
+
+function mergeEnvEntries(input: {
+  markdownEntries: SettingsEntry[];
+  schemaEntries: SettingsEntry[];
+  docsEntries: SettingsEntry[];
+}): SettingsEntry[] {
+  const markdownKeys = new Set(input.markdownEntries.map((entry) => entry.key));
+  const schemaOnly = input.schemaEntries.filter(
+    (entry) => !markdownKeys.has(entry.key),
+  );
+  const existingKeys = new Set(
+    [...input.markdownEntries, ...schemaOnly].map((entry) => entry.key),
+  );
+  const docsOnly = input.docsEntries.filter(
+    (entry) => !existingKeys.has(entry.key),
+  );
+  return dedupeSettingsEntries([
+    ...input.markdownEntries,
+    ...schemaOnly,
+    ...docsOnly,
+  ]);
+}
 
 export type SettingsReferenceContextPort = {
   load: (input: {
@@ -69,23 +104,31 @@ export async function generateSettingsReference(input: {
   const { log, paths } = input;
 
   log.info('settings.json スキーマ・env-vars.md・docs/en を解析中...');
-  const loadedEntries = await input.settingsEntrySource.load({
+  const rawEntries = await input.settingsEntrySource.load({
     schemaPath: paths.schemaPath,
     envVarsMdPath: paths.envVarsMdPath,
     docsEnDir: paths.docsEnDir,
   });
 
-  const allEntries = [
-    ...loadedEntries.schemaSettings,
-    ...loadedEntries.mergedEnvEntries,
-  ];
+  const mergedEnvEntries = mergeEnvEntries({
+    markdownEntries: rawEntries.mdEnvEntries,
+    schemaEntries: rawEntries.schemaEnvEntries,
+    docsEntries: rawEntries.docsEnvEntries,
+  });
+
+  const allEntries = [...rawEntries.schemaSettings, ...mergedEnvEntries];
   log.info(
-    `設定: ${loadedEntries.schemaSettings.length}件, 環境変数: ${loadedEntries.mergedEnvEntries.length}件 (env-vars.md=${loadedEntries.mdEnvCount}, schema=${loadedEntries.schemaEnvCount}, docs=${loadedEntries.docsEnvCount}), 合計: ${allEntries.length}件`,
+    `設定: ${rawEntries.schemaSettings.length}件, 環境変数: ${mergedEnvEntries.length}件 (env-vars.md=${rawEntries.mdEnvEntries.length}, schema=${rawEntries.schemaEnvEntries.length}, docs=${rawEntries.docsEnvEntries.length}), 合計: ${allEntries.length}件`,
   );
 
-  if (loadedEntries.unmergedPublicEnvMentions.length > 0) {
+  const unmergedMentions =
+    input.settingsEntrySource.findUnmergedPublicEnvMentions(
+      new Set(mergedEnvEntries.map((e) => e.key)),
+      paths.docsEnDir,
+    );
+  if (unmergedMentions.length > 0) {
     log.warn(
-      `docs/en に出現する未取り込みの組み込み環境変数: ${loadedEntries.unmergedPublicEnvMentions.join(', ')}`,
+      `docs/en に出現する未取り込みの組み込み環境変数: ${unmergedMentions.join(', ')}`,
     );
   }
 

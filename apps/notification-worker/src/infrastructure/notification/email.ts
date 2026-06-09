@@ -1,11 +1,9 @@
 // biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers ランタイム組み込みモジュール
 import { EmailMessage } from 'cloudflare:email';
-import {
-  getPrefixSortOrder,
-  type Prefix,
-} from '@claude-code-changelog-viewer/common';
+import type { Prefix } from '@claude-code-changelog-viewer/common';
 import type { Analysis } from '@claude-code-changelog-viewer/types';
 import { createMimeMessage } from 'mimetext';
+import { groupChangelogItemsByPrefix } from './changelog-message';
 
 export type EmailSendResult = {
   ok: boolean;
@@ -59,18 +57,10 @@ export function createEmailChangelogMessage(
   const summary =
     data.summary || 'Claude Code の新しいバージョンがリリースされました。';
 
-  const groupMap = new Map<string, typeof data.items>();
-  for (const item of data.items) {
-    const group = groupMap.get(item.prefix) ?? [];
-    group.push(item);
-    groupMap.set(item.prefix, group);
-  }
-  const sortedEntries = [...groupMap.entries()].sort(
-    ([a], [b]) => getPrefixSortOrder(a) - getPrefixSortOrder(b),
-  );
+  const groups = groupChangelogItemsByPrefix(data.items);
 
-  const sectionsHtml = sortedEntries
-    .map(([prefix, items]) => {
+  const sectionsHtml = groups
+    .map(({ prefix, items }) => {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
       const listItems = items
         .map((item) => `<li>${item.content_ja || item.content}</li>`)
@@ -95,8 +85,8 @@ export function createEmailChangelogMessage(
 </body>
 </html>`;
 
-  const sectionsText = sortedEntries
-    .map(([prefix, items]) => {
+  const sectionsText = groups
+    .map(({ prefix, items }) => {
       const label = PREFIX_LABELS[prefix as Prefix] ?? prefix;
       const lines = items
         .map((item) => `  - ${item.content_ja || item.content}`)

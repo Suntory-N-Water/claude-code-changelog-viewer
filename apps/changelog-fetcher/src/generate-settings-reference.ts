@@ -7,7 +7,10 @@ import {
   loadExistingSettingKeys,
   writeSettingReferenceFiles,
 } from './infrastructure/filesystem/settings-entry-writer';
-import { loadSettingsEntries } from './infrastructure/settings-reference/settings-entry-loader';
+import {
+  loadSettingsEntries,
+  findUnmergedPublicEnvMentions,
+} from './infrastructure/settings-reference/settings-entry-loader';
 import { loadSettingsReferenceContext } from './infrastructure/settings-reference/settings-related-context';
 
 const log = getLogger({ name: 'settings-reference-generator' });
@@ -56,7 +59,10 @@ async function main() {
       inferredDir: INFERRED_DIR,
       outputDir: OUTPUT_DIR,
     },
-    settingsEntrySource: { load: loadSettingsEntries },
+    settingsEntrySource: {
+      load: loadSettingsEntries,
+      findUnmergedPublicEnvMentions,
+    },
     relatedContextSource: { load: loadSettingsReferenceContext },
     settingsReferenceStore: {
       loadExistingKeys: loadExistingSettingKeys,

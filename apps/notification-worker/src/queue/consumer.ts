@@ -1,19 +1,16 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { z } from 'zod';
 import { dispatchChangelogNotifications } from '../application/dispatch-changelog-notifications';
 import { createNotificationFrequency } from '../domain/channel/notification-frequency';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
+import { createGitHubInferredDataClient } from '../infrastructure/github/github-inferred-data-client';
 
 const logger = getLogger({
   name: 'notification-worker',
   level: 'INFO',
   format: 'json',
 });
-
-const GITHUB_RAW_BASE =
-  'https://raw.githubusercontent.com/Suntory-N-Water/claude-code-changelog-viewer/main/apps/changelog-fetcher/inferred';
 
 const SEND_INTERVAL_MS = 1000;
 
@@ -35,28 +32,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
         }
         const { version } = bodyResult.data;
 
-        // GitHub Raw URL から inferred JSON を取得
-        const inferredUrl = `${GITHUB_RAW_BASE}/inferred_${version}.json`;
-        const response = await fetch(inferredUrl);
-        if (!response.ok) {
-          logger.error('inferred JSONの取得に失敗', {
-            url: inferredUrl,
-            status: response.status,
-          });
-          message.retry();
-          continue;
-        }
-
-        const rawData = await response.json();
-        const parseResult = AnalysisSchema.safeParse(rawData);
-        if (!parseResult.success) {
-          logger.error('inferred JSONのパースに失敗', {
-            error: parseResult.error.message,
-          });
-          message.retry();
-          continue;
-        }
-        const data = parseResult.data;
+        const data = await createGitHubInferredDataClient().fetch(version);
 
         const repository = createChannelRepository(
           env.DB,

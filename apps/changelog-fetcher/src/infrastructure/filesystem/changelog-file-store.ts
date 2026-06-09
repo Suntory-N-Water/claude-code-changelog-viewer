@@ -5,6 +5,8 @@ import type {
   ChangelogMetadata,
   ChangelogStorePort,
 } from '../../application/fetch-changelog';
+import type { AnalysisStorePort } from '../../application/analyze-changelog';
+import type { ChangelogAnalysis } from '../../domain/analysis/changelog-analysis';
 import type { ChangelogDiffEvent } from '../../domain/changelog/changelog-diff-event';
 import type { ChangelogRelease } from '../../domain/changelog/changelog-release';
 import {
@@ -14,6 +16,7 @@ import {
 } from '../../domain/changelog/changelog-version';
 import type { ChangelogDiffEventType } from '../../domain/changelog/changelog-diff-event';
 import { parseChangelogReleases } from '../docs/changelog-markdown-parser';
+import { toAnalysisJson } from '../serializers/analysis-serializer';
 
 export type ChangelogDiffJson = {
   events: DiffEventJson[];
@@ -26,6 +29,16 @@ export type DiffEventJson = {
   items_added: string[];
   items_removed: string[];
 };
+
+export function createAnalysisFileStore(appDir: string): AnalysisStorePort {
+  return {
+    async save(analysis: ChangelogAnalysis, version: string): Promise<void> {
+      const output = toAnalysisJson(analysis);
+      const outputPath = join(appDir, 'analysis', `analysis_${version}.json`);
+      await writeFile(outputPath, JSON.stringify(output, null, 2));
+    },
+  };
+}
 
 export class ChangelogFileStore implements ChangelogStorePort {
   #outputDir: string;

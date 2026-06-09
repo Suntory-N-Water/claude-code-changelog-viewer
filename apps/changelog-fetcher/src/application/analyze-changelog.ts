@@ -14,10 +14,15 @@ export type DocsSearchPort = {
   findRelatedDocs: (entry: ChangelogEntry) => Promise<RelatedDoc[]>;
 };
 
+export type AnalysisStorePort = {
+  save: (analysis: ChangelogAnalysis, version: string) => Promise<void>;
+};
+
 export async function analyzeChangelog(input: {
   version: string;
   entries: ChangelogEntry[];
   docsSearch: DocsSearchPort;
+  store: AnalysisStorePort;
 }): Promise<ChangelogAnalysis> {
   const version = createChangelogVersion(input.version);
   const entries = input.entries;
@@ -40,5 +45,7 @@ export async function analyzeChangelog(input: {
     }),
   );
 
-  return createChangelogAnalysis({ version, items });
+  const analysis = createChangelogAnalysis({ version, items });
+  await input.store.save(analysis, input.version);
+  return analysis;
 }
