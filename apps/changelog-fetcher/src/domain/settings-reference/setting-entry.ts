@@ -33,9 +33,7 @@ export function createSettingsEntry(input: {
 /**
  * 同じキーの設定エントリを最初の1件にまとめる。
  */
-export function dedupeSettingsEntries(
-  entries: SettingsEntry[],
-): SettingsEntry[] {
+function dedupeSettingsEntries(entries: SettingsEntry[]): SettingsEntry[] {
   const map = new Map<SettingKey, SettingsEntry>();
 
   for (const entry of entries) {

@@ -2,7 +2,10 @@ import type {
   ChangelogEntryContent,
   ChangelogPrefix,
 } from '../changelog/changelog-entry';
-import type { InferenceResult } from '../inference/inference-result';
+import {
+  type InferenceResult,
+  createInferenceResult,
+} from '../inference/inference-result';
 import type { RelatedDoc } from './related-doc';
 
 export type AnalyzedChangelogEntry = {
@@ -23,6 +26,12 @@ export type CreateAnalyzedChangelogEntryInput = {
   inference?: InferenceResult;
 };
 
+export type ApplyInferenceToAnalyzedEntryInput = {
+  contentJa?: string;
+  featureAreas?: string[];
+  inference?: InferenceResult;
+};
+
 /**
  * CHANGELOG 項目に関連ドキュメントや推論結果を付与した解析項目を生成する。
  */
@@ -37,6 +46,27 @@ export function createAnalyzedChangelogEntry(
     relatedDocs: input.relatedDocs ?? [],
     ...(input.inference !== undefined ? { inference: input.inference } : {}),
   };
+}
+
+/**
+ * AI の翻訳・推論・機能領域補正を解析済み項目へ適用する。
+ */
+export function applyInferenceToAnalyzedEntry(
+  entry: AnalyzedChangelogEntry,
+  input: ApplyInferenceToAnalyzedEntryInput,
+): AnalyzedChangelogEntry {
+  const contentJa = input.contentJa ?? entry.contentJa;
+  const inference =
+    input.inference !== undefined
+      ? createInferenceResult(input.inference)
+      : entry.inference;
+
+  return createAnalyzedChangelogEntry({
+    ...entry,
+    ...(contentJa !== undefined ? { contentJa } : {}),
+    featureAreas: input.featureAreas ?? entry.featureAreas,
+    ...(inference !== undefined ? { inference } : {}),
+  });
 }
 
 /**

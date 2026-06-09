@@ -1,7 +1,7 @@
 import { globSync, mkdirSync, readFileSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import type { SettingReference } from '../../domain/settings-reference/setting-reference';
+import type { SettingReferenceOutput } from '../../application/settings-translation';
 
 export function loadExistingSettingKeys(outputDir: string): Set<string> {
   mkdirSync(outputDir, { recursive: true });
@@ -17,7 +17,7 @@ export function loadExistingSettingKeys(outputDir: string): Set<string> {
 
 type WriteSettingReferenceFilesOptions = {
   outputDir: string;
-  references: SettingReference[];
+  references: SettingReferenceOutput[];
 };
 
 export async function writeSettingReferenceFiles(
@@ -43,7 +43,7 @@ export async function writeSettingReferenceFiles(
   return writtenCount;
 }
 
-function toSettingReferenceJson(reference: SettingReference): {
+function toSettingReferenceJson(reference: SettingReferenceOutput): {
   key: string;
   leaf_name: string;
   slug: string;

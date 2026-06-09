@@ -23,7 +23,7 @@ export type BuiltinSurfaceStorePort = {
 export async function fetchBuiltinSurface(input: {
   source: BuiltinSurfaceSourcePort;
   store: BuiltinSurfaceStorePort;
-}): Promise<BuiltinSurfaceCatalog[]> {
+}): Promise<void> {
   const [{ tools, commands, skills, envs }, agents] = await Promise.all([
     input.source.fetchCliSurface(),
     input.source.fetchAgents(),
@@ -39,6 +39,4 @@ export async function fetchBuiltinSurface(input: {
 
   await input.store.saveCatalogs(catalogs);
   log.info('全ファイルの書き込みが完了しました');
-
-  return catalogs;
 }

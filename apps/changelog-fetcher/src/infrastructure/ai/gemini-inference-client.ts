@@ -1,12 +1,11 @@
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
-import type { InferenceBatchResult } from '@claude-code-changelog-viewer/types';
 import {
   createInferenceBatch,
   type InferenceBatch,
   type IndexedAnalyzedEntry,
 } from '../../application/inference-batch';
 import type { InferencePort } from '../../application/infer-benefits';
-import { GeminiClient } from './gemini-client';
+import { GeminiClient, type InferenceBatchResult } from './gemini-client';
 import { loadModelContext } from './model-context';
 import { buildBatchInferencePrompt } from './prompts/inference-prompt';
 

@@ -6,8 +6,10 @@ import {
   normalizeMarkdownForAi,
 } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
-import type { SettingsReferenceContext } from '../../application/settings-translation';
-import type { RelatedChangelog } from '../../domain/settings-reference/setting-reference';
+import type {
+  RelatedChangelogOutput,
+  SettingsReferenceContext,
+} from '../../application/settings-translation';
 import type { SettingsEntry } from '../../domain/settings-reference/setting-entry';
 import { extractSnippets, searchDocs } from '../docs/docs-searcher';
 
@@ -73,7 +75,7 @@ export async function loadAllInferred(
 function findRelatedChangelogs(
   key: string,
   allItems: FlatChangelogItem[],
-): RelatedChangelog[] {
+): RelatedChangelogOutput[] {
   const searchTerms = buildChangelogSearchTerms(key);
   return allItems
     .filter((item) =>
@@ -133,17 +135,6 @@ export async function collectRelatedContext(
     changelogsMap,
     docSnippetsMap,
   };
-}
-
-export function countEntriesWithContext(
-  entries: SettingsEntry[],
-  ctx: SettingsReferenceContext,
-): number {
-  return entries.filter(
-    (e) =>
-      (ctx.docSnippetsMap.get(e.key)?.length ?? 0) > 0 ||
-      (ctx.changelogsMap.get(e.key)?.length ?? 0) > 0,
-  ).length;
 }
 
 export async function loadSettingsReferenceContext(input: {

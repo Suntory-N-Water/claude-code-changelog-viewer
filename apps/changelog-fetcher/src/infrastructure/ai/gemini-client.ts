@@ -1,11 +1,36 @@
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
-import {
-  type InferenceBatchResult,
-  InferenceBatchResultSchema,
-} from '@claude-code-changelog-viewer/types';
 import { ApiError, GoogleGenAI, Type } from '@google/genai';
 import pRetry, { AbortError } from 'p-retry';
 import { z } from 'zod';
+
+const InferenceBatchResultSchema = z.object({
+  inferred_items: z.array(
+    z.object({
+      id: z.number(),
+      content_ja: z.string(),
+      before: z.string(),
+      after: z.string(),
+      benefit: z.string(),
+    }),
+  ),
+  translated_items: z.array(
+    z.object({
+      id: z.number(),
+      content_ja: z.string(),
+    }),
+  ),
+  feature_area_corrections: z
+    .array(
+      z.object({
+        id: z.number(),
+        feature_areas: z.array(z.string()),
+      }),
+    )
+    .optional(),
+  summary: z.string(),
+});
+
+export type InferenceBatchResult = z.infer<typeof InferenceBatchResultSchema>;
 
 const SettingsTranslateResultSchema = z.object({
   results: z.array(

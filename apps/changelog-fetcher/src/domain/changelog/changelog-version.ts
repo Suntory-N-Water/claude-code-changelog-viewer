@@ -26,10 +26,3 @@ export function createChangelogVersion(value: string): ChangelogVersion {
 export function toVersionNumber(version: ChangelogVersion): string {
   return version.replace(/^v/, '');
 }
-
-/**
- * changelogs ディレクトリへ保存する Markdown ファイル名を返す。
- */
-export function toVersionFilename(version: ChangelogVersion): string {
-  return `${version}.md`;
-}

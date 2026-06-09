@@ -62,6 +62,14 @@ domain には、対象プロジェクトが守りたい業務上の不変条件�
 
 ただし、「入力形式を変えても残るか」は有力なヒューリスティックであり、唯一の条件ではない。最終的には、その判断が対象ドメインの問題解決に必要な知識であり、ドメインの言葉で説明できるかを確認する。逆に、Markdown、CSV、JSON、帳票、特定ファイル形式のように技術形式に見えるものでも、利用者が業務上その形式を概念として扱うなら domain に含まれる可能性がある。
 
+また、「入力形式を変えても残るか」だけでは application との区別がつかないことがある。追加の判断軸として「それはドメインの不変条件・業務ルールか、それとも usecase の進行管理か」を合わせて確認する。
+
+#### ドメインモデル貧血症に注意する
+
+Functional DDD で純粋関数ベースのアプローチを採用する場合、domain の業務ルールをすべてドメインサービス相当の関数に切り出し続けると、domain 型がデータを保持するだけの入れ物になる(ドメインモデル貧血症)。データとふるまいが断絶し、ロジックが散在して変更コストが高くなる。
+
+ふるまいの配置に迷った場合は、まず domain 型(値オブジェクト・エンティティ相当の型)にロジックを持たせることを検討する。複数オブジェクトを横断する処理など、特定の型に持たせると不自然になるものに限って、ドメインサービス相当の関数として切り出す。
+
 ```ts
 // 前提: 対象プロジェクトでは「同じ key は一度だけ扱う」ことが業務ルールである。
 // 判断: 入力が Markdown でも JSON でも DB record でも残るため domain。
@@ -89,7 +97,9 @@ export function parseMarkdownListItems(markdown: string): string[] {
 
 application は、domain の判断と infrastructure の外部能力を組み合わせて usecase を完了させる層である。ここには、どの port を呼ぶか、retry するか、既存結果を再利用するか、どのタイミングで保存するかを置く。
 
-一方で、application が domain object の内部状態を細かく組み立て続けると、domain rule が application に漏れる。状態遷移として説明できる処理は domain 関数へ寄せる。
+application がやってはいけないことを明示する。
+
+- **domain rule を自ら記述しない。** 業務上の不変条件・分類・重複判定・状態遷移は domain 関数へ委譲する。application が domain object の内部状態を細かく組み立て続けると、domain rule が application に漏れる。
 
 ```ts
 // 前提: 対象プロジェクトでは、外部 AI の結果を既存分析へ反映する usecase がある。
@@ -114,14 +124,31 @@ infrastructure には、DB、filesystem、HTTP、SDK、AI provider、Markdown pa
 
 外部データから domain object を再構築するために、infrastructure が domain factory や domain の純粋関数を呼ぶことは許容する。ただし、重要な domain policy を adapter の内部事情として隠さない。policy として説明したい判断は domain に置き、application から見える形で使うことを検討する。
 
+domain type ↔ 外部 JSON 契約の変換(snake_case 変換、スキーマ整形、branded type の解除など)は infrastructure のシリアライザーに置く。entrypoint が domain 型のフィールドに逐一アクセスしてこの変換を書くのは infrastructure の仕事が entrypoint に漏れている状態であり、domain のフィールド名変更が entrypoint まで波及する原因になる。
+
 ```ts
-// 前提: 保存ファイルは snake_case JSON、アプリ内部は camelCase の domain/application 型を使う。
-// 判断: snake_case 変換は保存契約なので infrastructure。
-export function toStoredJson(item: OutputItem): StoredJsonItem {
+// 前提: 保存ファイルは snake_case JSON、アプリ内部は camelCase の domain 型を使う。
+// 判断: snake_case 変換と外部スキーマ整形は保存契約なので infrastructure のシリアライザーに置く。
+// infrastructure が domain factory を呼んで domain object を再構築することも許容する。
+export function toStoredJson(analysis: ChangelogAnalysis): StoredAnalysis {
   return {
-    item_id: item.itemId,
-    created_at: item.createdAt.toISOString(),
+    version: toVersionNumber(analysis.version),           // domain 関数を呼ぶ
+    items: analysis.items.map((entry) => ({
+      feature_areas: [...entry.featureAreas],             // camelCase → snake_case
+      hit_count: entry.relatedDocs[0]?.hitCount ?? 0,     // camelCase → snake_case
+    })),
   };
+}
+
+export function fromStoredJson(stored: StoredAnalysis): ChangelogAnalysis {
+  return createChangelogAnalysis({                        // domain factory を呼ぶ
+    version: createChangelogVersion(stored.version),
+    items: stored.items.map((item) =>
+      createAnalyzedChangelogEntry({
+        featureAreas: item.feature_areas,                 // snake_case → camelCase
+      }),
+    ),
+  });
 }
 ```
 
@@ -130,6 +157,8 @@ export function toStoredJson(item: OutputItem): StoredJsonItem {
 entrypoint は、CLI、HTTP route、queue handler、cron handler、test fixture runner などの入口である。ここには argv / env / request / response / exit code / wiring / 表示ログを置く。
 
 entrypoint に domain rule を置かない。entrypoint でしか使わない変換でも、外部契約の変換なら infrastructure、usecase input の組み立てなら application 境界として扱う。
+
+entrypoint は domain 型のフィールドに直接アクセスして変換処理を書かない。domain 型 ↔ 外部 JSON 契約の変換(snake_case 変換・スキーマ整形)は infrastructure のシリアライザーに置く。entrypoint が変換を書くと domain のフィールド名変更が entrypoint まで波及する。
 
 ### 6. DTO と外部契約は公開範囲で分類する
 
@@ -144,7 +173,15 @@ DTO は domain object ではない。DTO の置き場所は「誰との契約か
 
 特定プロジェクトで shared package を使う場合も、内部 provider 応答 schema を shared package に置かない。shared package に置くのは、他プロジェクトが読むことを約束した契約だけにする。
 
-### 7. port は副作用境界に限定する
+### 7. port は依存を逆転させるために置く
+
+domain と application は infrastructure に直接依存しない。infrastructure の変更がビジネスロジックに波及することを防ぎ、テストで差し替えられる状態を保つために、port(interface)を介して依存の方向を逆転させる。
+
+```
+application → port (interface) ← infrastructure (実装)
+```
+
+domain は port すら呼ばない。port を呼ぶのは application だけである。domain は純粋関数として引数を受け取り値を返すだけで、外部への依存を持たない。
 
 port は、外部 API、DB、filesystem、AI provider、queue、mail、検索基盤など、差し替えたい副作用境界にだけ置く。
 
@@ -152,15 +189,23 @@ port は、外部 API、DB、filesystem、AI provider、queue、mail、検索基
 
 repository port は、単なる DB / filesystem 操作の隠蔽ではなく、集約、domain snapshot、または usecase が扱う永続化対象の保存と再構築を表す境界として定義する。`executeSql`、`readJsonFile`、`putObject` のような技術語彙を application へ公開せず、`saveAnalysis`、`findChangelogByKey`、`loadNotificationState` のように、対象プロジェクトの概念に沿った操作として表現する。
 
+repository は変更の単位(集約または domain snapshot)ごとに用意する。複数の集約をまたぐ操作を一つの repository に混在させると、domain policy が repository 実装に紛れ込みやすい。
+
 一方で、重複判定、状態遷移、分類、優先順位付けなどの domain policy を repository 実装へ押し込まない。repository が返す取得結果を使って判断することはあっても、何をもって重複とみなすか、どの状態へ遷移できるかといった判断は domain または application から見える domain 関数に置く。
 
-### 8. helper は抽象化ではなく可読性と責務で判断する
+### 8. 複雑なオブジェクト生成は domain 層にまとめる
+
+domain object の生成が複数ステップにわたる場合、その生成知識を domain 層の関数(ファクトリ相当)にまとめる。生成ロジックを application や infrastructure に置くと、domain rule が層をまたいで散らばる。
+
+単純な生成(フィールドをそのまま詰めるだけ)はインラインで十分である。生成条件の検証、複数フィールドの組み合わせ判断、生成失敗のハンドリングが必要な場合に domain 層の生成関数として切り出す。
+
+### 9. helper は抽象化ではなく可読性と責務で判断する
 
 helper は原則として追加しない。追加してよいのは、2箇所以上から呼ばれる、分岐・検証・副作用境界がありインラインでは明確に読みにくい、または既存の同種パターンに揃える必要がある場合である。
 
 1箇所からしか呼ばれない整形・map・変換処理は、まず call site に置く。例外として、外部契約変換や domain 状態遷移のように名前が責務を説明する場合は、単一 call site でも関数化を許容する。
 
-### 9. `readonly` は層分類ではなく mutation 意図で判断する
+### 10. `readonly` は層分類ではなく mutation 意図で判断する
 
 `readonly` が付いているから domain、付いていないから application とは判断しない。`readonly` は、値を snapshot / value object / external contract として扱い、mutation しない意図を表すために使う。
 
@@ -199,6 +244,10 @@ helper は原則として追加しない。追加してよいのは、2箇所以
   - → DTO は誰との契約かで置き場所を決める
 - 「外部依存は port」という言葉だけが一人歩きし、薄い interface が増えるリスクがある
   - → port は副作用差し替えのためだけに使う
+- Functional DDD で純粋関数に切り出し続け、domain 型がデータ保持専用の入れ物になるリスクがある(ドメインモデル貧血症)
+  - → ふるまいはまず domain 型に持たせる。複数オブジェクトを横断する処理だけ関数として切り出す
+- entrypoint が domain 型のフィールドに逐一アクセスして変換処理を書き、infrastructure の仕事が entrypoint に漏れるリスクがある
+  - → domain 型 ↔ 外部 JSON 契約の変換は infrastructure に置く
 
 ## 決めていないこと
 
@@ -216,10 +265,16 @@ helper は原則として追加しない。追加してよいのは、2箇所以
 ### 判断チェックリスト
 
 - この処理は、入力形式を変えても残るか
+- この処理は、ドメインの不変条件・業務ルールか、それとも usecase の進行管理か
 - この処理は、業務の人が変更理由を説明できる判断か
+- domain 型はデータを保持するだけの入れ物になっていないか(ドメインモデル貧血症)
+- ふるまいを関数に切り出す前に、domain 型に持たせることを検討したか
 - この型は、domain snapshot か、usecase DTO か、外部契約 DTO か
 - この DTO は、誰との契約か
-- この port は、副作用を差し替えるために必要か
+- entrypoint が domain 型のフィールドに直接アクセスして変換処理を書いていないか(変換は infrastructure のシリアライザーに置く)
+- 翻訳・検索結果・domain データを混合した出力は application DTO として定義しているか
+- この port は、依存を逆転させるために必要か(domain/application が infrastructure に直接依存しないためか)
+- domain が port を呼んでいないか(port を呼ぶのは application だけ)
 - この helper は、責務の名前を与える価値があるか
 - この `readonly` は、mutation しない意図を説明しているか
 

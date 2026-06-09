@@ -1,13 +1,12 @@
 import {
   type AnalyzedChangelogEntry,
-  createAnalyzedChangelogEntry,
+  applyInferenceToAnalyzedEntry,
   needsInference,
 } from '../domain/analysis/analyzed-changelog-entry';
 import {
   type ChangelogAnalysis,
   createChangelogAnalysis,
 } from '../domain/analysis/changelog-analysis';
-import { createInferenceResult } from '../domain/inference/inference-result';
 
 export type InferredBatchItem = {
   id: number;
@@ -90,28 +89,26 @@ export function applyInferenceBatch(
     const inferred = inferredById.get(index);
 
     if (inferred) {
-      return createAnalyzedChangelogEntry({
-        ...entry,
+      return applyInferenceToAnalyzedEntry(entry, {
         contentJa: inferred.contentJa,
         featureAreas,
-        inference: createInferenceResult({
+        inference: {
           before: inferred.before,
           after: inferred.after,
           benefit: inferred.benefit,
-        }),
+        },
       });
     }
 
     const translated = translatedById.get(index);
     if (translated) {
-      return createAnalyzedChangelogEntry({
-        ...entry,
+      return applyInferenceToAnalyzedEntry(entry, {
         contentJa: translated.contentJa,
         featureAreas,
       });
     }
 
-    return createAnalyzedChangelogEntry({ ...entry, featureAreas });
+    return applyInferenceToAnalyzedEntry(entry, { featureAreas });
   });
 
   const summary = batch.summary ?? analysis.summary;

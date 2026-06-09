@@ -1,9 +1,31 @@
 import type { SettingKey } from '../domain/settings-reference/setting-key';
-import type { RelatedChangelog } from '../domain/settings-reference/setting-reference';
+import type { SettingSource } from '../domain/settings-reference/setting-key';
+import type { SettingSlug } from '../domain/settings-reference/setting-slug';
 import type { SettingsEntry } from '../domain/settings-reference/setting-entry';
+import type { InferenceResult } from '../domain/inference/inference-result';
+
+export type RelatedChangelogOutput = {
+  version: string;
+  content: string;
+  contentJa?: string;
+  inference?: InferenceResult;
+};
+
+export type SettingReferenceOutput = {
+  key: SettingKey;
+  leafName: string;
+  slug: SettingSlug;
+  source: SettingSource;
+  descriptionEn: string;
+  descriptionJa: string;
+  useCaseJa?: string;
+  parentDescriptions: string[];
+  docSnippets: string[];
+  relatedChangelog: RelatedChangelogOutput[];
+};
 
 export type SettingsReferenceContext = {
-  changelogsMap: Map<SettingKey, RelatedChangelog[]>;
+  changelogsMap: Map<SettingKey, RelatedChangelogOutput[]>;
   docSnippetsMap: Map<SettingKey, string[]>;
 };
 
@@ -11,7 +33,7 @@ export type SettingsTranslationTarget = {
   id: number;
   entry: SettingsEntry;
   docSnippets: string[];
-  relatedChangelog: RelatedChangelog[];
+  relatedChangelog: RelatedChangelogOutput[];
 };
 
 export type SettingsTranslation = {

@@ -118,23 +118,3 @@ export function parseChangelogReleases(markdown: string): ChangelogRelease[] {
 
   return releases;
 }
-
-export type ChangelogItemDiff = {
-  added: string[];
-  removed: string[];
-};
-
-export function computeChangelogItemDiff(
-  localContent: string,
-  remoteContent: string,
-): ChangelogItemDiff {
-  const localItems = extractChangelogItemLines(localContent);
-  const remoteItems = extractChangelogItemLines(remoteContent);
-  const localSet = new Set(localItems);
-  const remoteSet = new Set(remoteItems);
-
-  return {
-    added: remoteItems.filter((item) => !localSet.has(item)),
-    removed: localItems.filter((item) => !remoteSet.has(item)),
-  };
-}

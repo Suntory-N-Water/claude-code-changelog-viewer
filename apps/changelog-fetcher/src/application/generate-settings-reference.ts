@@ -1,15 +1,13 @@
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
 import type { SettingsEntry } from '../domain/settings-reference/setting-entry';
-import {
-  createSettingReference,
-  type SettingReference,
-} from '../domain/settings-reference/setting-reference';
+import { createSettingSlugFromKey } from '../domain/settings-reference/setting-slug';
 import {
   buildNoAiTranslationMap,
   translateInBatches,
   type SettingsTranslatorPort,
 } from './settings-entry-translator';
 import type {
+  SettingReferenceOutput,
   SettingsReferenceContext,
   SettingsTranslationMap,
 } from './settings-translation';
@@ -55,7 +53,7 @@ export type SettingsReferenceStorePort = {
   loadExistingKeys: (outputDir: string) => Set<string>;
   writeReferences: (input: {
     outputDir: string;
-    references: SettingReference[];
+    references: SettingReferenceOutput[];
   }) => Promise<number>;
 };
 
@@ -134,13 +132,18 @@ export async function generateSettingsReference(input: {
     }
 
     return [
-      createSettingReference({
-        entry,
+      {
+        key: entry.key,
+        leafName: entry.leafName,
+        slug: createSettingSlugFromKey(entry.key, entry.source),
+        source: entry.source,
+        descriptionEn: entry.descriptionEn,
         descriptionJa: translation.descriptionJa,
-        useCaseJa: translation.useCaseJa,
+        ...(translation.useCaseJa ? { useCaseJa: translation.useCaseJa } : {}),
+        parentDescriptions: entry.parentDescriptions,
         docSnippets: relatedContext.docSnippetsMap.get(entry.key) ?? [],
         relatedChangelog: relatedContext.changelogsMap.get(entry.key) ?? [],
-      }),
+      },
     ];
   });
 

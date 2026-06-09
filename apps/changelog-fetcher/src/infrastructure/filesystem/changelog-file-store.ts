@@ -9,7 +9,6 @@ import type { ChangelogDiffEvent } from '../../domain/changelog/changelog-diff-e
 import type { ChangelogRelease } from '../../domain/changelog/changelog-release';
 import {
   createChangelogVersion,
-  toVersionFilename,
   toVersionNumber,
   type ChangelogVersion,
 } from '../../domain/changelog/changelog-version';
@@ -128,4 +127,8 @@ function toDiffEventJson(event: ChangelogDiffEvent): DiffEventJson {
     items_added: [...event.itemsAdded],
     items_removed: [...event.itemsRemoved],
   };
+}
+
+function toVersionFilename(version: ChangelogVersion): string {
+  return `${version}.md`;
 }

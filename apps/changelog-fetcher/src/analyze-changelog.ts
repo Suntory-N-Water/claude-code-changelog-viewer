@@ -1,14 +1,10 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { analyzeChangelog } from './application/analyze-changelog';
-import { toVersionNumber } from './domain/changelog/changelog-version';
 import { parseChangelogEntries } from './infrastructure/docs/changelog-markdown-parser';
 import { docsSearcher } from './infrastructure/docs/docs-searcher';
-
-// schema 互換のため残す固定値。現在は意味のある評価値として使わない。
-const SCHEMA_COMPATIBILITY_SCORE = 0;
+import { toAnalysisJson } from './infrastructure/serializers/analysis-serializer';
 
 const log = getLogger({ name: 'changelog-analyzer' });
 
@@ -31,33 +27,7 @@ async function main() {
     docsSearch: docsSearcher,
   });
 
-  const output = AnalysisSchema.parse({
-    version: toVersionNumber(analysis.version),
-    ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
-    items: analysis.items.map((entry) => ({
-      content: entry.content,
-      ...(entry.contentJa !== undefined ? { content_ja: entry.contentJa } : {}),
-      prefix: entry.prefix,
-      importance_score: SCHEMA_COMPATIBILITY_SCORE,
-      feature_areas: [...entry.featureAreas],
-      related_docs: entry.relatedDocs.map((doc) => ({
-        file: doc.file,
-        snippets: [...doc.snippets],
-        hit_count: doc.hitCount,
-        context_score: SCHEMA_COMPATIBILITY_SCORE,
-        total_score: SCHEMA_COMPATIBILITY_SCORE,
-      })),
-      ...(entry.inference !== undefined
-        ? {
-            inference: {
-              before: entry.inference.before,
-              after: entry.inference.after,
-              benefit: entry.inference.benefit,
-            },
-          }
-        : {}),
-    })),
-  });
+  const output = toAnalysisJson(analysis);
 
   const outputPath = path.join(
     process.cwd(),
