@@ -287,7 +287,7 @@ For Bash patterns, whether your hook command runs depends on the shape of the pa
 | `Bash(git *)` | `npm test && git push` | yes | each subcommand is checked; `git push` matches |
 | `Bash(rm *)` | `echo $(rm -rf /)` | yes | commands inside `$()` and backticks are checked; `rm -rf /` matches |
 | `Bash(rm *)` | `echo $(date)` | no | no subcommand matches `rm *` |
-| `Bash(git push *)` | `echo $(date)` | yes | patterns that constrain past the command name fail open on `$()`, backticks, or `$VAR` |
+| `Bash(git push *)` | `echo $(date)` | yes | patterns that specify more than the command name run the hook anyway on `$()`, backticks, or `$VAR` |
 
 The filter also fails open, running your hook regardless of pattern, when the Bash command cannot be parsed. Because the `if` filter is best-effort, use the [permission system](/en/permissions) rather than a hook to enforce a hard allow or deny.
 
