@@ -7,6 +7,7 @@ import {
   type IndexedAnalyzedEntry,
   type InferenceBatch,
 } from './inference-batch';
+import { transferExistingInference } from './transfer-existing-inference';
 
 const log = getLogger({ name: 'benefit-inferrer' });
 
@@ -17,11 +18,16 @@ export type InferencePort = {
   }) => Promise<InferenceBatch>;
 };
 
+export type InferredStorePort = {
+  load: (version: string) => Promise<ChangelogAnalysis | null>;
+};
+
 export async function inferBenefits(input: {
   version: string;
   analysis: ChangelogAnalysis;
   skipAI: boolean;
   inference: InferencePort;
+  store: InferredStorePort;
 }): Promise<ChangelogAnalysis> {
   if (input.skipAI) {
     log.info('AI推論をスキップ (コピーモード)', {
@@ -35,16 +41,24 @@ export async function inferBenefits(input: {
     attrs: { totalItems: input.analysis.items.length },
   });
 
-  let analysis = applyInferenceBatch(
+  let analysis = transferExistingInference(
     input.analysis,
-    await input.inference.infer({
-      version: input.version,
-      items: input.analysis.items.map((entry, originalIndex) => ({
-        entry,
-        originalIndex,
-      })),
-    }),
+    await input.store.load(input.version),
   );
+  const missingBeforeInitial = findMissingInferenceItems(analysis);
+
+  if (missingBeforeInitial.length === 0) {
+    log.info('既存 inferred を全項目に流用したため AI推論をスキップ');
+    return analysis;
+  }
+
+  analysis = applyInferenceBatch(analysis, {
+    ...(await input.inference.infer({
+      version: input.version,
+      items: missingBeforeInitial,
+    })),
+    ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
+  });
   log.msg('APLG0002', { params: ['バージョンサマリー生成'] });
 
   const missingAfterInitial = findMissingInferenceItems(analysis);
@@ -64,13 +78,15 @@ export async function inferBenefits(input: {
       }
 
       try {
-        analysis = applyInferenceBatch(
-          analysis,
-          await input.inference.infer({
+        analysis = applyInferenceBatch(analysis, {
+          ...(await input.inference.infer({
             version: input.version,
             items: missing,
-          }),
-        );
+          })),
+          ...(analysis.summary !== undefined
+            ? { summary: analysis.summary }
+            : {}),
+        });
       } catch (error) {
         throw new AbortError(
           error instanceof Error ? error.message : String(error),
