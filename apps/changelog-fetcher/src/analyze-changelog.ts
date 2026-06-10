@@ -1,16 +1,10 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import {
-  getLogger,
-  normalizeMarkdownForAi,
-  toError,
-} from '@claude-code-changelog-viewer/common';
-import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
-import { parseChangelog } from './parsers/changelog-parser';
-import { extractKeywords } from './parsers/keyword-extractor';
-import { getTopDocs } from './scorers/context-scorer';
-import { searchDocs } from './searchers/grep-executor';
-import { extractSnippets } from './searchers/snippet-extractor';
+import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { parseChangelogEntries } from './infrastructure/docs/changelog-markdown-parser';
+import { docsSearcher } from './infrastructure/docs/docs-searcher';
+import { createAnalysisFileStore } from './infrastructure/filesystem/changelog-file-store';
+import { analyzeChangelog } from './usecase/analyze-changelog';
 
 const log = getLogger({ name: 'changelog-analyzer' });
 
@@ -24,68 +18,24 @@ async function main() {
 
   log.msg('APLG0001', { params: [`CHANGELOG 解析 (${version})`] });
 
-  // 1. CHANGELOGを読み込み
   const changelogPath = path.join(process.cwd(), 'changelogs', `${version}.md`);
-  const changelog = await fs.readFile(changelogPath, 'utf-8');
+  const changelogContent = await fs.readFile(changelogPath, 'utf-8');
 
-  // 2. パース
-  const items = parseChangelog(changelog);
-  log.msg('APLG0010', { params: [`${items.length} 件の項目`] });
-
-  // 3. 各項目を処理
-  const analyzedItems = await Promise.all(
-    items.map(async (item, index) => {
-      log.info(
-        `[${index + 1}/${items.length}] ${item.content.slice(0, 60)}...`,
-      );
-
-      // キーワード抽出
-      const keywords = extractKeywords(item);
-
-      // ドキュメント検索
-      const searchResult = await searchDocs(keywords);
-
-      // スニペット取得
-      const snippetResults = await extractSnippets(
-        searchResult.files,
-        keywords,
-      );
-
-      // スコアリング & 上位3件取得
-      const topDocs = getTopDocs(snippetResults, 3).map((doc) => ({
-        ...doc,
-        snippets: doc.snippets
-          .map(normalizeMarkdownForAi)
-          .filter((snippet) => snippet.length > 0),
-      }));
-
-      return {
-        content: item.content,
-        prefix: item.prefix,
-        importance_score: item.importance_score,
-        feature_areas: [],
-        related_docs: topDocs,
-      };
-    }),
-  );
-
-  // 4. Zod検証
-  const result = AnalysisSchema.parse({
-    version: version.replace('v', ''),
-    items: analyzedItems,
+  const analysis = await analyzeChangelog({
+    version,
+    entries: parseChangelogEntries(changelogContent),
+    docsSearch: docsSearcher,
+    store: createAnalysisFileStore(process.cwd()),
   });
 
-  // 5. JSON出力
   const outputPath = path.join(
     process.cwd(),
     'analysis',
     `analysis_${version}.json`,
   );
-  await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
-
   log.msg('APLG0002', {
     params: ['解析'],
-    attrs: { outputPath, totalItems: result.items.length },
+    attrs: { outputPath, totalItems: analysis.items.length },
   });
 }
 

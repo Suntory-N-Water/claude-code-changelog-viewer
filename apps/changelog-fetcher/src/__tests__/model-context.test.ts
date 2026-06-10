@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'vitest';
-import { buildModelContext, parseModelNames } from '../ai/model-context';
+import {
+  buildModelContext,
+  parseModelNames,
+} from '../infrastructure/ai/model-context';
 
 // platform.claude.com/docs/en/about-claude/models/overview.md の構造を再現
 const MODELS_OVERVIEW = `### Latest models comparison

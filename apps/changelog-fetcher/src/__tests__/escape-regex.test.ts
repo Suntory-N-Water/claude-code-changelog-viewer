@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { escapeRegex } from '../searchers/escape-regex';
+import { escapeRegex } from '../infrastructure/docs/escape-regex';
 
 describe('escapeRegex', () => {
   test.each([

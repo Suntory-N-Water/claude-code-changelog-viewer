@@ -3,13 +3,21 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ChangelogDiff, DiffEvent } from '../types';
 import {
-  extractItems,
-  isDuplicateEvent,
-  loadDiffFile,
-  saveDiffFile,
-} from '../parse-changelog';
+  computeChangelogEntryDiff,
+  isDuplicateDiffEvent,
+  type ChangelogDiffEvent,
+} from '../domain/changelog/changelog-diff-event';
+import { createChangelogVersion } from '../domain/changelog/changelog-version';
+import {
+  extractChangelogItemLines,
+  parseChangelogEntries,
+} from '../infrastructure/docs/changelog-markdown-parser';
+import {
+  loadChangelogDiffFile,
+  saveChangelogDiffFile,
+  type ChangelogDiffJson,
+} from '../infrastructure/filesystem/changelog-file-store';
 
 const tmpDir = mkdtempSync(join(tmpdir(), 'changelog-diff-test-'));
 
@@ -17,114 +25,117 @@ afterAll(() => {
   rmSync(tmpDir, { recursive: true, force: true });
 });
 
-describe('extractItems', () => {
+describe('extractChangelogItemLines', () => {
   test('「- 」で始まる行のみを抽出する', () => {
     const content = '## 2.1.66\n\n- Item A\n- Item B\nNot an item\n';
-    expect(extractItems(content)).toEqual(['- Item A', '- Item B']);
+    expect(extractChangelogItemLines(content)).toEqual([
+      '- Item A',
+      '- Item B',
+    ]);
   });
 
   test('空文字列は空配列を返す', () => {
-    expect(extractItems('')).toEqual([]);
+    expect(extractChangelogItemLines('')).toEqual([]);
   });
 
   test('項目がない場合は空配列を返す', () => {
     const content = '## 2.1.66\n\nSome text without items\n';
-    expect(extractItems(content)).toEqual([]);
+    expect(extractChangelogItemLines(content)).toEqual([]);
   });
 
   test('「- 」で始まらない行は項目として扱わない', () => {
     const content = '-Item A\n- Item B\n';
-    expect(extractItems(content)).toEqual(['- Item B']);
+    expect(extractChangelogItemLines(content)).toEqual(['- Item B']);
   });
 
   test('前後の空白を trim してから判定する', () => {
     const content = '  - Indented item\n';
-    expect(extractItems(content)).toEqual(['- Indented item']);
+    expect(extractChangelogItemLines(content)).toEqual(['- Indented item']);
   });
 });
 
-describe('isDuplicateEvent', () => {
-  const baseEvent: Pick<
-    DiffEvent,
-    'version' | 'type' | 'items_added' | 'items_removed'
-  > = {
-    version: 'v1.0.0',
-    type: 'items_changed',
-    items_added: ['- New item'],
-    items_removed: ['- Old item'],
+describe('isDuplicateDiffEvent', () => {
+  const baseEvent = {
+    version: createChangelogVersion('v1.0.0'),
+    type: 'items_changed' as const,
+    itemsAdded: ['- New item'],
+    itemsRemoved: ['- Old item'],
   };
 
-  const existingEvents: DiffEvent[] = [
+  const existingEvents: ChangelogDiffEvent[] = [
     {
-      detected_at: '2026-03-04T00:00:00.000Z',
+      detectedAt: new Date('2026-03-04T00:00:00.000Z'),
       ...baseEvent,
     },
   ];
 
   test('同一 version・type・items で true を返す', () => {
-    expect(isDuplicateEvent(existingEvents, baseEvent)).toBe(true);
+    expect(isDuplicateDiffEvent(existingEvents, baseEvent)).toBe(true);
   });
 
   test('version が異なれば false を返す', () => {
     expect(
-      isDuplicateEvent(existingEvents, { ...baseEvent, version: 'v2.0.0' }),
-    ).toBe(false);
-  });
-
-  test('items_added が異なれば false を返す', () => {
-    expect(
-      isDuplicateEvent(existingEvents, {
+      isDuplicateDiffEvent(existingEvents, {
         ...baseEvent,
-        items_added: ['- Different item'],
+        version: createChangelogVersion('v2.0.0'),
       }),
     ).toBe(false);
   });
 
-  test('items_removed が異なれば false を返す', () => {
+  test('itemsAdded が異なれば false を返す', () => {
     expect(
-      isDuplicateEvent(existingEvents, {
+      isDuplicateDiffEvent(existingEvents, {
         ...baseEvent,
-        items_removed: ['- Different item'],
+        itemsAdded: ['- Different item'],
+      }),
+    ).toBe(false);
+  });
+
+  test('itemsRemoved が異なれば false を返す', () => {
+    expect(
+      isDuplicateDiffEvent(existingEvents, {
+        ...baseEvent,
+        itemsRemoved: ['- Different item'],
       }),
     ).toBe(false);
   });
 
   test('items の順序だけが異なる場合も重複とみなす', () => {
-    const reorderedExistingEvents: DiffEvent[] = [
+    const reorderedExistingEvents: ChangelogDiffEvent[] = [
       {
-        detected_at: '2026-03-04T00:00:00.000Z',
-        version: 'v1.0.0',
+        detectedAt: new Date('2026-03-04T00:00:00.000Z'),
+        version: createChangelogVersion('v1.0.0'),
         type: 'items_changed',
-        items_added: ['- New item B', '- New item A'],
-        items_removed: ['- Old item B', '- Old item A'],
+        itemsAdded: ['- New item B', '- New item A'],
+        itemsRemoved: ['- Old item B', '- Old item A'],
       },
     ];
 
     expect(
-      isDuplicateEvent(reorderedExistingEvents, {
-        version: 'v1.0.0',
+      isDuplicateDiffEvent(reorderedExistingEvents, {
+        version: createChangelogVersion('v1.0.0'),
         type: 'items_changed',
-        items_added: ['- New item A', '- New item B'],
-        items_removed: ['- Old item A', '- Old item B'],
+        itemsAdded: ['- New item A', '- New item B'],
+        itemsRemoved: ['- Old item A', '- Old item B'],
       }),
     ).toBe(true);
   });
 
   test('空の events 配列には false を返す', () => {
-    expect(isDuplicateEvent([], baseEvent)).toBe(false);
+    expect(isDuplicateDiffEvent([], baseEvent)).toBe(false);
   });
 });
 
-describe('loadDiffFile / saveDiffFile', () => {
-  test('ファイルが存在しない場合に空の events 配列を返す', () => {
+describe('loadChangelogDiffFile / saveChangelogDiffFile', () => {
+  test('ファイルが存在しない場合に空の events 配列を返す', async () => {
     const nonExistent = join(tmpDir, 'nonexistent', 'diff.json');
-    const result = loadDiffFile(nonExistent);
+    const result = await loadChangelogDiffFile(nonExistent);
     expect(result).toEqual({ events: [] });
   });
 
   test('既存ファイルを正しく読み込む', async () => {
     const filePath = join(tmpDir, 'load-test', 'diff.json');
-    const data: ChangelogDiff = {
+    const data: ChangelogDiffJson = {
       events: [
         {
           detected_at: '2026-03-04T00:00:00.000Z',
@@ -135,17 +146,17 @@ describe('loadDiffFile / saveDiffFile', () => {
         },
       ],
     };
-    saveDiffFile(filePath, data);
+    await saveChangelogDiffFile(filePath, data);
 
-    const result = loadDiffFile(filePath);
+    const result = await loadChangelogDiffFile(filePath);
     expect(result).toEqual(data);
   });
 
   test('ディレクトリが存在しない場合に自動作成する', async () => {
     const filePath = join(tmpDir, 'auto-create', 'nested', 'diff.json');
-    const data: ChangelogDiff = { events: [] };
+    const data: ChangelogDiffJson = { events: [] };
 
-    saveDiffFile(filePath, data);
+    await saveChangelogDiffFile(filePath, data);
 
     expect(existsSync(filePath)).toBe(true);
     expect(JSON.parse(await fsPromises.readFile(filePath, 'utf8'))).toEqual(
@@ -155,14 +166,10 @@ describe('loadDiffFile / saveDiffFile', () => {
 });
 
 function computeItemDiff(local: string, remote: string) {
-  const localItems = extractItems(local);
-  const remoteItems = extractItems(remote);
-  const localSet = new Set(localItems);
-  const remoteSet = new Set(remoteItems);
-  return {
-    added: remoteItems.filter((item) => !localSet.has(item)),
-    removed: localItems.filter((item) => !remoteSet.has(item)),
-  };
+  return computeChangelogEntryDiff(
+    parseChangelogEntries(local),
+    parseChangelogEntries(remote),
+  );
 }
 
 describe('items_changed 検知', () => {
@@ -213,9 +220,9 @@ describe('items_changed 検知', () => {
 });
 
 describe('diff ファイルへの追記', () => {
-  test('イベントを追記して保存できる', () => {
+  test('イベントを追記して保存できる', async () => {
     const filePath = join(tmpDir, 'append-test', 'diff.json');
-    const initial: ChangelogDiff = {
+    const initial: ChangelogDiffJson = {
       events: [
         {
           detected_at: '2026-03-04T00:00:00.000Z',
@@ -227,9 +234,9 @@ describe('diff ファイルへの追記', () => {
       ],
     };
 
-    saveDiffFile(filePath, initial);
+    await saveChangelogDiffFile(filePath, initial);
 
-    const loaded = loadDiffFile(filePath);
+    const loaded = await loadChangelogDiffFile(filePath);
     loaded.events.push({
       detected_at: '2026-03-04T01:00:00.000Z',
       version: 'v1.0.1',
@@ -237,9 +244,9 @@ describe('diff ファイルへの追記', () => {
       items_added: [],
       items_removed: [],
     });
-    saveDiffFile(filePath, loaded);
+    await saveChangelogDiffFile(filePath, loaded);
 
-    const result = loadDiffFile(filePath);
+    const result = await loadChangelogDiffFile(filePath);
     expect(result.events).toHaveLength(2);
     expect(result.events[0]?.version).toBe('v1.0.0');
     expect(result.events[1]?.version).toBe('v1.0.1');
@@ -247,24 +254,24 @@ describe('diff ファイルへの追記', () => {
   });
 
   test('重複イベントはスキップされる', () => {
-    const events: DiffEvent[] = [
+    const events: ChangelogDiffEvent[] = [
       {
-        detected_at: '2026-03-04T00:00:00.000Z',
-        version: 'v1.0.0',
+        detectedAt: new Date('2026-03-04T00:00:00.000Z'),
+        version: createChangelogVersion('v1.0.0'),
         type: 'items_changed',
-        items_added: ['- X'],
-        items_removed: [],
+        itemsAdded: ['- X'],
+        itemsRemoved: [],
       },
     ];
     const candidate = {
-      version: 'v1.0.0',
+      version: createChangelogVersion('v1.0.0'),
       type: 'items_changed' as const,
-      items_added: ['- X'],
-      items_removed: [] as string[],
+      itemsAdded: ['- X'],
+      itemsRemoved: [] as string[],
     };
 
-    if (!isDuplicateEvent(events, candidate)) {
-      events.push({ detected_at: new Date().toISOString(), ...candidate });
+    if (!isDuplicateDiffEvent(events, candidate)) {
+      events.push({ detectedAt: new Date(), ...candidate });
     }
 
     expect(events).toHaveLength(1);

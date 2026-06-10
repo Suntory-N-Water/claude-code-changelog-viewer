@@ -1,0 +1,95 @@
+import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { Channel } from '../domain/channel/channel';
+
+export type AnalysisSourcePort = {
+  fetch: (version: string) => Promise<Analysis>;
+};
+import type { ChannelNotifier } from '../domain/channel/channel-notifier';
+import type { ChannelRepository } from '../domain/channel/channel-repository';
+import { recordFailure, resetFailure } from '../domain/channel/channel-failure';
+import type { NotificationFrequency } from '../domain/channel/notification-frequency';
+
+export type DispatchChangelogNotificationsInput = {
+  readonly analysis: Analysis;
+  readonly version: string;
+  readonly frequency: NotificationFrequency;
+  readonly failedAt: Date;
+  readonly sendIntervalMs: number;
+};
+
+export type DispatchChangelogNotificationsResult = {
+  readonly channelCount: number;
+  readonly shouldRetry: boolean;
+  readonly failures: readonly DispatchFailure[];
+};
+
+export type DispatchFailure =
+  | {
+      readonly type: 'rate_limit';
+      readonly channel: Channel;
+    }
+  | {
+      readonly type: 'temporary_failure';
+      readonly channel: Channel;
+    }
+  | {
+      readonly type: 'exception';
+      readonly channel: Channel;
+      readonly error: unknown;
+    };
+
+/**
+ * 指定頻度の有効チャンネルへchangelog通知を配信する。
+ *
+ * 通知先取得、通知送信、成功/恒久失敗時のChannel更新を進行管理する。
+ * Queue固有のack/retry判断は、返却結果をもとに呼び出し側で行う。
+ */
+export async function dispatchChangelogNotifications(
+  repository: ChannelRepository,
+  notifier: ChannelNotifier,
+  input: DispatchChangelogNotificationsInput,
+): Promise<DispatchChangelogNotificationsResult> {
+  const channels = await repository.findActiveByFrequency(input.frequency);
+  const failures: DispatchFailure[] = [];
+
+  for (const [index, channel] of channels.entries()) {
+    let shouldStop = false;
+
+    try {
+      const result = await notifier.sendChangelogNotification(channel, {
+        analysis: input.analysis,
+        version: input.version,
+      });
+
+      if (!result.ok && result.failureKind === 'rate_limit') {
+        failures.push({ type: 'rate_limit', channel });
+        shouldStop = true;
+      } else if (!result.ok && result.failureKind === 'permanent') {
+        await repository.save(recordFailure(channel, input.failedAt));
+      } else if (!result.ok) {
+        failures.push({ type: 'temporary_failure', channel });
+      } else {
+        const resetChannel = resetFailure(channel);
+        if (channel !== resetChannel) {
+          await repository.save(resetChannel);
+        }
+      }
+    } catch (error) {
+      failures.push({ type: 'exception', channel, error });
+    }
+
+    if (shouldStop) {
+      break;
+    }
+
+    if (index < channels.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, input.sendIntervalMs));
+    }
+  }
+
+  return {
+    channelCount: channels.length,
+    shouldRetry: failures.some((failure) => failure.type === 'rate_limit'),
+    failures,
+  };
+}

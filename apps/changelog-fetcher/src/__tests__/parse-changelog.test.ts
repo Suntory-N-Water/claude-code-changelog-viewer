@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { parseChangelog } from '../parse-changelog';
+import { parseChangelog } from '../infrastructure/docs/changelog-markdown-parser';
 
 describe('parseChangelog', () => {
   test('単一バージョンの CHANGELOG を分割する', () => {

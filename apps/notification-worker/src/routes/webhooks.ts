@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { subscribe, type SubscribeInput } from '../application/subscribe';
+import { subscribe, type SubscribeInput } from '../usecases/subscribe';
 import {
   createDiscordWebhookUrl,
   isValidDiscordWebhookUrl,

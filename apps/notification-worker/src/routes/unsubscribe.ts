@@ -1,8 +1,8 @@
 import type { Context } from 'hono';
 import { Hono } from 'hono';
 import { html } from 'hono/html';
-import { prepareUnsubscribe } from '../application/prepare-unsubscribe';
-import { unsubscribe } from '../application/unsubscribe';
+import { prepareUnsubscribe } from '../usecases/prepare-unsubscribe';
+import { unsubscribe } from '../usecases/unsubscribe';
 import { createChannelToken } from '../domain/channel/channel-token';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
