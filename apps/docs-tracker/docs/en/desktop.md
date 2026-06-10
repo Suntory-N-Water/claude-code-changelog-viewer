@@ -75,7 +75,7 @@ Auto mode is a research preview available to all users on the Anthropic API and 
 
 Start complex tasks in Plan mode so Claude maps out an approach before making changes. Once you approve the plan, switch to Auto accept edits or Ask permissions to execute it. See [explore first, then plan, then code](/en/best-practices#explore-first-then-plan-then-code) for more on this workflow.
 
-Cloud sessions support Auto accept edits and Plan mode. Ask permissions is not available because cloud sessions auto-accept file edits by default, and Bypass permissions is not available because the cloud environment is already sandboxed.
+Cloud sessions support Accept edits, Plan mode, and Auto mode. Accept edits corresponds to `default` mode: cloud sessions pre-approve file edits, so the selector shows Accept edits instead of Ask permissions. Bypass permissions is not available because the cloud environment is already sandboxed.
 
 Enterprise admins can restrict which permission modes are available. See [enterprise configuration](#enterprise-configuration) for details.
 
@@ -650,7 +650,7 @@ This table compares core capabilities between the CLI and Desktop. For a full li
 | - | - | - |
 | Permission modes | All modes including `dontAsk` | Ask permissions, Auto accept edits, Plan mode, Auto, and Bypass permissions via Settings |
 | `--dangerously-skip-permissions` | CLI flag | Bypass permissions mode. Enable in Settings → Claude Code → "Allow bypass permissions mode" |
-| [Third-party providers](/en/third-party-integrations) | Bedrock, Vertex, Foundry | Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers. See the [enterprise configuration guide](https://support.claude.com/en/articles/12622667-enterprise-configuration). |
+| [Third-party providers](/en/third-party-integrations) | Bedrock, Vertex AI, Foundry | Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers. See the [enterprise configuration guide](https://support.claude.com/en/articles/12622667-enterprise-configuration). To run the Code tab on Bedrock, Vertex AI, Foundry, or a self-hosted LLM gateway, see the [Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview). |
 | [MCP servers](/en/mcp) | Configure in settings files | Connectors UI for local and SSH sessions, or settings files |
 | [Plugins](/en/plugins) | `/plugin` command | Plugin manager UI |
 | @mention files | Text-based | With autocomplete; local and SSH sessions only |
@@ -664,9 +664,9 @@ This table compares core capabilities between the CLI and Desktop. For a full li
 
 ### What's not available in Desktop
 
-The following features are only available in the CLI or VS Code extension:
+The following features are only available in the CLI or VS Code extension, except where noted:
 
-- **Third-party providers**: Desktop connects to Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers via [managed settings](https://support.claude.com/en/articles/12622667-enterprise-configuration). For Bedrock or Foundry, use the [CLI](/en/quickstart).
+- **Third-party providers**: Desktop connects to Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers via [managed settings](https://support.claude.com/en/articles/12622667-enterprise-configuration). For Bedrock or Foundry in the CLI, see the [quickstart](/en/quickstart). As an exception to the section above, the [Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview) runs the Code tab on Bedrock, Vertex AI, Foundry, or a self-hosted LLM gateway.
 - **Linux**: the desktop app is available on macOS and Windows only. On Linux, use the [CLI](/en/quickstart).
 - **Inline code suggestions**: Desktop does not provide autocomplete-style suggestions. It works through conversational prompts and explicit code changes.
 - **Agent teams**: parallel Claude Code sessions that message each other are available in the [CLI](/en/agent-teams), not in Desktop. For multi-agent work inside one session, use [dynamic workflows](/en/workflows), which run in Desktop.

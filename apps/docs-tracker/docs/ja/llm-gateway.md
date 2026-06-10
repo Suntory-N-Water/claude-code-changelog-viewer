@@ -15,7 +15,7 @@ LLM gatewayは、Claude Codeとモデルプロバイダー間の集中型プロ�
 - **監査ログ** - コンプライアンスのためのすべてのモデル相互作用の追跡
 - **モデルルーティング** - コード変更なしでプロバイダー間の切り替え
 
-## Gateway要件
+Gateway要件
 
 LLM gatewayがClaude Codeと連携するには、以下の要件を満たす必要があります：
 
@@ -50,9 +50,9 @@ Claude Codeは、すべてのAPI リクエストに以下のヘッダーを含�
 
 Claude Codeはまた、クライアントバージョンと会話から派生したフィンガープリントを含む短い帰属ブロックをシステムプロンプトの前に付加します。Anthropic APIはこのブロックを処理前に削除するため、ファーストパーティプロンプトキャッシングには影響しません。gatewayが完全なリクエストボディをキーとしたプロンプトキャッシュを実装している場合は、[`CLAUDE_CODE_ATTRIBUTION_HEADER=0`](/ja/env-vars)を設定して、それを省略してください。
 
-## 設定
+設定
 
-### モデル選択
+モデル選択
 
 デフォルトでは、Claude Code は選択した API 形式の標準モデル名を使用します。
 
@@ -64,7 +64,7 @@ Claude Codeはまた、クライアントバージョンと会話から派生し
 
 ゲートウェイが検出フィルターと一致しないモデル名を使用している場合は、[モデル設定](/ja/model-config)に記載されている環境変数を使用して、手動で追加してください。
 
-## LiteLLM設定
+LiteLLM設定
 
 LiteLLM PyPI バージョン 1.82.7 および 1.82.8 は、認証情報を盗むマルウェアで侵害されました。これらのバージョンをインストールしないでください。既にインストールしている場合：
 
@@ -74,19 +74,19 @@ LiteLLM PyPI バージョン 1.82.7 および 1.82.8 は、認証情報を盗む
 
 LiteLLM はサードパーティのプロキシサービスです。Anthropic は、LiteLLM のセキュリティまたは機能を推奨、保守、または監査していません。このガイドは情報提供目的で提供されており、古くなる可能性があります。自己判断で使用してください。
 
-### 前提条件
+前提条件
 
 - Claude Code が最新バージョンに更新されている
 - LiteLLM Proxy Server がデプロイされてアクセス可能
 - 選択したプロバイダーを通じて Claude モデルへのアクセス
 
-### 基本的な LiteLLM セットアップ
+基本的な LiteLLM セットアップ
 
 **Claude Code を設定する**：
 
-#### 認証方法
+認証方法
 
-##### 静的 API キー
+静的 API キー
 
 固定 API キーを使用した最も簡単な方法：
 
@@ -104,7 +104,7 @@ export ANTHROPIC_AUTH_TOKEN=sk-litellm-static-key
 
 この値は `Authorization` ヘッダーとして送信されます。
 
-##### ヘルパーを使用した動的 API キー
+ヘルパーを使用した動的 API キー
 
 キーのローテーションまたはユーザーごとの認証の場合：
 
@@ -141,7 +141,7 @@ export CLAUDE_CODE_API_KEY_HELPER_TTL_MS=3600000
 
 この値は `Authorization` および `X-Api-Key` ヘッダーとして送信されます。`apiKeyHelper` は `ANTHROPIC_AUTH_TOKEN` または `ANTHROPIC_API_KEY` より優先度が低くなります。
 
-#### 統合エンドポイント（推奨）
+統合エンドポイント（推奨）
 
 LiteLLM の[Anthropic 形式エンドポイント](https://docs.litellm.ai/docs/anthropic_unified)を使用：
 
@@ -155,9 +155,9 @@ export ANTHROPIC_BASE_URL=https://litellm-server:4000
 - フェイルオーバー
 - コスト追跡とエンドユーザー追跡の一貫したサポート
 
-#### プロバイダー固有のパススルーエンドポイント（代替）
+プロバイダー固有のパススルーエンドポイント（代替）
 
-##### LiteLLM を通じた Claude API
+LiteLLM を通じた Claude API
 
 [パススルーエンドポイント](https://docs.litellm.ai/docs/pass_through/anthropic_completion)を使用：
 
@@ -165,7 +165,7 @@ export ANTHROPIC_BASE_URL=https://litellm-server:4000
 export ANTHROPIC_BASE_URL=https://litellm-server:4000/anthropic
 ```
 
-##### LiteLLM を通じた Amazon Bedrock
+LiteLLM を通じた Amazon Bedrock
 
 [パススルーエンドポイント](https://docs.litellm.ai/docs/pass_through/bedrock)を使用：
 
@@ -175,7 +175,7 @@ export CLAUDE_CODE_SKIP_BEDROCK_AUTH=1
 export CLAUDE_CODE_USE_BEDROCK=1
 ```
 
-##### LiteLLM を通じた Google Vertex AI
+LiteLLM を通じた Google Vertex AI
 
 [パススルーエンドポイント](https://docs.litellm.ai/docs/pass_through/vertex_ai)を使用：
 
@@ -187,7 +187,7 @@ export CLAUDE_CODE_USE_VERTEX=1
 export CLOUD_ML_REGION=us-east5
 ```
 
-##### AWS を通じた Claude Platform
+AWS を通じた Claude Platform
 
 [Claude Platform on AWS](/ja/claude-platform-on-aws) エンドポイントに転送するゲートウェイにルーティング：
 
@@ -200,7 +200,7 @@ export CLAUDE_CODE_USE_ANTHROPIC_AWS=1
 
 詳細については、[LiteLLM ドキュメント](https://docs.litellm.ai/)を参照してください。
 
-## 追加リソース
+追加リソース
 
 - [LiteLLMドキュメント](https://docs.litellm.ai/)
 - [Claude Code設定](/ja/settings)

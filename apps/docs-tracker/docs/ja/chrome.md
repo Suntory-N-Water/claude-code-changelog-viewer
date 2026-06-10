@@ -13,7 +13,7 @@ Claude はブラウザタスク用に新しいタブを開き、ブラウザの�
 
 Chrome 統合はベータ版であり、現在 Google Chrome と Microsoft Edge で動作します。Brave、Arc、またはその他の Chromium ベースのブラウザではまだサポートされていません。WSL（Windows Subsystem for Linux）もサポートされていません。
 
-## 機能
+機能
 
 Chrome が接続されている場合、単一のワークフロー内でブラウザアクションとコーディングタスクをチェーンできます。
 
@@ -25,7 +25,7 @@ Chrome が接続されている場合、単一のワークフロー内でブラ�
 - **タスク自動化**：データ入力、フォーム入力、またはマルチサイトワークフローなどの反復的なブラウザタスクを自動化します
 - **セッション記録**：ブラウザインタラクションを GIF として記録して、何が起こったかを文書化または共有します
 
-## 前提条件
+前提条件
 
 Claude Code を Chrome で使用する前に、以下が必要です。
 
@@ -36,7 +36,7 @@ Claude Code を Chrome で使用する前に、以下が必要です。
 
 Chrome 統合は Amazon Bedrock、Google Cloud Vertex AI、Microsoft Foundry などのサードパーティプロバイダーを通じては利用できません。Claude にサードパーティプロバイダーを通じてのみアクセスする場合、この機能を使用するには別の claude.ai アカウントが必要です。
 
-## CLI で開始する
+CLI で開始する
 
 `--chrome` フラグで Claude Code を起動します。
 
@@ -57,7 +57,7 @@ type "hooks", and tell me what results appear
 
 VS Code については、[VS Code でのブラウザ自動化](/ja/vs-code#automate-browser-tasks-with-chrome) を参照してください。
 
-### Chrome をデフォルトで有効にする
+Chrome をデフォルトで有効にする
 
 各セッションで `--chrome` を渡すことを避けるには、`/chrome` を実行して「デフォルトで有効」を選択します。
 
@@ -65,15 +65,15 @@ VS Code については、[VS Code でのブラウザ自動化](/ja/vs-code#auto
 
 CLI で Chrome をデフォルトで有効にすると、ブラウザツールが常にロードされるため、コンテキスト使用量が増加します。コンテキスト消費の増加に気付いた場合、この設定を無効にして、必要な場合にのみ `--chrome` を使用してください。
 
-### サイト権限を管理する
+サイト権限を管理する
 
 サイトレベルの権限は Chrome 拡張機能から継承されます。Chrome 拡張機能の設定で権限を管理して、Claude がブラウズ、クリック、入力できるサイトを制御します。
 
-## ワークフロー例
+ワークフロー例
 
 これらの例は、ブラウザアクションとコーディングタスクを組み合わせる一般的な方法を示しています。`/mcp` を実行して `claude-in-chrome` を選択すると、利用可能なブラウザツールの完全なリストが表示されます。
 
-### ローカル Web アプリケーションをテストする
+ローカル Web アプリケーションをテストする
 
 Web アプリを開発する場合、変更が正しく機能することを確認するよう Claude に依頼します。
 
@@ -85,7 +85,7 @@ messages appear correctly?
 
 Claude はローカルサーバーに移動し、フォームと対話し、観察したことを報告します。
 
-### コンソールログでデバッグする
+コンソールログでデバッグする
 
 Claude はコンソール出力を読み取って問題の診断を支援できます。ログが詳細になる可能性があるため、すべてのコンソール出力を要求するのではなく、探すパターンを Claude に伝えます。
 
@@ -96,7 +96,7 @@ the page loads.
 
 Claude はコンソールメッセージを読み取り、特定のパターンまたはエラータイプでフィルタリングできます。
 
-### フォーム入力を自動化する
+フォーム入力を自動化する
 
 反復的なデータ入力タスクを高速化します。
 
@@ -108,7 +108,7 @@ name, email, and phone fields.
 
 Claude はローカルファイルを読み取り、Web インターフェースをナビゲートし、各レコードのデータを入力します。
 
-### Google Docs でコンテンツをドラフトする
+Google Docs でコンテンツをドラフトする
 
 API セットアップなしで Claude を使用してドキュメントに直接書き込みます。
 
@@ -119,7 +119,7 @@ Google Doc at docs.google.com/document/d/abc123
 
 Claude はドキュメントを開き、エディターをクリックしてコンテンツを入力します。これは、ログインしているあらゆる Web アプリで機能します。Gmail、Notion、Sheets など。
 
-### Web ページからデータを抽出する
+Web ページからデータを抽出する
 
 Web サイトから構造化情報を取得します。
 
@@ -130,7 +130,7 @@ availability for each item. Save the results as a CSV file.
 
 Claude はページに移動し、コンテンツを読み取り、データを構造化形式にコンパイルします。
 
-### マルチサイトワークフローを実行する
+マルチサイトワークフローを実行する
 
 複数の Web サイト間でタスクを調整します。
 
@@ -142,7 +142,7 @@ about what they do.
 
 Claude はタブ間で動作して情報を収集し、ワークフローを完了します。
 
-### デモ GIF を記録する
+デモ GIF を記録する
 
 ブラウザインタラクションの共有可能な記録を作成します。
 
@@ -153,9 +153,9 @@ an item to the cart through to the confirmation page.
 
 Claude はインタラクションシーケンスを記録し、GIF ファイルとして保存します。
 
-## トラブルシューティング
+トラブルシューティング
 
-### 拡張機能が検出されない
+拡張機能が検出されない
 
 Claude Code の setup-issues 行に `chrome` がリストされている場合：
 
@@ -181,7 +181,7 @@ Edge の場合：
 - **Linux**：`~/.config/microsoft-edge/NativeMessagingHosts/com.anthropic.claude_code_browser_extension.json`
 - **Windows**：Windows レジストリで `HKCU\Software\Microsoft\Edge\NativeMessagingHosts\` を確認します
 
-### ブラウザが応答しない
+ブラウザが応答しない
 
 Claude のブラウザコマンドが機能しなくなった場合：
 
@@ -189,18 +189,18 @@ Claude のブラウザコマンドが機能しなくなった場合：
 2. Claude に新しいタブを作成して再度試すよう依頼します
 3. `chrome://extensions` で拡張機能を無効にしてから再度有効にして Chrome 拡張機能を再起動します
 
-### 長いセッション中に接続が切れる
+長いセッション中に接続が切れる
 
 Chrome 拡張機能のサービスワーカーは長時間のセッション中にアイドル状態になる可能性があり、接続が切れます。非アクティブ期間後にブラウザツールが機能しなくなった場合、`/chrome` を実行して「Reconnect extension」を選択します。
 
-### Windows 固有の問題
+Windows 固有の問題
 
 Windows では、以下の問題が発生する可能性があります。
 
 - **名前付きパイプの競合（EADDRINUSE）**：別のプロセスが同じ名前付きパイプを使用している場合、Claude Code を再起動します。Chrome を使用している他の Claude Code セッションを閉じます。
 - **ネイティブメッセージングホストエラー**：ネイティブメッセージングホストがスタートアップ時にクラッシュする場合、Claude Code を再インストールしてホスト設定を再生成してみてください。
 
-### 一般的なエラーメッセージ
+一般的なエラーメッセージ
 
 これらは最も頻繁に遭遇するエラーと、それらを解決する方法です。
 
@@ -211,7 +211,7 @@ Windows では、以下の問題が発生する可能性があります。
 | "No tab available" | Claude がタブの準備ができる前に動作しようとした | Claude に新しいタブを作成して再度試すよう依頼します |
 | "Receiving end does not exist" | 拡張機能サービスワーカーがアイドル状態になった | `/chrome` を実行して「Reconnect extension」を選択します |
 
-## 関連項目
+関連項目
 
 - [コンピュータ使用](/ja/computer-use)：ブラウザでタスクを実行できない場合にネイティブ macOS アプリを制御します
 - [VS Code で Claude Code を使用する](/ja/vs-code#automate-browser-tasks-with-chrome)：VS Code 拡張機能でのブラウザ自動化

@@ -1,0 +1,1988 @@
+{
+  "id": "20260610-003746",
+  "timestamp": "2026-06-10T00:37:46.991Z",
+  "aiSummary": "タスクの重要な局面でより強力なモデルに助言を求める「advisor」機能が新たに追加され、有効化方法やモデルの組み合わせ、コスト体系が詳細に解説されています。デスクトップ版やWeb版において、Amazon BedrockやGoogle Vertex AIなどのサードパーティプロバイダーを利用するための「Cowork on 3P」リサーチプレビューに関する案内が各所に追記されました。Web版のクラウドセッションにおける権限モードの挙動が整理され、Autoモードの追加や特定の権限設定の無視といった仕様変更が反映されています。フィードバック送信時のデータ保存先がGoogle Cloud Storageであることの明示や、MCPサーバーのツール上限に関する補足など、既存機能の仕様もより具体化されました。",
+  "files": [
+    {
+      "filename": "advisor.md",
+      "additions": 158,
+      "deletions": 0,
+      "explanation": "新機能であるadvisorツールの概要、設定方法、メインモデルとアドバイザーモデルの推奨される組み合わせ、および課金体系について詳しく解説しています。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,158 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: advisor"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/advisor.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Escalate hard decisions with the advisor tool"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Pair your main model with a stronger advisor model that Claude consults at key moments during a task."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor tool is experimental and requires Claude Code v2.1.98 or later with the Anthropic API. It is not available on Amazon Bedrock, Google Vertex AI, or Microsoft Foundry. Behavior, pricing, and availability may change."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor tool lets Claude consult a second, typically stronger model at key moments during a task, such as before committing to an approach, when stuck on a recurring error, or before declaring a task complete. The advisor receives the full conversation, including every tool call and result, and returns guidance that Claude applies before continuing."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor runs server-side on Anthropic's infrastructure as a [server tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool), available to both subscription and API-billed accounts. You choose which model acts as the advisor, and Claude decides when to call it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page covers how to enable the advisor, which model pairings are accepted, what Claude shows during a consultation, and how advisor usage is billed."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## When to use the advisor"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor fits long, multi-step tasks where most turns are routine but plan quality determines the outcome. Examples include large refactors, debugging sessions where an error keeps recurring, and tasks you want independently checked before Claude declares them done."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "It adds less value on short tasks where there is little to plan, or on work where every turn needs the strongest model. For those, [switch the main model](/en/model-config#setting-your-model) instead, or see [how the advisor compares with opusplan and subagents](#compare-with-related-features) for other ways to get a second opinion."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Enable the advisor"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can set the advisor model in three ways:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **`/advisor` command**: set or change the advisor mid-session and save it as your default"
+            },
+            {
+              "type": "added",
+              "content": "- **`advisorModel` setting**: configure a persistent default in your [settings file](/en/settings)"
+            },
+            {
+              "type": "added",
+              "content": "- **`--advisor` flag**: set the advisor for a single session at launch"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If any of these sets an advisor model, the advisor is enabled for sessions whose main model [supports it](#choose-an-advisor-model). To stop using it, see [Turn the advisor off](#turn-the-advisor-off)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To use Fable 5 as the advisor, you need Claude Code v2.1.170 or later and [Fable 5 access](/en/model-config#work-with-fable-5) for your organization. Fable does not appear in the picker that `/advisor` opens, so pass it directly as `/advisor fable`, `--advisor fable`, or `\"advisorModel\": \"fable\"`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Use the `/advisor` command"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `/advisor` without arguments to open a picker listing the available advisor models, or pass the model directly:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": "/advisor opus"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Your selection is saved to `advisorModel` in your user settings and persists across sessions. If your current main model does not support the advisor, the selection is still saved and activates when you switch to a [compatible main model](#choose-an-advisor-model) with [`/model`](/en/model-config#setting-your-model)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Set `advisorModel` in settings"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To configure the advisor as a default without opening a session, set it in your settings file:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"advisorModel\": \"opus\""
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Use the `--advisor` flag"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To set the advisor for a single session without changing your saved setting, launch with the flag:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude --advisor opus"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The flag takes precedence over the `advisorModel` setting for that session. Unlike `/advisor`, which saves an inactive selection, the flag exits with an error if the session's main model does not support the advisor."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Choose an advisor model"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor must be at least as capable as the main model. The accepted advisors for each main model are:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Main model | Accepted advisors | Notes |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| Haiku 4.5 | Fable, Opus, Sonnet | Haiku can call the advisor but cannot act as one |"
+            },
+            {
+              "type": "added",
+              "content": "| Sonnet 4.6 | Fable, Opus, Sonnet | |"
+            },
+            {
+              "type": "added",
+              "content": "| Opus 4.6 or later | Fable, Opus at or above the main model's version | An Opus 4.7 main with an Opus 4.6 advisor is rejected |"
+            },
+            {
+              "type": "added",
+              "content": "| Fable 5 (v2.1.170+) | Fable | An Opus or Sonnet advisor is rejected |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fable 5 requires Claude Code v2.1.170 or later and Fable 5 access, whether it acts as the main model or the advisor. The `fable` option does not appear in the `/advisor` picker."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Set the advisor as `opus`, `sonnet`, or `fable`. These aliases resolve to the latest version of each model. You can also pass a full model ID such as `claude-opus-4-8`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The API enforces the pairing, not Claude Code. Setting a rejected pairing succeeds, then surfaces as a `cannot be used as an advisor when the request model is` error on the next request."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Common model pairings"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Any accepted pairing works. These combinations balance cost against capability in different ways:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Pairing | When to use |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| Sonnet main + Opus advisor | Sonnet handles routine work and escalates planning, ambiguous failures, and completion checks to Opus |"
+            },
+            {
+              "type": "added",
+              "content": "| Sonnet main + Fable advisor | Fable 5 guidance at decision points without running Fable 5 throughout. Requires v2.1.170 or later and Fable 5 access |"
+            },
+            {
+              "type": "added",
+              "content": "| Haiku main + Opus advisor | Lowest-cost main model with strong planning. Expect higher cost than Haiku alone but lower than switching the main model to Sonnet or Opus |"
+            },
+            {
+              "type": "added",
+              "content": "| Opus main + Opus advisor | A second Opus reviews the first. Useful for high-stakes tasks where an independent check matters more than cost |"
+            },
+            {
+              "type": "added",
+              "content": "| Fable main + Fable advisor | Highest-capability pairing when Fable 5 is available (v2.1.170+). Fable is a higher tier than Opus and Sonnet, so it is the only accepted advisor for a Fable main model |"
+            },
+            {
+              "type": "added",
+              "content": "| Sonnet main + Sonnet advisor | A lower-cost second opinion for catching routine oversights |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## When Claude consults the advisor"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude decides when to call the advisor. It tends to consult before committing to an approach, when an error keeps recurring, and before declaring a task done, but the timing is model-driven rather than rule-based."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can ask for a consultation in your prompt the same way you would request any tool, for example `consult the advisor before you continue`. There is no setting to cap or force advisor calls; if you want Claude to consult more or less often during a task, say so in your instructions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## What you see during a session"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude calls the advisor, the transcript shows an `Advising` line with the advisor model name while the call is in progress. When the result returns, the line confirms that the advisor has reviewed the conversation. Press `Ctrl+O` to expand it and read the advisor's full guidance."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude generally follows the advisor's guidance, but adapts when its own evidence contradicts a specific claim: if a recommended step fails when tried, or the file contents contradict the advice, Claude surfaces the conflict rather than following the guidance unconditionally."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor always receives the full conversation, and Claude controls the timing. For more control or a different configuration, see [how the advisor compares with subagents and opusplan](#compare-with-related-features)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Cost"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each advisor call sends the conversation to the advisor model, so it consumes tokens at the advisor model's rates in addition to your main model's usage. With API billing, advisor tokens are charged at the advisor model's input and output rates. On subscription plans, advisor usage counts toward your plan's usage limits."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude calls the advisor at decision points rather than on every turn, so pairing a faster main model with a stronger advisor typically costs less than running the stronger model throughout. Advisor usage counts toward the session totals shown by [`/usage`](/en/costs#track-your-costs)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For how advisor tokens are reported in API responses, see [Usage and billing](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool#usage-and-billing) in the Claude API documentation."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Impact on prompt caching"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Enabling or disabling the advisor mid-session does not invalidate your main model's [prompt cache](/en/prompt-caching). Unlike [changing model or effort level](/en/prompt-caching#actions-that-invalidate-the-cache), toggling `/advisor` keeps the cached prefix intact, and the advisor's returned guidance is cached as part of the transcript on later turns."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor model's own read of the conversation is not cached. Each advisor call processes the full transcript anew, with no reuse between calls."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Requirements"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor tool requires all of the following:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Claude Code v2.1.98 or later**: run `claude update` to upgrade."
+            },
+            {
+              "type": "added",
+              "content": "- **Anthropic API only**: the advisor is a server-executed tool. It is not available on Amazon Bedrock, Google Vertex AI, or Microsoft Foundry. Through an [LLM gateway](/en/llm-gateway) configured with `ANTHROPIC_BASE_URL`, availability depends on whether the gateway forwards the request intact to the Anthropic API."
+            },
+            {
+              "type": "added",
+              "content": "- **Supported main model**: Opus 4.6 or later, Sonnet 4.6, or Haiku 4.5. Fable 5 also qualifies on Claude Code v2.1.170 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Turn the advisor off"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To stop using the advisor and clear your saved `advisorModel`, run `/advisor off` or choose **No advisor** in the `/advisor` picker:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": "/advisor off"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To disable the advisor tool entirely, including the `/advisor` command and the `--advisor` flag, set `CLAUDE_CODE_DISABLE_ADVISOR_TOOL=1`. See [Environment variables](/en/env-vars)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Compare with related features"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The advisor is one of several ways to combine model strengths. Pick based on when you want a second model involved."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Approach | When the stronger model runs | How it starts |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| Advisor tool | At decision points mid-task | Claude calls it when it needs guidance |"
+            },
+            {
+              "type": "added",
+              "content": "| [`opusplan`](/en/model-config#opusplan-model-setting) | During plan mode, then switches to Sonnet for execution | You enter plan mode |"
+            },
+            {
+              "type": "added",
+              "content": "| [Subagents](/en/sub-agents#choose-a-model) with `model` set | For the entire delegated subtask | Claude delegates, or you invoke the subagent |"
+            },
+            {
+              "type": "added",
+              "content": "| [`/model`](/en/model-config#setting-your-model) | For all subsequent turns | You switch models |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## See also"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Model configuration](/en/model-config): switch models, set effort levels, and use `opusplan`"
+            },
+            {
+              "type": "added",
+              "content": "- [Manage costs effectively](/en/costs): track token usage across models"
+            },
+            {
+              "type": "added",
+              "content": "- [Advisor tool in the Claude API](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool): understand the underlying server tool, or use it directly from the Messages API"
+            },
+            {
+              "type": "added",
+              "content": "- [The advisor strategy](https://claude.com/blog/the-advisor-strategy): why pairing a fast main model with a stronger advisor works"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "CLI引数としてアドバイザーモデルをセッションごとに指定できる--advisorフラグの説明が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -50,6 +50,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Flag | Description | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `--add-dir` | Add additional working directories for Claude to read and edit files. Grants file access; most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from these directories. Validates each path exists as a directory. To persist these directories across sessions, set [`permissions.additionalDirectories`](/en/settings#permission-settings) in settings | `claude --add-dir ../apps ../lib` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--advisor <model>` | Enable the server-side [advisor tool](/en/advisor) for this session with a model alias: `opus`, `sonnet`, or `fable` (v2.1.170+), or a full model ID. Takes precedence over the `advisorModel` setting for the session. Requires Claude Code v2.1.98 or later | `claude --advisor opus` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--agent` | Specify an agent for the current session (overrides the `agent` setting) | `claude --agent my-custom-agent` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--agents` | Define custom subagents dynamically via JSON. Uses the same field names as subagent [frontmatter](/en/sub-agents#supported-frontmatter-fields), plus a `prompt` field for the agent's instructions | `claude --agents '{\"reviewer\":{\"description\":\"Reviews code\",\"prompt\":\"You are a code reviewer\"}}'` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--allow-dangerously-skip-permissions` | Add `bypassPermissions` to the `Shift+Tab` mode cycle without starting in it. Lets you begin in a different mode like `plan` and switch to `bypassPermissions` later. See [permission modes](/en/permission-modes#skip-all-checks-with-bypasspermissions-mode) | `claude --permission-mode plan --allow-dangerously-skip-permissions` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "アドバイザー機能を対話中に有効化・無効化したりモデルを選択したりするための/advisorコマンドが追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -45,6 +45,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Command | Purpose |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `/add-dir <path>` | Add a working directory for file access during the current session. Most `.claude/` configuration is [not discovered](/en/permissions#additional-directories-grant-file-access-not-configuration) from the added directory. You can later resume the session from the added directory with `--continue` or `--resume` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/advisor [model\\|off]` | Enable or disable the [advisor tool](/en/advisor), which consults a second model for guidance at key moments during a task. Accepts `opus`, `sonnet`, `fable` (v2.1.170+), or a full model ID. Without an argument, opens a picker. Requires Claude Code v2.1.98 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/agents` | Manage [agent](/en/sub-agents) configurations |"
+            },
+            {
+              "type": "context",
+              "content": "| `/autofix-pr [prompt]` | Spawn a [Claude Code on the web](/en/claude-code-on-the-web#auto-fix-pull-requests) session that watches the current branch's PR and pushes fixes when CI fails or reviewers leave comments. Detects the open PR from your checked-out branch with `gh pr view`; to watch a different PR, check out its branch first. By default the cloud session is told to fix every CI failure and review comment; pass a prompt to give it different instructions, for example `/autofix-pr only fix lint and type errors`. Requires the `gh` CLI and access to [Claude Code on the web](/en/claude-code-on-the-web) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/background [prompt]` | Detach the current session to run as a [background agent](/en/agent-view) and free this terminal. Pass a prompt to send one more instruction before detaching. Monitor the session with `claude agents`. Alias: `/bg` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "data-usage.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/feedbackコマンドで送信されたデータがTLSで暗号化され、Google Cloud Storageに保存されることが明示されました。",
+      "hunks": [
+        {
+          "header": "@@ -98,7 +98,7 @@ Claude Code connects from users' machines to Anthropic to log operational metric",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code connects from users' machines to Sentry for operational error logging. The data is encrypted in transit using TLS and at rest using 256-bit AES encryption. Read more in the [Sentry security documentation](https://sentry.io/security/). To opt out of error logging, set the `DISABLE_ERROR_REPORTING` environment variable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When you run the `/feedback` command, a copy of your conversation history including code is sent to Anthropic. Before submitting, you choose how much history to include: the current session only, which is the default, or also other sessions from the same project over the last 24 hours or 7 days. The data is encrypted in transit via TLS. Optionally, a GitHub issue is created in the public repository. To opt out, set the `DISABLE_FEEDBACK_COMMAND` environment variable to `1`."
+            },
+            {
+              "type": "added",
+              "content": "When you run the `/feedback` command, a copy of your conversation history including code is sent to Anthropic. Before submitting, you choose how much history to include: the current session only, which is the default, or also other sessions from the same project over the last 24 hours or 7 days. The data is encrypted in transit via TLS and stored in Google Cloud Storage, which encrypts stored data at rest by default. Optionally, a GitHub issue is created in the public repository. To opt out, set the `DISABLE_FEEDBACK_COMMAND` environment variable to `1`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you use a third-party provider such as Bedrock or Vertex, or have no Anthropic credentials configured, `/feedback` writes the report to a local archive under `~/.claude/feedback-bundles/` instead of sending it to Anthropic. Known API key and token patterns are redacted before the archive is written. Nothing leaves your machine until you send that file to your Anthropic account representative or attach it to a support request."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 4,
+      "deletions": 4,
+      "explanation": "クラウドセッションでの権限表示の変更や、サードパーティ製LLMを利用するためのCowork on 3Pリサーチプレビューに関する情報が追記されています。",
+      "hunks": [
+        {
+          "header": "@@ -75,7 +75,7 @@ Auto mode is a research preview available to all users on the Anthropic API and",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Start complex tasks in Plan mode so Claude maps out an approach before making changes. Once you approve the plan, switch to Auto accept edits or Ask permissions to execute it. See [explore first, then plan, then code](/en/best-practices#explore-first-then-plan-then-code) for more on this workflow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Cloud sessions support Auto accept edits and Plan mode. Ask permissions is not available because cloud sessions auto-accept file edits by default, and Bypass permissions is not available because the cloud environment is already sandboxed."
+            },
+            {
+              "type": "added",
+              "content": "Cloud sessions support Accept edits, Plan mode, and Auto mode. Accept edits corresponds to `default` mode: cloud sessions pre-approve file edits, so the selector shows Accept edits instead of Ask permissions. Bypass permissions is not available because the cloud environment is already sandboxed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Enterprise admins can restrict which permission modes are available. See [enterprise configuration](#enterprise-configuration) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -650,7 +650,7 @@ This table compares core capabilities between the CLI and Desktop. For a full li",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| Permission modes | All modes including `dontAsk` | Ask permissions, Auto accept edits, Plan mode, Auto, and Bypass permissions via Settings |"
+            },
+            {
+              "type": "context",
+              "content": "| `--dangerously-skip-permissions` | CLI flag | Bypass permissions mode. Enable in Settings → Claude Code → \"Allow bypass permissions mode\" |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Third-party providers](/en/third-party-integrations) | Bedrock, Vertex, Foundry | Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers. See the [enterprise configuration guide](https://support.claude.com/en/articles/12622667-enterprise-configuration). |"
+            },
+            {
+              "type": "added",
+              "content": "| [Third-party providers](/en/third-party-integrations) | Bedrock, Vertex AI, Foundry | Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers. See the [enterprise configuration guide](https://support.claude.com/en/articles/12622667-enterprise-configuration). To run the Code tab on Bedrock, Vertex AI, Foundry, or a self-hosted LLM gateway, see the [Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview). |"
+            },
+            {
+              "type": "context",
+              "content": "| [MCP servers](/en/mcp) | Configure in settings files | Connectors UI for local and SSH sessions, or settings files |"
+            },
+            {
+              "type": "context",
+              "content": "| [Plugins](/en/plugins) | `/plugin` command | Plugin manager UI |"
+            },
+            {
+              "type": "context",
+              "content": "| @mention files | Text-based | With autocomplete; local and SSH sessions only |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -664,9 +664,9 @@ This table compares core capabilities between the CLI and Desktop. For a full li",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### What's not available in Desktop"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The following features are only available in the CLI or VS Code extension:"
+            },
+            {
+              "type": "added",
+              "content": "The following features are only available in the CLI or VS Code extension, except where noted:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Third-party providers**: Desktop connects to Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers via [managed settings](https://support.claude.com/en/articles/12622667-enterprise-configuration). For Bedrock or Foundry, use the [CLI](/en/quickstart)."
+            },
+            {
+              "type": "added",
+              "content": "- **Third-party providers**: Desktop connects to Anthropic's API by default. Enterprise deployments can configure Vertex AI and gateway providers via [managed settings](https://support.claude.com/en/articles/12622667-enterprise-configuration). For Bedrock or Foundry in the CLI, see the [quickstart](/en/quickstart). As an exception to the section above, the [Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview) runs the Code tab on Bedrock, Vertex AI, Foundry, or a self-hosted LLM gateway."
+            },
+            {
+              "type": "context",
+              "content": "- **Linux**: the desktop app is available on macOS and Windows only. On Linux, use the [CLI](/en/quickstart)."
+            },
+            {
+              "type": "context",
+              "content": "- **Inline code suggestions**: Desktop does not provide autocomplete-style suggestions. It works through conversational prompts and explicit code changes."
+            },
+            {
+              "type": "context",
+              "content": "- **Agent teams**: parallel Claude Code sessions that message each other are available in the [CLI](/en/agent-teams), not in Desktop. For multi-agent work inside one session, use [dynamic workflows](/en/workflows), which run in Desktop."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "アドバイザーツールを完全に無効化するための環境変数CLAUDE_CODE_DISABLE_ADVISOR_TOOLの設定が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -150,6 +150,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DEBUG_LOG_LEVEL` | Minimum log level written to the debug log file. Values: `verbose`, `debug` (default), `info`, `warn`, `error`. Set to `verbose` to include high-volume diagnostics like full status line command output, or raise to `error` to reduce noise |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_1M_CONTEXT` | Set to `1` to disable [1M context window](/en/model-config#extended-context) support. When set, 1M model variants are unavailable in the model picker. Useful for enterprise environments with compliance requirements |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` | Set to `1` to disable [adaptive reasoning](/en/model-config#adjust-effort-level) on Opus 4.6 and Sonnet 4.6 and fall back to the fixed thinking budget controlled by `MAX_THINKING_TOKENS`. From v2.1.111, has no effect on Fable 5, or on Opus 4.7 and later, which always use adaptive reasoning |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_ADVISOR_TOOL` | Set to `1` to disable the [advisor tool](/en/advisor). The `/advisor` command and `--advisor` flag become unavailable and any configured `advisorModel` is ignored. Requires Claude Code v2.1.98 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_AGENT_VIEW` | Set to `1` to turn off [background agents and agent view](/en/agent-view): `claude agents`, `--bg`, `/background`, and the on-demand supervisor. Equivalent to the [`disableAgentView`](/en/settings#available-settings) setting |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN` | Set to `1` to disable [fullscreen rendering](/en/fullscreen) and use the classic main-screen renderer. The conversation stays in your terminal's native scrollback so `Cmd+f` and tmux copy mode work as usual. Takes precedence over `CLAUDE_CODE_NO_FLICKER` and the [`tui`](/en/settings#available-settings) setting. You can also switch with `/tui default`. Does not apply to background sessions opened from [agent view](/en/agent-view), which always use fullscreen rendering |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ATTACHMENTS` | Set to `1` to disable attachment processing. File mentions with `@` syntax are sent as plain text instead of being expanded into file content |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "エンタープライズ向けのデスクトップ展開時や、セルフホスト型ゲートウェイを利用する場合の設定に関する案内が更新されています。",
+      "hunks": [
+        {
+          "header": "@@ -15,6 +15,8 @@ LLM gateways provide a centralized proxy layer between Claude Code and model pro",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Audit logging** - Track all model interactions for compliance"
+            },
+            {
+              "type": "context",
+              "content": "- **Model routing** - Switch between providers without code changes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page covers gateway requirements and configuration for the Claude Code CLI. Enterprise Desktop deployments can configure gateway providers via [managed settings](https://support.claude.com/en/articles/12622667-enterprise-configuration). The Claude Desktop app can also run against a self-hosted gateway through the [Cowork on 3P research preview](https://claude.com/docs/cowork/3p/gateway), which uses its own configuration keys."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Gateway requirements"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For an LLM gateway to work with Claude Code, it must meet the following requirements:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "MCPサーバーごとのツール数に固定の制限はなく、実質的な上限はコンテキストウィンドウの予算に依存することが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -858,7 +858,7 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Scale with MCP Tool Search"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tool search keeps MCP context usage low by deferring tool definitions until Claude needs them. Only tool names and server instructions load at session start, so adding more MCP servers has minimal impact on your context window."
+            },
+            {
+              "type": "added",
+              "content": "Tool search keeps MCP context usage low by deferring tool definitions until Claude needs them. Only tool names and server instructions load at session start, so adding more MCP servers has minimal impact on your context window. Claude Code does not impose a fixed per-server tool cap; the practical limit is your context window budget."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### How it works"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "プランニングの境界でモデルを切り替える既存のopusplan機能に対し、タスクの途中で動的に助言を求めるadvisorツールへの参照が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -183,6 +183,8 @@ and Sonnet's efficiency for execution.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The plan-mode Opus phase runs with the standard 200K context window. The automatic 1M upgrade described in [Extended context](#extended-context) applies to the `opus` model setting and does not extend to `opusplan`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For a hybrid approach where Claude decides mid-task when to consult a second model rather than switching at the plan boundary, see the [advisor tool](/en/advisor)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Fallback model chains"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the primary model is overloaded, unavailable, or returns another non-retryable server error, Claude Code can switch to a fallback model instead of failing the request. Authentication, billing, rate-limit, request-size, and transport errors never trigger a switch; those follow their normal retry and error handling."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "overview.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "コードブロックのシンタックスハイライト設定に含まれていた不要な属性値が削除され、整理されています。",
+      "hunks": [
+        {
+          "header": "@@ -19,19 +19,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -41,7 +41,7 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -49,7 +49,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "Web版クラウドセッションにおけるAutoモードの追加や、設定ファイルによる特定の権限強制が無視される仕様について説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -82,7 +82,7 @@ Use the mode selector next to the send button. Auto and Bypass permissions appea",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use the mode dropdown next to the prompt box on [claude.ai/code](https://claude.ai/code) or in the mobile app. Permission prompts appear in claude.ai for approval. Which modes appear depends on where the session runs:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Cloud sessions** on [Claude Code on the web](/en/claude-code-on-the-web): Auto accept edits and Plan mode. Ask permissions, Auto, and Bypass permissions are not available."
+            },
+            {
+              "type": "added",
+              "content": "- **Cloud sessions** on [Claude Code on the web](/en/claude-code-on-the-web): Accept edits, Plan mode, and Auto mode. Accept edits corresponds to `default` mode: the cloud environment pre-approves file edits regardless of mode, so the dropdown shows Accept edits instead of Ask permissions. `defaultMode: \"acceptEdits\"` from settings is still honored. Auto mode appears only when your organization allows it and the selected model supports it. Bypass permissions is not available."
+            },
+            {
+              "type": "context",
+              "content": "- **[Remote Control](/en/remote-control) sessions** on your local machine: Ask permissions, Auto accept edits, and Plan mode. Auto and Bypass permissions are not available."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For Remote Control, you can also set the starting mode when launching the host:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -257,7 +257,7 @@ The classifier runs on a server-configured model that is independent of your `/m",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Allow only pre-approved tools with dontAsk mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`dontAsk` mode auto-denies every tool call that would otherwise prompt. Only actions matching your `permissions.allow` rules and [read-only Bash commands](/en/permissions#read-only-commands) can execute; explicit [`ask` rules](/en/permissions#manage-permissions) are denied rather than prompting. This makes the mode fully non-interactive for CI pipelines or restricted environments where you pre-define exactly what Claude may do."
+            },
+            {
+              "type": "added",
+              "content": "`dontAsk` mode auto-denies every tool call that would otherwise prompt. Only actions matching your `permissions.allow` rules and [read-only Bash commands](/en/permissions#read-only-commands) can execute; explicit [`ask` rules](/en/permissions#manage-permissions) are denied rather than prompting. This makes the mode fully non-interactive for CI pipelines or restricted environments where you pre-define exactly what Claude may do. Cloud sessions on [Claude Code on the web](/en/claude-code-on-the-web) ignore `defaultMode: \"dontAsk\"`; see [bypassPermissions](#skip-all-checks-with-bypasspermissions-mode) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set it at startup with the flag:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -285,6 +285,8 @@ On Linux and macOS, Claude Code refuses to start in this mode when running as ro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The check is skipped automatically inside a recognized sandbox. To run autonomously in a container, use the [dev container](/en/devcontainer) configuration, which runs Claude Code as a non-root user."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "[Claude Code on the web](/en/claude-code-on-the-web) does not honor `defaultMode: \"bypassPermissions\"` or `\"dontAsk\"` from your settings files, so a repository's checked-in settings cannot start a cloud session in bypass-permissions mode. The setting is ignored silently and the session starts in the mode shown in the mode dropdown instead. See [Switch permission modes](#switch-permission-modes) for which modes cloud sessions offer."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`bypassPermissions` offers no protection against prompt injection or unintended actions. For background safety checks with far fewer prompts, use [auto mode](#eliminate-prompts-with-auto-mode) instead. Administrators can block this mode by setting `permissions.disableBypassPermissionsMode` to `\"disable\"` in [managed settings](/en/permissions#managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Protected paths"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "platforms.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "デスクトップ版でBedrockやFoundryを利用する手段として、CLIに加えてCowork on 3Pリサーチプレビューが選択肢として追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -22,7 +22,7 @@ Choose a platform based on how you like to work and where your project lives.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Web](/en/claude-code-on-the-web) | Long-running tasks that don't need much steering, or work that should continue when you're offline | Anthropic-managed cloud, continues after you disconnect |"
+            },
+            {
+              "type": "context",
+              "content": "| Mobile | Starting and monitoring tasks while away from your computer | Cloud sessions from the Claude app for iOS and Android, [Remote Control](/en/remote-control) for local sessions, [Dispatch](/en/desktop#sessions-from-dispatch) to Desktop on Pro and Max |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The CLI is the most complete surface for terminal-native work: scripting and the Agent SDK are CLI-only. Third-party providers also work in [VS Code](/en/vs-code#use-third-party-providers). Enterprise [Desktop](/en/desktop) deployments support Vertex AI and gateway providers; for Bedrock or Foundry, use the CLI or VS Code instead of Desktop. Desktop and the IDE extensions trade some CLI-only features for visual review and tighter editor integration. The web runs in Anthropic's cloud, so tasks keep going after you disconnect. Mobile is a thin client into those same cloud sessions or into a local session via Remote Control, and can send tasks to Desktop with Dispatch."
+            },
+            {
+              "type": "added",
+              "content": "The CLI is the most complete surface for terminal-native work: scripting and the Agent SDK are CLI-only. Third-party providers also work in [VS Code](/en/vs-code#use-third-party-providers). Enterprise [Desktop](/en/desktop) deployments support Vertex AI and gateway providers; for Bedrock or Foundry, use the CLI or VS Code, or the [Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview), which runs the Code tab on those providers. Desktop and the IDE extensions trade some CLI-only features for visual review and tighter editor integration. The web runs in Anthropic's cloud, so tasks keep going after you disconnect. Mobile is a thin client into those same cloud sessions or into a local session via Remote Control, and can send tasks to Desktop with Dispatch."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "You can mix surfaces on the same project. Configuration, project memory, and MCP servers are shared across the local surfaces."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "prompt-caching.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "アドバイザーツールの有効化・無効化は、メインモデルのプロンプトキャッシュを無効化しない例外的な操作であることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -82,7 +82,7 @@ Keeping the header across toggles requires Claude Code v2.1.86 or later. On earl",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Connecting or disconnecting an MCP server"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Tool definitions sit in the system prompt layer, so the cache invalidates when the set of tool definitions in the request changes between turns. Whether an [MCP server](/en/mcp) change does this depends on whether its tools are deferred by [tool search](/en/mcp#scale-with-mcp-tool-search) or loaded into the prefix:"
+            },
+            {
+              "type": "added",
+              "content": "Tool definitions sit in the system prompt layer, so the cache invalidates when the set of tool definitions in the request changes between turns. Toggling the [advisor tool](/en/advisor) is an exception: its definition sits after the cache breakpoint, so enabling or disabling `/advisor` keeps the cached prefix intact. Whether an [MCP server](/en/mcp) change does this depends on whether its tools are deferred by [tool search](/en/mcp#scale-with-mcp-tool-search) or loaded into the prefix:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Deferred tools**, the default on supported models: a server connecting, disconnecting, or changing its tool list only appends new content and doesn't disturb anything already cached."
+            },
+            {
+              "type": "context",
+              "content": "- **Tools loaded into the prefix**: any change to them invalidates the cache. This happens when [tool search is unavailable or disabled](/en/mcp#configure-tool-search), such as on Haiku models, on Vertex AI, or with a custom `ANTHROPIC_BASE_URL` gateway. It also happens for a server or tool marked [`alwaysLoad`](/en/mcp#exempt-a-server-from-deferral), and for definitions kept upfront by [threshold-based loading](/en/mcp#configure-tool-search)."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "インストール手順やコマンド例のコードブロックから、冗長なテーマ属性の記述が削除されています。",
+      "hunks": [
+        {
+          "header": "@@ -26,19 +26,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -48,7 +48,7 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -56,7 +56,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "永続的な設定としてアドバイザーモデルを指定できるadvisorModel設定項目が追加されています。",
+      "hunks": [
+        {
+          "header": "@@ -189,6 +189,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Key | Description | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `advisorModel` | Model for the server-side [advisor tool](/en/advisor). Accepts a model alias such as `\"opus\"`, `\"sonnet\"`, or `\"fable\"` (v2.1.170+), or a full model ID. Written automatically when you run `/advisor`. Unset to disable the advisor. Requires Claude Code v2.1.98 or later | `\"opus\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `agent` | Run the main thread as a named subagent, and set the default agent for sessions dispatched from `claude agents`. Applies that subagent's system prompt, tool restrictions, and model. See [Invoke subagents explicitly](/en/sub-agents#invoke-subagents-explicitly) | `\"code-reviewer\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowAllClaudeAiMcps` | (Managed settings only) Load claude.ai connectors alongside a deployed `managed-mcp.json`, which otherwise takes exclusive control and suppresses them. See [Managed MCP configuration](/en/managed-mcp) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowedChannelPlugins` | (Managed settings only) Allowlist of channel plugins that may push messages. Replaces the default Anthropic allowlist when set. Undefined = fall back to the default, empty array = block all channel plugins. Requires `channelsEnabled: true`. See [Restrict which channel plugins can run](/en/channels#restrict-which-channel-plugins-can-run) | `[{ \"marketplace\": \"claude-plugins-official\", \"plugin\": \"telegram\" }]` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "setup.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "セットアップ手順のドキュメントにおいて、コード表示のスタイル指定に関する微細な修正が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -38,19 +38,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -60,7 +60,7 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -68,7 +68,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "モデルが自身で判断して助言を仰ぐためのサーバー実行型ツールとして、アドバイザーがツール一覧に関連付けられています。",
+      "hunks": [
+        {
+          "header": "@@ -313,6 +313,8 @@ What tools do you have access to?",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude gives a conversational summary. For exact MCP tool names, run `/mcp`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The [advisor tool](/en/advisor) is a [server tool](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool) that the API runs, rather than a tool that Claude Code implements. It has no name you can reference in permission rules or hook matchers."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## See also"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [MCP servers](/en/mcp): add custom tools by connecting external servers"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "web-quickstart.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Web版のクイックスタートガイドにおいて、コード表示に関するマークダウンの属性記述が簡略化されています。",
+      "hunks": [
+        {
+          "header": "@@ -44,7 +44,7 @@ Claude Code behaves the same everywhere. What changes is where code executes and",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **Uses your local config** | No, repo only | Yes | Yes | Yes for local, no for cloud |"
+            },
+            {
+              "type": "context",
+              "content": "| **Requires GitHub** | Yes, or [bundle a local repo](/en/claude-code-on-the-web#send-local-repositories-without-github) via `--remote` | No | No | Only for cloud sessions |"
+            },
+            {
+              "type": "context",
+              "content": "| **Keeps running if you disconnect** | Yes | While terminal stays open | No | Depends on session type |"
+            },
+            {
+              "type": "removed",
+              "content": "| **[Permission modes](/en/permission-modes)** | Auto accept edits, Plan | Ask, Auto accept edits, Plan | All modes | Depends on session type |"
+            },
+            {
+              "type": "added",
+              "content": "| **[Permission modes](/en/permission-modes)** | Accept edits, Plan, Auto | Ask, Auto accept edits, Plan | All modes | Depends on session type |"
+            },
+            {
+              "type": "context",
+              "content": "| **Network access** | Configurable per environment | Your machine's network | Your machine's network | Depends on session type |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "See the [terminal quickstart](/en/quickstart), [Desktop app](/en/desktop), or [Remote Control](/en/remote-control) docs to set those up."
+            }
+          ]
+        },
+        {
+          "header": "@@ -96,7 +96,7 @@ With GitHub connected and an environment created, you're ready to submit tasks.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "From [claude.ai/code](https://claude.ai/code) or the Code tab in the Claude mobile app, click the repository selector below the input box and choose a repository for Claude to work in. Each repository shows a branch selector. Change it to start Claude from a feature branch instead of the default. You can add multiple repositories to work across them in one session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The mode dropdown next to the input defaults to **Auto accept edits**, where Claude makes changes and pushes a branch without stopping for approval. Switch to **Plan mode** if you want Claude to propose an approach and wait for your go-ahead before editing files. Cloud sessions don't offer Ask permissions, Auto mode, or Bypass permissions. See [Permission modes](/en/permission-modes) for the full list."
+            },
+            {
+              "type": "added",
+              "content": "The mode dropdown next to the input defaults to **Accept edits**, where Claude makes changes and pushes a branch without stopping for approval. Switch to **Plan mode** if you want Claude to propose an approach and wait for your go-ahead before editing files. Cloud sessions don't offer Ask permissions or Bypass permissions. See [Permission modes](/en/permission-modes) for the full list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Type a description of what you want and press Enter. Be specific:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

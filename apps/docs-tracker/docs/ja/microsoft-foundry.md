@@ -63,7 +63,9 @@ source: https://code.claude.com/docs/ja/microsoft-foundry.md
 
 <ContactSalesCard surface="foundry" />
 
-## 前提条件
+<h2 id="prerequisites">
+  前提条件
+</h2>
 
 Microsoft Foundry で Claude Code を構成する前に、以下を確認してください：
 
@@ -75,9 +77,13 @@ Microsoft Foundry で Claude Code を構成する前に、以下を確認して�
   Claude Code を複数のユーザーにデプロイする場合は、[モデルバージョンをピン留めして](#4-pin-model-versions)、Anthropic が新しいモデルをリリースしたときの破損を防いでください。
 </Note>
 
-## セットアップ
+<h2 id="setup">
+  セットアップ
+</h2>
 
-### 1. Microsoft Foundry リソースをプロビジョニングする
+<h3 id="1-provision-microsoft-foundry-resource">
+  1. Microsoft Foundry リソースをプロビジョニングする
+</h3>
 
 まず、Azure で Claude リソースを作成します：
 
@@ -88,7 +94,9 @@ Microsoft Foundry で Claude Code を構成する前に、以下を確認して�
    * Claude Sonnet
    * Claude Haiku
 
-### 2. Azure 認証情報を構成する
+<h3 id="2-configure-azure-credentials">
+  2) Azure 認証情報を構成する
+</h3>
 
 Claude Code は Microsoft Foundry の 2 つの認証方法をサポートしています。セキュリティ要件に最適な方法を選択してください。
 
@@ -118,7 +126,9 @@ az login
   Microsoft Foundry を使用する場合、認証が Azure 認証情報を通じて処理されるため、`/logout` コマンドは利用できません。
 </Note>
 
-### 3. Claude Code を構成する
+<h3 id="3-configure-claude-code">
+  3. Claude Code を構成する
+</h3>
 
 Microsoft Foundry を有効にするには、以下の環境変数を設定します：
 
@@ -132,7 +142,9 @@ export ANTHROPIC_FOUNDRY_RESOURCE={resource}
 # export ANTHROPIC_FOUNDRY_BASE_URL=https://{resource}.services.ai.azure.com/anthropic
 ```
 
-### 4. モデルバージョンをピン留めする
+<h3 id="4-pin-model-versions">
+  4. モデルバージョンをピン留めする
+</h3>
 
 <Warning>
   すべてのデプロイメントに対して特定のモデルバージョンをピン留めしてください。モデルエイリアス（`sonnet`、`opus`、`haiku`）をピン留めなしで使用する場合、Claude Code は Foundry アカウントで利用できない新しいモデルバージョンを使用しようとする可能性があり、Anthropic がアップデートをリリースしたときに既存のユーザーが破損します。Azure デプロイメントを作成するときは、「最新に自動更新」ではなく、特定のモデルバージョンを選択してください。
@@ -158,7 +170,9 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'
 export ENABLE_PROMPT_CACHING_1H=1
 ```
 
-### 5. Claude Code を実行する
+<h3 id="5-run-claude-code">
+  5. Claude Code を実行する
+</h3>
 
 環境変数を設定したら、プロジェクトディレクトリから Claude Code を起動します：
 
@@ -168,7 +182,9 @@ claude
 
 Claude Code は環境から `CLAUDE_CODE_USE_FOUNDRY` およびその他の Foundry 変数を読み込み、最初のプロンプトで Azure リソースに接続します。Bedrock および Vertex AI とは異なり、Foundry には対話型セットアップウィザードがないため、ステップ 3 およびステップ 4 の環境変数が唯一の構成パスです。
 
-## Azure RBAC 構成
+<h2 id="azure-rbac-configuration">
+  Azure RBAC 構成
+</h2>
 
 `Azure AI User` および `Cognitive Services User` デフォルトロールには、Claude モデルを呼び出すために必要なすべての権限が含まれています。
 
@@ -188,13 +204,17 @@ Claude Code は環境から `CLAUDE_CODE_USE_FOUNDRY` およびその他の Foun
 
 詳細については、[Microsoft Foundry RBAC ドキュメント](https://learn.microsoft.com/en-us/azure/ai-foundry/concepts/rbac-azure-ai-foundry)を参照してください。
 
-## トラブルシューティング
+<h2 id="troubleshooting">
+  トラブルシューティング
+</h2>
 
 「Failed to get token from azureADTokenProvider: ChainedTokenCredential authentication failed」というエラーが表示される場合：
 
 * 環境で Entra ID を構成するか、`ANTHROPIC_FOUNDRY_API_KEY` を設定してください。
 
-## その他のリソース
+<h2 id="additional-resources">
+  その他のリソース
+</h2>
 
 * [Microsoft Foundry ドキュメント](https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-azure-ai-foundry)
 * [Microsoft Foundry モデル](https://ai.azure.com/explore/models)

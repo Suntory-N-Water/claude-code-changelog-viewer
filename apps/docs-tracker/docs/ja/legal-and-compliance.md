@@ -9,32 +9,32 @@ source: https://code.claude.com/docs/ja/legal-and-compliance.md
 
 Starting June 15, 2026, Agent SDK and `claude -p` usage on subscription plans will draw from a new monthly Agent SDK credit, separate from your interactive usage limits. See [Use the Claude Agent SDK with your Claude plan](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan) for details.
 
-## 法的契約
+法的契約
 
-### ライセンス
+ライセンス
 
 Claude Code の使用は、以下の対象となります。
 
 - [商用条件](https://www.anthropic.com/legal/commercial-terms) - Team、Enterprise、および Claude API ユーザー向け
 - [コンシューマー利用規約](https://www.anthropic.com/legal/consumer-terms) - Free、Pro、および Max ユーザー向け
 
-### 商用契約
+商用契約
 
 Claude API を直接（1P）使用している場合でも、Amazon Bedrock または Google Vertex を通じてアクセスしている場合（3P）でも、既存の商用契約が Claude Code の使用に適用されます。ただし、相互に別途合意した場合を除きます。
 
-## 規制対応
+規制対応
 
-### ヘルスケア規制対応（BAA）
+ヘルスケア規制対応（BAA）
 
 カスタマーが当社と業務提携契約（BAA）を締結しており、Claude Code を使用したい場合、カスタマーが BAA を実行済みで、[ゼロデータ保持（ZDR）](/ja/zero-data-retention)が有効化されていれば、BAA は自動的に Claude Code をカバーするように拡張されます。BAA は、Claude Code を通じて流れるそのカスタマーの API トラフィックに適用されます。ZDR は組織ごとに有効化されるため、BAA でカバーされるには、各組織が個別に ZDR を有効化する必要があります。
 
-## 使用ポリシー
+使用ポリシー
 
-### 許可される使用
+許可される使用
 
 Claude Code の使用は、[Anthropic 使用ポリシー](https://www.anthropic.com/legal/aup)の対象となります。Pro および Max プランの広告表示される使用制限は、Claude Code および Agent SDK の通常の個人使用を想定しています。
 
-### 認証と認証情報の使用
+認証と認証情報の使用
 
 Claude Code は、OAuth トークンまたは API キーを使用して Anthropic のサーバーで認証します。これらの認証方法は異なる目的に対応しています。
 
@@ -45,13 +45,13 @@ Anthropic は、これらの制限を実施するための措置を講じる権�
 
 ユースケースに対して許可される認証方法に関する質問については、[営業に連絡してください](https://www.anthropic.com/contact-sales?utm_source=claude_code\&utm_medium=docs\&utm_content=legal_compliance_contact_sales)。
 
-## セキュリティと信頼
+セキュリティと信頼
 
-### 信頼とセーフティ
+信頼とセーフティ
 
 詳細については、[Anthropic Trust Center](https://trust.anthropic.com)および [Transparency Hub](https://www.anthropic.com/transparency)を参照してください。
 
-### セキュリティ脆弱性報告
+セキュリティ脆弱性報告
 
 Anthropic は HackerOne を通じてセキュリティプログラムを管理しています。[このフォームを使用して脆弱性を報告してください](https://hackerone.com/4f1f16ba-10d3-4d09-9ecc-c721aad90f24/embedded_submissions/new)。
 

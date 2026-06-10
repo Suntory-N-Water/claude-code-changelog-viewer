@@ -65,7 +65,9 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 <ContactSalesCard surface="third_party_overview" />
 
-## デプロイメントオプションの比較
+<h2 id="compare-deployment-options">
+  デプロイメントオプションの比較
+</h2>
 
 ほとんどの組織では、Claude for Teams または Claude for Enterprise が最適なエクスペリエンスを提供します。チームメンバーは、単一のサブスクリプション、一元化された請求、インフラストラクチャセットアップが不要で、Claude Code と Web 上の Claude の両方にアクセスできます。
 
@@ -182,7 +184,9 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 * [Google Vertex AI](/ja/google-vertex-ai)
 * [Microsoft Foundry](/ja/microsoft-foundry)
 
-## プロキシとゲートウェイの構成
+<h2 id="configure-proxies-and-gateways">
+  プロキシとゲートウェイの構成
+</h2>
 
 ほとんどの組織は、追加の構成なしでクラウドプロバイダーを直接使用できます。ただし、組織に特定のネットワークまたは管理要件がある場合は、企業プロキシまたは LLM ゲートウェイを構成する必要がある場合があります。これらは一緒に使用できる異なる構成です。
 
@@ -191,7 +195,9 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 以下の例は、シェルまたはシェルプロファイル（`.bashrc`、`.zshrc`）で設定する環境変数を示しています。その他の構成方法については、[設定](/ja/settings)を参照してください。
 
-### Amazon Bedrock
+<h3 id="amazon-bedrock">
+  Amazon Bedrock
+</h3>
 
 <Tabs>
   <Tab title="企業プロキシ">
@@ -221,7 +227,9 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   </Tab>
 </Tabs>
 
-### Microsoft Foundry
+<h3 id="microsoft-foundry">
+  Microsoft Foundry
+</h3>
 
 <Tabs>
   <Tab title="企業プロキシ">
@@ -252,7 +260,9 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   </Tab>
 </Tabs>
 
-### Google Vertex AI
+<h3 id="google-vertex-ai">
+  Google Vertex AI
+</h3>
 
 <Tabs>
   <Tab title="企業プロキシ">
@@ -287,9 +297,13 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   Claude Code で `/status` を使用して、プロキシとゲートウェイの構成が正しく適用されていることを確認します。
 </Tip>
 
-## 組織のベストプラクティス
+<h2 id="best-practices-for-organizations">
+  組織のベストプラクティス
+</h2>
 
-### ドキュメントとメモリに投資する
+<h3 id="invest-in-documentation-and-memory">
+  ドキュメントとメモリに投資する
+</h3>
 
 Claude Code がコードベースを理解できるようにドキュメントに投資することを強くお勧めします。組織は複数のレベルで CLAUDE.md ファイルをデプロイできます。
 
@@ -298,29 +312,41 @@ Claude Code がコードベースを理解できるようにドキュメント�
 
 [メモリと CLAUDE.md ファイル](/ja/memory)で詳細をご覧ください。
 
-### デプロイメントを簡素化する
+<h3 id="simplify-deployment">
+  デプロイメントを簡素化する
+</h3>
 
 カスタム開発環境がある場合は、Claude Code をインストールする「ワンクリック」の方法を作成することが、組織全体での採用を促進するための鍵となることがわかっています。
 
-### ガイド付き使用から始める
+<h3 id="start-with-guided-usage">
+  ガイド付き使用から始める
+</h3>
 
 新しいユーザーに Claude Code をコードベースの Q\&A、または小さなバグ修正または機能リクエストで試すことをお勧めします。Claude Code にプランを作成するよう依頼します。Claude の提案を確認し、軌道を外れている場合はフィードバックを提供します。時間が経つにつれて、ユーザーがこの新しいパラダイムをより理解するようになると、Claude Code をより積極的に実行させるのに効果的になります。
 
-### クラウドプロバイダーのモデルバージョンをピン留めする
+<h3 id="pin-model-versions-for-cloud-providers">
+  クラウドプロバイダーのモデルバージョンをピン留めする
+</h3>
 
 [Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、[Foundry](/ja/microsoft-foundry)、または [Claude Platform on AWS](/ja/claude-platform-on-aws) を通じてデプロイする場合は、`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、および `ANTHROPIC_DEFAULT_HAIKU_MODEL` を使用して特定のモデルバージョンをピン留めします。ピン留めしない場合、モデルエイリアスは最新バージョンに解決され、Anthropic が新しいモデルをリリースしてアカウントでまだ有効になっていない場合があります。ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。各プロバイダーが最新バージョンが利用できない場合に何を行うかについては、[モデル構成](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 
-### セキュリティポリシーを構成する
+<h3 id="configure-security-policies">
+  セキュリティポリシーを構成する
+</h3>
 
 セキュリティチームは、Claude Code が実行できることと実行できないことに対する管理権限を構成できます。これはローカル構成によって上書きされません。[詳細をご覧ください](/ja/security)。
 
-### 統合に MCP を活用する
+<h3 id="leverage-mcp-for-integrations">
+  統合に MCP を活用する
+</h3>
 
 MCP は Claude Code にチケット管理システムやエラーログへの接続など、より多くの情報を提供する優れた方法です。1 つの中央チームが MCP サーバーを構成し、`.mcp.json` 構成をコードベースにチェックインして、すべてのユーザーが利益を得られるようにすることをお勧めします。[詳細をご覧ください](/ja/mcp)。
 
 Anthropic では、Claude Code を信頼してすべての Anthropic コードベース全体の開発を支援しています。Claude Code を使用することを楽しんでいただけることを願っています。
 
-## 次のステップ
+<h2 id="next-steps">
+  次のステップ
+</h2>
 
 デプロイメントオプションを選択し、チームのアクセスを構成したら、以下を実行します。
 

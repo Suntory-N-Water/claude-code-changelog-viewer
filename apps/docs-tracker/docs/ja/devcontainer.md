@@ -25,7 +25,7 @@ source: https://code.claude.com/docs/ja/devcontainer.md
 
 Claude Code はコンテナ内で実行されるため、プロジェクトのツールチェーンの残りの部分と同じファイル、依存関係、ツールが表示されます。VS Code では、[Claude Code 拡張機能パネル](/ja/vs-code)を使用するか、統合ターミナルで `claude` を実行できます。どちらもコンテナ内で実行され、同じ `~/.claude` 設定を共有します。
 
-## 開発コンテナに Claude Code を追加する
+開発コンテナに Claude Code を追加する
 
 Claude Code は、[Claude Code Dev Container Feature](https://github.com/anthropics/devcontainer-features/tree/main/src/claude-code) を通じて任意の開発コンテナにインストールされます。
 
@@ -69,7 +69,7 @@ Mac では `Cmd+Shift+P`、Windows と Linux では `Ctrl+Shift+P` で VS Code �
 
 ブラウザサインインが完了しても、コールバックがコンテナに到達しない場合は、ブラウザに表示されているコードをコピーして、ターミナルの `Paste code here if prompted` プロンプトに貼り付けます。これは、エディタのポート転送が localhost コールバックをルーティングしない場合に発生する可能性があります。
 
-## 再構築時に認証と設定を保持する
+再構築時に認証と設定を保持する
 
 デフォルトでは、コンテナのホームディレクトリは再構築時に破棄されるため、エンジニアは毎回サインインし直す必要があります。Claude Code は認証トークン、ユーザー設定、セッション履歴を [`~/.claude`](/ja/claude-directory) に保存します。そのパスに名前付きボリュームをマウントして、再構築時にこの状態を保持します。
 
@@ -87,7 +87,7 @@ Mac では `Cmd+Shift+P`、Windows と Linux では `Ctrl+Shift+P` で VS Code �
 
 GitHub Codespaces では、`~/.claude` は codespace の停止と開始の間で保持されますが、コンテナを再構築するときはまだクリアされるため、上記のボリュームマウントがそこにも適用されます。codespace 間で認証を実行するには、[Codespaces シークレット](https://docs.github.com/en/codespaces/managing-your-codespaces/managing-your-account-specific-secrets-for-github-codespaces)として `ANTHROPIC_API_KEY` または [`claude setup-token`](/ja/authentication#generate-a-long-lived-token) からの `CLAUDE_CODE_OAUTH_TOKEN` を保存します。Codespaces はシークレットを自動的にコンテナ内の環境変数として利用可能にします。
 
-## 組織ポリシーを適用する
+組織ポリシーを適用する
 
 開発コンテナは、同じイメージと設定がすべてのエンジニアのマシンで実行されるため、組織ポリシーを適用するのに便利な場所です。
 
@@ -115,13 +115,13 @@ Dev Container Feature は常に最新の Claude Code リリースをインスト
 
 [MCP サーバー](/ja/mcp)をコンテナ内で利用可能にするには、リポジトリルートの `.mcp.json` ファイルで[プロジェクトスコープ](/ja/mcp#mcp-installation-scopes)で定義して、開発コンテナ設定と一緒にチェックインします。ローカル stdio サーバーが依存するバイナリを Dockerfile にインストールし、リモートサーバードメインをネットワークアローリストに追加します。
 
-## ネットワークエグレスを制限する
+ネットワークエグレスを制限する
 
 コンテナのアウトバウンドトラフィックを Claude Code が必要とするドメインのみに制限できます。推論と認証ドメインについては[ネットワークアクセス要件](/ja/network-config#network-access-requirements)を参照し、オプションのテレメトリとエラーレポート接続およびそれらを無効にする方法については[テレメトリサービス](/ja/data-usage#telemetry-services)を参照してください。
 
 リファレンスコンテナには、Claude Code と開発ツールが必要とするドメイン以外のすべてのアウトバウンドトラフィックをブロックする [`init-firewall.sh`](https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh) スクリプトが含まれています。コンテナ内でファイアウォールを実行するには追加の権限が必要なため、リファレンスは `runArgs` を通じて `NET_ADMIN` と `NET_RAW` 機能を追加します。ファイアウォールスクリプトとこれらの機能は Claude Code 自体には必須ではありません。これらを除外して、代わりに独自のネットワークコントロールに依存することができます。
 
-## 権限プロンプトなしで実行する
+権限プロンプトなしで実行する
 
 コンテナは Claude Code を非ルートユーザーとして実行し、コマンド実行をコンテナに限定するため、無人操作のために `--dangerously-skip-permissions` を渡すことができます。CLI はルートとして起動された場合、このフラグを拒否するため、`remoteUser` が非ルートアカウントに設定されていることを確認します。
 
@@ -129,7 +129,7 @@ Dev Container Feature は常に最新の Claude Code リリースをインスト
 
 安全チェックを無効にせずにプロンプトを減らしたい場合は、代わりに[自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)を検討してください。これは、実行前にアクションを確認するための分類器を備えています。エンジニアが `--dangerously-skip-permissions` をまったく使用できないようにするには、[管理設定](/ja/settings#permission-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定します。
 
-## リファレンスコンテナを試す
+リファレンスコンテナを試す
 
 [`anthropics/claude-code`](https://github.com/anthropics/claude-code/tree/main/.devcontainer) リポジトリには、CLI、エグレスファイアウォール、永続ボリューム、Zsh ベースのシェルを組み合わせた開発コンテナの例が含まれています。これは、保守されたベースイメージではなく、動作する例として提供されています。独自の設定に適用する前に、ピースがどのように組み合わさるかを確認するために使用してください。
 
@@ -151,7 +151,7 @@ VS Code と [Dev Containers 拡張機能](https://marketplace.visualstudio.com/i
 | [`Dockerfile`](https://github.com/anthropics/claude-code/blob/main/.devcontainer/Dockerfile) | ベースイメージ、開発ツール、Claude Code インストール |
 | [`init-firewall.sh`](https://github.com/anthropics/claude-code/blob/main/.devcontainer/init-firewall.sh) | 許可されたドメイン以外のすべてのアウトバウンドネットワークトラフィックをブロック |
 
-## 次のステップ
+次のステップ
 
 Claude Code が開発コンテナで実行されたら、以下のページは組織ロールアウトの残りの部分をカバーしています。認証パスの選択、リポジトリ外での管理ポリシーの配信、使用状況の監視、Claude Code が保存および送信するものの理解です。
 

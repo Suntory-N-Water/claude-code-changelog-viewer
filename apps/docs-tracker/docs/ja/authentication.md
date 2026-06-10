@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/ja/authentication.md
 
 Claude Code は、セットアップに応じて複数の認証方法をサポートしています。個人ユーザーは Claude.ai アカウントでログインでき、チームは Claude for Teams または Enterprise、Claude Console、または Amazon Bedrock、Google Vertex AI、Microsoft Foundry などのクラウドプロバイダーを使用できます。
 
-## Claude Code にログインする
+Claude Code にログインする
 
 [Claude Code をインストール](/ja/setup#install-claude-code)した後、ターミナルで `claude` を実行します。初回起動時に、Claude Code はログインするためのブラウザウィンドウを開きます。
 
@@ -28,7 +28,7 @@ Claude Code は、セットアップに応じて複数の認証方法をサポ�
 
 ログインに問題がある場合は、[認証のトラブルシューティング](/ja/troubleshoot-install#login-and-authentication)を参照してください。
 
-## チーム認証を設定する
+チーム認証を設定する
 
 チームと組織の場合、Claude Code アクセスを以下のいずれかの方法で設定できます。
 
@@ -38,7 +38,7 @@ Claude Code は、セットアップに応じて複数の認証方法をサポ�
 - [Google Vertex AI](/ja/google-vertex-ai)
 - [Microsoft Foundry](/ja/microsoft-foundry)
 
-### Claude for Teams または Enterprise
+Claude for Teams または Enterprise
 
 [Claude for Teams](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=authentication_teams#team-&-enterprise) と [Claude for Enterprise](https://anthropic.com/contact-sales?utm_source=claude_code\&utm_medium=docs\&utm_content=authentication_enterprise) は、Claude Code を使用する組織に最適なエクスペリエンスを提供します。チームメンバーは Claude Code と Web 上の Claude の両方にアクセスでき、一元化された請求とチーム管理が可能です。
 
@@ -51,7 +51,7 @@ Claude Code は、セットアップに応じて複数の認証方法をサポ�
 
 チームメンバーは Claude Code をインストールし、Claude.ai アカウントでログインします。
 
-### Claude Console 認証
+Claude Console 認証
 
 API ベースの請求を希望する組織の場合、Claude Console を通じてアクセスを設定できます。
 
@@ -74,7 +74,7 @@ API ベースの請求を希望する組織の場合、Claude Console を通じ�
 - [Claude Code をインストール](/ja/setup#install-claude-code)
 - Console アカウント認証情報でログイン
 
-### クラウドプロバイダー認証
+クラウドプロバイダー認証
 
 Amazon Bedrock、Google Vertex AI、または Microsoft Foundry を使用するチームの場合。
 
@@ -84,7 +84,7 @@ Amazon Bedrock、Google Vertex AI、または Microsoft Foundry を使用する�
 
 ユーザーは [Claude Code をインストール](/ja/setup#install-claude-code)できます。
 
-## 認証情報管理
+認証情報管理
 
 Claude Code は認証情報を安全に管理します。
 
@@ -101,7 +101,7 @@ Claude Code は認証情報を安全に管理します。
 
 `apiKeyHelper`、`ANTHROPIC_API_KEY`、および `ANTHROPIC_AUTH_TOKEN` はターミナル CLI セッションにのみ適用されます。Claude Desktop とリモートセッションは OAuth のみを使用し、`apiKeyHelper` を呼び出したり、API キー環境変数を読み込んだりしません。
 
-### 認証の優先順位
+認証の優先順位
 
 複数の認証情報が存在する場合、Claude Code は以下の順序で 1 つを選択します。
 
@@ -116,7 +116,7 @@ Claude Code は認証情報を安全に管理します。
 
 [Claude Code on the Web](/ja/claude-code-on-the-web) は常にサブスクリプション認証情報を使用します。サンドボックス環境の `ANTHROPIC_API_KEY` と `ANTHROPIC_AUTH_TOKEN` はそれらをオーバーライドしません。
 
-### 長期トークンを生成する
+長期トークンを生成する
 
 Starting June 15, 2026, Agent SDK and `claude -p` usage on subscription plans will draw from a new monthly Agent SDK credit, separate from your interactive usage limits. See [Use the Claude Agent SDK with your Claude plan](https://support.claude.com/en/articles/15036540-use-the-claude-agent-sdk-with-your-claude-plan) for details.
 

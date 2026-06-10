@@ -11,9 +11,9 @@ Claude Code は、環境変数を通じてさまざまなエンタープライ�
 
 このページに表示されているすべての環境変数は、[`settings.json`](/ja/settings) でも設定できます。
 
-## プロキシ設定
+プロキシ設定
 
-### 環境変数
+環境変数
 
 Claude Code は標準的なプロキシ環境変数に対応しています。
 
@@ -34,7 +34,7 @@ export NO_PROXY="*"
 
 Claude Code は SOCKS プロキシをサポートしていません。
 
-### 基本認証
+基本認証
 
 プロキシが基本認証を必要とする場合は、プロキシ URL に認証情報を含めます。
 
@@ -46,7 +46,7 @@ export HTTPS_PROXY=http://username:password@proxy.example.com:8080
 
 高度な認証（NTLM、Kerberos など）が必要なプロキシの場合は、認証方法をサポートする LLM Gateway サービスの使用を検討してください。
 
-## CA 証明書ストア
+CA 証明書ストア
 
 デフォルトでは、Claude Code はバンドルされた Mozilla CA 証明書とオペレーティングシステムの証明書ストアの両方を信頼しています。CrowdStrike Falcon や Zscaler などのエンタープライズ TLS インスペクションプロキシは、ルート証明書が OS 信頼ストアにインストールされている場合、追加の設定なしで動作します。
 
@@ -66,7 +66,7 @@ export CLAUDE_CODE_CERT_STORE=system
 
 `CLAUDE_CODE_CERT_STORE` には、専用の `settings.json` スキーマキーがありません。`~/.claude/settings.json` の `env` ブロック、またはプロセス環境で直接設定してください。
 
-## カスタム CA 証明書
+カスタム CA 証明書
 
 エンタープライズ環境でカスタム CA を使用している場合は、Claude Code をそれを直接信頼するように設定します。
 
@@ -74,7 +74,7 @@ export CLAUDE_CODE_CERT_STORE=system
 export NODE_EXTRA_CA_CERTS=/path/to/ca-cert.pem
 ```
 
-## mTLS 認証
+mTLS 認証
 
 クライアント証明書認証が必要なエンタープライズ環境の場合：
 
@@ -89,7 +89,7 @@ export CLAUDE_CODE_CLIENT_KEY=/path/to/client-key.pem
 export CLAUDE_CODE_CLIENT_KEY_PASSPHRASE="your-passphrase"
 ```
 
-## ネットワークアクセス要件
+ネットワークアクセス要件
 
 Claude Code は以下の URL へのアクセスが必要です。プロキシ設定とファイアウォールルールでこれらをホワイトリストに登録してください。特にコンテナ化された環境または制限されたネットワーク環境では重要です。
 
@@ -113,7 +113,7 @@ Claude Code はデフォルトでオプションの運用テレメトリを送�
 
 ファイアウォールの背後にある自社ホスト型の [GitHub Enterprise Server](/ja/github-enterprise-server) インスタンスの場合は、Anthropic インフラストラクチャがリポジトリをクローンしてレビューコメントを投稿できるように、同じ [Anthropic API IP アドレス](https://platform.claude.com/docs/en/api/ip-addresses) をホワイトリストに登録してください。
 
-## その他のリソース
+その他のリソース
 
 - [Claude Code 設定](/ja/settings)
 - [環境変数リファレンス](/ja/env-vars)
