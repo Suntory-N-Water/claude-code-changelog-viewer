@@ -1,10 +1,10 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import { analyzeChangelog } from './application/analyze-changelog';
 import { parseChangelogEntries } from './infrastructure/docs/changelog-markdown-parser';
 import { docsSearcher } from './infrastructure/docs/docs-searcher';
 import { createAnalysisFileStore } from './infrastructure/filesystem/changelog-file-store';
+import { analyzeChangelog } from './usecase/analyze-changelog';
 
 const log = getLogger({ name: 'changelog-analyzer' });
 

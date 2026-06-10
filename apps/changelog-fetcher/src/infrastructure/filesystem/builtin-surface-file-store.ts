@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { getLogger } from '@claude-code-changelog-viewer/common';
-import type { BuiltinSurfaceStorePort } from '../../application/fetch-builtin-surface';
+import type { BuiltinSurfaceStorePort } from '../../usecase/fetch-builtin-surface';
 import type { BuiltinSurfaceCatalog } from '../../domain/builtin-surface/builtin-surface-catalog';
 
 const log = getLogger({ name: 'fetch-builtin-data' });

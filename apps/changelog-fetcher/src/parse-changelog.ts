@@ -2,7 +2,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import { fetchChangelog } from './application/fetch-changelog';
+import { fetchChangelog } from './usecase/fetch-changelog';
 import { ChangelogFileStore } from './infrastructure/filesystem/changelog-file-store';
 import { ClaudeCodeChangelogClient } from './infrastructure/github/claude-code-changelog-client';
 

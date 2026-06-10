@@ -2,8 +2,8 @@ import type { AppLogger } from '@claude-code-changelog-viewer/common';
 import type {
   SettingsTranslation,
   SettingsTranslationTarget,
-} from '../../application/settings-translation';
-import type { SettingsTranslatorPort } from '../../application/settings-entry-translator';
+} from '../../usecase/settings-translation';
+import type { SettingsTranslatorPort } from '../../usecase/settings-entry-translator';
 import { GeminiClient } from './gemini-client';
 import {
   buildSettingsTranslatePrompt,

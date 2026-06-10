@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { getLogger } from '@claude-code-changelog-viewer/common';
-import type { ChangelogSourcePort } from '../../application/fetch-changelog';
+import type { ChangelogSourcePort } from '../../usecase/fetch-changelog';
 import { parseChangelogReleases } from '../docs/changelog-markdown-parser';
 
 const log = getLogger({ name: 'changelog-fetcher' });

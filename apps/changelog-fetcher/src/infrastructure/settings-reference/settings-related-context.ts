@@ -9,7 +9,7 @@ import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import type {
   RelatedChangelogOutput,
   SettingsReferenceContext,
-} from '../../application/settings-translation';
+} from '../../usecase/settings-translation';
 import type { SettingsEntry } from '../../domain/settings-reference/setting-entry';
 import { extractSnippets, searchDocs } from '../docs/docs-searcher';
 

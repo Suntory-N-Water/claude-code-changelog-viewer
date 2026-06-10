@@ -1,5 +1,5 @@
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
-import type { AnalysisSourcePort } from '../../application/dispatch-changelog-notifications';
+import type { AnalysisSourcePort } from '../../usecases/dispatch-changelog-notifications';
 
 const GITHUB_RAW_BASE =
   'https://raw.githubusercontent.com/Suntory-N-Water/claude-code-changelog-viewer/main/apps/changelog-fetcher/inferred';

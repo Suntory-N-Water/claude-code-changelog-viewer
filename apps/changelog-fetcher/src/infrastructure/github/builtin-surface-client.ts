@@ -1,5 +1,5 @@
 import { getLogger } from '@claude-code-changelog-viewer/common';
-import type { BuiltinSurfaceSourcePort } from '../../application/fetch-builtin-surface';
+import type { BuiltinSurfaceSourcePort } from '../../usecase/fetch-builtin-surface';
 import { extractBuiltinSurfaceSection } from '../docs/builtin-surface-markdown-parser';
 
 const log = getLogger({ name: 'fetch-builtin-data' });

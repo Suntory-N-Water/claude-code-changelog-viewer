@@ -1,6 +1,6 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { z } from 'zod';
-import { dispatchChangelogNotifications } from '../application/dispatch-changelog-notifications';
+import { dispatchChangelogNotifications } from '../usecases/dispatch-changelog-notifications';
 import { createNotificationFrequency } from '../domain/channel/notification-frequency';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';

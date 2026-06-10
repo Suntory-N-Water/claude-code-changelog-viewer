@@ -3,8 +3,8 @@ import {
   createInferenceBatch,
   type InferenceBatch,
   type IndexedAnalyzedEntry,
-} from '../../application/inference-batch';
-import type { InferencePort } from '../../application/infer-benefits';
+} from '../../usecase/inference-batch';
+import type { InferencePort } from '../../usecase/infer-benefits';
 import { GeminiClient, type InferenceBatchResult } from './gemini-client';
 import { loadModelContext } from './model-context';
 import { buildBatchInferencePrompt } from './prompts/inference-prompt';

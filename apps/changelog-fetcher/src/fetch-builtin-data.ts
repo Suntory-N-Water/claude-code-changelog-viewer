@@ -2,7 +2,7 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getLogger } from '@claude-code-changelog-viewer/common';
-import { fetchBuiltinSurface } from './application/fetch-builtin-surface';
+import { fetchBuiltinSurface } from './usecase/fetch-builtin-surface';
 import { BuiltinSurfaceFileStore } from './infrastructure/filesystem/builtin-surface-file-store';
 import { GithubBuiltinSurfaceClient } from './infrastructure/github/builtin-surface-client';
 

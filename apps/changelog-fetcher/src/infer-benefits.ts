@@ -2,10 +2,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
-import {
-  inferBenefits,
-  type InferencePort,
-} from './application/infer-benefits';
+import { inferBenefits, type InferencePort } from './usecase/infer-benefits';
 import { GeminiInferenceClient } from './infrastructure/ai/gemini-inference-client';
 import {
   toAnalysisJson,

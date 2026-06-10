@@ -4,8 +4,8 @@ import { dirname, join } from 'node:path';
 import type {
   ChangelogMetadata,
   ChangelogStorePort,
-} from '../../application/fetch-changelog';
-import type { AnalysisStorePort } from '../../application/analyze-changelog';
+} from '../../usecase/fetch-changelog';
+import type { AnalysisStorePort } from '../../usecase/analyze-changelog';
 import type { ChangelogAnalysis } from '../../domain/analysis/changelog-analysis';
 import type { ChangelogDiffEvent } from '../../domain/changelog/changelog-diff-event';
 import type { ChangelogRelease } from '../../domain/changelog/changelog-release';

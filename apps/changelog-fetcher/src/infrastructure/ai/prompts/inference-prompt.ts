@@ -1,4 +1,4 @@
-import type { IndexedAnalyzedEntry } from '../../../application/inference-batch';
+import type { IndexedAnalyzedEntry } from '../../../usecase/inference-batch';
 
 type PromptItem = IndexedAnalyzedEntry;
 

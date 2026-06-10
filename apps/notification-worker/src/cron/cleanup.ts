@@ -1,4 +1,4 @@
-import { cleanupInactiveChannels as cleanupInactiveChannelsUsecase } from '../application/cleanup-inactive-channels';
+import { cleanupInactiveChannels as cleanupInactiveChannelsUsecase } from '../usecases/cleanup-inactive-channels';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
 
 export async function cleanupInactiveChannels(

@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
-import { generateSettingsReference } from './application/generate-settings-reference';
+import { generateSettingsReference } from './usecase/generate-settings-reference';
 import { GeminiSettingsTranslator } from './infrastructure/ai/gemini-settings-translator';
 import { PROJECT_ROOT } from './infrastructure/docs/docs-paths';
 import {
