@@ -4,6 +4,7 @@ import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { inferBenefits, type InferencePort } from './usecase/infer-benefits';
 import { GeminiInferenceClient } from './infrastructure/ai/gemini-inference-client';
+import { createInferredFileStore } from './infrastructure/filesystem/changelog-file-store';
 import {
   toAnalysisJson,
   toChangelogAnalysis,
@@ -31,16 +32,17 @@ function parseArgs(): CliArgs {
 
 async function main(): Promise<void> {
   const { version, skipAI } = parseArgs();
-  const analysisDir = join(process.cwd(), 'analysis');
-  const inferredDir = join(process.cwd(), 'inferred');
+  const appDir = process.cwd();
+  const analysisDir = join(appDir, 'analysis');
+  const inferredDir = join(appDir, 'inferred');
   const analysisPath = join(analysisDir, `analysis_${version}.json`);
   const inferredPath = join(inferredDir, `inferred_${version}.json`);
 
   log.msg('APLG0003', { params: [analysisPath] });
   const rawAnalysis = readFileSync(analysisPath, 'utf-8');
-  const analysis = toChangelogAnalysis(
-    AnalysisSchema.parse(JSON.parse(rawAnalysis)),
-  );
+  const parsedAnalysis = JSON.parse(rawAnalysis);
+  const analysisJson = AnalysisSchema.parse(parsedAnalysis);
+  const analysis = toChangelogAnalysis(analysisJson);
 
   const inference: InferencePort = skipAI
     ? {
@@ -53,12 +55,19 @@ async function main(): Promise<void> {
         log.child({ component: 'gemini' }),
       );
 
-  const inferred = toAnalysisJson(
-    await inferBenefits({ version, analysis, skipAI, inference }),
-  );
+  const store = createInferredFileStore(appDir);
+  const inferredAnalysis = await inferBenefits({
+    version,
+    analysis,
+    skipAI,
+    inference,
+    store,
+  });
+  const inferred = toAnalysisJson(inferredAnalysis);
 
   mkdirSync(inferredDir, { recursive: true });
-  writeFileSync(inferredPath, JSON.stringify(inferred, null, 2), 'utf-8');
+  const serializedInferred = JSON.stringify(inferred, null, 2);
+  writeFileSync(inferredPath, serializedInferred, 'utf-8');
   log.msg('APLG0021', { params: [inferredPath] });
 
   const completedCount = inferred.items.filter(
