@@ -7,70 +7,14 @@ source: https://code.claude.com/docs/ja/amazon-bedrock.md
 
 > Amazon Bedrock を通じた Claude Code の設定方法（セットアップ、IAM 設定、トラブルシューティングを含む）について学習します。
 
-.dark .cc-cs {
-  --cs-slate: #f0eee6;
-  --cs-gray-000: #262624;
-  --cs-gray-700: #bfbdb4;
-  --cs-border-default: rgba(240, 238, 230, 0.14);
-}
-.cc-cs-card {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 14px 16px; margin: 0;
-  background: var(--cs-gray-000); border: 0.5px solid var(--cs-border-default);
-  border-radius: 8px; flex-wrap: wrap;
-}
-.cc-cs-text { font-size: 13px; color: var(--cs-gray-700); line-height: 1.5; flex: 1; min-width: 240px; }
-.cc-cs-text strong { font-weight: 550; color: var(--cs-slate); }
-.cc-cs-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.cc-cs-btn-clay {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--cs-clay-deep); color: #fff; border: none;
-  border-radius: 8px; padding: 8px 14px;
-  font-size: 13px; font-weight: 500;
-  transition: background-color 0.15s; white-space: nowrap;
-}
-.cc-cs-btn-clay:hover { background: var(--cs-clay); }
-.cc-cs-btn-ghost {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: transparent; color: var(--cs-gray-700);
-  border: 0.5px solid var(--cs-border-default);
-  border-radius: 8px; padding: 8px 14px;
-  font-size: 13px; font-weight: 500;
-}
-.cc-cs-btn-ghost:hover { background: rgba(0, 0, 0, 0.04); }
-.dark .cc-cs-btn-ghost:hover { background: rgba(255, 255, 255, 0.04); }
-@media (max-width: 720px) {
-  .cc-cs-actions { width: 100%; }
-}
-`;
-  return <div className="cc-cs not-prose">
-      <style>{STYLES}</style>
-      <div className="cc-cs-card">
-        <div className="cc-cs-text">
-          <strong>Deploying Claude Code across your organization?</strong> Talk to sales about enterprise plans, SSO, and centralized billing.
-        </div>
-        <div className="cc-cs-actions">
-          <a href={`https://claude.com/pricing?${utm('view_plans')}#plans-business`} className="cc-cs-btn-ghost">
-            View plans
-          </a>
-          <a href={`https://claude.com/contact-sales?${utm('contact_sales')}`} className="cc-cs-btn-clay">
-            Contact sales {iconArrowRight()}
-          </a>
-        </div>
-      </div>
-    </div>;
-};
-
-<ContactSalesCard surface="bedrock" />
-
 ## 前提条件
 
 Claude Code を Bedrock で設定する前に、以下を確認してください。
 
-* Bedrock アクセスが有効になっている AWS アカウント
-* Bedrock で目的の Claude モデル（例：Claude Sonnet 4.6）へのアクセス
-* AWS CLI がインストールされ、設定されていること（オプション - 認証情報を取得する別のメカニズムがない場合のみ必要）
-* 適切な IAM 権限
+- Bedrock アクセスが有効になっている AWS アカウント
+- Bedrock で目的の Claude モデル（例：Claude Sonnet 4.6）へのアクセス
+- AWS CLI がインストールされ、設定されていること（オプション - 認証情報を取得する別のメカニズムがない場合のみ必要）
+- 適切な IAM 権限
 
 Bedrock 認証情報を使用してサインインするには、以下の [Bedrock でサインイン](#bedrock-でサインイン)に従ってください。チーム全体に Claude Code をデプロイするには、[手動でセットアップ](#手動でセットアップ)の手順を使用し、ロールアウト前に[モデルバージョンをピン留め](#4-モデルバージョンをピン留め)してください。
 
@@ -78,19 +22,11 @@ Bedrock 認証情報を使用してサインインするには、以下の [Bedr
 
 AWS 認証情報を持っていて、Bedrock を通じて Claude Code の使用を開始したい場合、ログインウィザードがそれをガイドします。AWS 側の前提条件はアカウントごとに 1 回完了します。ウィザードは Claude Code 側を処理します。
 
-<Steps>
-  <Step title="AWS アカウントで Anthropic モデルを有効にする">
-    [Amazon Bedrock コンソール](https://console.aws.amazon.com/bedrock/)で、モデルカタログを開き、Anthropic モデルを選択して、ユースケースフォームを送信します。送信直後にアクセスが付与されます。AWS Organizations については[ユースケースの詳細を送信](#1-ユースケースの詳細を送信)を、権限については [IAM 設定](#iam-設定)を参照してください。
-  </Step>
+[Amazon Bedrock コンソール](https://console.aws.amazon.com/bedrock/)で、モデルカタログを開き、Anthropic モデルを選択して、ユースケースフォームを送信します。送信直後にアクセスが付与されます。AWS Organizations については[ユースケースの詳細を送信](#1-ユースケースの詳細を送信)を、権限については [IAM 設定](#iam-設定)を参照してください。
 
-  <Step title="Claude Code を開始して Bedrock を選択する">
-    `claude` を実行します。ログインプロンプトで、**3rd-party platform**、次に **Amazon Bedrock** を選択します。
-  </Step>
+`claude` を実行します。ログインプロンプトで、**3rd-party platform**、次に **Amazon Bedrock** を選択します。
 
-  <Step title="ウィザードプロンプトに従う">
-    AWS に認証する方法を選択します。`~/.aws` ディレクトリから検出された AWS プロファイル、Bedrock API キー、アクセスキーとシークレット、または環境内に既にある認証情報です。ウィザードはリージョンを取得し、アカウントが呼び出せる Claude モデルを確認し、それらをピン留めできます。結果は [user settings file](/ja/settings) の `env` ブロックに保存されるため、環境変数を自分でエクスポートする必要はありません。
-  </Step>
-</Steps>
+AWS に認証する方法を選択します。`~/.aws` ディレクトリから検出された AWS プロファイル、Bedrock API キー、アクセスキーとシークレット、または環境内に既にある認証情報です。ウィザードはリージョンを取得し、アカウントが呼び出せる Claude モデルを確認し、それらをピン留めできます。結果は [user settings file](/ja/settings) の `env` ブロックに保存されるため、環境変数を自分でエクスポートする必要はありません。
 
 サインイン後、いつでも `/setup-bedrock` を実行してウィザードを再度開き、認証情報、リージョン、またはモデルピンを変更できます。
 
@@ -157,8 +93,8 @@ Claude Code は、AWS SSO および企業 ID プロバイダーの自動認証�
 
 これら 2 つの設定には異なるトリガー条件があります。
 
-* **`awsAuthRefresh`**：Claude Code がローカルのタイムスタンプに基づくか、Bedrock が認証情報エラーを返した場合に AWS 認証情報の有効期限が切れていることを検出した場合にのみ実行され、更新された認証情報でリクエストを再試行します。
-* **`awsCredentialExport`**：セッション開始時および各認証情報リロード時に実行されます。AWS デフォルト認証情報プロバイダーチェーン内の認証情報がまだ有効な場合でも実行されます。Bedrock アカウントがデフォルトプロバイダーチェーンが解決するものと異なるクロスアカウント認証情報を必要とする場合に使用します。
+- **`awsAuthRefresh`**：Claude Code がローカルのタイムスタンプに基づくか、Bedrock が認証情報エラーを返した場合に AWS 認証情報の有効期限が切れていることを検出した場合にのみ実行され、更新された認証情報でリクエストを再試行します。
+- **`awsCredentialExport`**：セッション開始時および各認証情報リロード時に実行されます。AWS デフォルト認証情報プロバイダーチェーン内の認証情報がまだ有効な場合でも実行されます。Bedrock アカウントがデフォルトプロバイダーチェーンが解決するものと異なるクロスアカウント認証情報を必要とする場合に使用します。
 
 ##### 設定例
 
@@ -207,16 +143,14 @@ export ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION=us-west-2
 
 Claude Code で Bedrock を有効にする場合は、以下に注意してください。
 
-* `AWS_REGION` は必須の環境変数です。Claude Code はこの設定について `.aws` 設定ファイルから読み込みません。
-* Bedrock を使用する場合、`/logout` コマンドは無効になります。認証は AWS 認証情報を通じて処理されるためです。
-* WebSearch ツールは Bedrock では利用できません。[WebSearch ツールの動作](/ja/tools-reference#websearch-tool-behavior)を参照してください。
-* 他のプロセスに漏らしたくない `AWS_PROFILE` などの環境変数に設定ファイルを使用できます。詳細については [Settings](/ja/settings) を参照してください。
+- `AWS_REGION` は必須の環境変数です。Claude Code はこの設定について `.aws` 設定ファイルから読み込みません。
+- Bedrock を使用する場合、`/logout` コマンドは無効になります。認証は AWS 認証情報を通じて処理されるためです。
+- WebSearch ツールは Bedrock では利用できません。[WebSearch ツールの動作](/ja/tools-reference#websearch-tool-behavior)を参照してください。
+- 他のプロセスに漏らしたくない `AWS_PROFILE` などの環境変数に設定ファイルを使用できます。詳細については [Settings](/ja/settings) を参照してください。
 
 ### 4. モデルバージョンをピン留め
 
-<Warning>
-  複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` や `opus` などのモデルエイリアスは最新バージョンに解決されます。これは、Anthropic がアップデートをリリースしたときに、Bedrock アカウントでまだ利用できない可能性があります。Claude Code は、最新が利用できない場合、スタートアップで[前のバージョンにフォールバック](#startup-model-checks)しますが、ピン留めするとユーザーが新しいモデルに移行するタイミングを制御できます。
-</Warning>
+複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` や `opus` などのモデルエイリアスは最新バージョンに解決されます。これは、Anthropic がアップデートをリリースしたときに、Bedrock アカウントでまだ利用できない可能性があります。Claude Code は、最新が利用できない場合、スタートアップで[前のバージョンにフォールバック](#startup-model-checks)しますが、ピン留めするとユーザーが新しいモデルに移行するタイミングを制御できます。
 
 これらの環境変数を特定の Bedrock モデル ID に設定します。
 
@@ -232,10 +166,10 @@ export ANTHROPIC_DEFAULT_HAIKU_MODEL='us.anthropic.claude-haiku-4-5-20251001-v1:
 
 ピン留め変数が設定されていない場合、Claude Code はこれらのデフォルトモデルを使用します。
 
-| モデルタイプ   | デフォルト値                                         |
-| :------- | :--------------------------------------------- |
+| モデルタイプ | デフォルト値 |
+| :- | :- |
 | プライマリモデル | `us.anthropic.claude-sonnet-4-5-20250929-v1:0` |
-| 小型/高速モデル | プライマリモデルと同じ                                    |
+| 小型/高速モデル | プライマリモデルと同じ |
 
 セッションタイトル生成などのバックグラウンドタスクは、小型/高速モデル（通常は Haiku クラスモデル）を使用します。Bedrock では、すべてのアカウントまたはリージョンで Haiku が有効になっていない可能性があるため、Claude Code はこれをプライマリモデルにデフォルト設定します。バックグラウンドタスクに Haiku を使用するには、`ANTHROPIC_DEFAULT_HAIKU_MODEL` をアカウントで利用可能なモデル ID に設定してください。
 
@@ -258,7 +192,7 @@ export ENABLE_PROMPT_CACHING_1H=1
 
 1 時間のキャッシュ TTL は、5 分のデフォルトよりも高いレートで課金されます。[キャッシュライフタイム](/ja/prompt-caching#cache-lifetime)を参照してください。
 
-<Note>プロンプトキャッシングは、すべての Bedrock リージョンで利用できない場合があります。キャッシュトークンカウントがゼロのままの場合は、Bedrock ドキュメントの[サポートされているモデル、リージョン、および制限](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html#prompt-caching-models)を確認してください。</Note>
+プロンプトキャッシングは、すべての Bedrock リージョンで利用できない場合があります。キャッシュトークンカウントがゼロのままの場合は、Bedrock ドキュメントの[サポートされているモデル、リージョン、および制限](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-caching.html#prompt-caching-models)を確認してください。
 
 #### 各モデルバージョンを推論プロファイルにマップ
 
@@ -336,9 +270,7 @@ Claude Code に必要な権限を持つ IAM ポリシーを作成します。
 
 詳細については、[Bedrock IAM documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html) を参照してください。
 
-<Note>
-  コスト追跡とアクセス制御を簡素化するために、Claude Code 用の専用 AWS アカウントを作成してください。
-</Note>
+コスト追跡とアクセス制御を簡素化するために、Claude Code 用の専用 AWS アカウントを作成してください。
 
 ## 1M トークンコンテキストウィンドウ
 
@@ -374,9 +306,7 @@ Claude Code は、各リクエストで `X-Amzn-Bedrock-Service-Tier` ヘッダ�
 
 Mantle は、Bedrock Invoke API ではなく、ネイティブ Anthropic API シェイプを通じて Claude モデルを提供する Amazon Bedrock エンドポイントです。同じ AWS 認証情報、IAM 権限、および `awsAuthRefresh` 設定を使用します。このページで前述したものです。
 
-<Note>
-  Mantle には Claude Code v2.1.94 以降が必要です。確認するには `claude --version` を実行してください。
-</Note>
+Mantle には Claude Code v2.1.94 以降が必要です。確認するには `claude --version` を実行してください。
 
 ### Mantle を有効にする
 
@@ -436,11 +366,11 @@ export ANTHROPIC_BEDROCK_MANTLE_BASE_URL=https://your-gateway.example.com
 
 これらの変数は Mantle エンドポイントに固有です。完全なリストについては、[Environment variables](/ja/env-vars) を参照してください。
 
-| 変数                                      | 目的                                           |
-| :-------------------------------------- | :------------------------------------------- |
-| `CLAUDE_CODE_USE_MANTLE`                | Mantle エンドポイントを有効にします。`1` または `true` に設定します。 |
-| `ANTHROPIC_BEDROCK_MANTLE_BASE_URL`     | デフォルト Mantle エンドポイント URL をオーバーライド            |
-| `CLAUDE_CODE_SKIP_MANTLE_AUTH`          | プロキシセットアップのクライアント側認証をスキップ                    |
+| 変数 | 目的 |
+| :- | :- |
+| `CLAUDE_CODE_USE_MANTLE` | Mantle エンドポイントを有効にします。`1` または `true` に設定します。 |
+| `ANTHROPIC_BEDROCK_MANTLE_BASE_URL` | デフォルト Mantle エンドポイント URL をオーバーライド |
+| `CLAUDE_CODE_SKIP_MANTLE_AUTH` | プロキシセットアップのクライアント側認証をスキップ |
 | `ANTHROPIC_SMALL_FAST_MODEL_AWS_REGION` | Haiku クラスモデルの AWS リージョンをオーバーライド（Bedrock と共有） |
 
 ## トラブルシューティング
@@ -455,13 +385,13 @@ AWS SSO を使用する場合にブラウザタブが繰り返し生成される
 
 リージョンの問題が発生した場合：
 
-* モデルの可用性を確認：`aws bedrock list-inference-profiles --region your-region`
-* サポートされているリージョンに切り替え：`export AWS_REGION=us-east-1`
-* クロスリージョンアクセスに推論プロファイルの使用を検討
+- モデルの可用性を確認：`aws bedrock list-inference-profiles --region your-region`
+- サポートされているリージョンに切り替え：`export AWS_REGION=us-east-1`
+- クロスリージョンアクセスに推論プロファイルの使用を検討
 
 「on-demand throughput isn't supported」エラーが表示される場合：
 
-* モデルを [inference profile](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html) ID として指定します
+- モデルを [inference profile](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html) ID として指定します
 
 Claude Code は Bedrock [Invoke API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html) を使用し、Converse API はサポートしていません。
 
@@ -475,9 +405,9 @@ Claude Code は Bedrock [Invoke API](https://docs.aws.amazon.com/bedrock/latest/
 
 ## 追加リソース
 
-* [Bedrock documentation](https://docs.aws.amazon.com/bedrock/)
-* [Bedrock pricing](https://aws.amazon.com/bedrock/pricing/)
-* [Bedrock inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html)
-* [Bedrock token burndown and quotas](https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-token-burndown.html)
-* [Claude Code on Amazon Bedrock: Quick Setup Guide](https://community.aws/content/2tXkZKrZzlrlu0KfH8gST5Dkppq/claude-code-on-amazon-bedrock-quick-setup-guide)
-* [Claude Code Monitoring Implementation (Bedrock)](https://github.com/aws-solutions-library-samples/guidance-for-claude-code-with-amazon-bedrock/blob/main/assets/docs/MONITORING.md)
+- [Bedrock documentation](https://docs.aws.amazon.com/bedrock/)
+- [Bedrock pricing](https://aws.amazon.com/bedrock/pricing/)
+- [Bedrock inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html)
+- [Bedrock token burndown and quotas](https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-token-burndown.html)
+- [Claude Code on Amazon Bedrock: Quick Setup Guide](https://community.aws/content/2tXkZKrZzlrlu0KfH8gST5Dkppq/claude-code-on-amazon-bedrock-quick-setup-guide)
+- [Claude Code Monitoring Implementation (Bedrock)](https://github.com/aws-solutions-library-samples/guidance-for-claude-code-with-amazon-bedrock/blob/main/assets/docs/MONITORING.md)
