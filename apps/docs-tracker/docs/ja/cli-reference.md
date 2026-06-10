@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 
 > Claude Code コマンドラインインターフェースの完全なリファレンス。コマンドとフラグを含みます。
 
-## CLI コマンド
+CLI コマンド
 
 これらのコマンドを使用して、セッションを開始し、コンテンツをパイプし、会話を再開し、更新を管理できます。
 
@@ -43,7 +43,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 
 サブコマンドを誤入力した場合、Claude Code は最も近い一致を提案して、セッションを開始せずに終了します。たとえば、`claude udpate` は `Did you mean claude update?` と出力します。
 
-## CLI フラグ
+CLI フラグ
 
 これらのコマンドラインフラグを使用して Claude Code の動作をカスタマイズします。`claude --help` はすべてのフラグをリストしていないため、`--help` にフラグが表示されていないことは、そのフラグが利用できないことを意味しません。
 
@@ -116,7 +116,7 @@ source: https://code.claude.com/docs/ja/cli-reference.md
 | `--version`, `-v` | バージョン番号を出力します | `claude -v` |
 | `--worktree`, `-w` | Claude を `<repo>/.claude/worktrees/<name>` の分離された [git worktree](/ja/worktrees) で開始します。名前が指定されていない場合は、自動生成されます。`#<number>` または GitHub プルリクエスト URL を渡して、`origin` からその PR をフェッチし、worktree をそこからブランチします | `claude -w feature-auth` |
 
-### システムプロンプトフラグ
+システムプロンプトフラグ
 
 Claude Code は、システムプロンプトをカスタマイズするための 4 つのフラグを提供します。すべて 4 つはインタラクティブモードと非インタラクティブモードの両方で機能します。
 
@@ -133,7 +133,7 @@ Claude Code のデフォルトの ID がタスクに適合しているかどう�
 
 これらのフラグは現在の呼び出しにのみ適用されます。プロジェクト全体で切り替えて共有できる永続的なペルソナについては、[出力スタイル](/ja/output-styles) を使用してください。Claude が常に従うべきプロジェクト規約については、[CLAUDE.md](/ja/memory) を使用してください。[Agent SDK ガイドのシステムプロンプト](/ja/agent-sdk/modifying-system-prompts#decide-on-a-starting-point) は、より詳細に同じ決定をカバーしています。
 
-## 関連項目
+関連項目
 
 - [Chrome 拡張機能](/ja/chrome) - ブラウザ自動化と Web テスト
 - [インタラクティブモード](/ja/interactive-mode) - ショートカット、入力モード、インタラクティブ機能

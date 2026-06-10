@@ -13,9 +13,9 @@ source: https://code.claude.com/docs/ja/plugins-reference.md
 
 **プラグイン**は、Claude Code をカスタム機能で拡張する自己完結型のコンポーネントディレクトリです。プラグインコンポーネントには、skills、agents、hooks、MCP servers、LSP servers、monitors が含まれます。
 
-## プラグインコンポーネントリファレンス
+プラグインコンポーネントリファレンス
 
-### Skills
+Skills
 
 プラグインは Claude Code に skills を追加し、`/name` ショートカットを作成します。これらは、あなたまたは Claude が呼び出すことができます。
 
@@ -43,7 +43,7 @@ skills/
 
 詳細については、[Skills](/ja/skills)を参照してください。
 
-### Agents
+Agents
 
 プラグインは、特定のタスク用の特化した subagents を提供できます。Claude は必要に応じて自動的にそれらを呼び出すことができます。
 
@@ -77,7 +77,7 @@ disallowedTools: Write, Edit
 
 詳細については、[Subagents](/ja/sub-agents)を参照してください。
 
-### Hooks
+Hooks
 
 プラグインは Claude Code イベントに自動的に応答するイベントハンドラーを提供できます。
 
@@ -148,7 +148,7 @@ disallowedTools: Write, Edit
 - `prompt`: LLM でプロンプトを評価（コンテキストの `$ARGUMENTS` プレースホルダーを使用）
 - `agent`: 複雑な検証タスク用のツール付き agentic verifier を実行
 
-### MCP servers
+MCP servers
 
 プラグインは Model Context Protocol（MCP）servers をバンドルして、Claude Code を外部ツールおよびサービスに接続できます。
 
@@ -184,7 +184,7 @@ disallowedTools: Write, Edit
 - サーバー機能は Claude の既存ツールとシームレスに統合されます
 - プラグインサーバーはユーザー MCP servers とは独立して設定できます
 
-### LSP servers
+LSP servers
 
 LSP プラグインを使用したいですか？公式マーケットプレイスからインストールしてください。`/plugin` Discover タブで「lsp」を検索してください。このセクションでは、公式マーケットプレイスでカバーされていない言語用の LSP プラグインを作成する方法を説明しています。
 
@@ -263,7 +263,7 @@ LSP 統合は以下を提供します:
 
 言語サーバーをまずインストールしてから、マーケットプレイスからプラグインをインストールしてください。
 
-### Monitors
+Monitors
 
 プラグインは、プラグインがアクティブな場合に Claude Code が自動的に開始するバックグラウンド monitors を宣言できます。各 monitor はセッションの期間中シェルコマンドを実行し、すべての stdout 行を Claude に通知として配信するため、Claude は自分自身に開始するよう求められることなく、ログエントリ、ステータス変更、またはポーリングされたイベントに反応できます。
 
@@ -313,7 +313,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 セッション中にプラグインを無効にしても、既に実行中の monitors は停止しません。セッションが終了するときに停止します。
 
-### Themes
+Themes
 
 プラグインは、`/theme` に組み込みプリセットおよびユーザーのローカルテーマと一緒に表示される色テーマを配布できます。テーマは `themes/` 内の JSON ファイルで、`base` プリセットと色トークンのスパース `overrides` マップを持ちます。Themes は[実験的コンポーネント](#experimental-components)です。
 
@@ -333,7 +333,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 ***
 
-## プラグインインストールスコープ
+プラグインインストールスコープ
 
 プラグインをインストールするときは、プラグインが利用可能な場所と他のユーザーが使用できるかどうかを決定する**スコープ**を選択します。
 
@@ -348,7 +348,7 @@ monitors をインラインで宣言するには、`plugin.json` の `experiment
 
 ***
 
-## Skills ディレクトリプラグイン
+Skills ディレクトリプラグイン
 
 `.claude-plugin/plugin.json` マニフェストを含む skills ディレクトリの下のフォルダは、次のセッションで `<name>@skills-dir` という名前のプラグインとして読み込まれます。マーケットプレイスもインストール手順もありません。[`plugin init`](#plugin-init)でスキャフォルドしてください。マーケットプレイスインストールとは異なり、プラグインはプラグインキャッシュにコピーされるのではなく、所定の場所で検出されます。
 
@@ -360,7 +360,7 @@ skills ディレクトリツリーは 3 つの異なるものをサポートし�
 | `<skills-dir>/foo/.claude-plugin/plugin.json` | プラグイン `foo@skills-dir`。独自の skills、agents、hooks などをバンドルできます |
 | `<plugin>/skills/bar/SKILL.md` | プラグイン内にパッケージされた skill `bar` |
 
-### プラグインが読み込まれる場所を選択
+プラグインが読み込まれる場所を選択
 
 | Skills ディレクトリ | スコープ | 読み込み |
 | :- | :- | :- |
@@ -377,7 +377,7 @@ skills ディレクトリツリーは 3 つの異なるものをサポートし�
 
 プロジェクトスコープ `@skills-dir` プラグインは、Claude Code を開始したディレクトリの `.claude/skills/` からのみ読み込まれます。plain skills と commands が行うように[リポジトリルートまでウォークアップ](/ja/skills#automatic-discovery-from-parent-and-nested-directories)しません。そのため、サブディレクトリから起動するとリポジトリルートに存在するプラグインが見つかりません。リポジトリルートから起動するか、ディレクトリを変更した後に `/reload-plugins` を実行してください。
 
-### Skills ディレクトリプラグインを編集、再読み込み、無効化
+Skills ディレクトリプラグインを編集、再読み込み、無効化
 
 skill の `SKILL.md` に加えた変更は現在のセッションで即座に有効になります。プラグインの他のコンポーネント（`hooks/`、`.mcp.json`、`agents/`、`output-styles/` など）への変更は有効になりません。`/reload-plugins` を実行するか Claude Code を再起動してそれらを取得してください。[ライブ変更検出](/ja/skills#live-change-detection)を参照してください。
 
@@ -389,13 +389,13 @@ claude plugin disable my-tool@skills-dir
 
 ***
 
-## プラグインマニフェストスキーマ
+プラグインマニフェストスキーマ
 
 `.claude-plugin/plugin.json` ファイルはプラグインのメタデータと設定を定義します。このセクションでは、サポートされているすべてのフィールドとオプションを説明しています。
 
 マニフェストはオプションです。省略された場合、Claude Code は[デフォルト場所](#file-locations-reference)のコンポーネントを自動検出し、ディレクトリ名からプラグイン名を導出します。メタデータを提供するか、カスタムコンポーネントパスが必要な場合はマニフェストを使用してください。
 
-### 完全なスキーマ
+完全なスキーマ
 
 ```json
 {
@@ -430,7 +430,7 @@ claude plugin disable my-tool@skills-dir
 }
 ```
 
-### 必須フィールド
+必須フィールド
 
 マニフェストを含める場合、`name` は唯一の必須フィールドです。
 
@@ -440,7 +440,7 @@ claude plugin disable my-tool@skills-dir
 
 この名前はコンポーネントの名前空間に使用されます。たとえば、UI では、名前が `plugin-dev` のプラグインのエージェント `agent-creator` は `plugin-dev:agent-creator` として表示されます。
 
-### 認識されないフィールド
+認識されないフィールド
 
 Claude Code は認識しないトップレベルフィールドを無視します。別のエコシステムからのメタデータを `plugin.json` に保持でき、プラグインは引き続き読み込まれます。これにより、VS Code または Cursor 拡張マニフェスト、npm `package.json`、または MCPB/DXT バンドルマニフェストとしても機能する 1 つのマニフェストを保持することが実用的になります。
 
@@ -454,7 +454,7 @@ Claude Code は認識しないトップレベルフィールドを無視しま�
 claude plugin validate ./my-plugin --strict
 ```
 
-### メタデータフィールド
+メタデータフィールド
 
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
@@ -469,7 +469,7 @@ claude plugin validate ./my-plugin --strict
 | `keywords` | array | 検出タグ | `["deployment", "ci-cd"]` |
 | `defaultEnabled` | boolean | ユーザーが設定を設定していない場合、プラグインが有効な状態で開始するかどうか。デフォルトは `true`。[デフォルト有効化](#default-enablement)を参照してください。Claude Code v2.1.154 以降が必要です。 | `false` |
 
-### デフォルト有効化
+デフォルト有効化
 
 `plugin.json` で `defaultEnabled: false` を設定して、無効な状態でインストールされるプラグインを配布します。ユーザーは `claude plugin enable <plugin>` または `/plugin` インターフェイスでそれをオンにします。外部サービスに接続するプラグインなど、ユーザーがオプトインすべきコストまたはスコープを追加するプラグインに使用します。これには Claude Code v2.1.154 以降が必要です。以前のバージョンはフィールドを無視し、インストール時にプラグインを有効にします。
 
@@ -480,7 +480,7 @@ claude plugin validate ./my-plugin --strict
 
 同じフィールドはプラグインのマーケットプレイスエントリに表示でき、`plugin.json` の値より優先されます。[オプションプラグインフィールド](/ja/plugin-marketplaces#optional-plugin-fields)を参照してください。
 
-### コンポーネントパスフィールド
+コンポーネントパスフィールド
 
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
@@ -497,11 +497,11 @@ claude plugin validate ./my-plugin --strict
 | `channels` | array | メッセージ注入用のチャネル宣言（Telegram、Slack、Discord スタイル）。[チャネル](#channels)を参照してください | 下記を参照 |
 | `dependencies` | array | このプラグインが必要とする他のプラグイン。オプションで semver バージョン制約付き。[プラグイン依存関係バージョンを制約](/ja/plugin-dependencies)を参照してください | `[{ "name": "secrets-vault", "version": "~2.1.0" }]` |
 
-### 実験的コンポーネント
+実験的コンポーネント
 
 `experimental` キーの下のコンポーネント、`themes` と `monitors` は、安定化する間にリリース間でマニフェストスキーマが変更される可能性があります。それらを宣言する場所は別の移行です。トップレベルはまだ機能し、`claude plugin validate` は警告を表示し、将来のリリースでは `experimental.*` が必要になります。
 
-### ユーザー設定
+ユーザー設定
 
 `userConfig` フィールドは、プラグインが有効になったときに Claude Code がユーザーにプロンプトする値を宣言します。ユーザーに `settings.json` を手動で編集させる代わりにこれを使用してください。
 
@@ -540,7 +540,7 @@ claude plugin validate ./my-plugin --strict
 
 機密でない値は `settings.json` の `pluginConfigs[<plugin-id>].options` に保存されます。機密値はシステムキーチェーン（またはキーチェーンが利用できない場合は `~/.claude/.credentials.json`）に移動します。キーチェーンストレージは OAuth トークンと共有され、約 2 KB の合計制限があるため、機密値は小さく保ってください。
 
-### チャネル
+チャネル
 
 `channels` フィールドを使用すると、プラグインは 1 つ以上のメッセージチャネルを宣言して、会話にコンテンツを注入できます。各チャネルはプラグインが提供する MCP サーバーにバインドされます。
 
@@ -569,7 +569,7 @@ claude plugin validate ./my-plugin --strict
 
 `server` フィールドは必須で、プラグインの `mcpServers` のキーと一致する必要があります。オプションのチャネルごとの `userConfig` はトップレベルフィールドと同じスキーマを使用し、プラグインがプラグイン有効化時にボットトークンまたはオーナー ID をプロンプトできるようにします。
 
-### パス動作ルール
+パス動作ルール
 
 カスタムパスがプラグインのデフォルトディレクトリを置き換えるか拡張するかは、フィールドによって異なります:
 
@@ -603,7 +603,7 @@ claude plugin validate ./my-plugin --strict
 }
 ```
 
-### 環境変数
+環境変数
 
 Claude Code は、プラグインパスを参照するための 3 つの変数を提供します。すべては skill コンテンツ、エージェントコンテンツ、hook コマンド、monitor コマンド、MCP または LSP サーバー設定に表示される場所にインラインで置換されます。すべては hook プロセスおよび MCP または LSP サーバーサブプロセスに環境変数としてエクスポートされます。
 
@@ -632,7 +632,7 @@ Claude Code は、プラグインパスを参照するための 3 つの変数�
 }
 ```
 
-#### 永続データディレクトリ
+永続データディレクトリ
 
 `${CLAUDE_PLUGIN_DATA}` ディレクトリは `~/.claude/plugins/data/{id}/` に解決されます。ここで `{id}` はプラグイン識別子で、`a-z`、`A-Z`、`0-9`、`_`、`-` 以外の文字が `-` に置き換えられます。`formatter@my-marketplace` としてインストールされたプラグインの場合、ディレクトリは `~/.claude/plugins/data/formatter-my-marketplace/` です。
 
@@ -679,7 +679,7 @@ Claude Code は、プラグインパスを参照するための 3 つの変数�
 
 ***
 
-## プラグインキャッシングとファイル解決
+プラグインキャッシングとファイル解決
 
 プラグインは 2 つの方法で指定されます:
 
@@ -692,11 +692,11 @@ Claude Code は、プラグインパスを参照するための 3 つの変数�
 
 Claude の Glob および Grep ツールは検索中に孤立したバージョンディレクトリをスキップするため、ファイル結果には古いプラグインコードが含まれません。
 
-### パストラバーサル制限
+パストラバーサル制限
 
 インストールされたプラグインはディレクトリの外側のファイルを参照できません。プラグインルートの外側をトラバースするパス（`../shared-utils` など）は、これらの外部ファイルがキャッシュにコピーされないため、インストール後は機能しません。
 
-### マーケットプレイス内でシンボリックリンクを使用してファイルを共有
+マーケットプレイス内でシンボリックリンクを使用してファイルを共有
 
 プラグインが同じマーケットプレイスの他の部分とファイルを共有する必要がある場合、プラグインディレクトリ内にシンボリックリンクを作成できます。プラグインがキャッシュにコピーされるときにシンボリックリンクがどのように処理されるかは、そのターゲットがどこに解決されるかによって異なります:
 
@@ -716,9 +716,9 @@ ln -s ../../shared-plugin/skills/foo ./skills/foo
 
 ***
 
-## プラグインディレクトリ構造
+プラグインディレクトリ構造
 
-### 標準プラグインレイアウト
+標準プラグインレイアウト
 
 完全なプラグインは次の構造に従います:
 
@@ -765,7 +765,7 @@ enterprise-plugin/
 
 プラグインルートの `CLAUDE.md` ファイルはプロジェクトコンテキストとして読み込まれません。プラグインは CLAUDE.md ではなく、skills、agents、hooks を通じてコンテキストを提供します。Claude のコンテキストに読み込まれる命令を配布するには、[skill](#skills) に配置してください。
 
-### ファイル場所リファレンス
+ファイル場所リファレンス
 
 | コンポーネント | デフォルト場所 | 目的 |
 | :- | :- | :- |
@@ -784,11 +784,11 @@ enterprise-plugin/
 
 ***
 
-## CLI コマンドリファレンス
+CLI コマンドリファレンス
 
 Claude Code は非対話的なプラグイン管理用の CLI コマンドを提供します。スクリプトと自動化に役立ちます。
 
-### plugin init
+plugin init
 
 `~/.claude/skills/<name>/` に新しいプラグインをスキャフォルドします。次の Claude Code セッションで、マーケットプレイスもインストール手順もなく、`<name>@skills-dir` として自動的に読み込まれます。
 
@@ -842,7 +842,7 @@ claude plugin init my-helper --with skills hooks
 claude plugin init my-helper --force
 ```
 
-### plugin install
+plugin install
 
 利用可能なマーケットプレイスからプラグインをインストールします。
 
@@ -876,7 +876,7 @@ claude plugin install formatter@my-marketplace --scope project
 claude plugin install formatter@my-marketplace --scope local
 ```
 
-### plugin uninstall
+plugin uninstall
 
 インストール済みプラグインを削除します。
 
@@ -902,7 +902,7 @@ claude plugin uninstall <plugin> [options]
 
 デフォルトでは、最後に残っているスコープからアンインストールすると、プラグインの `${CLAUDE_PLUGIN_DATA}` ディレクトリも削除されます。たとえば、新しいバージョンをテストした後に再インストールする場合は、`--keep-data` を使用して保持します。
 
-### plugin prune
+plugin prune
 
 インストール済みプラグインによって不要になった自動インストール プラグイン依存関係を削除します。Claude Code が別のプラグインの [`dependencies`](/ja/plugin-dependencies) フィールドを満たすために取得した依存関係は削除されます。直接インストールしたプラグインは決して削除されません。
 
@@ -925,7 +925,7 @@ claude plugin prune [options]
 
 `claude plugin prune` には Claude Code v2.1.121 以降が必要です。
 
-### plugin enable
+plugin enable
 
 無効なプラグインを有効にします。プラグインが [dependencies](/ja/plugin-dependencies) を宣言している場合、Claude Code はそれらを同じスコープで推移的に有効にし、依存関係がインストールされていない場合はコマンドが失敗します。
 
@@ -944,7 +944,7 @@ claude plugin enable <plugin> [options]
 | `-s, --scope <scope>` | 有効にするスコープ: `user`、`project`、または `local` | `user` |
 | `-h, --help` | コマンドのヘルプを表示 | |
 
-### plugin disable
+plugin disable
 
 プラグインをアンインストールせずに無効にします。別の有効なプラグインが [ターゲットに依存している](/ja/plugin-dependencies#enable-or-disable-a-plugin-with-dependencies) 場合は失敗します。エラーメッセージには、最初にすべての依存プラグインを無効にするチェーンコマンドが含まれます。
 
@@ -963,7 +963,7 @@ claude plugin disable <plugin> [options]
 | `-s, --scope <scope>` | 無効にするスコープ: `user`、`project`、または `local` | `user` |
 | `-h, --help` | コマンドのヘルプを表示 | |
 
-### plugin update
+plugin update
 
 プラグインを最新バージョンに更新します。
 
@@ -984,7 +984,7 @@ claude plugin update <plugin> [options]
 
 ***
 
-### plugin list
+plugin list
 
 インストール済みプラグインをバージョン、ソースマーケットプレイス、有効状態とともにリストします。
 
@@ -1000,7 +1000,7 @@ claude plugin list [options]
 | `--available` | マーケットプレイスから利用可能なプラグインを含めます。`--json` が必要です | |
 | `-h, --help` | コマンドのヘルプを表示 | |
 
-### plugin details
+plugin details
 
 プラグインのコンポーネントインベントリと予想トークンコストを表示します。出力には、プラグインが提供するすべてのコンポーネントがリストアップされ、Skills、Agents、Hooks、MCP サーバー、LSP サーバーとしてグループ化され、各セッションに追加されるトークン数の推定値が表示されます。Skills グループには `skills/` と `commands/` エントリの両方が含まれます。
 
@@ -1051,7 +1051,7 @@ Per-component (rounded)
 
 Always-on の合計は、アクティブなモデルの `count_tokens` API を使用して計算されます。コンポーネントごとの数値は、その合計から比例的にスケーリングされます。API に到達できない場合、コマンドは文字ベースの推定値にフォールバックします。
 
-### plugin tag
+plugin tag
 
 現在のディレクトリ内のプラグインのリリース git タグを作成します。プラグインのフォルダ内から実行してください。[プラグインリリースにタグを付ける](/ja/plugin-dependencies#tag-plugin-releases-for-version-resolution)を参照してください。
 
@@ -1070,9 +1070,9 @@ claude plugin tag [options]
 
 ***
 
-## デバッグと開発ツール
+デバッグと開発ツール
 
-### デバッグコマンド
+デバッグコマンド
 
 `claude --debug` を使用してプラグイン読み込みの詳細を確認します:
 
@@ -1083,7 +1083,7 @@ claude plugin tag [options]
 - Skill、agent、hook 登録
 - MCP サーバー初期化
 
-### 一般的な問題
+一般的な問題
 
 | 問題 | 原因 | 解決策 |
 | :- | :- | :- |
@@ -1094,7 +1094,7 @@ claude plugin tag [options]
 | パスエラー | 絶対パスが使用されている | すべてのパスは相対的で `./` で始まる必要があります |
 | LSP `Executable not found in $PATH` | 言語サーバーがインストールされていない | バイナリをインストール（例: `npm install -g typescript-language-server typescript`） |
 
-### エラーメッセージの例
+エラーメッセージの例
 
 **マニフェスト検証エラー**:
 
@@ -1108,7 +1108,7 @@ claude plugin tag [options]
 - `Plugin directory not found at path: ./plugins/my-plugin. Check that the marketplace entry has the correct path.`: marketplace.json の `source` パスが存在しないディレクトリを指している
 - `Plugin my-plugin has conflicting manifests: both plugin.json and marketplace entry specify components.`: 重複するコンポーネント定義を削除するか、marketplace エントリから `strict: false` を削除
 
-### Hook トラブルシューティング
+Hook トラブルシューティング
 
 **Hook スクリプトが実行されない**:
 
@@ -1123,7 +1123,7 @@ claude plugin tag [options]
 2. マッチャーパターンがツールと一致することを確認: ファイル操作の場合 `"matcher": "Write|Edit"`
 3. hook タイプが有効であることを確認: `command`、`http`、`mcp_tool`、`prompt`、または `agent`
 
-### MCP サーバートラブルシューティング
+MCP サーバートラブルシューティング
 
 **サーバーが起動しない**:
 
@@ -1138,7 +1138,7 @@ claude plugin tag [options]
 2. サーバーが MCP プロトコルを正しく実装していることを確認
 3. デバッグ出力で接続タイムアウトを確認
 
-### ディレクトリ構造の間違い
+ディレクトリ構造の間違い
 
 **症状**: プラグインは読み込まれるがコンポーネント（skills、agents、hooks）が不足している。
 
@@ -1163,9 +1163,9 @@ my-plugin/
 
 ***
 
-## 配布とバージョン管理リファレンス
+配布とバージョン管理リファレンス
 
-### バージョン管理
+バージョン管理
 
 Claude Code はプラグインのバージョンをキャッシュキーとして使用し、更新が利用可能かどうかを判断します。`/plugin update` を実行するか自動更新が実行されると、Claude Code は現在のバージョンを計算し、既にインストールされているものと一致する場合は更新をスキップします。
 
@@ -1189,7 +1189,7 @@ Claude Code はプラグインのバージョンをキャッシュキーとし�
 
 ***
 
-## 関連項目
+関連項目
 
 - [プラグイン](/ja/plugins) - チュートリアルと実践的な使用法
 - [プラグインマーケットプレイス](/ja/plugin-marketplaces) - マーケットプレイスの作成と管理

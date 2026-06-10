@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/ja/overview.md
 
 Claude Code は AI を活用したコーディングアシスタントで、機能の構築、バグの修正、開発タスクの自動化を支援します。コードベース全体を理解し、複数のファイルとツール間で作業して目標を達成できます。
 
-## はじめに
+はじめに
 
 環境を選択してはじめましょう。ほとんどのサーフェスには [Claude サブスクリプション](https://claude.com/pricing?utm_source=claude_code\&utm_medium=docs\&utm_content=overview_pricing)または [Anthropic Console](https://console.anthropic.com/) アカウントが必要です。Terminal CLI と VS Code は [サードパーティプロバイダー](/ja/third-party-integrations)もサポートしています。
 
@@ -101,7 +101,7 @@ JetBrains Marketplace から [Claude Code プラグイン](https://plugins.jetbr
 
 [JetBrains ではじめる →](/ja/jetbrains)
 
-## できること
+できること
 
 Claude Code を使用できるいくつかの方法を紹介します：
 
@@ -164,7 +164,7 @@ git diff main --name-only | claude -p "review these changed files for security i
 - ターミナルセッションを [デスクトップアプリ](/ja/desktop) に `/desktop` で渡して、視覚的な差分確認を行います
 - チームチャットからタスクをルーティング：[Slack](/ja/slack) で `@Claude` にメンションしてバグレポートを送信し、プルリクエストを取得します
 
-## Claude Code をどこでも使用する
+Claude Code をどこでも使用する
 
 各サーフェスは同じ基盤となる Claude Code エンジンに接続するため、CLAUDE.md ファイル、設定、MCP サーバーはすべてのサーフェスで機能します。
 
@@ -182,7 +182,7 @@ git diff main --name-only | claude -p "review these changed files for security i
 | ライブ Web アプリケーションをデバッグする | [Chrome](/ja/chrome) |
 | 独自のワークフロー用のカスタムエージェントを構築する | [Agent SDK](/ja/agent-sdk/overview) |
 
-## 次のステップ
+次のステップ
 
 Claude Code をインストールしたら、これらのガイドでさらに詳しく学べます。
 

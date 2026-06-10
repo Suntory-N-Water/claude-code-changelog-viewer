@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/ja/quickstart.md
 
 このクイックスタートガイドを使用すれば、数分で AI を活用したコーディング支援を利用できます。このガイドを終了する頃には、一般的な開発タスクに Claude Code を使用する方法を理解できるようになります。
 
-## 始める前に
+始める前に
 
 以下を確認してください：
 
@@ -20,7 +20,7 @@ source: https://code.claude.com/docs/ja/quickstart.md
 
 このガイドはターミナル CLI について説明しています。Claude Code は[ウェブ](https://claude.ai/code)、[デスクトップアプリ](/ja/desktop)、[VS Code](/ja/vs-code) および [JetBrains IDE](/ja/jetbrains)、[Slack](/ja/slack)、および [GitHub Actions](/ja/github-actions) と [GitLab](/ja/gitlab-ci-cd) を使用した CI/CD でも利用できます。[すべてのインターフェース](/ja/overview#use-claude-code-everywhere)を参照してください。
 
-## ステップ 1：Claude Code をインストールする
+ステップ 1：Claude Code をインストールする
 
 To install Claude Code, use one of the following methods:
 
@@ -64,7 +64,7 @@ WinGet installations do not auto-update. Run `winget upgrade Anthropic.ClaudeCod
 
 You can also install with [apt, dnf, or apk](/en/setup#install-with-linux-package-managers) on Debian, Fedora, RHEL, and Alpine.
 
-## ステップ 2：アカウントにログインする
+ステップ 2：アカウントにログインする
 
 Claude Code を使用するにはアカウントが必要です。`claude` コマンドでインタラクティブセッションを開始すると、初回使用時にログインするよう求められます：
 
@@ -86,7 +86,7 @@ Claude サブスクリプションまたは Console アカウントの場合は�
 
 ログイン後、認証情報が保存され、再度ログインする必要はありません。
 
-## ステップ 3：最初のセッションを開始する
+ステップ 3：最初のセッションを開始する
 
 任意のプロジェクトディレクトリでターミナルを開き、Claude Code を開始します：
 
@@ -99,7 +99,7 @@ claude
 
 ログイン後（ステップ 2）、認証情報がシステムに保存されます。詳細については、[認証情報管理](/ja/authentication#credential-management)を参照してください。
 
-## ステップ 4：最初の質問をする
+ステップ 4：最初の質問をする
 
 コードベースを理解することから始めましょう。以下のコマンドのいずれかを試してください：
 
@@ -137,7 +137,7 @@ Claude Code は Docker で動作しますか？
 
 Claude Code は必要に応じてプロジェクトファイルを読み込みます。コンテキストを手動で追加する必要はありません。
 
-## ステップ 5：最初のコード変更を行う
+ステップ 5：最初のコード変更を行う
 
 次に、Claude Code に実際のコーディングを行わせましょう。簡単なタスクを試してください：
 
@@ -154,7 +154,7 @@ Claude Code は以下を実行します：
 
 Claude Code はファイルを変更する前に常に許可を求めます。個別の変更を承認するか、セッション中に「すべて承認」モードを有効にすることができます。
 
-## ステップ 6：Claude Code で Git を使用する
+ステップ 6：Claude Code で Git を使用する
 
 Claude Code は Git 操作を会話形式にします：
 
@@ -180,7 +180,7 @@ feature/quickstart という名前の新しいブランチを作成してくだ�
 マージコンフリクトの解決を手伝ってください
 ```
 
-## ステップ 7：バグを修正するか機能を追加する
+ステップ 7：バグを修正するか機能を追加する
 
 Claude はデバッグと機能実装に長けています。
 
@@ -203,7 +203,7 @@ Claude Code は以下を実行します：
 - ソリューションを実装する
 - 利用可能な場合はテストを実行する
 
-## ステップ 8：他の一般的なワークフローを試す
+ステップ 8：他の一般的なワークフローを試す
 
 Claude と連携する方法は多数あります：
 
@@ -233,7 +233,7 @@ Claude と連携する方法は多数あります：
 
 有能な同僚と話すように Claude と話してください。実現したいことを説明すれば、それを実現するのに役立ちます。
 
-## 必須コマンド
+必須コマンド
 
 日常的に使用する最も重要なコマンドは以下の通りです：
 
@@ -250,7 +250,7 @@ Claude と連携する方法は多数あります：
 
 コマンドの完全なリストについては、[CLI リファレンス](/ja/cli-reference)を参照してください。
 
-## 初心者向けのプロのヒント
+初心者向けのプロのヒント
 
 詳細については、[ベストプラクティス](/ja/best-practices)と[一般的なワークフロー](/ja/common-workflows)を参照してください。
 
@@ -281,7 +281,7 @@ Claude と連携する方法は多数あります：
 - ↑ キーでコマンド履歴を表示する
 - `Shift+Tab` を押してパーミッションモードをサイクルさせる
 
-## 次のステップ
+次のステップ
 
 基本を学習したので、より高度な機能を探索してください：
 
@@ -293,7 +293,7 @@ agentic ループ、組み込みツール、および Claude Code がプロジ�
 
 CLAUDE.md、スキル、フック、MCP などでカスタマイズする
 
-## ヘルプを取得する
+ヘルプを取得する
 
 - **Claude Code 内**：`/help` を入力するか、「how do I...」と質問する
 - **ドキュメント**：ここにいます！他のガイドを参照してください

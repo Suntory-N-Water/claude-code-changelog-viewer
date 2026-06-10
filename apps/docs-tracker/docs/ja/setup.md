@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/ja/setup.md
 
 このページでは、システム要件、プラットフォーム固有のインストール詳細、更新、およびアンインストールについて説明します。初回セッションのガイド付きウォークスルーについては、[クイックスタート](/ja/quickstart)を参照してください。ターミナルを使用したことがない場合は、[ターミナルガイド](/ja/terminal-guide)を参照してください。
 
-## システム要件
+システム要件
 
 Claude Code は以下のプラットフォームと構成で実行されます。
 
@@ -24,11 +24,11 @@ Claude Code は以下のプラットフォームと構成で実行されます�
 - **シェル**: Bash、Zsh、PowerShell、または CMD。
 - **場所**: [Anthropic サポート対象国](https://www.anthropic.com/supported-countries)
 
-### 追加の依存関係
+追加の依存関係
 
 - **ripgrep**: 通常は Claude Code に含まれています。検索が失敗する場合は、[検索トラブルシューティング](/ja/troubleshooting#search-and-discovery-issues)を参照してください。
 
-## Claude Code をインストール
+Claude Code をインストール
 
 グラフィカルインターフェースをお好みですか？[Desktop app](/ja/desktop-quickstart)を使用すると、ターミナルなしで Claude Code を使用できます。[macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\&utm_medium=docs)または[Windows](https://claude.com/download?utm_source=claude_code\&utm_medium=docs)でダウンロードしてください。
 
@@ -84,7 +84,7 @@ claude
 
 インストール中に問題が発生した場合は、[インストールとログインのトラブルシューティング](/ja/troubleshoot-install)を参照してください。
 
-### Windows でのセットアップ
+Windows でのセットアップ
 
 Claude Code をネイティブに Windows で実行することも、WSL 内で実行することもできます。プロジェクトの場所と必要な機能に基づいて選択してください。
 
@@ -119,7 +119,7 @@ Git for Windows がインストールされている場合、PowerShell ツー�
 
 WSL ディストリビューションを開き、上記の[インストール手順](#install-claude-code)から Linux インストーラーを実行します。PowerShell または CMD からではなく、WSL ターミナル内で `claude` をインストールして起動します。
 
-### Alpine Linux と musl ベースのディストリビューション
+Alpine Linux と musl ベースのディストリビューション
 
 Alpine およびその他の musl/uClibc ベースのディストリビューション上のネイティブインストーラーには、`libgcc`、`libstdc++`、および `ripgrep` が必要です。ディストリビューションのパッケージマネージャーを使用してこれらをインストールしてから、`USE_BUILTIN_RIPGREP=0` を設定します。
 
@@ -139,7 +139,7 @@ apk add libgcc libstdc++ ripgrep
 }
 ```
 
-## インストールを確認
+インストールを確認
 
 インストール後、Claude Code が機能していることを確認します。
 
@@ -155,17 +155,17 @@ claude --version
 claude doctor
 ```
 
-## 認証
+認証
 
 Claude Code には、Pro、Max、Team、Enterprise、または Console アカウントが必要です。無料の Claude.ai プランには Claude Code アクセスは含まれていません。[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、または[Microsoft Foundry](/ja/microsoft-foundry)などのサードパーティ API プロバイダーで Claude Code を使用することもできます。
 
 インストール後、`claude` を実行してブラウザーのプロンプトに従ってログインします。すべてのアカウントタイプとチームセットアップオプションについては、[認証](/ja/authentication)を参照してください。
 
-## Claude Code を更新
+Claude Code を更新
 
 ネイティブインストールは自動的にバックグラウンドで更新されます。[リリースチャネルを構成](#configure-release-channel)して、更新をすぐに受け取るか遅延安定スケジュールで受け取るかを制御することも、[自動更新を完全に無効にする](#disable-auto-updates)こともできます。Homebrew、WinGet、および[Linux パッケージマネージャー](#install-with-linux-package-managers)インストールは手動更新が必要です。
 
-### 自動更新
+自動更新
 
 Claude Code は起動時と実行中に定期的に更新をチェックします。更新はバックグラウンドでダウンロードおよびインストールされ、次に Claude Code を起動するときに有効になります。
 
@@ -183,7 +183,7 @@ WinGet では、Claude Code の実行中にアップグレードが失敗する�
 
 Homebrew はアップグレード後、古いバージョンをディスク上に保持します。`brew cleanup` を定期的に実行してディスク容量を回収します。
 
-### リリースチャネルを構成
+リリースチャネルを構成
 
 `autoUpdatesChannel` 設定を使用して、Claude Code が自動更新と `claude update` に従うリリースチャネルを制御します。
 
@@ -202,7 +202,7 @@ Homebrew はアップグレード後、古いバージョンをディスク上�
 
 Homebrew インストールは、この設定ではなく cask 名でチャネルを選択します。`claude-code` は安定版を追跡し、`claude-code@latest` は最新版を追跡します。
 
-### 最小バージョンをピン留め
+最小バージョンをピン留め
 
 `minimumVersion` 設定は下限を確立します。バックグラウンド自動更新と `claude update` は、この値より下のバージョンのインストールを拒否するため、`"stable"` チャネルに移動しても、既に新しい `"latest"` ビルドを使用している場合はダウングレードされません。
 
@@ -219,7 +219,7 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 
 [管理設定](/ja/permissions#managed-settings)では、これはユーザーおよびプロジェクト設定がオーバーライドできない組織全体の最小値を適用します。
 
-### 自動更新を無効にする
+自動更新を無効にする
 
 [`settings.json`](/ja/settings#available-settings)ファイルの `env` キーで `DISABLE_AUTOUPDATER` を `"1"` に設定します。
 
@@ -233,7 +233,7 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 
 `DISABLE_AUTOUPDATER` はバックグラウンドチェックのみを停止します。`claude update` と `claude install` は引き続き機能します。手動更新を含むすべての更新パスをブロックするには、代わりに [`DISABLE_UPDATES`](/ja/env-vars)を設定します。独自のチャネルを通じて Claude Code を配布し、ユーザーが提供するバージョンに留まる必要がある場合に使用します。
 
-### 手動で更新
+手動で更新
 
 次のバックグラウンドチェックを待たずに更新をすぐに適用するには、以下を実行します。
 
@@ -241,11 +241,11 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 claude update
 ```
 
-## 高度なインストールオプション
+高度なインストールオプション
 
 これらのオプションは、バージョンピニング、Linux パッケージマネージャー、npm、およびバイナリ整合性の検証用です。
 
-### 特定のバージョンをインストール
+特定のバージョンをインストール
 
 ネイティブインストーラーは、特定のバージョン番号またはリリースチャネル（`latest` または `stable`）を受け入れます。インストール時に選択したチャネルが自動更新のデフォルトになります。詳細については、[リリースチャネルを構成](#configure-release-channel)を参照してください。
 
@@ -291,7 +291,7 @@ curl -fsSL https://claude.ai/install.sh | bash -s 2.1.89
 curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd 2.1.89 && del install.cmd
 ```
 
-### Linux パッケージマネージャーでのインストール
+Linux パッケージマネージャーでのインストール
 
 Claude Code は署名付き apt、dnf、および apk リポジトリを公開しています。ローリングチャネルの場合は `stable` を `latest` に置き換えてください。パッケージマネージャーのインストールは Claude Code を通じて自動更新されません。更新は通常のシステムアップグレードワークフローを通じて提供されます。
 
@@ -344,7 +344,7 @@ apk add claude-code
 
 後で更新するには、`apk update && apk upgrade claude-code` を実行します。
 
-### npm でのインストール
+npm でのインストール
 
 Claude Code をグローバル npm パッケージとしてインストールすることもできます。パッケージには [Node.js 18 以上](https://nodejs.org/en/download)が必要です。
 
@@ -360,11 +360,11 @@ npm インストールをアップグレードするには、`npm install -g @an
 
 `sudo npm install -g` を使用しないでください。これはアクセス許可の問題とセキュリティリスクにつながる可能性があります。アクセス許可エラーが発生した場合は、[トラブルシューティングアクセス許可エラー](/ja/troubleshoot-install#permission-errors-during-installation)を参照してください。
 
-### バイナリ整合性とコード署名
+バイナリ整合性とコード署名
 
 各リリースは、すべてのプラットフォームバイナリの SHA256 チェックサムを含む `manifest.json` を公開します。マニフェストは Anthropic GPG キーで署名されているため、マニフェスト上の署名を検証することで、それが列挙するすべてのバイナリを推移的に検証します。
 
-#### マニフェスト署名を検証
+マニフェスト署名を検証
 
 ステップ 1～3 には、`gpg` と `curl` を備えた POSIX シェルが必要です。Windows では、Git Bash または WSL で実行します。ステップ 4 には PowerShell オプションが含まれています。
 
@@ -421,7 +421,7 @@ shasum -a 256 claude
 
 マニフェスト署名は `2.1.89` 以降のリリースで利用可能です。以前のリリースは分離された署名なしで `manifest.json` にチェックサムを公開します。
 
-#### プラットフォームコード署名
+プラットフォームコード署名
 
 署名付きマニフェストに加えて、個別のバイナリはサポートされている場所でプラットフォーム固有のコード署名を実行します。
 
@@ -429,11 +429,11 @@ shasum -a 256 claude
 - **Windows**: "Anthropic, PBC" によって署名されています。`Get-AuthenticodeSignature .\claude.exe` で検証します。
 - **Linux**: バイナリは個別にコード署名されていません。`claude-code-releases` バケットから直接ダウンロードするか、ネイティブインストーラーを使用する場合は、上記のマニフェスト署名で整合性を検証します。[apt、dnf、または apk](#install-with-linux-package-managers) でインストールする場合、パッケージマネージャーはリポジトリ署名キーを使用して署名を自動的に検証します。
 
-## Claude Code をアンインストール
+Claude Code をアンインストール
 
 Claude Code を削除するには、インストール方法の指示に従ってください。アンインストール後も `claude` が実行される場合は、2 番目のインストールまたは古いインストーラーからの残存シェルエイリアスがある可能性があります。[競合するインストールを確認](/ja/troubleshoot-install#check-for-conflicting-installations)を参照して、それを見つけて削除してください。
 
-### ネイティブインストール
+ネイティブインストール
 
 Claude Code バイナリとバージョンファイルを削除します：
 
@@ -447,7 +447,7 @@ Remove-Item -Path "$env:USERPROFILE\.local\bin\claude.exe" -Force
 Remove-Item -Path "$env:USERPROFILE\.local\share\claude" -Recurse -Force
 ```
 
-### Homebrew インストール
+Homebrew インストール
 
 インストールした Homebrew cask を削除します。安定版 cask をインストールした場合：
 
@@ -461,7 +461,7 @@ brew uninstall --cask claude-code
 brew uninstall --cask claude-code@latest
 ```
 
-### WinGet インストール
+WinGet インストール
 
 WinGet パッケージを削除します：
 
@@ -469,7 +469,7 @@ WinGet パッケージを削除します：
 winget uninstall Anthropic.ClaudeCode
 ```
 
-### apt / dnf / apk
+apt / dnf / apk
 
 パッケージとリポジトリ構成を削除します：
 
@@ -489,7 +489,7 @@ sed -i '\|downloads.claude.ai/claude-code/apk|d' /etc/apk/repositories
 rm /etc/apk/keys/claude-code.rsa.pub
 ```
 
-### npm
+npm
 
 グローバル npm パッケージを削除します：
 
@@ -497,7 +497,7 @@ rm /etc/apk/keys/claude-code.rsa.pub
 npm uninstall -g @anthropic-ai/claude-code
 ```
 
-### 構成ファイルを削除
+構成ファイルを削除
 
 構成ファイルを削除すると、すべての設定、許可されたツール、MCP サーバー構成、およびセッション履歴が削除されます。
 

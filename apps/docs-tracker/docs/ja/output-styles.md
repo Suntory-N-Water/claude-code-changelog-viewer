@@ -13,7 +13,7 @@ source: https://code.claude.com/docs/ja/output-styles.md
 
 プロジェクト、規約、またはコードベースに関する指示については、代わりに [CLAUDE.md](/ja/memory) を使用してください。
 
-## 組み込み出力スタイル
+組み込み出力スタイル
 
 Claude Code の **Default** 出力スタイルは既存のシステムプロンプトであり、ソフトウェアエンジニアリングタスクを効率的に完了するのに役立つように設計されています。
 
@@ -25,7 +25,7 @@ Claude Code の **Default** 出力スタイルは既存のシステムプロン�
 
 - **Learning**: 協調的な学習型モードです。Claude はコーディング中に「Insights」を共有するだけでなく、小さな戦略的なコードの一部を自分で実装するよう求めます。Claude Code はコード内に `TODO(human)` マーカーを追加して、実装するべき箇所を示します。
 
-## 出力スタイルを変更する
+出力スタイルを変更する
 
 `/config` を実行し、**Output style** を選択してメニューからスタイルを選択します。選択内容は [ローカルプロジェクトレベル](/ja/settings) の `.claude/settings.local.json` に保存されます。
 
@@ -41,7 +41,7 @@ Claude Code の **Default** 出力スタイルは既存のシステムプロン�
 
 出力スタイルはシステムプロンプトの一部であり、Claude Code はセッション開始時に 1 回読み込みます。変更は `/clear` または新しいセッション後に有効になります。出力スタイルの変更がキャッシュに与える影響については、[Claude Code がプロンプトキャッシングを使用する方法](/ja/prompt-caching#changing-output-style) を参照してください。
 
-## カスタム出力スタイルを作成する
+カスタム出力スタイルを作成する
 
 カスタム出力スタイルは Markdown ファイルです。メタデータ用の frontmatter、その後にシステムプロンプトに追加する指示が続きます。
 
@@ -73,7 +73,7 @@ Use `flowchart TD` for control flow and `sequenceDiagram` for request paths. Kee
 
 [プラグイン](/ja/plugins-reference) は `output-styles/` ディレクトリで出力スタイルを配布することもできます。
 
-### Frontmatter
+Frontmatter
 
 出力スタイルファイルは、これらの frontmatter フィールドをサポートしています。
 
@@ -84,7 +84,7 @@ Use `flowchart TD` for control flow and `sequenceDiagram` for request paths. Kee
 | `keep-coding-instructions` | Claude Code の組み込みソフトウェアエンジニアリング指示を保持する | `false` |
 | `force-for-plugin` | プラグイン出力スタイルのみ: プラグインが有効になるたびに、ユーザーが選択する必要なく、このスタイルを自動的に適用します。ユーザーの `outputStyle` 設定をオーバーライドします。複数の有効なプラグインがこれを設定する場合、Claude Code は最初に読み込まれたものを使用します。 | `false` |
 
-## 出力スタイルの仕組み
+出力スタイルの仕組み
 
 出力スタイルは Claude Code のシステムプロンプトを直接変更します。
 
@@ -94,7 +94,7 @@ Use `flowchart TD` for control flow and `sequenceDiagram` for request paths. Kee
 
 トークン使用量はスタイルによって異なります。システムプロンプトに指示を追加するとインプットトークンが増加しますが、プロンプトキャッシングはセッション内の最初のリクエスト後にこのコストを削減します。組み込みの Explanatory および Learning スタイルは、設計上 Default よりも長い応答を生成するため、アウトプットトークンが増加します。カスタムスタイルの場合、アウトプットトークン使用量は、指示が Claude に生成させるものに依存します。
 
-## 関連機能との比較
+関連機能との比較
 
 Claude Code の動作をカスタマイズするいくつかの機能があります。出力スタイルはシステムプロンプトを直接変更し、すべての応答に適用されます。その他は、デフォルトシステムプロンプトを変更せずに指示を追加するか、特定のタスクにスコープします。
 
@@ -106,7 +106,7 @@ Claude Code の動作をカスタマイズするいくつかの機能があり�
 | [エージェント](/ja/sub-agents) | 独自のシステムプロンプト、モデル、ツールを持つサブエージェントを実行する | フォーカスされたタスク用に個別にスコープされたヘルパーが必要な場合 |
 | [スキル](/ja/skills) | 呼び出されたときまたは関連する場合にタスク固有の指示を読み込む | 再利用可能なワークフローがある場合 |
 
-## 関連リソース
+関連リソース
 
 - [設定](/ja/settings): `outputStyle` フィールドが存在する場所と設定の優先順位の仕組み
 - [パーミッションモード](/ja/permission-modes): Proactive スタイルがオートモードとどのように比較されるか

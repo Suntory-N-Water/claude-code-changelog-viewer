@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/model-config.md
 
 > Claude Code のモデル設定について学習します。`opusplan` などのモデルエイリアスを含みます
 
-## 利用可能なモデル
+利用可能なモデル
 
 Claude Code の `model` 設定では、以下のいずれかを設定できます。
 
@@ -20,7 +20,7 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
 
 `ANTHROPIC_BASE_URL` は、リクエストの送信先を変更しますが、どのモデルが応答するかは変更しません。Claude を LLM ゲートウェイ経由でルーティングするには、[LLM ゲートウェイ設定](/ja/llm-gateway)を参照してください。
 
-### モデルエイリアス
+モデルエイリアス
 
 モデルエイリアスは、正確なバージョン番号を覚えることなくモデル設定を選択するための便利な方法を提供します。
 
@@ -41,7 +41,7 @@ Anthropic API では、`opus` は Opus 4.8 に解決され、`sonnet` は Sonnet
 
 Opus 4.8 には Claude Code v2.1.154 以降が必要です。`claude update` を実行してアップグレードしてください。
 
-### モデルの設定
+モデルの設定
 
 モデルは、優先度順に複数の方法で設定できます。
 
@@ -86,7 +86,7 @@ claude --model opus
 }
 ```
 
-## モデル選択の制限
+モデル選択の制限
 
 エンタープライズ管理者は、[管理設定またはポリシー設定](/ja/settings#settings-files) で `availableModels` を使用して、ユーザーが選択できるモデルを制限できます。
 
@@ -98,13 +98,13 @@ claude --model opus
 }
 ```
 
-### デフォルトモデルの動作
+デフォルトモデルの動作
 
 モデルピッカーの Default オプションは `availableModels` の影響を受けません。常に利用可能であり、[ユーザーのサブスクリプション層に基づいた](#default-model-setting) システムのランタイムデフォルトを表します。
 
 `availableModels: []` の場合でも、ユーザーはそのティアの Default モデルで Claude Code を使用できます。
 
-### ユーザーが実行するモデルの制御
+ユーザーが実行するモデルの制御
 
 `model` 設定は初期選択であり、強制ではありません。セッション開始時にアクティブなモデルを設定しますが、ユーザーは `/model` を開いて Default を選択することができ、これはそのティアのシステムデフォルトに解決されます。`model` が何に設定されているかに関係なく。
 
@@ -128,17 +128,17 @@ claude --model opus
 
 `env` ブロックがない場合、ユーザーがピッカーで Default を選択すると、最新の Sonnet リリースが取得され、`model` と `availableModels` のバージョンピンがバイパスされます。
 
-### マージ動作
+マージ動作
 
 `availableModels` がユーザー設定とプロジェクト設定など複数のレベルで設定されている場合、配列はマージされ、重複排除されます。厳密なアローリストを適用するには、最優先度を持つ管理設定またはポリシー設定で `availableModels` を設定します。
 
-### Mantle モデル ID
+Mantle モデル ID
 
 [Bedrock Mantle エンドポイント](/ja/amazon-bedrock#use-the-mantle-endpoint) が有効な場合、`availableModels` の `anthropic.` で始まるエントリは、カスタムオプションとして `/model` ピッカーに追加され、Mantle エンドポイントにルーティングされます。これは [サードパーティデプロイメント用のモデルのピン留め](#pin-models-for-third-party-deployments) で説明されているエイリアスのみマッチングの例外です。設定はピッカーをリストされたエントリに制限するため、標準エイリアスと一緒に Mantle ID を含めます。
 
-## 特別なモデルの動作
+特別なモデルの動作
 
-### `default` モデル設定
+`default` モデル設定
 
 `default` の動作はアカウントタイプによって異なります。
 
@@ -151,7 +151,7 @@ Enterprise 従量課金とは、サブスクリプションシートではなく
 
 Claude Code は、Opus の使用量閾値に達した場合、自動的に Sonnet にフォールバックする可能性があります。
 
-### `opusplan` モデル設定
+`opusplan` モデル設定
 
 `opusplan` モデルエイリアスは、自動化されたハイブリッドアプローチを提供します。
 
@@ -162,7 +162,7 @@ Claude Code は、Opus の使用量閾値に達した場合、自動的に Sonne
 
 Plan Mode の Opus フェーズは標準的な 200K コンテキストウィンドウで実行されます。[拡張コンテキスト](#extended-context)で説明されている自動 1M アップグレードは `opus` モデル設定に適用され、`opusplan` には拡張されません。
 
-### 努力レベルの調整
+努力レベルの調整
 
 [努力レベル](https://platform.claude.com/docs/ja/build-with-claude/effort)は適応的推論を制御し、タスクの複雑さに基づいて各ステップで思考するかどうか、どの程度思考するかをモデルが決定できるようにします。低い努力はシンプルなタスクではより高速で安価ですが、高い努力は複雑な問題に対してより深い推論を提供します。
 
@@ -183,7 +183,7 @@ Opus 4.8 または Opus 4.7 を初めて実行する場合、Claude Code は、�
 
 `/effort` メニューは `ultracode` も提供します。Ultracode はモデル努力レベルではなく Claude Code 設定です。モデルに `xhigh` を送信し、さらに Claude が実質的なタスク用に[動的ワークフロー](/ja/workflows)をオーケストレートします。現在のセッションのみに適用されます。`/effort` を通じて設定するか、`--settings` または Agent SDK 制御リクエストを通じて `"ultracode": true` を渡します。これは `effortLevel` 設定、`--effort` フラグ、`CLAUDE_CODE_EFFORT_LEVEL` の一部ではありません。
 
-#### 努力レベルの選択
+努力レベルの選択
 
 各レベルはトークン支出と機能をトレードオフします。デフォルトはほとんどのコーディングタスクに適しています。別のバランスが必要な場合は調整します。
 
@@ -198,11 +198,11 @@ Opus 4.8 または Opus 4.7 を初めて実行する場合、Claude Code は、�
 
 努力スケールはモデルごとに調整されるため、同じレベル名はモデル全体で同じ基盤値を表しません。
 
-#### 1 回限りの深い推論に ultrathink を使用
+1 回限りの深い推論に ultrathink を使用
 
 セッション設定を変更せずに 1 回限りの深い推論を行うには、プロンプトの任意の場所に `ultrathink` を含めます。Claude Code はキーワードを認識し、インコンテキスト命令を追加します。API に送信される努力レベルは変更されません。「think」、「think hard」、「think more」などの他のフレーズは通常のプロンプトテキストとして渡され、キーワードとして認識されません。
 
-#### 努力レベルの設定
+努力レベルの設定
 
 努力は以下のいずれかを通じて変更できます。
 
@@ -217,7 +217,7 @@ Opus 4.8 または Opus 4.7 を初めて実行する場合、Claude Code は、�
 
 努力スライダーは、サポートされているモデルが選択されている場合、`/model` に表示されます。現在の努力レベルはロゴとスピナーの横にも表示されます（例：「with low effort」）。`/model` を開かなくても、どの設定がアクティブかを確認できます。
 
-#### 適応的推論と固定思考予算
+適応的推論と固定思考予算
 
 適応的推論は各ステップで思考をオプションにするため、Claude はルーチンプロンプトにより速く応答でき、より深い思考から利益を得るステップのために深い思考を予約できます。現在のレベルが生成するよりも Claude がより頻繁に、またはより少なく思考することを望む場合、プロンプトまたは `CLAUDE.md` で直接そう言うことができます。モデルはその努力設定内でそのガイダンスに応答します。
 
@@ -225,7 +225,7 @@ Opus 4.7 以降は常に適応的推論を使用します。固定思考予算�
 
 Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を設定して、`MAX_THINKING_TOKENS` で制御される以前の固定思考予算に戻すことができます。[環境変数](/ja/env-vars)を参照してください。
 
-### 拡張思考
+拡張思考
 
 拡張思考は、Claude が応答する前に発する推論です。[適応的推論](#adjust-effort-level)をサポートするモデルでは、努力レベルは思考がどの程度発生するかの主要な制御です。以下の設定は思考をオンまたはオフにし、それがどのように表示されるかを制御します。
 
@@ -237,7 +237,7 @@ Opus 4.6 と Sonnet 4.6 では、`CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` を�
 
 思考出力はデフォルトで折りたたまれています。`Ctrl+O` を押して詳細モードをトグルし、推論をグレーのイタリック体テキストとして表示します。Anthropic API 上のインタラクティブセッションはデフォルトで編集された思考ブロックを受け取るため、展開時に完全な要約を利用可能にしたい場合は[設定](/ja/settings)で `showThinkingSummaries: true` を設定します。折りたたまれたまたは編集された場合でも、生成されたすべての思考トークンに対して課金されます。
 
-### 拡張コンテキスト
+拡張コンテキスト
 
 Opus 4.6 以降と Sonnet 4.6 は、大規模なコードベースを持つ長いセッション用に[100 万トークンのコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。
 
@@ -266,14 +266,14 @@ Opus 4.6 以降と Sonnet 4.6 は、大規模なコードベースを持つ長�
 /model claude-opus-4-8[1m]
 ```
 
-## 現在のモデルの確認
+現在のモデルの確認
 
 現在使用しているモデルは、複数の方法で確認できます。
 
 1. [ステータスライン](/ja/statusline) 内（設定されている場合）
 2. `/status` 内。アカウント情報も表示されます。
 
-## カスタムモデルオプションの追加
+カスタムモデルオプションの追加
 
 `ANTHROPIC_CUSTOM_MODEL_OPTION` を使用して、組み込みエイリアスを置き換えることなく、単一のカスタムエントリを `/model` ピッカーに追加します。これは Claude Code がデフォルトでリストしないモデル ID のテストに役立ちます。LLM ゲートウェイデプロイメントの場合、Claude Code は `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` が設定されているときにゲートウェイの `/v1/models` エンドポイントからピッカーを自動的に入力するため、この変数が必要なのはディスカバリーが無効になっているか、必要なモデルを返さない場合のみです。[LLM ゲートウェイモデル選択](/ja/llm-gateway#model-selection)を参照してください。
 
@@ -289,7 +289,7 @@ export ANTHROPIC_CUSTOM_MODEL_OPTION_DESCRIPTION="Custom deployment routed throu
 
 Claude Code は `ANTHROPIC_CUSTOM_MODEL_OPTION` で設定されたモデル ID の検証をスキップするため、API エンドポイントが受け入れる任意の文字列を使用できます。
 
-## 環境変数
+環境変数
 
 以下の環境変数を使用できます。これらは完全な **モデル名**（または API プロバイダーの同等のもの）である必要があり、エイリアスがマップするモデル名を制御します。
 
@@ -302,7 +302,7 @@ Claude Code は `ANTHROPIC_CUSTOM_MODEL_OPTION` で設定されたモデル ID �
 
 注：`ANTHROPIC_SMALL_FAST_MODEL` は `ANTHROPIC_DEFAULT_HAIKU_MODEL` の代わりに非推奨です。
 
-### サードパーティデプロイメント用のモデルのピン留め
+サードパーティデプロイメント用のモデルのピン留め
 
 [Bedrock](/ja/amazon-bedrock)、[Vertex AI](/ja/google-vertex-ai)、[Foundry](/ja/microsoft-foundry)、または [Claude Platform on AWS](/ja/claude-platform-on-aws) を通じて Claude Code をデプロイする場合、ユーザーへのロールアウト前にモデルバージョンをピン留めします。
 
@@ -334,7 +334,7 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8[1m]'
 
 `settings.availableModels` アローリストは、サードパーティプロバイダーを使用する場合でも適用されます。フィルタリングはプロバイダー固有のモデル ID ではなく、モデルエイリアス（`opus`、`sonnet`、`haiku`）で一致します。
 
-### ピン留めされたモデルの表示と機能のカスタマイズ
+ピン留めされたモデルの表示と機能のカスタマイズ
 
 サードパーティプロバイダーでモデルをピン留めする場合、プロバイダー固有の ID は `/model` ピッカーにそのまま表示され、Claude Code はモデルがサポートする機能を認識しない可能性があります。ピン留めされた各モデルの表示名と機能を宣言するコンパニオン環境変数でオーバーライドできます。
 
@@ -370,7 +370,7 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL_DESCRIPTION='Opus 4.7 routed through a Bedro
 export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES='effort,xhigh_effort,max_effort,thinking,adaptive_thinking,interleaved_thinking'
 ```
 
-### バージョンごとのモデル ID のオーバーライド
+バージョンごとのモデル ID のオーバーライド
 
 上記のファミリーレベルの環境変数は、ファミリーエイリアスごとに 1 つのモデル ID を設定します。同じファミリー内の複数のバージョンを異なるプロバイダー ID にマップする必要がある場合は、代わりに `modelOverrides` 設定を使用します。
 
@@ -396,7 +396,7 @@ export ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES='effort,xhigh_effort,
 
 `modelOverrides` は `availableModels` と一緒に機能します。アローリストは Anthropic モデル ID に対して評価され、オーバーライド値に対してではないため、`availableModels` の `"opus"` などのエントリは、Opus バージョンが ARN にマップされている場合でも一致し続けます。
 
-### プロンプトキャッシング設定
+プロンプトキャッシング設定
 
 Claude Code は [プロンプトキャッシング](/ja/prompt-caching) を自動的に使用してパフォーマンスを最適化し、コストを削減します。プロンプトキャッシングをグローバルに、または特定のモデルティアに対して無効にできます。
 

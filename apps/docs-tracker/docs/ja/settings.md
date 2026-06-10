@@ -9,11 +9,11 @@ source: https://code.claude.com/docs/ja/settings.md
 
 Claude Code は、ニーズに合わせて動作を構成するためのさまざまな設定を提供しています。インタラクティブ REPL を使用する際に `/config` コマンドを実行することで Claude Code を構成できます。これにより、ステータス情報を表示し、構成オプションを変更できるタブ付き設定インターフェースが開きます。
 
-## 構成スコープ
+構成スコープ
 
 Claude Code は、**スコープシステム**を使用して、構成がどこに適用され、誰と共有されるかを決定します。スコープを理解することで、個人使用、チーム協力、またはエンタープライズデプロイメント用に Claude Code を構成する方法を決定するのに役立ちます。
 
-### 利用可能なスコープ
+利用可能なスコープ
 
 | スコープ | 場所 | 影響を受けるユーザー | チームと共有? |
 | :- | :- | :- | :- |
@@ -22,7 +22,7 @@ Claude Code は、**スコープシステム**を使用して、構成がどこ�
 | **Project** | リポジトリ内の `.claude/` | このリポジトリのすべてのコラボレーター | はい（git にコミット） |
 | **Local** | `.claude/settings.local.json` | このリポジトリ内のあなたのみ | いいえ（gitignored） |
 
-### 各スコープを使用する場合
+各スコープを使用する場合
 
 **Managed スコープ**は以下の用途です：
 
@@ -48,7 +48,7 @@ Claude Code は、**スコープシステム**を使用して、構成がどこ�
 - チームと共有する前に構成をテストする
 - 他のユーザーには機能しないマシン固有の設定
 
-### スコープの相互作用
+スコープの相互作用
 
 同じ設定が複数のスコープで構成されている場合、Claude Code は優先順位の順序でそれらを適用します：
 
@@ -60,7 +60,7 @@ Claude Code は、**スコープシステム**を使用して、構成がどこ�
 
 たとえば、ユーザー設定で `spinnerTipsEnabled` が `true` に設定されており、プロジェクト設定で `false` に設定されている場合、プロジェクト値が適用されます。権限ルールはオーバーライドするのではなく、スコープ全体でマージされるため、異なる動作をします。[設定の優先順位](#settings-precedence)を参照してください。
 
-### スコープを使用する機能
+スコープを使用する機能
 
 スコープは多くの Claude Code 機能に適用されます：
 
@@ -76,7 +76,7 @@ Windows では、`~/.claude` として表示されるパスは `%USERPROFILE%\.c
 
 ***
 
-## 設定ファイル
+設定ファイル
 
 `settings.json` ファイルは、階層的な設定を通じて Claude Code を構成するための公式メカニズムです：
 
@@ -146,7 +146,7 @@ Claude Code は構成ファイルのタイムスタンプ付きバックアッ�
 
 公開されたスキーマは定期的に更新され、最新の CLI リリースで追加された設定を含まない場合があるため、最近ドキュメント化されたフィールドの検証警告は、必ずしも構成が無効であることを意味しません。
 
-### 編集がいつ有効になるか
+編集がいつ有効になるか
 
 Claude Code は設定ファイルを監視し、変更時に再読み込みするため、ほとんどのキーへの編集は再起動なしで実行中のセッションに適用されます。これには `permissions`、`hooks`、および `apiKeyHelper` などの認証情報ヘルパーが含まれます。再読み込みはユーザー、プロジェクト、ローカル、および managed 設定をカバーし、[`ConfigChange` hook](/ja/hooks#configchange)が検出された各変更に対して発火します。
 
@@ -155,7 +155,7 @@ Claude Code は設定ファイルを監視し、変更時に再読み込みす�
 - `model`：セッション中に切り替えるには [`/model`](/ja/model-config#setting-your-model)を使用します
 - [`outputStyle`](/ja/output-styles)：システムプロンプトの一部。`/clear` または再起動時に再構築されます
 
-### 利用可能な設定
+利用可能な設定
 
 `settings.json` は多くのオプションをサポートしています：
 
@@ -255,7 +255,7 @@ Claude Code は設定ファイルを監視し、変更時に再読み込みす�
 | `workflowKeywordTriggerEnabled` | プロンプト内の単語 `ultracode` が[動的ワークフロー](/ja/workflows#ask-for-a-workflow-in-your-prompt)をトリガーするかどうか。単語を入力してトリガーしないようにするには `false` に設定します。ultracode 努力設定、`/workflows`、および保存されたワークフローコマンドは影響を受けません。デフォルト：`true`。`/config` に**ワークフローキーワードトリガー**として表示されます。v2.1.157 で追加されました。v2.1.160 より前は、トリガーキーワードは `workflow` でした | `false` |
 | `wslInheritsWindowsSettings` | （Windows managed 設定のみ）`true` の場合、WSL 上の Claude Code は `/etc/claude-code` に加えて Windows ポリシーチェーンから managed 設定を読み込み、Windows ソースが優先されます。HKLM レジストリキーまたは `C:\Program Files\ClaudeCode\managed-settings.json` で設定されている場合のみ尊重されます。どちらも Windows 管理者が書き込む必要があります。HKCU ポリシーが WSL でも適用されるようにするには、フラグを HKCU 自体にも設定する必要があります。ネイティブ Windows には影響しません | `true` |
 
-### グローバル構成設定
+グローバル構成設定
 
 これらの設定は `settings.json` ではなく `~/.claude.json` に保存されます。これらを `settings.json` に追加すると、スキーマ検証エラーがトリガーされます。
 
@@ -268,7 +268,7 @@ v2.1.119 より前のバージョンでは、`autoScrollEnabled`、`editorMode`�
 | `externalEditorContext` | `Ctrl+G` で外部エディターを開くときに Claude の前の応答を `#` コメント付きコンテキストとして先頭に追加します。デフォルト：`false`。`/config` に**外部エディターに最後の応答を表示**として表示されます | `true` |
 | `teammateDefaultModel` | [エージェントチーム](/ja/agent-teams)チームメイトのデフォルトモデル。spawn プロンプトが指定しない場合。`"sonnet"` などのモデルエイリアスに設定するか、リーダーの現在の `/model` 選択を継承するために `null` に設定します。`/config` に**デフォルトチームメイトモデル**として表示されます | `"sonnet"` |
 
-### Worktree 設定
+Worktree 設定
 
 `--worktree` が git worktrees を作成および管理する方法を構成します。
 
@@ -281,7 +281,7 @@ v2.1.119 より前のバージョンでは、`autoScrollEnabled`、`editorMode`�
 
 gitignored ファイル（`.env` など）を新しい worktrees にコピーするには、設定の代わりにプロジェクトルートの [`.worktreeinclude` ファイル](/ja/worktrees#copy-gitignored-files-into-worktrees)を使用します。
 
-### 権限設定
+権限設定
 
 | キー | 説明 | 例 |
 | :- | :- | :- |
@@ -293,7 +293,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `disableBypassPermissionsMode` | `"disable"` に設定して `bypassPermissions` モードの有効化を防止します。これにより `--dangerously-skip-permissions` フラグが無効になります。通常は [managed 設定](/ja/permissions#managed-settings)に配置されます。ユーザーはこれをオーバーライドできません | `"disable"` |
 | `skipDangerousModePermissionPrompt` | `--dangerously-skip-permissions` または `defaultMode: "bypassPermissions"` を通じてバイパス権限モードに入る前に表示される確認プロンプトをスキップします。信頼されていないリポジトリがプロンプトを自動バイパスするのを防ぐため、プロジェクト設定（`.claude/settings.json`）で設定されている場合は無視されます | `true` |
 
-### 権限ルール構文
+権限ルール構文
 
 権限ルールは `Tool` または `Tool(specifier)` の形式に従います。ルールは順序で評価されます：最初に拒否ルール、次に ask、次に allow。最初に一致するルールが優先されます。
 
@@ -308,7 +308,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 
 ワイルドカード動作、Read、Edit、WebFetch、MCP、および Agent ルール用のツール固有パターン、および Bash パターンのセキュリティ制限を含む完全なルール構文リファレンスについては、[権限ルール構文](/ja/permissions#permission-rule-syntax)を参照してください。
 
-### サンドボックス設定
+サンドボックス設定
 
 高度なサンドボックス動作を構成します。サンドボックスは bash コマンドをファイルシステムとネットワークから分離します。詳細については [サンドボックス](/ja/sandboxing)を参照してください。
 
@@ -338,7 +338,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `bwrapPath` | （Managed 設定のみ、Linux/WSL2）bubblewrap（`bwrap`）バイナリへの絶対パス。`PATH` を通じた自動検出をオーバーライドします。[managed 設定](/ja/settings#settings-precedence)からのみ尊重され、ユーザーまたはプロジェクト設定からは尊重されません。managed 環境で `bwrap` が非標準の場所にインストールされている場合に役立ちます。 | `/opt/admin/bwrap` |
 | `socatPath` | （Managed 設定のみ、Linux/WSL2）サンドボックスネットワークプロキシに使用される `socat` バイナリへの絶対パス。`PATH` を通じた自動検出をオーバーライドします。managed 設定からのみ尊重されます。 | `/opt/admin/socat` |
 
-#### サンドボックスパスプレフィックス
+サンドボックスパスプレフィックス
 
 `filesystem.allowWrite`、`filesystem.denyWrite`、`filesystem.denyRead`、および `filesystem.allowRead` のパスは、これらのプレフィックスをサポートしています：
 
@@ -379,7 +379,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 - **`sandbox.filesystem` 設定**（上記）：OS レベルのサンドボックス境界でパスを制御します。これらの制限は、Claude のファイルツールだけでなく、すべてのサブプロセスコマンド（例：`kubectl`、`terraform`、`npm`）に適用されます。
 - **権限ルール**：`Edit` allow/deny ルールを使用して Claude のファイルツールアクセスを制御し、`Read` deny ルールを使用して読み取りをブロックし、`WebFetch` allow/deny ルールを使用してネットワークドメインを制御します。これらのルールからのパスもサンドボックス構成にマージされます。
 
-### 属性設定
+属性設定
 
 Claude Code は git コミットとプルリクエストに属性を追加します。これらは個別に構成されます：
 
@@ -418,7 +418,7 @@ Claude Code は git コミットとプルリクエストに属性を追加しま
 
 `attribution` 設定は非推奨の `includeCoAuthoredBy` 設定よりも優先されます。すべての属性を非表示にするには、`commit` と `pr` を空の文字列に設定します。
 
-### ファイル提案設定
+ファイル提案設定
 
 `@` ファイルパスオートコンプリート用のカスタムコマンドを構成します。組み込みファイル提案は高速ファイルシステムトラバーサルを使用しますが、大規模なモノレポは事前構築されたファイルインデックスやカスタムツールなどのプロジェクト固有のインデックスから利益を得る可能性があります。
 
@@ -453,7 +453,7 @@ query=$(cat | jq -r '.query')
 your-repo-file-index --query "$query" | head -20
 ```
 
-### Hook 構成
+Hook 構成
 
 これらの設定は、どの hooks が実行を許可されるか、および HTTP hooks がアクセスできるものを制御します。`allowManagedHooksOnly` 設定は [managed 設定](#settings-files)でのみ構成できます。URL と環境変数ホワイトリストは任意の設定レベルで設定でき、ソース全体でマージされます。
 
@@ -483,7 +483,7 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 }
 ```
 
-### ポリシーヘルパーで managed 設定を計算
+ポリシーヘルパーで managed 設定を計算
 
 `policyHelper` 設定は、起動時に managed 設定を動的に計算する実行可能ファイルを指しています。管理者は、静的ファイルの代わりに、デバイスの状態、ID、またはリモートサービスからポリシーを導出できます。MDM またはシステム `managed-settings.json` ファイルから構成します。Claude Code は、ユーザー設定、プロジェクト設定、HKCU レジストリハイブ、および [サーバー管理設定](/ja/server-managed-settings)を含む他のスコープに表示される `policyHelper` を無視します。
 
@@ -509,7 +509,7 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 
 ヘルパーが `managedSettings` を出力すると、そのオブジェクトは実行のためにファイルベースの managed 設定を置き換えます。ヘルパーが起動時にゼロ以外で終了すると、Claude Code はエラーを出力し、起動を拒否します。そのため、停止復旧が必要なヘルパーは独自のキャッシュから提供し、`0` で終了する必要があります。
 
-### 設定の優先度
+設定の優先度
 
 設定は優先度の順に適用されます。最高から最低：
 
@@ -537,13 +537,13 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 
 **配列設定はスコープ全体でマージされます。** 同じ配列値の設定（`sandbox.filesystem.allowWrite` や `permissions.allow` など）が複数のスコープに表示される場合、配列は**連結および重複排除**され、置き換えられません。これは、低優先度のスコープが高優先度のスコープで設定されたエントリをオーバーライドすることなくエントリを追加でき、その逆も同様です。たとえば、managed 設定が `allowWrite` を `["/opt/company-tools"]` に設定し、ユーザーが `["~/.kube"]` を追加する場合、両方のパスが最終構成に含まれます。
 
-### アクティブな設定を確認
+アクティブな設定を確認
 
 Claude Code 内で `/status` を実行して、どの設定ソースがアクティブで、どこから来ているかを確認します。Status タブには、`Setting sources` 行が含まれており、Claude Code が現在のセッション用に読み込んだ各レイヤーをリストします。たとえば、`User settings` または `Project local settings` などです。[managed 設定](/ja/managed-settings)が有効な場合、エントリは配信チャネルを括弧内に表示します。たとえば、`Enterprise managed settings (remote)`、`(plist)`、`(HKLM)`、`(HKCU)`、または `(file)` などです。レイヤーは、そのソースが少なくとも 1 つのキーで読み込まれた場合にのみリストに表示されるため、空のリストは設定ソースが見つからなかったことを意味します。
 
 `Setting sources` 行は、どのソースが読み込まれているかを確認します。各個別キーがどのレイヤーから供給されたかは表示されません。同じダイアログの Config タブは、テーマや詳細出力などの固定されたトグルセットのエディターであり、`settings.json` コンテンツのビューではありません。設定ファイルに無効な JSON や検証に失敗した値などのエラーが含まれている場合、`/status` は問題を報告して修正できるようにします。
 
-### 構成システムの重要なポイント
+構成システムの重要なポイント
 
 - **メモリファイル（`CLAUDE.md`）**：Claude が起動時に読み込む命令とコンテキストを含みます
 - **設定ファイル（JSON）**：権限、環境変数、およびツール動作を構成します
@@ -552,11 +552,11 @@ Claude Code 内で `/status` を実行して、どの設定ソースがアクテ
 - **優先度**：高レベルの構成（Managed）が低レベルの構成（User/Project）をオーバーライドします
 - **継承**：設定はマージされ、より具体的な設定がより広い設定に追加またはオーバーライドされます
 
-### システムプロンプト
+システムプロンプト
 
 Claude Code の内部システムプロンプトは公開されていません。カスタム命令を追加するには、`CLAUDE.md` ファイルまたは `--append-system-prompt` フラグを使用します。
 
-### 機密ファイルを除外
+機密ファイルを除外
 
 API キー、シークレット、環境ファイルなどの機密情報を含むファイルへの Claude Code アクセスを防ぐには、`.claude/settings.json` ファイルの `permissions.deny` 設定を使用します：
 
@@ -576,7 +576,7 @@ API キー、シークレット、環境ファイルなどの機密情報を含�
 
 これは非推奨の `ignorePatterns` 構成に置き換わります。これらのパターンに一致するファイルはファイル検出と検索結果から除外され、これらのファイルの読み取り操作は拒否されます。
 
-## Subagent 構成
+Subagent 構成
 
 Claude Code は、ユーザーレベルとプロジェクトレベルの両方で構成できるカスタム AI subagents をサポートしています。これらの subagents は YAML frontmatter を含む Markdown ファイルとして保存されます：
 
@@ -585,11 +585,11 @@ Claude Code は、ユーザーレベルとプロジェクトレベルの両方�
 
 Subagent ファイルは、カスタムプロンプトとツール権限を持つ特殊な AI アシスタントを定義します。[subagents ドキュメント](/ja/sub-agents)で subagents の作成と使用について詳しく学びます。
 
-## プラグイン構成
+プラグイン構成
 
 Claude Code は、skills、agents、hooks、および MCP サーバーで機能を拡張できるプラグインシステムをサポートしています。プラグインはマーケットプレイスを通じて配布され、ユーザーレベルとリポジトリレベルの両方で構成できます。
 
-### プラグイン設定
+プラグイン設定
 
 `settings.json` のプラグイン関連設定：
 
@@ -611,7 +611,7 @@ Claude Code は、skills、agents、hooks、および MCP サーバーで機能�
 }
 ```
 
-#### `enabledPlugins`
+`enabledPlugins`
 
 どのプラグインが有効かを制御します。形式：`"plugin-name@marketplace-name": true/false`。任意のスコープにエントリがないプラグインは、その [`defaultEnabled`](/ja/plugins-reference#default-enablement) 値にフォールバックします。
 
@@ -638,7 +638,7 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 }
 ```
 
-#### `extraKnownMarketplaces`
+`extraKnownMarketplaces`
 
 リポジトリで利用可能にする必要がある追加のマーケットプレイスを定義します。通常、リポジトリレベルの設定で使用され、チームメンバーが必要なプラグインソースにアクセスできることを確認します。
 
@@ -706,7 +706,7 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 }
 ```
 
-#### `strictKnownMarketplaces`
+`strictKnownMarketplaces`
 
 **Managed 設定のみ**：ユーザーが追加できるプラグインマーケットプレイスを制御します。この設定は [managed 設定](/ja/settings#settings-files)でのみ構成でき、管理者にマーケットプレイスソースに対する厳密な制御を提供します。
 
@@ -953,7 +953,7 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 
 ユーザー向けドキュメントについては、[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください。
 
-#### `strictPluginOnlyCustomization`
+`strictPluginOnlyCustomization`
 
 **Managed 設定のみ**：skills、agents、hooks、および MCP サーバーをユーザーおよびプロジェクトソースからブロックするため、プラグインまたは managed 設定からのみ取得できます。`strictKnownMarketplaces` と組み合わせて、カスタマイズサプライチェーン全体を制御します：マーケットプレイスホワイトリストはユーザーがインストールできるプラグインを制御し、この設定はプラグインまたは managed 設定から来ていないすべてをブロックします。
 
@@ -978,7 +978,7 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 
 Claude Code バージョンが認識しないサーフェス名は、設定ファイルが失敗するのではなく無視されるため、すべてのクライアントが更新される前に新しいサーフェス名を追加できます。
 
-### プラグインの管理
+プラグインの管理
 
 `/plugin` コマンドを使用してプラグインを対話的に管理します：
 
@@ -990,19 +990,19 @@ Claude Code バージョンが認識しないサーフェス名は、設定フ�
 
 [プラグインドキュメント](/ja/plugins)でプラグインシステムについて詳しく学びます。
 
-## 環境変数
+環境変数
 
 環境変数を使用すると、設定ファイルを編集することなく Claude Code の動作を制御できます。任意の変数は、すべてのセッションに適用するか、チームにロールアウトするために [`settings.json`](#available-settings) の `env` キーで構成することもできます。
 
 完全なリストについては、[環境変数リファレンス](/ja/env-vars)を参照してください。
 
-## Claude が利用できるツール
+Claude が利用できるツール
 
 Claude Code は、ファイルの読み取り、編集、検索、コマンド実行、および subagents のオーケストレーション用のツールセットにアクセスできます。ツール名は、権限ルールと hook マッチャーで使用する正確な文字列です。
 
 完全なリストと Bash ツール動作の詳細については、[ツールリファレンス](/ja/tools-reference)を参照してください。
 
-## 関連項目
+関連項目
 
 - [権限](/ja/permissions)：権限システム、ルール構文、ツール固有パターン、および managed ポリシー
 - [認証](/ja/authentication)：Claude Code へのユーザーアクセスをセットアップ
