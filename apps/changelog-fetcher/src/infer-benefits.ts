@@ -4,6 +4,7 @@ import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { inferBenefits, type InferencePort } from './usecase/infer-benefits';
 import { GeminiInferenceClient } from './infrastructure/ai/gemini-inference-client';
+import { createInferredFileStore } from './infrastructure/filesystem/changelog-file-store';
 import {
   toAnalysisJson,
   toChangelogAnalysis,
@@ -54,7 +55,13 @@ async function main(): Promise<void> {
       );
 
   const inferred = toAnalysisJson(
-    await inferBenefits({ version, analysis, skipAI, inference }),
+    await inferBenefits({
+      version,
+      analysis,
+      skipAI,
+      inference,
+      store: createInferredFileStore(process.cwd()),
+    }),
   );
 
   mkdirSync(inferredDir, { recursive: true });

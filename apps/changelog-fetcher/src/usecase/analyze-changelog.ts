@@ -4,6 +4,7 @@ import {
   createChangelogAnalysis,
   type ChangelogAnalysis,
 } from '../domain/analysis/changelog-analysis';
+import { mergeAnalysisEntries } from '../domain/analysis/merge-analysis-entries';
 import type { RelatedDoc } from '../domain/analysis/related-doc';
 import type { ChangelogEntry } from '../domain/changelog/changelog-entry';
 import { createChangelogVersion } from '../domain/changelog/changelog-version';
@@ -15,6 +16,7 @@ export type DocsSearchPort = {
 };
 
 export type AnalysisStorePort = {
+  load: (version: string) => Promise<ChangelogAnalysis | null>;
   save: (analysis: ChangelogAnalysis, version: string) => Promise<void>;
 };
 
@@ -29,10 +31,19 @@ export async function analyzeChangelog(input: {
 
   log.msg('APLG0010', { params: [`${entries.length} 件の項目`] });
 
-  const items = await Promise.all(
-    entries.map(async (entry, index) => {
+  const merged = mergeAnalysisEntries(
+    entries,
+    await input.store.load(input.version),
+  );
+  log.info('既存 analysis の差分マージ', {
+    reused: merged.reused.length,
+    needsSearch: merged.needsSearch.length,
+  });
+
+  const searched = await Promise.all(
+    merged.needsSearch.map(async (entry, index) => {
       log.info(
-        `[${index + 1}/${entries.length}] ${entry.content.slice(0, 60)}...`,
+        `[${index + 1}/${merged.needsSearch.length}] ${entry.content.slice(0, 60)}...`,
       );
 
       const relatedDocs = await input.docsSearch.findRelatedDocs(entry);
@@ -45,6 +56,18 @@ export async function analyzeChangelog(input: {
     }),
   );
 
+  const items = merged.orderedSlots.map((slot) => {
+    const item =
+      slot.kind === 'reused'
+        ? merged.reused[slot.reusedIndex]
+        : searched[slot.needsSearchIndex];
+
+    if (item === undefined) {
+      throw new Error('analysis 差分マージのスロット復元に失敗しました');
+    }
+
+    return item;
+  });
   const analysis = createChangelogAnalysis({ version, items });
   await input.store.save(analysis, input.version);
   return analysis;

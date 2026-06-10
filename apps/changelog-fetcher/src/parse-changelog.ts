@@ -12,10 +12,14 @@ const log = getLogger({ name: 'changelog-fetcher' });
 
 async function main(): Promise<void> {
   const appDir = join(__dirname, '..');
+  const store = new ChangelogFileStore(appDir);
+
+  await store.deleteFetchSummary();
   const result = await fetchChangelog({
     source: new ClaudeCodeChangelogClient(),
-    store: new ChangelogFileStore(appDir),
+    store,
   });
+  await store.saveFetchSummary(result.summary);
 
   if (result.newCount === 0 && result.updatedCount === 0) {
     log.msg('APLG0008', { params: ['CHANGELOG'] });

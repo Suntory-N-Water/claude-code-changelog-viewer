@@ -65,32 +65,82 @@ jobs:
         run: |
           git add -A
 
-          # チェンジログ(*.md)ファイルの変更を検出
-          CHANGED_FILES=$(git diff --staged --name-only -- 'apps/changelog-fetcher/changelogs/*.md')
+          SUMMARY="apps/changelog-fetcher/metadata/last_fetch_summary.json"
+          if [ ! -f "$SUMMARY" ]; then
+            {
+              echo "has_updates=false"
+              echo "has_notifiable=false"
+            } >> "$GITHUB_OUTPUT"
+            echo "ℹ️ fetch summary がないため更新なし"
+            exit 0
+          fi
 
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "has_updates=false" >> "$GITHUB_OUTPUT"
+          CURRENT=$(jq -r '.version' claude-version.json)
+          NEW=$(jq -r '.newVersions[]' "$SUMMARY")
+          UPDATED=$(jq -r '.updatedVersions[]' "$SUMMARY")
+          NEW_COUNT=$(jq -r '.newVersions | length' "$SUMMARY")
+          UPDATED_COUNT=$(jq -r '.updatedVersions | length' "$SUMMARY")
+
+          NOTIFIABLE=""
+          while IFS= read -r version; do
+            [ -n "$version" ] || continue
+            clean_version="${version#v}"
+            clean_current="${CURRENT#v}"
+
+            if [ "$clean_version" != "$clean_current" ] && \
+              [ "$(printf '%s\n%s\n' "$clean_current" "$clean_version" | sort -V | tail -n1)" = "$clean_version" ]; then
+              NOTIFIABLE="${NOTIFIABLE} ${version}"
+            fi
+          done <<EOF
+          $NEW
+          EOF
+
+          CHANGED=$(printf '%s\n%s\n' "$NEW" "$UPDATED" | sed '/^$/d' | sort -uV)
+          SALVAGED=""
+          for file in apps/changelog-fetcher/changelogs/*.md; do
+            [ -e "$file" ] || continue
+            version=$(basename "$file" .md)
+            if [ ! -f "apps/changelog-fetcher/analysis/analysis_${version}.json" ] || \
+              [ ! -f "apps/changelog-fetcher/inferred/inferred_${version}.json" ]; then
+              SALVAGED="${SALVAGED} ${version}"
+            fi
+          done
+
+          CHANGED=$(printf '%s\n%s\n' "$CHANGED" "$SALVAGED" | sed '/^$/d' | sort -uV | xargs)
+          NOTIFIABLE=$(printf '%s\n' "$NOTIFIABLE" | tr ' ' '\n' | sed '/^$/d' | sort -uV | xargs)
+
+          if [ -z "$CHANGED" ]; then
+            {
+              echo "has_updates=false"
+              echo "has_notifiable=false"
+            } >> "$GITHUB_OUTPUT"
             echo "ℹ️ チェンジログに更新なし"
             exit 0
-          else
-            echo "has_updates=true" >> "$GITHUB_OUTPUT"
-
-            # ファイル名からバージョン抽出 (apps/changelog-fetcher/changelogs/vX.Y.Z.md → vX.Y.Z)
-            NEW_VERSIONS=$(echo "$CHANGED_FILES" | sed 's|apps/changelog-fetcher/changelogs/||' | sed 's|\.md$||' | tr '\n' ' ' | xargs)
-            echo "new_versions=$NEW_VERSIONS" >> "$GITHUB_OUTPUT"
-
-            echo "✅ チェンジログに更新あり"
-            echo "$CHANGED_FILES"
-            echo ""
-            echo "対象バージョン: $NEW_VERSIONS"
           fi
+
+          {
+            echo "has_updates=true"
+            if [ -n "$NOTIFIABLE" ]; then
+              echo "has_notifiable=true"
+            else
+              echo "has_notifiable=false"
+            fi
+            echo "changed_versions=$CHANGED"
+            echo "notifiable_versions=$NOTIFIABLE"
+            echo "new_count=$NEW_COUNT"
+            echo "updated_count=$UPDATED_COUNT"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "✅ チェンジログに更新あり"
+          echo "解析対象: $CHANGED"
+          echo "通知対象: ${NOTIFIABLE:-なし}"
 
       - name: Analyze changelogs
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
         run: |
-          for version in $NEW_VERSIONS; do
+          for version in $CHANGED_VERSIONS; do
             echo "🔍 Analyzing $version..."
             pnpm run analyze "$version"
           done
@@ -98,9 +148,9 @@ jobs:
       - name: Verify analysis files
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
         run: |
-          for version in $NEW_VERSIONS; do
+          for version in $CHANGED_VERSIONS; do
             if [ ! -f "apps/changelog-fetcher/analysis/analysis_${version}.json" ]; then
               echo "❌ Missing analysis file for $version"
               exit 1
@@ -112,9 +162,9 @@ jobs:
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
         run: |
-          for version in $NEW_VERSIONS; do
+          for version in $CHANGED_VERSIONS; do
             echo "🤖 Inferring benefits for $version..."
             pnpm run infer "$version"
           done
@@ -122,9 +172,9 @@ jobs:
       - name: Verify inferred files
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
         run: |
-          for version in $NEW_VERSIONS; do
+          for version in $CHANGED_VERSIONS; do
             if [ ! -f "apps/changelog-fetcher/inferred/inferred_${version}.json" ]; then
               echo "❌ Missing inferred file for $version"
               exit 1
@@ -139,13 +189,13 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Update version
-        if: steps.detect-updates.outputs.has_updates == 'true'
+        if: steps.detect-updates.outputs.has_notifiable == 'true'
         env:
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          NOTIFIABLE_VERSIONS: ${{ steps.detect-updates.outputs.notifiable_versions }}
         run: |
           chmod +x .github/scripts/update-version.sh
           # shellcheck disable=SC2086
-          .github/scripts/update-version.sh $NEW_VERSIONS
+          .github/scripts/update-version.sh $NOTIFIABLE_VERSIONS
 
       - name: Format code
         if: steps.detect-updates.outputs.has_updates == 'true'
@@ -155,16 +205,20 @@ jobs:
         id: pr-meta
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
+          NOTIFIABLE_VERSIONS: ${{ steps.detect-updates.outputs.notifiable_versions }}
+          NEW_COUNT: ${{ steps.detect-updates.outputs.new_count }}
+          UPDATED_COUNT: ${{ steps.detect-updates.outputs.updated_count }}
         run: |
-          VERSION_COUNT=$(echo "$NEW_VERSIONS" | wc -w | tr -d ' ')
-          FIRST_VERSION=$(echo "$NEW_VERSIONS" | awk '{print $1}')
+          FIRST_VERSION=$(echo "$CHANGED_VERSIONS" | awk '{print $1}')
+          TITLE="chore: CHANGELOG を更新 (新規 ${NEW_COUNT}, 過去更新 ${UPDATED_COUNT})"
 
           {
             echo "branch=chore/changelog-${FIRST_VERSION}"
-            echo "title=chore: CHANGELOGを更新 (${VERSION_COUNT} versions)"
+            echo "title=${TITLE}"
             echo "body<<EOF"
-            echo "対象バージョン: ${NEW_VERSIONS}"
+            echo "解析対象バージョン: ${CHANGED_VERSIONS}"
+            echo "通知対象バージョン: ${NOTIFIABLE_VERSIONS:-なし}"
             echo ""
             echo "自動更新時刻: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo "EOF"
@@ -196,14 +250,14 @@ jobs:
           echo "✓ PR #${PR_NUMBER} をマージしました"
 
       - name: Trigger notification dispatch
-        if: steps.detect-updates.outputs.has_updates == 'true'
+        if: steps.detect-updates.outputs.has_notifiable == 'true'
         env:
           NOTIFICATION_WORKER_URL: ${{ secrets.NOTIFICATION_WORKER_URL }}
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
-          NEW_VERSIONS: ${{ steps.detect-updates.outputs.new_versions }}
+          NOTIFIABLE_VERSIONS: ${{ steps.detect-updates.outputs.notifiable_versions }}
         run: |
           echo "📤 通知配信をトリガー..."
-          VERSIONS_JSON=$(echo "$NEW_VERSIONS" | tr ' ' '\n' | jq -R . | jq -s .)
+          VERSIONS_JSON=$(echo "$NOTIFIABLE_VERSIONS" | tr ' ' '\n' | jq -R . | jq -s .)
           curl -f -X POST "${NOTIFICATION_WORKER_URL}/api/dispatch" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${DISPATCH_SECRET}" \
@@ -218,7 +272,7 @@ jobs:
           ISSUE_SUMMARY: |
             CHANGELOGの取得・解析・推論処理に失敗しました。
 
-            **対象バージョン**: ${{ steps.detect-updates.outputs.new_versions }}
+            **対象バージョン**: ${{ steps.detect-updates.outputs.changed_versions }}
           ISSUE_LABELS: automated-failure,workflow:changelog-auto-inference,bug
         with:
           script: |

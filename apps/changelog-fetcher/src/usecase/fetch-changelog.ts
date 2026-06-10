@@ -7,6 +7,7 @@ import {
   isDuplicateDiffEvent,
   type ChangelogDiffEvent,
 } from '../domain/changelog/changelog-diff-event';
+import { classifyFetchedVersion } from '../domain/changelog/classify-fetched-version';
 import type { ChangelogRelease } from '../domain/changelog/changelog-release';
 import {
   createChangelogVersion,
@@ -36,6 +37,14 @@ export type ChangelogStorePort = {
 export type FetchChangelogResult = {
   newCount: number;
   updatedCount: number;
+  summary: FetchChangelogSummary;
+};
+
+export type FetchChangelogSummary = {
+  fetchedAt: string;
+  newVersions: string[];
+  updatedVersions: string[];
+  removedVersions: string[];
 };
 
 export async function fetchChangelog(input: {
@@ -53,6 +62,9 @@ export async function fetchChangelog(input: {
 
   let newCount = 0;
   let updatedCount = 0;
+  const newVersions: string[] = [];
+  const updatedVersions: string[] = [];
+  const removedVersions: string[] = [];
   const newMetadata: Record<string, string> = {};
   const remoteVersionKeys = new Set<string>();
 
@@ -63,10 +75,15 @@ export async function fetchChangelog(input: {
     const contentHash = createHash('sha256')
       .update(release.content, 'utf-8')
       .digest('hex');
-    const existingHash = existingMetadata.versions[versionKey] ?? '';
+    const existingHash = existingMetadata.versions[versionKey] ?? null;
     const localRelease = await input.store.loadRelease(release.version);
+    const classification = classifyFetchedVersion({
+      remoteHash: contentHash,
+      existingLocalHash: existingHash,
+      existsLocally: localRelease !== null,
+    });
 
-    if (contentHash !== existingHash && localRelease) {
+    if (classification === 'updated' && localRelease) {
       const diff = computeChangelogEntryDiff(
         localRelease.entries,
         release.entries,
@@ -87,7 +104,7 @@ export async function fetchChangelog(input: {
       }
     }
 
-    if (contentHash === existingHash && localRelease) {
+    if (classification === 'unchanged') {
       log.debug(`${versionKey}: 変更なし`);
       newMetadata[versionKey] = contentHash;
       continue;
@@ -95,12 +112,14 @@ export async function fetchChangelog(input: {
 
     await input.store.saveRelease(release);
 
-    if (existingHash) {
+    if (classification === 'updated') {
       log.info(`${versionKey}: 更新あり`);
       updatedCount += 1;
+      updatedVersions.push(versionKey);
     } else {
       log.info(`${versionKey}: 新規`);
       newCount += 1;
+      newVersions.push(versionKey);
     }
 
     newMetadata[versionKey] = contentHash;
@@ -115,6 +134,7 @@ export async function fetchChangelog(input: {
       detectedAt,
       version: createChangelogVersion(metadataVersionKey),
     });
+    removedVersions.push(metadataVersionKey);
 
     if (!isDuplicateDiffEvent(diffEvents, candidate)) {
       diffEvents.push(candidate);
@@ -130,5 +150,14 @@ export async function fetchChangelog(input: {
 
   log.msg('APLG0002', { params: ['CHANGELOG の取得'] });
 
-  return { newCount, updatedCount };
+  return {
+    newCount,
+    updatedCount,
+    summary: {
+      fetchedAt: detectedAt.toISOString(),
+      newVersions,
+      updatedVersions,
+      removedVersions,
+    },
+  };
 }
