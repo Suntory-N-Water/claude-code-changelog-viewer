@@ -7,15 +7,73 @@ source: https://code.claude.com/docs/en/microsoft-foundry.md
 
 > Learn about configuring Claude Code through Microsoft Foundry, including setup, configuration, and troubleshooting.
 
+.dark .cc-cs {
+  --cs-slate: #f0eee6;
+  --cs-gray-000: #262624;
+  --cs-gray-700: #bfbdb4;
+  --cs-border-default: rgba(240, 238, 230, 0.14);
+}
+.cc-cs-card {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 16px; margin: 0;
+  background: var(--cs-gray-000); border: 0.5px solid var(--cs-border-default);
+  border-radius: 8px; flex-wrap: wrap;
+}
+.cc-cs-text { font-size: 13px; color: var(--cs-gray-700); line-height: 1.5; flex: 1; min-width: 240px; }
+.cc-cs-text strong { font-weight: 550; color: var(--cs-slate); }
+.cc-cs-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.cc-cs-btn-clay {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--cs-clay-deep); color: #fff; border: none;
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 13px; font-weight: 500;
+  transition: background-color 0.15s; white-space: nowrap;
+}
+.cc-cs-btn-clay:hover { background: var(--cs-clay); }
+.cc-cs-btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--cs-gray-700);
+  border: 0.5px solid var(--cs-border-default);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 13px; font-weight: 500;
+}
+.cc-cs-btn-ghost:hover { background: rgba(0, 0, 0, 0.04); }
+.dark .cc-cs-btn-ghost:hover { background: rgba(255, 255, 255, 0.04); }
+@media (max-width: 720px) {
+  .cc-cs-actions { width: 100%; }
+}
+`;
+  return <div className="cc-cs not-prose">
+      <style>{STYLES}</style>
+      <div className="cc-cs-card">
+        <div className="cc-cs-text">
+          <strong>Deploying Claude Code across your organization?</strong> Talk to sales about enterprise plans, SSO, and centralized billing.
+        </div>
+        <div className="cc-cs-actions">
+          <a href={`https://claude.com/pricing?${utm('view_plans')}#plans-business`} className="cc-cs-btn-ghost">
+            View plans
+          </a>
+          <a href={`https://claude.com/contact-sales?${utm('contact_sales')}`} className="cc-cs-btn-clay">
+            Contact sales {iconArrowRight()}
+          </a>
+        </div>
+      </div>
+    </div>;
+};
+
+<ContactSalesCard surface="foundry" />
+
 ## Prerequisites
 
 Before configuring Claude Code with Microsoft Foundry, ensure you have:
 
-- An Azure subscription with access to Microsoft Foundry
-- RBAC permissions to create Microsoft Foundry resources and deployments
-- Azure CLI installed and configured (optional - only needed if you don't have another mechanism for getting credentials)
+* An Azure subscription with access to Microsoft Foundry
+* RBAC permissions to create Microsoft Foundry resources and deployments
+* Azure CLI installed and configured (optional - only needed if you don't have another mechanism for getting credentials)
 
-If you are deploying Claude Code to multiple users, [pin your model versions](#4-pin-model-versions) before rolling out.
+<Note>
+  If you are deploying Claude Code to multiple users, [pin your model versions](#4-pin-model-versions) before rolling out.
+</Note>
 
 ## Setup
 
@@ -26,9 +84,9 @@ First, create a Claude resource in Azure:
 1. Navigate to the [Microsoft Foundry portal](https://ai.azure.com/)
 2. Create a new resource, noting your resource name
 3. Create deployments for the Claude models:
-   - Claude Opus
-   - Claude Sonnet
-   - Claude Haiku
+   * Claude Opus
+   * Claude Sonnet
+   * Claude Haiku
 
 ### 2. Configure Azure credentials
 
@@ -56,7 +114,9 @@ On local environments, you commonly may use the Azure CLI:
 az login
 ```
 
-When using Microsoft Foundry, the `/logout` command is unavailable since authentication is handled through Azure credentials.
+<Note>
+  When using Microsoft Foundry, the `/logout` command is unavailable since authentication is handled through Azure credentials.
+</Note>
 
 ### 3. Configure Claude Code
 
@@ -74,7 +134,9 @@ export ANTHROPIC_FOUNDRY_RESOURCE={resource}
 
 ### 4. Pin model versions
 
-Pin specific model versions for every deployment. Without pinning, model aliases such as `sonnet` and `opus` resolve to Claude Code's built-in default for Foundry, which can lag the newest release and may not yet be available in your account. Foundry has no startup model check, so requests fail when the default is unavailable. When you create Azure deployments, select a specific model version rather than "auto-update to latest."
+<Warning>
+  Pin specific model versions for every deployment. Without pinning, model aliases such as `sonnet` and `opus` resolve to Claude Code's built-in default for Foundry, which can lag the newest release and may not yet be available in your account. Foundry has no startup model check, so requests fail when the default is unavailable. When you create Azure deployments, select a specific model version rather than "auto-update to latest."
+</Warning>
 
 Set the model variables to match the deployment names you created in step 1.
 
@@ -130,10 +192,10 @@ For details, see [Microsoft Foundry RBAC documentation](https://learn.microsoft.
 
 If you receive an error "Failed to get token from azureADTokenProvider: ChainedTokenCredential authentication failed":
 
-- Configure Entra ID on the environment, or set `ANTHROPIC_FOUNDRY_API_KEY`.
+* Configure Entra ID on the environment, or set `ANTHROPIC_FOUNDRY_API_KEY`.
 
 ## Additional resources
 
-- [Microsoft Foundry documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-azure-ai-foundry)
-- [Microsoft Foundry models](https://ai.azure.com/explore/models)
-- [Microsoft Foundry pricing](https://azure.microsoft.com/en-us/pricing/details/ai-foundry/)
+* [Microsoft Foundry documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-azure-ai-foundry)
+* [Microsoft Foundry models](https://ai.azure.com/explore/models)
+* [Microsoft Foundry pricing](https://azure.microsoft.com/en-us/pricing/details/ai-foundry/)
