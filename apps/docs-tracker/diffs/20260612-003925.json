@@ -1,0 +1,891 @@
+{
+  "id": "20260612-003925",
+  "timestamp": "2026-06-12T00:39:25.599Z",
+  "aiSummary": "resumeオプションのセッション検索ルールが詳細化され、セッションID指定時は現在のプロジェクトディレクトリ内のみが対象となることが明記されました。code-reviewコマンドでは、デフォルトのレビュー対象範囲やブランチ・PR番号などの具体的なターゲット指定方法、およびUltrareviewのスコープに関する説明が追加されています。MCPプラグインのツール命名規則が新たに定義され、権限設定などで使用する際のフルネーム形式が示されました。VS Code拡張機能が内部にプライベートなCLIを保持する仕様であることが強調され、ターミナルから利用するには別途スタンドアロン版のインストールが必要である旨が各所で補足されています。",
+  "files": [
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "resumeオプションにおけるセッションID指定時の検索範囲が、現在のディレクトリとgitワークツリーに限定される仕様が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -102,7 +102,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--remote-control`, `--rc` | Start an interactive session with [Remote Control](/en/remote-control#start-a-remote-control-session) enabled so you can also control it from claude.ai or the Claude app. Optionally pass a name for the session | `claude --remote-control \"My Project\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--remote-control-session-name-prefix <prefix>` | Prefix for auto-generated [Remote Control](/en/remote-control) session names when no explicit name is set. Defaults to your machine's hostname, producing names like `myhost-graceful-unicorn`. Set `CLAUDE_REMOTE_CONTROL_SESSION_NAME_PREFIX` for the same effect | `claude remote-control --remote-control-session-name-prefix dev-box` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--replay-user-messages` | Re-emit user messages from stdin back on stdout for acknowledgment. Requires `--input-format stream-json` and `--output-format stream-json` | `claude -p --input-format stream-json --output-format stream-json --verbose --replay-user-messages` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--resume`, `-r` | Resume a specific session by ID or name, or show an interactive picker to choose a session. Includes sessions that added this directory with `/add-dir`. As of v2.1.144, [background sessions](/en/agent-view) appear in the picker marked with `bg` | `claude --resume auth-refactor` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--resume`, `-r` | Resume a specific session by ID or name, or show an interactive picker to choose a session. The picker and name search include sessions that added this directory with `/add-dir`; passing a session ID searches only the current project directory and its git worktrees. As of v2.1.144, [background sessions](/en/agent-view) appear in the picker marked with `bg` | `claude --resume auth-refactor` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--safe-mode` | Start with all customizations disabled to troubleshoot a broken configuration: CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, custom keybindings, status line and file-suggestion commands, LSP servers, and auto-memory do not load. Authentication, model selection, built-in tools, and permissions work normally, which differs from [`--bare`](/en/headless#start-faster-with-bare-mode). Managed settings policy still applies, including policy-configured hooks, status line, and file-suggestion commands; managed plugins, managed skills, managed CLAUDE.md, and policy-configured MCP servers do not. Useful for checking whether a customization is what triggers [automatic fallback from Fable 5](/en/model-config#automatic-model-fallback). Sets [`CLAUDE_CODE_SAFE_MODE`](/en/env-vars) | `claude --safe-mode` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--session-id` | Use a specific session ID for the conversation (must be a valid UUID) | `claude --session-id \"550e8400-e29b-41d4-a716-446655440000\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--setting-sources` | Comma-separated list of setting sources to load (`user`, `project`, `local`) | `claude --setting-sources user,project` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "code-review.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "デフォルトのレビュー範囲が上流ブランチとの差分および未コミット分であることや、PR番号やブランチ名による対象指定方法が詳しく解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -262,11 +262,11 @@ If the check run title says issues were found but you don't see inline review co",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Review a diff locally"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The [`/code-review` command](/en/commands) reviews a diff in your terminal without installing the GitHub App. Run it in any Claude Code session: it reports correctness bugs and reuse, simplification, and efficiency cleanups in the current diff. Pass `--comment` to post findings as inline PR comments, or `--fix` to apply the findings to your working tree after the review."
+            },
+            {
+              "type": "added",
+              "content": "The [`/code-review` command](/en/commands) reviews a diff in your terminal without installing the GitHub App. Run it in any Claude Code session: it reports correctness bugs and reuse, simplification, and efficiency cleanups. By default the local review covers your branch's commits ahead of its upstream plus any uncommitted changes in the working tree. Pass `--comment` to post findings as inline PR comments, or `--fix` to apply the findings to your working tree after the review."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Lower [effort levels](/en/model-config#adjust-effort-level) return fewer, higher-confidence findings, while `high` through `max` give broader coverage and may include uncertain findings. Without an effort argument, the review uses the session's current effort. Pass a path or PR reference to review a specific target instead of the current diff."
+            },
+            {
+              "type": "added",
+              "content": "Lower [effort levels](/en/model-config#adjust-effort-level) return fewer, higher-confidence findings, while `high` through `max` give broader coverage and may include uncertain findings. Without an effort argument, the review uses the session's current effort. To review something other than the default diff, pass a target: a file path, a PR number, a branch name, or a ref range such as `main...my-feature`. The ref range form reviews the committed diff a pull request from `my-feature` into `main` would contain, regardless of how the branch's upstream is configured."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`/code-review ultra --fix` runs the deeper [ultrareview](/en/ultrareview) in the cloud, then applies its findings to your working tree when they arrive back in your session."
+            },
+            {
+              "type": "added",
+              "content": "`/code-review ultra --fix` runs the deeper [ultrareview](/en/ultrareview) in the cloud, then applies its findings to your working tree when they arrive back in your session. Ultrareview uses its own scope: your current branch against the repository's default branch, plus any uncommitted and staged changes in the working tree."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The command was named `/simplify` before v2.1.147, when it applied fixes by default. From v2.1.154, `/simplify` runs a separate cleanup-only review that applies fixes without hunting for bugs. If you scripted `/simplify` for bug-finding, switch to `/code-review --fix`, which is unchanged."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "headless.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "セッションIDの検索スコープに関する制限事項が、ヘッドレスモードのコンテキストでも補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -242,6 +242,8 @@ session_id=$(claude -p \"Start a review\" --output-format json | jq -r '.session_i",
+          "lines": [
+            {
+              "type": "context",
+              "content": "claude -p \"Continue that review\" --resume \"$session_id\""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run both commands from the same directory: session ID lookup is scoped to the current project directory and its git worktrees. See [Resume a session](/en/sessions#resume-a-session) for the full scope rules."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Next steps"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Agent SDK quickstart](/en/agent-sdk/quickstart): build your first agent with Python or TypeScript"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 10,
+      "deletions": 0,
+      "explanation": "プラグインにバンドルされたMCPツールのフルネーム命名規則が追加され、権限設定時などの参照形式が定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -242,6 +242,16 @@ Or inline in `plugin.json`:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugin servers appear in the list with indicators showing they come from plugins."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Plugin MCP tool names**:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Tools from a plugin-bundled MCP server include both the plugin name and the server key in their callable name. The full form is `mcp__plugin_<plugin-name>_<server-name>__<tool-name>`, where any character outside `A-Z`, `a-z`, `0-9`, `_`, and `-` is replaced with `_`. For the `database-tools` server bundled in a plugin named `my-plugin`, a `query` tool is callable as:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": "mcp__plugin_my-plugin_database-tools__query"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Use this full name when referencing the tool in [permission rules](/en/permissions), a skill's `allowed-tools` list, or a [subagent's `tools` field](/en/sub-agents#available-tools)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Benefits of plugin MCP servers**:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Bundled distribution**: Tools and servers packaged together"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "フル機能のオブザーバビリティプラットフォームの例として、新たにGrafana Cloudが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -1118,20 +1118,20 @@ Your choice of metrics, logs, and traces backends determines the types of analys",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Time series databases (for example, Prometheus)**: Rate calculations, aggregated metrics"
+            },
+            {
+              "type": "context",
+              "content": "- **Columnar stores (for example, ClickHouse)**: Complex queries, unique user analysis"
+            },
+            {
+              "type": "removed",
+              "content": "- **Full-featured observability platforms (for example, Honeycomb, Datadog)**: Advanced querying, visualization, alerting"
+            },
+            {
+              "type": "added",
+              "content": "- **Full-featured observability platforms (for example, Honeycomb, Datadog, Grafana Cloud)**: Advanced querying, visualization, alerting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### For events/logs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Log aggregation systems (for example, Elasticsearch, Loki)**: Full-text search, log analysis"
+            },
+            {
+              "type": "context",
+              "content": "- **Columnar stores (for example, ClickHouse)**: Structured event analysis"
+            },
+            {
+              "type": "removed",
+              "content": "- **Full-featured observability platforms (for example, Honeycomb, Datadog)**: Correlation between metrics and events"
+            },
+            {
+              "type": "added",
+              "content": "- **Full-featured observability platforms (for example, Honeycomb, Datadog, Grafana Cloud)**: Correlation between metrics and events"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### For traces"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Choose a backend that supports distributed trace storage and span correlation:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Distributed tracing systems (for example, Jaeger, Zipkin, Grafana Tempo)**: Span visualization, request waterfalls, latency analysis"
+            },
+            {
+              "type": "removed",
+              "content": "- **Full-featured observability platforms (for example, Honeycomb, Datadog)**: Trace search and correlation with metrics and logs"
+            },
+            {
+              "type": "added",
+              "content": "- **Full-featured observability platforms (for example, Honeycomb, Datadog, Grafana Cloud)**: Trace search and correlation with metrics and logs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For organizations requiring Daily/Weekly/Monthly Active User (DAU/WAU/MAU) metrics, consider backends that support efficient unique value queries."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 15,
+      "deletions": 8,
+      "explanation": "シェルコマンドとセッション内コマンドの区別が明確化され、exitコマンドの先頭にスラッシュが必要な点などが修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -26,19 +26,19 @@ To install Claude Code, use one of the following methods:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**macOS, Linux, WSL:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.sh | bash"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows PowerShell:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "irm https://claude.ai/install.ps1 | iex"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Windows CMD:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```batch theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```batch theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd && del install.cmd"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -48,7 +48,7 @@ If you see `The token '&&' is not a valid statement separator`, you're in PowerS",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Native installations automatically update in the background to keep you on the latest version."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```bash theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "brew install --cask claude-code"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -56,7 +56,7 @@ Homebrew offers two casks. `claude-code` tracks the stable release channel, whic",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Homebrew installations do not auto-update. Run `brew upgrade claude-code` or `brew upgrade claude-code@latest`, depending on which cask you installed, to get the latest features and security fixes."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "```powershell theme={null}"
+            },
+            {
+              "type": "added",
+              "content": "```powershell theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null} theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "winget install Anthropic.ClaudeCode"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -235,7 +235,9 @@ Talk to Claude like you would a helpful colleague. Describe what you want to ach",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Essential commands"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Here are the most important commands for daily use:"
+            },
+            {
+              "type": "added",
+              "content": "Here are the most important commands for daily use. Shell commands run from your terminal to start or resume Claude Code. Session commands run inside Claude Code after it starts."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Shell commands**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Command | What it does | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -244,11 +246,16 @@ Here are the most important commands for daily use:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude -p \"query\"` | Run one-off query, then exit | `claude -p \"explain this function\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude -c` | Continue most recent conversation in current directory | `claude -c` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude -r` | Resume a previous conversation | `claude -r` |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**Session commands**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Command | What it does | Example |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `/clear` | Clear conversation history | `/clear` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/help` | Show available commands | `/help` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `exit` or Ctrl+D | Exit Claude Code | `exit` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/exit` or Ctrl+D | Exit Claude Code | `/exit` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "See the [CLI reference](/en/cli-reference) for a complete list of commands."
+            },
+            {
+              "type": "added",
+              "content": "See the [CLI reference](/en/cli-reference) for the complete list of shell commands and the [commands reference](/en/commands) for the complete list of session commands."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Pro tips for beginners"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sessions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セッションIDを用いたレジューム機能について、開始時と異なるディレクトリから実行した場合にエラーとなるスコープ制限が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -29,7 +29,7 @@ Sessions are saved continuously to [local transcript files](#export-and-locate-s",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude --from-pr <number>` | Resumes the session linked to that pull request |"
+            },
+            {
+              "type": "context",
+              "content": "| `/resume` | Switches to a different conversation from inside an active session |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Sessions created with [`claude -p`](/en/headless) or the [Agent SDK](/en/agent-sdk/overview) do not appear in the session picker, but you can still resume one by passing its session ID to `claude --resume <session-id>`."
+            },
+            {
+              "type": "added",
+              "content": "Sessions created with [`claude -p`](/en/headless) or the [Agent SDK](/en/agent-sdk/overview) do not appear in the session picker, but you can still resume one by passing its session ID to `claude --resume <session-id>`. Run this from the directory the session was started in: session ID lookup is scoped to the current project directory and its git worktrees, so a session created elsewhere reports `No conversation found with session ID: <session-id>`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Where the session picker looks"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "troubleshoot-install.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "VS Code拡張機能がPATHにclaudeコマンドを追加しないことを明記し、ターミナル利用には別途インストールが必要な点が補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -82,6 +82,8 @@ irm https://claude.ai/install.ps1 | iex",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If installation succeeded but you get a `command not found` or `not recognized` error when running `claude`, the install directory isn't in your PATH. Your shell searches for programs in directories listed in PATH, and the installer places `claude` at `~/.local/bin/claude` on macOS/Linux or `%USERPROFILE%\\.local\\bin\\claude.exe` on Windows."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The [VS Code extension](/en/vs-code) does not place `claude` at this location. It bundles a private copy of the CLI inside the extension directory for its own chat panel and does not add it to PATH. If you have only installed the extension, `~/.local/bin/claude` will not exist. Run the [standalone install](/en/setup) to use `claude` from a terminal, then continue below."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Check if the install directory is in your PATH by listing your PATH entries and filtering for `local/bin`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "vs-code.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "拡張機能がチャットパネル用に専用のCLIを内蔵していることと、ターミナルで利用する場合にはスタンドアロン版のインストールが必須であることを強調しています。",
+      "hunks": [
+        {
+          "header": "@@ -18,7 +18,7 @@ Before installing, make sure you have:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- VS Code 1.98.0 or higher"
+            },
+            {
+              "type": "context",
+              "content": "- An Anthropic account (you'll sign in when you first open the extension). If you're using a third-party provider like Amazon Bedrock or Google Vertex AI, see [Use third-party providers](#use-third-party-providers) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The extension includes the CLI (command-line interface), which you can access from VS Code's integrated terminal for advanced features. See [VS Code extension vs. Claude Code CLI](#vs-code-extension-vs-claude-code-cli) for details."
+            },
+            {
+              "type": "added",
+              "content": "The extension bundles its own copy of the CLI (command-line interface) for the chat panel. To run `claude` in VS Code's integrated terminal, you also need the [standalone CLI install](/en/setup). See [VS Code extension vs. Claude Code CLI](#vs-code-extension-vs-claude-code-cli) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Install the extension"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -29,7 +29,7 @@ Click the link for your IDE to install directly:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Or in VS Code, press `Cmd+Shift+X` (Mac) or `Ctrl+Shift+X` (Windows/Linux) to open the Extensions view, search for \"Claude Code\", and click **Install**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The extension also installs in other VS Code forks like Devin Desktop or Kiro. Search for \"Claude Code\" in the editor's Extensions view, or install from the [Open VSX registry](https://open-vsx.org/extension/Anthropic/claude-code). If your editor can't install the extension, run `claude` in its integrated terminal instead. The [CLI](/en/quickstart) works in any terminal."
+            },
+            {
+              "type": "added",
+              "content": "The extension also installs in other VS Code forks like Devin Desktop or Kiro. Search for \"Claude Code\" in the editor's Extensions view, or install from the [Open VSX registry](https://open-vsx.org/extension/Anthropic/claude-code). If your editor can't install the extension, [install the CLI](/en/quickstart) and run `claude` in its integrated terminal instead. The CLI works in any terminal."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If the extension doesn't appear after installation, restart VS Code or run \"Developer: Reload Window\" from the Command Palette."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -279,7 +279,7 @@ Add `\"$schema\": \"https://json.schemastore.org/claude-code-settings.json\"` to you",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## VS Code extension vs. Claude Code CLI"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code is available as both a VS Code extension (graphical panel) and a CLI (command-line interface in the terminal). Some features are only available in the CLI. If you need a CLI-only feature, run `claude` in VS Code's integrated terminal."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code is available as both a VS Code extension (graphical panel) and a CLI (command-line interface in the terminal). Some features are only available in the CLI. If you need a CLI-only feature, run `claude` in VS Code's integrated terminal. This requires the [standalone CLI install](/en/setup): the extension does not add `claude` to your PATH. See [Run CLI in VS Code](#run-cli-in-vs-code)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Feature | CLI | VS Code Extension |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -303,6 +303,8 @@ For full details on how checkpoints work and their limitations, see [Checkpointi",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To use the CLI while staying in VS Code, open the integrated terminal (`` Ctrl+` `` on Windows/Linux or `` Cmd+` `` on Mac) and run `claude`. The CLI automatically integrates with your IDE for features like diff viewing and diagnostic sharing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Installing the extension does not put `claude` on your shell PATH. The extension bundles a private copy of the CLI for its chat panel, but typing `claude` in a terminal requires the [standalone CLI install](/en/setup). Run the install once and the commands on this page, including `claude mcp add` and `claude --resume`, work in any terminal. If `claude` is still not found after installing, [verify your PATH](/en/troubleshoot-install#verify-your-path)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If using an external terminal, run `/ide` inside Claude Code to connect it to VS Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Switch between extension and CLI"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
