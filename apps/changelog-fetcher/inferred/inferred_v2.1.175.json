@@ -1,0 +1,51 @@
+{
+  "version": "2.1.175",
+  "summary": "管理設定に `enforceAvailableModels` が追加され、管理者が指定したモデル許可リストをより厳格に適用できるようになりました。これにより、デフォルトモデルの制限やユーザー設定による許可リストの拡張禁止が可能になり、組織内でのモデル利用統制が強化されます。",
+  "items": [
+    {
+      "content": "- Added `enforceAvailableModels` managed setting — when enabled, the `availableModels` allowlist also constrains the Default model (a Default that would resolve to a disallowed model now falls back to the first allowed model), and user or project settings can no longer widen a managed `availableModels` list",
+      "content_ja": "管理設定に `enforceAvailableModels` が追加されました。これを有効にすると、`availableModels` の許可リストが「デフォルト」モデルにも適用されるようになり、ユーザーやプロジェクト設定によって管理上の許可リストを拡張することができなくなります。",
+      "prefix": "Added",
+      "importance_score": 0,
+      "feature_areas": ["Settings", "Permissions"],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md",
+          "hit_count": 4,
+          "context_score": 0,
+          "total_score": 0,
+          "snippets": [
+            "export CLAUDE_CODE_USE_MANTLE=1 json { \"availableModels\": [\"opus\", \"sonnet\", \"haiku\", \"anthropic.claude-haiku-4-5\"] }"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/env-vars.md",
+          "hit_count": 1,
+          "context_score": 0,
+          "total_score": 0,
+          "snippets": [
+            "| CLAUDE_CODE_ENABLE_BACKGROUND_PLUGIN_REFRESH | Set to 1 to refresh plugin state at turn boundaries in non-interactive mode after a background install completes. Off by default because the refresh changes the system prompt mid-session, which invalidates prompt caching for that turn | | CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL | Set to 1 to route the \"How is Claude doing?\" session quality survey to your own OpenTelemetry collector when Anthropic-bound nonessential traffic is blocked. Survey ratings are emitted only as OTEL events to your configured collector. No survey data is sent to Anthropic in this mode. Applies when CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC , DISABLE_TELEMETRY , or DO_NOT_TRACK is set, and has no effect otherwise. CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY and the organization product feedback policy take precedence | | CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING | Controls whether tool call inputs stream from the API as Claude generates them. With this off, a large tool input such as a long file write arrives only after Claude finishes generating it, which can look like it's hanging. Enabled by default on the Anthropic API. On Bedrock and Vertex, enabled per model where the deployed container supports it. Set to 0 to opt out. Set to 1 to force on when routing through a proxy via ANTHROPIC_BASE_URL , ANTHROPIC_VERTEX_BASE_URL , or ANTHROPIC_BEDROCK_BASE_URL . Off by default on Foundry and gateway connections | | CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY | Set to 1 to populate the /model picker from your gateway's /v1/models endpoint when ANTHROPIC_BASE_URL points at an Anthropic-compatible gateway such as LiteLLM, Kong, or an internal proxy. Off by default because gateways backed by a shared API key would otherwise show every user every model the key can access. Discovered models are still filtered by the availableModels allowlist | | CLAUDE_CODE_ENABLE_OPUS_4_7_FAST_MODE | Removed in v2.1.142, when the fast mode default moved from Opus 4.6 to Opus 4.7 | | CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION | Set to false to disable prompt suggestions (the \"Prompt suggestions\" toggle in /config ). These are the grayed-out predictions that appear in your prompt input after Claude responds. See Prompt suggestions | | CLAUDE_CODE_ENABLE_TASKS | Controls whether sessions use the structured Task tools ( TaskCreate , TaskUpdate , TaskGet , TaskList ) or the legacy TodoWrite tool. As of Claude Code v2.1.142, Task tools are the default in all modes. Set to 0 to revert to TodoWrite . See Task list and Migrate to Task tools |"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/model-config.md",
+          "hit_count": 13,
+          "context_score": 0,
+          "total_score": 0,
+          "snippets": [
+            "Restrict model selection Enterprise administrators can use availableModels in managed or policy settings to restrict which models users can select. When availableModels is set, users cannot switch to models not in the list via /model , --model flag, or ANTHROPIC_MODEL environment variable. Elements of a fallback model chain outside the list are dropped. Default model behavior The Default option in the model picker is not affected by availableModels . It always remains available and represents the system's runtime default based on the user's subscription tier . Even with availableModels: [] , users can still use Claude Code with the Default model for their tier. Control the model users run on",
+            "To fully control the model experience, combine three settings: availableModels : restricts which named models users can switch to model : sets the initial model selection when a session starts ANTHROPIC_DEFAULT_SONNET_MODEL / ANTHROPIC_DEFAULT_OPUS_MODEL / ANTHROPIC_DEFAULT_HAIKU_MODEL / ANTHROPIC_DEFAULT_FABLE_MODEL : control what the Default option and the sonnet , opus , haiku , and fable aliases resolve to",
+            "Without the env block, a user who selects Default in the picker would get the latest Sonnet release, bypassing the version pin in model and availableModels . Merge behavior When availableModels is set at multiple levels, such as user settings and project settings, arrays are merged and deduplicated. To enforce a strict allowlist, set availableModels in managed or policy settings which take highest priority. Mantle model IDs When the Bedrock Mantle endpoint is enabled, entries in availableModels that start with anthropic. are added to the /model picker as custom options and routed to the Mantle endpoint. This is an exception to the alias-only matching described in Pin models for third-party deployments . The setting still restricts the picker to listed entries, so include the standard aliases alongside any Mantle IDs. Special model behavior",
+            "Two cases cause an element to be skipped: Unavailable model : a model that can't be reached, such as a retired model pinned in settings, is skipped and Claude Code continues to the next element. Outside the allowlist : an element not permitted by availableModels is dropped when the chain is read and never tried. Automatic model fallback",
+            "Only append [1m] when the underlying model supports 1M context . The suffix is read per variable, not per model. On Bedrock, Vertex, and Foundry, a model ID without [1m] in one variable uses 200K context even if another variable sets the same model with the suffix. The settings.availableModels allowlist still applies when using third-party providers. Filtering matches on the model alias ( fable , opus , sonnet , haiku ), not the provider-specific model ID. Customize pinned model display and capabilities"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "以前は、管理者が `availableModels` で利用可能なモデルを制限していても、「デフォルト(Default)」設定のモデルはこの制限を受けず、サブスクリプションに応じた最新モデルが使用される場合がありました。また、ユーザーやプロジェクト単位の設定で、管理者が定めた許可リストにモデルを自由に追加できてしまうという課題もありました。",
+        "after": "新しい `enforceAvailableModels` を有効にすると、デフォルトモデルも許可リストに従うよう制限されます。不許可のモデルがデフォルトに指定されている場合はリスト内の最初の許可モデルにフォールバックされるほか、ユーザー側での許可リストの拡張も禁止されます。",
+        "benefit": "組織の管理者は、開発者が使用できる AI モデルを厳格に制御できるようになります。これにより、特定のモデル以外の利用を禁止するコンプライアンス要件の遵守や、想定外のモデル利用によるコスト発生を確実に防ぐことが可能です。"
+      }
+    }
+  ]
+}
