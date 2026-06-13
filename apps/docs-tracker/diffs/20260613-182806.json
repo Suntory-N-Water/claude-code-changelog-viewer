@@ -1,0 +1,137 @@
+{
+  "id": "20260613-182806",
+  "timestamp": "2026-06-13T18:28:06.139Z",
+  "aiSummary": "Claude Codeの/statusコマンドで表示される設定ソースの確認方法がより具体的に記述されました。エンタープライズ管理設定におけるソース識別子や、各設定レイヤーが読み込まれているかどうかの判定基準が明確化されています。また、設定ファイルにエラーがある場合の doctorコマンドによる詳細確認の手順も追加されました。",
+  "files": [
+    {
+      "filename": "admin-setup.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "管理者向け設定の検証手順において、/statusコマンドの実行結果が表示される場所がStatusタブ内であることを明記する修正が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -110,7 +110,7 @@ If you need request-level audit logging or to route traffic by data sensitivity,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Verify and onboard"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "After configuring managed settings, have a developer run `/status` inside Claude Code. The output includes a line beginning with `Enterprise managed settings` followed by the source in parentheses, one of `(remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. See [Verify active settings](/en/settings#verify-active-settings)."
+            },
+            {
+              "type": "added",
+              "content": "After configuring managed settings, have a developer run `/status` inside Claude Code. On the **Status** tab, the `Setting sources` line shows `Enterprise managed settings` followed by the source in parentheses, one of `(remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. See [Verify active settings](/en/settings#verify-active-settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Share these resources to help developers get started:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 9,
+      "deletions": 2,
+      "explanation": "設定ソースの読み込み状況や検証エラーの確認方法が整理され、特定のレイヤーが表示されない場合の理由や、Configタブとsettings.jsonの違いが詳しく説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -574,9 +574,16 @@ For example, if your user settings set `permissions.defaultMode` to `acceptEdits",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Verify active settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `/status` inside Claude Code to see which settings sources are active. The Status tab includes a `Setting sources` line that lists each layer Claude Code loaded for the current session, such as `User settings` or `Project local settings`. When [managed settings](/en/admin-setup#decide-how-settings-reach-devices) are in effect, the entry shows the delivery channel in parentheses, for example `Enterprise managed settings (remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. A layer appears in the list only when that source is loaded with at least one key, so an empty list means no settings sources were found."
+            },
+            {
+              "type": "added",
+              "content": "Run `/status` and check the `Setting sources` line on the **Status** tab. It lists every settings layer Claude Code loaded for this session:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `Setting sources` line confirms which sources are being read. It does not show which layer supplied each individual key. The Config tab in the same dialog is an editor for a fixed set of toggles such as theme and verbose output, not a view of your `settings.json` contents. If a settings file contains errors, such as invalid JSON or a value that fails validation, Claude Code shows a setup issues notice at startup and `/status` lists the affected files. Run `/doctor` to see the details for each error."
+            },
+            {
+              "type": "added",
+              "content": "- If a layer such as `User settings` or `Project local settings` appears, that file is being read."
+            },
+            {
+              "type": "added",
+              "content": "- If a layer is missing, that file was not found or contains no keys."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When [managed settings](/en/admin-setup#decide-how-settings-reach-devices) are in effect, the entry shows the delivery channel in parentheses, for example `Enterprise managed settings (remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If a settings file has invalid JSON or a value that fails validation, Claude Code shows a setup issues notice at startup and the **Status** tab lists the affected files. Run `/doctor` for the details of each error."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The line confirms which files are being read, not which layer supplied each individual key. The **Config** tab in the same dialog edits built-in toggles such as theme and verbose output, not your `settings.json` contents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Key points about the configuration system"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
