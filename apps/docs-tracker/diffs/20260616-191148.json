@@ -1,0 +1,52 @@
+{
+  "id": "20260616-191148",
+  "timestamp": "2026-06-16T19:11:48.433Z",
+  "aiSummary": "アクセス権限の評価順序に関する説明が強化され、広範な拒否ルールが特定の許可ルールよりも優先される仕組みが明確化されました。Bash(aws *)のような包括的な拒否ルールを設定した場合、Bash(aws s3 ls)といった具体的な許可ルールが存在しても例外なくブロックされる仕様が追記されています。許可リストに例外を設ける目的で拒否ルールを使用できないという重要な制限事項が具体例とともに示されました。askとallowの関係性についても、より具体的な許可ルールより先にaskルールが適用される優先順位が再確認されています。",
+  "files": [
+    {
+      "filename": "permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "権限ルールの評価順序において、広範な拒否ルールが特定の許可ルールを上書きしてブロックする挙動の具体例が追加されました。拒否、確認、許可の優先順位が絶対的であり、ルールの具体性によってこの順序が入れ替わらないことが明示されています。",
+      "hunks": [
+        {
+          "header": "@@ -27,7 +27,7 @@ You can view and manage Claude Code's tool permissions with `/permissions`. This",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Ask** rules prompt for confirmation whenever Claude Code tries to use the specified tool."
+            },
+            {
+              "type": "context",
+              "content": "- **Deny** rules prevent Claude Code from using the specified tool."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Rules are evaluated in order: deny, then ask, then allow. The first match in that order determines the outcome, and rule specificity does not change the order. A matching ask rule prompts even when a more specific allow rule also matches the same call."
+            },
+            {
+              "type": "added",
+              "content": "Rules are evaluated in order: deny, then ask, then allow. The first match in that order determines the outcome, and rule specificity does not change the order. A broad deny rule like `Bash(aws *)` blocks every matching call, including calls that also match a narrower allow rule like `Bash(aws s3 ls)`, so a deny rule cannot carry allowlist exceptions. The same precedence applies between ask and allow: a matching ask rule prompts even when a more specific allow rule also matches the same call."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Deny rules behave differently depending on whether they name a tool or scope a pattern within one. A bare tool name like `Bash` removes the tool from Claude's context entirely, so Claude never sees it. A scoped rule like `Bash(rm *)` leaves the tool available and blocks matching calls when Claude attempts them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
