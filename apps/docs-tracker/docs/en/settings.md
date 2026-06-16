@@ -210,7 +210,7 @@ This tolerance applies only to managed settings. User, project, and local settin
 | `autoMode` | Customize what the [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier blocks and allows. Contains `environment`, `allow`, `soft_deny`, and `hard_deny` arrays of prose rules. Include the literal string `"$defaults"` in an array to inherit the built-in rules at that position. See [Configure auto mode](/en/auto-mode-config). Not read from shared project settings | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
 | `autoScrollEnabled` | In [fullscreen rendering](/en/fullscreen), follow new output to the bottom of the conversation. Default: `true`. Appears in `/config` as **Auto-scroll**. Permission prompts still scroll into view when this is off | `false` |
 | `autoUpdatesChannel` | Release channel to follow for updates. Use `"stable"` for a version that is typically about one week old and skips versions with major regressions, or `"latest"` (default) for the most recent release. To disable auto-updates entirely, set [`DISABLE_AUTOUPDATER`](/en/setup#disable-auto-updates) in `env` | `"stable"` |
-| `availableModels` | Restrict which models users can select for the main session, [subagents](/en/sub-agents), and the [advisor](/en/advisor). See [Restrict model selection](/en/model-config#restrict-model-selection) | `["sonnet", "haiku"]` |
+| `availableModels` | Restrict which models users can select for the main session, [subagents](/en/sub-agents), and the [advisor](/en/advisor). See [Restrict model selection](/en/model-config#restrict-model-selection). See `enforceAvailableModels` to also constrain Default | `["sonnet", "haiku"]` |
 | `awaySummaryEnabled` | Show a one-line session recap when you return to the terminal after a few minutes away. Set to `false` or turn off Session recap in `/config` to disable. Same as [`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/en/env-vars) | `true` |
 | `awsAuthRefresh` | Custom script that modifies the `.aws` directory (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration)) | `aws sso login --profile myprofile` |
 | `awsCredentialExport` | Custom script that outputs JSON with AWS credentials (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration)) | `/bin/generate_aws_grant.sh` |
@@ -242,6 +242,7 @@ This tolerance applies only to managed settings. User, project, and local settin
 | `feedbackSurveyRate` | Probability (0–1) that the [session quality survey](/en/data-usage#session-quality-surveys) appears when eligible. Set to `0` to suppress entirely, or set [`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`](/en/env-vars) in `env`. Useful when using Bedrock, Vertex, or Foundry where the default sample rate does not apply | `0.05` |
 | `fileCheckpointingEnabled` | Snapshot files before each edit so [`/rewind`](/en/checkpointing) can restore them. Default: `true`. Appears in `/config` as **Rewind code (checkpoints)**. To disable via environment variable, set [`CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING`](/en/env-vars) in `env` | `false` |
 | `fileSuggestion` | Configure a custom script for `@` file autocomplete. See [File suggestion settings](#file-suggestion-settings) | `{"type": "command", "command": "~/.claude/file-suggestion.sh"}` |
+| `footerLinksRegexes` | Render extra clickable badges in the footer when a regex matches turn output. Each entry has a `pattern`, a `url` template with `{name}` placeholders filled from named capture groups, and an optional `label`. Read from user, `--settings` flag, and managed settings only. See [Footer link badges](#footer-link-badges) for URL constraints, scheme allowlist, and limits. Requires Claude Code v2.1.176 or later | `[{"type": "regex", "pattern": "\\b(?<key>PROJ-\\d+)\\b", "url": "https://issues.example.com/browse/{key}", "label": "{key}"}]` |
 | `forceLoginMethod` | Use `claudeai` to restrict login to Claude.ai accounts, `console` to restrict login to Claude Console accounts. When set in managed settings, sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup, since neither value can be satisfied without first-party OAuth. Third-party provider sessions such as Bedrock, Vertex, and Foundry are not blocked: they authenticate against your cloud provider rather than Anthropic | `claudeai` |
 | `forceLoginOrgUUID` | Require login to belong to a specific Anthropic organization. Accepts a single UUID string, which also pre-selects that organization during login, or an array of UUIDs where any listed organization is accepted without pre-selection. When set in managed settings, login fails if the authenticated account does not belong to a listed organization, and sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup since organization membership cannot be verified for them. Third-party provider sessions such as Bedrock, Vertex, and Foundry are not blocked: use your cloud IAM to restrict which cloud accounts can be used. An empty array fails closed and blocks login with a misconfiguration message | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` or `["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]` |
 | `forceRemoteSettingsRefresh` | (Managed settings only) Block CLI startup until remote managed settings are freshly fetched from the server. If the fetch fails, the CLI exits rather than continuing with cached or no settings. When not set, startup continues without waiting for remote settings. See [fail-closed enforcement](/en/server-managed-settings#enforce-fail-closed-startup) | `true` |
@@ -251,7 +252,7 @@ This tolerance applies only to managed settings. User, project, and local settin
 | `includeCoAuthoredBy` | **Deprecated**: Use `attribution` instead. Whether to include the `co-authored-by Claude` byline in git commits and pull requests (default: `true`) | `false` |
 | `includeGitInstructions` | Include built-in commit and PR workflow instructions and the git status snapshot in Claude's system prompt (default: `true`). Set to `false` to remove both, for example when using your own git workflow skills. The `CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` environment variable takes precedence over this setting when set | `false` |
 | `inputNeededNotifEnabled` | When [Remote Control](/en/remote-control) is connected, send a push notification to your phone when a permission prompt or question is waiting for your input. Default: `false`. Appears in `/config` as **Push when actions required**. See [Mobile push notifications](/en/remote-control#mobile-push-notifications). Requires Claude Code v2.1.119 or later | `true` |
-| `language` | Configure Claude's preferred response language (e.g., `"japanese"`, `"spanish"`, `"french"`). Claude will respond in this language by default. Also sets the [voice dictation](/en/voice-dictation#change-the-dictation-language) language | `"japanese"` |
+| `language` | Configure Claude's preferred response language (e.g., `"japanese"`, `"spanish"`, `"french"`). Claude will respond in this language by default. Also sets the language for [voice dictation](/en/voice-dictation#change-the-dictation-language) and auto-generated session titles. As of v2.1.176, when not set, session titles match the language of your conversation | `"japanese"` |
 | `maxSkillDescriptionChars` | Per-skill character cap on the combined `description` and `when_to_use` text in the [skill listing](/en/skills#skill-descriptions-are-cut-short) Claude sees each turn (default: `1536`). Text longer than this is truncated. Raise to keep long descriptions intact at the cost of more context per turn; lower to fit more skills under [`skillListingBudgetFraction`](#available-settings). Requires Claude Code v2.1.105 or later | `2048` |
 | `minimumVersion` | Floor that prevents background auto-updates and `claude update` from installing a version below this one. Switching from the `"latest"` channel to `"stable"` via `/config` prompts you to stay on the current version or allow the downgrade. Choosing to stay sets this value. Also useful in [managed settings](/en/permissions#managed-settings) to pin an organization-wide minimum. For a hard floor that blocks startup entirely, see `requiredMinimumVersion` | `"2.1.100"` |
 | `model` | Override the default model to use for Claude Code. `--model` and [`ANTHROPIC_MODEL`](/en/model-config#environment-variables) override this for one session | `"claude-sonnet-4-6"` |
@@ -497,6 +498,44 @@ query=$(cat | jq -r '.query')
 your-repo-file-index --query "$query" | head -20
 ```
 
+### Footer link badges
+
+The `footerLinksRegexes` setting renders extra clickable badges in the footer below the input box. Use it to turn IDs printed by project CLIs, such as review tools and issue trackers, into session links.
+
+Each entry's `pattern` regex is matched against turn output: tool results, including file contents and fetched pages, and Claude's own responses. `{name}` placeholders in `url` and `label` are filled from named capture groups in the pattern.
+
+The following example renders a badge whenever an issue key like `PROJ-1234` appears in turn output. The `(?<key>...)` named group captures the key, and `{key}` substitutes it into the URL and label:
+
+```json ~/.claude/settings.json theme={null}
+{
+  "footerLinksRegexes": [
+    {
+      "type": "regex",
+      "pattern": "\\b(?<key>PROJ-\\d+)\\b",
+      "url": "https://issues.example.com/browse/{key}",
+      "label": "{key}"
+    }
+  ]
+}
+```
+
+With this configured, when `PROJ-1234` appears in a tool result or in Claude's reply, a `PROJ-1234` chip appears in the footer linking to `https://issues.example.com/browse/PROJ-1234`.
+
+The following constraints apply to each entry:
+
+| Constraint | Behavior |
+| :- | :- |
+| URL origin | Captured values are URL-encoded and the constructed URL must share the template's literal origin. A capture can fill a path segment or query value but cannot change where the link points |
+| URL length | Constructed URLs longer than 2048 characters are dropped |
+| URL scheme | Must be `https`, `http`, or a recognized editor or workspace deep-link scheme: `vscode`, `vscode-insiders`, `cursor`, `windsurf`, `zed`, `jetbrains`, `idea`, `slack`, `linear`, `notion`, `figma` |
+| Label | Defaults to the matched text and is truncated to 28 display columns |
+| Badge count | At most 5 badges render. The oldest is displaced by newer matches and `/clear` removes them |
+| Settings scope | Read from user settings, the `--settings` flag, and managed settings only. Ignored in project `.claude/settings.json` and local `.claude/settings.local.json` |
+
+When a turn completes, Claude Code matches each entry's `pattern` regex against the turn output on the main thread, so a slow regex blocks the UI until it finishes. Nested quantifiers such as `(a+)+$` can take exponentially long against certain inputs and freeze the session, so keep each `pattern` linear and avoid nesting `+` or `*`.
+
+Footer badges render alongside a [custom status line](/en/statusline) when one is configured; neither replaces the other. Use a status line for a script-driven row that computes its own content from session data, and footer badges to turn IDs from the conversation into links without a script.
+
 ### Hook configuration
 
 These settings control which hooks are allowed to run and what HTTP hooks can access. The `allowManagedHooksOnly` setting can only be configured in [managed settings](#settings-files). The URL and env var allowlists can be set at any settings level and merge across sources.
@@ -579,20 +618,15 @@ This hierarchy ensures that organizational policies are always enforced while st
 
 For example, if your user settings set `permissions.defaultMode` to `acceptEdits` and a project's shared settings set it to `default`, the project value applies. The example below covers how array-valued settings such as permission rules combine instead.
 
-**Array settings merge across scopes.** When the same array-valued setting (such as `sandbox.filesystem.allowWrite` or `permissions.allow`) appears in multiple scopes, the arrays are **concatenated and deduplicated**, not replaced. This means lower-priority scopes can add entries without overriding those set by higher-priority scopes, and vice versa. For example, if managed settings set `allowWrite` to `["/opt/company-tools"]` and a user adds `["~/.kube"]`, both paths are included in the final configuration. Two exceptions: [`fallbackModel`](#available-settings), an ordered chain where position carries meaning so the highest-precedence file that defines it supplies the entire value, and as of v2.1.175, [`availableModels`](#available-settings), where a managed or policy value replaces lower-precedence entries entirely. See [Merge behavior](/en/model-config#merge-behavior).
+**Array settings merge across scopes.** When the same array-valued setting (such as `sandbox.filesystem.allowWrite` or `permissions.allow`) appears in multiple scopes, the arrays are **concatenated and deduplicated**, not replaced. This means lower-priority scopes can add entries without overriding those set by higher-priority scopes, and vice versa. For example, if managed settings set `allowWrite` to `["/opt/company-tools"]` and a user adds `["~/.kube"]`, both paths are included in the final configuration. Two exceptions: [`fallbackModel`](#available-settings) is an ordered chain where position carries meaning, so the highest-precedence file that defines it supplies the entire value. As of v2.1.175, a managed or policy [`availableModels`](#available-settings) value replaces lower-precedence entries entirely. See [Merge behavior](/en/model-config#merge-behavior).
 
 ### Verify active settings
 
-Run `/status` and check the `Setting sources` line on the **Status** tab. It lists every settings layer Claude Code loaded for this session:
+Run `/status` inside Claude Code to see which settings sources are active. Inside the menu, the **Status** tab includes a `Setting sources` line that lists each layer Claude Code loaded for the current session, such as `User settings` or `Project local settings`. When [managed settings](/en/admin-setup#decide-how-settings-reach-devices) are in effect, the entry shows the delivery channel in parentheses, for example `Enterprise managed settings (remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. A layer appears in the list only when that source is loaded with at least one key, so an empty list means no settings sources were found.
 
-- If a layer such as `User settings` or `Project local settings` appears, that file is being read.
-- If a layer is missing, that file was not found or contains no keys.
+The `Setting sources` line confirms which sources are being read. It does not show which layer supplied each individual key. The **Config** tab in the same dialog is an editor for a fixed set of toggles such as theme and verbose output, not a view of your `settings.json` contents.
 
-When [managed settings](/en/admin-setup#decide-how-settings-reach-devices) are in effect, the entry shows the delivery channel in parentheses, for example `Enterprise managed settings (remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`.
-
-If a settings file has invalid JSON or a value that fails validation, Claude Code shows a setup issues notice at startup and the **Status** tab lists the affected files. Run `/doctor` for the details of each error.
-
-The line confirms which files are being read, not which layer supplied each individual key. The **Config** tab in the same dialog is where you change preference toggles such as theme and verbose output.
+If a settings file contains errors, such as invalid JSON or a value that fails validation, Claude Code shows a setup issues notice at startup and `/status` lists the affected files. Run `/doctor` to see the details for each error.
 
 ### Key points about the configuration system
 

@@ -627,7 +627,7 @@ type AgentDefinition = {
 | :- | :- | :- |
 | `description` | Yes | Natural language description of when to use this agent |
 | `tools` | No | Array of allowed tool names. If omitted, inherits all tools from parent. To preload Skills into the agent's context, use the `skills` field rather than listing `'Skill'` here |
-| `disallowedTools` | No | Array of tool names to explicitly disallow for this agent |
+| `disallowedTools` | No | Array of tool names to explicitly disallow for this agent. MCP server-level patterns are also accepted: `mcp__server` or `mcp__server__*` removes every tool from that server, and `mcp__*` removes every MCP tool from any server |
 | `prompt` | Yes | The agent's system prompt |
 | `model` | No | Model override for this agent. Accepts an alias such as `'fable'`, `'opus'`, `'sonnet'`, `'haiku'`, `'inherit'`, or a full model ID. If omitted or `'inherit'`, uses the main model |
 | `mcpServers` | No | MCP server specifications for this agent |
@@ -959,6 +959,7 @@ type SDKMessage =
   | SDKTaskProgressMessage
   | SDKTaskUpdatedMessage
   | SDKSessionStateChangedMessage
+  | SDKWorkerShuttingDownMessage
   | SDKCommandsChangedMessage
   | SDKNotificationMessage
   | SDKFilesPersistedEvent
@@ -969,7 +970,8 @@ type SDKMessage =
   | SDKPermissionDeniedMessage
   | SDKPromptSuggestionMessage
   | SDKAPIRetryMessage
-  | SDKMirrorErrorMessage;
+  | SDKMirrorErrorMessage
+  | SDKInformationalMessage;
 ```
 
 ### `SDKAssistantMessage`
@@ -1157,6 +1159,37 @@ type SDKCompactBoundaryMessage = {
 };
 ```
 
+### `SDKInformationalMessage`
+
+Generic text banner emitted by the loop. Carries non-error status lines, hook feedback such as a `UserPromptSubmit` hook's block reason, and command output. Render `content` as plaintext at the given `level`.
+
+```typescript
+type SDKInformationalMessage = {
+  type: "system";
+  subtype: "informational";
+  content: string;
+  level: "info" | "notice" | "suggestion" | "warning";
+  tool_use_id?: string;
+  prevent_continuation?: boolean;
+  uuid: UUID;
+  session_id: string;
+};
+```
+
+### `SDKWorkerShuttingDownMessage`
+
+Emitted on graceful worker teardown so remote clients can show why the worker went away instead of waiting for heartbeat timeout. The `reason` is a short snake\_case string set by the host CLI, such as `"host_exit"` or `"remote_control_disabled"`. Act on this only when streaming live. A resumed session replays past instances of this message, so ignore them in that case.
+
+```typescript
+type SDKWorkerShuttingDownMessage = {
+  type: "system";
+  subtype: "worker_shutting_down";
+  reason: string;
+  uuid: UUID;
+  session_id: string;
+};
+```
+
 ### `SDKPluginInstallMessage`
 
 Plugin installation progress event. Emitted when [`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/en/env-vars) is set, so your Agent SDK application can track marketplace plugin installation before the first turn. The `started` and `completed` statuses bracket the overall install. The `installed` and `failed` statuses report individual marketplaces and include `name`.
@@ -1223,7 +1256,7 @@ Provenance of a user-role message. This appears as `origin` on [`SDKUserMessage`
 type SDKMessageOrigin =
   | { kind: "human" }
   | { kind: "channel"; server: string }
-  | { kind: "peer"; from: string; name?: string }
+  | { kind: "peer"; from: string; name?: string; senderTaskId?: string }
   | { kind: "task-notification" }
   | { kind: "coordinator" }
   | { kind: "auto-continuation" };
@@ -1233,7 +1266,7 @@ type SDKMessageOrigin =
 | - | - |
 | `human` | Direct input from the end user. On user messages, an absent `origin` also means human input. |
 | `channel` | Message arriving on a [channel](/en/channels). `server` is the source MCP server name. |
-| `peer` | Reserved for messages from another agent session. `from` is the sender address and `name` is the sender's display name when available. The Agent SDK does not emit this origin; treat as an unknown origin. |
+| `peer` | Reserved for messages from another agent session. `from` is the sender address and `name` is the sender's display name when available. `senderTaskId` is the task ID of the in-process background subagent that sent the message; absent for cross-session peers. The Agent SDK does not emit this origin; treat as an unknown origin. |
 | `task-notification` | Synthetic turn injected after a background task finished. See [`SDKTaskNotificationMessage`](#sdktasknotificationmessage). |
 | `coordinator` | Message from a team coordinator in an [agent team](/en/agent-teams). |
 | `auto-continuation` | Synthetic turn injected when the session continues without fresh user input, such as a command result that triggers a follow-up prompt. |
@@ -1526,6 +1559,7 @@ type SetupHookInput = BaseHookInput & {
 type TeammateIdleHookInput = BaseHookInput & {
   hook_event_name: "TeammateIdle";
   teammate_name: string;
+  /** @deprecated since v2.1.178. Carries the session-derived team name; will be removed. */
   team_name: string;
 };
 ```
@@ -1539,6 +1573,7 @@ type TaskCompletedHookInput = BaseHookInput & {
   task_subject: string;
   task_description?: string;
   teammate_name?: string;
+  /** @deprecated since v2.1.178. Carries the session-derived team name; will be removed. */
   team_name?: string;
 };
 ```
@@ -1731,7 +1766,6 @@ type AgentInput = {
   run_in_background?: boolean;
   max_turns?: number;
   name?: string;
-  team_name?: string;
   mode?: "acceptEdits" | "bypassPermissions" | "default" | "dontAsk" | "plan";
   isolation?: "worktree";
 };
