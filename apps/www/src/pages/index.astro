@@ -43,6 +43,13 @@ const TOP_PAGE_SIZE = 9;
 const initialVersions = versionData.slice(0, TOP_PAGE_SIZE);
 const remainingCount = versionData.length - TOP_PAGE_SIZE;
 
+const latestVersion = sortedChangelogs[0].data.version;
+const totalVersions = sortedChangelogs.length;
+const totalChanges = sortedChangelogs.reduce(
+  (sum, entry) => sum + entry.data.items.length,
+  0,
+);
+
 const faqItems = [
   {
     question: 'Claude Codeとは何ですか？',
@@ -81,102 +88,154 @@ const topAreas = [...areaMap.entries()]
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-6xl mx-auto'>
-      <header class='mb-12 sm:mb-16 text-center max-w-4xl mx-auto'>
+      <header class='mb-16 sm:mb-20 max-w-4xl'>
+        <p
+          class='font-mono text-[11px] tracking-[0.18em] uppercase text-[hsl(var(--cc-main-black)/0.5)] mb-5'
+        >
+          // latest release
+        </p>
+        <div
+          class='flex flex-wrap items-end gap-x-6 gap-y-3 border-b border-[hsl(var(--cc-gray))] pb-6 mb-8'
+        >
+          <a
+            href={`/changelog/v${latestVersion}`}
+            class='font-mono text-5xl sm:text-6xl lg:text-7xl font-bold tabular-nums leading-none tracking-tight text-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-orange-hover))] transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+          >
+            v{latestVersion}
+          </a>
+          <dl
+            class='font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] flex flex-col gap-1 pb-1'
+          >
+            <div class='flex items-center gap-2'>
+              <dt class='tabular-nums text-[hsl(var(--cc-main-black))]'>
+                {new Intl.NumberFormat('ja-JP').format(totalVersions)}
+              </dt>
+              <dd>versions tracked</dd>
+            </div>
+            <div class='flex items-center gap-2'>
+              <dt class='tabular-nums text-[hsl(var(--cc-main-black))]'>
+                {new Intl.NumberFormat('ja-JP').format(totalChanges)}
+              </dt>
+              <dd>changes summarized</dd>
+            </div>
+          </dl>
+        </div>
         <h1
-          class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-3'
+          class='text-3xl sm:text-4xl font-bold text-balance tracking-tight text-[hsl(var(--cc-main-black))] mb-3'
         >
           {SITE_TITLE}
         </h1>
         <p
-          class='text-base sm:text-lg text-pretty text-gray-600 leading-relaxed'
+          class='text-base sm:text-lg text-pretty text-gray-600 leading-relaxed max-w-2xl'
         >
-          Claude
-          Codeのアップデート内容を、AIが分析して日本語で分かりやすく解説。
+          公式 CHANGELOG を毎時取り込み、Skills・Hooks・MCP
+          など機能別に追跡。日本語サマリーと変更前後の比較を AI が生成します。
         </p>
-        <div class='flex flex-wrap items-center justify-center gap-3 mt-5'>
+        <div class='flex flex-wrap items-center gap-3 mt-7'>
+          <a
+            href={`/changelog/v${latestVersion}`}
+            class='inline-flex items-center gap-1.5 min-h-11 px-5 py-2 rounded-full bg-[hsl(var(--cc-main-orange))] text-sm text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+          >
+            最新版を読む
+            <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
+          </a>
           <a
             href='/notify'
-            class='inline-flex items-center gap-1.5 min-h-11 px-4 py-2 rounded-full border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.6)] hover:border-[hsl(var(--cc-main-orange)/0.4)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-main-orange)/0.04)] transition-[border-color,color,background-color,transform] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+            class='inline-flex items-center gap-1.5 min-h-11 px-5 py-2 rounded-full border border-[hsl(var(--cc-gray))] text-sm text-[hsl(var(--cc-main-black)/0.7)] hover:border-[hsl(var(--cc-main-orange)/0.4)] hover:text-[hsl(var(--cc-main-orange))] hover:bg-[hsl(var(--cc-main-orange)/0.04)] transition-[border-color,color,background-color,transform] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
           >
             <Icon name='bell' class='w-4 h-4' aria-hidden='true' />
             更新通知を受け取る
           </a>
           <a
-            href={`/changelog/v${sortedChangelogs[0].data.version}`}
-            class='inline-flex items-center gap-1.5 min-h-11 px-4 py-2 rounded-full bg-[hsl(var(--cc-main-orange))] text-sm text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
+            href='/docs'
+            class='inline-flex items-center min-h-11 text-xs text-[hsl(var(--cc-main-black)/0.55)] hover:text-[hsl(var(--cc-main-orange))] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
           >
-            <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
-            最新バージョンを見る
+            公式ドキュメントの変更履歴はこちら →
           </a>
         </div>
-        <a
-          href='/docs'
-          class='block mt-3 text-xs text-[hsl(var(--cc-main-black)/0.6)] hover:text-[hsl(var(--cc-main-orange))] transition-colors rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[hsl(var(--cc-main-orange))]'
-        >
-          公式ドキュメントの変更履歴はこちら →
-        </a>
       </header>
 
-      <div
-        id='versions-grid'
-        class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
-      >
-        {
-          initialVersions.map(({ version, itemCount, summary, diffStatus }) => (
-            <VersionCard
-              version={version}
-              itemCount={itemCount}
-              summary={summary}
-              diffStatus={diffStatus}
-            />
-          ))
-        }
-      </div>
-
-      {
-        remainingCount > 0 && (
-          <div class='mt-8 text-center'>
-            <a
-              href='/changelog'
-              class='inline-flex cursor-pointer items-center gap-2 px-6 py-3 rounded-lg border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
-            >
-              全バージョン一覧を見る(他{remainingCount}件)
-              <svg
-                class='w-4 h-4'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
-                stroke-width='2'
-                aria-hidden='true'
-              >
-                <path
-                  stroke-linecap='round'
-                  stroke-linejoin='round'
-                  d='M9 5l7 7-7 7'
-                />
-              </svg>
-            </a>
-          </div>
-        )
-      }
-      <section class='mt-16 max-w-3xl mx-auto'>
-        <h2
-          class='text-2xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-4'
+      <section>
+        <div
+          class='flex items-baseline justify-between gap-4 mb-6 border-t border-[hsl(var(--cc-gray))] pt-8'
         >
-          機能エリア別に探す
-        </h2>
-        <p class='text-sm text-gray-600 mb-6'>
-          特定の機能に関する変更履歴をバージョンを横断して確認できます。
+          <div>
+            <p
+              class='font-mono text-[11px] tracking-[0.18em] uppercase text-[hsl(var(--cc-main-black)/0.5)] mb-2'
+            >
+              // versions
+            </p>
+            <h2
+              class='text-2xl font-bold tracking-tight text-[hsl(var(--cc-main-black))]'
+            >
+              最近のバージョン
+            </h2>
+          </div>
+          <a
+            href='/changelog'
+            class='hidden sm:inline-flex items-center gap-1 font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+          >
+            すべて表示
+            <Icon name='chevron-right' class='w-3 h-3' aria-hidden='true' />
+          </a>
+        </div>
+        <div
+          id='versions-grid'
+          class='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6'
+        >
+          {
+            initialVersions.map(
+              ({ version, itemCount, summary, diffStatus }) => (
+                <VersionCard
+                  version={version}
+                  itemCount={itemCount}
+                  summary={summary}
+                  diffStatus={diffStatus}
+                />
+              ),
+            )
+          }
+        </div>
+
+        {
+          remainingCount > 0 && (
+            <div class='mt-8 text-center'>
+              <a
+                href='/changelog'
+                class='inline-flex cursor-pointer items-center gap-2 px-6 py-3 rounded-lg border border-[hsl(var(--cc-gray))] text-[hsl(var(--cc-main-black))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
+              >
+                全バージョン一覧を見る(他{remainingCount}件)
+                <Icon name='chevron-right' class='w-4 h-4' aria-hidden='true' />
+              </a>
+            </div>
+          )
+        }
+      </section>
+
+      <section class='mt-20 max-w-4xl mx-auto'>
+        <p
+          class='font-mono text-[11px] tracking-[0.18em] uppercase text-[hsl(var(--cc-main-black)/0.5)] mb-2'
+        >
+          // feature-areas
         </p>
-        <div class='flex flex-wrap gap-3'>
+        <h2
+          class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          機能で絞り込む
+        </h2>
+        <p class='text-sm text-gray-600 mb-6 leading-relaxed'>
+          Skills・Hooks・MCP
+          など、特定の機能領域に関する変更だけをバージョン横断で読みます。
+        </p>
+        <div class='flex flex-wrap gap-2.5'>
           {
             topAreas.map(({ slug, label, itemCount }) => (
               <a
                 href={`/features/${slug}`}
-                class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
+                class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] text-sm hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
               >
                 {label}
-                <span class='text-xs text-gray-400 tabular-nums'>
+                <span class='font-mono text-[11px] text-gray-400 tabular-nums'>
                   {itemCount}
                 </span>
               </a>
@@ -184,47 +243,45 @@ const topAreas = [...areaMap.entries()]
           }
           <a
             href='/features'
-            class='inline-flex items-center px-4 py-2 text-sm text-gray-500 hover:text-[hsl(var(--cc-main-orange))] transition-colors'
+            class='inline-flex items-center px-3 py-2 text-sm text-gray-500 hover:text-[hsl(var(--cc-main-orange))] transition-colors'
           >
             すべて見る &rarr;
           </a>
         </div>
       </section>
 
-      <section class='mt-16 max-w-3xl mx-auto'>
-        <h2
-          class='text-2xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-4'
+      <section class='mt-20 max-w-4xl mx-auto'>
+        <p
+          class='font-mono text-[11px] tracking-[0.18em] uppercase text-[hsl(var(--cc-main-black)/0.5)] mb-2'
         >
-          公式ドキュメントの更新を追う
+          // docs-diff
+        </p>
+        <h2
+          class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'
+        >
+          公式ドキュメントの差分
         </h2>
-        <p class='text-sm text-gray-600 mb-6'>
-          Claude Code 公式ドキュメントの変更を3時間おきに自動取得し、diff
-          形式で追跡。AIが各更新の概要を日本語で解説します。
+        <p class='text-sm text-gray-600 mb-6 leading-relaxed'>
+          Claude Code 公式ドキュメントを 3 時間ごとに取得し、diff
+          として記録。各更新は AI が日本語で要約します。
         </p>
         <a
           href='/docs'
-          class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
+          class='inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-[hsl(var(--cc-gray))] text-sm hover:border-[hsl(var(--cc-main-orange))] hover:text-[hsl(var(--cc-main-orange))] transition-[border-color,color,transform] active:scale-[0.96]'
         >
           公式ドキュメント更新履歴
-          <svg
-            class='w-3.5 h-3.5'
-            fill='none'
-            viewBox='0 0 24 24'
-            stroke='currentColor'
-            stroke-width='2.5'
-            aria-hidden='true'
-          >
-            <path
-              stroke-linecap='round'
-              stroke-linejoin='round'
-              d='M9 5l7 7-7 7'></path>
-          </svg>
+          <Icon name='chevron-right' class='w-3.5 h-3.5' aria-hidden='true' />
         </a>
       </section>
 
-      <section class='mt-16 max-w-3xl mx-auto'>
+      <section class='mt-20 max-w-4xl mx-auto'>
+        <p
+          class='font-mono text-[11px] tracking-[0.18em] uppercase text-[hsl(var(--cc-main-black)/0.5)] mb-2'
+        >
+          // faq
+        </p>
         <h2
-          class='text-2xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-8'
+          class='text-2xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-8'
         >
           よくある質問
         </h2>
@@ -234,20 +291,11 @@ const topAreas = [...areaMap.entries()]
               <details class='border border-[hsl(var(--cc-gray))] rounded-lg p-5 group'>
                 <summary class='font-medium cursor-pointer list-none flex items-center justify-between'>
                   {question}
-                  <svg
+                  <Icon
+                    name='chevron-down'
                     class='w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform shrink-0'
-                    fill='none'
-                    viewBox='0 0 24 24'
-                    stroke='currentColor'
-                    stroke-width='2'
                     aria-hidden='true'
-                  >
-                    <path
-                      stroke-linecap='round'
-                      stroke-linejoin='round'
-                      d='M19 9l-7 7-7-7'
-                    />
-                  </svg>
+                  />
                 </summary>
                 <p class='mt-3 text-sm text-gray-600 leading-relaxed'>
                   {answer}
