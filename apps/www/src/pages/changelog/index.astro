@@ -13,6 +13,11 @@ sortedChangelogs.sort((a, b) =>
 const diffEntries = await getCollection('diff');
 const diffMap = buildDiffMap(diffEntries);
 
+const totalChanges = sortedChangelogs.reduce(
+  (sum, entry) => sum + entry.data.items.length,
+  0,
+);
+
 const versionData = sortedChangelogs.map((entry) => {
   const events = diffMap.get(`v${entry.data.version}`);
   const diffStatus = events?.some((e) => e.type === 'version_removed')
@@ -55,7 +60,7 @@ for (const v of versionData) {
 >
   <div class='min-h-dvh py-12 sm:py-16 px-4'>
     <div class='max-w-6xl mx-auto'>
-      <header class='mb-12'>
+      <header class='mb-12 max-w-4xl'>
         <nav aria-label='パンくずリスト' class='text-sm text-gray-400 mb-6'>
           <a
             href='/'
@@ -67,13 +72,26 @@ for (const v of versionData) {
             >全バージョン一覧</span
           >
         </nav>
+        <p
+          class='font-mono text-[11px] tracking-[0.18em] uppercase text-[hsl(var(--cc-main-black)/0.5)] mb-3'
+        >
+          // archive
+        </p>
         <h1
-          class='text-3xl sm:text-4xl font-bold text-balance text-[hsl(var(--cc-main-black))] mb-2'
+          class='text-3xl sm:text-4xl font-bold tracking-tight text-balance text-[hsl(var(--cc-main-black))] mb-3'
         >
           全バージョン一覧
         </h1>
-        <p class='text-sm text-gray-500 tabular-nums'>
-          {versionData.length} バージョン
+        <p
+          class='font-mono text-xs text-[hsl(var(--cc-main-black)/0.55)] tabular-nums'
+        >
+          <span class='text-[hsl(var(--cc-main-black))]'
+            >{new Intl.NumberFormat('ja-JP').format(versionData.length)}</span
+          > versions
+          <span class='mx-2 text-[hsl(var(--cc-main-black)/0.3)]'>·</span>
+          <span class='text-[hsl(var(--cc-main-black))]'
+            >{new Intl.NumberFormat('ja-JP').format(totalChanges)}</span
+          > changes summarized
         </p>
       </header>
 
