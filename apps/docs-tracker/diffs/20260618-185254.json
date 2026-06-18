@@ -1,0 +1,436 @@
+{
+  "id": "20260618-185254",
+  "timestamp": "2026-06-18T18:52:54.956Z",
+  "aiSummary": "セッションの出力をプライベートなWebページとして公開できるArtifacts機能が導入されました。この新機能に伴い、自動ブラウザ起動の制御や機能自体の無効化を行う新しい環境変数と設定項目が追加されています。また、Artifactsを表示するためのネットワーク構成要件や用語定義、データ保持に関するポリシーも整備されました。チームまたはエンタープライズプランでの利用が可能となり、認証方法や共有範囲に関する詳細が公開されています。",
+  "files": [
+    {
+      "filename": "artifacts.md",
+      "additions": 219,
+      "deletions": 0,
+      "explanation": "セッション内容をWeb上で可視化・共有するためのArtifacts機能について、200行以上の詳細なガイドが追加されました。",
+      "hunks": []
+    },
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "セッションへのリンクに関する記述において、従来の呼称をArtifactからOutputへ変更する修正が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -101,7 +101,7 @@ Add `apt update && apt install -y gh` to your [setup script](#setup-scripts).",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Add a `GH_TOKEN` environment variable to your [environment settings](#configure-your-environment) with a GitHub personal access token. `gh` reads `GH_TOKEN` automatically, so no `gh auth login` step is needed."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "### Link artifacts back to the session"
+            },
+            {
+              "type": "added",
+              "content": "### Link output back to the session"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each cloud session has a transcript URL on claude.ai, and the session can read its own ID from the `CLAUDE_CODE_REMOTE_SESSION_ID` environment variable. Use this to put a traceable link in PR bodies, commit messages, Slack posts, or generated reports so a reviewer can open the run that produced them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "Artifactの自動起動を停止する変数や機能を無効化する変数など、新しい環境変数の説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -139,6 +139,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ALT_SCREEN_FULL_REPAINT` | Set to `1` to repaint the entire screen on every frame in [fullscreen rendering](/en/fullscreen) instead of sending incremental updates. Use this if fullscreen mode shows stale or misplaced text fragments. Claude Code enables this automatically for background sessions and [agent view](/en/agent-view) on Windows |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ALWAYS_ENABLE_EFFORT` | Set to `1` to send the [effort](/en/model-config#adjust-effort-level) parameter with every request, even when Claude Code does not recognize the model ID as effort-capable. Use this when routing through an [LLM gateway](/en/llm-gateway) or third-party provider that serves models under custom identifiers. Models that reject the effort parameter at the API, including Claude 3 models, Sonnet 4.0 and 4.5, Opus 4.0 and 4.1, and Haiku 4.5, are still excluded so requests do not fail |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` | Interval in milliseconds at which credentials should be refreshed (when using [`apiKeyHelper`](/en/settings#available-settings)) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ARTIFACT_AUTO_OPEN` | Set to `0` to stop Claude Code from opening the browser automatically when a new [artifact](/en/artifacts) is published. Republishing an existing artifact does not open the browser regardless of this setting |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ATTRIBUTION_HEADER` | Set to `0` to omit the attribution block (client version and prompt fingerprint) from the start of the system prompt. Disabling it improves prompt-cache hit rates when routing through an [LLM gateway](/en/llm-gateway). Anthropic API caching is unaffected |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | Set the context capacity in tokens used for auto-compaction calculations. Defaults to the model's context window: 200K for standard models or 1M for [extended context](/en/model-config#extended-context) models. Use a lower value like `500000` on a 1M model to treat the window as 500K for compaction purposes. The value is capped at the model's actual context window. `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is applied as a percentage of this value. Setting this variable decouples the compaction threshold from the status line's `used_percentage`, which always uses the model's full context window |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_AUTO_CONNECT_IDE` | Override automatic [IDE connection](/en/vs-code). By default, Claude Code connects automatically when launched inside a supported IDE's integrated terminal. Set to `false` to prevent this. Set to `true` to force a connection attempt when auto-detection fails, such as when tmux obscures the parent terminal. Takes precedence over the [`autoConnectIde`](/en/settings#global-config-settings) global config setting |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -154,6 +155,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ADVISOR_TOOL` | Set to `1` to disable the [advisor tool](/en/advisor). The `/advisor` command and `--advisor` flag become unavailable and any configured `advisorModel` is ignored. Requires Claude Code v2.1.98 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_AGENT_VIEW` | Set to `1` to turn off [background agents and agent view](/en/agent-view): `claude agents`, `--bg`, `/background`, and the on-demand supervisor. Equivalent to the [`disableAgentView`](/en/settings#available-settings) setting |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN` | Set to `1` to disable [fullscreen rendering](/en/fullscreen) and use the classic main-screen renderer. The conversation stays in your terminal's native scrollback so `Cmd+f` and tmux copy mode work as usual. Takes precedence over `CLAUDE_CODE_NO_FLICKER` and the [`tui`](/en/settings#available-settings) setting. You can also switch with `/tui default`. Does not apply to background sessions opened from [agent view](/en/agent-view), which always use fullscreen rendering |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_ARTIFACT` | Set to `1` to disable the [Artifact](/en/artifacts) tool, which publishes session output as a private web page on claude.ai. Equivalent to the [`disableArtifact`](/en/settings#available-settings) setting |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_ATTACHMENTS` | Set to `1` to disable attachment processing. File mentions with `@` syntax are sent as plain text instead of being expanded into file content |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_AUTO_MEMORY` | Set to `1` to disable [auto memory](/en/memory#auto-memory). Set to `0` to force auto memory on even when `--bare` mode or [`autoMemoryEnabled: false`](/en/settings#available-settings) would otherwise disable it. When disabled, Claude does not create or load auto memory files |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` | Set to `1` to disable all background task functionality, including the `run_in_background` parameter on Bash and subagent tools, auto-backgrounding, and the Ctrl+B shortcut |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -229,7 +231,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST` | Set by host platforms that embed Claude Code and manage model provider routing on its behalf. When set, provider-selection, endpoint, and authentication variables such as `CLAUDE_CODE_USE_BEDROCK`, `ANTHROPIC_BASE_URL`, and `ANTHROPIC_API_KEY` in settings files are ignored so user settings cannot override the host's routing. The automatic telemetry opt-out for Bedrock, Vertex, and Foundry is also skipped, so telemetry follows the standard `DISABLE_TELEMETRY` opt-out. See [Default behaviors by API provider](/en/data-usage#default-behaviors-by-api-provider) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_PROXY_RESOLVES_HOSTS` | Set to `1` to allow the proxy to perform DNS resolution instead of the caller. Opt-in for environments where the proxy should handle hostname resolution |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_REMOTE` | Set automatically to `true` when Claude Code is running as a [cloud session](/en/claude-code-on-the-web). Read this from a hook or setup script to detect whether you are in a cloud environment |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_REMOTE_SESSION_ID` | Set automatically in [cloud sessions](/en/claude-code-on-the-web) to the current session's ID. Read this to construct a link back to the session transcript. See [Link artifacts back to the session](/en/claude-code-on-the-web#link-artifacts-back-to-the-session) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_REMOTE_SESSION_ID` | Set automatically in [cloud sessions](/en/claude-code-on-the-web) to the current session's ID. Read this to construct a link back to the session transcript. See [Link output back to the session](/en/claude-code-on-the-web#link-output-back-to-the-session) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_RESUME_INTERRUPTED_TURN` | Set to `1` to automatically resume if the previous session ended mid-turn. Used in SDK mode so the model continues without requiring the SDK to re-send the prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_RESUME_PROMPT` | Override the continuation message injected when resuming a session that ended mid-turn. Defaults to `Continue from where you left off.`. Spawn scripts for long-running agents can set this to a more directive boot message. An empty string uses the default |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SAFE_MODE` | Set to `1` to start in safe mode: CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, custom keybindings, status line and file-suggestion commands, LSP servers, and auto-memory do not load, for troubleshooting a broken configuration. Managed settings policy still applies, including policy-configured hooks, status line, and file-suggestion commands; managed plugins, managed skills, managed CLAUDE.md, and policy-configured MCP servers do not. Equivalent to passing [`--safe-mode`](/en/cli-reference#cli-flags). Directly spawned child processes inherit the variable |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "features-overview.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "主要機能の一覧に、セッション出力を対話型Webページとして公開するArtifactsの項目が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -41,6 +41,7 @@ Features range from always-on context that Claude sees every session, to on-dema",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| **[Code intelligence](/en/tools-reference#lsp-tool-behavior)** | Language-server navigation and diagnostics | Typed languages, large codebases where grep is slow or imprecise | Jump to a symbol's definition instead of reading the whole file |"
+            },
+            {
+              "type": "context",
+              "content": "| **MCP** | Connect to external services | External data or actions | Query your database, post to Slack, control a browser |"
+            },
+            {
+              "type": "context",
+              "content": "| **Hook** | Script, HTTP request, prompt, or subagent triggered by events | Automation that must run on every matching event | Run ESLint after every file edit |"
+            },
+            {
+              "type": "added",
+              "content": "| **[Artifact](/en/artifacts)** | Publish session output as a private, interactive web page | Output you want to see or share visually rather than as terminal text | An incident timeline that updates as Claude investigates |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**[Plugins](/en/plugins)** are the packaging layer. A plugin bundles skills, hooks, subagents, and MCP servers into a single installable unit. Plugin skills are namespaced (like `/my-plugin:review`) so multiple plugins can coexist. Use plugins when you want to reuse the same setup across multiple repositories or distribute to others via a **[marketplace](/en/plugin-marketplaces)**."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "glossary.md",
+      "additions": 6,
+      "deletions": 0,
+      "explanation": "用語集にArtifactの定義が追加され、claude.ai上での表示や組織内共有の仕組みが明文化されました。",
+      "hunks": [
+        {
+          "header": "@@ -35,6 +35,12 @@ The cycle Claude works through for every task: gather context, take action, veri",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Learn more: [How Claude Code works](/en/how-claude-code-works#the-agentic-loop)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Artifact"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A live, interactive web page Claude Code publishes from your session to a private URL on claude.ai, so you can see output visually or share it inside your organization instead of reading terminal text. The page updates in place when the session republishes. Artifacts you create from Claude Code appear in the same gallery as artifacts created in claude.ai conversations, but their sharing stops at your organization and they cannot be made public."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Learn more: [Share session output as artifacts](/en/artifacts)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Auto memory"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Notes Claude writes for itself based on your corrections and preferences, stored per git repository under `~/.claude/projects/`. All worktrees of the same repository share one auto memory directory. The first 200 lines or 25 KB of the `MEMORY.md` index loads at the start of every session. Auto memory is the Claude-written counterpart to [CLAUDE.md](#claude-md), which you write."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "network-config.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "ブラウザでArtifactsを閲覧する際に必要となるドメインの許可リストに、claudeusercontent.comが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -101,6 +101,7 @@ Claude Code requires access to the following URLs. Allowlist these in your proxy",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `downloads.claude.ai` | Plugin executable downloads; native installer and native auto-updater |"
+            },
+            {
+              "type": "context",
+              "content": "| `storage.googleapis.com` | Native installer and native auto-updater on versions prior to 2.1.116 |"
+            },
+            {
+              "type": "context",
+              "content": "| `bridge.claudeusercontent.com` | [Claude in Chrome](/en/chrome) extension WebSocket bridge |"
+            },
+            {
+              "type": "added",
+              "content": "| `*.claudeusercontent.com` | Viewing [artifacts](/en/artifacts) on claude.ai. The viewer loads each artifact's content from a sandboxed subdomain of this origin. Required in the viewer's browser, not by the CLI itself |"
+            },
+            {
+              "type": "context",
+              "content": "| `raw.githubusercontent.com` | Changelog feed for [`/release-notes`](/en/commands) and the release notes shown after updating; plugin marketplace install counts |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you install Claude Code through npm or manage your own binary distribution, end users may not need access to `downloads.claude.ai` or `storage.googleapis.com`."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "Artifacts機能を無効化するための設定オプションであるdisableArtifactの項目が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -224,6 +224,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `deniedMcpServers` | When set in managed-settings.json, denylist of MCP servers that are explicitly blocked. Applies to all scopes including managed servers. Denylist takes precedence over allowlist. See [Managed MCP configuration](/en/managed-mcp) | `[{ \"serverName\": \"filesystem\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableAgentView` | Set to `true` to turn off [background agents and agent view](/en/agent-view): `claude agents`, `--bg`, `/background`, and the on-demand supervisor. Typically set in [managed settings](/en/permissions#managed-settings). Equivalent to setting `CLAUDE_CODE_DISABLE_AGENT_VIEW` to `1` | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableAllHooks` | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline) | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `disableArtifact` | Set to `true` to disable the [Artifact](/en/artifacts) tool, which publishes session output as a private web page on claude.ai. Equivalent to setting `CLAUDE_CODE_DISABLE_ARTIFACT` to `1` | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableAutoMode` | Set to `\"disable\"` to prevent [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) from being activated. Removes `auto` from the `Shift+Tab` cycle and rejects `--permission-mode auto` at startup. Most useful in [managed settings](/en/permissions#managed-settings) where users cannot override it | `\"disable\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableBundledSkills` | Set to `true` to disable the [skills](/en/skills) and workflows that ship with Claude Code: bundled skills and workflows are removed entirely, while built-in slash commands like `/init` stay typable but are hidden from the model. Skills from plugins, `.claude/skills/`, and `.claude/commands/` are unaffected. Equivalent to setting `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` to `1` | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `disableDeepLinkRegistration` | Set to `\"disable\"` to prevent Claude Code from registering the `claude-cli://` protocol handler with the operating system on startup. [Deep links](/en/deep-links) let external tools open a Claude Code session with a pre-filled prompt. Useful in environments where protocol handler registration is restricted or managed separately | `\"disable\"` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "HTMLやMarkdownをArtifactとして公開する新しいツールの仕様と利用条件がツールリファレンスに追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -14,6 +14,7 @@ To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Tool | Description | Permission Required |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `Agent` | Spawns a [subagent](/en/sub-agents) with its own context window to handle a task. See [Agent tool behavior](#agent-tool-behavior) | No |"
+            },
+            {
+              "type": "added",
+              "content": "| `Artifact` | Publishes an HTML or Markdown file as an [artifact](/en/artifacts): a private, interactive page on claude.ai you can share inside your organization. Requires a Team or Enterprise plan and `/login` authentication; see [Availability](/en/artifacts#availability) | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `AskUserQuestion` | Asks multiple-choice questions to gather requirements or clarify ambiguity | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `Bash` | Executes shell commands in your environment. See [Bash tool behavior](#bash-tool-behavior) | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `CronCreate` | Schedules a recurring or one-shot prompt within the current session. Tasks are session-scoped and restored on `--resume` or `--continue` if unexpired. See [scheduled tasks](/en/scheduled-tasks) | No |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "zero-data-retention.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "Artifacts機能の利用に伴い、公開されたコンテンツがAnthropicのインフラに保存される旨の注記が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -50,6 +50,7 @@ When ZDR is enabled for a Claude Code organization on Claude for Enterprise, cer",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| [Claude Code on the Web](/en/claude-code-on-the-web) | Requires server-side storage of conversation history. |"
+            },
+            {
+              "type": "context",
+              "content": "| [Cloud sessions](/en/desktop#cloud-sessions) from the Desktop app | Requires persistent session data that includes prompts and completions. |"
+            },
+            {
+              "type": "added",
+              "content": "| [Artifacts](/en/artifacts) | Requires storing published page content on Anthropic-operated infrastructure. |"
+            },
+            {
+              "type": "context",
+              "content": "| Feedback submission (`/feedback`) | Submitting feedback sends conversation data to Anthropic. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "These features are blocked in the backend regardless of client-side display. If you see a disabled feature in the Claude Code terminal during startup, attempting to use it returns an error indicating the organization's policies do not allow that action."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
