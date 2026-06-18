@@ -54,6 +54,7 @@ The server appears with a status indicator:
 | Status | Meaning |
 | :- | :- |
 | `✓ Connected` | Ready to use. This is what you should see for `claude-code-docs` |
+| `! Connected · tools fetch failed` | The server connected but couldn't list its tools. Run `claude mcp get <name>` for the error detail |
 | `! Needs authentication` | The server is reachable but needs a browser sign-in, or a token passed with `--header`. See [Connect a server that requires sign-in](#connect-a-server-that-requires-sign-in) |
 | `✗ Failed to connect` | Server didn't respond. See [Troubleshooting](#troubleshooting) |
 | `✗ Connection error` | The connection attempt threw an error. See [Troubleshooting](#troubleshooting) |

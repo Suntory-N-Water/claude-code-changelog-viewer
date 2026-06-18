@@ -1,0 +1,2133 @@
+{
+  "id": "20260618-214642",
+  "timestamp": "2026-06-18T21:46:42.662Z",
+  "aiSummary": "サブエージェントのネスト階層が5段階までに制限され、バックグラウンド・フォアグラウンドを問わず一律のルールが適用されるようになりました。エージェントチームの管理インターフェースが刷新され、矢印キーやEnterキーによる直接的な操作が可能になったほか、アイドル状態のメンバーの自動非表示機能が追加されています。/configコマンドにkey=value形式で直接設定値を渡せる新機能や、スクリーンリーダー向けのアクセシビリティモード、macOSでのApple Events許可設定などが導入されました。さらに、skill-creatorプラグインを用いたスキルの評価・比較・自動テストに関する詳細なワークフローが新たに定義されています。",
+  "files": [
+    {
+      "filename": "agent-sdk/subagents.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サブエージェントがさらにサブエージェントを生成できる階層制限について、実行モードに関わらず5段階までとする統一ルールが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -174,7 +174,7 @@ Focus on:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In the Python SDK, these field names use camelCase to match the wire format. See the [`AgentDefinition` reference](/en/agent-sdk/python#agentdefinition) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "As of Claude Code v2.1.172, subagents can spawn their own subagents. A background subagent five levels below the main agent cannot spawn further subagents; foreground subagents can spawn at any depth. To prevent a subagent from spawning others, omit `Agent` from its `tools` array or add it to `disallowedTools`. See [nested subagents](/en/sub-agents#spawn-nested-subagents) for the full depth rules."
+            },
+            {
+              "type": "added",
+              "content": "As of Claude Code v2.1.172, subagents can spawn their own subagents. A subagent five levels below the main agent cannot spawn further subagents, regardless of whether it runs in the foreground or background. To prevent a subagent from spawning others, omit `Agent` from its `tools` array or add it to `disallowedTools`. See [nested subagents](/en/sub-agents#spawn-nested-subagents) for the full depth rules."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Filesystem-based definition (alternative)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "リモートクライアント向けの終了理由の通知仕様や、SendMessageを介したエージェント間通信のメッセージ構造が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -1178,7 +1178,7 @@ type SDKInformationalMessage = {",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### `SDKWorkerShuttingDownMessage`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Emitted on graceful worker teardown so remote clients can show why the worker went away instead of waiting for heartbeat timeout. The `reason` is a short snake\\_case string set by the host CLI, such as `\"host_exit\"` or `\"remote_control_disabled\"`. Act on this only when streaming live. A resumed session replays past instances of this message, so ignore them in that case."
+            },
+            {
+              "type": "added",
+              "content": "Emitted on graceful worker teardown so remote clients can show why the worker exited instead of waiting for heartbeat timeout. The `reason` is a short snake\\_case string set by the host CLI, such as `\"host_exit\"` or `\"remote_control_disabled\"`. Act on this only when streaming live. A resumed session replays past instances of this message, so ignore them in that case."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```typescript"
+            },
+            {
+              "type": "context",
+              "content": "type SDKWorkerShuttingDownMessage = {"
+            }
+          ]
+        },
+        {
+          "header": "@@ -1266,7 +1266,7 @@ type SDKMessageOrigin =",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| - | - |"
+            },
+            {
+              "type": "context",
+              "content": "| `human` | Direct input from the end user. On user messages, an absent `origin` also means human input. |"
+            },
+            {
+              "type": "context",
+              "content": "| `channel` | Message arriving on a [channel](/en/channels). `server` is the source MCP server name. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `peer` | Reserved for messages from another agent session. `from` is the sender address and `name` is the sender's display name when available. `senderTaskId` is the task ID of the in-process background subagent that sent the message; absent for cross-session peers. The Agent SDK does not emit this origin; treat as an unknown origin. |"
+            },
+            {
+              "type": "added",
+              "content": "| `peer` | Message from another agent. For an in-process [teammate](/en/agent-teams) sending to `main` via `SendMessage`, `from` is the teammate's name and `senderTaskId` is its task ID. For a cross-session peer such as another local Claude Code process, `from` is the sender address and `senderTaskId` is absent. The `name` field is reserved. |"
+            },
+            {
+              "type": "context",
+              "content": "| `task-notification` | Synthetic turn injected after a background task finished. See [`SDKTaskNotificationMessage`](#sdktasknotificationmessage). |"
+            },
+            {
+              "type": "context",
+              "content": "| `coordinator` | Message from a team coordinator in an [agent team](/en/agent-teams). |"
+            },
+            {
+              "type": "context",
+              "content": "| `auto-continuation` | Synthetic turn injected when the session continues without fresh user input, such as a command result that triggers a follow-up prompt. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-teams.md",
+      "additions": 17,
+      "deletions": 10,
+      "explanation": "チームメンバーの操作方法が矢印キーとEnterによる選択式に変更され、アイドル状態のメンバー行を30秒後に非表示にする機能が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -73,7 +73,13 @@ one on UX, one on technical architecture, one playing devil's advocate.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "From there, Claude populates a [shared task list](/en/interactive-mode#task-list), spawns teammates for each perspective, has them explore the problem, and synthesizes findings when finished."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The lead's terminal lists all teammates and what they're working on. Use Shift+Down to cycle through teammates and message them directly. After the last teammate, Shift+Down wraps back to the lead."
+            },
+            {
+              "type": "added",
+              "content": "The lead's terminal lists teammates in the agent panel below the prompt input. From the panel:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Up and down arrows**: select a teammate"
+            },
+            {
+              "type": "added",
+              "content": "- **Enter**: open the selected teammate's transcript and message it directly"
+            },
+            {
+              "type": "added",
+              "content": "- **Escape**: interrupt the selected teammate's current turn"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.181, an idle teammate's row hides after 30 seconds and reappears on its next turn. The teammate stays running and addressable while hidden."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you want each teammate in its own split pane, see [Choose a display mode](#choose-a-display-mode)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -85,23 +91,23 @@ Tell the lead what you want in natural language. It handles team coordination, t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Agent teams support two display modes:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **In-process**: all teammates run inside your main terminal. Use Shift+Down to cycle through teammates and type to message them directly. Works in any terminal, no extra setup required."
+            },
+            {
+              "type": "added",
+              "content": "- **In-process**: all teammates run inside your main terminal. Use the up and down arrow keys in the agent panel to select a teammate, then press Enter to view it and type to message it directly. Works in any terminal, no extra setup required."
+            },
+            {
+              "type": "context",
+              "content": "- **Split panes**: each teammate gets its own pane. You can see everyone's output at once and click into a pane to interact directly. Requires tmux, or iTerm2."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`tmux` has known limitations on certain operating systems and traditionally works best on macOS. Using `tmux -CC` in iTerm2 is the suggested entrypoint into `tmux`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The default is `\"auto\"`, which uses split panes if you're already running inside a tmux session or your terminal is iTerm2, and in-process otherwise. The `\"tmux\"` setting enables split-pane mode and auto-detects whether to use tmux or iTerm2 based on your terminal. To override, set [`teammateMode`](/en/settings#available-settings) in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "added",
+              "content": "The default is `\"in-process\"`. Before v2.1.179 the default was `\"auto\"`, so upgraded sessions that previously opened split panes now stay in one terminal unless you set the mode explicitly. Set `\"auto\"` to enable split panes when you're already running inside a tmux session or your terminal is iTerm2, falling back to in-process otherwise. The `\"tmux\"` setting enables split-pane mode and auto-detects whether to use tmux or iTerm2 based on your terminal. To override, set [`teammateMode`](/en/settings#available-settings) in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "removed",
+              "content": "  \"teammateMode\": \"in-process\""
+            },
+            {
+              "type": "added",
+              "content": "  \"teammateMode\": \"auto\""
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To force in-process mode for a single session, pass it as a flag:"
+            },
+            {
+              "type": "added",
+              "content": "To set the mode for a single session, pass it as a flag:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "removed",
+              "content": "claude --teammate-mode in-process"
+            },
+            {
+              "type": "added",
+              "content": "claude --teammate-mode auto"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Split-pane mode requires either [tmux](https://github.com/tmux/tmux/wiki) or iTerm2 with the [`it2` CLI](https://github.com/mkusaka/it2). To install manually:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -137,7 +143,7 @@ The lead makes approval decisions autonomously. To influence the lead's judgment",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each teammate is a full, independent Claude Code session. You can message any teammate directly to give additional instructions, ask follow-up questions, or redirect their approach."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **In-process mode**: use Shift+Down to cycle through teammates, then type to send them a message. Press Enter to view a teammate's session, then Escape to interrupt their current turn. Press Ctrl+T to toggle the task list."
+            },
+            {
+              "type": "added",
+              "content": "- **In-process mode**: use the up and down arrow keys in the agent panel to select a teammate, then press Enter to view its session and type to send it a message. Press `x` on a selected teammate to stop it. Press Ctrl+T to toggle the task list."
+            },
+            {
+              "type": "context",
+              "content": "- **Split-pane mode**: click into a teammate's pane to interact with their session directly. Each teammate has a full view of their own terminal."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Assign and claim tasks"
+            }
+          ]
+        },
+        {
+          "header": "@@ -343,8 +349,9 @@ Check in on teammates' progress, redirect approaches that aren't working, and sy",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If teammates aren't appearing after you ask Claude to spawn them:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- In in-process mode, teammates may already be running but not visible. Press Shift+Down to cycle through active teammates."
+            },
+            {
+              "type": "removed",
+              "content": "- Check that the task you gave Claude was complex enough to warrant teammates. Claude decides whether to spawn them based on the task."
+            },
+            {
+              "type": "added",
+              "content": "- In in-process mode, teammates appear in the agent panel below the prompt input. Use the up and down arrow keys to select one, then press Enter to view it."
+            },
+            {
+              "type": "added",
+              "content": "- A teammate row that disappeared after sitting idle has been hidden, not stopped. Idle rows hide after 30 seconds and reappear on the teammate's next turn. Send the teammate a message by name to bring it back."
+            },
+            {
+              "type": "added",
+              "content": "- Check that the task you gave Claude was complex enough to warrant a team. Claude decides whether to spawn teammates based on the task."
+            },
+            {
+              "type": "context",
+              "content": "- If you explicitly requested split panes, ensure tmux is installed and available in your PATH:"
+            },
+            {
+              "type": "context",
+              "content": "  ```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "  which tmux"
+            }
+          ]
+        },
+        {
+          "header": "@@ -357,7 +364,7 @@ Teammate permission requests bubble up to the lead, which can create friction. P",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Teammates stopping on errors"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Teammates may stop after encountering errors instead of recovering. Check their output using Shift+Down in in-process mode or by clicking the pane in split mode, then either:"
+            },
+            {
+              "type": "added",
+              "content": "Teammates may stop after encountering errors instead of recovering. Check their output by selecting the teammate in the agent panel and pressing Enter in in-process mode, or by clicking the pane in split mode, then either:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Give them additional instructions directly"
+            },
+            {
+              "type": "context",
+              "content": "- Spawn a replacement teammate to continue the work"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "AWSの設定からエクスポートされたフラットな形式の認証情報を直接受け入れられるようになったことが記載されています。",
+      "hunks": [
+        {
+          "header": "@@ -188,6 +188,8 @@ These two settings have different trigger conditions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "{/* min-version: 2.1.181 */}As of Claude Code v2.1.181, the flat output from `aws configure export-credentials --format process` is also accepted, with the same keys at the top level instead of nested under `Credentials`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`Expiration` is optional. {/* min-version: 2.1.176 */}As of Claude Code v2.1.176, when the command returns a valid ISO 8601 `Expiration`, Claude Code caches the credentials until five minutes before that time. Without it, or on earlier versions, credentials are cached for one hour."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### 3. Configure Claude Code"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-code-on-the-web.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "WebセッションでのコミットやPR作成時に、セッションURLをGitトレーラーや本文に自動挿入する機能について追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -105,7 +105,9 @@ Add a `GH_TOKEN` environment variable to your [environment settings](#configure-",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each cloud session has a transcript URL on claude.ai, and the session can read its own ID from the `CLAUDE_CODE_REMOTE_SESSION_ID` environment variable. Use this to put a traceable link in PR bodies, commit messages, Slack posts, or generated reports so a reviewer can open the run that produced them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The variable's value uses a `cse_` prefix, while the transcript URL path takes the same ID with a `session_` prefix. Substitute the prefix when building the link. The following command prints the URL:"
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.179, commits that Claude creates in a web session include a `Claude-Session: <url>` git trailer, and PR bodies include the session URL on its own line."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To include the session link in something other than a commit or PR, such as a Slack message Claude posts or a report file it writes, have Claude run the following command and use its output. The command converts the `cse_` prefix in the environment variable's value to the `session_` prefix that the transcript URL expects:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "echo \"https://claude.ai/code/${CLAUDE_CODE_REMOTE_SESSION_ID/#cse_/session_}\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "スクリーンリーダー向けのフラット出力強制フラグや、チームメイト表示モードのデフォルト値がin-processに変更された点が反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -57,6 +57,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--allowedTools`, `--allowed-tools` | Tools that execute without prompting for permission. See [permission rule syntax](/en/settings#permission-rule-syntax) for pattern matching. To restrict which tools are available, use `--tools` instead | `\"Bash(git log *)\" \"Bash(git diff *)\" \"Read\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--append-system-prompt` | Append custom text to the end of the default system prompt | `claude --append-system-prompt \"Always use TypeScript\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--append-system-prompt-file` | Load additional system prompt text from a file and append to the default prompt | `claude --append-system-prompt-file ./extra-rules.txt` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--ax-screen-reader` | Render screen-reader friendly output: flat text without decorative borders or animations. Forces the classic renderer, so the [`tui`](/en/settings#available-settings) setting has no effect for the session. Takes precedence over [`CLAUDE_AX_SCREEN_READER`](/en/env-vars) and the [`axScreenReader`](/en/settings#available-settings) setting. Requires Claude Code v2.1.181 or later | `claude --ax-screen-reader` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--bare` | Minimal mode: skip auto-discovery of hooks, skills, plugins, MCP servers, auto memory, and CLAUDE.md so scripted calls start faster. Claude has access to Bash, file read, and file edit tools. Sets [`CLAUDE_CODE_SIMPLE`](/en/env-vars). See [bare mode](/en/headless#start-faster-with-bare-mode) | `claude --bare -p \"query\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--betas` | Beta headers to include in API requests (API key users only) | `claude --betas interleaved-thinking` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--bg` | Start the session as a [background agent](/en/agent-view) and return immediately. Prints the session ID and management commands. Combine with `--exec` to run a shell command as a background job instead of a Claude session, or with `--agent` to run a specific subagent | `claude --bg \"investigate the flaky test\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -111,7 +112,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--system-prompt` | Replace the entire system prompt with custom text | `claude --system-prompt \"You are a Python expert\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--system-prompt-file` | Load system prompt from a file, replacing the default prompt | `claude --system-prompt-file ./custom-prompt.txt` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--teleport` | Resume a [web session](/en/claude-code-on-the-web) in your local terminal | `claude --teleport` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--teammate-mode` | Set how [agent team](/en/agent-teams) teammates display: `auto` (default), `in-process`, or `tmux`. Overrides the [`teammateMode`](/en/settings#available-settings) setting for this session. See [Choose a display mode](/en/agent-teams#choose-a-display-mode) | `claude --teammate-mode in-process` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--teammate-mode` | Set how [agent team](/en/agent-teams) teammates display: `in-process` (default), `auto`, or `tmux`. The default changed from `auto` in v2.1.179. Overrides the [`teammateMode`](/en/settings#available-settings) setting for this session. See [Choose a display mode](/en/agent-teams#choose-a-display-mode) | `claude --teammate-mode auto` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--tmux` | Create a tmux session for the worktree. Requires `--worktree`. Uses iTerm2 native panes when available; pass `--tmux=classic` for traditional tmux | `claude -w feature-auth --tmux` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--tools` | Restrict which built-in tools Claude can use. Use `\"\"` to disable all, `\"default\"` for all, or tool names like `\"Bash,Edit,Read\"`. MCP tools are not affected; to deny those too, use `--disallowedTools \"mcp__*\"`, or pass `--strict-mcp-config` without `--mcp-config` so no MCP servers load | `claude --tools \"Bash,Edit,Read\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--verbose` | Enable verbose logging, shows full turn-by-turn output. Overrides the [`viewMode`](/en/settings#available-settings) setting for this session | `claude --verbose` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "/configコマンドにおいて、UIを開かずに値を直接更新できるkey=value形式の引数サポートが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -59,7 +59,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/code-review [low\\|medium\\|high\\|xhigh\\|max\\|ultra] [--fix] [--comment] [target]` | **[Skill](/en/skills#bundled-skills).** Review the current diff for correctness bugs and for reuse, simplification, and efficiency cleanups. Pass `--fix` to apply findings to your working tree, `--comment` to post them as inline GitHub PR comments, or `ultra` to run a deep [cloud review](/en/ultrareview). From v2.1.154, `/simplify` runs a separate cleanup-only review that applies fixes without hunting for bugs. See [Review a diff locally](/en/code-review#review-a-diff-locally) for effort levels and targeting |"
+            },
+            {
+              "type": "context",
+              "content": "| `/color [color\\|default]` | Set the prompt bar color for the current session. Available colors: `red`, `blue`, `green`, `yellow`, `purple`, `orange`, `pink`, `cyan`. Use `default` to reset, or run with no argument to pick a random color. When [Remote Control](/en/remote-control) is connected, the color syncs to claude.ai/code |"
+            },
+            {
+              "type": "context",
+              "content": "| `/compact [instructions]` | Free up context by summarizing the conversation so far. Optionally pass focus instructions for the summary. See [how compaction handles rules, skills, and memory files](/en/context-window#what-survives-compaction) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/config` | Open the [Settings](/en/settings) interface to adjust theme, model, [output style](/en/output-styles), and other preferences. Alias: `/settings` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/config [key=value ...]` | Open the [Settings](/en/settings) interface to adjust theme, model, [output style](/en/output-styles), and other preferences. From v2.1.181, pass one or more `key=value` pairs to set a setting directly without opening the interface, for example `/config thinking=false`. The `key=value` form also works in non-interactive mode (`-p`) and from [Remote Control](/en/remote-control). Run `/config help` to list the keys you can set. Alias: `/settings` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/context [all]` | Visualize current context usage as a colored grid. Shows optimization suggestions for context-heavy tools, memory bloat, and capacity warnings. In [fullscreen mode](/en/fullscreen) the per-item breakdown is collapsed to keep the grid visible. Pass `all` to expand it |"
+            },
+            {
+              "type": "context",
+              "content": "| `/copy [N]` | Copy the last assistant response to clipboard. Pass a number `N` to copy the Nth-latest response: `/copy 2` copies the second-to-last. When code blocks are present, shows an interactive picker to select individual blocks or the full response. Press `w` in the picker to write the selection to a file instead of the clipboard, which is useful over SSH |"
+            },
+            {
+              "type": "context",
+              "content": "| `/cost` | Alias for `/usage` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 5,
+      "deletions": 2,
+      "explanation": "スクリーンリーダーモードの有効化や、アクティブ使用中のモバイルプッシュ通知を抑制するためのプレゼンスファイル設定変数が導入されました。",
+      "hunks": [
+        {
+          "header": "@@ -131,9 +131,11 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS` | Set to `1` to disable all built-in [subagent](/en/sub-agents) types such as Explore and Plan. Only applies in non-interactive mode (the `-p` flag). Useful for SDK users who want a blank slate |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AGENT_SDK_MCP_NO_PREFIX` | Set to `1` to skip the `mcp__<server>__` prefix on tool names from SDK-created MCP servers. Tools use their original names. SDK usage only |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS` | Stall timeout in milliseconds for background subagents. Default `600000` (10 minutes). The timer resets on each streaming progress event; if no progress arrives within the window, the subagent is aborted and the task is marked failed, surfacing any partial result to the parent |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | Set the percentage (1-100) of the auto-compaction window at which auto-compaction triggers. Use lower values like `50` to compact earlier. This variable only causes earlier compaction when Claude Code compacts proactively: when `CLAUDE_CODE_AUTO_COMPACT_WINDOW` is set, in [cloud sessions](/en/claude-code-on-the-web), in [Remote Control](/en/remote-control) sessions, and on Sonnet 4.6 and Opus 4.6 without [extended context](/en/model-config#extended-context), which compact at the 200K boundary by default. In other cases, such as a local session on Opus 4.8 or any model with extended context, auto-compaction triggers when the conversation reaches the model's context limit. The override can only lower the threshold, so values above the default have no effect. Applies to both main conversations and subagents |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` | Set the percentage (1-100) of the auto-compaction window at which auto-compaction triggers. Use lower values like `50` to compact earlier. This variable only causes earlier compaction when Claude Code compacts proactively: when `CLAUDE_CODE_AUTO_COMPACT_WINDOW` is set, in [cloud sessions](/en/claude-code-on-the-web), and on Sonnet 4.6 and Opus 4.6 without [extended context](/en/model-config#extended-context), which compact at the 200K boundary by default. In other cases, such as a local session on Opus 4.8 or any model with extended context, auto-compaction triggers when the conversation reaches the model's context limit. The override can only lower the threshold, so values above the default have no effect. Applies to both main conversations and subagents |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_AUTO_BACKGROUND_TASKS` | Set to `1` to force-enable automatic backgrounding of long-running agent tasks. When enabled, subagents are moved to the background after running for approximately two minutes |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_AX_SCREEN_READER` | Set to `1` to render screen-reader friendly output: flat text without decorative borders or animations. Set to `0` to force screen-reader mode off even when [`axScreenReader`](/en/settings#available-settings) is `true`. The [`--ax-screen-reader`](/en/cli-reference#cli-flags) flag takes precedence. Requires Claude Code v2.1.181 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR` | Return to the original working directory after each Bash or PowerShell command in the main session |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CLIENT_PRESENCE_FILE` | Path to a file that an external tool, such as a screen-lock listener, creates when you unlock your screen and deletes when you lock it. While the file exists, Claude Code skips [Remote Control mobile push notifications](/en/remote-control#mobile-push-notifications), so you stop getting pushes while you are actively using the computer. When the file is absent or unreadable, notifications are sent as normal. Claude Code checks the file once per push-triggering event rather than polling it. Requires Claude Code v2.1.181 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ACCESSIBILITY` | Set to `1` to keep the native terminal cursor visible and disable the inverted-text cursor indicator. Allows screen magnifiers like macOS Zoom to track cursor position |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD` | Set to `1` to load memory files from directories specified with `--add-dir`. Loads `CLAUDE.md`, `.claude/CLAUDE.md`, `.claude/rules/*.md`, and `CLAUDE.local.md`. By default, additional directories do not load memory files |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ALT_SCREEN_FULL_REPAINT` | Set to `1` to repaint the entire screen on every frame in [fullscreen rendering](/en/fullscreen) instead of sending incremental updates. Use this if fullscreen mode shows stale or misplaced text fragments. Claude Code enables this automatically for background sessions and [agent view](/en/agent-view) on Windows |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -216,6 +218,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OAUTH_SCOPES` | Space-separated OAuth scopes the refresh token was issued with, such as `\"user:profile user:inference user:sessions:claude_code\"`. Required when `CLAUDE_CODE_OAUTH_REFRESH_TOKEN` is set |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OAUTH_TOKEN` | OAuth access token for Claude.ai authentication. Alternative to `/login` for SDK and automated environments. Takes precedence over keychain-stored credentials. Generate one with [`claude setup-token`](/en/authentication#generate-a-long-lived-token) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE` | Removed in v2.1.160 and now a no-op. Previously pinned [fast mode](/en/fast-mode) to Claude Opus 4.6 instead of the current default. To run fast mode on Opus 4.6 until it is retired, select the model with `/model` first, then `/fast on` |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_OTEL_DIAG_STDERR` | Set to `1` to write OpenTelemetry exporter diagnostic errors to stderr. By default these errors only appear with `--debug`, so a misconfigured exporter such as a Prometheus port collision otherwise fails silently. Requires Claude Code v2.1.179 or later. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_FLUSH_TIMEOUT_MS` | Timeout in milliseconds for flushing pending OpenTelemetry spans (default: 5000). See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS` | Interval for refreshing dynamic OpenTelemetry headers in milliseconds (default: 1740000 / 29 minutes). See [Dynamic headers](/en/monitoring-usage#dynamic-headers) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_OTEL_SHUTDOWN_TIMEOUT_MS` | Timeout in milliseconds for the OpenTelemetry exporter to finish on shutdown (default: 2000). Increase if metrics are dropped at exit. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -325,7 +328,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `NO_PROXY` | List of domains and IPs to which requests will be directly issued, bypassing proxy |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_RAW_API_BODIES` | Emit Anthropic Messages API request and response JSON as `api_request_body` / `api_response_body` log events. Set to `1` for inline bodies truncated at 60 KB, or `file:<dir>` to write untruncated bodies to disk and emit a `body_ref` path instead. Disabled by default; bodies include the entire conversation history. See [Monitoring](/en/monitoring-usage#api-request-body-event) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_TOOL_CONTENT` | Set to `1` to include tool input and output content in OpenTelemetry span events. Disabled by default to protect sensitive data. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Set to `1` to include tool input arguments, MCP server names, raw error strings on tool failures, and other tool details in OpenTelemetry traces and logs. Disabled by default to protect PII. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "added",
+              "content": "| `OTEL_LOG_TOOL_DETAILS` | Set to `1` to include tool input arguments, MCP server names, raw error strings on tool failures, the refusal `category` on `api_refusal` events, and other tool details in OpenTelemetry traces and logs. Disabled by default to protect PII. See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_LOG_USER_PROMPTS` | Set to `1` to include user prompt text in OpenTelemetry traces and logs. Disabled by default (prompts are redacted). See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` | Set to `false` to exclude account UUID from metrics attributes (default: included). See [Monitoring](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `OTEL_METRICS_INCLUDE_ENTRYPOINT` | Set to `true` to include the session entrypoint in metrics attributes (default: excluded). Added in v2.1.152. See [Monitoring](/en/monitoring-usage) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fullscreen.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "リンクやパスを開く際の挙動がOS標準に合わせられ、macOSではCmd+クリック、他OSではCtrl+クリックが必須となりました。",
+      "hunks": [
+        {
+          "header": "@@ -37,7 +37,7 @@ Because the conversation lives in the alternate screen buffer instead of your te",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `Cmd+f` or tmux search to find text | `Ctrl+o` for transcript mode, then `/` to search or `[` to write to scrollback | [Search and review the conversation](#search-and-review-the-conversation) |"
+            },
+            {
+              "type": "context",
+              "content": "| Terminal's native click-and-drag to select and copy | In-app selection, copies automatically on mouse release | [Use the mouse](#use-the-mouse) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `Cmd`-click to open a URL | Click the URL | [Use the mouse](#use-the-mouse) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Cmd`-click to open a URL | `Cmd`-click on macOS, `Ctrl`-click elsewhere | [Use the mouse](#use-the-mouse) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If mouse capture interferes with your workflow, you can [turn it off](#keep-native-text-selection) while keeping the flicker-free rendering."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -48,7 +48,7 @@ Fullscreen rendering captures mouse events and handles them inside Claude Code:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Click in the prompt input** to position your cursor anywhere in the text you're typing."
+            },
+            {
+              "type": "context",
+              "content": "- **Click a suggestion in the `/` command or `@` file list** to accept it. Hovering highlights the row under your cursor."
+            },
+            {
+              "type": "context",
+              "content": "- **Click a collapsed tool result** to expand it and see the full output. Click again to collapse. The tool call and its result expand together. Only messages that have more to show are clickable."
+            },
+            {
+              "type": "removed",
+              "content": "- **Click a URL or file path** to open it. File paths in tool output, like the ones printed after an Edit or Write, open in your default application. Plain `http://` and `https://` URLs open in your browser. In most terminals this replaces native `Cmd`-click or `Ctrl`-click, which mouse capture intercepts. In the VS Code integrated terminal and similar xterm.js-based terminals, keep using `Cmd`-click. Claude Code defers to the terminal's own link handler there to avoid opening links twice."
+            },
+            {
+              "type": "added",
+              "content": "- **Hold `Cmd` on macOS, or `Ctrl` on Linux and Windows, and click a URL or file path** to open it. File paths in tool output, like the ones printed after an Edit or Write, open in your default application. Plain `http://` and `https://` URLs open in your browser. As of v2.1.181, a plain click without holding `Cmd` or `Ctrl` no longer opens links, matching native terminal behavior. In the VS Code integrated terminal and similar xterm.js-based terminals, Claude Code defers to the terminal's own link handler, which uses the same gesture."
+            },
+            {
+              "type": "context",
+              "content": "- **Click and drag** to select text anywhere in the conversation. Double-click selects a word, matching iTerm2's word boundaries so a file path selects as one unit. Triple-click selects the line."
+            },
+            {
+              "type": "context",
+              "content": "- **Scroll with the mouse wheel** to move through the conversation."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "headless.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "非インタラクティブな-pモードにおいて、/configコマンドを使った設定変更が可能になった旨が追記されています。",
+      "hunks": [
+        {
+          "header": "@@ -206,7 +206,7 @@ claude -p \"Look at my staged changes and create an appropriate commit\" \\",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `--allowedTools` flag uses [permission rule syntax](/en/settings#permission-rule-syntax). The trailing ` *` enables prefix matching, so `Bash(git diff *)` allows any command starting with `git diff`. The space before `*` is important: without it, `Bash(git diff*)` would also match `git diff-index`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "User-invoked [skills](/en/skills) and custom commands work in `-p` mode: include `/skill-name` in the prompt string and Claude Code expands it before running. Built-in commands that open an interactive dialog, such as `/config` and `/login`, are not available in `-p` mode."
+            },
+            {
+              "type": "added",
+              "content": "User-invoked [skills](/en/skills) and custom commands work in `-p` mode: include `/skill-name` in the prompt string and Claude Code expands it before running. Built-in commands that open an interactive dialog, such as `/login`, are not available in `-p` mode. To change a setting from a `-p` invocation, pass `key=value` to `/config`, for example `/config thinking=false`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Customize the system prompt"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp-quickstart.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "MCPサーバー接続後のツール取得失敗時のエラー状態とその確認方法について説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -54,6 +54,7 @@ The server appears with a status indicator:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Status | Meaning |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `✓ Connected` | Ready to use. This is what you should see for `claude-code-docs` |"
+            },
+            {
+              "type": "added",
+              "content": "| `! Connected · tools fetch failed` | The server connected but couldn't list its tools. Run `claude mcp get <name>` for the error detail |"
+            },
+            {
+              "type": "context",
+              "content": "| `! Needs authentication` | The server is reachable but needs a browser sign-in, or a token passed with `--header`. See [Connect a server that requires sign-in](#connect-a-server-that-requires-sign-in) |"
+            },
+            {
+              "type": "context",
+              "content": "| `✗ Failed to connect` | Server didn't respond. See [Troubleshooting](#troubleshooting) |"
+            },
+            {
+              "type": "context",
+              "content": "| `✗ Connection error` | The connection attempt threw an error. See [Troubleshooting](#troubleshooting) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 10,
+      "deletions": 1,
+      "explanation": "APIの拒否イベントに関する詳細な分析属性や、OTEL_LOG_TOOL_DETAILSで出力される詳細情報の項目が拡充されました。",
+      "hunks": [
+        {
+          "header": "@@ -624,7 +624,7 @@ Logged when an API request to Claude fails.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### API refusal event"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Logged when an API request returns `stop_reason: \"refusal\"`. Refusals arrive on a successful response stream rather than as an HTTP error, so the `api_error` event does not fire for them. This event lets you track refusal frequency."
+            },
+            {
+              "type": "added",
+              "content": "Logged when an API request returns `stop_reason: \"refusal\"`. Refusals arrive on a successful response stream rather than as an HTTP error, so the `api_error` event does not fire for them. This event lets you track refusal frequency and group refusals by the same attributes as `api_request` and `api_error`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Event Name**: `claude_code.api_refusal`"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -636,6 +636,15 @@ Logged when an API request returns `stop_reason: \"refusal\"`. Refusals arrive on",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- `event.sequence`: monotonically increasing counter for ordering events within a session"
+            },
+            {
+              "type": "context",
+              "content": "- `model`: Model identifier from the request"
+            },
+            {
+              "type": "context",
+              "content": "- `request_id`: Anthropic API request ID from the response's `request-id` header, such as `\"req_011...\"`. Present only when the API returns one."
+            },
+            {
+              "type": "added",
+              "content": "- `query_source`: Subsystem that issued the request, such as `\"repl_main_thread\"`, `\"compact\"`, or a subagent name. See [`api_request`](#api-request-event) for definitions."
+            },
+            {
+              "type": "added",
+              "content": "- `speed`: Either `\"fast\"` when [Fast mode](/en/fast-mode) is active, or `\"normal\"`"
+            },
+            {
+              "type": "added",
+              "content": "- `attempt`: Retry attempt number. The first attempt is `1`."
+            },
+            {
+              "type": "added",
+              "content": "- `effort`: [Effort level](/en/model-config#adjust-effort-level) applied to the request. Absent when the model does not support effort."
+            },
+            {
+              "type": "added",
+              "content": "- `server_fallback_hop`: `true` when the API's server-side model fallback already retried this refusal on a different model, so the user did not see this particular refusal. `false` when the request ended in a refusal. A single turn can emit both a `true` hop event and a later `false` final event when the fallback model also refuses."
+            },
+            {
+              "type": "added",
+              "content": "- `has_category`: `true` when the API response carried a `stop_details.category` of `\"cyber\"`, `\"bio\"`, `\"frontier_llm\"`, or `\"reasoning_extraction\"`. `false` when the response carried no category or a value outside that set. Absent when `server_fallback_hop` is `true`, because hop blocks do not carry `stop_details`."
+            },
+            {
+              "type": "added",
+              "content": "- `has_explanation`: `true` when the API response carried a `stop_details.explanation`, otherwise `false`. Absent when `server_fallback_hop` is `true`."
+            },
+            {
+              "type": "added",
+              "content": "- `category`: The `stop_details.category` value from the API response. One of `\"cyber\"`, `\"bio\"`, `\"frontier_llm\"`, or `\"reasoning_extraction\"`. Only present when `OTEL_LOG_TOOL_DETAILS=1` is set and `has_category` is `true`."
+            },
+            {
+              "type": "added",
+              "content": "- `agent.name`, `skill.name`, `plugin.name`, `marketplace.name`, `mcp_server.name`, `mcp_tool.name`: Skill, plugin, agent, and MCP attribution for the request. See [Cost counter](#cost-counter) for definitions and redaction behavior."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### API request body event"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 14,
+      "deletions": 1,
+      "explanation": "マーケットプレイスのルートをソースとするプラグインにおいて、特定のディレクトリのみを読み込むための設定例が具体化されました。",
+      "hunks": [
+        {
+          "header": "@@ -450,7 +450,20 @@ Key things to notice:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **`${CLAUDE_PLUGIN_ROOT}`**: use this variable in hooks and MCP server configs to reference files within the plugin's installation directory. This is necessary because plugins are copied to a cache location when installed. For dependencies or state that should survive plugin updates, use [`${CLAUDE_PLUGIN_DATA}`](/en/plugins-reference#persistent-data-directory) instead."
+            },
+            {
+              "type": "context",
+              "content": "- **`strict: false`**: Since this is set to false, the plugin doesn't need its own `plugin.json`. The marketplace entry defines everything. See [Strict mode](#strict-mode) below."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, a plugin's skills load from the `skills/` directory under its `source`, and any paths listed under `skills` add to that scan. The exception is a marketplace-root source such as `source: \"./\"`, where several plugin entries share one `skills/` folder. In that case, listing specific subdirectories under `skills` makes that list the complete set for the entry, and other directories under `skills/` do not load. Listing the `skills/` directory itself or the plugin root keeps the full scan. If none of the listed paths exist, the default scan runs instead."
+            },
+            {
+              "type": "added",
+              "content": "By default, a plugin's skills load from the `skills/` directory under its `source`. Paths listed in the `skills` field add to that scan:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "\"skills\": [\"./skills/\", \"./extra-skills/\"]"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When several plugin entries share one `skills/` folder at the marketplace root (`source: \"./\"`), list specific subdirectories instead so each entry loads only its own skills:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "\"source\": \"./\","
+            },
+            {
+              "type": "added",
+              "content": "\"skills\": [\"./skills/code-review\", \"./skills/docs\"]"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With a marketplace-root `source`, the listed paths are the complete set for that entry, and other directories in the shared `skills/` folder do not load. Listing `./skills/` itself, or the plugin root, keeps the full scan. If none of the listed paths exist, the default scan runs instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Strict mode"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugins-reference.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "スキルのスキャン先ディレクトリを追加する際の挙動と、マーケットプレイス設定時の例外ルールが整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -590,7 +590,7 @@ The `server` field is required and must match a key in the plugin's `mcpServers`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Whether a custom path replaces or extends the plugin's default directory depends on the field:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Replaces the default**: `commands`, `agents`, `outputStyles`, `experimental.themes`, `experimental.monitors`. For example, when the manifest specifies `commands`, the default `commands/` directory is not scanned. To keep the default and add more, list it explicitly: `\"commands\": [\"./commands/\", \"./extras/\"]`"
+            },
+            {
+              "type": "removed",
+              "content": "- **Adds to the default**: `skills`. The default `skills/` directory is always scanned, and directories listed in `skills` are loaded alongside it. Exception: for a [marketplace entry whose `source` resolves to the marketplace root](/en/plugin-marketplaces#advanced-plugin-entries), declaring specific subdirectories replaces the scan"
+            },
+            {
+              "type": "added",
+              "content": "- **Adds to the default**: `skills`. The default `skills/` directory is always scanned, and directories listed in `skills` are loaded alongside it. Exception: for a [marketplace entry whose `source` resolves to the marketplace root](/en/plugin-marketplaces#advanced-plugin-entries), declaring specific subdirectories replaces the default `skills/` scan"
+            },
+            {
+              "type": "context",
+              "content": "- **Own merge rules**: [hooks](#hooks), [MCP servers](#mcp-servers), and [LSP servers](#lsp-servers). See each section for how multiple sources combine"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When a plugin has both a default folder and the matching manifest key, Claude Code v2.1.140 and later flags the ignored folder in `/doctor`, `claude plugin list`, and the `/plugin` detail view. The plugin still loads using the manifest paths. No warning is shown when the manifest key points into the default folder, for example `\"commands\": [\"./commands/deploy.md\"]`, because the folder is addressed explicitly in that case."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "remote-control.md",
+      "additions": 7,
+      "deletions": 2,
+      "explanation": "接続失敗時の通知表示の変更や、PC使用中であることを示すファイルを用いたプッシュ通知の動的制御について解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -100,7 +100,7 @@ Unlike the CLI, the VS Code command does not accept a name argument or display a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In an interactive terminal session, a `/rc active` indicator sits in the footer below the input box while the connection is up, and is hidden if the terminal is too narrow to fit it. The indicator text is a link to the session on claude.ai. Select it with the down arrow key and press Enter, or run `/remote-control` again, to open a status panel with the session URL and a QR code you can use to [connect from another device](#connect-from-another-device)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If the connection fails, the indicator turns red and reads `/rc failed`. Select it with the down arrow key and press Enter to see the failure reason and a dismiss option, or run `/remote-control` again to retry."
+            },
+            {
+              "type": "added",
+              "content": "If the connection fails, a notification appears with the failure reason and the indicator disappears from the footer. Run `/remote-control` again to retry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Connect from another device"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -165,13 +165,18 @@ If notifications don't arrive:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- On iOS, Focus modes and notification summaries can suppress or delay pushes. Check Settings → Notifications → Claude."
+            },
+            {
+              "type": "context",
+              "content": "- On Android, aggressive battery optimization can delay delivery. Exempt the Claude app from battery optimization in system settings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code skips mobile push notifications while you are typing in or focused on the connected terminal. As of v2.1.181, you can set [`CLAUDE_CLIENT_PRESENCE_FILE`](/en/env-vars) to a marker file path to extend this to any time you are at the machine, even in another window: notifications are skipped while the file exists. Configure a screen-lock listener or similar tool to create the file when your screen unlocks and delete it when your screen locks."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Limitations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **One remote session per interactive process**: outside of server mode, each Claude Code instance supports one remote session at a time. Use [server mode](#start-a-remote-control-session) to run multiple concurrent sessions from a single process."
+            },
+            {
+              "type": "context",
+              "content": "- **Local process must keep running**: Remote Control runs as a local process. If you close the terminal, quit VS Code, or otherwise stop the `claude` process, the session ends."
+            },
+            {
+              "type": "context",
+              "content": "- **Extended network outage**: if your machine is awake but unable to reach the network for more than roughly 10 minutes, the session times out and the process exits. Run `claude remote-control` again to start a new session."
+            },
+            {
+              "type": "context",
+              "content": "- **Ultraplan disconnects Remote Control**: starting an [ultraplan](/en/ultraplan) session disconnects any active Remote Control session because both features occupy the claude.ai/code interface and only one can be connected at a time."
+            },
+            {
+              "type": "removed",
+              "content": "- **Some commands are local-only**: commands that open an interactive picker in the terminal, such as `/plugin` or `/resume`, work only from the local CLI. Commands that produce text output, including `/compact`, `/clear`, `/context`, `/usage`, `/exit`, `/usage-credits`, `/recap`, and `/reload-plugins`, work from mobile and web. As of v2.1.166, `/mcp` also works from mobile and web: it returns a text summary of server status instead of opening the picker, and accepts the same `reconnect`, `enable`, and `disable` [subcommands](/en/commands#all-commands) as the local CLI, with one difference: from mobile and web, `/mcp reconnect` with no server name reconnects every server that has failed or needs authentication, while the local CLI requires a server name for `reconnect`."
+            },
+            {
+              "type": "added",
+              "content": "- **Some commands are local-only**: commands that open an interactive picker in the terminal, such as `/plugin` or `/resume`, work only from the local CLI. The following work from mobile and web:"
+            },
+            {
+              "type": "added",
+              "content": "  - Text-output commands: `/compact`, `/clear`, `/context`, `/usage`, `/exit`, `/usage-credits`, `/recap`, `/reload-plugins`"
+            },
+            {
+              "type": "added",
+              "content": "  - `/mcp`, from v2.1.166: returns a text summary of server status instead of opening the picker, and accepts the `reconnect`, `enable`, and `disable` [subcommands](/en/commands#all-commands). Unlike the local CLI, `/mcp reconnect` without a server name reconnects every server that has failed or needs authentication."
+            },
+            {
+              "type": "added",
+              "content": "  - `/config`, from v2.1.181: pass `key=value` to set a setting, or run it with no argument to list the keys you can set."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Troubleshooting"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "macOSのサンドボックス環境でopenやosascriptを動作させるためのallowAppleEvents設定と、そのセキュリティ上の影響が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -314,6 +314,7 @@ Some commands fail inside the sandbox even though they work outside it. The fixe",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Commands fail with a host-not-allowed error**: many CLI tools need to reach specific hosts. Granting permission when prompted adds the host to your allowed list so the tool runs inside the sandbox in future."
+            },
+            {
+              "type": "context",
+              "content": "- **`jest` hangs or fails**: `watchman` is incompatible with the sandbox. Run `jest --no-watchman` instead."
+            },
+            {
+              "type": "context",
+              "content": "- **Go-based CLIs fail TLS verification on macOS**: tools such as `gh`, `gcloud`, and `terraform` may fail TLS verification under Seatbelt. List these tools in `excludedCommands` to run them outside the sandbox. If you are using `httpProxyPort` with a MITM proxy and custom CA, set [`enableWeakerNetworkIsolation`](/en/settings#sandbox-settings) to `true` instead."
+            },
+            {
+              "type": "added",
+              "content": "- **`open`, `osascript`, or browser-based auth flows fail with error `-600` on macOS**: the sandbox blocks Apple Events by default. Set [`allowAppleEvents`](/en/settings#sandbox-settings) to `true` in your user, managed, or CLI settings to allow them. Project settings are ignored for this key. Enabling it removes code-execution isolation, since sandboxed commands can then launch other applications unsandboxed with no user prompt and send AppleScript commands to running applications, subject to the macOS automation-consent prompt (TCC). Alternatively, add the command to `excludedCommands` to run it outside the sandbox."
+            },
+            {
+              "type": "context",
+              "content": "- **`docker` commands fail**: `docker` is incompatible with the sandbox. Add `docker *` to `excludedCommands` to run it outside the sandbox."
+            },
+            {
+              "type": "context",
+              "content": "- **Bubblewrap fails to start inside a container**: in an unprivileged container, bubblewrap cannot mount a fresh `/proc` filesystem. Set [`enableWeakerNestedSandbox`](/en/settings#sandbox-settings) to `true` so the inner sandbox bind-mounts the container's existing `/proc` instead. Only use this setting when the outer container already provides the isolation boundary you need, since it exposes process information to sandboxed commands that a fresh `/proc` mount would hide."
+            },
+            {
+              "type": "context",
+              "content": "- **Seccomp filter on Linux**: the seccomp filter is required to block Unix domain sockets. The Dependencies tab in `/sandbox` shows whether it is available. If it is missing, run `npm install -g @anthropic-ai/sandbox-runtime` to install the helper."
+            }
+          ]
+        },
+        {
+          "header": "@@ -332,6 +333,7 @@ Allowing broad domains such as `github.com` can create paths for data exfiltrati",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Privilege escalation via Unix sockets**: the `allowUnixSockets` configuration can inadvertently grant access to powerful system services that could lead to sandbox bypasses. For example, allowing access to `/var/run/docker.sock` effectively grants access to the host system through the Docker socket. Consider carefully any Unix sockets that you allow through the sandbox."
+            },
+            {
+              "type": "context",
+              "content": "- **Filesystem permission escalation**: overly broad filesystem write permissions can enable privilege escalation attacks. Allowing writes to directories containing executables in `$PATH`, system configuration directories, or user shell configuration files such as `.bashrc` or `.zshrc` can lead to code execution in different security contexts when other users or system processes access these files."
+            },
+            {
+              "type": "context",
+              "content": "- **Linux sandbox strength**: the Linux implementation provides strong filesystem and network isolation but includes an `enableWeakerNestedSandbox` mode that enables it to work inside Docker environments without privileged namespaces, or on Linux hosts where unprivileged user namespaces are disabled by sysctl. This option considerably weakens security and should only be used when additional isolation is otherwise enforced."
+            },
+            {
+              "type": "added",
+              "content": "- **Apple Events on macOS**: the macOS sandbox blocks Apple Events by default. The `allowAppleEvents` setting lifts this restriction so tools such as `open` and `osascript` work, but it removes code-execution isolation: sandboxed commands can launch other applications unsandboxed with no user prompt, and can send AppleScript commands to running applications, subject to the per-app macOS automation-consent prompt (TCC). It is only honored from user, managed, or CLI settings. Project settings cannot enable it."
+            },
+            {
+              "type": "context",
+              "content": "- **Settings files protected**: the sandbox automatically denies write access to Claude Code's `settings.json` files at every scope and to the managed settings directory, so a sandboxed command cannot modify its own policy."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Platform and tool compatibility"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 6,
+      "deletions": 4,
+      "explanation": "アクセシビリティ設定やmacOS向けのApple Events許可、さらに/configでのインライン設定変更などの新項目が反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/settings.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Configure Claude Code with global and project-level settings, and environment variables."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command when using the interactive REPL, which opens a tabbed Settings interface where you can view status information and modify configuration options."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command, which opens a tabbed Settings interface where you can view status information and modify configuration options. From v2.1.181, you can change a single option without opening the interface by passing `key=value` to `/config`, for example `/config verbose=true`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Configuration scopes"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -210,10 +210,11 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `autoMode` | Customize what the [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) classifier blocks and allows. Contains `environment`, `allow`, `soft_deny`, and `hard_deny` arrays of prose rules. Include the literal string `\"$defaults\"` in an array to inherit the built-in rules at that position. See [Configure auto mode](/en/auto-mode-config). Not read from shared project settings | `{\"soft_deny\": [\"$defaults\", \"Never run terraform apply\"]}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoScrollEnabled` | In [fullscreen rendering](/en/fullscreen), follow new output to the bottom of the conversation. Default: `true`. Appears in `/config` as **Auto-scroll**. Permission prompts still scroll into view when this is off | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoUpdatesChannel` | Release channel to follow for updates. Use `\"stable\"` for a version that is typically about one week old and skips versions with major regressions, or `\"latest\"` (default) for the most recent release. To disable auto-updates entirely, set [`DISABLE_AUTOUPDATER`](/en/setup#disable-auto-updates) in `env` | `\"stable\"` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `availableModels` | Restrict which models users can select for the main session, [subagents](/en/sub-agents), and the [advisor](/en/advisor). See [Restrict model selection](/en/model-config#restrict-model-selection). See `enforceAvailableModels` to also constrain Default | `[\"sonnet\", \"haiku\"]` |"
+            },
+            {
+              "type": "added",
+              "content": "| `availableModels` | Restrict which models users can select for the main session, [subagents](/en/sub-agents), and the [advisor](/en/advisor). See [Restrict model selection](/en/model-config#restrict-model-selection). See `enforceAvailableModels` to also constrain the default model | `[\"sonnet\", \"haiku\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `awaySummaryEnabled` | Show a one-line session recap when you return to the terminal after a few minutes away. Set to `false` or turn off Session recap in `/config` to disable. Same as [`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/en/env-vars) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `awsAuthRefresh` | Custom script that modifies the `.aws` directory (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration)) | `aws sso login --profile myprofile` |"
+            },
+            {
+              "type": "context",
+              "content": "| `awsCredentialExport` | Custom script that outputs JSON with AWS credentials (see [advanced credential configuration](/en/amazon-bedrock#advanced-credential-configuration)) | `/bin/generate_aws_grant.sh` |"
+            },
+            {
+              "type": "added",
+              "content": "| `axScreenReader` | Render screen-reader friendly output: flat text without decorative borders or animations. Screen-reader mode always uses the classic renderer, so the `tui` setting has no effect while it is active. The [`CLAUDE_AX_SCREEN_READER`](/en/env-vars) environment variable and the [`--ax-screen-reader`](/en/cli-reference#cli-flags) flag take precedence. Requires Claude Code v2.1.181 or later | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `blockedMarketplaces` | (Managed settings only) Blocklist of marketplace sources. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. Blocked sources are checked before downloading, so they never touch the filesystem. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ \"source\": \"github\", \"repo\": \"untrusted/plugins\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `channelsEnabled` | (Managed settings only) Allow [channels](/en/channels) for the organization. On claude.ai Team and Enterprise plans, channels are blocked when this is unset or `false`. For [Anthropic Console](/en/authentication#claude-console-authentication) accounts using API key authentication, channels are allowed by default unless your organization deploys managed settings, in which case this key must be set to `true` | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claudeMd` | (Managed settings only) CLAUDE.md-style instructions injected as organization-managed memory. Only honored when set in managed or policy settings and ignored in user, project, and local settings. See [organization-wide CLAUDE.md](/en/memory#deploy-organization-wide-claude-md) | `\"Always run make lint before committing.\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -286,7 +287,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `strictKnownMarketplaces` | (Managed settings only) Allowlist of plugin marketplace sources. Undefined = no restrictions, empty array = lockdown. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `strictPluginOnlyCustomization` | (Managed settings only) Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings. `true` locks all four surfaces; an array locks only the named ones. See [`strictPluginOnlyCustomization`](#strictpluginonlycustomization) | `[\"skills\", \"hooks\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `syntaxHighlightingDisabled` | Disable syntax highlighting in diffs, code blocks, and file previews | `true` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `auto` (split panes when running inside tmux or iTerm2, in-process otherwise), `in-process`, or `tmux` (split panes using tmux or iTerm2, detected from your terminal). `--teammate-mode` overrides this for one session. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `\"in-process\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `in-process` (the default), `auto` (split panes when running inside tmux or iTerm2, in-process otherwise), or `tmux` (split panes using tmux or iTerm2, detected from your terminal). The default changed from `auto` in v2.1.179. `--teammate-mode` overrides this for one session. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `\"auto\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `theme` | Color theme for the interface: `\"auto\"`, `\"dark\"`, `\"light\"`, `\"dark-daltonized\"`, `\"light-daltonized\"`, `\"dark-ansi\"`, `\"light-ansi\"`, or a custom theme reference such as `\"custom:<slug>\"` or `\"custom:<plugin-name>:<slug>\"`. Default: `\"dark\"`. See [Create a custom theme](/en/terminal-config#create-a-custom-theme). Appears in `/config` as **Theme** | `\"dark\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `tui` | Terminal UI renderer. Use `\"fullscreen\"` for the flicker-free [alt-screen renderer](/en/fullscreen) with virtualized scrollback. Use `\"default\"` for the classic main-screen renderer. Set via `/tui`. You can also set the [`CLAUDE_CODE_NO_FLICKER`](/en/env-vars) environment variable. Background sessions opened from [agent view](/en/agent-view) always use the fullscreen renderer regardless of this setting | `\"fullscreen\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -380,6 +381,7 @@ Configure advanced sandboxing behavior. Sandboxing isolates bash commands from y",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `network.socksProxyPort` | SOCKS5 proxy port used if you wish to bring your own proxy. If not specified, Claude will run its own proxy. | `8081` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enableWeakerNestedSandbox` | Enable weaker sandbox for unprivileged Docker environments (Linux and WSL2 only). **Reduces security.** Default: false | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `enableWeakerNetworkIsolation` | (macOS only) Allow access to the system TLS trust service (`com.apple.trustd.agent`) in the sandbox. Required for Go-based tools like `gh`, `gcloud`, and `terraform` to verify TLS certificates when using `httpProxyPort` with a MITM proxy and custom CA. **Reduces security** by opening a potential data exfiltration path. Default: false | `true` |"
+            },
+            {
+              "type": "added",
+              "content": "| `allowAppleEvents` | (macOS only) Allow sandboxed commands to send Apple Events. Required for `open`, `osascript`, and tools that open URLs in a browser, which otherwise fail with error `-600`. **Removes code-execution isolation.** Sandboxed commands can launch other applications unsandboxed with no user prompt; they can also send AppleScript commands to running applications such as Terminal, subject to the per-app macOS automation-consent prompt (TCC). Only honored from user, managed, or CLI settings, not from project settings. Default: false | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `bwrapPath` | (Managed settings only, Linux/WSL2) Absolute path to the bubblewrap (`bwrap`) binary. Overrides automatic detection via `PATH`. Only honored from [managed settings](/en/settings#settings-precedence), not from user or project settings. Useful when `bwrap` is installed at a non-standard location in managed environments. | `/opt/admin/bwrap` |"
+            },
+            {
+              "type": "context",
+              "content": "| `socatPath` | (Managed settings only, Linux/WSL2) Absolute path to the `socat` binary used for the sandbox network proxy. Overrides automatic detection via `PATH`. Only honored from managed settings. | `/opt/admin/socat` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -520,7 +522,7 @@ The following example renders a badge whenever an issue key like `PROJ-1234` app",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "With this configured, when `PROJ-1234` appears in a tool result or in Claude's reply, a `PROJ-1234` chip appears in the footer linking to `https://issues.example.com/browse/PROJ-1234`."
+            },
+            {
+              "type": "added",
+              "content": "With this configured, when `PROJ-1234` appears in a tool result or in Claude's reply, a `PROJ-1234` badge appears in the footer linking to `https://issues.example.com/browse/PROJ-1234`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The following constraints apply to each entry:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 31,
+      "deletions": 1,
+      "explanation": "skill-creatorプラグインを使用したスキルのテスト・評価・ベンチマーク計測の自動化プロセスが大幅に加筆されました。",
+      "hunks": [
+        {
+          "header": "@@ -142,7 +142,7 @@ Files in `.claude/commands/` still work and support the same [frontmatter](#fron",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `--add-dir` flag and `/add-dir` command [grant file access](/en/permissions#additional-directories-grant-file-access-not-configuration) rather than configuration discovery, but skills are an exception: `.claude/skills/` within an added directory is loaded automatically. This exception applies only to `--add-dir` and `/add-dir`. The `permissions.additionalDirectories` setting in `settings.json` grants file access only and does not load skills. See [Live change detection](#live-change-detection) for how edits are picked up during a session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Other `.claude/` configuration such as subagents, commands, and output styles is not loaded from additional directories. See the [exceptions table](/en/permissions#additional-directories-grant-file-access-not-configuration) for the complete list of what is and isn't loaded, and the recommended ways to share configuration across projects."
+            },
+            {
+              "type": "added",
+              "content": "Other `.claude/` configuration such as commands and output styles is not loaded from additional directories. See the [exceptions table](/en/permissions#additional-directories-grant-file-access-not-configuration) for the complete list of what is and isn't loaded, and the recommended ways to share configuration across projects."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "CLAUDE.md files from `--add-dir` directories are not loaded by default. To load them, set `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1`. See [Load from additional directories](/en/memory#load-from-additional-directories)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -559,6 +559,34 @@ A skill that is absent from `skillOverrides` is treated as `\"on\"`. The example b",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugin skills are not affected by `skillOverrides`. Manage those through `/plugin` instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Evaluate and iterate on a skill"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Seeing a skill trigger tells you Claude found it, not that it did what you intended. To know a skill is working, measure two things separately: whether Claude invokes it on the prompts it should, and whether the output matches what you expect when it does."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The check for both is a baseline comparison. Collect a few realistic prompts, run each one in a fresh session with the skill available and again with it [disabled](#override-skill-visibility-from-settings), and compare the results. A fresh session matters because leftover context from authoring the skill will mask gaps in the written instructions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Run evals with skill-creator"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The [`skill-creator` plugin](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/skill-creator) automates the comparison loop inside Claude Code. Install it from the official marketplace:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "/plugin install skill-creator@claude-plugins-official"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If Claude Code reports that the plugin is not found in any marketplace, your marketplace is either missing or outdated. Run `/plugin marketplace update claude-plugins-official` to refresh it, or `/plugin marketplace add anthropics/claude-plugins-official` if you haven't added it before. Then retry the install."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "After installing, run `/reload-plugins` to make the plugin's skills available in the current session. Then ask Claude to evaluate an existing skill, for example `evaluate my summarize-changes skill with skill-creator`. The plugin walks you through writing test cases and runs the loop:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Test cases**: stores prompts, input files, and expected behavior in `evals/evals.json` inside the skill directory"
+            },
+            {
+              "type": "added",
+              "content": "- **Isolated runs**: spawns a [subagent](/en/sub-agents) per test case so each run starts with a clean context, and records token count and duration"
+            },
+            {
+              "type": "added",
+              "content": "- **Grading**: checks each assertion against the output and writes pass or fail with evidence to `grading.json`"
+            },
+            {
+              "type": "added",
+              "content": "- **Benchmark**: aggregates pass rate, time, and tokens for with-skill versus without-skill into `benchmark.json` so you can compare the pass-rate improvement against the token and time overhead"
+            },
+            {
+              "type": "added",
+              "content": "- **Version comparison**: runs a blind A/B between two versions of the skill so you can confirm an edit is an improvement before committing it"
+            },
+            {
+              "type": "added",
+              "content": "- **Description tuning**: generates should-trigger and should-not-trigger prompts, measures the hit rate, and proposes description edits when the skill activates on the wrong requests"
+            },
+            {
+              "type": "added",
+              "content": "- **Review viewer**: opens an HTML report where you inspect each output and record qualitative feedback that the next iteration reads"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For the eval file format and the full iteration workflow, see [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills) on agentskills.io. For background on the benchmark and comparison modes, see the [skill-creator announcement](https://claude.com/blog/improving-skill-creator-test-measure-and-refine-agent-skills)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Share skills"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Skills can be distributed at different scopes depending on your audience:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -785,6 +813,8 @@ To raise the budget, set the [`skillListingBudgetFraction`](/en/settings#availab",
+          "lines": [
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **[Debug your configuration](/en/debug-your-config)**: diagnose why a skill isn't appearing or triggering"
+            },
+            {
+              "type": "added",
+              "content": "- **[Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills)**: the eval file format and iteration workflow on agentskills.io"
+            },
+            {
+              "type": "added",
+              "content": "- **[Skill authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices)**: writing guidance that applies across Claude products"
+            },
+            {
+              "type": "context",
+              "content": "- **[Subagents](/en/sub-agents)**: delegate tasks to specialized agents"
+            },
+            {
+              "type": "context",
+              "content": "- **[Plugins](/en/plugins)**: package and distribute skills with other extensions"
+            },
+            {
+              "type": "context",
+              "content": "- **[Hooks](/en/hooks)**: automate workflows around tool events"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "statusline.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "ステータスラインとフッターのリンクバッジの表示関係が整理され、設定方法のガイドが更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -16,7 +16,7 @@ Status lines are useful when you:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Work across multiple sessions and need to distinguish them"
+            },
+            {
+              "type": "context",
+              "content": "- Want git branch and status always visible"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code can also render [footer link badges](/en/settings#footer-link-badges): clickable chips that appear in the footer when a configured regex matches text in the conversation. These are independent of the status line and do not interact with your script; configure them with the [`footerLinksRegexes`](/en/settings#footer-link-badges) setting instead."
+            },
+            {
+              "type": "added",
+              "content": "The status line renders in its own row above the built-in footer badges and does not replace them. To add clickable link badges to the footer when an ID appears in the conversation, without writing a script, configure [`footerLinksRegexes`](/en/settings#footer-link-badges) instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Here's an example of a [multi-line status line](#display-multiple-lines) that displays git info on the first line and a color-coded context bar on the second."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 1,
+      "deletions": 4,
+      "explanation": "サブエージェントのネスト深さ制限が、フォアグラウンドとバックグラウンドの両方で5段階までに統一されました。",
+      "hunks": [
+        {
+          "header": "@@ -738,10 +738,7 @@ As of Claude Code v2.1.172, a subagent can spawn its own subagents. Use this whe",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A nested subagent is configured the same way as a top-level one and resolves from the same [scopes](#choose-the-subagent-scope). The subagent panel below the prompt input shows the full tree: each row displays a `(+N)` count of descendants, and opening a row shows that subagent's direct children with a path back to `main`. The Running tab in [`/agents`](#use-the-%2Fagents-command) lists running subagents as a flat list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Depth is counted as the number of subagent levels below the main conversation, regardless of whether each level runs in the [foreground or background](#run-subagents-in-foreground-or-background):"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Foreground subagents**: can spawn at any depth. Each level blocks its parent until it returns, so the chain is self-limiting: the main conversation waits on the entire chain."
+            },
+            {
+              "type": "removed",
+              "content": "- **Background subagents**: a background subagent at depth five does not receive the Agent tool and cannot spawn further. The limit is fixed and not configurable, and exists to prevent runaway concurrent trees."
+            },
+            {
+              "type": "added",
+              "content": "Depth is counted as the number of subagent levels below the main conversation, regardless of whether each level runs in the [foreground or background](#run-subagents-in-foreground-or-background). A subagent at depth five does not receive the Agent tool and cannot spawn further. The limit is fixed and not configurable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To prevent a specific subagent from spawning others, omit `Agent` from its [`tools`](#available-tools) list or add it to `disallowedTools`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "ultrareview.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "プルリクエストの差分が大きすぎる場合に、レビューの実行を拒否してスコープのヒントを出す挙動が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -39,6 +39,8 @@ In PR mode, the remote sandbox clones the pull request directly from the host ra",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If your repository is too large to bundle, Claude Code prompts you to use PR mode instead. Push your branch and open a draft PR, then run `/code-review ultra <PR-number>`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the pull request's diff is too large, Claude Code refuses the review with a scoping hint before any review work runs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before launching, Claude Code shows a confirmation dialog with the review scope (including the file and line count when reviewing a branch), your remaining free runs, and the estimated cost. After you confirm, the review continues in the background and you can keep using your session. The command runs only when you invoke it with `/code-review ultra`; Claude does not start an ultrareview on its own."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Pricing and free runs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "whats-new/2026-w24.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "サブエージェントの名称表記の統一と、ネスト制限の仕様変更に伴う最新情報の修正が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -5,7 +5,7 @@ source: https://code.claude.com/docs/en/whats-new/2026-w24.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "# Week 24 · June 8–12, 2026"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Move a session to a new directory with /cd, let sub-agents spawn their own sub-agents, and troubleshoot a broken configuration with safe mode."
+            },
+            {
+              "type": "added",
+              "content": "> Move a session to a new directory with /cd, let subagents spawn their own subagents, and troubleshoot a broken configuration with safe mode."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Releases v2.1.166 → v2.1.176"
+            },
+            {
+              "type": "context",
+              "content": "3 features · June 8–12"
+            }
+          ]
+        },
+        {
+          "header": "@@ -23,10 +23,10 @@ Move the session into another project without restarting:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Commands reference"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Sub-agents can spawn sub-agents"
+            },
+            {
+              "type": "added",
+              "content": "Subagents can spawn subagents"
+            },
+            {
+              "type": "context",
+              "content": "v2.1.172"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Sub-agents can now spawn their own sub-agents. The subagent panel below the prompt shows the full tree: each row carries a count of its descendants and a path back to main. Background sub-agents are capped at five levels deep to prevent runaway concurrent trees; foreground chains can spawn at any depth and are self-limiting."
+            },
+            {
+              "type": "added",
+              "content": "Subagents can now spawn their own subagents. The subagent panel below the prompt shows the full tree: each row carries a count of its descendants and a path back to main. Subagent chains are capped at five levels deep to prevent runaway concurrent trees."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Open the agents view to watch the nested tree as work fans out:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "workflows.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "モノレポ構成において、パッケージごとの.claudeディレクトリに配置されたワークフローが適切に読み込まれる仕様が明文化されました。",
+      "hunks": [
+        {
+          "header": "@@ -167,7 +167,7 @@ Run `/workflows`, select the run you want to keep, and press `s`. In the save di",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Press Enter to save. The workflow runs as `/<name>` in future sessions from either location."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "As of v2.1.178, saving to the project location writes to the closest `.claude/workflows/` directory that already exists between your working directory and the repository root, or to the repository root if none exists yet. Project workflows also load from every `.claude/workflows/` along that path, and when more than one defines the same name Claude Code runs the one closest to the working directory."
+            },
+            {
+              "type": "added",
+              "content": "In a monorepo with several `.claude/` directories, you can keep workflows alongside the package they apply to. As of v2.1.178, saving to the project location writes to the closest `.claude/workflows/` directory that already exists between your working directory and the repository root, or to the repository root if none exists yet. Project workflows also load from every `.claude/workflows/` along that path, and when more than one defines the same name Claude Code runs the one closest to the working directory."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If a project workflow and a personal workflow share a name, the project one runs."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -206,7 +206,7 @@ claude -p "Look at my staged changes and create an appropriate commit" \
 
 The `--allowedTools` flag uses [permission rule syntax](/en/settings#permission-rule-syntax). The trailing ` *` enables prefix matching, so `Bash(git diff *)` allows any command starting with `git diff`. The space before `*` is important: without it, `Bash(git diff*)` would also match `git diff-index`.
 
-User-invoked [skills](/en/skills) and custom commands work in `-p` mode: include `/skill-name` in the prompt string and Claude Code expands it before running. Built-in commands that open an interactive dialog, such as `/config` and `/login`, are not available in `-p` mode.
+User-invoked [skills](/en/skills) and custom commands work in `-p` mode: include `/skill-name` in the prompt string and Claude Code expands it before running. Built-in commands that open an interactive dialog, such as `/login`, are not available in `-p` mode. To change a setting from a `-p` invocation, pass `key=value` to `/config`, for example `/config thinking=false`.
 
 ### Customize the system prompt
 
