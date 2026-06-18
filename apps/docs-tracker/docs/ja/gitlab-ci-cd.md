@@ -13,7 +13,7 @@ Claude Code for GitLab CI/CD は現在ベータ版です。機能と機能性は
 
 この統合は [Claude Code CLI and Agent SDK](/ja/agent-sdk/overview) の上に構築されており、CI/CD ジョブとカスタム自動化ワークフローで Claude をプログラム的に使用できます。
 
-## GitLab で Claude Code を使用する理由
+GitLab で Claude Code を使用する理由
 
 - **インスタント MR 作成**: 必要なことを説明すると、Claude は変更と説明を含む完全な MR を提案します
 - **自動実装**: 単一のコマンドまたはメンションで issue を実行可能なコードに変換します
@@ -22,7 +22,7 @@ Claude Code for GitLab CI/CD は現在ベータ版です。機能と機能性は
 - **エンタープライズ対応**: Claude API、Amazon Bedrock、または Google Vertex AI を選択して、データレジデンシーと調達のニーズを満たします
 - **デフォルトでセキュア**: GitLab ランナーで実行され、ブランチ保護と承認が適用されます
 
-## 仕組み
+仕組み
 
 Claude Code は GitLab CI/CD を使用して AI タスクを分離されたジョブで実行し、MR 経由で結果をコミットバックします。
 
@@ -37,7 +37,7 @@ Claude Code は GitLab CI/CD を使用して AI タスクを分離されたジ�
 
 地域エンドポイントを選択して、既存のクラウド契約を使用しながらレイテンシーを削減し、データソブリンティ要件を満たします。
 
-## Claude は何ができますか？
+Claude は何ができますか？
 
 Claude Code は、コードの操作方法を変える強力な CI/CD ワークフローを実現します。
 
@@ -47,9 +47,9 @@ Claude Code は、コードの操作方法を変える強力な CI/CD ワーク�
 - テストまたはコメントで特定されたバグと低下を修正します
 - フォローアップコメントに応答して、リクエストされた変更を反復処理します
 
-## セットアップ
+セットアップ
 
-### クイックセットアップ
+クイックセットアップ
 
 最速で開始する方法は、`.gitlab-ci.yml` に最小限のジョブを追加し、API キーをマスクされた変数として設定することです。
 
@@ -94,9 +94,9 @@ claude:
 
 ジョブと `ANTHROPIC_API_KEY` 変数を追加した後、**CI/CD** → **Pipelines** からジョブを手動で実行してテストするか、MR からトリガーして Claude が変更を提案し、必要に応じて MR を開くようにします。
 
-Claude API の代わりに Amazon Bedrock または Google Vertex AI で実行するには、以下の [Using with Amazon Bedrock & Google Vertex AI](#using-with-amazon-bedrock--google-vertex-ai) セクションを参照して、認証と環境セットアップを確認してください。
+Claude API の代わりに Amazon Bedrock または Google Vertex AI で実行するには、以下の [Using with Amazon Bedrock & Google Vertex AI](#using-with-amazon-bedrock-%26-google-vertex-ai) セクションを参照して、認証と環境セットアップを確認してください。
 
-### 手動セットアップ（本番環境に推奨）
+手動セットアップ（本番環境に推奨）
 
 より制御されたセットアップが必要な場合、またはエンタープライズプロバイダーが必要な場合：
 
@@ -115,9 +115,9 @@ Claude API の代わりに Amazon Bedrock または Google Vertex AI で実行�
    - プロジェクト webhook を「Comments（notes）」に追加して、イベントリスナーに追加します（使用する場合）
    - コメントに `@claude` が含まれている場合、リスナーがパイプライントリガー API を `AI_FLOW_INPUT` や `AI_FLOW_CONTEXT` などの変数で呼び出すようにします
 
-## 使用例
+使用例
 
-### issue を MR に変換する
+issue を MR に変換する
 
 issue コメント内：
 
@@ -127,7 +127,7 @@ issue コメント内：
 
 Claude は issue とコードベースを分析し、ブランチに変更を書き込み、レビュー用に MR を開きます。
 
-### 実装ヘルプを取得する
+実装ヘルプを取得する
 
 MR ディスカッション内：
 
@@ -137,7 +137,7 @@ MR ディスカッション内：
 
 Claude は変更を提案し、適切なキャッシングを使用してコードを追加し、MR を更新します。
 
-### バグを素早く修正する
+バグを素早く修正する
 
 issue または MR コメント内：
 
@@ -147,7 +147,7 @@ issue または MR コメント内：
 
 Claude はバグを特定し、修正を実装し、ブランチを更新するか新しい MR を開きます。
 
-## Amazon Bedrock & Google Vertex AI での使用
+Amazon Bedrock & Google Vertex AI での使用
 
 エンタープライズ環境では、同じ開発者エクスペリエンスで Claude Code をクラウドインフラストラクチャ全体で実行できます。
 
@@ -227,11 +227,11 @@ Settings → CI/CD → Variables で変数を追加します。
 
 上記の Google Vertex AI ジョブの例を使用して、キーを保存せずに認証します。
 
-## 構成例
+構成例
 
 以下は、パイプラインに適応させることができる使用可能なスニペットです。
 
-### 基本的な .gitlab-ci.yml（Claude API）
+基本的な .gitlab-ci.yml（Claude API）
 
 ```yaml
 stages:
@@ -260,7 +260,7 @@ claude:
   # Claude Code は CI/CD 変数から ANTHROPIC_API_KEY を使用します
 ```
 
-### Amazon Bedrock ジョブの例（OIDC）
+Amazon Bedrock ジョブの例（OIDC）
 
 **前提条件：**
 
@@ -309,7 +309,7 @@ claude-bedrock:
 
 Bedrock のモデル ID にはリージョン固有のプレフィックスが含まれます（例：`us.anthropic.claude-sonnet-4-6`）。ワークフローがサポートしている場合は、ジョブ構成またはプロンプト経由で目的のモデルを渡します。
 
-### Google Vertex AI ジョブの例（Workload Identity Federation）
+Google Vertex AI ジョブの例（Workload Identity Federation）
 
 **前提条件：**
 
@@ -360,13 +360,13 @@ claude-vertex:
 
 Workload Identity Federation では、サービスアカウントキーを保存する必要はありません。リポジトリ固有の信頼条件と最小権限サービスアカウントを使用します。
 
-## ベストプラクティス
+ベストプラクティス
 
-### CLAUDE.md 構成
+CLAUDE.md 構成
 
 リポジトリルートに `CLAUDE.md` ファイルを作成して、コーディング標準、レビュー基準、およびプロジェクト固有のルールを定義します。Claude は実行中にこのファイルを読み取り、変更を提案する際にあなたの規約に従います。
 
-### セキュリティに関する考慮事項
+セキュリティに関する考慮事項
 
 **API キーやクラウド認証情報をリポジトリにコミットしないでください**。常に GitLab CI/CD 変数を使用します。
 
@@ -375,14 +375,14 @@ Workload Identity Federation では、サービスアカウントキーを保存
 - ジョブ権限とネットワーク出力を制限します
 - 他の貢献者と同じように Claude の MR をレビューします
 
-### パフォーマンスの最適化
+パフォーマンスの最適化
 
 - `CLAUDE.md` を焦点を絞った簡潔なものに保ちます
 - issue/MR の説明を明確にして、反復を減らします
 - 実行不可能な実行を避けるために、適切なジョブタイムアウトを構成します
 - ランナーで npm とパッケージのインストールをキャッシュします（可能な場合）
 
-### CI コスト
+CI コスト
 
 GitLab CI/CD で Claude Code を使用する場合、関連するコストに注意してください。
 
@@ -400,7 +400,7 @@ GitLab CI/CD で Claude Code を使用する場合、関連するコストに注
   - 適切な `max_turns` とジョブタイムアウト値を設定します
   - 並列実行を制限して、並行実行を制御します
 
-## セキュリティとガバナンス
+セキュリティとガバナンス
 
 - 各ジョブは、ネットワークアクセスが制限された分離されたコンテナで実行されます
 - Claude の変更は MR を通じてフローするため、レビュアーはすべての diff を確認できます
@@ -408,28 +408,28 @@ GitLab CI/CD で Claude Code を使用する場合、関連するコストに注
 - Claude Code はワークスペーススコープの権限を使用して書き込みを制限します
 - 独自のプロバイダー認証情報を持ち込むため、コストは制御下に置かれます
 
-## トラブルシューティング
+トラブルシューティング
 
-### Claude が @claude コマンドに応答しない
+Claude が @claude コマンドに応答しない
 
 - パイプラインがトリガーされていることを確認します（手動、MR イベント、またはメモイベントリスナー/webhook 経由）
 - CI/CD 変数（`ANTHROPIC_API_KEY` またはクラウドプロバイダー設定）が存在し、マスク解除されていることを確認します
 - コメントに `@claude`（`/claude` ではなく）が含まれており、メンショントリガーが構成されていることを確認します
 
-### ジョブがコメントを書き込めない、または MR を開けない
+ジョブがコメントを書き込めない、または MR を開けない
 
 - `CI_JOB_TOKEN` がプロジェクトに対して十分な権限を持っていることを確認するか、`api` スコープを持つ Project Access Token を使用します
 - `mcp__gitlab` ツールが `--allowedTools` で有効になっていることを確認します
 - ジョブが MR のコンテキストで実行されているか、`AI_FLOW_*` 変数経由で十分なコンテキストを持っていることを確認します
 
-### 認証エラー
+認証エラー
 
 - **Claude API の場合**: `ANTHROPIC_API_KEY` が有効で期限切れでないことを確認します
 - **Bedrock/Vertex の場合**: OIDC/WIF 構成、ロール偽装、シークレット名を確認します。リージョンとモデルの可用性を確認します
 
-## 高度な構成
+高度な構成
 
-### 一般的なパラメータと変数
+一般的なパラメータと変数
 
 Claude Code は以下の一般的に使用される入力をサポートしています。
 
@@ -441,7 +441,7 @@ Claude Code は以下の一般的に使用される入力をサポートして�
 
 正確なフラグとパラメータは `@anthropic-ai/claude-code` のバージョンによって異なる場合があります。ジョブで `claude --help` を実行して、サポートされているオプションを確認してください。
 
-### Claude の動作をカスタマイズする
+Claude の動作をカスタマイズする
 
 Claude をガイドするには、主に 2 つの方法があります。
 

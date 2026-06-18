@@ -97,7 +97,7 @@ IDE またはターミナルの外で Claude Code を実行するためのスタ
 
 IntelliJ IDEA、PyCharm、WebStorm、その他の JetBrains IDE 用のプラグインで、インタラクティブな差分表示と選択コンテキスト共有機能があります。
 
-JetBrains Marketplace から [Claude Code プラグイン](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-) をインストールして IDE を再起動します。
+JetBrains Marketplace から [Claude Code プラグイン](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-) をインストールして IDE を再起動します。プラグインには Claude Code CLI が必要で、別途インストールしてください。[JetBrains セットアップステップ](/ja/jetbrains#installation)を参照してください。
 
 [JetBrains ではじめる →](/ja/jetbrains)
 
@@ -160,7 +160,7 @@ git diff main --name-only | claude -p "review these changed files for security i
 
 - デスクから離れて、電話または [リモートコントロール](/ja/remote-control) を使用した任意のブラウザから作業を続けます
 - [Dispatch](/ja/desktop#sessions-from-dispatch) にメッセージを送信して、電話からタスクを送信し、作成されたデスクトップセッションを開きます
-- [Web](/ja/claude-code-on-the-web) または [iOS アプリ](https://apps.apple.com/app/claude-by-anthropic/id6473753684) で長時間実行されるタスクを開始し、`claude --teleport` でターミナルにプルします
+- [Web](/ja/claude-code-on-the-web) または [iOS アプリ](https://apps.apple.com/app/claude-by-anthropic/id6473753684) で長時間実行されるタスクを開始し、`claude --teleport` でターミナルにプルします。Teleport には claude.ai サブスクリプションが必要です。
 - ターミナルセッションを [デスクトップアプリ](/ja/desktop) に `/desktop` で渡して、視覚的な差分確認を行います
 - チームチャットからタスクをルーティング：[Slack](/ja/slack) で `@Claude` にメンションしてバグレポートを送信し、プルリクエストを取得します
 

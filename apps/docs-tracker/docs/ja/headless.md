@@ -57,6 +57,10 @@ claude --bare -p "Summarize this file" --allowedTools "Read"
 
 `--bare` はスクリプトおよび SDK 呼び出しの推奨モードであり、将来のリリースで `-p` のデフォルトになります。
 
+終了時のバックグラウンドタスク
+
+Claude が `claude -p` 実行中に [バックグラウンド Bash タスク](/ja/tools-reference#bash-tool-behavior) を開始する場合（例えば、開発サーバーまたはウォッチビルド）、そのタスクは Claude が最終結果を返し、stdin が閉じられてから約 5 秒後に終了します。猶予期間により、結果の直後に終了するタスクでも出力を配信できます。v2.1.163 より前では、終了しないバックグラウンドプロセスは `claude -p` 呼び出しを無期限に開いたままにしていました。
+
 例
 
 これらの例は、一般的な CLI パターンを強調しています。CI およびその他のスクリプト呼び出しの場合は、[`--bare`](#start-faster-with-bare-mode) を追加して、ローカルで設定されているものを取得しないようにします。
@@ -160,7 +164,7 @@ API リクエストが再試行可能なエラーで失敗すると、Claude Cod
 | フィールド | 型 | 説明 |
 | - | - | - |
 | `plugins` | 配列 | 正常に読み込まれたプラグイン。各プラグインは `name` と `path` を持ちます |
-| `plugin_errors` | 配列 | 満たされていない依存関係バージョンなどのプラグイン読み込み時エラー。各エラーは `plugin`、`type`、および `message` を持ちます。影響を受けたプラグインは降格され、`plugins` から削除されます。エラーがない場合、キーは省略されます |
+| `plugin_errors` | 配列 | プラグイン読み込み時エラー。各エラーは `plugin`、`type`、および `message` を持ちます。満たされていない依存関係バージョンおよび `--plugin-dir` 読み込み失敗（パスの欠落または無効なアーカイブなど）が含まれます。影響を受けたプラグインは降格され、`plugins` から削除されます。エラーがない場合、キーは省略されます |
 
 [`CLAUDE_CODE_SYNC_PLUGIN_INSTALL`](/ja/env-vars) が設定されている場合、Claude Code は最初のターンの前にマーケットプレイスプラグインがインストールされている間、`system/plugin_install` イベントを発行します。これらを使用して、独自の UI にインストール進行状況を表示します。
 
@@ -202,7 +206,7 @@ claude -p "Look at my staged changes and create an appropriate commit" \
 
 `--allowedTools` フラグは [パーミッションルール構文](/ja/settings#permission-rule-syntax) を使用します。末尾の ` *` はプレフィックスマッチングを有効にするため、`Bash(git diff *)` は `git diff` で始まるすべてのコマンドを許可します。スペースは重要です。スペースがない場合、`Bash(git diff*)` は `git diff-index` にも一致します。
 
-ユーザーが呼び出した [skills](/ja/skills)（`/code-review` など）および [組み込みコマンド](/ja/commands) は、対話モードでのみ利用可能です。`-p` モードでは、代わりに実行したいタスクを説明してください。
+ユーザーが呼び出した [skills](/ja/skills) およびカスタムコマンドは `-p` モードで機能します。プロンプト文字列に `/skill-name` を含めると、Claude Code は実行前にそれを展開します。`/config` や `/login` などの対話ダイアログを開く組み込みコマンドは、`-p` モードでは利用できません。
 
 システムプロンプトをカスタマイズする
 
@@ -235,6 +239,8 @@ claude -p "Generate a summary of all issues found" --continue
 session_id=$(claude -p "Start a review" --output-format json | jq -r '.session_id')
 claude -p "Continue that review" --resume "$session_id"
 ```
+
+同じディレクトリから両方のコマンドを実行します。セッション ID ルックアップは現在のプロジェクトディレクトリとその git worktrees にスコープされます。完全なスコープルールについては、[セッションを再開する](/ja/sessions#resume-a-session) を参照してください。
 
 次のステップ
 

@@ -51,6 +51,8 @@ Claude Code の **Default** 出力スタイルは既存のシステムプロン�
 - プロジェクト: `.claude/output-styles`
 - 管理ポリシー: [管理設定ディレクトリ](/ja/settings#settings-files) 内の `.claude/output-styles`
 
+プロジェクト出力スタイルは、作業ディレクトリとリポジトリルートの間のすべての `.claude/output-styles/` から読み込まれます。v2.1.178 以降、これらのネストされたディレクトリの複数が同じ名前のスタイルを定義する場合、Claude Code は作業ディレクトリに最も近いものを使用します。
+
 Claude Code のソフトウェアエンジニアリング指示を保持するかどうかを決定します。Claude がコミュニケーション方法を変更しているがまだ同じ方法でコーディングしたい場合は `keep-coding-instructions: true` を設定します。Claude がソフトウェアエンジニアリングを行わない場合は除外します。
 
 この例は Claude のコーディング動作を保持しながら、すべての説明を図で始めます。

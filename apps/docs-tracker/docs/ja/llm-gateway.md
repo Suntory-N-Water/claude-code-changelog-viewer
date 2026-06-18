@@ -15,6 +15,8 @@ LLM gatewayは、Claude Codeとモデルプロバイダー間の集中型プロ�
 - **監査ログ** - コンプライアンスのためのすべてのモデル相互作用の追跡
 - **モデルルーティング** - コード変更なしでプロバイダー間の切り替え
 
+このページでは、Claude Code CLI のgateway要件と設定について説明します。Enterprise Desktop デプロイメントは、[管理設定](https://support.claude.com/ja/articles/12622667-enterprise-configuration)を通じてgatewayプロバイダーを設定できます。Claude Desktop アプリは、[Cowork on 3P research preview](https://claude.com/docs/cowork/3p/gateway)を通じて自己ホスト型gatewayに対して実行することもでき、これは独自の設定キーを使用します。
+
 Gateway要件
 
 LLM gatewayがClaude Codeと連携するには、以下の要件を満たす必要があります：
@@ -64,7 +66,7 @@ Claude Codeはまた、クライアントバージョンと会話から派生し
 
 ゲートウェイが検出フィルターと一致しないモデル名を使用している場合は、[モデル設定](/ja/model-config)に記載されている環境変数を使用して、手動で追加してください。
 
-LiteLLM設定
+LiteLLM 設定
 
 LiteLLM PyPI バージョン 1.82.7 および 1.82.8 は、認証情報を盗むマルウェアで侵害されました。これらのバージョンをインストールしないでください。既にインストールしている場合：
 

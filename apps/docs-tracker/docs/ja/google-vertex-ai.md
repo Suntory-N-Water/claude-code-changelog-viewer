@@ -75,7 +75,7 @@ Claude Code を Vertex AI で設定する前に、以下を確認してくださ
 * Google Cloud SDK（`gcloud`）がインストールされ、設定されていること
 * 目的の GCP リージョンに割り当てられたクォータ
 
-Vertex AI 認証情報で サインインするには、以下の[Vertex AI でサインイン](#sign-in-with-vertex-ai)に従ってください。チーム全体に Claude Code をデプロイするには、[手動セットアップ](#set-up-manually)の手順を使用し、ロールアウト前に[モデルバージョンをピン留めして](#5-pin-model-versions)ください。
+Vertex AI 認証情報でサインインするには、以下の[Vertex AI でサインイン](#sign-in-with-vertex-ai)に従ってください。チーム全体に Claude Code をデプロイするには、[手動セットアップ](#set-up-manually)の手順を使用し、ロールアウト前に[モデルバージョンをピン留めして](#5-pin-model-versions)ください。
 
 <h2 id="sign-in-with-vertex-ai">
   Vertex AI でサインイン
@@ -212,7 +212,7 @@ Claude Code は Vertex AI でデフォルトで [MCP tool search](/ja/mcp#scale-
 </h3>
 
 <Warning>
-  複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` および `opus` などのモデルエイリアスは最新バージョンに解決されます。これは、Anthropic がアップデートをリリースしたときに Vertex AI プロジェクトでまだ有効になっていない可能性があります。Claude Code は、最新が利用できない場合、起動時に[前のバージョンにフォールバック](#startup-model-checks)しますが、ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。
+  複数のユーザーにデプロイする場合は、特定のモデルバージョンをピン留めしてください。ピン留めなしでは、`sonnet` および `opus` などのモデルエイリアスは Claude Code の Vertex AI 用の組み込みデフォルトに解決され、最新リリースより遅れる可能性があり、プロジェクトでまだ有効になっていない可能性があります。Claude Code は、デフォルトが利用できない場合、起動時に[前のバージョンにフォールバック](#startup-model-checks)しますが、ピン留めすることで、ユーザーが新しいモデルに移行するタイミングを制御できます。
 </Warning>
 
 これらの環境変数を特定の Vertex AI モデル ID に設定します。

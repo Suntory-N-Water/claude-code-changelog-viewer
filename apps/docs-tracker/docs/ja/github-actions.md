@@ -11,9 +11,7 @@ Claude Code GitHub Actions は、GitHub ワークフローに AI を活用した
 
 Claude Code GitHub Actions は [Claude Agent SDK](/ja/agent-sdk/overview) の上に構築されており、Claude Code をアプリケーションにプログラム的に統合できます。SDK を使用して、GitHub Actions を超えたカスタム自動化ワークフローを構築できます。
 
-**Claude Opus 4.8 が利用可能になりました。** Claude Code GitHub Actions はデフォルトで Sonnet を使用します。Opus 4.8 を使用するには、[model パラメータ](#breaking-changes-reference) を `claude-opus-4-8` に設定してください。
-
-## Claude Code GitHub Actions を使用する理由
+Claude Code GitHub Actions を使用する理由
 
 - **即座の PR 作成**: 必要なことを説明すると、Claude は必要なすべての変更を含む完全な PR を作成します
 - **自動コード実装**: イシューを 1 つのコマンドで動作するコードに変換します
@@ -21,19 +19,19 @@ Claude Code GitHub Actions は [Claude Agent SDK](/ja/agent-sdk/overview) の上
 - **シンプルなセットアップ**: インストーラーと API キーで数分で開始できます
 - **デフォルトで安全**: コードは Github のランナーに留まります
 
-## Claude は何ができますか？
+Claude は何ができますか？
 
 Claude Code は、コードの操作方法を変える強力な GitHub Action を提供します。
 
-### Claude Code Action
+Claude Code Action
 
 この GitHub Action により、GitHub Actions ワークフロー内で Claude Code を実行できます。Claude Code の上に任意のカスタムワークフローを構築するために使用できます。
 
 [リポジトリを表示 →](https://github.com/anthropics/claude-code-action)
 
-## セットアップ
+セットアップ
 
-## クイックセットアップ
+クイックセットアップ
 
 このアクションをセットアップする最も簡単な方法は、ターミナルで Claude Code を使用することです。claude を開いて `/install-github-app` を実行するだけです。
 
@@ -43,7 +41,7 @@ Claude Code は、コードの操作方法を変える強力な GitHub Action �
 - GitHub アプリは、Contents、Issues、Pull requests に対する読み取りと書き込みのアクセス許可をリクエストします
 - このクイックスタート方法は、直接 Claude API ユーザーのみが利用できます。Amazon Bedrock または Google Vertex AI を使用している場合は、[Amazon Bedrock と Google Vertex AI での使用](#using-with-amazon-bedrock-%26-google-vertex-ai) セクションを参照してください。
 
-## 手動セットアップ
+手動セットアップ
 
 `/install-github-app` コマンドが失敗した場合、または手動セットアップを希望する場合は、以下の手動セットアップ手順に従ってください。
 
@@ -61,13 +59,13 @@ Claude Code は、コードの操作方法を変える強力な GitHub Action �
 
 クイックスタートまたは手動セットアップのいずれかを完了した後、イシューまたは PR コメントで `@claude` をタグ付けしてアクションをテストします。
 
-## ベータ版からのアップグレード
+ベータ版からのアップグレード
 
 Claude Code GitHub Actions v1.0 は、ベータ版から v1.0 にアップグレードするためにワークフローファイルを更新する必要がある破壊的な変更を導入しています。
 
 現在 Claude Code GitHub Actions のベータ版を使用している場合は、ワークフローを GA バージョンを使用するように更新することをお勧めします。新しいバージョンは、自動モード検出などの強力な新機能を追加しながら、設定を簡素化します。
 
-### 重要な変更
+重要な変更
 
 すべてのベータユーザーは、アップグレードするためにワークフローファイルで以下の変更を行う必要があります。
 
@@ -76,7 +74,7 @@ Claude Code GitHub Actions v1.0 は、ベータ版から v1.0 にアップグレ
 3. **プロンプト入力を更新**: `direct_prompt` を `prompt` に置き換えます
 4. **CLI オプションを移動**: `max_turns`、`model`、`custom_instructions` などを `claude_args` に変換します
 
-### 破壊的な変更リファレンス
+破壊的な変更リファレンス
 
 | 古いベータ入力 | 新しい v1.0 入力 |
 | - | - |
@@ -90,7 +88,7 @@ Claude Code GitHub Actions v1.0 は、ベータ版から v1.0 にアップグレ
 | `disallowed_tools` | `claude_args: --disallowedTools` |
 | `claude_env` | `settings` JSON format |
 
-### 前後の例
+前後の例
 
 **ベータ版:**
 
@@ -120,11 +118,11 @@ Claude Code GitHub Actions v1.0 は、ベータ版から v1.0 にアップグレ
 
 アクションは、設定に基づいて、インタラクティブモード（`@claude` メンションに応答）または自動化モード（プロンプト付きで即座に実行）で実行するかどうかを自動的に検出します。
 
-## 使用例
+使用例
 
 Claude Code GitHub Actions は、さまざまなタスクに役立ちます。[examples ディレクトリ](https://github.com/anthropics/claude-code-action/tree/main/examples) には、さまざまなシナリオ用の使用可能なワークフローが含まれています。
 
-### 基本的なワークフロー
+基本的なワークフロー
 
 ```yaml
 name: Claude Code
@@ -143,7 +141,7 @@ jobs:
           # Responds to @claude mentions in comments
 ```
 
-### skills を使用する
+skills を使用する
 
 `prompt` 入力は、[skill](/ja/skills) の呼び出しだけでなく、プレーンテキストも受け入れます。
 
@@ -169,7 +167,7 @@ jobs:
           prompt: "/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}"
 ```
 
-### プロンプトを使用したカスタム自動化
+プロンプトを使用したカスタム自動化
 
 ```yaml
 name: Daily Report
@@ -187,7 +185,7 @@ jobs:
           claude_args: "--model opus"
 ```
 
-### 一般的な使用例
+一般的な使用例
 
 イシューまたは PR コメント内：
 
@@ -199,13 +197,13 @@ jobs:
 
 Claude は自動的にコンテキストを分析し、適切に応答します。
 
-## ベストプラクティス
+ベストプラクティス
 
-### CLAUDE.md 設定
+CLAUDE.md 設定
 
 リポジトリルートに `CLAUDE.md` ファイルを作成して、コードスタイルガイドライン、レビュー基準、プロジェクト固有のルール、および推奨パターンを定義します。このファイルは、Claude のプロジェクト標準の理解をガイドします。
 
-### セキュリティに関する考慮事項
+セキュリティに関する考慮事項
 
 API キーをリポジトリに直接コミットしないでください。
 
@@ -220,11 +218,11 @@ API キーをリポジトリに直接コミットしないでください。
 
 常に GitHub Secrets（例えば、`${{ secrets.ANTHROPIC_API_KEY }}`）を使用し、API キーをワークフローファイルに直接ハードコードしないでください。
 
-### パフォーマンスの最適化
+パフォーマンスの最適化
 
 イシューテンプレートを使用してコンテキストを提供し、`CLAUDE.md` を簡潔で焦点を絞ったものに保ち、ワークフローに適切なタイムアウトを設定します。
 
-### CI コスト
+CI コスト
 
 Claude Code GitHub Actions を使用する場合、関連するコストに注意してください。
 
@@ -246,7 +244,7 @@ Claude Code GitHub Actions を使用する場合、関連するコストに注�
 - ワークフローレベルのタイムアウトを設定して、暴走ジョブを回避します
 - GitHub の並行制御を使用して、並列実行を制限することを検討します
 
-## 設定例
+設定例
 
 Claude Code Action v1 は、統一されたパラメータで設定を簡素化します。
 
@@ -269,22 +267,22 @@ Claude Code Action v1 は、統一されたパラメータで設定を簡素化�
 
 イシューまたは PR コメントに応答する場合、Claude は自動的に @claude メンションに応答します。その他のイベントについては、`prompt` パラメータを使用して指示を提供します。
 
-## Amazon Bedrock と Google Vertex AI での使用
+Amazon Bedrock と Google Vertex AI での使用
 
 エンタープライズ環境では、Claude Code GitHub Actions を独自のクラウドインフラストラクチャで使用できます。このアプローチにより、データレジデンシーと請求を制御しながら、同じ機能を維持できます。
 
-### 前提条件
+前提条件
 
 クラウドプロバイダーで Claude Code GitHub Actions をセットアップする前に、以下が必要です。
 
-#### Google Cloud Vertex AI の場合：
+Google Cloud Vertex AI の場合：
 
 1. Vertex AI が有効な Google Cloud プロジェクト
 2. GitHub Actions 用に設定された Workload Identity Federation
 3. 必要なアクセス許可を持つサービスアカウント
 4. GitHub App（推奨）または デフォルトの GITHUB\_TOKEN を使用
 
-#### Amazon Bedrock の場合：
+Amazon Bedrock の場合：
 
 1. Amazon Bedrock が有効な AWS アカウント
 2. AWS で設定された GitHub OIDC Identity Provider
@@ -416,7 +414,7 @@ Workload Identity Federation により、ダウンロード可能なサービス
    - `APP_ID`: GitHub App の ID
    - `APP_PRIVATE_KEY`: プライベートキー（.pem）の内容
 
-#### AWS Bedrock の場合
+#### Amazon Bedrock の場合
 
 1. **AWS 認証の場合**:
    - `AWS_ROLE_TO_ASSUME`
@@ -425,11 +423,11 @@ Workload Identity Federation により、ダウンロード可能なサービス
    - `APP_ID`: GitHub App の ID
    - `APP_PRIVATE_KEY`: プライベートキー（.pem）の内容
 
-クラウドプロバイダーと統合する GitHub Actions ワークフローファイルを作成します。以下の例は、AWS Bedrock と Google Vertex AI の両方の完全な設定を示しています。
+クラウドプロバイダーと統合する GitHub Actions ワークフローファイルを作成します。以下の例は、Amazon Bedrock と Google Vertex AI の両方の完全な設定を示しています。
 
 **前提条件:**
 
-- AWS Bedrock アクセスが有効で、Claude モデルのアクセス許可がある
+- Amazon Bedrock アクセスが有効で、Claude モデルのアクセス許可がある
 - GitHub が AWS で OIDC ID プロバイダーとして設定されている
 - Bedrock アクセス許可を持つ IAM ロールが GitHub Actions を信頼している
 
@@ -564,42 +562,42 @@ jobs:
 
 プロジェクト ID は Google Cloud 認証ステップから自動的に取得されるため、ハードコードする必要はありません。
 
-## トラブルシューティング
+トラブルシューティング
 
-### Claude が @claude コマンドに応答しない
+Claude が @claude コマンドに応答しない
 
 GitHub App が正しくインストールされていることを確認し、ワークフローが有効になっていることを確認し、API キーがリポジトリシークレットに設定されていることを確認し、コメントに `@claude` が含まれていることを確認します（`/claude` ではなく）。
 
-### CI が Claude のコミットで実行されない
+CI が Claude のコミットで実行されない
 
 GitHub App またはカスタムアプリを使用していることを確認します（Actions ユーザーではなく）、ワークフロートリガーに必要なイベントが含まれていることを確認し、アプリのアクセス許可に CI トリガーが含まれていることを確認します。
 
-### 認証エラー
+認証エラー
 
 API キーが有効で十分なアクセス許可があることを確認します。Bedrock/Vertex の場合、認証情報の設定を確認し、シークレットがワークフロー内で正しく名前付けされていることを確認します。
 
-## 高度な設定
+高度な設定
 
-### アクションパラメータ
+アクションパラメータ
 
 Claude Code Action v1 は、簡素化された設定を使用します。
 
-| Parameter | Description | Required |
+| Parameter | Description | 必須 |
 | - | - | - |
-| `prompt` | Claude の指示（プレーンテキストまたは [skill](/ja/skills) 名） | No\* |
-| `claude_args` | Claude Code に渡される CLI 引数 | No |
-| `plugin_marketplaces` | プラグインマーケットプレイス Git URL の改行区切りリスト | No |
-| `plugins` | 実行前にインストールするプラグイン名の改行区切りリスト | No |
-| `anthropic_api_key` | Claude API キー | Yes\*\* |
-| `github_token` | API アクセス用の GitHub トークン | No |
-| `trigger_phrase` | カスタムトリガーフレーズ（デフォルト：「@claude」） | No |
-| `use_bedrock` | Claude API の代わりに Amazon Bedrock を使用 | No |
-| `use_vertex` | Claude API の代わりに Google Vertex AI を使用 | No |
+| `prompt` | Claude の指示（プレーンテキストまたは [skill](/ja/skills) 名） | いいえ\* |
+| `claude_args` | Claude Code に渡される CLI 引数 | いいえ |
+| `plugin_marketplaces` | プラグインマーケットプレイス Git URL の改行区切りリスト | いいえ |
+| `plugins` | 実行前にインストールするプラグイン名の改行区切りリスト | いいえ |
+| `anthropic_api_key` | Claude API キー | はい\*\* |
+| `github_token` | API アクセス用の GitHub トークン | いいえ |
+| `trigger_phrase` | カスタムトリガーフレーズ（デフォルト：「@claude」） | いいえ |
+| `use_bedrock` | Claude API の代わりに Amazon Bedrock を使用 | いいえ |
+| `use_vertex` | Claude API の代わりに Google Vertex AI を使用 | いいえ |
 
 \*プロンプトはオプションです。イシュー/PR コメントで省略された場合、Claude はトリガーフレーズに応答します\
 \*\*直接 Claude API に必要です。Bedrock/Vertex には不要です
 
-#### CLI 引数を渡す
+CLI 引数を渡す
 
 `claude_args` パラメータは、任意の Claude Code CLI 引数を受け入れます。
 
@@ -615,7 +613,7 @@ claude_args: "--max-turns 5 --model claude-sonnet-4-6 --mcp-config /path/to/conf
 - `--allowedTools`: 許可されたツールのカンマ区切りリスト。`--allowed-tools` エイリアスも機能します。
 - `--debug`: デバッグ出力を有効にします
 
-### 代替統合方法
+代替統合方法
 
 `/install-github-app` コマンドは推奨されるアプローチですが、以下も実行できます。
 
@@ -625,7 +623,7 @@ claude_args: "--max-turns 5 --model claude-sonnet-4-6 --mcp-config /path/to/conf
 
 詳細なガイドについては、[Claude Code Action ドキュメント](https://github.com/anthropics/claude-code-action/blob/main/docs) を参照してください。認証、セキュリティ、高度な設定に関する詳細なガイドがあります。
 
-### Claude の動作をカスタマイズ
+Claude の動作をカスタマイズ
 
 Claude の動作は 2 つの方法で設定できます。
 

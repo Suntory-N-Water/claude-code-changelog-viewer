@@ -59,7 +59,7 @@ claude
 }
 ```
 
-管理設定は MDM (Mobile Device Management) または他のデバイス管理ソリューションを通じて配布できます。管理設定ファイルで定義された環境変数は優先度が高く、ユーザーによってオーバーライドすることはできません。
+管理設定は MDM（Mobile Device Management）または他のデバイス管理ソリューションを通じて配布できます。管理設定ファイルで定義された環境変数は優先度が高く、ユーザーによってオーバーライドすることはできません。
 
 Claude Code は、Bash ツール、フック、MCP サーバー、言語サーバーを含む、生成するサブプロセスに `OTEL_*` 環境変数を渡しません。OpenTelemetry でインストルメント化されたアプリケーションを Bash ツール経由で実行する場合、Claude Code のエクスポーターエンドポイントまたはヘッダーを継承しないため、そのアプリケーションが独自のテレメトリをエクスポートする必要がある場合は、コマンド内でこれらの変数を直接設定してください。
 
@@ -206,6 +206,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | `result_tokens` | ツール結果のおおよそのトークンサイズ | |
 | `agent_id` | ツールを実行したサブエージェントまたはチームメイトの識別子。メインセッションでは存在しません | |
 | `parent_agent_id` | このエージェントを生成したエージェントの識別子。メインセッションおよびそこから直接生成されたエージェントでは存在しません | |
+| `tool_use_id` | このコールのモデルの `tool_use` ブロック ID。[tool\_result](#tool-result-event) および [tool\_decision](#tool-decision-event) イベントおよびフックペイロード内の `tool_use_id` と一致するため、スパンをこれらのレコードに結合できます | |
+| `gen_ai.tool.call.id` | `tool_use_id` と同じ値。OpenTelemetry GenAI セマンティック規約 | |
 | `file_path` | Read、Edit、Write ツールのターゲットファイルパス | `OTEL_LOG_TOOL_DETAILS` |
 | `full_command` | Bash ツールのコマンド文字列 | `OTEL_LOG_TOOL_DETAILS` |
 | `skill_name` | Skill ツールのスキル名 | `OTEL_LOG_TOOL_DETAILS` |
@@ -226,6 +228,8 @@ Agent SDK および `claude -p` セッションでは、`TRACEPARENT` が環境�
 | 属性 | 説明 | ゲート |
 | - | - | - |
 | `duration_ms` | ツール本体の実行に費やされた時間 | |
+| `tool_use_id` | 親 `claude_code.tool` スパンと同じ値 | |
+| `gen_ai.tool.call.id` | `tool_use_id` と同じ値。OpenTelemetry GenAI セマンティック規約 | |
 | `success` | `true` または `false` | |
 | `error` | 実行が失敗した場合のエラーカテゴリ文字列。例: `Error:ENOENT` または `ShellError`。ゲートが設定されている場合は完全なエラーメッセージを含む | `OTEL_LOG_TOOL_DETAILS` |
 
@@ -389,7 +393,7 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 | `organization.id` | 組織 UUID (認証時) | 利用可能な場合は常に含まれます |
 | `user.account_uuid` | アカウント UUID (認証時) | `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` (デフォルト: true) |
 | `user.account_id` | Anthropic 管理 API と一致するタグ付き形式のアカウント ID (認証時)。例: `user_01BWBeN28...` | `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` (デフォルト: true) |
-| `user.id` | Claude Code インストールごとに生成される匿名デバイス/インストール識別子 | 常に含まれます |
+| `user.id` | 初回実行時に生成され、`~/.claude.json` に保存される匿名識別子。個人情報は含まれず、Claude アカウントから派生していません。ファイルを削除すると、次回実行時に新しい無関係な値が生成されます。 | 常に含まれます |
 | `user.email` | ユーザーメールアドレス (OAuth 経由で認証時) | 利用可能な場合は常に含まれます |
 | `terminal.type` | ターミナルタイプ。例: `iTerm.app`、`vscode`、`cursor`、`tmux` | 検出された場合は常に含まれます |
 | Keys from `OTEL_RESOURCE_ATTRIBUTES` | カスタム属性 (例: `department` または `team.id`)。[マルチチームの組織サポート](#multi-team-organization-support)を参照してください | `OTEL_METRICS_INCLUDE_RESOURCE_ATTRIBUTES` (デフォルト: true) |
@@ -435,6 +439,7 @@ Claude Code は以下のメトリクスをエクスポートします:
 
 - すべての[標準属性](#standard-attributes)
 - `type`: (`"added"`、`"removed"`)
+- `model`: 変更を行ったモデルのモデル識別子 (例: "claude-sonnet-4-6")。Claude Code v2.1.172 以降が必要です
 
 プルリクエストカウンター
 
@@ -617,6 +622,21 @@ Claude への API リクエストが失敗するときにログされます。
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。モデルが努力をサポートしない場合は存在しません。
 - `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
+API 拒否イベント
+
+API リクエストが `stop_reason: "refusal"` を返すときにログされます。拒否は HTTP エラーではなく、成功したレスポンスストリームで到着するため、`api_error` イベントは発火しません。このイベントを使用すると、拒否の頻度を追跡できます。
+
+**イベント名**: `claude_code.api_refusal`
+
+**属性**:
+
+- すべての[標準属性](#standard-attributes)
+- `event.name`: `"api_refusal"`
+- `event.timestamp`: ISO 8601 タイムスタンプ
+- `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
+- `model`: リクエストからのモデル識別子
+- `request_id`: レスポンスの `request-id` ヘッダーからの Anthropic API リクエスト ID。例: `"req_011..."`。API が返す場合のみ存在します。
+
 API リクエストボディイベント
 
 `OTEL_LOG_RAW_API_BODIES` が設定されている場合、各 API リクエスト試行についてログされます。調整されたパラメーターでの再試行ごとに 1 つのイベントが出力されます。
@@ -736,6 +756,9 @@ MCP サーバーが接続、切断、または接続に失敗するときにロ�
 - `server_scope`: サーバーが設定されているスコープ。例: `"user"`、`"project"`、または `"local"`
 - `duration_ms`: 接続試行期間 (ミリ秒単位)
 - `error_code`: 接続が失敗した場合のエラーコード
+- `is_plugin`: サーバーがプラグインによって提供される場合は `true`、そうでない場合は `false`
+- `plugin_id_hash` (`is_plugin` が `true` の場合): プラグイン名とマーケットプレイスの安定ハッシュ。名前を公開することなくプラグインでイベントをグループ化するため
+- `plugin.name` (`is_plugin` が `true` の場合): サーバーを提供するプラグインの名前。サードパーティプラグインの場合、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り、リテラル文字列 `"third-party"` です。これはサードパーティプラグイン名がデフォルトでログに表示されるのを防ぎます。公式 Anthropic ソースのプラグインは常に名前で識別されます。`plugin_id_hash` と `plugin.name` 属性は独自の監視バックエンドに流れ、Anthropic には送信されません
 - `server_name` (`OTEL_LOG_TOOL_DETAILS=1` の場合): 設定されたサーバー名
 - `error` (`OTEL_LOG_TOOL_DETAILS=1` の場合): 接続が失敗した場合の完全なエラーメッセージ
 
@@ -792,9 +815,11 @@ Claude Code が予期しない内部エラーをキャッチするときにロ�
 - `plugin_id_hash`: プラグイン名とマーケットプレイスの決定論的ハッシュ。設定されたエクスポーターにのみ送信されます。フリート全体で読み込まれているサードパーティプラグインの数をカウントできます。その名前を記録することなく
 - `has_hooks`: プラグインがフックに貢献するかどうか
 - `has_mcp`: プラグインが MCP サーバーに貢献するかどうか
+- `host_owned_mcp`: SDK ホストがこのプラグインの MCP 接続を管理し、Claude Code がプラグインの MCP サーバー設定の読み取りをスキップした場合は `true`、そうでない場合は `false`。Claude Code v2.1.172 以降が必要です
 - `skill_path_count`: プラグインが宣言するスキルディレクトリの数
 - `command_path_count`: プラグインが宣言するコマンドディレクトリの数
 - `agent_path_count`: プラグインが宣言するエージェントディレクトリの数
+- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。セーフモードでは、このイベントは設定されたインベントリのみを報告します。プラグインのコマンド、スキル、フック、MCP サーバーは読み込まれません。Claude Code v2.1.169 以降が必要です
 
 スキル有効化イベント
 
@@ -811,6 +836,7 @@ Claude Code が予期しない内部エラーをキャッチするときにロ�
 - `skill.name`: スキルの名前。ユーザー定義およびサードパーティプラグインスキルの場合、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り値はプレースホルダー `"custom_skill"` です
 - `invocation_trigger`: スキルがどのようにトリガーされたか (`"user-slash"`、`"claude-proactive"`、または `"nested-skill"`)
 - `skill.source`: スキルが読み込まれた場所 (例: `"bundled"`、`"userSettings"`、`"projectSettings"`、`"plugin"`)
+- `skill.kind`: スキルがワークフロースキルの場合は `"workflow"`。それ以外の場合は存在しません
 - `plugin.name` (`OTEL_LOG_TOOL_DETAILS=1` またはプラグインが公式マーケットプレイスからの場合): スキルがプラグインによって提供される場合の所有プラグインの名前
 - `marketplace.name` (`OTEL_LOG_TOOL_DETAILS=1` またはプラグインが公式マーケットプレイスからの場合): スキルがプラグインによって提供される場合、所有プラグインがインストールされたマーケットプレイス
 
@@ -863,6 +889,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `hook_event`: フックイベントタイプ。例: `"PreToolUse"` または `"PostToolUse"`
 - `hook_type`: フック実装タイプ: `"command"`、`"prompt"`、`"mcp_tool"`、`"http"`、または `"agent"`
 - `hook_source`: フックが定義されている場所: `"userSettings"`、`"projectSettings"`、`"localSettings"`、`"flagSettings"`、`"policySettings"`、または `"pluginHook"`
+- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
 - `hook_matcher` (`OTEL_LOG_TOOL_DETAILS=1` の場合): フック設定から設定されている場合のマッチャー文字列
 - `plugin.name` (`hook_source` が `"pluginHook"` の場合): 貢献するプラグインの名前。公式マーケットプレイスおよび組み込みバンドルの外部にあるプラグインの場合、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り値は `"third-party"` です
 - `plugin_id_hash` (`hook_source` が `"pluginHook"` の場合): プラグイン名とマーケットプレイスの決定論的ハッシュ。設定されたエクスポーターにのみ送信されます。その名前を記録することなく、貢献するプラグインの数をカウントできます
@@ -884,6 +911,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `num_hooks`: 一致するフックコマンドの数
 - `managed_only`: 管理ポリシーフックのみが許可されている場合は `"true"`
 - `hook_source`: `"policySettings"` または `"merged"`
+- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
 - `hook_definitions`: JSON シリアル化されたフック設定。詳細なベータトレースと `OTEL_LOG_TOOL_DETAILS=1` の両方が有効な場合にのみ含まれます
 
 フック実行完了イベント
@@ -908,6 +936,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - `total_duration_ms`: すべての一致するフックの実時間
 - `managed_only`: 管理ポリシーフックのみが許可されている場合は `"true"`
 - `hook_source`: `"policySettings"` または `"merged"`
+- `safe_mode`: セッションが [`--safe-mode`](/ja/cli-reference) で開始された場合は `"true"`、そうでない場合は `"false"`。Claude Code v2.1.169 以降が必要です
 - `hook_definitions`: JSON シリアル化されたフック設定。詳細なベータトレースと `OTEL_LOG_TOOL_DETAILS=1` の両方が有効な場合にのみ含まれます
 
 フックプラグインメトリクスイベント
@@ -974,7 +1003,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 | - | - |
 | `claude_code.token.usage` | `type` (入力/出力)、ユーザー、チーム、モデル、`skill.name`、`plugin.name`、または `agent.name` 別に分類 |
 | `claude_code.session.count` | 時間経過に伴う採用と関与を追跡 |
-| `claude_code.lines_of_code.count` | コード追加/削除を追跡して生産性を測定 |
+| `claude_code.lines_of_code.count` | コード追加と削除を追跡して生産性を測定し、モデル別に分類 |
 | `claude_code.commit.count` & `claude_code.pull_request.count` | 開発ワークフローへの影響を理解 |
 
 コスト監視
@@ -995,7 +1024,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 - 異常なトークン消費
 - 特定のユーザーからの高いセッションボリューム
 
-すべてのメトリクスは、`user.account_uuid`、`user.account_id`、`organization.id`、`session.id`、`model`、および `app.version` でセグメント化できます。
+すべてのメトリクスは、[標準属性](#standard-attributes) でセグメント化できます。`model` 属性は `claude_code.token.usage`、`claude_code.cost.usage`、および v2.1.172 以降の `claude_code.lines_of_code.count` で利用可能です。コミットのモデル別の内訳は、1 つのセッションが複数のモデルにまたがる可能性があるため、`session.id` でトークンまたはコストメトリクスに対して結合することによってのみ概算できます。
 
 再試行枯渇の検出
 
@@ -1048,7 +1077,7 @@ MCP アクティビティを監査する
 
 - `tool_result`：`tool_name` と `mcp_server_scope` を保持し、`mcp_server_name`、`mcp_tool_name`、および引数を省略
 - `tool_decision`：`tool_name` を保持し、`tool_parameters` を省略
-- `mcp_server_connection`：`server_name` とエラーメッセージを省略
+- `mcp_server_connection`：`server_name` とエラーメッセージを省略しますが、`is_plugin`、`plugin_id_hash`、および `plugin.name` を保持し、Anthropic 以外のプラグイン名はリテラル `"third-party"` に編集されるため、プラグイン提供サーバーは詳細ログなしで区別可能なままです
 
 セキュリティの質問をイベントにマップする
 
@@ -1060,7 +1089,7 @@ MCP アクティビティを監査する
 | 権限モードのエスカレーション | `permission_mode_changed` | `from_mode`、`to_mode`、`trigger` |
 | ポリシーフックがアクションをブロック | `hook_execution_complete` | `hook_event`、`num_blocking` |
 | ログイン、ログアウト、認証失敗 | `auth` | `action`、`success`、`error_category` |
-| MCP サーバー接続または失敗 | `mcp_server_connection` | `status`、`server_name`、`error_code` |
+| MCP サーバー接続または失敗 | `mcp_server_connection` | `status`、`server_name`、`is_plugin`、`error_code` |
 | プラグインがインストールされ、そのソース | `plugin_installed` | `plugin.name`、`marketplace.name`、`marketplace.is_official` |
 | 実行されたコマンドとタッチされたファイル | `tool_result`（実行）または `tool_decision`（拒否）（`OTEL_LOG_TOOL_DETAILS=1` の場合） | `tool_parameters`；`tool_input`（`tool_result` のみ） |
 
@@ -1091,20 +1120,20 @@ SIEM にイベントを送信する
 
 - **時系列データベース (例: Prometheus)**: レート計算、集約メトリクス
 - **カラムナーストア (例: ClickHouse)**: 複雑なクエリ、一意のユーザー分析
-- **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog)**: 高度なクエリ、可視化、アラート
+- **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog、Grafana Cloud)**: 高度なクエリ、可視化、アラート
 
 イベント/ログの場合
 
 - **ログ集約システム (例: Elasticsearch、Loki)**: 全文検索、ログ分析
 - **カラムナーストア (例: ClickHouse)**: 構造化イベント分析
-- **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog)**: メトリクスとイベント間の相関
+- **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog、Grafana Cloud)**: メトリクスとイベント間の相関
 
 トレースの場合
 
 分散トレースストレージとスパン相関をサポートするバックエンドを選択します:
 
 - **分散トレースシステム (例: Jaeger、Zipkin、Grafana Tempo)**: スパン可視化、リクエストウォーターフォール、レイテンシー分析
-- **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog)**: トレース検索とメトリクスおよびログとの相関
+- **フル機能の可観測性プラットフォーム (例: Honeycomb、Datadog、Grafana Cloud)**: トレース検索とメトリクスおよびログとの相関
 
 日次/週次/月次アクティブユーザー (DAU/WAU/MAU) メトリクスが必要な組織の場合は、効率的な一意値クエリをサポートするバックエンドを検討してください。
 
@@ -1122,7 +1151,7 @@ SIEM にイベントを送信する
 
 ROI 測定リソース
 
-テレメトリセットアップ、コスト分析、生産性メトリクス、自動レポート生成を含む Claude Code の投資収益率 (ROI) 測定に関する包括的なガイドについては、[Claude Code ROI 測定ガイド](https://github.com/anthropics/claude-code-monitoring-guide)を参照してください。このリポジトリは、すぐに使用できる Docker Compose 設定、Prometheus と OpenTelemetry セットアップ、Linear などのツールと統合された生産性レポート生成テンプレートを提供します。
+テレメトリセットアップ、コスト分析、生産性メトリクス、自動レポート生成を含む Claude Code の投資収益率（ROI）測定に関する包括的なガイドについては、[Claude Code ROI 測定ガイド](https://github.com/anthropics/claude-code-monitoring-guide)を参照してください。このリポジトリは、すぐに使用できる Docker Compose 設定、Prometheus と OpenTelemetry セットアップ、Linear などのツールと統合された生産性レポート生成テンプレートを提供します。
 
 セキュリティとプライバシー
 

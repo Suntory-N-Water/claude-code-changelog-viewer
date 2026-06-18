@@ -61,6 +61,7 @@ Team および Enterprise 管理者は [claude.ai/admin-settings/claude-code](ht
 | リポジトリの `.claude/skills/`、`.claude/agents/`、`.claude/commands/` | はい | クローンの一部 |
 | `.claude/settings.json` で宣言されたプラグイン | はい | 宣言した[マーケットプレイス](/ja/plugin-marketplaces)からセッション開始時にインストールされます。マーケットプレイスソースに到達するためにはネットワークアクセスが必要です |
 | ユーザー `~/.claude/CLAUDE.md` | いいえ | マシンに存在し、リポジトリには存在しません |
+| ユーザー `~/.claude/skills/`、`~/.claude/agents/`、`~/.claude/commands/` | いいえ | マシンに存在し、リポジトリには存在しません。代わりにリポジトリの `.claude/` ディレクトリにコミットしてください。claude.ai で有効にしたスキルはクラウドセッションに自動的にロードされます |
 | ユーザー設定でのみ有効なプラグイン | いいえ | ユーザースコープの `enabledPlugins` は `~/.claude/settings.json` に存在します。代わりにリポジトリの `.claude/settings.json` で宣言してください |
 | `claude mcp add` で追加した MCP サーバー | いいえ | これらはローカルユーザー設定に書き込まれ、リポジトリには書き込まれません。代わりに [`.mcp.json`](/ja/mcp#project-scope) でサーバーを宣言してください |
 | 静的 API トークンと認証情報 | いいえ | 専用シークレットストアはまだ存在しません。以下を参照してください |
@@ -300,6 +301,7 @@ GitHub プロキシ
 - 悪意のあるリクエストに対する保護
 - レート制限と不正使用防止
 - 強化されたセキュリティのためのコンテンツフィルタリング
+- リクエストされたホスト名の DNS レベル監査証跡
 
 デフォルト許可ドメイン
 
@@ -632,7 +634,7 @@ CCR_FORCE_BUNDLE=1 claude --remote "Run the test suite and fix any failures"
 | `/context` | はい | 現在コンテキストウィンドウにあるものを表示します |
 | `/clear` | いいえ | サイドバーから新しいセッションを開始します |
 
-自動圧縮はコンテキストウィンドウが容量に近づくと自動的に実行され、CLI と同じです。より早くトリガーするには、[環境変数](#configure-your-environment)で [`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`](/ja/env-vars)を設定します。例えば、`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` はデフォルトの \~95% ではなく 70% 容量で圧縮します。圧縮計算の有効なウィンドウサイズを変更するには、[`CLAUDE_CODE_AUTO_COMPACT_WINDOW`](/ja/env-vars)を使用します。
+自動圧縮はコンテキストウィンドウが容量に近づくと自動的に実行されます。より早くトリガーするには、[環境変数](#configure-your-environment)で [`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`](/ja/env-vars)を設定します。例えば、`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=70` はウィンドウがほぼいっぱいになるまで待つのではなく、70% 容量で圧縮します。圧縮計算の有効なウィンドウサイズを変更するには、[`CLAUDE_CODE_AUTO_COMPACT_WINDOW`](/ja/env-vars)を使用します。
 
 [Subagents](/ja/sub-agents)はローカルと同じように機能します。Claude は Task ツールでそれらをスポーンして、研究または並列作業を別のコンテキストウィンドウにオフロードし、メイン会話を軽くすることができます。リポジトリの `.claude/agents/` で定義された Subagents は自動的にピックアップされます。[Agent teams](/ja/agent-teams)はデフォルトでオフですが、[環境変数](#configure-your-environment)に `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` を追加することで有効にできます。
 
@@ -727,7 +729,7 @@ Remote Control セッションの有効期限切れまたはアクセス拒否
 
 - ローカルで `/login` を実行して認証情報をリフレッシュし、再接続してください
 - セッションを所有する同じアカウントにサインインしていることを確認してください
-- `Remote Control may not be available for this organization` が表示される場合、管理者がプランのリモートセッションを有効にしていません
+- `Remote Control may not be available for this organization` が表示される場合、管理者がプランのクラウドセッションを有効にしていません
 
 環境の有効期限切れ
 
@@ -741,7 +743,7 @@ Remote Control セッションの有効期限切れまたはアクセス拒否
 
 - **レート制限**：ウェブ上の Claude Code はアカウント内のすべての他の Claude および Claude Code 使用とレート制限を共有します。複数のタスクを並列で実行すると、レート制限をより多く消費します。クラウド VM に対する個別のコンピュート料金はありません。
 - **リポジトリ認証**：ウェブからローカルにセッションを移動できるのは、同じアカウントに認証されている場合のみです
-- **プラットフォーム制限**：リポジトリのクローンとプルリクエストの作成には GitHub が必要です。自己ホスト型の [GitHub Enterprise Server](/ja/github-enterprise-server)インスタンスは Team および Enterprise プランでサポートされています。GitLab、Bitbucket、およびその他の非 GitHub リポジトリは[ローカルバンドル](#send-local-repositories-without-github)としてクラウドセッションに送信できますが、セッションはリモートに結果をプッシュバックできません
+- **プラットフォーム制限**：リポジトリのクローンとプルリクエストの作成には GitHub が必要です。自己ホスト型の [GitHub Enterprise Server](/ja/github-enterprise-server) インスタンスは Team および Enterprise プランでサポートされています。GitLab、Bitbucket、およびその他の非 GitHub リポジトリは[ローカルバンドル](#send-local-repositories-without-github)としてクラウドセッションに送信できますが、セッションはリモートに結果をプッシュバックできません
 - **組織 IP 許可リスト**：クラウドセッションは Anthropic 管理インフラストラクチャから Anthropic API を呼び出すため、ネットワークからではありません。組織が [IP 許可リスト](https://support.claude.com/en/articles/13200993-restrict-access-to-claude-with-ip-allowlisting)を有効にしている場合、すべてのクラウドセッションは認証エラーで失敗します。同じことが [Code Review](/ja/code-review) および [Routines](/ja/routines)に適用されます。[Anthropic サポート](https://support.claude.com/)に連絡して、Anthropic ホスト型サービスを組織の IP 許可リストから除外してください。
 
 関連リソース

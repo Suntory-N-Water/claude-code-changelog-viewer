@@ -219,6 +219,8 @@ Homebrew インストールは、この設定ではなく cask 名でチャネ�
 
 [管理設定](/ja/permissions#managed-settings)では、これはユーザーおよびプロジェクト設定がオーバーライドできない組織全体の最小値を適用します。
 
+`minimumVersion` ピンは更新のみを制約します。Claude Code がバージョン範囲外で起動することを拒否するようにするには、代わりに管理設定の `requiredMinimumVersion` と `requiredMaximumVersion` を使用します。更新は `requiredMaximumVersion` の上限も尊重します。[利用可能な設定](/ja/settings#available-settings)を参照してください。
+
 自動更新を無効にする
 
 [`settings.json`](/ja/settings#available-settings)ファイルの `env` キーで `DISABLE_AUTOUPDATER` を `"1"` に設定します。
@@ -293,11 +295,11 @@ curl -fsSL https://claude.ai/install.cmd -o install.cmd && install.cmd 2.1.89 &&
 
 Linux パッケージマネージャーでのインストール
 
-Claude Code は署名付き apt、dnf、および apk リポジトリを公開しています。ローリングチャネルの場合は `stable` を `latest` に置き換えてください。パッケージマネージャーのインストールは Claude Code を通じて自動更新されません。更新は通常のシステムアップグレードワークフローを通じて提供されます。
+Claude Code は署名付き apt、dnf、および apk リポジトリを公開しています。各リポジトリは 2 つのチャネルを提供します。`stable` は通常約 1 週間前のバージョンを提供し、大きな回帰を伴うリリースをスキップします。`latest` はリリースが出荷されるとすぐにすべてのリリースを提供します。以下のコマンドは `stable` チャネルを構成します。これはほとんどのユーザーに適しています。各タブは `latest` リポジトリ URL も表示します。パッケージマネージャーのインストールは Claude Code を通じて自動更新されません。更新は通常のシステムアップグレードワークフローを通じて提供されます。
 
 すべてのリポジトリは [Claude Code リリース署名キー](#binary-integrity-and-code-signing)で署名されています。キーを信頼する前に、各タブで説明されているとおりに検証してください。
 
-Debian および Ubuntu 用です。ローリングチャネルを使用するには、`deb` 行の両方の `stable` を変更します。URL パスとスイート名です。
+Debian および Ubuntu 用です。以下のコマンドは `stable` チャネルを構成します:
 
 ```bash theme={null}
 sudo install -d -m 0755 /etc/apt/keyrings
@@ -309,11 +311,18 @@ sudo apt update
 sudo apt install claude-code
 ```
 
+代わりに `latest` チャネルを使用するには、URL パスとスイート名の両方が変わります。この `deb` 行を使用します:
+
+```bash theme={null}
+echo "deb [signed-by=/etc/apt/keyrings/claude-code.asc] https://downloads.claude.ai/claude-code/apt/latest latest main" \
+  | sudo tee /etc/apt/sources.list.d/claude-code.list
+```
+
 信頼する前に GPG キーフィンガープリントを検証します。`gpg --show-keys /etc/apt/keyrings/claude-code.asc` は `31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE` を報告する必要があります。
 
 後で更新するには、`sudo apt update && sudo apt upgrade claude-code` を実行します。
 
-Fedora および RHEL 用:
+Fedora および RHEL 用です。以下のコマンドは `stable` チャネルを構成します:
 
 ```bash theme={null}
 sudo tee /etc/yum.repos.d/claude-code.repo <<'EOF'
@@ -327,17 +336,30 @@ EOF
 sudo dnf install claude-code
 ```
 
+代わりに `latest` チャネルを使用するには、`baseurl` を `latest` リポジトリに設定します:
+
+```ini theme={null}
+baseurl=https://downloads.claude.ai/claude-code/rpm/latest
+```
+
 dnf は最初のインストール時にキーをダウンロードし、フィンガープリントを確認するよう求めます。受け入れる前に `31DD DE24 DDFA B679 F42D 7BD2 BAA9 29FF 1A7E CACE` と一致することを確認してください。
 
 後で更新するには、`sudo dnf upgrade claude-code` を実行します。
 
-Alpine Linux 用:
+Alpine Linux 用です。以下のコマンドは `stable` チャネルを構成します:
 
 ```sh theme={null}
 wget -O /etc/apk/keys/claude-code.rsa.pub \
   https://downloads.claude.ai/keys/claude-code.rsa.pub
 echo "https://downloads.claude.ai/claude-code/apk/stable" >> /etc/apk/repositories
 apk add claude-code
+```
+
+`latest` チャネルに切り替えるには、`stable` リポジトリ行を削除し、`latest` リポジトリを追加します:
+
+```sh theme={null}
+sed -i '\|downloads.claude.ai/claude-code/apk/stable|d' /etc/apk/repositories
+echo "https://downloads.claude.ai/claude-code/apk/latest" >> /etc/apk/repositories
 ```
 
 `sha256sum /etc/apk/keys/claude-code.rsa.pub` でダウンロードされたキーを検証します。これは `395759c1f7449ef4cdef305a42e820f3c766d6090d142634ebdb049f113168b6` を報告する必要があります。
@@ -380,7 +402,7 @@ curl -fsSL https://downloads.claude.ai/keys/claude-code.asc | gpg --import
 gpg --fingerprint security@anthropic.com
 ```
 
-出力にこのフィンガープリントが含まれていることを確認します。
+出力にこのフィンガープリントが含まれていることを確認します:
 
 ```text theme={null}
 31DD DE24 DDFA B679 F42D  7BD2 BAA9 29FF 1A7E CACE
@@ -427,7 +449,7 @@ shasum -a 256 claude
 
 - **macOS**: "Anthropic PBC" によって署名され、Apple によって公証されています。`codesign --verify --verbose ./claude` で検証します。
 - **Windows**: "Anthropic, PBC" によって署名されています。`Get-AuthenticodeSignature .\claude.exe` で検証します。
-- **Linux**: バイナリは個別にコード署名されていません。`claude-code-releases` バケットから直接ダウンロードするか、ネイティブインストーラーを使用する場合は、上記のマニフェスト署名で整合性を検証します。[apt、dnf、または apk](#install-with-linux-package-managers) でインストールする場合、パッケージマネージャーはリポジトリ署名キーを使用して署名を自動的に検証します。
+- **Linux**: バイナリは個別にコード署名されていません。`claude-code-releases` バケットから直接ダウンロードするか、ネイティブインストーラーを使用する場合は、上記のマニフェスト署名で整合性を検証します。[apt、dnf、または apk](#install-with-linux-package-managers)でインストールする場合、パッケージマネージャーはリポジトリ署名キーを使用して署名を自動的に検証します。
 
 Claude Code をアンインストール
 

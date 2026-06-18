@@ -95,7 +95,7 @@ cd /path/to/your/project
 claude
 ```
 
-セッション情報、最近の会話、および最新の更新を含む Claude Code ウェルカムスクリーンが表示されます。利用可能なコマンドについては `/help` を入力するか、前のセッションを続行するには `/resume` を入力します。
+Claude Code プロンプトが表示され、バージョン、現在のモデル、および作業ディレクトリが上に表示されます。利用可能なコマンドについては `/help` を入力するか、前の会話を続行するには `/resume` を入力します。
 
 ログイン後（ステップ 2）、認証情報がシステムに保存されます。詳細については、[認証情報管理](/ja/authentication#credential-management)を参照してください。
 
@@ -104,35 +104,35 @@ claude
 コードベースを理解することから始めましょう。以下のコマンドのいずれかを試してください：
 
 ```text
-このプロジェクトは何をしていますか？
+what does this project do?
 ```
 
 Claude はファイルを分析して概要を提供します。より具体的な質問をすることもできます：
 
 ```text
-このプロジェクトはどのようなテクノロジーを使用していますか？
+what technologies does this project use?
 ```
 
 ```text
-メインエントリーポイントはどこですか？
+where is the main entry point?
 ```
 
 ```text
-フォルダ構造を説明してください
+explain the folder structure
 ```
 
 Claude 自体の機能について質問することもできます：
 
 ```text
-Claude Code は何ができますか？
+what can Claude Code do?
 ```
 
 ```text
-Claude Code でカスタムスキルを作成するにはどうすればよいですか？
+how do I create custom skills in Claude Code?
 ```
 
 ```text
-Claude Code は Docker で動作しますか？
+can Claude Code work with Docker?
 ```
 
 Claude Code は必要に応じてプロジェクトファイルを読み込みます。コンテキストを手動で追加する必要はありません。
@@ -235,7 +235,9 @@ Claude と連携する方法は多数あります：
 
 必須コマンド
 
-日常的に使用する最も重要なコマンドは以下の通りです：
+日常的に使用する最も重要なコマンドは以下の通りです。シェルコマンドはターミナルから実行して Claude Code を開始または再開します。セッションコマンドは Claude Code 起動後に実行します。
+
+**シェルコマンド**
 
 | コマンド | 機能 | 例 |
 | - | - | - |
@@ -243,12 +245,17 @@ Claude と連携する方法は多数あります：
 | `claude "task"` | 1 回限りのタスクを実行する | `claude "fix the build error"` |
 | `claude -p "query"` | 1 回限りのクエリを実行してから終了する | `claude -p "explain this function"` |
 | `claude -c` | 現在のディレクトリで最新の会話を続行する | `claude -c` |
-| `claude -r` | 前のセッションを再開する | `claude -r` |
+| `claude -r` | 前の会話を再開する | `claude -r` |
+
+**セッションコマンド**
+
+| コマンド | 機能 | 例 |
+| - | - | - |
 | `/clear` | 会話履歴をクリアする | `/clear` |
 | `/help` | 利用可能なコマンドを表示する | `/help` |
-| `exit` または Ctrl+D | Claude Code を終了する | `exit` |
+| `/exit` または Ctrl+D | Claude Code を終了する | `/exit` |
 
-コマンドの完全なリストについては、[CLI リファレンス](/ja/cli-reference)を参照してください。
+シェルコマンドの完全なリストについては [CLI リファレンス](/ja/cli-reference)を、セッションコマンドの完全なリストについては [コマンドリファレンス](/ja/commands)を参照してください。
 
 初心者向けのプロのヒント
 

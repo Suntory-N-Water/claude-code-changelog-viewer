@@ -33,8 +33,9 @@ Claude Code はほとんどの開発環境で動作するように設計され�
 1. `/compact` を定期的に使用してコンテキストサイズを削減します
 2. 主要なタスク間で Claude Code を閉じて再起動します
 3. 大規模なビルドディレクトリを `.gitignore` ファイルに追加することを検討してください
+4. [`claude --safe-mode`](/ja/cli-reference#cli-flags) で再起動して、プラグイン、MCP サーバー、またはフックが原因かどうかを確認します。セッション中のすべてのカスタマイズが無効になります。使用量が低下した場合は、[設定をデバッグする](/ja/debug-your-config#test-against-a-clean-configuration)を参照して、どれが原因かを特定します
 
-メモリ使用量がこれらのステップ後も高いままの場合は、`/heapdump` を実行して JavaScript ヒープスナップショットとメモリ分析を `~/Desktop` に書き込みます。Linux でデスクトップフォルダがない場合、ファイルはホームディレクトリに書き込まれます。
+これらのステップ後もメモリ使用量が高いままの場合は、`/heapdump` を実行して JavaScript ヒープスナップショットとメモリ分析を `~/Desktop` に書き込みます。Linux でデスクトップフォルダがない場合、ファイルはホームディレクトリに書き込まれます。
 
 分析は常駐セットサイズ、JS ヒープ、配列バッファ、および説明されていないネイティブメモリを表示し、成長が JavaScript オブジェクトにあるか、ネイティブコードにあるかを識別するのに役立ちます。Chrome DevTools のメモリ → ロードで `.heapsnapshot` ファイルを開いて、リテイナーを検査します。メモリの問題を報告するときに両方のファイルを [GitHub](https://github.com/anthropics/claude-code/issues) に添付します。
 
@@ -60,7 +61,7 @@ Claude Code が応答しないように見える場合：
 
 エディタの統合ターミナルでのテキストの文字化けまたは破損
 
-VS Code、Cursor、または Devin Desktop の統合ターミナルで Claude Code を実行する場合、文字がボックス、スミア、または間違ったグリフとしてレンダリングされる場合、ターミナルの GPU レンダラーが原因である可能性があります。Claude Code 内で `/terminal-setup` を実行して、`terminal.integrated.gpuAcceleration` を `"off"` に設定するか、エディタの設定で手動で設定してウィンドウをリロードします。[ターミナル設定](/ja/terminal-config) で、`/terminal-setup` が書き込む他の設定を参照してください。
+VS Code、Cursor、または Devin Desktop の統合ターミナルで Claude Code を実行する場合、文字がボックス、スミア、または間違ったグリフとしてレンダリングされる場合、ターミナルの GPU レンダラーが原因である可能性があります。Claude Code 内で `/terminal-setup` を実行して、`terminal.integrated.gpuAcceleration` を `"off"` に設定するか、エディタの設定で手動で設定してウィンドウをリロードします。[ターミナル設定](/ja/terminal-config)で、`/terminal-setup` が書き込む他の設定を参照してください。
 
 検索と発見の問題
 

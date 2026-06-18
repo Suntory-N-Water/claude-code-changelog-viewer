@@ -183,6 +183,8 @@ claude plugin init my-tool
 | `bin/` | プラグインルート | プラグインが有効になっている間に Bash ツールの `PATH` に追加される実行可能ファイル |
 | `settings.json` | プラグインルート | プラグインが有効になったときに適用されるデフォルト[設定](/ja/settings) |
 
+正確に 1 つのスキルを含むプラグインは、`skills/` ディレクトリを作成する代わりに、`SKILL.md` をプラグインルートに直接配置できます。Claude Code はそれを単一のスキルとして読み込み、フロントマター `name` フィールドを呼び出し名として使用します。複数のスキルに成長する可能性があるプラグインには、`skills/` レイアウトを使用してください。
+
 **次のステップ**：さらに多くの機能を追加する準備ができましたか？[より複雑なプラグインを開発する](#develop-more-complex-plugins)にジャンプして、エージェント、フック、MCP サーバー、LSP サーバーを追加してください。すべてのプラグインコンポーネントの完全な技術仕様については、[プラグインリファレンス](/ja/plugins-reference)を参照してください。
 
 より複雑なプラグインを開発する
@@ -343,13 +345,15 @@ claude --plugin-url "https://example.com/my-plugin.zip https://example.com/other
 
 Anthropic は Claude Code プラグイン用に 2 つの公開マーケットプレイスを管理しています。
 
-- **`claude-plugins-official`**：Anthropic によって管理されているキュレーションされたプラグインセット。すべての Claude Code インストールで自動的に利用可能です。
+- **`claude-plugins-official`**：Anthropic によって管理されているキュレーションされたプラグインセット。初めて Claude Code をインタラクティブに起動したときに自動的に登録されます。最初の起動前に実行される非インタラクティブスクリプトは、`claude plugin marketplace add anthropics/claude-plugins-official` で明示的に追加する必要があります。
 - **`claude-community`**：レビュー後にサードパーティの送信が登録される公開コミュニティマーケットプレイス。ユーザーは `/plugin marketplace add anthropics/claude-plugins-community` で追加し、`@claude-community` としてインストールします。
 
 プラグインをコミュニティマーケットプレイスレビュー用に送信するには、アプリ内フォームの 1 つを使用してください。
 
-- **Claude.ai**：[claude.ai/settings/plugins/submit](https://claude.ai/settings/plugins/submit)
+- **claude.ai**：[claude.ai/admin-settings/directory/submissions/plugins/new](https://claude.ai/admin-settings/directory/submissions/plugins/new)
 - **Console**：[platform.claude.com/plugins/submit](https://platform.claude.com/plugins/submit)
+
+claude.ai フォームには Team または Enterprise 組織とディレクトリ管理アクセスが必要です。組織の所有者はデフォルトでこのアクセス権を持っています。Team または Enterprise 組織に属していない個別の作成者は、代わりに Console フォームを使用できます。
 
 送信する前に、ローカルで `claude plugin validate` を実行してください。レビューパイプラインはすべての送信に対して同じチェックを実行し、自動化されたセーフティスクリーニングも行います。
 
@@ -434,7 +438,7 @@ claude --plugin-dir ./my-plugin
 | `settings.json` のフック | `hooks/hooks.json` のフック |
 | 共有するには手動でコピーする必要がある | `/plugin install` でインストール |
 
-移行後、重複を避けるために `.claude/` から元のファイルを削除できます。読み込まれたときは、プラグインバージョンが優先されます。
+移行後、重複を避けるために `.claude/` から元のファイルを削除してください。プロジェクトおよびユーザーの `.claude/agents/` 定義は、同じ名前のプラグインエージェントをオーバーライドするため、元のファイルを削除した後にのみプラグインバージョンが有効になります。
 
 次のステップ
 

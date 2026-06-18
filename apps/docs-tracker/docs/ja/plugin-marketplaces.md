@@ -143,7 +143,7 @@ Be concise and actionable.
 | `owner` | object | マーケットプレイスメンテナー情報（[以下のフィールドを参照](#owner-fields)） | |
 | `plugins` | array | 利用可能なプラグインのリスト | 以下を参照 |
 
-**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません：`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`anthropic-agent-skills`、`knowledge-work-plugins`、`life-sciences`、`claude-for-legal`、`claude-for-financial-services`、`financial-services-plugins`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-tools-v2` など）もブロックされています。
+**予約名**：以下のマーケットプレイス名は Anthropic の公式使用のために予約されており、サードパーティのマーケットプレイスでは使用できません：`claude-code-marketplace`、`claude-code-plugins`、`claude-plugins-official`、`claude-plugins-community`、`claude-community`、`anthropic-marketplace`、`anthropic-plugins`、`agent-skills`、`anthropic-agent-skills`、`knowledge-work-plugins`、`life-sciences`、`claude-for-legal`、`claude-for-financial-services`、`financial-services-plugins`。公式マーケットプレイスになりすましている名前（`official-claude-plugins` や `anthropic-tools-v2` など）もブロックされています。
 
 所有者フィールド
 
@@ -213,7 +213,7 @@ Be concise and actionable.
 
 | ソース | タイプ | フィールド | 注記 |
 | - | - | - | - |
-| 相対パス | `string`（例：`"./my-plugin"`） | — | マーケットプレイスリポジトリ内のローカルディレクトリ。`./` で始まる必要があります |
+| 相対パス | `string`（例：`"./my-plugin"`） | なし | マーケットプレイスリポジトリ内のローカルディレクトリ。`./` で始まる必要があります。マーケットプレイスルートに相対的に解決されます。`.claude-plugin/` ディレクトリではありません |
 | `github` | object | `repo`、`ref?`、`sha?` | |
 | `url` | object | `url`、`ref?`、`sha?` | Git URL ソース |
 | `git-subdir` | object | `url`、`path`、`ref?`、`sha?` | Git リポジトリ内のサブディレクトリ。帯域幅を最小化するためにスパースクローンします |
@@ -225,6 +225,8 @@ Be concise and actionable.
 - **プラグインソース** — マーケットプレイスに一覧表示されている個別プラグインを取得する場所。`marketplace.json` 内の各プラグインエントリの `source` フィールドで設定されます。`ref`（ブランチ/タグ）と `sha`（正確なコミット）の両方をサポートします。
 
 例えば、`acme-corp/plugin-catalog`（マーケットプレイスソース）でホストされているマーケットプレイスは、`acme-corp/code-formatter`（プラグインソース）から取得されたプラグインを一覧表示できます。マーケットプレイスソースとプラグインソースは異なるリポジトリを指し、独立して固定されます。
+
+以下の Git ベースのソースタイプは `github`、`url`、および `git-subdir` です。`ref` と `sha` の両方がそれらのいずれかに設定されている場合、`sha` が有効なピンです。Claude Code はピンされたコミットを直接取得してチェックアウトするため、ブランチまたは `ref` で指定されたタグが上流で削除されていても、コミットがリポジトリから到達可能である限り、インストールは成功します。
 
 相対パス
 
@@ -447,6 +449,8 @@ npm パッケージとして配布されるプラグインは、`npm install` �
 - **`commands` と `agents`**：複数のディレクトリまたは個別のファイルを指定できます。パスはプラグインルートに相対的です。
 - **`${CLAUDE_PLUGIN_ROOT}`**：hooks と MCP サーバー設定でこの変数を使用して、プラグインのインストールディレクトリ内のファイルを参照します。プラグインはインストール時にキャッシュロケーションにコピーされるため、これは必要です。永続的なデータまたはプラグイン更新後も保持する必要がある状態については、代わりに [`${CLAUDE_PLUGIN_DATA}`](/ja/plugins-reference#persistent-data-directory) を使用します。
 - **`strict: false`**：これが false に設定されているため、プラグインは独自の `plugin.json` を必要としません。マーケットプレイスエントリがすべてを定義します。以下の[厳密モード](#strict-mode)を参照してください。
+
+デフォルトでは、プラグインの skills は、その `source` の下の `skills/` ディレクトリから読み込まれ、`skills` の下に一覧表示されているパスはそのスキャンに追加されます。例外は、`source: "./"` などのマーケットプレイスルートソースです。この場合、複数のプラグインエントリが 1 つの `skills/` フォルダを共有します。その場合、`skills` の下に特定のサブディレクトリを一覧表示すると、そのリストがエントリの完全なセットになり、`skills/` の下の他のディレクトリは読み込まれません。`skills/` ディレクトリ自体またはプラグインルートを一覧表示すると、完全なスキャンが保持されます。一覧表示されたパスが存在しない場合、デフォルトスキャンが代わりに実行されます。
 
 厳密モード
 
@@ -768,7 +772,7 @@ Git ベースのソースタイプ `github`、`url`、`git-subdir`、および G
 
 共有する前にマーケットプレイスをテストします。
 
-マーケットプレイス JSON 構文を検証します。
+マーケットプレイス JSON 構文を検証します：
 
 ```bash
 claude plugin validate .
@@ -780,13 +784,13 @@ claude plugin validate .
 /plugin validate .
 ```
 
-テスト用にマーケットプレイスを追加します。
+テスト用にマーケットプレイスを追加します：
 
 ```shell
 /plugin marketplace add ./path/to/marketplace
 ```
 
-すべてが機能することを確認するためにテストプラグインをインストールします。
+すべてが機能することを確認するためにテストプラグインをインストールします：
 
 ```shell
 /plugin install test-plugin@marketplace-name
@@ -953,6 +957,7 @@ claude plugin marketplace update [name]
 - プラグインディレクトリに必須ファイルが含まれていることを確認します
 - GitHub ソースの場合、リポジトリが公開されているか、アクセス権限があることを確認します
 - プラグインソースを手動でクローン/ダウンロードしてテストします
+- ソースが `ref` と `sha` の両方をピンしている場合、削除されたアップストリームブランチまたはタグはインストールをブロックしません。インストールが失敗し続ける場合は、ピンされたコミットがリポジトリに存在することを確認します
 
 プライベートリポジトリ認証が失敗する
 

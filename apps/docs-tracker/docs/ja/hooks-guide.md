@@ -451,7 +451,7 @@ Hook イベントは Claude Code のライフサイクルの特定のポイン�
 
 複数の hooks が同じイベントにマッチする場合、すべての hook のコマンドが完了してから Claude Code は結果をマージします。1 つの hook が `deny` を返しても、兄弟 hooks の実行は停止されません。1 つの hook の `deny` が別の hook の副作用を抑制することに依存しないでください。
 
-すべてのマッチングする hooks が完了した後、Claude Code はそれらの出力を組み合わせます。`PreToolUse` 許可決定については、最も制限的な答えが勝ちます：`deny` は `ask` をオーバーライドし、`ask` は `allow` をオーバーライドします。`additionalContext` からのテキストはすべての hook から保持され、Claude に一緒に渡されます。
+すべてのマッチングする hooks が完了した後、Claude Code はそれらの出力を組み合わせます。`PreToolUse` 許可決定については、最も制限的な答えが勝ちます。順序は `deny`、`defer`、`ask`、`allow` です。`additionalContext` からのテキストはすべての hook から保持され、Claude に一緒に渡されます。
 
 以下の例は `Bash` に 2 つの `PreToolUse` hooks を登録しています。最初のものはすべてのコマンドをログファイルに追加して 0 で終了します。2 番目のものはスクリプトを実行し、コマンドに `rm -rf` が含まれている場合は 2 で終了して拒否します：
 
@@ -693,7 +693,19 @@ MCP ツールは組み込みツールとは異なる命名規則を使用しま�
 }
 ```
 
-Hook プロセスは Bash コマンドが `git *` にマッチするときにのみ生成されます。または、コマンドが解析するには複雑すぎるときです。`npm test && git push` のような複合コマンドの場合、Claude Code は各サブコマンドを評価し、`git push` がマッチするため hook を発火させます。`if` フィールドは許可ルールと同じパターンを受け入れます：`"Bash(git *)"`、`"Edit(*.ts)"` など。複数のツール名をマッチさせるには、それぞれ独自の `if` 値を持つ別のハンドラーを使用するか、パイプ交替がサポートされている `matcher` レベルでマッチします。
+Hook コマンドが実行されるかどうかは、`if` パターンの形状と Claude が呼び出している Bash コマンドによって異なります：
+
+| `if` パターン | Bash コマンド | Hook は実行されるか？ | 理由 |
+| :- | :- | :- | :- |
+| `Bash(git *)` | `git push` | はい | コマンド名がマッチします |
+| `Bash(git *)` | `npm test && git push` | はい | 各サブコマンドがチェックされます。`git push` がマッチします |
+| `Bash(git *)` | `echo $(git log)` | はい | `$()` とバッククォート内のコマンドがチェックされます。`git log` がマッチします |
+| `Bash(git *)` | `echo $(date)` | いいえ | サブコマンドが `git *` にマッチしません |
+| `Bash(git push *)` | `echo $(date)` | はい | コマンド名以上を指定するパターンは、`$()`、バッククォート、または `$VAR` で hook を実行します |
+
+フィルターは失敗時にオープンで実行され、Bash コマンドを解析できない場合は hook を実行します。フィルターはベストエフォートであるため、ハード allow または deny を強制するには、hook ではなく [許可システム](/ja/permissions) を使用してください。
+
+`if` フィールドは許可ルールと同じパターンを受け入れます：`"Bash(git *)"`、`"Edit(*.ts)"` など。複数のツール名をマッチさせるには、それぞれ独自の `if` 値を持つ別のハンドラーを使用するか、パイプ交替がサポートされている `matcher` レベルでマッチします。
 
 `if` はツールイベントでのみ機能します：`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`PermissionRequest`、および `PermissionDenied`。他のイベントに追加すると、hook が実行されるのを防ぎます。
 
@@ -710,7 +722,7 @@ Hook を追加する場所がそのスコープを決定します：
 | [Plugin](/ja/plugins) `hooks/hooks.json` | プラグインが有効なとき | はい、プラグインにバンドル |
 | [Skill](/ja/skills) または [agent](/ja/sub-agents) frontmatter | スキルまたはエージェントがアクティブなとき | はい、コンポーネントファイルで定義 |
 
-Claude Code で [`/hooks`](/ja/hooks#the-hooks-menu) を実行して、イベント別にグループ化されたすべての設定済み hooks を参照します。すべての hooks を一度に無効にするには、設定ファイルで `"disableAllHooks": true` を設定します。管理設定で設定された Hooks は、`disableAllHooks` がそこにも設定されていない限り、実行されます。
+Claude Code で [`/hooks`](/ja/hooks#the-%2Fhooks-menu) を実行して、イベント別にグループ化されたすべての設定済み hooks を参照します。すべての hooks を一度に無効にするには、設定ファイルで `"disableAllHooks": true` を設定します。管理設定で設定された Hooks は、`disableAllHooks` がそこにも設定されていない限り、実行されます。
 
 Claude Code が実行中に設定ファイルを直接編集する場合、ファイルウォッチャーは通常、hook の変更を自動的に取得します。
 
