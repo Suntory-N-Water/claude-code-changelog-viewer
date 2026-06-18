@@ -34,7 +34,7 @@ Code タブでは、各会話は **セッション** です：独自のチャッ
 最初のメッセージを送信する前に、プロンプト領域で 4 つのことを設定してください：
 
 - **環境**：Claude が実行される場所を選択します。ローカルマシンの場合は**Local**、Anthropic ホスト型クラウドセッションの場合は**Remote**、管理するリモートマシンの場合は[**SSH 接続**](#ssh-sessions)を選択します。[環境設定](#environment-configuration)を参照してください。
-- **プロジェクトフォルダ**：Claude が作業するフォルダまたはリポジトリを選択します。リモートセッションの場合、[複数のリポジトリ](#run-long-running-tasks-remotely)を追加できます。
+- **プロジェクトフォルダ**：Claude が作業するフォルダまたはリポジトリを選択します。クラウドセッションの場合、[複数のリポジトリ](#run-long-running-tasks-remotely)を追加できます。
 - **モデル**：送信ボタンの横のドロップダウンから[モデル](/ja/model-config#available-models)を選択します。セッション中にこれを変更できます。
 - **権限モード**：[モードセレクタ](#choose-a-permission-mode)から Claude がどの程度の自律性を持つかを選択します。セッション中にこれを変更できます。
 
@@ -54,7 +54,7 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 
 プロンプトボックスは外部コンテキストを取り込む 2 つの方法をサポートしています：
 
-- **@mention ファイル**：`@`の後にファイル名を入力して、ファイルを会話コンテキストに追加します。Claude はそのファイルを読み取り、参照できます。@mention はリモートセッションでは利用できません。
+- **@mention ファイル**：`@`の後にファイル名を入力して、ファイルを会話コンテキストに追加します。Claude はそのファイルを読み取り、参照できます。@mention はクラウドセッションでは利用できません。
 - **ファイルを添付**：添付ボタンを使用するか、ファイルをプロンプトに直接ドラッグアンドドロップして、画像、PDF、およびその他のファイルをプロンプトに添付します。これはバグのスクリーンショット、デザインモックアップ、または参照ドキュメントを共有するのに便利です。
 
 権限モードを選択する
@@ -67,7 +67,7 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 | **Auto accept edits** | `acceptEdits` | Claude はファイル編集と`mkdir`、`touch`、`mv`などの一般的なファイルシステムコマンドを自動的に受け入れますが、他のターミナルコマンドの実行前には確認を求めます。ファイル変更を信頼し、より高速な反復を望む場合に使用します。 |
 | **Plan mode** | `plan` | Claude はファイルを読み取り、コマンドを実行して探索してから、ソースコードを編集せずにプランを提案します。アプローチを最初に確認したい複雑なタスクに適しています。 |
 | **Auto** | `auto` | Claude はすべてのアクションをバックグラウンド安全チェック付きで実行し、リクエストとの整合性を確認します。権限プロンプトを削減しながら監視を維持します。Settings → Claude Code で有効にします。[利用可能性要件](#auto-mode-availability)以下を参照してください。 |
-| **Bypass permissions** | `bypassPermissions` | Claude は権限プロンプトなしで実行され、CLI の`--dangerously-skip-permissions`と同等です。Settings → Claude Code の「Allow bypass permissions mode」で有効にします。サンドボックス化されたコンテナまたは VM でのみ使用してください。エンタープライズ管理者はこのオプションを無効にできます。 |
+| **Bypass permissions** | `bypassPermissions` | Claude は権限プロンプトなしで実行され、明示的な[ask ルール](/ja/permissions#manage-permissions)によって強制されるもの以外は、CLI の`--dangerously-skip-permissions`と同等です。Settings → Claude Code の「Allow bypass permissions mode」で有効にします。サンドボックス化されたコンテナまたは VM でのみ使用してください。エンタープライズ管理者はこのオプションを無効にできます。 |
 
 `dontAsk`権限モードは[CLI](/ja/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)でのみ利用可能です。
 
@@ -75,7 +75,7 @@ Auto mode は Anthropic API のすべてのユーザーが利用できる研究�
 
 複雑なタスクを Plan mode で開始して、Claude が変更を加える前にアプローチをマップアウトするようにします。プランを承認したら、Auto accept edits または Ask permissions に切り替えて実行します。このワークフローの詳細については、[最初に探索してからプランしてからコード化する](/ja/best-practices#explore-first-then-plan-then-code)を参照してください。
 
-リモートセッションは Auto accept edits と Plan mode をサポートしています。Ask permissions はリモートセッションがデフォルトでファイル編集を自動受け入れするため利用できず、Bypass permissions はリモート環境が既にサンドボックス化されているため利用できません。
+クラウドセッションは Accept edits、Plan mode、および Auto mode をサポートしています。Accept edits は`default`モードに対応しています：クラウドセッションはファイル編集を事前に承認するため、セレクタは Ask permissions ではなく Accept edits を表示します。Bypass permissions はクラウド環境が既にサンドボックス化されているため利用できません。
 
 エンタープライズ管理者は利用可能な権限モードを制限できます。詳細については、[エンタープライズ設定](#enterprise-configuration)を参照してください。
 
@@ -141,7 +141,7 @@ Code タブはペインを任意のレイアウトで配置できるように構
 
 チャットまたは diff ビューアのファイルパスをクリックして、ファイルペインで開きます。HTML、PDF、画像、およびビデオパスは代わりに[プレビューペイン](#preview-your-app)で開きます。スポット編集を行い、**Save**をクリックして書き戻します。ファイルを開いてからディスク上で変更された場合、ペインは警告を表示し、オーバーライドまたは破棄できます。**Discard**をクリックして編集を元に戻すか、ペインヘッダーのパスをクリックして絶対パスをコピーします。
 
-ファイルペインはローカルおよび SSH セッションで利用可能です。リモートセッションの場合、Claude に変更を加えるよう依頼します。
+ファイルペインはローカルおよび SSH セッションで利用可能です。クラウドセッションの場合、Claude に変更を加えるよう依頼します。
 
 ファイルを他のアプリで開く
 
@@ -196,7 +196,7 @@ macOS で**Cmd+/**を、Windows で**Ctrl+/**を押して、Code タブで利用
 
 Claude にコンピュータを使用させる
 
-コンピュータ使用により、Claude はアプリを開き、スクリーンを制御し、あなたがするのと同じ方法でマシンで直接作業できます。iOS シミュレータでネイティブアプリをテストするよう Claude に依頼したり、CLI がないデスクトップツールと対話したり、GUI を通じてのみ機能する何かを自動化したりします。
+コンピュータ使用により、Claude はアプリを開き、スクリーンを制御し、あなたがするのと同じ方法でマシンで直接作業できます。モバイルシミュレータでネイティブアプリをテストするよう Claude に依頼したり、CLI がないデスクトップツールと対話したり、GUI を通じてのみ機能する何かを自動化したりします。
 
 コンピュータ使用は macOS と Windows の研究プレビューであり、Pro または Max プランが必要です。Team または Enterprise プランでは利用できません。Claude Desktop アプリが実行されている必要があります。
 
@@ -213,7 +213,7 @@ Claude はアプリまたはサービスと対話するための複数の方法�
 - タスクがブラウザ作業であり、[Chrome の Claude](/ja/chrome)がセットアップされている場合、Claude はそれを使用します。
 - これらのいずれも適用されない場合、Claude はコンピュータ使用を使用します。
 
-[アプリごとのアクセス層](#app-permissions)はこれを強化します：ブラウザはビューのみに制限され、ターミナルと IDE はクリックのみに制限され、Claude をコンピュータ使用がアクティブな場合でも専用ツールに向けます。スクリーン制御は、ネイティブアプリ、ハードウェア制御パネル、iOS シミュレータ、または API のない独自ツールなど、他に何も到達できないものに予約されています。
+[アプリごとのアクセス層](#app-permissions)はこれを強化します：ブラウザはビューのみに制限され、ターミナルと IDE はクリックのみに制限され、Claude をコンピュータ使用がアクティブな場合でも専用ツールに向けます。スクリーン制御は、ネイティブアプリ、ハードウェア制御パネル、モバイルシミュレータ、または API のない独自ツールなど、他に何も到達できないものに予約されています。
 
 コンピュータ使用を有効にする
 
@@ -318,7 +318,7 @@ Claude Code を拡張する
 
 外部ツールを接続する
 
-ローカルおよび[SSH](#ssh-sessions)セッションの場合、プロンプトボックスの横の\*\*+**ボタンをクリックして**Connectors**を選択し、Google Calendar、Slack、GitHub、Linear、Notion などの統合を追加します。セッションの前または中にコネクタを追加できます。**+\*\*ボタンはリモートセッションでは利用できませんが、[ルーチン](/ja/routines)はルーチン作成時にコネクタを設定します。
+ローカルおよび[SSH](#ssh-sessions)セッションの場合、プロンプトボックスの横の\*\*+**ボタンをクリックして**Connectors**を選択し、Google Calendar、Slack、GitHub、Linear、Notion などの統合を追加します。セッションの前または中にコネクタを追加できます。**+\*\*ボタンはクラウドセッションでは利用できませんが、[ルーチン](/ja/routines)はルーチン作成時にコネクタを設定します。
 
 コネクタを管理または切断するには、デスクトップアプリの Settings → Connectors に移動するか、プロンプトボックスの Connectors メニューから**Manage connectors**を選択します。
 
@@ -336,7 +336,7 @@ Claude Code を拡張する
 
 ローカルおよび[SSH](#ssh-sessions)セッションの場合、プロンプトボックスの横の\*\*+**ボタンをクリックして**Plugins**を選択して、インストール済みプラグインとそのスキルを確認します。プラグインを追加するには、サブメニューから**Add plugin\*\*を選択してプラグインブラウザを開きます。これは、公式 Anthropic マーケットプレイスを含む、設定された[マーケットプレイス](/ja/plugin-marketplaces)から利用可能なプラグインを表示します。**Manage plugins**を選択して、プラグインを有効化、無効化、またはアンインストールします。
 
-プラグインはユーザーアカウント、特定のプロジェクト、またはローカルのみにスコープできます。組織がプラグインを一元管理する場合、それらのプラグインは CLI セッションと同じ方法で Desktop セッションで利用可能です。プラグインはリモートセッションでは利用できません。プラグインの作成を含む完全なプラグインリファレンスについては、[プラグイン](/ja/plugins)を参照してください。
+プラグインはユーザーアカウント、特定のプロジェクト、またはローカルのみにスコープできます。組織がプラグインを一元管理する場合、それらのプラグインは CLI セッションと同じ方法で Desktop セッションで利用可能です。プラグインはクラウドセッションでは利用できません。プラグインの作成を含む完全なプラグインリファレンスについては、[プラグイン](/ja/plugins)を参照してください。
 
 プレビューサーバーを設定する
 
@@ -485,13 +485,13 @@ Claude が別のポートを選択すると、割り当てられたポートを`
 
 ローカルセッションと dev サーバーの環境変数を設定するには、プロンプトボックスの環境ドロップダウンを開き、**Local** にマウスを合わせて、ギアアイコンをクリックしてローカル環境エディタを開きます。ここで保存する変数は、マシンに暗号化されて保存され、開始するすべてのローカルセッションとプレビューサーバーに適用されます。また、`~/.claude/settings.json` ファイルの `env` キーに変数を追加することもできます。ただし、これらは Claude セッションにのみ到達し、dev サーバーには到達しません。サポートされている変数の完全なリストについては、[環境変数](/ja/env-vars)を参照してください。
 
-[拡張思考](/ja/model-config#extended-thinking)はデフォルトで有効になっており、複雑な推論タスクのパフォーマンスを向上させますが、追加のトークンを使用します。思考を完全に無効にするには、ローカル環境エディタで `MAX_THINKING_TOKENS` を `0` に設定します。[適応的推論](/ja/model-config#adjust-effort-level)を持つモデルでは、適応的推論が思考の深さを制御するため、他の `MAX_THINKING_TOKENS` 値は無視されます。Opus 4.6 と Sonnet 4.6 では、固定思考予算を使用するために `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` を `1` に設定します。Opus 4.7 以降は常に適応的推論を使用し、固定予算モードはありません。
+[拡張思考](/ja/model-config#extended-thinking)はデフォルトで有効になっており、複雑な推論タスクのパフォーマンスを向上させますが、追加のトークンを使用します。思考を無効にするには、ローカル環境エディタで `MAX_THINKING_TOKENS` を `0` に設定します。これは Fable 5 には効果がなく、常に拡張思考を使用します。[サードパーティプロバイダー](/ja/third-party-integrations)では、`0` は代わりに `thinking` パラメータを省略し、適応的推論モデルは依然として思考する可能性があります。[適応的推論](/ja/model-config#adjust-effort-level)を持つモデルでは、適応的推論が思考の深さを制御するため、他の `MAX_THINKING_TOKENS` 値は無視されます。Opus 4.6 と Sonnet 4.6 では、固定思考予算を使用するために `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING` を `1` に設定します。Opus 4.7 以降は常に適応的推論を使用し、固定予算モードはありません。
 
-リモートセッション
+クラウドセッション
 
-リモートセッションはアプリを閉じても、バックグラウンドで続行されます。使用状況は[サブスクリプションプランの制限](/ja/costs)にカウントされ、別の計算料金はありません。
+クラウドセッションはアプリを閉じても、バックグラウンドで続行されます。使用状況は[サブスクリプションプランの制限](/ja/costs)にカウントされ、別の計算料金はありません。
 
-異なるネットワークアクセスレベルと環境変数を持つカスタムクラウド環境を作成できます。リモートセッションを開始するときに環境ドロップダウンを選択し、**Add environment** を選択します。ネットワークアクセスと環境変数の設定の詳細については、[クラウド環境](/ja/claude-code-on-the-web#the-cloud-environment)を参照してください。
+異なるネットワークアクセスレベルと環境変数を持つカスタムクラウド環境を作成できます。クラウドセッションを開始するときに環境ドロップダウンを選択し、**Add environment** を選択します。ネットワークアクセスと環境変数の設定の詳細については、[クラウド環境](/ja/claude-code-on-the-web#the-cloud-environment)を参照してください。
 
 SSH セッション
 
@@ -558,7 +558,7 @@ Team または Enterprise プランの組織は、管理コンソールコント
 - **Code in the desktop**：組織内のユーザーがデスクトップアプリで Claude Code にアクセスできるかどうかを制御します
 - **Code in the web**：組織の[Web セッション](/ja/claude-code-on-the-web)を有効または無効にします
 - **Remote Control**：組織の[Remote Control](/ja/remote-control)を有効または無効にします
-- **Bypass permissions モードを無効化**：組織内のユーザーが bypass permissions モードを有効にするのを防ぎます
+- **Disable Bypass permissions mode**：組織内のユーザーが bypass permissions モードを有効にするのを防ぎます
 
 管理設定
 
@@ -581,16 +581,16 @@ Team または Enterprise プランの組織は、管理コンソールコント
 
 IT チームは、macOS の MDM または Windows のグループポリシーを通じてデスクトップアプリを管理できます。利用可能なポリシーには、Claude Code 機能の有効化または無効化、自動更新の制御、およびカスタムデプロイメント URL の設定が含まれます。
 
-- **macOS**：Jamf または Kandji などのツールを使用して`com.anthropic.Claude`プリファレンスドメインを通じて設定します
+- **macOS**：Jamf または Kandji などのツールを使用して`com.anthropic.claudefordesktop`プリファレンスドメインを通じて設定します
 - **Windows**：`SOFTWARE\Policies\Claude`のレジストリを通じて設定します
 
 認証と SSO
 
-エンタープライズ組織はすべてのユーザーに SSO を要求できます。プランレベルの詳細については[認証](/ja/authentication)を参照し、SAML および OIDC 設定については[SSO の設定](https://support.claude.com/en/articles/13132885-setting-up-single-sign-on-sso)を参照してください。
+エンタープライズ組織はすべてのユーザーに SSO を要求できます。プランレベルの詳細については[認証](/ja/authentication)を参照し、SAML および OIDC 設定については[Setting up SSO](https://support.claude.com/en/articles/13132885-setting-up-single-sign-on-sso)を参照してください。
 
 データ処理
 
-Claude Code はローカルセッションではコードをローカルで処理するか、リモートセッションでは Anthropic のクラウドインフラストラクチャで処理します。会話とコードコンテキストは処理のために Anthropic の API に送信されます。データ保持、プライバシー、およびコンプライアンスの詳細については、[データ処理](/ja/data-usage)を参照してください。
+Claude Code はローカルセッションではコードをローカルで処理するか、クラウドセッションでは Anthropic のクラウドインフラストラクチャで処理します。会話とコードコンテキストは処理のために Anthropic の API に送信されます。データ保持、プライバシー、およびコンプライアンスの詳細については、[データ処理](/ja/data-usage)を参照してください。
 
 デプロイメント
 
@@ -599,7 +599,7 @@ Desktop はエンタープライズデプロイメントツールを通じて配
 - **macOS**：Jamf または Kandji などの MDM を使用して`.dmg`インストーラーを通じて配布します
 - **Windows**：MSIX パッケージまたは`.exe`インストーラーを通じてデプロイします。サイレントインストールを含むエンタープライズデプロイメントオプションについては、[Deploy Claude Desktop for Windows](https://support.claude.com/en/articles/12622703-deploy-claude-desktop-for-windows)を参照してください。
 
-ネットワーク設定（プロキシ設定、ファイアウォール許可リスト、LLM ゲートウェイなど）については、[ネットワーク設定](/ja/network-config)を参照してください。
+プロキシ設定、ファイアウォール許可リスト、LLM ゲートウェイなどのネットワーク設定については、[ネットワーク設定](/ja/network-config)を参照してください。
 
 完全なエンタープライズ設定リファレンスについては、[エンタープライズ設定ガイド](https://support.claude.com/en/articles/12622667-enterprise-configuration)を参照してください。
 
@@ -621,7 +621,7 @@ CLI フラグの同等物
 | `--resume`、`--continue` | サイドバーのセッションをクリック |
 | `--permission-mode` | 送信ボタンの横のモードセレクタ |
 | `--dangerously-skip-permissions` | Bypass permissions モード。Settings → Claude Code → 「Allow bypass permissions mode」で有効にします。エンタープライズ管理者はこの設定を無効にできます。 |
-| `--add-dir` | リモートセッションで **+** ボタンで複数のリポジトリを追加 |
+| `--add-dir` | クラウドセッションで **+** ボタンで複数のリポジトリを追加 |
 | `--allowedTools`、`--disallowedTools` | セッションごとの同等物はありません。[設定ファイル](/ja/settings)の権限ルールは引き続き適用されます。 |
 | `--verbose` | [Verbose ビューモード](#switch-view-modes)（Transcript view ドロップダウン） |
 | `--print`、`--output-format` | 利用できません。Desktop はインタラクティブのみです。 |
@@ -636,7 +636,7 @@ Desktop と CLI は同じ設定ファイルを読み取るため、セットア�
 - `~/.claude.json` または `.mcp.json` で設定された **[MCP サーバー](/ja/mcp)** は両方で機能します
 - 設定で定義された **[Hooks](/ja/hooks)** および **[skills](/ja/skills)** は両方に適用されます
 - `~/.claude.json` および `~/.claude/settings.json` の **[設定](/ja/settings)** は共有されます。`settings.json` の権限ルール、許可されたツール、およびその他の設定は Desktop セッションに適用されます。
-- **モデル**：Sonnet、Opus、および Haiku は両方で利用可能です。Desktop では、送信ボタンの横のドロップダウンからモデルを選択します。セッション中にモデルを変更できます。
+- **モデル**：同じ[モデル](/ja/model-config#available-models)は両方で利用可能です。Desktop では、送信ボタンの横のドロップダウンからモデルを選択します。セッション中にモデルを同じドロップダウンから変更できます。
 
 **Claude Desktop チャットアプリからの MCP サーバー**：Desktop アプリは `claude_desktop_config.json` から MCP サーバーを Code タブセッションに読み込みます。これは `~/.claude.json` および `.mcp.json` からのサーバーと並行して行われます。`claude_desktop_config.json` で定義されたサーバーは Desktop チャットサーフェスと Code タブの両方で利用可能です。
 
@@ -650,7 +650,7 @@ Desktop と CLI は同じ設定ファイルを読み取るため、セットア�
 | - | - | - |
 | 権限モード | `dontAsk` を含むすべてのモード | Ask permissions、Auto accept edits、Plan mode、Auto、および Settings 経由の Bypass permissions |
 | `--dangerously-skip-permissions` | CLI フラグ | Bypass permissions モード。Settings → Claude Code → 「Allow bypass permissions mode」で有効にします |
-| [サードパーティプロバイダー](/ja/third-party-integrations) | Bedrock、Vertex、Foundry | Anthropic の API がデフォルト。エンタープライズデプロイメントは Vertex AI とゲートウェイプロバイダーを設定できます。[エンタープライズ設定ガイド](https://support.claude.com/en/articles/12622667-enterprise-configuration)を参照してください。 |
+| [サードパーティプロバイダー](/ja/third-party-integrations) | Bedrock、Vertex AI、Foundry | Anthropic の API がデフォルト。エンタープライズデプロイメントは Vertex AI とゲートウェイプロバイダーを設定できます。[エンタープライズ設定ガイド](https://support.claude.com/en/articles/12622667-enterprise-configuration)を参照してください。Bedrock、Vertex AI、Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行するには、[Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview)を参照してください。 |
 | [MCP サーバー](/ja/mcp) | 設定ファイルで設定 | ローカルおよび SSH セッションの Connectors UI、または設定ファイル |
 | [Plugins](/ja/plugins) | `/plugin` コマンド | プラグインマネージャー UI |
 | @mention ファイル | テキストベース | オートコンプリート付き；ローカルおよび SSH セッションのみ |
@@ -664,9 +664,9 @@ Desktop と CLI は同じ設定ファイルを読み取るため、セットア�
 
 Desktop では利用できないもの
 
-以下の機能は CLI または VS Code 拡張機能でのみ利用可能です：
+以下の機能は CLI または VS Code 拡張機能でのみ利用可能です。ただし、以下の場合を除きます：
 
-- **サードパーティプロバイダー**：Desktop は Anthropic の API に直接接続します。エンタープライズデプロイメントは Vertex AI とゲートウェイプロバイダーを [管理設定](https://support.claude.com/en/articles/12622667-enterprise-configuration)経由で設定できます。Bedrock または Foundry の場合は、[CLI](/ja/quickstart)を使用します。
+- **サードパーティプロバイダー**：Desktop は Anthropic の API に直接接続します。エンタープライズデプロイメントは Vertex AI とゲートウェイプロバイダーを [管理設定](https://support.claude.com/en/articles/12622667-enterprise-configuration)経由で設定できます。Bedrock または Foundry の場合は、[クイックスタート](/ja/quickstart)を参照してください。上記のセクションの例外として、[Cowork on 3P research preview](https://claude.com/docs/cowork/3p/overview)は Bedrock、Vertex AI、Foundry、または自己ホスト型 LLM ゲートウェイで Code タブを実行します。
 - **Linux**：デスクトップアプリは macOS と Windows でのみ利用可能です。Linux では、[CLI](/ja/quickstart)を使用します。
 - **インラインコード提案**：Desktop はオートコンプリートスタイルの提案を提供しません。会話型プロンプトと明示的なコード変更を通じて機能します。
 - **エージェントチーム**：並列 Claude Code セッションが互いにメッセージを送信するのは [CLI](/ja/agent-teams) で利用可能であり、Desktop では利用できません。1 つのセッション内でマルチエージェント作業を行う場合は、[動的ワークフロー](/ja/workflows)を使用します。これは Desktop で実行されます。
@@ -732,7 +732,7 @@ Windows 固有の問題
 
 CLI で開くときに「Branch doesn't exist yet」
 
-リモートセッションはローカルマシンに存在しないブランチを作成できます。セッションツールバーのブランチ名をクリックしてコピーしてから、ローカルでフェッチします：
+クラウドセッションはローカルマシンに存在しないブランチを作成できます。セッションツールバーのブランチ名をクリックしてコピーしてから、ローカルでフェッチします：
 
 ```bash
 git fetch origin <branch-name>
@@ -741,7 +741,7 @@ git checkout <branch-name>
 
 まだ立ち往生していますか？
 
-- [GitHub Issues](https://github.com/anthropics/claude-code/issues)でバグを検索またはファイルします
-- [Claude サポートセンター](https://support.claude.com/)にアクセスします
+- デスクトップアプリで Help → Get Support を開くか、[Claude サポートセンター](https://support.claude.com/)に直接アクセスします
+- スタンドアロン`claude` CLI でも再現される問題については、[GitHub Issues](https://github.com/anthropics/claude-code/issues)でバグを検索またはファイルします
 
-バグをファイルするときは、デスクトップアプリのバージョン、オペレーティングシステム、正確なエラーメッセージ、および関連ログを含めます。macOS では Console.app を確認します。Windows では Event Viewer → Windows Logs → Application を確認します。
+問題を報告するときは、デスクトップアプリのバージョン、オペレーティングシステム、正確なエラーメッセージ、および関連ログを含めます。macOS では Console.app を確認します。Windows では Event Viewer → Windows Logs → Application を確認します。

@@ -16,15 +16,17 @@ source: https://code.claude.com/docs/ja/statusline.md
 - 複数のセッション間で作業し、それらを区別する必要がある
 - git ブランチとステータスを常に表示したい
 
+Claude Code は [フッターリンクバッジ](/ja/settings#footer-link-badges) もレンダリングできます。これは、設定された正規表現が会話内のテキストと一致したときにフッターに表示されるクリック可能なチップです。これらはステータスラインとは独立しており、スクリプトと相互作用しません。[`footerLinksRegexes`](/ja/settings#footer-link-badges) 設定を使用して設定してください。
+
 以下は、最初の行に git 情報を表示し、2 番目の行にカラーコード化されたコンテキストバーを表示する [複数行ステータスライン](#display-multiple-lines) の例です。
 
 このページでは、[基本的なステータスラインの設定](#set-up-a-status-line) について説明し、Claude Code からスクリプトへの [データフロー](#how-status-lines-work) について説明し、[表示できるすべてのフィールド](#available-data) をリストアップし、git ステータス、コスト追跡、プログレスバーなどの一般的なパターンの [すぐに使える例](#examples) を提供します。
 
-## ステータスラインを設定する
+ステータスラインを設定する
 
-[`/statusline` コマンド](#use-the-statusline-command) を使用して Claude Code にスクリプトを生成させるか、[手動でスクリプトを作成](#manually-configure-a-status-line) して設定に追加します。
+[`/statusline` コマンド](#use-the-%2Fstatusline-command) を使用して Claude Code にスクリプトを生成させるか、[手動でスクリプトを作成](#manually-configure-a-status-line) して設定に追加します。
 
-### /statusline コマンドを使用する
+/statusline コマンドを使用する
 
 `/statusline` コマンドは、表示したい内容を説明する自然言語の指示を受け入れます。Claude Code は `~/.claude/` にスクリプトファイルを生成し、設定を自動的に更新します：
 
@@ -32,7 +34,7 @@ source: https://code.claude.com/docs/ja/statusline.md
 /statusline show model name and context percentage with a progress bar
 ```
 
-### ステータスラインを手動で設定する
+ステータスラインを手動で設定する
 
 ユーザー設定（`~/.claude/settings.json`、`~` はホームディレクトリ）または [プロジェクト設定](/ja/settings#settings-files) に `statusLine` フィールドを追加します。`type` を `"command"` に設定し、`command` をスクリプトパスまたはインラインシェルコマンドに指定します。スクリプト作成の完全なチュートリアルについては、[ステータスラインをステップバイステップで構築する](#build-a-status-line-step-by-step) を参照してください。
 
@@ -63,15 +65,15 @@ source: https://code.claude.com/docs/ja/statusline.md
 
 オプションの `hideVimModeIndicator` フィールドは、プロンプトの下にある組み込みの `-- INSERT --` テキストを非表示にします。スクリプトが [`vim.mode`](#available-data) 自体をレンダリングする場合は、これを `true` に設定して、モードが 2 回表示されないようにします。
 
-### ステータスラインを無効にする
+ステータスラインを無効にする
 
 `/statusline` を実行し、ステータスラインを削除またはクリアするよう指示します（例：`/statusline delete`、`/statusline clear`、`/statusline remove it`）。settings.json から `statusLine` フィールドを手動で削除することもできます。
 
-## ステータスラインをステップバイステップで構築する
+ステータスラインをステップバイステップで構築する
 
 このチュートリアルでは、現在のモデル、作業ディレクトリ、コンテキストウィンドウ使用状況の割合を表示するステータスラインを手動で作成することで、内部で何が起こっているかを示します。
 
-[`/statusline`](#use-the-statusline-command) を実行して、表示したい内容を説明すると、これらすべてが自動的に設定されます。
+[`/statusline`](#use-the-%2Fstatusline-command) を実行して、表示したい内容を説明すると、これらすべてが自動的に設定されます。
 
 これらの例では Bash スクリプトを使用しており、macOS と Linux で動作します。Windows では、[Windows 設定](#windows-configuration) で PowerShell と Git Bash の例を参照してください。
 
@@ -113,7 +115,7 @@ Claude Code にスクリプトをステータスラインとして実行する�
 
 ステータスラインはインターフェイスの下部に表示されます。設定は自動的に再読み込みされますが、Claude Code との次の相互作用まで変更は表示されません。
 
-## ステータスラインの仕組み
+ステータスラインの仕組み
 
 Claude Code はスクリプトを実行し、stdin 経由で [JSON セッションデータ](#available-data) をパイプします。スクリプトは JSON を読み取り、必要なものを抽出し、stdout にテキストを出力します。Claude Code はスクリプトが出力したものを表示します。
 
@@ -135,7 +137,7 @@ Claude Code はスクリプトの出力をキャプチャするため、ター�
 
 ステータスラインはローカルで実行され、API トークンを消費しません。オートコンプリート提案、ヘルプメニュー、パーミッションプロンプトなど、特定の UI 相互作用中は一時的に非表示になります。
 
-## 利用可能なデータ
+利用可能なデータ
 
 Claude Code は以下の JSON フィールドを stdin 経由でスクリプトに送信します：
 
@@ -280,7 +282,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 スクリプトで条件付きアクセスと null 値のフォールバックデフォルトを使用して、不在のフィールドを処理します。
 
-### コンテキストウィンドウフィールド
+コンテキストウィンドウフィールド
 
 `context_window` オブジェクトは、最新の API レスポンスからのライブコンテキストウィンドウを説明します。v2.1.132 以降、`total_input_tokens` と `total_output_tokens` は現在のコンテキスト使用状況を反映し、累積セッション合計ではありません。
 
@@ -302,7 +304,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 `current_usage` オブジェクトはセッションの最初の API 呼び出しの前は `null` です。また `/compact` の直後は `null` であり、次の API 呼び出しが再度入力されるまで `null` のままです。
 
-## 例
+例
 
 これらの例は一般的なステータスラインパターンを示しています。任意の例を使用するには：
 
@@ -312,7 +314,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 
 Bash の例は [`jq`](https://jqlang.github.io/jq/) を使用して JSON を解析します。Python と Node.js には組み込みの JSON 解析があります。
 
-### コンテキストウィンドウの使用状況
+コンテキストウィンドウの使用状況
 
 現在のモデルとコンテキストウィンドウの使用状況を視覚的なプログレスバーで表示します。各スクリプトは stdin から JSON を読み取り、`used_percentage` フィールドを抽出し、塗りつぶされたブロック（▓）が使用状況を表す 10 文字のバーを構築します：
 
@@ -373,7 +375,7 @@ process.stdin.on('end', () => {
 });
 ```
 
-### git ステータスと色
+git ステータスと色
 
 ステージングされたファイルと変更されたファイルのカラーコード化されたインジケーターを使用して git ブランチを表示します。このスクリプトはターミナルの色に [ANSI エスケープコード](https://en.wikipedia.org/wiki/ANSI_escape_code#Colors) を使用します：`\033[32m` は緑、`\033[33m` は黄、`\033[0m` はデフォルトにリセットします。
 
@@ -461,7 +463,7 @@ process.stdin.on('end', () => {
 });
 ```
 
-### コストと期間の追跡
+コストと期間の追跡
 
 セッションの API コストと経過時間を追跡します。`cost.total_cost_usd` フィールドは現在のセッションのすべての API 呼び出しの推定コストを累積します。`cost.total_duration_ms` フィールドはセッション開始からの総経過時間を測定し、`cost.total_api_duration_ms` は API レスポンスを待つのに費やされた時間のみを追跡します。
 
@@ -516,7 +518,7 @@ process.stdin.on('end', () => {
 });
 ```
 
-### 複数行を表示する
+複数行を表示する
 
 スクリプトは複数の行を出力して、より豊かなディスプレイを作成できます。各 `echo` ステートメントはステータス領域に別の行を生成します。
 
@@ -617,7 +619,7 @@ process.stdin.on('end', () => {
 });
 ```
 
-### クリック可能なリンク
+クリック可能なリンク
 
 この例は GitHub リポジトリへのクリック可能なリンクを作成します。git リモート URL を読み取り、SSH 形式を `sed` で HTTPS に変換し、リポジトリ名を OSC 8 エスケープコードでラップします。Cmd（macOS）または Ctrl（Windows/Linux）を押しながらクリックして、ブラウザでリンクを開きます。
 
@@ -691,7 +693,7 @@ process.stdin.on('end', () => {
 });
 ```
 
-### レート制限の使用状況
+レート制限の使用状況
 
 Claude.ai サブスクリプションのレート制限使用状況をステータスラインに表示します。`rate_limits` オブジェクトには `five_hour`（5 時間のローリングウィンドウ）と `seven_day`（週間）ウィンドウが含まれます。各ウィンドウは `used_percentage`（0～100）とウィンドウがリセットされる Unix エポック秒の `resets_at` を提供します。
 
@@ -755,7 +757,7 @@ process.stdin.on('end', () => {
 });
 ```
 
-### 高コストな操作をキャッシュする
+高コストな操作をキャッシュする
 
 ステータスラインスクリプトはアクティブなセッション中に頻繁に実行されます。`git status` や `git diff` などのコマンドは、特に大規模なリポジトリでは遅い場合があります。この例は git 情報を一時ファイルにキャッシュし、5 秒ごとにのみ更新します。
 
@@ -884,7 +886,7 @@ process.stdin.on('end', () => {
 });
 ```
 
-### Windows 設定
+Windows 設定
 
 Windows では、Claude Code はステータスラインコマンドを Git Bash 経由で実行します。Git Bash がインストールされている場合、または Git Bash がない場合は PowerShell を通じて実行します。PowerShell スクリプトをステータスラインとして実行するには、`powershell` 経由で呼び出します。これはどちらのシェルからでも機能します：
 
@@ -931,7 +933,7 @@ dirname="${cwd##*[/\\]}"
 echo "$dirname [$model]"
 ```
 
-## サブエージェントステータスライン
+サブエージェントステータスライン
 
 `subagentStatusLine` 設定は、エージェントパネルに表示される各 [サブエージェント](/ja/sub-agents) のカスタム行本体をレンダリングします。デフォルトの `name · description · token count` 行を独自のフォーマットに置き換えるために使用します。
 
@@ -950,7 +952,7 @@ echo "$dirname [$model]"
 
 `statusLine` に適用される同じトラストと `disableAllHooks` ゲートが `subagentStatusLine` に適用されます。プラグインは、[`settings.json`](/ja/plugins-reference#standard-plugin-layout) でデフォルトの `subagentStatusLine` を配布できます。
 
-## ヒント
+ヒント
 
 - **モック入力でテストする**：`echo '{"model":{"display_name":"Opus"},"workspace":{"current_dir":"/home/user/project"},"context_window":{"used_percentage":25},"session_id":"test-session-abc"}' | ./statusline.sh`
 - **出力を短く保つ**：ステータスバーの幅は限られているため、長い出力は切り詰められたり、不適切にラップされたりする可能性があります
@@ -958,7 +960,7 @@ echo "$dirname [$model]"
 
 [ccstatusline](https://github.com/sirmalloc/ccstatusline) や [starship-claude](https://github.com/martinemde/starship-claude) などのコミュニティプロジェクトは、テーマと追加機能を備えた事前構築設定を提供します。
 
-## トラブルシューティング
+トラブルシューティング
 
 **ステータスラインが表示されない**
 
