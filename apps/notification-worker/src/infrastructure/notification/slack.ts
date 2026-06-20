@@ -1,5 +1,5 @@
 import type { Prefix } from '@claude-code-changelog-viewer/common';
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { groupChangelogItemsByPrefix } from './changelog-message';
 
 export type SlackSendResult = {
@@ -46,7 +46,7 @@ export async function sendToSlack(
 
 /** Slack向けの変更ログ通知メッセージを生成する。 */
 export function createSlackChangelogMessage(
-  data: Analysis,
+  data: NotificationAnalysis,
   version: string,
   options: { unsubscribeUrl: string; siteUrl: string },
 ): SlackPayload {

@@ -12,9 +12,7 @@ vi.mock('../infrastructure/channel-notifier', () => ({
   }),
 }));
 
-const mockFetch = vi.spyOn(globalThis, 'fetch');
-
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { queueConsumer } from '../queue/consumer';
 import { FakeD1Database } from './support/fake-d1';
 import {
@@ -25,27 +23,16 @@ import {
   insertDiscordWebhook,
 } from './support/notification-test-support';
 
-const validAnalysis: Analysis = {
+const validAnalysis: NotificationAnalysis = {
   version: 'v1.0.0',
   summary: 'テスト用サマリー',
   items: [
-    {
-      content: 'Added new feature',
-      content_ja: '新機能を追加',
-      prefix: 'feat',
-      importance_score: 8,
-      related_docs: [],
-    },
+    { content: 'Added new feature', content_ja: '新機能', prefix: 'feat' },
   ],
 };
 
-function setupFetchSuccess() {
-  const impl: typeof fetch = Object.assign(
-    () => Promise.resolve(Response.json(validAnalysis)),
-    // biome-ignore lint/suspicious/noExplicitAny: mock
-    { preconnect: (globalThis.fetch as any).preconnect },
-  );
-  mockFetch.mockImplementation(impl);
+function buildBody(version = 'v1.0.0') {
+  return { version, analysis: { ...validAnalysis, version } };
 }
 
 async function runWithTimers(promise: Promise<void>) {
@@ -75,10 +62,9 @@ describe('queueConsumer integration', () => {
   it('送信成功時は過去の fail_count が 0 に戻る', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const message = createQueueMessage({ version: 'v1.0.0' });
+    const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
-    setupFetchSuccess();
     await insertDiscordWebhook(db, {
       id: 'active-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
@@ -105,10 +91,9 @@ describe('queueConsumer integration', () => {
   it('恒久失敗が続くと fail_count が増えしきい値到達でチャンネルがシステム停止される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const message = createQueueMessage({ version: 'v1.0.0' });
+    const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
-    setupFetchSuccess();
     await insertDiscordWebhook(db, {
       id: 'active-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
@@ -136,10 +121,9 @@ describe('queueConsumer integration', () => {
   it('複数チャンネル配信中に一部が失敗しても各チャンネルの最終状態が正しく反映される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const message = createQueueMessage({ version: 'v1.0.0' });
+    const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
-    setupFetchSuccess();
     await insertDiscordWebhook(db, {
       id: 'success-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/success',
@@ -180,10 +164,9 @@ describe('queueConsumer integration', () => {
   it('frequency が WEK のチャンネルはキュー配信時に個別通知が送信されない', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const message = createQueueMessage({ version: 'v1.0.0' });
+    const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
-    setupFetchSuccess();
     await insertDiscordWebhook(db, {
       id: 'wek-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/wek',
@@ -202,10 +185,9 @@ describe('queueConsumer integration', () => {
   it('通知で 429 が返ると message.retry が呼ばれる', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const message = createQueueMessage({ version: 'v1.0.0' });
+    const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
-    setupFetchSuccess();
     await insertDiscordWebhook(db, {
       id: 'active-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/abcdef',
@@ -227,10 +209,9 @@ describe('queueConsumer integration', () => {
   it('一部チャンネルで例外が発生しても他のチャンネルの DB 状態が正しく更新される', async () => {
     // Arrange(準備)
     db = new FakeD1Database();
-    const message = createQueueMessage({ version: 'v1.0.0' });
+    const message = createQueueMessage(buildBody());
     const batch = createQueueBatch([message]);
     const env = createTestEnv(db);
-    setupFetchSuccess();
     await insertDiscordWebhook(db, {
       id: 'error-id',
       webhookUrl: 'https://discord.com/api/webhooks/123456/error',

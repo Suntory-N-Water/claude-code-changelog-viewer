@@ -8,23 +8,34 @@ vi.mock('../infrastructure/channel-notifier', () => ({
   }),
 }));
 
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { app } from '../index';
 import { FakeD1Database } from './support/fake-d1';
 import { createTestEnv } from './support/notification-test-support';
 
+type QueuedMessage = { version: string; analysis: NotificationAnalysis };
+
 function createQueueEnv(db: FakeD1Database) {
   const env = createTestEnv(db);
-  const queued: { body: { version: string } }[][] = [];
+  const queued: QueuedMessage[] = [];
   env.NOTIFICATION_QUEUE = {
-    sendBatch: vi.fn(async (messages: { body: { version: string } }[]) => {
-      queued.push(messages);
+    send: vi.fn(async (message: QueuedMessage) => {
+      queued.push(message);
     }),
   } as unknown as Queue;
   return { env, queued };
 }
 
+const validAnalysis: NotificationAnalysis = {
+  version: 'v1.0.0',
+  summary: 'テスト用サマリー',
+  items: [
+    { content: 'Added new feature', content_ja: '新機能', prefix: 'feat' },
+  ],
+};
+
 describe('POST /api/dispatch integration', () => {
-  it('正しい Bearer トークンで複数 version を送ると全 version が Queue に投入される', async () => {
+  it('正しい Bearer トークンで version + analysis を送ると Queue に投入される', async () => {
     // Arrange(準備)
     const db = new FakeD1Database();
     const sut = app;
@@ -35,7 +46,7 @@ describe('POST /api/dispatch integration', () => {
         Authorization: 'Bearer dispatch-secret',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ versions: ['v1.0.0', 'v1.1.0'] }),
+      body: JSON.stringify({ version: 'v1.0.0', analysis: validAnalysis }),
     } satisfies RequestInit;
 
     // Act(実行)
@@ -43,9 +54,7 @@ describe('POST /api/dispatch integration', () => {
 
     // Assert(確認)
     expect(response.status).toBe(200);
-    expect(queued).toEqual([
-      [{ body: { version: 'v1.0.0' } }, { body: { version: 'v1.1.0' } }],
-    ]);
+    expect(queued).toEqual([{ version: 'v1.0.0', analysis: validAnalysis }]);
     db.close();
   });
 
@@ -60,7 +69,7 @@ describe('POST /api/dispatch integration', () => {
         Authorization: 'Bearer wrong-secret',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ versions: ['v1.0.0'] }),
+      body: JSON.stringify({ version: 'v1.0.0', analysis: validAnalysis }),
     } satisfies RequestInit;
 
     // Act(実行)
@@ -72,7 +81,7 @@ describe('POST /api/dispatch integration', () => {
     db.close();
   });
 
-  it('不正な versions 配列では Queue に何も投入されない', async () => {
+  it('不正なリクエストボディでは Queue に何も投入されない', async () => {
     // Arrange(準備)
     const db = new FakeD1Database();
     const sut = app;
@@ -83,7 +92,7 @@ describe('POST /api/dispatch integration', () => {
         Authorization: 'Bearer dispatch-secret',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ versions: [] }),
+      body: JSON.stringify({ version: 'v1.0.0' }),
     } satisfies RequestInit;
 
     // Act(実行)

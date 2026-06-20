@@ -1,4 +1,4 @@
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from './channel';
 
 /** 外部通知APIへの送信結果。インフラ層がHTTPステータスをkindに変換して返す。 */
@@ -11,7 +11,7 @@ export type NotificationResult =
 
 /** changelog通知に必要な入力。URL生成はinfrastructure層のNotifier実装が担う。 */
 export type ChangelogNotificationInput = {
-  readonly analysis: Analysis;
+  readonly analysis: NotificationAnalysis;
   readonly version: string;
 };
 
