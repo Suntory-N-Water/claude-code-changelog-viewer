@@ -255,14 +255,25 @@ jobs:
           NOTIFICATION_WORKER_URL: ${{ secrets.NOTIFICATION_WORKER_URL }}
           DISPATCH_SECRET: ${{ secrets.DISPATCH_SECRET }}
           NOTIFIABLE_VERSIONS: ${{ steps.detect-updates.outputs.notifiable_versions }}
+        # inferred JSON は最大 1MB に達し Cloudflare Queues の 1メッセージ上限 (128KB) を超えるため、
+        # notification-worker が利用するフィールドだけに jq で絞り込んでから POST する。
         run: |
           echo "📤 通知配信をトリガー..."
-          VERSIONS_JSON=$(echo "$NOTIFIABLE_VERSIONS" | tr ' ' '\n' | jq -R . | jq -s .)
-          curl -f -X POST "${NOTIFICATION_WORKER_URL}/api/dispatch" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${DISPATCH_SECRET}" \
-            -d "{\"versions\": ${VERSIONS_JSON}}"
-          echo "✓ 通知配信をキューに投入しました"
+          for version in $NOTIFIABLE_VERSIONS; do
+            inferred_path="apps/changelog-fetcher/inferred/inferred_${version}.json"
+            if [ ! -f "$inferred_path" ]; then
+              echo "⚠️  ${inferred_path} が見つかりません。スキップ"
+              continue
+            fi
+            jq --arg version "$version" \
+              '{version: $version, analysis: {version: .version, summary: .summary, items: [.items[] | {content, content_ja, prefix}]}}' \
+              "$inferred_path" \
+              | curl -f -X POST "${NOTIFICATION_WORKER_URL}/api/dispatch" \
+                  -H "Content-Type: application/json" \
+                  -H "Authorization: Bearer ${DISPATCH_SECRET}" \
+                  --data-binary @-
+            echo "✓ ${version} の通知配信をキューに投入しました"
+          done
 
       - name: Create issue on failure
         if: failure()
