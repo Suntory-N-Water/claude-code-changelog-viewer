@@ -1,0 +1,53 @@
+{
+  "version": "2.1.185",
+  "summary": "APIレスポンスの待機中に表示されるメッセージが、より状況を正確に示す「Waiting for API response...」という表現に改善されました。あわせて、メッセージが表示されるまでの閾値が10秒から20秒に延長され、軽微な遅延による不要な通知が抑制されています。",
+  "items": [
+    {
+      "content": "- The stream-stall hint now reads \"Waiting for API response · will retry in …\" instead of \"No response from API · Retrying in …\", and triggers after 20s of silence instead of 10s",
+      "content_ja": "APIレスポンスの待機状態を示す表示メッセージを改善し、表示までの待機時間を10秒から20秒へ変更しました。",
+      "prefix": "Changed",
+      "importance_score": 0,
+      "feature_areas": [],
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md",
+          "hit_count": 7,
+          "context_score": 0,
+          "total_score": 0,
+          "snippets": [
+            "Set up Claude Code for your organization A decision map for administrators deploying Claude Code, covering API providers, managed settings, policy enforcement, usage monitoring, and data handling. Claude Code enforces organization policy through managed settings that take precedence over local developer configuration. You deliver those settings from the Claude admin console, your mobile device management (MDM) system, or a file on disk. The settings control which tools, commands, servers, and network destinations Claude can reach.",
+            "Decision What you're choosing Reference Choose your API provider Where Claude Code authenticates and how it's billed Authentication , Bedrock , Vertex AI , Foundry Decide how settings reach devices How managed policy reaches developer machines Server-managed settings , Settings files Decide what to enforce Which tools, commands, and integrations are allowed Permissions , Sandboxing Set up usage visibility How you track spend and adoption Analytics , Monitoring , Costs Review data handling Data retention and compliance posture Data usage , Security Claude Code connects to Claude through one of several API providers. Your choice affects billing, authentication, which compliance posture you inherit, and which Claude Code features your developers can use. Provider Choose this when Claude for Teams / Enterprise You want Claude Code and claude.ai under one per-seat subscription with no infrastructure to run. This is the default recommendation. Claude Console You're API-first or want pay-as-you-go billing Amazon Bedrock You want to inherit existing AWS compliance controls and billing Google Vertex AI You want to inherit existing GCP compliance controls and billing Microsoft Foundry You want to inherit existing Azure compliance controls and billing Some Claude Code features require a Claude.ai account. Claude Code on the web , Routines , Code Review , Remote Control , and the Chrome extension are not available through Console API keys or cloud-provider credentials alone. If you deploy through Bedrock, Vertex, or Foundry, plan whether developers also need Claude for Teams or Enterprise seats. Each feature page lists its plan requirements. For the full provider comparison covering authentication, regions, and feature parity, see the enterprise deployment overview . Each provider's auth setup is in Authentication .",
+            "Review data handling On Team, Enterprise, Claude API, and cloud provider plans, Anthropic does not train models on your code or prompts. Your API provider determines retention and compliance posture. Topic What to know Where to start"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md",
+          "hit_count": 6,
+          "context_score": 0,
+          "total_score": 0,
+          "snippets": [
+            "Pair your main model with a stronger advisor model that Claude consults at key moments during a task. The advisor tool is experimental and requires Claude Code v2.1.98 or later with the Anthropic API. It is not available on Amazon Bedrock, Google Vertex AI, or Microsoft Foundry. Behavior, pricing, and availability may change. The advisor tool lets Claude consult a second, typically stronger model at key moments during a task, such as before committing to an approach, when stuck on a recurring error, or before declaring a task complete. The advisor receives the full conversation, including every tool call and result, and s guidance that Claude applies before continuing. The advisor runs server-side on Anthropic's infrastructure as a server tool , available to both subscription and API-billed accounts. You choose which model acts as the advisor, and Claude decides when to call it. This page covers how to enable the advisor, which model pairings are accepted, what Claude shows during a consultation, and how advisor usage is billed.",
+            "Cost Each advisor call sends the conversation to the advisor model, so it consumes tokens at the advisor model's rates in addition to your main model's usage. With API billing, advisor tokens are charged at the advisor model's input and output rates. On subscription plans, advisor usage counts toward your plan's usage limits. Claude calls the advisor at decision points rather than on every turn, so pairing a faster main model with a stronger advisor typically costs less than running the stronger model throughout. Advisor usage counts toward the session totals shown by /usage . For how advisor tokens are reported in API responses, see Usage and billing in the Claude API documentation. Impact on prompt caching",
+            "The advisor tool requires all of the following: Claude Code v2.1.98 or later : run claude update to upgrade. Anthropic API only : the advisor is a server-executed tool. It is not available on Amazon Bedrock, Google Vertex AI, or Microsoft Foundry. Through an LLM gateway configured with ANTHROPIC_BASE_URL , availability depends on whether the gateway forwards the request intact to the Anthropic API. Supported main model : Opus 4.6 or later, Sonnet 4.6, or Haiku 4.5. Fable 5 also qualifies on Claude Code v2.1.170 or later. Turn the advisor off",
+            "Model configuration : switch models, set effort levels, and use opusplan Manage costs effectively : track token usage across models Advisor tool in the Claude API : understand the underlying server tool, or use it directly from the Messages API The advisor strategy : why pairing a fast main model with a stronger advisor works"
+          ]
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md",
+          "hit_count": 2,
+          "context_score": 0,
+          "total_score": 0,
+          "snippets": [
+            "Split-pane mode requires either tmux or iTerm2 with the it2 CLI . To install manually: tmux : install through your system's package manager. See the tmux wiki for platform-specific instructions. iTerm2 : install the it2 CLI , then enable the Python API in iTerm2 → Settings → General → Magic → Enable Python API . Specify teammates and models",
+            "For iTerm2, verify the it2 CLI is installed and the Python API is enabled in iTerm2 preferences. Too many permission prompts"
+          ]
+        }
+      ],
+      "inference": {
+        "before": "APIからの応答が途切れた際、10秒で「No response from API · Retrying in …（APIからの応答がありません。再試行中…）」という、エラーや切断を想起させるメッセージが表示されていました。",
+        "after": "メッセージが「Waiting for API response · will retry in …（APIのレスポンスを待機しています。後ほど再試行します…）」という進行状況をより正確に示す表現に変更され、表示されるまでの猶予時間も20秒に延長されました。",
+        "benefit": "一時的な通信の揺らぎやモデルの推論時間が長引いているだけの場合でも、不必要にエラーのような警告が表示されて不安になることが減り、より落ち着いて出力を待てるようになります。"
+      }
+    }
+  ]
+}
