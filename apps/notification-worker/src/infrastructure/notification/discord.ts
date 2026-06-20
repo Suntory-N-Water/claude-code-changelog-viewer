@@ -5,7 +5,7 @@ import {
   type Prefix,
   truncateForDiscord,
 } from '@claude-code-changelog-viewer/common';
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { groupChangelogItemsByPrefix } from './changelog-message';
 
 const BOT_USERNAME = 'CCログ超訳 Bot';
@@ -47,7 +47,7 @@ export async function sendToDiscord(
 
 /** Discord向けの変更ログ通知メッセージを生成する。 */
 export function createChangelogMessage(
-  data: Analysis,
+  data: NotificationAnalysis,
   version: string,
   options: CreateChangelogMessageOptions,
 ): DiscordWebhookPayload {

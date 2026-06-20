@@ -1,8 +1,10 @@
+import { NotificationAnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
 const RequestSchema = z.object({
-  versions: z.array(z.string().startsWith('v')).min(1),
+  version: z.string().startsWith('v'),
+  analysis: NotificationAnalysisSchema,
 });
 
 async function timingSafeEqual(a: string, b: string): Promise<boolean> {
@@ -34,13 +36,10 @@ export const dispatchRoute = new Hono<{ Bindings: CloudflareBindings }>().post(
     if (!parseResult.success) {
       return c.json({ error: 'リクエストが不正です' }, 400);
     }
-    const { versions } = parseResult.data;
+    const { version, analysis } = parseResult.data;
 
-    // 各バージョンを一括で Queue に投入
-    await c.env.NOTIFICATION_QUEUE.sendBatch(
-      versions.map((version) => ({ body: { version } })),
-    );
+    await c.env.NOTIFICATION_QUEUE.send({ version, analysis });
 
-    return c.json({ success: true, queued: versions });
+    return c.json({ success: true, queued: version });
   },
 );

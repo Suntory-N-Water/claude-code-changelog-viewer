@@ -8,22 +8,14 @@ vi.mock('../infrastructure/channel-notifier', () => ({
   }),
 }));
 
-const mockFetch = vi.spyOn(globalThis, 'fetch');
-
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { queueConsumer } from '../queue/consumer';
 
-const validAnalysis: Analysis = {
+const validAnalysis: NotificationAnalysis = {
   version: 'v1.0.0',
   summary: 'テスト用サマリー',
   items: [
-    {
-      content: 'Added new feature',
-      content_ja: '新機能を追加',
-      prefix: 'feat',
-      importance_score: 8,
-      related_docs: [],
-    },
+    { content: 'Added new feature', content_ja: '新機能', prefix: 'feat' },
   ],
 };
 
@@ -70,15 +62,6 @@ function createMockEnv() {
   };
 }
 
-function setupFetchSuccess() {
-  const impl: typeof fetch = Object.assign(
-    () => Promise.resolve(Response.json(validAnalysis)),
-    // biome-ignore lint/suspicious/noExplicitAny: mock
-    { preconnect: (globalThis.fetch as any).preconnect },
-  );
-  mockFetch.mockImplementation(impl);
-}
-
 function callConsumer(batch: MessageBatch<unknown>, env: CloudflareBindings) {
   // biome-ignore lint/style/noNonNullAssertion: テスト用に queue handler の存在を前提とする
   return queueConsumer!(batch, env, {} as ExecutionContext) as Promise<void>;
@@ -102,7 +85,21 @@ describe('queueConsumer', () => {
     });
 
     it('version が v で始まらないメッセージは ack して無視する', async () => {
-      const message = createMockMessage({ version: '1.0.0' });
+      const message = createMockMessage({
+        version: '1.0.0',
+        analysis: validAnalysis,
+      });
+      const batch = createMockBatch([message]);
+      const { env } = createMockEnv();
+
+      await callConsumer(batch, env);
+
+      expect(message.ack).toHaveBeenCalled();
+      expect(message.retry).not.toHaveBeenCalled();
+    });
+
+    it('analysis が欠落しているメッセージは ack して無視する', async () => {
+      const message = createMockMessage({ version: 'v1.0.0' });
       const batch = createMockBatch([message]);
       const { env } = createMockEnv();
 
@@ -113,40 +110,13 @@ describe('queueConsumer', () => {
     });
   });
 
-  describe('inferred JSON 取得', () => {
-    it('inferred JSON の取得に失敗した場合は retry する', async () => {
-      const message = createMockMessage({ version: 'v1.0.0' });
-      const batch = createMockBatch([message]);
-      const { env } = createMockEnv();
-
-      mockFetch.mockResolvedValue(new Response(null, { status: 404 }));
-
-      await callConsumer(batch, env);
-
-      expect(message.retry).toHaveBeenCalled();
-      expect(message.ack).not.toHaveBeenCalled();
-    });
-
-    it('inferred JSON のパースに失敗した場合は retry する', async () => {
-      const message = createMockMessage({ version: 'v1.0.0' });
-      const batch = createMockBatch([message]);
-      const { env } = createMockEnv();
-
-      mockFetch.mockResolvedValue(Response.json({ invalid: 'data' }));
-
-      await callConsumer(batch, env);
-
-      expect(message.retry).toHaveBeenCalled();
-      expect(message.ack).not.toHaveBeenCalled();
-    });
-  });
-
   it('アクティブなチャンネルがない場合は ack する', async () => {
-    const message = createMockMessage({ version: 'v1.0.0' });
+    const message = createMockMessage({
+      version: 'v1.0.0',
+      analysis: validAnalysis,
+    });
     const batch = createMockBatch([message]);
     const { env } = createMockEnv();
-
-    setupFetchSuccess();
 
     await callConsumer(batch, env);
 
@@ -154,12 +124,16 @@ describe('queueConsumer', () => {
   });
 
   it('複数メッセージを順次処理する', async () => {
-    const message1 = createMockMessage({ version: 'v1.0.0' });
-    const message2 = createMockMessage({ version: 'v2.0.0' });
+    const message1 = createMockMessage({
+      version: 'v1.0.0',
+      analysis: validAnalysis,
+    });
+    const message2 = createMockMessage({
+      version: 'v2.0.0',
+      analysis: { ...validAnalysis, version: 'v2.0.0' },
+    });
     const batch = createMockBatch([message1, message2]);
     const { env } = createMockEnv();
-
-    setupFetchSuccess();
 
     await callConsumer(batch, env);
 

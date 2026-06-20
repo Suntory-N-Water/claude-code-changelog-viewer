@@ -1,7 +1,7 @@
 // biome-ignore lint/correctness/noUnresolvedImports: Cloudflare Workers ランタイム組み込みモジュール
 import { EmailMessage } from 'cloudflare:email';
 import type { Prefix } from '@claude-code-changelog-viewer/common';
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import { createMimeMessage } from 'mimetext';
 import { groupChangelogItemsByPrefix } from './changelog-message';
 
@@ -48,7 +48,7 @@ export async function sendToEmail(
 
 /** Email向けの変更ログ通知メッセージを生成する。 */
 export function createEmailChangelogMessage(
-  data: Analysis,
+  data: NotificationAnalysis,
   version: string,
   options: { unsubscribeUrl: string; siteUrl: string },
 ): EmailPayload {

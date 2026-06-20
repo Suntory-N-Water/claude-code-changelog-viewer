@@ -1,15 +1,15 @@
 import { PREFIX_ORDER } from '@claude-code-changelog-viewer/common';
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 
 export type ChangelogMessageItemGroup = {
   prefix: string;
-  items: Analysis['items'];
+  items: NotificationAnalysis['items'];
 };
 
 export function groupChangelogItemsByPrefix(
-  items: Analysis['items'],
+  items: NotificationAnalysis['items'],
 ): ChangelogMessageItemGroup[] {
-  const groupMap = new Map<string, Analysis['items']>();
+  const groupMap = new Map<string, NotificationAnalysis['items']>();
   const knownPrefixes = new Set<string>(PREFIX_ORDER);
   const unknownPrefixes: string[] = [];
 

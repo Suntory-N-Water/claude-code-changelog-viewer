@@ -18,7 +18,7 @@ export function createTestEnv(db: FakeD1Database) {
     DB: db,
     DISPATCH_SECRET: 'dispatch-secret',
     NOTIFICATION_QUEUE: {
-      sendBatch: vi.fn(() => Promise.resolve(undefined)),
+      send: vi.fn(() => Promise.resolve(undefined)),
     },
     SEND_EMAIL: { send: vi.fn(() => Promise.resolve(undefined)) },
     EMAIL_FROM: 'noreply@claude-code-log.com',

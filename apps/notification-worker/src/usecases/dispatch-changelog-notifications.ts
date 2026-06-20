@@ -1,16 +1,12 @@
-import type { Analysis } from '@claude-code-changelog-viewer/types';
+import type { NotificationAnalysis } from '@claude-code-changelog-viewer/types';
 import type { Channel } from '../domain/channel/channel';
-
-export type AnalysisSourcePort = {
-  fetch: (version: string) => Promise<Analysis>;
-};
 import type { ChannelNotifier } from '../domain/channel/channel-notifier';
 import type { ChannelRepository } from '../domain/channel/channel-repository';
 import { recordFailure, resetFailure } from '../domain/channel/channel-failure';
 import type { NotificationFrequency } from '../domain/channel/notification-frequency';
 
 export type DispatchChangelogNotificationsInput = {
-  readonly analysis: Analysis;
+  readonly analysis: NotificationAnalysis;
   readonly version: string;
   readonly frequency: NotificationFrequency;
   readonly failedAt: Date;

@@ -51,3 +51,23 @@ export const AnalysisSchema = z.object({
   items: z.array(ChangelogItemSchema),
 });
 export type Analysis = z.infer<typeof AnalysisSchema>;
+
+// NotificationAnalysis (通知配信用サブセット)
+// 通知 payload を Cloudflare Queues の 128KB 上限内に収めるため
+// notifier 実装が参照するフィールドのみを抽出した型。
+// jq スリム化時に summary / content_ja は欠落キーまたは null になり得る。
+export const NotificationChangelogItemSchema = z.object({
+  content: z.string(),
+  content_ja: z.string().nullable().optional(),
+  prefix: z.string(),
+});
+export type NotificationChangelogItem = z.infer<
+  typeof NotificationChangelogItemSchema
+>;
+
+export const NotificationAnalysisSchema = z.object({
+  version: z.string(),
+  summary: z.string().nullable().optional(),
+  items: z.array(NotificationChangelogItemSchema),
+});
+export type NotificationAnalysis = z.infer<typeof NotificationAnalysisSchema>;

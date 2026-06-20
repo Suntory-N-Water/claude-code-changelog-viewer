@@ -1,10 +1,10 @@
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
+import { NotificationAnalysisSchema } from '@claude-code-changelog-viewer/types';
 import { z } from 'zod';
 import { dispatchChangelogNotifications } from '../usecases/dispatch-changelog-notifications';
 import { createNotificationFrequency } from '../domain/channel/notification-frequency';
 import { createChannelNotifier } from '../infrastructure/channel-notifier';
 import { createChannelRepository } from '../infrastructure/drizzle/channel-repository';
-import { createGitHubInferredDataClient } from '../infrastructure/github/github-inferred-data-client';
 
 const logger = getLogger({
   name: 'notification-worker',
@@ -16,6 +16,7 @@ const SEND_INTERVAL_MS = 1000;
 
 const NotificationMessageSchema = z.object({
   version: z.string().startsWith('v'),
+  analysis: NotificationAnalysisSchema,
 });
 
 export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
@@ -24,15 +25,14 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
       try {
         const bodyResult = NotificationMessageSchema.safeParse(message.body);
         if (!bodyResult.success) {
+          // 同じメッセージを何度処理しても同じ結果になるため、再試行せずキューから取り除く
           logger.error('不正なキューメッセージ', {
             error: bodyResult.error.message,
           });
           message.ack();
           continue;
         }
-        const { version } = bodyResult.data;
-
-        const data = await createGitHubInferredDataClient().fetch(version);
+        const { version, analysis } = bodyResult.data;
 
         const repository = createChannelRepository(
           env.DB,
@@ -43,7 +43,7 @@ export const queueConsumer: ExportedHandler<CloudflareBindings>['queue'] =
           repository,
           notifier,
           {
-            analysis: data,
+            analysis,
             version,
             frequency: createNotificationFrequency('IMM'),
             failedAt: new Date(),
