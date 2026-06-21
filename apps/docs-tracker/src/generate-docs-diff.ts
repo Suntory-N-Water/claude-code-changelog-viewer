@@ -12,7 +12,7 @@ async function main() {
   const startTime = Date.now();
 
   try {
-    const generator = new DocsDiffGenerator(process.cwd(), logger);
+    const generator = new DocsDiffGenerator(process.cwd());
 
     // git diff --staged から docs/en/ の変更を取得
     const files = await generator.getEnStagedDiff();
@@ -35,7 +35,7 @@ async function main() {
 
     if (geminiApiKey) {
       logger.msg('APLG0003', { params: ['AI サマリ・解説'] });
-      const summaryClient = new DocsSummaryClient(geminiApiKey, logger);
+      const summaryClient = new DocsSummaryClient(geminiApiKey);
       ({ aiSummary, fileExplanations } =
         await summaryClient.generateSummaryAndExplanations(files));
       logger.msg('APLG0002', { params: ['AI サマリ・解説'] });

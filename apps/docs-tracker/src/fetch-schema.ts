@@ -11,7 +11,7 @@ async function main() {
   const startTime = Date.now();
 
   try {
-    const fetcher = new SchemaFetcher(process.cwd(), logger);
+    const fetcher = new SchemaFetcher(process.cwd());
     await fetcher.fetchSchema();
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);

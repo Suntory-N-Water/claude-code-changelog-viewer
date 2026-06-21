@@ -1,4 +1,7 @@
-import type { AppLogger } from '@claude-code-changelog-viewer/common';
+import {
+  getLogger,
+  type AppLogger,
+} from '@claude-code-changelog-viewer/common';
 import { ApiError, GoogleGenAI, Type } from '@google/genai';
 import pRetry, { AbortError } from 'p-retry';
 import { z } from 'zod';
@@ -42,12 +45,14 @@ export class DocsSummaryClient {
   private log: AppLogger;
   private lastRequestTimes: Map<string, number> = new Map();
 
-  constructor(apiKey: string, logger: AppLogger) {
+  constructor(apiKey: string) {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY 環境変数が未設定です');
     }
     this.ai = new GoogleGenAI({ apiKey });
-    this.log = logger.child({ component: 'DocsSummaryClient' });
+    this.log = getLogger({ name: 'docs-diff-generator' }).child({
+      component: 'DocsSummaryClient',
+    });
   }
 
   private async waitForRateLimit(model: string): Promise<void> {
