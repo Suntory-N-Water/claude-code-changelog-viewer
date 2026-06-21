@@ -169,17 +169,23 @@ jobs:
             pnpm run infer "$version"
           done
 
-      - name: Verify inferred files
+      - name: Stage inferred files
         if: steps.detect-updates.outputs.has_updates == 'true'
         env:
           CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
+        # create-pull-request action は push 後に working tree を reset --hard するため、
+        # 通知配信ステップが参照できるよう RUNNER_TEMP に inferred JSON を退避する。
         run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/inferred"
           for version in $CHANGED_VERSIONS; do
-            if [ ! -f "apps/changelog-fetcher/inferred/inferred_${version}.json" ]; then
-              echo "❌ Missing inferred file for $version"
+            src="apps/changelog-fetcher/inferred/inferred_${version}.json"
+            if [ ! -f "$src" ]; then
+              echo "❌ Missing inferred file for $version" >&2
               exit 1
             fi
-            echo "✅ inferred_${version}.json created"
+            cp "$src" "${RUNNER_TEMP}/inferred/"
+            echo "✅ inferred_${version}.json をステージしました"
           done
 
       - name: Configure Git
@@ -258,12 +264,13 @@ jobs:
         # inferred JSON は最大 1MB に達し Cloudflare Queues の 1メッセージ上限 (128KB) を超えるため、
         # notification-worker が利用するフィールドだけに jq で絞り込んでから POST する。
         run: |
+          set -euo pipefail
           echo "📤 通知配信をトリガー..."
           for version in $NOTIFIABLE_VERSIONS; do
-            inferred_path="apps/changelog-fetcher/inferred/inferred_${version}.json"
+            inferred_path="${RUNNER_TEMP}/inferred/inferred_${version}.json"
             if [ ! -f "$inferred_path" ]; then
-              echo "⚠️  ${inferred_path} が見つかりません。スキップ"
-              continue
+              echo "❌ ${inferred_path} が見つかりません" >&2
+              exit 1
             fi
             jq --arg version "$version" \
               '{version: $version, analysis: {version: .version, summary: .summary, items: [.items[] | {content, content_ja, prefix}]}}' \
