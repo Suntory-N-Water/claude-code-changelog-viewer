@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
+import { detectChangelogUpdate } from './cron/changelog-detection';
 import { cleanupInactiveChannels } from './cron/cleanup';
 import { queueConsumer } from './queue/consumer';
 import { dispatchRoute } from './routes/dispatch';
@@ -37,6 +38,9 @@ export default {
     switch (event.cron) {
       case '0 15 * * *':
         ctx.waitUntil(cleanupInactiveChannels(env));
+        break;
+      case '*/5 * * * *':
+        ctx.waitUntil(detectChangelogUpdate(env));
         break;
       default:
         console.warn(`Unhandled cron trigger: ${event.cron}`);

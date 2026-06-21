@@ -1,10 +1,16 @@
 name: Fetch and Analyze CHANGELOG
 
 on:
-  schedule:
-    # 毎時実行(UTC基準)
-    - cron: "0 * * * *"
   workflow_dispatch:
+    inputs:
+      detected_hash:
+        description: "notification-worker が検知した CHANGELOG.md の SHA256 ハッシュ"
+        required: false
+        type: string
+      detected_at:
+        description: "notification-worker が検知した時刻 (ISO 8601)"
+        required: false
+        type: string
 
 concurrency:
   group: changelog-auto-inference
@@ -26,6 +32,14 @@ jobs:
       issues: write
 
     steps:
+      - name: Log dispatch context
+        env:
+          DETECTED_HASH: ${{ inputs.detected_hash }}
+          DETECTED_AT: ${{ inputs.detected_at }}
+        run: |
+          echo "detected_hash=${DETECTED_HASH:-(なし)}"
+          echo "detected_at=${DETECTED_AT:-(なし)}"
+
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
