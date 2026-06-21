@@ -1,31 +1,41 @@
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import type { AppLogger } from '@claude-code-changelog-viewer/common';
+import {
+  getLogger,
+  type AppLogger,
+} from '@claude-code-changelog-viewer/common';
+import { z } from 'zod';
+import { fetchWithRetry } from './fetch-with-retry';
 
 const SCHEMA_URL = 'https://www.schemastore.org/claude-code-settings.json';
 const SCHEMA_FILENAME = 'claude-code-settings.json';
 const METADATA_FILENAME = 'last_schema_update.json';
 
-type SchemaMetadata = {
-  lastUpdated: string;
-  propertyCount: number;
-  previousPropertyCount?: number;
-  addedProperties?: string[];
-  removedProperties?: string[];
-  schemaUrl: string;
-};
+const jsonObjectSchema = z.record(z.string(), z.unknown());
+
+const schemaMetadataSchema = z.object({
+  lastUpdated: z.string(),
+  propertyCount: z.number(),
+  previousPropertyCount: z.number().optional(),
+  addedProperties: z.array(z.string()).optional(),
+  removedProperties: z.array(z.string()).optional(),
+  schemaUrl: z.string(),
+});
+
+type SchemaMetadata = z.infer<typeof schemaMetadataSchema>;
+type JsonObject = z.infer<typeof jsonObjectSchema>;
 
 export class SchemaFetcher {
   private readonly schemaDir: string;
   private readonly metadataDir: string;
   private readonly log: AppLogger;
-  private readonly maxRetries = 3;
-  private readonly retryDelay = 1000;
 
-  constructor(rootDir: string = '.', logger: AppLogger) {
+  constructor(rootDir: string = '.') {
     this.schemaDir = path.join(rootDir, 'schema');
     this.metadataDir = path.join(rootDir, 'metadata');
-    this.log = logger.child({ component: 'SchemaFetcher' });
+    this.log = getLogger({ name: 'docs-tracker' }).child({
+      component: 'SchemaFetcher',
+    });
   }
 
   async init(): Promise<void> {
@@ -34,46 +44,10 @@ export class SchemaFetcher {
     this.log.msg('APLG0004', { params: ['スキーマディレクトリ'] });
   }
 
-  private async fetchWithRetry(url: string, retries = 0): Promise<Response> {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Claude-Code-Changelog-Viewer/1.0',
-          Accept: 'application/json, */*',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return response;
-    } catch (error) {
-      if (retries < this.maxRetries) {
-        this.log.msg('APLG0014', {
-          attrs: {
-            'retry.attempt': retries + 1,
-            'retry.max': this.maxRetries,
-            'request.url': url,
-          },
-        });
-        await new Promise((resolve) =>
-          setTimeout(resolve, this.retryDelay * 2 ** retries),
-        );
-        return this.fetchWithRetry(url, retries + 1);
-      }
-      throw error;
-    }
-  }
-
-  private extractTopLevelProperties(schema: Record<string, unknown>): string[] {
-    const properties = schema['properties'];
-    if (
-      properties &&
-      typeof properties === 'object' &&
-      !Array.isArray(properties)
-    ) {
-      return Object.keys(properties as Record<string, unknown>).sort();
+  private extractTopLevelProperties(schema: JsonObject): string[] {
+    const properties = jsonObjectSchema.safeParse(schema['properties']);
+    if (properties.success) {
+      return Object.keys(properties.data).sort();
     }
     return [];
   }
@@ -82,17 +56,17 @@ export class SchemaFetcher {
     const metadataPath = path.join(this.metadataDir, METADATA_FILENAME);
     try {
       const content = await fs.readFile(metadataPath, 'utf-8');
-      return JSON.parse(content) as SchemaMetadata;
+      return schemaMetadataSchema.parse(JSON.parse(content));
     } catch {
       return null;
     }
   }
 
-  private async loadPreviousSchema(): Promise<Record<string, unknown> | null> {
+  private async loadPreviousSchema(): Promise<JsonObject | null> {
     const schemaPath = path.join(this.schemaDir, SCHEMA_FILENAME);
     try {
       const content = await fs.readFile(schemaPath, 'utf-8');
-      return JSON.parse(content) as Record<string, unknown>;
+      return jsonObjectSchema.parse(JSON.parse(content));
     } catch {
       return null;
     }
@@ -106,12 +80,15 @@ export class SchemaFetcher {
     const previousSchema = await this.loadPreviousSchema();
     const previousMetadata = await this.loadPreviousMetadata();
 
-    const response = await this.fetchWithRetry(SCHEMA_URL);
+    const response = await fetchWithRetry({
+      accept: 'application/json, */*',
+      url: SCHEMA_URL,
+    });
     const rawJson = await response.text();
 
-    let schema: Record<string, unknown>;
+    let schema: JsonObject;
     try {
-      schema = JSON.parse(rawJson) as Record<string, unknown>;
+      schema = jsonObjectSchema.parse(JSON.parse(rawJson));
     } catch (error) {
       throw new Error(
         `スキーマの JSON パースに失敗: ${error instanceof Error ? error.message : String(error)}`,

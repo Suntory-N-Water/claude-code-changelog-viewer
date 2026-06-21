@@ -2,8 +2,24 @@ import { exec } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
-import type { AppLogger } from '@claude-code-changelog-viewer/common';
+import {
+  getLogger,
+  type AppLogger,
+} from '@claude-code-changelog-viewer/common';
+import { z } from 'zod';
 import { cleanMarkdown } from './markdown-cleaner';
+import { fetchWithRetry } from './fetch-with-retry';
+
+const docFetchMetadataSchema = z.object({
+  totalDocs: z.number(),
+  successfulFetch: z.number(),
+  failedFetch: z.number(),
+  failedFiles: z.array(z.string()),
+  deletedFiles: z.number(),
+  lastMapUpdate: z.string().optional(),
+});
+
+const partialDocFetchMetadataSchema = docFetchMetadataSchema.partial();
 
 const execAsync = promisify(exec);
 
@@ -20,6 +36,9 @@ type FetchResult = {
   error?: string;
 };
 
+type DocFetchMetadata = z.infer<typeof docFetchMetadataSchema>;
+type PartialDocFetchMetadata = z.infer<typeof partialDocFetchMetadataSchema>;
+
 export class ClaudeDocsFetcher {
   private readonly lang: 'en' | 'ja';
   private readonly baseUrl: string;
@@ -27,21 +46,18 @@ export class ClaudeDocsFetcher {
   private readonly llmsUrl = 'https://code.claude.com/docs/llms.txt';
   private readonly docsDir: string;
   private readonly metadataDir: string;
-  private readonly maxRetries = 3;
-  private readonly retryDelay = 1000; // 1 second
   private readonly log: AppLogger;
 
-  constructor(
-    rootDir: string = '.',
-    logger: AppLogger,
-    lang: 'en' | 'ja' = 'en',
-  ) {
+  constructor(rootDir: string = '.', lang: 'en' | 'ja' = 'en') {
     this.lang = lang;
     this.baseUrl = `https://code.claude.com/docs/${lang}`;
     this.docsMapUrl = `${this.baseUrl}/claude_code_docs_map.md`;
     this.docsDir = path.join(rootDir, 'docs', lang);
     this.metadataDir = path.join(rootDir, 'metadata');
-    this.log = logger.child({ component: 'ClaudeDocsFetcher', lang });
+    this.log = getLogger({ name: 'docs-tracker' }).child({
+      component: 'ClaudeDocsFetcher',
+      lang,
+    });
   }
 
   /**
@@ -60,7 +76,10 @@ export class ClaudeDocsFetcher {
     this.log.msg('APLG0003', { params: ['ドキュメントマップ'] });
 
     try {
-      const response = await this.fetchWithRetry(this.docsMapUrl);
+      const response = await fetchWithRetry({
+        accept: 'text/markdown, text/plain, */*',
+        url: this.docsMapUrl,
+      });
       const content = await response.text();
 
       // Save the docs map(言語別ファイル名)
@@ -130,7 +149,10 @@ export class ClaudeDocsFetcher {
     this.log.msg('APLG0003', { params: ['llms.txt'] });
 
     try {
-      const response = await this.fetchWithRetry(this.llmsUrl);
+      const response = await fetchWithRetry({
+        accept: 'text/markdown, text/plain, */*',
+        url: this.llmsUrl,
+      });
       const content = await response.text();
 
       // Save the llms.txt
@@ -256,7 +278,10 @@ export class ClaudeDocsFetcher {
         await fs.mkdir(fileDir, { recursive: true });
       }
 
-      const response = await this.fetchWithRetry(docInfo.url);
+      const response = await fetchWithRetry({
+        accept: 'text/markdown, text/plain, */*',
+        url: docInfo.url,
+      });
       const rawMarkdown = await response.text();
       const markdown = await cleanMarkdown(rawMarkdown);
 
@@ -320,54 +345,6 @@ source: ${docInfo.url}
   }
 
   /**
-   * Fetch with retry logic
-   */
-  private async fetchWithRetry(
-    url: string,
-    retries = 0,
-  ): Promise<{
-    ok: boolean;
-    status: number;
-    statusText: string;
-    text: () => Promise<string>;
-  }> {
-    try {
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'Claude-Code-Changelog-Viewer/1.0',
-          Accept: 'text/markdown, text/plain, */*',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      return response;
-    } catch (error) {
-      if (retries < this.maxRetries) {
-        this.log.msg('APLG0014', {
-          attrs: {
-            'retry.attempt': retries + 1,
-            'retry.max': this.maxRetries,
-            'request.url': url,
-          },
-        });
-        await this.sleep(this.retryDelay * 2 ** retries); // Exponential backoff
-        return this.fetchWithRetry(url, retries + 1);
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Sleep helper
-   */
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
    * Check if there are changes in docs directory
    */
   private async hasDocsChanges(): Promise<boolean> {
@@ -386,24 +363,21 @@ source: ${docInfo.url}
   /**
    * Save metadata
    */
-  private async saveMetadata(data: Record<string, unknown>): Promise<void> {
+  private async saveMetadata(data: DocFetchMetadata): Promise<void> {
     const metadataFile =
       this.lang === 'en' ? 'last_update.json' : `last_update_${this.lang}.json`;
     const metadataPath = path.join(this.metadataDir, metadataFile);
 
     try {
-      let existing = {};
+      let existing: PartialDocFetchMetadata = {};
       try {
         const content = await fs.readFile(metadataPath, 'utf-8');
-        existing = JSON.parse(content);
+        existing = partialDocFetchMetadataSchema.parse(JSON.parse(content));
       } catch {
         // File doesn't exist yet
       }
 
-      const metadata = {
-        ...existing,
-        ...data,
-      };
+      const metadata = docFetchMetadataSchema.parse({ ...existing, ...data });
 
       await fs.writeFile(
         metadataPath,
@@ -542,7 +516,7 @@ source: ${docInfo.url}
 
       // Small delay between batches
       if (i + batchSize < docs.length) {
-        await this.sleep(500);
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
     }
 
@@ -581,7 +555,7 @@ source: ${docInfo.url}
     const hasChanges = await this.hasDocsChanges();
 
     // Save summary metadata (include lastMapUpdate only if docs changed)
-    const metadata: Record<string, unknown> = {
+    const metadata: DocFetchMetadata = {
       totalDocs: docs.length,
       successfulFetch: successful,
       failedFetch: failed.length,
@@ -591,7 +565,7 @@ source: ${docInfo.url}
 
     if (hasChanges) {
       const now = `${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC`;
-      metadata['lastMapUpdate'] = now;
+      metadata.lastMapUpdate = now;
       this.log.msg('APLG0007', { params: ['ドキュメント'] });
     } else {
       this.log.msg('APLG0008', { params: ['ドキュメント'] });

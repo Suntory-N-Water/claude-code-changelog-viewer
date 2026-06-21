@@ -2,7 +2,10 @@ import { exec } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { promisify } from 'node:util';
-import type { AppLogger } from '@claude-code-changelog-viewer/common';
+import {
+  getLogger,
+  type AppLogger,
+} from '@claude-code-changelog-viewer/common';
 
 const execAsync = promisify(exec);
 
@@ -39,10 +42,12 @@ export class DocsDiffGenerator {
   private readonly diffsDir: string;
   private readonly log: AppLogger;
 
-  constructor(rootDir: string, logger: AppLogger) {
+  constructor(rootDir: string) {
     this.rootDir = rootDir;
     this.diffsDir = path.join(rootDir, 'diffs');
-    this.log = logger.child({ component: 'DocsDiffGenerator' });
+    this.log = getLogger({ name: 'docs-diff-generator' }).child({
+      component: 'DocsDiffGenerator',
+    });
   }
 
   /**
