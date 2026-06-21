@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { getCollection } from 'astro:content';
-import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
+import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 import rss from '@astrojs/rss';
 import type { APIContext } from 'astro';
 import { SITE_TITLE } from '../lib/constants';
@@ -28,7 +28,7 @@ async function loadLastFetchTime(): Promise<Date> {
 
 /** inference 情報を含む HTML コンテンツを生成 */
 function buildContentHtml(
-  item: Pick<ChangelogItem, 'content' | 'content_ja' | 'inference'>,
+  item: Pick<InferredChangelogItem, 'content' | 'content_ja' | 'inference'>,
   version: string,
 ): string {
   const text = item.content_ja ?? item.content;
@@ -86,12 +86,7 @@ export async function GET(context: APIContext) {
 
   const items = latest.flatMap((entry) => {
     const version = entry.data.version;
-    // importance_score 降順でソート
-    const sortedItems = [...entry.data.items].sort(
-      (a, b) => b.importance_score - a.importance_score,
-    );
-
-    return sortedItems.map((item, itemIndex) => ({
+    return entry.data.items.map((item, itemIndex) => ({
       title: `[v${version}] [${item.prefix}] ${item.content_ja ?? item.content}`,
       link: `${context.site}changelog/v${version}#item-${itemIndex}`,
       pubDate,

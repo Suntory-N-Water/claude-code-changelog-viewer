@@ -15,15 +15,10 @@ const changelogCollection = defineCollection({
         content: z.string(), // 英語原文
         content_ja: z.string().optional(), // 日本語翻訳
         prefix: z.string(),
-        importance_score: z.number(),
         feature_areas: z.array(z.string()).optional(),
         related_docs: z.array(
           z.object({
             file: z.string(),
-            hit_count: z.number(),
-            context_score: z.number(),
-            total_score: z.number(),
-            snippets: z.array(z.string()),
           }),
         ),
         inference: z

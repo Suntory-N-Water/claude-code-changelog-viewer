@@ -1,9 +1,9 @@
 import { buildChangelogSearchTerms } from '@claude-code-changelog-viewer/common';
-import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
+import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 
 export type ChangelogItemWithVersion = {
   version: string;
-  item: ChangelogItem;
+  item: InferredChangelogItem;
 };
 
 export function getSourceLabel(source: 'settings' | 'env'): string {
@@ -16,7 +16,7 @@ export function getSourceLabel(source: 'settings' | 'env'): string {
  */
 export function findRelatedChangelogs(
   key: string,
-  changelogs: { version: string; items: ChangelogItem[] }[],
+  changelogs: { version: string; items: InferredChangelogItem[] }[],
 ): ChangelogItemWithVersion[] {
   const searchTerms = buildChangelogSearchTerms(key);
   const results: ChangelogItemWithVersion[] = [];

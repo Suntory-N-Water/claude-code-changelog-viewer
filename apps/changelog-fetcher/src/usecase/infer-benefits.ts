@@ -29,11 +29,16 @@ export async function inferBenefits(input: {
   inference: InferencePort;
   store: InferredStorePort;
 }): Promise<ChangelogAnalysis> {
+  let analysis = transferExistingInference(
+    input.analysis,
+    await input.store.load(input.version),
+  );
+
   if (input.skipAI) {
-    log.info('AI推論をスキップ (コピーモード)', {
-      totalItems: input.analysis.items.length,
+    log.info('AI推論をスキップ (既存 inferred があれば引き継ぎ)', {
+      totalItems: analysis.items.length,
     });
-    return input.analysis;
+    return analysis;
   }
 
   log.msg('APLG0001', {
@@ -41,10 +46,6 @@ export async function inferBenefits(input: {
     attrs: { totalItems: input.analysis.items.length },
   });
 
-  let analysis = transferExistingInference(
-    input.analysis,
-    await input.store.load(input.version),
-  );
   const missingBeforeInitial = findMissingInferenceItems(analysis);
 
   if (missingBeforeInitial.length === 0) {

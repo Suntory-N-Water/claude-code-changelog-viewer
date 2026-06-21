@@ -6,7 +6,6 @@
       "content": "- Added session resume hint on exit, showing how to continue your conversation later",
       "content_ja": "終了時にセッション再開のヒントが追加され、後で会話を続ける方法が表示されるようになりました。",
       "prefix": "Added",
-      "importance_score": 8,
       "feature_areas": [],
       "related_docs": []
     },
@@ -14,47 +13,16 @@
       "content": "- Added support for full-width (zenkaku) space input from Japanese IME in checkbox selection",
       "content_ja": "チェックボックス選択時に日本語IMEからの全角スペース入力に対応しました。",
       "prefix": "Added",
-      "importance_score": 8,
       "feature_areas": [],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
-          "hit_count": 16,
-          "context_score": 29,
-          "total_score": 464,
-          "snippets": [
-            "\n> Learn how to enable and configure OpenTelemetry for Claude Code.\n\nTrack Claude Code usage, costs, and tool activity across your organization by exporting telemetry data through OpenTelemetry (OTel). Claude Code exports metrics as time series data via the standard metrics protocol, and events via the logs/events protocol. Configure your metrics and logs backends to match your monitoring requirements.\n\n## Quick start\n",
-            "| `claude_code.cost.usage` | Cost of the Claude Code session | USD |\n| `claude_code.token.usage` | Number of tokens used | tokens |\n| `claude_code.code_edit_tool.decision` | Count of code editing tool permission decisions | count |\n| `claude_code.active_time.total` | Total active time in seconds | s |\n\n### Metric details\n",
-            "- `source`: Decision source - `\"config\"`, `\"hook\"`, `\"user_permanent\"`, `\"user_temporary\"`, `\"user_abort\"`, or `\"user_reject\"`\n- `language`: Programming language of the edited file, such as `\"TypeScript\"`, `\"Python\"`, `\"JavaScript\"`, or `\"Markdown\"`. Returns `\"unknown\"` for unrecognized file extensions.\n\n#### Active time counter\n\nTracks actual time spent actively using Claude Code, excluding idle time. This metric is incremented during user interactions (typing, reading responses) and during CLI processing (tool execution, AI response generation).\n\n**Attributes**:\n",
-            "\nTo trace all activity triggered by a single prompt, filter your events by a specific `prompt.id` value. This returns the user\\_prompt event, any api\\_request events, and any tool\\_result events that occurred while processing that prompt.\n\n`prompt.id` is intentionally excluded from metrics because each prompt generates a unique ID, which would create an ever-growing number of time series. Use it for event-level analysis and audit trails only.\n\n#### User prompt event\n",
-            "\n- All [standard attributes](#standard-attributes)\n- `event.name`: `\"user_prompt\"`\n- `event.timestamp`: ISO 8601 timestamp\n- `event.sequence`: monotonically increasing counter for ordering events within a session\n- `prompt_length`: Length of the prompt\n- `prompt`: Prompt content (redacted by default, enable with `OTEL_LOG_USER_PROMPTS=1`)"
-          ]
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/desktop.md",
-          "hit_count": 18,
-          "context_score": 25,
-          "total_score": 450,
-          "snippets": [
-            "\n### Choose a permission mode\n\nPermission modes control how much autonomy Claude has during a session: whether it asks before editing files, running commands, or both. You can switch modes at any time using the mode selector next to the send button. Start with Ask permissions to see exactly what Claude does, then move to Auto accept edits or Plan mode as you get comfortable.\n\n| Mode | Settings key | Behavior |\n| - | - | - |",
-            "\n### Preview your app\n\nClaude can start a dev server and open an embedded browser to verify its changes. This works for frontend web apps as well as backend servers: Claude can test API endpoints, view server logs, and iterate on issues it finds. In most cases, Claude starts the server automatically after editing project files. You can also ask Claude to preview at any time. By default, Claude [auto-verifies](#auto-verify-changes) changes after every edit.\n\nFrom the preview panel, you can:\n",
-            "\nUse the **Auto-fix** and **Auto-merge** toggles in the CI status bar to enable either option. Claude Code also sends a desktop notification when CI finishes.\n\nPR monitoring requires the [GitHub CLI (`gh`)](https://cli.github.com/) to be installed and authenticated on your machine. If `gh` is not installed, Desktop prompts you to install it the first time you try to create a PR.\n\n## Manage sessions\n",
-            "\n### Run long-running tasks remotely\n\nFor large refactors, test suites, migrations, or other long-running tasks, select **Remote** instead of **Local** when starting a session. Remote sessions run on Anthropic's cloud infrastructure and continue even if you close the app or shut down your computer. Check back anytime to see progress or steer Claude in a different direction. You can also monitor remote sessions from [claude.ai/code](https://claude.ai/code) or the Claude iOS app.\n\nRemote sessions also support multiple repositories. After selecting a cloud environment, click the **+** button next to the repo pill to add additional repositories to the session. Each repo gets its own branch selector. This is useful for tasks that span multiple codebases, such as updating a shared library and its consumers.\n",
-            "  \"configurations\": [\n    {\n      \"name\": \"my-app\",\n      \"runtimeExecutable\": \"npm\",\n      \"runtimeArgs\": [\"run\", \"dev\"],\n      \"port\": 3000\n    }\n  ]"
-          ]
+          "file": "apps/docs-tracker/docs/en/desktop.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/agent-teams.md",
-          "hit_count": 13,
-          "context_score": 31,
-          "total_score": 403,
-          "snippets": [
-            "\n> Coordinate multiple Claude Code instances working together as a team, with shared tasks, inter-agent messaging, and centralized management.\n\nAgent teams are experimental and disabled by default. Enable them by adding `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` to your [settings.json](/en/settings) or environment. Agent teams have [known limitations](#limitations) around session resumption, task coordination, and shutdown behavior.\n\nAgent teams let you coordinate multiple Claude Code instances working together. One session acts as the team lead, coordinating work, assigning tasks, and synthesizing results. Teammates work independently, each in its own context window, and communicate directly with each other.\n",
-            "\n## Enable agent teams\n\nAgent teams are disabled by default. Enable them by setting the `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` environment variable to `1`, either in your shell environment or through [settings.json](/en/settings):\n\n```json settings.json theme={null}\n{\n  \"env\": {\n    \"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"\n  }\n}\n```",
-            "\n### Assign and claim tasks\n\nThe shared task list coordinates work across the team. The lead creates tasks and teammates work through them. Tasks have three states: pending, in progress, and completed. Tasks can also depend on other tasks: a pending task with unresolved dependencies cannot be claimed until those dependencies are completed.\n\nThe lead can assign tasks explicitly, or teammates can self-claim:\n",
-            "\n### Permissions\n\nTeammates start with the lead's permission settings. If the lead runs with `--dangerously-skip-permissions`, all teammates do too. After spawning, you can change individual teammate modes, but you can't set per-teammate modes at spawn time.\n\n### Context and communication\n",
-            "\n### Run a parallel code review\n\nA single reviewer tends to gravitate toward one type of issue at a time. Splitting review criteria into independent domains means security, performance, and test coverage all get thorough attention simultaneously. The prompt assigns each teammate a distinct lens so they don't overlap:\n\n```text\nCreate an agent team to review PR #142. Spawn three reviewers:"
-          ]
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
         }
       ],
       "inference": {
@@ -67,37 +35,16 @@
       "content": "- Fixed PDF too large errors permanently locking up sessions, requiring users to start a new conversation",
       "content_ja": "大きすぎるPDFファイルが原因でセッションが完全にロックされ、新しい会話を開始する必要がある問題を修正しました。",
       "prefix": "Fixed",
-      "importance_score": 4,
       "feature_areas": [],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/desktop.md",
-          "hit_count": 2,
-          "context_score": 7,
-          "total_score": 14,
-          "snippets": [
-            "The prompt box supports two ways to bring in external context:\n\n- **@mention files**: type `@` followed by a filename to add a file to the conversation context. Claude can then read and reference that file.\n- **Attach files**: attach images, PDFs, and other files to your prompt using the attachment button, or drag and drop files directly into the prompt. This is useful for sharing screenshots of bugs, design mockups, or reference documents.\n\n### Choose a permission mode\n",
-            "| [MCP servers](/en/mcp) | configure in settings files | Connectors UI for local and SSH sessions, or settings files |\n| [Plugins](/en/plugins) | `/plugin` command | plugin manager UI |\n| @mention files | text-based | with autocomplete |\n| File attachments | not available | images, PDFs |\n| Session isolation | [`--worktree`](/en/cli-reference) flag | automatic worktrees |\n| Multiple sessions | separate terminals | sidebar tabs |\n| Scripting and automation | [`--print`](/en/cli-reference), [Agent SDK](/en/headless) | not available |"
-          ]
+          "file": "apps/docs-tracker/docs/en/desktop.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
-          "hit_count": 2,
-          "context_score": 5,
-          "total_score": 10,
-          "snippets": [
-            "\n```text\nskills/\n├── pdf-processor/\n│   ├── SKILL.md\n│   ├── reference.md (optional)\n│   └── scripts/ (optional)",
-            "├── skills/                   # Agent Skills\n│   ├── code-reviewer/\n│   │   └── SKILL.md\n│   └── pdf-processor/\n│       ├── SKILL.md\n│       └── scripts/\n├── hooks/                    # Hook configurations"
-          ]
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/vs-code.md",
-          "hit_count": 1,
-          "context_score": 4,
-          "total_score": 4,
-          "snippets": [
-            "> What's in @src/components/ (include a trailing slash for folders)\n```\n\nFor large PDFs, you can ask Claude to read specific pages instead of the whole file: a single page, a range like pages 1-10, or an open-ended range like page 3 onward.\n\nWhen you select text in the editor, Claude can see your highlighted code automatically. The prompt box footer shows how many lines are selected. Press `Option+K` (Mac) / `Alt+K` (Windows/Linux) to insert an @-mention with the file path and line numbers (e.g., `@app.ts#5-10`). Click the selection indicator to toggle whether Claude can see your highlighted text - the eye-slash icon means the selection is hidden from Claude.\n"
-          ]
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
         }
       ],
       "inference": {
@@ -110,7 +57,6 @@
       "content": "- Fixed bash commands incorrectly reporting failure with \"Read-only file system\" errors when sandbox mode was enabled",
       "content_ja": "サンドボックスモードが有効な場合に、bashコマンドが「Read-only file system」エラーを誤って報告する問題を修正しました。",
       "prefix": "Fixed",
-      "importance_score": 4,
       "feature_areas": [],
       "related_docs": []
     },
@@ -118,47 +64,16 @@
       "content": "- Fixed a crash that made sessions unusable after entering plan mode when project config in `~/.claude.json` was missing default fields",
       "content_ja": "`~/.claude.json`のプロジェクト設定に必要なデフォルトフィールドが欠けている場合に、プランモードに入るとセッションが使用不能になるクラッシュを修正しました。",
       "prefix": "Fixed",
-      "importance_score": 4,
       "feature_areas": ["Plan"],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/settings.md",
-          "hit_count": 201,
-          "context_score": 32,
-          "total_score": 6432,
-          "snippets": [
-            "---\ntitle: settings\nsource: https://code.claude.com/docs/en/settings.md\n---\n\n# Claude Code settings\n\n> Configure Claude Code with global and project-level settings, and environment variables.\n\nClaude Code offers a variety of settings to configure its behavior to meet your needs. You can configure Claude Code by running the `/config` command when using the interactive REPL, which opens a tabbed Settings interface where you can view status information and modify configuration options.\n\n## Configuration scopes\n\nClaude Code uses a **scope system** to determine where configurations apply and who they're shared with. Understanding scopes helps you decide how to configure Claude Code for personal use, team collaboration, or enterprise deployment.\n\n### Available scopes\n\n| Scope | Location | Who it affects | Shared with team? |\n| :- | :- | :- | :- |\n| **Managed** | Server-managed settings, plist / registry, or system-level `managed-settings.json` | All users on the machine | Yes (deployed by IT) |\n| **User** | `~/.claude/` directory | You, across all projects | No |\n| **Project** | `.claude/` in repository | All collaborators on this repository | Yes (committed to git) |\n| **Local** | `.claude/*.local.*` files | You, in this repository only | No (gitignored) |\n\n### When to use each scope\n",
-            "\n### What uses scopes\n\nScopes apply to many Claude Code features:\n\n| Feature | User location | Project location | Local location |\n| :- | :- | :- | :- |\n| **Settings** | `~/.claude/settings.json` | `.claude/settings.json` | `.claude/settings.local.json` |\n| **Subagents** | `~/.claude/agents/` | `.claude/agents/` | — |\n| **MCP servers** | `~/.claude.json` | `.mcp.json` | `~/.claude.json` (per-project) |\n| **Plugins** | `~/.claude/settings.json` | `.claude/settings.json` | `.claude/settings.local.json` |\n| **CLAUDE.md** | `~/.claude/CLAUDE.md` | `CLAUDE.md` or `.claude/CLAUDE.md` | `CLAUDE.local.md` |\n\n***\n\n## Settings files\n\nThe `settings.json` file is our official mechanism for configuring Claude\nCode through hierarchical settings:\n\n- **User settings** are defined in `~/.claude/settings.json` and apply to all\n  projects.\n- **Project settings** are saved in your project directory:\n  - `.claude/settings.json` for settings that are checked into source control and shared with your team\n  - `.claude/settings.local.json` for settings that are not checked in, useful for personal preferences and experimentation. Claude Code will configure git to ignore `.claude/settings.local.json` when it is created.\n- **Managed settings**: For organizations that need centralized control, Claude Code supports multiple delivery mechanisms for managed settings. All use the same JSON format and cannot be overridden by user or project settings:\n\n  - **Server-managed settings**: delivered from Anthropic's servers via the Claude.ai admin console. See [server-managed settings](/en/server-managed-settings).\n  - **MDM/OS-level policies**: delivered through native device management on macOS and Windows:\n    - macOS: `com.anthropic.claudecode` managed preferences domain (deployed via configuration profiles in Jamf, Kandji, or other MDM tools)\n    - Windows: `HKLM\\SOFTWARE\\Policies\\ClaudeCode` registry key with a `Settings` value (REG\\_SZ or REG\\_EXPAND\\_SZ) containing JSON (deployed via Group Policy or Intune)\n    - Windows (user-level): `HKCU\\SOFTWARE\\Policies\\ClaudeCode` (lowest policy priority, only used when no admin-level source exists)\n  - **File-based**: `managed-settings.json` and `managed-mcp.json` deployed to system directories:\n    - macOS: `/Library/Application Support/ClaudeCode/`\n    - Linux and WSL: `/etc/claude-code/`\n    - Windows: `C:\\Program Files\\ClaudeCode\\`\n\n  See [managed settings](/en/permissions#managed-only-settings) and [Managed MCP configuration](/en/mcp#managed-mcp-configuration) for details.\n\n  Managed deployments can also restrict **plugin marketplace additions** using\n  `strictKnownMarketplaces`. For more information, see [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions).\n- **Other configuration** is stored in `~/.claude.json`. This file contains your preferences (theme, notification settings, editor mode), OAuth session, [MCP server](/en/mcp) configurations for user and local scopes, per-project state (allowed tools, trust settings), and various caches. Project-scoped MCP servers are stored separately in `.mcp.json`.\n\nClaude Code automatically creates timestamped backups of configuration files and retains the five most recent backups to prevent data loss.\n\n```JSON Example settings.json theme={null}\n{\n  \"$schema\": \"https://json.schemastore.org/claude-code-settings.json\",\n  \"permissions\": {\n    \"allow\": [\n      \"Bash(npm run lint)\",",
-            "    ]\n  },\n  \"env\": {\n    \"CLAUDE_CODE_ENABLE_TELEMETRY\": \"1\",\n    \"OTEL_METRICS_EXPORTER\": \"otlp\"\n  },\n  \"companyAnnouncements\": [",
-            "}\n```\n\nThe `$schema` line in the example above points to the [official JSON schema](https://json.schemastore.org/claude-code-settings.json) for Claude Code settings. Adding it to your `settings.json` enables autocomplete and inline validation in VS Code, Cursor, and any other editor that supports JSON schema validation.\n\n### Available settings\n\n`settings.json` supports a number of options:\n\n| Key | Description | Example |\n| :- | :- | :- |",
-            "| `cleanupPeriodDays` | Sessions inactive for longer than this period are deleted at startup. Setting to `0` immediately deletes all sessions. (default: 30 days) | `20` |\n| `companyAnnouncements` | Announcement to display to users at startup. If multiple announcements are provided, they will be cycled through at random. | `[\"Welcome to Acme Corp! Review our code guidelines at docs.acme.com\"]` |\n| `env` | Environment variables that will be applied to every session | `{\"FOO\": \"bar\"}` |\n| `attribution` | Customize attribution for git commits and pull requests. See [Attribution settings](#attribution-settings) | `{\"commit\": \"🤖 Generated with Claude Code\", \"pr\": \"\"}` |\n| `includeCoAuthoredBy` | **Deprecated**: Use `attribution` instead. Whether to include the `co-authored-by Claude` byline in git commits and pull requests (default: `true`) | `false` |\n| `permissions` | See table below for structure of permissions. | |\n| `hooks` | Configure custom commands to run at lifecycle events. See [hooks documentation](/en/hooks) for format | See [hooks](/en/hooks) |\n| `disableAllHooks` | Disable all [hooks](/en/hooks) and any custom [status line](/en/statusline) | `true` |"
-          ]
+          "file": "apps/docs-tracker/docs/en/settings.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/mcp.md",
-          "hit_count": 146,
-          "context_score": 32,
-          "total_score": 4672,
-          "snippets": [
-            "---\ntitle: mcp\nsource: https://code.claude.com/docs/en/mcp.md\n---\n\n# Connect Claude Code to tools via MCP\n\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP\n\nWith MCP servers connected, you can ask Claude Code to:\n\n- **Implement features from issue trackers**: \"Add the feature described in JIRA issue ENG-4521 and create a PR on GitHub.\"\n- **Analyze monitoring data**: \"Check Sentry and Statsig to check the usage of the feature described in ENG-4521.\"",
-            "\n## Popular MCP servers\n\nHere are some commonly used MCP servers you can connect to Claude Code:\n\nUse third party MCP servers at your own risk - Anthropic has not verified\nthe correctness or security of all these servers.",
-            "\n```bash\n# Basic syntax\nclaude mcp add --transport http <name> <url>\n\n# Real example: Connect to Notion\nclaude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```\n",
-            "\n```bash\n# Basic syntax\nclaude mcp add --transport sse <name> <url>\n\n# Real example: Connect to Asana\nclaude mcp add --transport sse asana https://mcp.asana.com/sse\n\n# Example with authentication header\nclaude mcp add --transport sse private-api https://api.company.com/sse \\\n  --header \"X-API-Key: your-key-here\"\n```\n",
-            "\n```bash\n# Basic syntax\nclaude mcp add [options] <name> -- <command> [args...]\n\n# Real example: Add Airtable server\nclaude mcp add --transport stdio --env AIRTABLE_API_KEY=YOUR_KEY airtable \\\n  -- npx -y airtable-mcp-server\n```\n"
-          ]
+          "file": "apps/docs-tracker/docs/en/mcp.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/troubleshooting.md",
-          "hit_count": 111,
-          "context_score": 36,
-          "total_score": 3996,
-          "snippets": [
-            "---\ntitle: troubleshooting\nsource: https://code.claude.com/docs/en/troubleshooting.md\n---\n\n# Troubleshooting\n\n> Discover solutions to common issues with Claude Code installation and usage.\n\n## Troubleshoot installation issues\n\nIf you'd rather skip the terminal entirely, the [Claude Code Desktop app](/en/desktop-quickstart) lets you install and use Claude Code through a graphical interface. Download it for [macOS](https://claude.ai/api/desktop/darwin/universal/dmg/latest/redirect?utm_source=claude_code\\&utm_medium=docs) or [Windows](https://claude.ai/api/desktop/win32/x64/exe/latest/redirect?utm_source=claude_code\\&utm_medium=docs) and start coding without any command-line setup.\n\nFind the error message or symptom you're seeing:\n\n| What you see | Solution |\n| :- | :- |\n| `command not found: claude` or `'claude' is not recognized` | [Fix your PATH](#command-not-found-claude-after-installation) |\n| `syntax error near unexpected token '<'` | [Install script returns HTML](#install-script-returns-html-instead-of-a-shell-script) |\n| `curl: (56) Failure writing output to destination` | [Download script first, then run it](#curl-56-failure-writing-output-to-destination) |\n| `Killed` during install on Linux | [Add swap space for low-memory servers](#install-killed-on-low-memory-linux-servers) |\n| `TLS connect error` or `SSL/TLS secure channel` | [Update CA certificates](#tls-or-ssl-connection-errors) |\n| `Failed to fetch version` or can't reach download server | [Check network and proxy settings](#check-network-connectivity) |\n| `irm is not recognized` or `&& is not valid` | [Use the right command for your shell](#windows-irm-or--not-recognized) |\n| `Claude Code on Windows requires git-bash` | [Install or configure Git Bash](#windows-claude-code-on-windows-requires-git-bash) |\n| `Error loading shared library` | [Wrong binary variant for your system](#linux-wrong-binary-variant-installed-muslglibc-mismatch) |\n| `Illegal instruction` on Linux | [Architecture mismatch](#illegal-instruction-on-linux) |\n| `dyld: cannot load` or `Abort trap` on macOS | [Binary incompatibility](#dyld-cannot-load-on-macos) |\n| `Invoke-Expression: Missing argument in parameter list` | [Install script returns HTML](#install-script-returns-html-instead-of-a-shell-script) |\n| `App unavailable in region` | Claude Code is not available in your country. See [supported countries](https://www.anthropic.com/supported-countries). |\n| `unable to get local issuer certificate` | [Configure corporate CA certificates](#tls-or-ssl-connection-errors) |\n| `OAuth error` or `403 Forbidden` | [Fix authentication](#authentication-issues) |\n",
-            "```bash\nexport HTTP_PROXY=http://proxy.example.com:8080\nexport HTTPS_PROXY=http://proxy.example.com:8080\ncurl -fsSL https://claude.ai/install.sh | bash\n```\n\n### Verify your PATH\n\nIf installation succeeded but you get a `command not found` or `not recognized` error when running `claude`, the install directory isn't in your PATH. Your shell searches for programs in directories listed in PATH, and the installer places `claude` at `~/.local/bin/claude` on macOS/Linux or `%USERPROFILE%\\.local\\bin\\claude.exe` on Windows.\n\nCheck if the install directory is in your PATH by listing your PATH entries and filtering for `local/bin`:\n",
-            "Verify the fix worked:\n\n```bash theme={null}\nclaude --version\n```\n\n```powershell theme={null}",
-            "Verify the fix worked:\n\n```powershell theme={null}\nclaude --version\n```\n\n```batch theme={null}",
-            "Verify the fix worked:\n\n```batch theme={null}\nclaude --version\n```\n\n### Check for conflicting installations\n\nMultiple Claude Code installations can cause version mismatches or unexpected behavior. Check what's installed:\n\nList all `claude` binaries found in your PATH:\n\n```bash theme={null}\nwhich -a claude\n```\n\nCheck whether the native installer and npm versions are present:\n\n```bash theme={null}\nls -la ~/.local/bin/claude\n```\n\n```bash theme={null}\nls -la ~/.claude/local/\n```\n\n```bash theme={null}\nnpm -g ls @anthropic-ai/claude-code 2>/dev/null\n```\n\n```powershell theme={null}\nwhere.exe claude\nTest-Path \"$env:LOCALAPPDATA\\Claude Code\\claude.exe\"\n```\n\nIf you find multiple installations, keep only one. The native install at `~/.local/bin/claude` is recommended. Remove any extra installations:\n\nUninstall an npm global install:\n\n```bash\nnpm uninstall -g @anthropic-ai/claude-code\n```\n\nRemove a Homebrew install on macOS:\n\n```bash\nbrew uninstall --cask claude-code\n```\n\n### Check directory permissions\n\nThe installer needs write access to `~/.local/bin/` and `~/.claude/`. If installation fails with permission errors, check whether these directories are writable:\n\n```bash\ntest -w ~/.local/bin && echo \"writable\" || echo \"not writable\"\ntest -w ~/.claude && echo \"writable\" || echo \"not writable\"\n```\n\nIf either directory isn't writable, create the install directory and set your user as the owner:"
-          ]
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
         }
       ],
       "inference": {
@@ -171,47 +86,16 @@
       "content": "- Fixed `temperatureOverride` being silently ignored in the streaming API path, causing all streaming requests to use the default temperature (1) regardless of the configured override",
       "content_ja": "ストリーミングAPIパスで`temperatureOverride`がサイレントに無視され、設定されたオーバーライドに関わらずすべてのストリーミングリクエストがデフォルトの温度(1)を使用する問題を修正しました。",
       "prefix": "Fixed",
-      "importance_score": 4,
       "feature_areas": [],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/mcp.md",
-          "hit_count": 22,
-          "context_score": 32,
-          "total_score": 704,
-          "snippets": [
-            "\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP\n",
-            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```\n",
-            "claude mcp add --transport sse asana https://mcp.asana.com/sse\n\n# Example with authentication header\nclaude mcp add --transport sse private-api https://api.company.com/sse \\\n  --header \"X-API-Key: your-key-here\"\n```\n\n### Option 3: Add a local stdio server",
-            "claude mcp add [options] <name> -- <command> [args...]\n\n# Real example: Add Airtable server\nclaude mcp add --transport stdio --env AIRTABLE_API_KEY=YOUR_KEY airtable \\\n  -- npx -y airtable-mcp-server\n```\n",
-            "{\n  \"name\": \"my-plugin\",\n  \"mcpServers\": {\n    \"plugin-api\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/api-server\",\n      \"args\": [\"--port\", \"8080\"]\n    }\n  }"
-          ]
+          "file": "apps/docs-tracker/docs/en/mcp.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
-          "hit_count": 15,
-          "context_score": 37,
-          "total_score": 555,
-          "snippets": [
-            "```bash\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
-            "\n#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:\n",
-            "\n#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:\n",
-            "\n#### Event correlation attributes\n\nWhen a user submits a prompt, Claude Code may make multiple API calls and run several tools. The `prompt.id` attribute lets you tie all of those events back to the single prompt that triggered them.\n\n| Attribute | Description |\n| - | - |\n| `prompt.id` | UUID v4 identifier linking all events produced while processing a single user prompt |\n\nTo trace all activity triggered by a single prompt, filter your events by a specific `prompt.id` value. This returns the user\\_prompt event, any api\\_request events, and any tool\\_result events that occurred while processing that prompt.\n\n`prompt.id` is intentionally excluded from metrics because each prompt generates a unique ID, which would create an ever-growing number of time series. Use it for event-level analysis and audit trails only.\n",
-            "  - For MCP tools (when `OTEL_LOG_TOOL_DETAILS=1`): includes `mcp_server_name`, `mcp_tool_name`\n  - For Skill tool (when `OTEL_LOG_TOOL_DETAILS=1`): includes `skill_name`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n- All [standard attributes](#standard-attributes)\n- `event.name`: `\"api_request\"`\n- `event.timestamp`: ISO 8601 timestamp\n- `event.sequence`: monotonically increasing counter for ordering events within a session\n- `model`: Model used (for example, \"claude-sonnet-4-6\")"
-          ]
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
-          "hit_count": 28,
-          "context_score": 17,
-          "total_score": 476,
-          "snippets": [
-            "- **Automated implementation**: Turn issues into working code with a single command or mention\n- **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n- **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n- **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n- **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
-            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   - Claude API (SaaS)\n   - AWS Bedrock (IAM-based access, cross-region options)\n   - Google Vertex AI (GCP-native, Workload Identity Federation)\n",
-            "\n### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   - Go to **Settings** → **CI/CD** → **Variables**\n   - Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**\n",
-            "  # Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
-            "  script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
-          ]
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md"
         }
       ],
       "inference": {
@@ -224,42 +108,16 @@
       "content": "- Fixed LSP shutdown/exit compatibility with strict language servers that reject null params",
       "content_ja": "厳格な言語サーバーがnullパラメータを拒否する場合のLSPシャットダウン/終了の互換性を修正しました。",
       "prefix": "Fixed",
-      "importance_score": 4,
       "feature_areas": [],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
-          "hit_count": 20,
-          "context_score": 23,
-          "total_score": 460,
-          "snippets": [
-            "\nThis reference provides complete technical specifications for the Claude Code plugin system, including component schemas, CLI commands, and development tools.\n\nA **plugin** is a self-contained directory of components that extends Claude Code with custom functionality. Plugin components include skills, agents, hooks, MCP servers, and LSP servers.\n\n## Plugin components reference\n",
-            "- Server capabilities integrate seamlessly with Claude's existing tools\n- Plugin servers can be configured independently of user MCP servers\n\n### LSP servers\n\nLooking to use LSP plugins? Install them from the official marketplace: search for \"lsp\" in the `/plugin` Discover tab. This section documents how to create LSP plugins for languages not covered by the official marketplace.\n\nPlugins can provide [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) (LSP) servers to give Claude real-time code intelligence while working on your codebase.\n\nLSP integration provides:\n\n- **Instant diagnostics**: Claude sees errors and warnings immediately after each edit\n- **Code navigation**: go to definition, find references, and hover information\n- **Language awareness**: type information and documentation for code symbols\n\n**Location**: `.lsp.json` in plugin root, or inline in `plugin.json`\n\n**Format**: JSON configuration mapping language server names to their configurations\n\n**`.lsp.json` file format**:\n\n```json\n{",
-            "```json\n{\n  \"name\": \"my-plugin\",\n  \"lspServers\": {\n    \"go\": {\n      \"command\": \"gopls\",\n      \"args\": [\"serve\"],",
-            "\n| Field | Description |\n| :- | :- |\n| `command` | The LSP binary to execute (must be in PATH) |\n| `extensionToLanguage` | Maps file extensions to language identifiers |\n\n**Optional fields:**\n\n| Field | Description |\n| :- | :- |\n| `args` | Command-line arguments for the LSP server |\n| `transport` | Communication transport: `stdio` (default) or `socket` |\n| `env` | Environment variables to set when starting the server |\n| `initializationOptions` | Options passed to the server during initialization |",
-            "| `restartOnCrash` | Whether to automatically restart the server if it crashes |\n| `maxRestarts` | Maximum number of restart attempts before giving up |\n\n**You must install the language server binary separately.** LSP plugins configure how Claude Code connects to a language server, but they don't include the server itself. If you see `Executable not found in $PATH` in the `/plugin` Errors tab, install the required binary for your language.\n\n**Available LSP plugins:**\n\n| Plugin | Language server | Install command |\n| :- | :- | :- |\n| `pyright-lsp` | Pyright (Python) | `pip install pyright` or `npm install -g pyright` |\n| `typescript-lsp` | TypeScript Language Server | `npm install -g typescript-language-server typescript` |\n| `rust-lsp` | rust-analyzer | [See rust-analyzer installation](https://rust-analyzer.github.io/manual.html#installation) |\n\nInstall the language server first, then install the plugin from the marketplace.\n"
-          ]
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/plugins.md",
-          "hit_count": 8,
-          "context_score": 27,
-          "total_score": 216,
-          "snippets": [
-            "\n## Plugin structure overview\n\nYou've created a plugin with a skill, but plugins can include much more: custom agents, hooks, MCP servers, and LSP servers.\n\n**Common mistake**: Don't put `commands/`, `agents/`, `skills/`, or `hooks/` inside the `.claude-plugin/` directory. Only `plugin.json` goes inside `.claude-plugin/`. All other directories must be at the plugin root level.\n",
-            "| `skills/` | Plugin root | Agent Skills with `SKILL.md` files |\n| `hooks/` | Plugin root | Event handlers in `hooks.json` |\n| `.mcp.json` | Plugin root | MCP server configurations |\n| `.lsp.json` | Plugin root | LSP server configurations for code intelligence |\n| `settings.json` | Plugin root | Default [settings](/en/settings) applied when the plugin is enabled |\n\n**Next steps**: Ready to add more features? Jump to [Develop more complex plugins](#develop-more-complex-plugins) to add agents, hooks, MCP servers, and LSP servers. For complete technical specifications of all plugin components, see [Plugins reference](/en/plugins-reference).\n\n## Develop more complex plugins\n",
-            "\nAfter installing the plugin, restart Claude Code to load the Skills. For complete Skill authoring guidance including progressive disclosure and tool restrictions, see [Agent Skills](/en/skills).\n\n### Add LSP servers to your plugin\n\nFor common languages like TypeScript, Python, and Rust, install the pre-built LSP plugins from the official marketplace. Create custom LSP plugins only when you need support for languages not already covered.\n\nLSP (Language Server Protocol) plugins give Claude real-time code intelligence. If you need to support a language that doesn't have an official LSP plugin, you can create your own by adding an `.lsp.json` file to your plugin:\n\n```json .lsp.json theme={null}\n{\n  \"go\": {\n    \"command\": \"gopls\",",
-            "\nUsers installing your plugin must have the language server binary installed on their machine.\n\nFor complete LSP configuration options, see [LSP servers](/en/plugins-reference#lsp-servers).\n\n### Ship default settings with your plugin\n"
-          ]
+          "file": "apps/docs-tracker/docs/en/plugins.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/discover-plugins.md",
-          "hit_count": 13,
-          "context_score": 6,
-          "total_score": 78,
-          "snippets": [
-            "\n### Code intelligence\n\nCode intelligence plugins enable Claude Code's built-in LSP tool, giving Claude the ability to jump to definitions, find references, and see type errors immediately after edits. These plugins configure [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) connections, the same technology that powers VS Code's code intelligence.\n\nThese plugins require the language server binary to be installed on your system. If you already have a language server installed, Claude may prompt you to install the corresponding plugin when you open a project.\n\n| Language | Plugin | Binary required |\n| :- | :- | :- |\n| C/C++ | `clangd-lsp` | `clangd` |\n| C# | `csharp-lsp` | `csharp-ls` |\n| Go | `gopls-lsp` | `gopls` |\n| Java | `jdtls-lsp` | `jdtls` |\n| Kotlin | `kotlin-lsp` | `kotlin-language-server` |\n| Lua | `lua-lsp` | `lua-language-server` |\n| PHP | `php-lsp` | `intelephense` |\n| Python | `pyright-lsp` | `pyright-langserver` |\n| Rust | `rust-analyzer-lsp` | `rust-analyzer` |\n| Swift | `swift-lsp` | `sourcekit-lsp` |\n| TypeScript | `typescript-lsp` | `typescript-language-server` |\n\nYou can also [create your own LSP plugin](/en/plugins-reference#lsp-servers) for other languages.\n\nIf you see `Executable not found in $PATH` in the `/plugin` Errors tab after installing a plugin, install the required binary from the table above.\n"
-          ]
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
         }
       ],
       "inference": {
@@ -272,21 +130,10 @@
       "content": "- Improved system prompts to more clearly guide the model toward using dedicated tools (Read, Edit, Glob, Grep) instead of bash equivalents (`cat`, `sed`, `grep`, `find`), reducing unnecessary bash command usage",
       "content_ja": "専用ツール(Read、Edit、Glob、Grep)を使用するようにモデルをより明確にガイドするようシステムプロンプトを改善し、bashの同等コマンド(`cat`、`sed`、`grep`、`find`)の不必要な使用を削減しました。",
       "prefix": "Improved",
-      "importance_score": 6,
       "feature_areas": [],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/statusline.md",
-          "hit_count": 40,
-          "context_score": 17,
-          "total_score": 680,
-          "snippets": [
-            "{\n  \"statusLine\": {\n    \"type\": \"command\",\n    \"command\": \"jq -r '\\\"[\\\\(.model.display_name)] \\\\(.context_window.used_percentage // 0)% context\\\"'\"\n  }\n}\n```",
-            "```bash theme={null}\n#!/bin/bash\n# Read JSON data that Claude Code sends to stdin\ninput=$(cat)\n\n# Extract fields using jq\nMODEL=$(echo \"$input\" | jq -r '.model.display_name')\nDIR=$(echo \"$input\" | jq -r '.workspace.current_dir')\n# The \"// 0\" provides a fallback if the field is null\nPCT=$(echo \"$input\" | jq -r '.context_window.used_percentage // 0' | cut -d. -f1)\n\n# Output the status line - ${DIR##*/} extracts just the folder name\necho \"[$MODEL] 📁 ${DIR##*/} | ${PCT}% context\"",
-            "| `cost.total_lines_added`, `cost.total_lines_removed` | Lines of code changed |\n| `context_window.total_input_tokens`, `context_window.total_output_tokens` | Cumulative token counts across the session |\n| `context_window.context_window_size` | Maximum context window size in tokens. 200000 by default, or 1000000 for models with extended context. |\n| `context_window.used_percentage` | Pre-calculated percentage of context window used |\n| `context_window.remaining_percentage` | Pre-calculated percentage of context window remaining |\n| `context_window.current_usage` | Token counts from the last API call, described in [context window fields](#context-window-fields) |\n| `exceeds_200k_tokens` | Whether the total token count (input, cache, and output tokens combined) from the most recent API response exceeds 200k. This is a fixed threshold regardless of actual context window size. |",
-            "    \"total_input_tokens\": 15234,\n    \"total_output_tokens\": 4521,\n    \"context_window_size\": 200000,\n    \"used_percentage\": 8,\n    \"remaining_percentage\": 92,\n    \"current_usage\": {\n      \"input_tokens\": 8500,",
-            "**Fields that may be `null`**:\n\n- `context_window.current_usage`: `null` before the first API call in a session\n- `context_window.used_percentage`, `context_window.remaining_percentage`: may be `null` early in the session\n\nHandle missing fields with conditional access and null values with fallback defaults in your scripts.\n"
-          ]
+          "file": "apps/docs-tracker/docs/en/statusline.md"
         }
       ]
     },
@@ -294,37 +141,16 @@
       "content": "- Improved PDF and request size error messages to show actual limits (100 pages, 20MB)",
       "content_ja": "PDFおよびリクエストサイズのエラーメッセージを改善し、実際の制限(100ページ、20MB)を表示するようにしました。",
       "prefix": "Improved",
-      "importance_score": 6,
       "feature_areas": [],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/desktop.md",
-          "hit_count": 2,
-          "context_score": 7,
-          "total_score": 14,
-          "snippets": [
-            "The prompt box supports two ways to bring in external context:\n\n- **@mention files**: type `@` followed by a filename to add a file to the conversation context. Claude can then read and reference that file.\n- **Attach files**: attach images, PDFs, and other files to your prompt using the attachment button, or drag and drop files directly into the prompt. This is useful for sharing screenshots of bugs, design mockups, or reference documents.\n\n### Choose a permission mode\n",
-            "| [MCP servers](/en/mcp) | configure in settings files | Connectors UI for local and SSH sessions, or settings files |\n| [Plugins](/en/plugins) | `/plugin` command | plugin manager UI |\n| @mention files | text-based | with autocomplete |\n| File attachments | not available | images, PDFs |\n| Session isolation | [`--worktree`](/en/cli-reference) flag | automatic worktrees |\n| Multiple sessions | separate terminals | sidebar tabs |\n| Scripting and automation | [`--print`](/en/cli-reference), [Agent SDK](/en/headless) | not available |"
-          ]
+          "file": "apps/docs-tracker/docs/en/desktop.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
-          "hit_count": 2,
-          "context_score": 5,
-          "total_score": 10,
-          "snippets": [
-            "\n```text\nskills/\n├── pdf-processor/\n│   ├── SKILL.md\n│   ├── reference.md (optional)\n│   └── scripts/ (optional)",
-            "├── skills/                   # Agent Skills\n│   ├── code-reviewer/\n│   │   └── SKILL.md\n│   └── pdf-processor/\n│       ├── SKILL.md\n│       └── scripts/\n├── hooks/                    # Hook configurations"
-          ]
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/vs-code.md",
-          "hit_count": 1,
-          "context_score": 4,
-          "total_score": 4,
-          "snippets": [
-            "> What's in @src/components/ (include a trailing slash for folders)\n```\n\nFor large PDFs, you can ask Claude to read specific pages instead of the whole file: a single page, a range like pages 1-10, or an open-ended range like page 3 onward.\n\nWhen you select text in the editor, Claude can see your highlighted code automatically. The prompt box footer shows how many lines are selected. Press `Option+K` (Mac) / `Alt+K` (Windows/Linux) to insert an @-mention with the file path and line numbers (e.g., `@app.ts#5-10`). Click the selection indicator to toggle whether Claude can see your highlighted text - the eye-slash icon means the selection is hidden from Claude.\n"
-          ]
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
         }
       ],
       "inference": {
@@ -337,7 +163,6 @@
       "content": "- Reduced layout jitter in the terminal when the spinner appears and disappears during streaming",
       "content_ja": "ストリーミング中にスピナーが表示・非表示される際のターミナルのレイアウトの揺れを軽減しました。",
       "prefix": "Changed",
-      "importance_score": 6,
       "feature_areas": [],
       "related_docs": []
     },
@@ -345,47 +170,16 @@
       "content": "- Removed misleading Anthropic API pricing from model selector for third-party provider (Bedrock, Vertex, Foundry) users",
       "content_ja": "サードパーティプロバイダー(Bedrock、Vertex、Foundry)のユーザー向けに、モデルセレクターから誤解を招くAnthropic APIの料金表示を削除しました。",
       "prefix": "Removed",
-      "importance_score": 5,
       "feature_areas": [],
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/mcp.md",
-          "hit_count": 22,
-          "context_score": 32,
-          "total_score": 704,
-          "snippets": [
-            "\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP\n",
-            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```\n",
-            "claude mcp add --transport sse asana https://mcp.asana.com/sse\n\n# Example with authentication header\nclaude mcp add --transport sse private-api https://api.company.com/sse \\\n  --header \"X-API-Key: your-key-here\"\n```\n\n### Option 3: Add a local stdio server",
-            "claude mcp add [options] <name> -- <command> [args...]\n\n# Real example: Add Airtable server\nclaude mcp add --transport stdio --env AIRTABLE_API_KEY=YOUR_KEY airtable \\\n  -- npx -y airtable-mcp-server\n```\n",
-            "{\n  \"name\": \"my-plugin\",\n  \"mcpServers\": {\n    \"plugin-api\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/api-server\",\n      \"args\": [\"--port\", \"8080\"]\n    }\n  }"
-          ]
+          "file": "apps/docs-tracker/docs/en/mcp.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
-          "hit_count": 15,
-          "context_score": 37,
-          "total_score": 555,
-          "snippets": [
-            "```bash\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
-            "\n#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:\n",
-            "\n#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:\n",
-            "\n#### Event correlation attributes\n\nWhen a user submits a prompt, Claude Code may make multiple API calls and run several tools. The `prompt.id` attribute lets you tie all of those events back to the single prompt that triggered them.\n\n| Attribute | Description |\n| - | - |\n| `prompt.id` | UUID v4 identifier linking all events produced while processing a single user prompt |\n\nTo trace all activity triggered by a single prompt, filter your events by a specific `prompt.id` value. This returns the user\\_prompt event, any api\\_request events, and any tool\\_result events that occurred while processing that prompt.\n\n`prompt.id` is intentionally excluded from metrics because each prompt generates a unique ID, which would create an ever-growing number of time series. Use it for event-level analysis and audit trails only.\n",
-            "  - For MCP tools (when `OTEL_LOG_TOOL_DETAILS=1`): includes `mcp_server_name`, `mcp_tool_name`\n  - For Skill tool (when `OTEL_LOG_TOOL_DETAILS=1`): includes `skill_name`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n- All [standard attributes](#standard-attributes)\n- `event.name`: `\"api_request\"`\n- `event.timestamp`: ISO 8601 timestamp\n- `event.sequence`: monotonically increasing counter for ordering events within a session\n- `model`: Model used (for example, \"claude-sonnet-4-6\")"
-          ]
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
-          "hit_count": 28,
-          "context_score": 17,
-          "total_score": 476,
-          "snippets": [
-            "- **Automated implementation**: Turn issues into working code with a single command or mention\n- **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n- **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n- **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n- **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
-            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   - Claude API (SaaS)\n   - AWS Bedrock (IAM-based access, cross-region options)\n   - Google Vertex AI (GCP-native, Workload Identity Federation)\n",
-            "\n### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   - Go to **Settings** → **CI/CD** → **Variables**\n   - Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**\n",
-            "  # Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
-            "  script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
-          ]
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md"
         }
       ],
       "inference": {

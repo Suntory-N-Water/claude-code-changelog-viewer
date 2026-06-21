@@ -1,7 +1,10 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { AnalysisSchema } from '@claude-code-changelog-viewer/types';
+import {
+  AnalysisSchema,
+  InferredAnalysisSchema,
+} from '@claude-code-changelog-viewer/types';
 import type {
   ChangelogMetadata,
   ChangelogStorePort,
@@ -61,7 +64,7 @@ export function createInferredFileStore(appDir: string): InferredStorePort {
     async load(version: string): Promise<ChangelogAnalysis | null> {
       const filename = `inferred_${version}.json`;
       const filePath = join(appDir, 'inferred', filename);
-      const analysis = await loadAnalysisFile(filePath);
+      const analysis = await loadInferredFile(filePath);
 
       return analysis;
     },
@@ -211,6 +214,41 @@ async function loadAnalysisFile(
   const rawAnalysis = await readFile(filePath, 'utf-8');
   const parsedAnalysis = JSON.parse(rawAnalysis);
   const analysisJson = AnalysisSchema.parse(parsedAnalysis);
+  const analysis = toChangelogAnalysis(analysisJson);
+
+  return analysis;
+}
+
+async function loadInferredFile(
+  filePath: string,
+): Promise<ChangelogAnalysis | null> {
+  if (!existsSync(filePath)) {
+    return null;
+  }
+
+  const rawAnalysis = await readFile(filePath, 'utf-8');
+  const parsedAnalysis = JSON.parse(rawAnalysis);
+  const inferredAnalysisJson = InferredAnalysisSchema.parse(parsedAnalysis);
+  const analysisJson = AnalysisSchema.parse({
+    version: inferredAnalysisJson.version,
+    ...(inferredAnalysisJson.summary !== undefined
+      ? { summary: inferredAnalysisJson.summary }
+      : {}),
+    items: inferredAnalysisJson.items.map((item) => ({
+      content: item.content,
+      ...(item.content_ja !== undefined ? { content_ja: item.content_ja } : {}),
+      prefix: item.prefix,
+      ...(item.feature_areas !== undefined
+        ? { feature_areas: item.feature_areas }
+        : {}),
+      related_docs: item.related_docs.map((doc) => ({
+        file: doc.file,
+        snippets: [],
+        hit_count: 0,
+      })),
+      ...(item.inference !== undefined ? { inference: item.inference } : {}),
+    })),
+  });
   const analysis = toChangelogAnalysis(analysisJson);
 
   return analysis;

@@ -4,46 +4,15 @@
     {
       "content": "- SDK: Renamed `total_cost` to `total_cost_usd`",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/costs.md",
-          "hit_count": 27,
-          "context_score": 24,
-          "total_score": 648,
-          "snippets": [
-            "-",
-            "title: costs\nsource: https://code.claude.com/docs/en/costs.md\n-",
-            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Manage costs effectively\n\n> Track token usage, set team spend limits, and reduce Claude Code costs with context management, model selection, extended thinking settings, and preprocessing hooks.\n\nClaude Code consumes tokens for each interaction. Costs vary based on codebase size, query complexity, and conversation length. The average cost is \\$6 per developer per day, with daily costs remaining below \\$12 for 90% of users.\n\nFor team usage, Claude Code charges by API token consumption. On average, Claude Code costs \\~\\$100-200/developer per month with Sonnet 4.5 though there is large variance depending on how many instances users are running and whether they're using it in automation.\n\nThis page covers how to [track your costs](#track-your-costs), [manage costs for teams](#managing-costs-for-teams), and [reduce token usage](#reduce-token-usage).\n\n## Track your costs\n\n### Using the `/cost` command\n\n<Note>\n  The `/cost` command shows API token usage and is intended for API users. Claude Max and Pro subscribers have usage included in their subscription, so `/cost` data isn't relevant for billing purposes. Subscribers can use `/stats` to view usage patterns.\n</Note>\n\nThe `/cost` command provides detailed token usage statistics for your current session:\n\n```\nTotal cost:            $0.55\nTotal duration (API):  6m 19.7s\nTotal duration (wall): 6h 33m 10.2s\nTotal code changes:    0 lines added, 0 lines removed\n```\n\n## Managing costs for teams\n\nWhen using Claude API, you can [set workspace spend limits](https://platform.claude.com/docs/en/build-with-claude/workspaces#workspace-limits) on the total Claude Code workspace spend. Admins can [view cost and usage reporting](https://platform.claude.com/docs/en/build-with-claude/workspaces#usage-and-cost-tracking) in the Console.\n\n<Note>\n  When you first authenticate Claude Code with your Claude Console account, a workspace called \"Claude Code\" is automatically created for you. This workspace provides centralized cost tracking and management for all Claude Code usage in your organization. You cannot create API keys for this workspace; it is exclusively for Claude Code authentication and usage.\n</Note>\n\nOn Bedrock, Vertex, and Foundry, Claude Code does not send metrics from your cloud. To get cost metrics, several large enterprises reported using [LiteLLM](/en/llm-gateway#litellm-configuration), which is an open-source tool that helps companies [track spend by key](https://docs.litellm.ai/docs/proxy/virtual_keys#tracking-spend). This project is unaffiliated with Anthropic and we have not audited its security.\n\n### Rate limit recommendations",
-            "| 100-500 users | 15k-20k      | 0.37-0.47    |\n| 500+ users    | 10k-15k      | 0.25-0.35    |\n\nFor example, if you have 200 users, you might request 20k TPM for each user, or 4 million total TPM (200\\*20,000 = 4 million).\n\nThe TPM per user decreases as team size grows because we expect fewer users to use Claude Code concurrently in larger organizations. These rate limits apply at the organization level, not per individual user, which means individual users can temporarily consume more than their calculated share when others aren't actively using the service.",
-            "## Reduce token usage\n\nToken costs scale with context size: the more context Claude processes, the more tokens you use. Claude Code automatically optimizes costs through prompt caching (which reduces costs for repeated content like system prompts) and auto-compaction (which summarizes conversation history when approaching context limits).\n\nThe following strategies help you keep context small and reduce per-message costs.\n\n### Manage context proactively\n\nUse `/cost` to check your current token usage, or [configure your status line](/en/statusline#context-window-usage) to display it continuously.\n\n* **Clear between tasks**: Use `/clear` to start fresh when switching to unrelated work. Stale context wastes tokens on every subsequent message. Use `/rename` before clearing so you can easily find the session later, then `/resume` to return to it.\n* **Add custom compaction instructions**: `/compact Focus on code samples and API usage` tells Claude what to preserve during summarization."
-          ]
+          "file": "apps/docs-tracker/docs/en/costs.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
-          "hit_count": 12,
-          "context_score": 27,
-          "total_score": 324,
-          "snippets": [
-            "| `OTEL_METRICS_INCLUDE_VERSION`      | Include app.version attribute in metrics        | `false`       | `true`             |\n| `OTEL_METRICS_INCLUDE_ACCOUNT_UUID` | Include user.account\\_uuid attribute in metrics | `true`        | `false`            |\n\nThese variables help control the cardinality of metrics, which affects storage requirements and query performance in your metrics backend. Lower cardinality generally means better performance and lower storage costs but less granular data for analysis.\n\n### Dynamic headers",
-            "```bash  theme={null}\n# Add custom attributes for team identification\nexport OTEL_RESOURCE_ATTRIBUTES=\"department=engineering,team.id=platform,cost_center=eng-123\"\n```\n\nThese custom attributes will be included in all metrics and events, allowing you to:\n\n* Filter metrics by team or department\n* Track costs per cost center\n* Create team-specific dashboards\n* Set up alerts for specific teams",
-            "| `claude_code.lines_of_code.count`     | Count of lines of code modified                 | count  |\n| `claude_code.pull_request.count`      | Number of pull requests created                 | count  |\n| `claude_code.commit.count`            | Number of git commits created                   | count  |\n| `claude_code.cost.usage`              | Cost of the Claude Code session                 | USD    |\n| `claude_code.token.usage`             | Number of tokens used                           | tokens |\n| `claude_code.code_edit_tool.decision` | Count of code editing tool permission decisions | count  |\n| `claude_code.active_time.total`       | Total active time in seconds                    | s      |\n\n### Metric details",
-            "* All [standard attributes](#standard-attributes)\n\n#### Cost counter\n\nIncremented after each API request.",
-            "* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")\n* `cost_usd`: Estimated cost in USD\n* `duration_ms`: Request duration in milliseconds\n* `input_tokens`: Number of input tokens\n* `output_tokens`: Number of output tokens"
-          ]
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
-          "hit_count": 8,
-          "context_score": 25,
-          "total_score": 200,
-          "snippets": [
-            "</Info>\n\n<Note>\n  This integration is built on top of the [Claude Code CLI and SDK](https://docs.claude.com/en/docs/agent-sdk), enabling programmatic use of Claude in your CI/CD jobs and custom automation workflows.\n</Note>\n\n## Why use Claude Code with GitLab?",
-            "```yaml  theme={null}\nclaude-vertex:\n  stage: ai\n  image: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n  before_script:",
-            "* Configure sensible job timeouts to avoid runaway runs\n* Cache npm and package installs in runners where possible\n\n### CI costs\n\nWhen using Claude Code with GitLab CI/CD, be aware of associated costs:\n\n* **GitLab Runner time**:\n  * Claude runs on your GitLab runners and consumes compute minutes\n  * See your GitLab plan's runner billing for details\n\n* **API costs**:\n  * Each Claude interaction consumes tokens based on prompt and response size\n  * Token usage varies by task complexity and codebase size\n  * See [Anthropic pricing](https://docs.claude.com/en/docs/about-claude/pricing) for details\n\n* **Cost optimization tips**:\n  * Use specific `@claude` commands to reduce unnecessary turns\n  * Set appropriate `max_turns` and job timeout values\n  * Limit concurrency to control parallel runs",
-            "* Claude's changes flow through MRs so reviewers see every diff\n* Branch protection and approval rules apply to AI-generated code\n* Claude Code uses workspace-scoped permissions to constrain writes\n* Costs remain under your control because you bring your own provider credentials\n\n## Troubleshooting",
-            "* `prompt` / `prompt_file`: Provide instructions inline (`-p`) or via a file\n* `max_turns`: Limit the number of back-and-forth iterations\n* `timeout_minutes`: Limit total execution time\n* `ANTHROPIC_API_KEY`: Required for the Claude API (not used for Bedrock/Vertex)\n* Provider-specific environment: `AWS_REGION`, project/region vars for Vertex"
-          ]
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md"
         }
       ]
     }

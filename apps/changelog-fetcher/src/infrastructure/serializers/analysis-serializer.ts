@@ -1,6 +1,8 @@
 import {
   type Analysis,
   AnalysisSchema,
+  type InferredAnalysis,
+  InferredAnalysisSchema,
 } from '@claude-code-changelog-viewer/types';
 import { createAnalyzedChangelogEntry } from '../../domain/analysis/analyzed-changelog-entry';
 import {
@@ -16,9 +18,6 @@ import {
   toVersionNumber,
 } from '../../domain/changelog/changelog-version';
 import { createInferenceResult } from '../../domain/inference/inference-result';
-
-// schema 互換のため残す固定値。現在は意味のある評価値として使わない。
-const SCHEMA_COMPATIBILITY_SCORE = 0;
 
 export function toChangelogAnalysis(analysis: Analysis): ChangelogAnalysis {
   return createChangelogAnalysis({
@@ -59,14 +58,36 @@ export function toAnalysisJson(analysis: ChangelogAnalysis): Analysis {
       content: entry.content,
       ...(entry.contentJa !== undefined ? { content_ja: entry.contentJa } : {}),
       prefix: entry.prefix,
-      importance_score: SCHEMA_COMPATIBILITY_SCORE,
       feature_areas: [...entry.featureAreas],
       related_docs: entry.relatedDocs.map((doc) => ({
         file: doc.file,
         snippets: [...doc.snippets],
         hit_count: doc.hitCount,
-        context_score: SCHEMA_COMPATIBILITY_SCORE,
-        total_score: SCHEMA_COMPATIBILITY_SCORE,
+      })),
+      ...(entry.inference !== undefined
+        ? {
+            inference: {
+              before: entry.inference.before,
+              after: entry.inference.after,
+              benefit: entry.inference.benefit,
+            },
+          }
+        : {}),
+    })),
+  });
+}
+
+export function toInferredJson(analysis: ChangelogAnalysis): InferredAnalysis {
+  return InferredAnalysisSchema.parse({
+    version: toVersionNumber(analysis.version),
+    ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
+    items: analysis.items.map((entry) => ({
+      content: entry.content,
+      ...(entry.contentJa !== undefined ? { content_ja: entry.contentJa } : {}),
+      prefix: entry.prefix,
+      feature_areas: [...entry.featureAreas],
+      related_docs: entry.relatedDocs.map((doc) => ({
+        file: doc.file,
       })),
       ...(entry.inference !== undefined
         ? {
