@@ -4,71 +4,36 @@
     {
       "content": "- Slash commands: Fix selector display during history navigation",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Resizes images before upload to prevent API size limit errors",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/monitoring-usage.md",
-          "hit_count": 14,
-          "context_score": 39,
-          "total_score": 546,
-          "snippets": [
-            "```bash  theme={null}\n#!/bin/bash\n# Example: Multiple headers\necho \"{\\\"Authorization\\\": \\\"Bearer $(get-token.sh)\\\", \\\"X-API-Key\\\": \\\"$(get-api-key.sh)\\\"}\"\n```\n\n#### Refresh behavior",
-            "#### Cost counter\n\nIncremented after each API request.\n\n**Attributes**:",
-            "#### Token counter\n\nIncremented after each API request.\n\n**Attributes**:",
-            "* `tool_parameters`: JSON string containing tool-specific parameters (when available)\n  * For Bash tool: includes `bash_command`, `full_command`, `timeout`, `description`, `sandbox`\n\n#### API request event\n\nLogged for each API request to Claude.\n\n**Event Name**: `claude_code.api_request`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_request\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")\n* `cost_usd`: Estimated cost in USD",
-            "* `cache_read_tokens`: Number of tokens read from cache\n* `cache_creation_tokens`: Number of tokens used for cache creation\n\n#### API error event\n\nLogged when an API request to Claude fails.\n\n**Event Name**: `claude_code.api_error`\n\n**Attributes**:\n\n* All [standard attributes](#standard-attributes)\n* `event.name`: `\"api_error\"`\n* `event.timestamp`: ISO 8601 timestamp\n* `model`: Model used (for example, \"claude-sonnet-4-5-20250929\")\n* `error`: Error message"
-          ]
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md",
-          "hit_count": 28,
-          "context_score": 17,
-          "total_score": 476,
-          "snippets": [
-            "* **Automated implementation**: Turn issues into working code with a single command or mention\n* **Project-aware**: Claude follows your `CLAUDE.md` guidelines and existing code patterns\n* **Simple setup**: Add one job to `.gitlab-ci.yml` and a masked CI/CD variable\n* **Enterprise-ready**: Choose Claude API, AWS Bedrock, or Google Vertex AI to meet data residency and procurement needs\n* **Secure by default**: Runs in your GitLab runners with your branch protection and approvals\n\n## How it works",
-            "1. **Event-driven orchestration**: GitLab listens for your chosen triggers (for example, a comment that mentions `@claude` in an issue, MR, or review thread). The job collects context from the thread and repository, builds prompts from that input, and runs Claude Code.\n\n2. **Provider abstraction**: Use the provider that fits your environment:\n   * Claude API (SaaS)\n   * AWS Bedrock (IAM-based access, cross-region options)\n   * Google Vertex AI (GCP-native, Workload Identity Federation)",
-            "### Quick setup\n\nThe fastest way to get started is to add a minimal job to your `.gitlab-ci.yml` and set your API key as a masked variable.\n\n1. **Add a masked CI/CD variable**\n   * Go to **Settings** → **CI/CD** → **Variables**\n   * Add `ANTHROPIC_API_KEY` (masked, protected as needed)\n\n2. **Add a Claude job to `.gitlab-ci.yml`**",
-            "# Adjust rules to fit how you want to trigger the job:\n  # - manual runs\n  # - merge request events\n  # - web/API triggers when a comment contains '@claude'\n  rules:\n    - if: '$CI_PIPELINE_SOURCE == \"web\"'\n    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
-            "script:\n    # Optional: start a GitLab MCP server if your setup provides one\n    - /bin/gitlab-mcp-server || true\n    # Use AI_FLOW_* variables when invoking via web/API triggers with context payloads\n    - echo \"$AI_FLOW_INPUT for $AI_FLOW_CONTEXT on $AI_FLOW_EVENT\"\n    - >\n      claude"
-          ]
+          "file": "apps/docs-tracker/docs/en/gitlab-ci-cd.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/mcp.md",
-          "hit_count": 26,
-          "context_score": 17,
-          "total_score": 442,
-          "snippets": [
-            "> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
-            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('limit', '100');\n          if (cursor) {",
-            "} while (cursor);\n        const transformedServers = allServers.map(item => {\n          const server = item.server;\n          const meta = item._meta?.['com.anthropic.api/mcp-registry'] || ({});\n          const worksWith = meta.worksWith || [];\n          const availability = {\n            claudeCode: worksWith.includes('claude-code'),\n            mcpConnector: worksWith.includes('claude-api'),\n            claudeDesktop: worksWith.includes('claude-desktop')\n          };\n          const remotes = server.remotes || [];",
-            "</>;\n};\n\nClaude Code can connect to hundreds of external tools and data sources through the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), an open source standard for AI-tool integrations. MCP servers give Claude Code access to your tools, databases, and APIs.\n\n## What you can do with MCP",
-            "claude mcp add --transport http notion https://mcp.notion.com/mcp\n\n# Example with Bearer token\nclaude mcp add --transport http secure-api https://api.example.com/mcp \\\n  --header \"Authorization: Bearer your-token\"\n```"
-          ]
+          "file": "apps/docs-tracker/docs/en/mcp.md"
         }
       ]
     },
     {
       "content": "- Added XDG_CONFIG_HOME support to configuration directory",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": []
     },
     {
       "content": "- Performance optimizations for memory usage",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- New attributes (terminal.type, language) in OpenTelemetry logging",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": []
     }
   ]

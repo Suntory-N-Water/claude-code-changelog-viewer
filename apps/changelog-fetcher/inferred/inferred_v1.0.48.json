@@ -4,123 +4,56 @@
     {
       "content": "- Fixed a bug in v1.0.45 where the app would sometimes freeze on launch",
       "prefix": "Fixed",
-      "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Added progress messages to Bash tool based on the last 5 lines of command output",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": []
     },
     {
       "content": "- Added expanding variables support for MCP server configuration",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/mcp.md",
-          "hit_count": 203,
-          "context_score": 7,
-          "total_score": 1421,
-          "snippets": [
-            "-",
-            "title: mcp\nsource: https://code.claude.com/docs/en/mcp.md\n-",
-            "> ## Documentation Index\n> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# Connect Claude Code to tools via MCP\n\n> Learn how to connect Claude Code to your tools with the Model Context Protocol.\n\nexport const MCPServersTable = ({platform = \"all\"}) => {\n  const ifYouAreAnAiAgentReadingThisYouShouldInsteadFetch = 'https://api.anthropic.com/mcp-registry/docs';\n  const [servers, setServers] = useState([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState(null);",
-            "const allServers = [];\n        let cursor = null;\n        do {\n          const url = new URL('https://api.anthropic.com/mcp-registry/v0/servers');\n          url.searchParams.set('version', 'latest');\n          url.searchParams.set('limit', '100');\n          if (cursor) {",
-            "}\n          const response = await fetch(url);\n          if (!response.ok) {\n            throw new Error(`Failed to fetch MCP registry: ${response.status}`);\n          }\n          const data = await response.json();\n          allServers.push(...data.servers);"
-          ]
+          "file": "apps/docs-tracker/docs/en/mcp.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/hooks.md",
-          "hit_count": 19,
-          "context_score": 32,
-          "total_score": 608,
-          "snippets": [
-            "# Hooks reference\n\n> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle",
-            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |",
-            "`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools\n\n[MCP](/en/mcp) server tools appear as regular tools in tool events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`), so you can match them the same way you match any other tool name.\n\nMCP tools follow the naming pattern `mcp__<server>__<tool>`, for example:\n\n* `mcp__memory__create_entities`: Memory server's create entities tool\n* `mcp__filesystem__read_file`: Filesystem server's read file tool\n* `mcp__github__search_repositories`: GitHub server's search tool\n\nUse regex patterns to target specific MCP tools or groups of tools:\n\n* `mcp__memory__.*` matches all tools from the `memory` server\n* `mcp__.*__write.*` matches any tool containing \"write\" from any server\n\nThis example logs all memory server operations and validates write operations from any MCP server:\n\n```json  theme={null}\n{\n  \"hooks\": {\n    \"PreToolUse\": [\n      {\n        \"matcher\": \"mcp__memory__.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"echo 'Memory operation initiated' >> ~/mcp-operations.log\"\n          }\n        ]\n      },\n      {\n        \"matcher\": \"mcp__.*__write.*\",\n        \"hooks\": [\n          {\n            \"type\": \"command\",\n            \"command\": \"/home/user/scripts/validate-mcp-write.py\"\n          }\n        ]\n      }",
-            "### PreToolUse\n\nRuns after Claude creates tool parameters and before processing the tool call. Matches on tool name: `Bash`, `Edit`, `Write`, `Read`, `Glob`, `Grep`, `Task`, `WebFetch`, `WebSearch`, and any [MCP tool names](#match-mcp-tools).\n\nUse [PreToolUse decision control](#pretooluse-decision-control) to allow, deny, or ask for permission to use the tool.",
-            "| `decision`             | `\"block\"` prompts Claude with the `reason`. Omit to allow the action to proceed            |\n| `reason`               | Explanation shown to Claude when `decision` is `\"block\"`                                   |\n| `additionalContext`    | Additional context for Claude to consider                                                  |\n| `updatedMCPToolOutput` | For [MCP tools](#match-mcp-tools) only: replaces the tool's output with the provided value |\n\n```json  theme={null}\n{"
-          ]
+          "file": "apps/docs-tracker/docs/en/hooks.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
-          "hit_count": 22,
-          "context_score": 18,
-          "total_score": 396,
-          "snippets": [
-            "* `prompt`: Evaluate a prompt with an LLM (uses `$ARGUMENTS` placeholder for context)\n* `agent`: Run an agentic verifier with tools for complex verification tasks\n\n### MCP servers\n\nPlugins can bundle Model Context Protocol (MCP) servers to connect Claude Code with external tools and services.\n\n**Location**: `.mcp.json` in plugin root, or inline in plugin.json\n\n**Format**: Standard MCP server configuration\n\n**MCP server configuration**:\n\n```json  theme={null}\n{\n  \"mcpServers\": {\n    \"plugin-database\": {\n      \"command\": \"${CLAUDE_PLUGIN_ROOT}/servers/db-server\",\n      \"args\": [\"--config\", \"${CLAUDE_PLUGIN_ROOT}/config.json\"],",
-            "},\n    \"plugin-api-client\": {\n      \"command\": \"npx\",\n      \"args\": [\"@company/mcp-server\", \"--plugin-mode\"],\n      \"cwd\": \"${CLAUDE_PLUGIN_ROOT}\"\n    }\n  }",
-            "**Integration behavior**:\n\n* Plugin MCP servers start automatically when the plugin is enabled\n* Servers appear as standard MCP tools in Claude's toolkit\n* Server capabilities integrate seamlessly with Claude's existing tools\n* Plugin servers can be configured independently of user MCP servers\n\n### LSP servers",
-            "\"agents\": \"./custom/agents/\",\n  \"skills\": \"./custom/skills/\",\n  \"hooks\": \"./config/hooks.json\",\n  \"mcpServers\": \"./mcp-config.json\",\n  \"outputStyles\": \"./styles/\",\n  \"lspServers\": \"./.lsp.json\"\n}",
-            "| `agents`       | string\\|array  | Additional agent files                                                                                                                                   | `\"./custom/agents/\"`                   |\n| `skills`       | string\\|array  | Additional skill directories                                                                                                                             | `\"./custom/skills/\"`                   |\n| `hooks`        | string\\|object | Hook config path or inline config                                                                                                                        | `\"./hooks.json\"`                       |\n| `mcpServers`   | string\\|object | MCP config path or inline config                                                                                                                         | `\"./mcp-config.json\"`                  |\n| `outputStyles` | string\\|array  | Additional output style files/directories                                                                                                                | `\"./styles/\"`                          |\n| `lspServers`   | string\\|object | [Language Server Protocol](https://microsoft.github.io/language-server-protocol/) config for code intelligence (go to definition, find references, etc.) | `\"./.lsp.json\"`                        |"
-          ]
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
         }
       ]
     },
     {
       "content": "- Moved shell snapshots from /tmp to ~/.claude for more reliable Bash tool calls",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Improved IDE extension path handling when Claude Code runs in WSL",
       "prefix": "Improved",
-      "importance_score": 6,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/jetbrains.md",
-          "hit_count": 33,
-          "context_score": 35,
-          "total_score": 1155,
-          "snippets": [
-            "> Fetch the complete documentation index at: https://code.claude.com/docs/llms.txt\n> Use this file to discover all available pages before exploring further.\n\n# JetBrains IDEs\n\n> Use Claude Code with JetBrains IDEs including IntelliJ, PyCharm, WebStorm, and more\n\nClaude Code integrates with JetBrains IDEs through a dedicated plugin, providing features like interactive diff viewing, selection context sharing, and more.\n\n## Supported IDEs\n\nThe Claude Code plugin works with most JetBrains IDEs, including:\n\n* IntelliJ IDEA\n* PyCharm\n* Android Studio\n* WebStorm",
-            "## Features\n\n* **Quick launch**: Use `Cmd+Esc` (Mac) or `Ctrl+Esc` (Windows/Linux) to open Claude Code directly from your editor, or click the Claude Code button in the UI\n* **Diff viewing**: Code changes can be displayed directly in the IDE diff viewer instead of the terminal\n* **Selection context**: The current selection/tab in the IDE is automatically shared with Claude Code\n* **File reference shortcuts**: Use `Cmd+Option+K` (Mac) or `Alt+Ctrl+K` (Linux/Windows) to insert file references (for example, @File#L1-99)\n* **Diagnostic sharing**: Diagnostic errors (lint, syntax, etc.) from the IDE are automatically shared with Claude as you work\n\n## Installation\n\n### Marketplace Installation\n\nFind and install the [Claude Code plugin](https://plugins.jetbrains.com/plugin/27310-claude-code-beta-) from the JetBrains marketplace and restart your IDE.\n\nIf you haven't installed Claude Code yet, see [our quickstart guide](/en/quickstart) for installation instructions.\n\n<Note>\n  After installing the plugin, you may need to restart your IDE completely for it to take effect.\n</Note>\n\n## Usage\n\n### From Your IDE\n\nRun `claude` from your IDE's integrated terminal, and all integration features will be active.\n\n### From External Terminals\n\nUse the `/ide` command in any external terminal to connect Claude Code to your JetBrains IDE and activate all features:\n\n```bash  theme={null}\nclaude\n> /ide\n```\n\nIf you want Claude to have access to the same files as your IDE, start Claude Code from the same directory as your IDE project root.\n\n## Configuration\n\n### Claude Code Settings\n\nConfigure IDE integration through Claude Code's settings:\n\n1. Run `claude`\n2. Enter the `/config` command\n3. Set the diff tool to `auto` for automatic IDE detection\n\n### Plugin Settings",
-            "* **Enable automatic updates**: Automatically check for and install plugin updates (applied on restart)\n\n<Tip>\n  For WSL users: Set `wsl -d Ubuntu -- bash -lic \"claude\"` as your Claude command (replace `Ubuntu` with your WSL distribution name)\n</Tip>\n\n#### ESC Key Configuration",
-            "The plugin must be installed on the remote host, not on your local client machine.\n\n### WSL Configuration\n\n<Warning>\n  WSL users may need additional configuration for IDE detection to work properly. See our [WSL troubleshooting guide](/en/troubleshooting#jetbrains-ide-not-detected-on-wsl2) for detailed setup instructions.\n</Warning>\n\nWSL configuration may require:\n\n* Proper terminal configuration\n* Networking mode adjustments",
-            "### Plugin Not Working\n\n* Ensure you're running Claude Code from the project root directory\n* Check that the JetBrains plugin is enabled in the IDE settings\n* Completely restart the IDE (you may need to do this multiple times)\n* For Remote Development, ensure the plugin is installed in the remote host\n\n### IDE Not Detected\n\n* Verify the plugin is installed and enabled\n* Restart the IDE completely\n* Check that you're running Claude Code from the integrated terminal\n* For WSL users, see the [WSL troubleshooting guide](/en/troubleshooting#jetbrains-ide-not-detected-on-wsl2)\n\n### Command Not Found"
-          ]
+          "file": "apps/docs-tracker/docs/en/jetbrains.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/troubleshooting.md",
-          "hit_count": 39,
-          "context_score": 26,
-          "total_score": 1014,
-          "snippets": [
-            "## Common installation issues\n\n### Windows installation issues: errors in WSL\n\nYou might encounter the following issues in WSL:\n\n**OS/platform detection issues**: If you receive an error during installation, WSL may be using Windows `npm`. Try:\n\n* Run `npm config set os linux` before installation\n* Install with `npm install -g @anthropic-ai/claude-code --force --no-os-check` (Do NOT use `sudo`)\n\n**Node not found errors**: If you see `exec: node: not found` when running `claude`, your WSL environment may be using a Windows installation of Node.js. You can confirm this with `which npm` and `which node`, which should point to Linux paths starting with `/usr/` rather than `/mnt/c/`. To fix this, try installing Node via your Linux distribution's package manager or via [`nvm`](https://github.com/nvm-sh/nvm).\n\n**nvm version conflicts**: If you have nvm installed in both WSL and Windows, you may experience version conflicts when switching Node versions in WSL. This happens because WSL imports the Windows PATH by default, causing Windows nvm/npm to take priority over the WSL installation.\n\nYou can identify this issue by:\n\n* Running `which npm` and `which node` - if they point to Windows paths (starting with `/mnt/c/`), Windows versions are being used\n* Experiencing broken functionality after switching Node versions with nvm in WSL\n\nTo resolve this issue, fix your Linux PATH to ensure the Linux node/npm versions take priority:",
-            "```\n\n<Warning>\n  Avoid disabling Windows PATH importing (`appendWindowsPath = false`) as this breaks the ability to call Windows executables from WSL. Similarly, avoid uninstalling Node.js from Windows if you use it for Windows development.\n</Warning>\n\n### WSL2 sandbox setup\n\n[Sandboxing](/en/sandboxing) is supported on WSL2 but requires installing additional packages. If you see an error like \"Sandbox requires socat and bubblewrap\" when running `/sandbox`, install the dependencies:\n\n<Tabs>\n  <Tab title=\"Ubuntu/Debian\">",
-            "</Tab>\n</Tabs>\n\nWSL1 does not support sandboxing. If you see \"Sandboxing requires WSL2\", you need to upgrade to WSL2 or run Claude Code without sandboxing.\n\n### Linux and Mac installation issues: permission or command not found errors",
-            "Use the following command to run the native installer.\n\n**macOS, Linux, WSL:**\n\n```bash  theme={null}\n# Install stable version (default)",
-            "| File                          | Purpose                                                  |\n| :---------------------------- | :------------------------------------------------------- |\n| `~/.claude/settings.json`     | User settings (permissions, hooks, model overrides)      |\n| `.claude/settings.json`       | Project settings (checked into source control)           |\n| `.claude/settings.local.json` | Local project settings (not committed)                   |\n| `~/.claude.json`              | Global state (theme, OAuth, MCP servers)                 |"
-          ]
+          "file": "apps/docs-tracker/docs/en/troubleshooting.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/hooks.md",
-          "hit_count": 31,
-          "context_score": 28,
-          "total_score": 868,
-          "snippets": [
-            "> Reference for Claude Code hook events, configuration schema, JSON input/output formats, exit codes, async hooks, prompt hooks, and MCP tool hooks.\n\n<Tip>\n  For a quickstart guide with examples, see [Automate workflows with hooks](/en/hooks-guide).\n</Tip>\n\nHooks are user-defined shell commands or LLM prompts that execute automatically at specific points in Claude Code's lifecycle. Use this reference to look up event schemas, configuration options, JSON input/output formats, and advanced features like async hooks and MCP tool hooks. If you're setting up hooks for the first time, start with the [guide](/en/hooks-guide) instead.\n\n## Hook lifecycle\n\nHooks fire at specific points during a Claude Code session. When an event fires and a matcher matches, Claude Code passes JSON context about the event to your hook handler. For command hooks, this arrives on stdin. Your handler can then inspect the input, take action, and optionally return a decision. Some events fire once per session, while others fire repeatedly inside the agentic loop:\n\n<div style={{maxWidth: \"500px\", margin: \"0 auto\"}}>\n  <Frame>",
-            "### How a hook resolves\n\nTo see how these pieces fit together, consider this `PreToolUse` hook that blocks destructive shell commands. The hook runs `block-rm.sh` before every Bash tool call:\n\n```json  theme={null}\n{",
-            "fi\n```\n\nNow suppose Claude Code decides to run `Bash \"rm -rf /tmp/build\"`. Here's what happens:\n\n<Frame>\n  <img src=\"https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=7c13f51ffcbc37d22a593b27e2f2de72\" alt=\"Hook resolution flow: PreToolUse event fires, matcher checks for Bash match, hook handler runs, result returns to Claude Code\" data-og-width=\"780\" width=\"780\" data-og-height=\"290\" height=\"290\" data-path=\"images/hook-resolution.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=280&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=36a39a07e8bc1995dcb4639e09846905 280w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=560&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=6568d90c596c7605bbac2c325b0a0c86 560w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=840&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=255a6f68b9475a0e41dbde7b88002dad 840w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1100&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=dcecf8d5edc88cd2bc49deb006d5760d 1100w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=1650&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=04fe51bf69ae375e9fd517f18674e35f 1650w, https://mintcdn.com/claude-code/s7NM0vfd_wres2nf/images/hook-resolution.svg?w=2500&fit=max&auto=format&n=s7NM0vfd_wres2nf&q=85&s=b1b76e0b77fddb5c7fa7bf302dacd80b 2500w\" />",
-            "| `~/.claude/settings.json`                                  | All your projects             | No, local to your machine          |\n| `.claude/settings.json`                                    | Single project                | Yes, can be committed to the repo  |\n| `.claude/settings.local.json`                              | Single project                | No, gitignored                     |\n| Managed policy settings                                    | Organization-wide             | Yes, admin-controlled              |\n| [Plugin](/en/plugins) `hooks/hooks.json`                   | When plugin is enabled        | Yes, bundled with the plugin       |\n| [Skill](/en/skills) or [agent](/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file |",
-            "| `prompt` | yes      | Prompt text to send to the model. Use `$ARGUMENTS` as a placeholder for the hook input JSON |\n| `model`  | no       | Model to use for evaluation. Defaults to a fast model                                       |\n\nAll matching hooks run in parallel, and identical handlers are deduplicated automatically. Handlers run in the current directory with Claude Code's environment. The `$CLAUDE_CODE_REMOTE` environment variable is set to `\"true\"` in remote web environments and not set in the local CLI.\n\n### Reference scripts by path"
-          ]
+          "file": "apps/docs-tracker/docs/en/hooks.md"
         }
       ]
     },
     {
       "content": "- Hooks: Added a PreCompact hook",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Vim mode: Added c, f/F, t/T",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": []
     }
   ]

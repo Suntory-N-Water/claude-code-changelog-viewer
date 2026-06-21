@@ -4,135 +4,71 @@
     {
       "content": "- Added Claude in Chrome (Beta) feature that works with the Chrome extension (https://claude.ai/chrome) to let you control your browser directly from Claude Code",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": []
     },
     {
       "content": "- Reduced terminal flickering",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Added scannable QR code to mobile app tip for quick app downloads",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": []
     },
     {
       "content": "- Added loading indicator when resuming conversations for better feedback",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": []
     },
     {
       "content": "- Fixed `/context` command not respecting custom system prompts in non-interactive mode",
       "prefix": "Fixed",
-      "importance_score": 4,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md",
-          "hit_count": 18,
-          "context_score": 29,
-          "total_score": 522,
-          "snippets": [
-            "## The agentic loop\n\nWhen you give Claude a task, it works through three phases: **gather context**, **take action**, and **verify results**. These phases blend together. Claude uses tools throughout, whether searching files to understand your code, editing to make changes, or running tests to check its work.\n\n<img src=\"https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=e30acfc80d6ff01ec877dd19c7af58b2\" alt=\"The agentic loop: Your prompt leads to Claude gathering context, taking action, verifying results, and repeating until task complete. You can interrupt at any point.\" data-og-width=\"720\" width=\"720\" data-og-height=\"280\" height=\"280\" data-path=\"images/agentic-loop.svg\" data-optimize=\"true\" data-opv=\"3\" srcset=\"https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=280&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=8620f6ebce761a1e8bbf7f0a0255cc15 280w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=560&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=7b46b5ff4454aa4a03725eee625b39a0 560w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=840&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=7fa0397bc37d147e3bf3bb6296c6477f 840w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=1100&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=73b2a7040c4c93821c4d5bbee9f4a2d4 1100w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=1650&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=17703cbeb6f59b40a00ab24f56d5f8f9 1650w, https://mintcdn.com/claude-code/ELkJZG54dIaeldDC/images/agentic-loop.svg?w=2500&fit=max&auto=format&n=ELkJZG54dIaeldDC&q=85&s=20dedb60b95d45a1bd60a0cccaf3e1ff 2500w\" />\n\nThe loop adapts to what you ask. A question about your codebase might only need context gathering. A bug fix cycles through all three phases repeatedly. A refactor might involve extensive verification. Claude decides what each step requires based on what it learned from the previous step, chaining dozens of actions together and course-correcting along the way.\n\nYou're part of this loop too. You can interrupt at any point to steer Claude in a different direction, provide additional context, or ask it to try a different approach. Claude works autonomously but stays responsive to your input.\n\nThe agentic loop is powered by two components: [models](#models) that reason and [tools](#tools) that act. Claude Code serves as the **agentic harness** around Claude: it provides the tools, context management, and execution environment that turn a language model into a capable coding agent.\n\n### Models",
-            "* **Your project.** Files in your directory and subdirectories, plus files elsewhere with your permission.\n* **Your terminal.** Any command you could run: build tools, git, package managers, system utilities, scripts. If you can do it from the command line, Claude can too.\n* **Your git state.** Current branch, uncommitted changes, and recent commit history.\n* **Your [CLAUDE.md](/en/memory).** A markdown file where you store project-specific instructions, conventions, and context that Claude should know every session.\n* **Extensions you configure.** [MCP servers](/en/mcp) for external services, [skills](/en/skills) for workflows, [subagents](/en/sub-agents) for delegated work, and [Claude in Chrome](/en/chrome) for browser interaction.\n\nBecause Claude sees your whole project, it can work across it. When you ask Claude to \"fix the authentication bug,\" it searches for relevant files, reads multiple files to understand context, makes coordinated edits across them, runs tests to verify the fix, and commits the changes if you ask. This is different from inline code assistants that only see the current file.\n\n## Work with sessions",
-            "**Same session in multiple terminals**: If you resume the same session in multiple terminals, both terminals write to the same session file. Messages from both get interleaved, like two people writing in the same notebook. Nothing corrupts, but the conversation becomes jumbled. Each terminal only sees its own messages during the session, but if you resume that session later, you'll see everything interleaved. For parallel work from the same starting point, use `--fork-session` to give each terminal its own clean session.\n\n### The context window\n\nClaude's context window holds your conversation history, file contents, command outputs, [CLAUDE.md](/en/memory), loaded skills, and system instructions. As you work, context fills up. Claude compacts automatically, but instructions from early in the conversation can get lost. Put persistent rules in CLAUDE.md, and run `/context` to see what's using space.\n\n#### When context fills up\n\nClaude Code manages context automatically as you approach the limit. It clears older tool outputs first, then summarizes the conversation if needed. Your requests and key code snippets are preserved; detailed instructions from early in the conversation may be lost. Put persistent rules in CLAUDE.md rather than relying on conversation history.\n\nTo control what's preserved during compaction, add a \"Compact Instructions\" section to CLAUDE.md or run `/compact` with a focus (like `/compact focus on the API changes`).\n\nRun `/context` to see what's using space. MCP servers add tool definitions to every request, so a few servers can consume significant context before you start working. Run `/mcp` to check per-server costs.\n\n#### Manage context with skills and subagents\n\nBeyond compaction, you can use other features to control what loads into context.\n\n[Skills](/en/skills) load on demand. Claude sees skill descriptions at session start, but the full content only loads when a skill is used. For skills you invoke manually, set `disable-model-invocation: true` to keep descriptions out of context until you need them.\n\n[Subagents](/en/sub-agents) get their own fresh context, completely separate from your main conversation. Their work doesn't bloat your context. When done, they return a summary. This isolation is why subagents help with long sessions.\n\nSee [context costs](/en/features-overview#understand-context-costs) for what each feature costs, and [reduce token usage](/en/costs#reduce-token-usage) for tips on managing context.\n\n## Stay safe with checkpoints and permissions",
-            "### Delegate, don't dictate\n\nThink of delegating to a capable colleague. Give context and direction, then trust Claude to figure out the details:\n\n```\n> The checkout flow is broken for users with expired cards."
-          ]
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/skills.md",
-          "hit_count": 25,
-          "context_score": 18,
-          "total_score": 450,
-          "snippets": [
-            "**Custom slash commands have been merged into skills.** A file at `.claude/commands/review.md` and a skill at `.claude/skills/review/SKILL.md` both create `/review` and work the same way. Your existing `.claude/commands/` files keep working. Skills add optional features: a directory for supporting files, frontmatter to [control whether you or Claude invokes them](#control-who-invokes-a-skill), and the ability for Claude to load them automatically when relevant.\n</Note>\n\nClaude Code skills follow the [Agent Skills](https://agentskills.io) open standard, which works across multiple AI tools. Claude Code extends the standard with additional features like [invocation control](#control-who-invokes-a-skill), [subagent execution](#run-skills-in-a-subagent), and [dynamic context injection](#inject-dynamic-context).\n\n## Getting started",
-            "Skill files can contain any instructions, but thinking about how you want to invoke them helps guide what to include:\n\n**Reference content** adds knowledge Claude applies to your current work. Conventions, patterns, style guides, domain knowledge. This content runs inline so Claude can use it alongside your conversation context.\n\n```yaml  theme={null}\n-",
-            "-",
-            "name: deploy\ndescription: Deploy the application to production\ncontext: fork\ndisable-model-invocation: true\n-",
-            "| `user-invocable`           | No          | Set to `false` to hide from the `/` menu. Use for background knowledge users shouldn't invoke directly. Default: `true`.                              |\n| `allowed-tools`            | No          | Tools Claude can use without asking permission when this skill is active.                                                                             |\n| `model`                    | No          | Model to use when this skill is active.                                                                                                               |\n| `context`                  | No          | Set to `fork` to run in a forked subagent context.                                                                                                    |\n| `agent`                    | No          | Which subagent type to use when `context: fork` is set.                                                                                               |\n| `hooks`                    | No          | Hooks scoped to this skill's lifecycle. See [Hooks in skills and agents](/en/hooks#hooks-in-skills-and-agents) for configuration format.              |\n\n#### Available string substitutions"
-          ]
+          "file": "apps/docs-tracker/docs/en/skills.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/costs.md",
-          "hit_count": 13,
-          "context_score": 33,
-          "total_score": 429,
-          "snippets": [
-            "# Manage costs effectively\n\n> Track token usage, set team spend limits, and reduce Claude Code costs with context management, model selection, extended thinking settings, and preprocessing hooks.\n\nClaude Code consumes tokens for each interaction. Costs vary based on codebase size, query complexity, and conversation length. The average cost is \\$6 per developer per day, with daily costs remaining below \\$12 for 90% of users.",
-            "## Reduce token usage\n\nToken costs scale with context size: the more context Claude processes, the more tokens you use. Claude Code automatically optimizes costs through prompt caching (which reduces costs for repeated content like system prompts) and auto-compaction (which summarizes conversation history when approaching context limits).\n\nThe following strategies help you keep context small and reduce per-message costs.\n\n### Manage context proactively\n\nUse `/cost` to check your current token usage, or [configure your status line](/en/statusline#context-window-usage) to display it continuously.\n\n* **Clear between tasks**: Use `/clear` to start fresh when switching to unrelated work. Stale context wastes tokens on every subsequent message. Use `/rename` before clearing so you can easily find the session later, then `/resume` to return to it.\n* **Add custom compaction instructions**: `/compact Focus on code samples and API usage` tells Claude what to preserve during summarization.\n\nYou can also customize compaction behavior in your CLAUDE.md:",
-            "### Reduce MCP server overhead\n\nEach MCP server adds tool definitions to your context, even when idle. Run `/context` to see what's consuming space.\n\n* **Prefer CLI tools when available**: Tools like `gh`, `aws`, `gcloud`, and `sentry-cli` are more context-efficient than MCP servers because they don't add persistent tool definitions. Claude can run CLI commands directly without the overhead.\n* **Disable unused servers**: Run `/mcp` to see configured servers and disable any you're not actively using.\n* **Tool search is automatic**: When MCP tool descriptions exceed 10% of your context window, Claude Code automatically defers them and loads tools on-demand via [tool search](/en/mcp#scale-with-mcp-tool-search). Since deferred tools only enter context when actually used, a lower threshold means fewer idle tool definitions consuming space. Set a lower threshold with `ENABLE_TOOL_SEARCH=auto:<N>` (for example, `auto:5` triggers when tools exceed 5% of your context window).\n\n### Install code intelligence plugins for typed languages",
-            "### Offload processing to hooks and skills\n\nCustom [hooks](/en/hooks) can preprocess data before Claude sees it. Instead of Claude reading a 10,000-line log file to find errors, a hook can grep for `ERROR` and return only matching lines, reducing context from tens of thousands of tokens to hundreds.\n\nA [skill](/en/skills) can give Claude domain knowledge so it doesn't have to explore. For example, a \"codebase-overview\" skill could describe your project's architecture, key directories, and naming conventions. When Claude invokes the skill, it gets this context immediately instead of spending tokens reading multiple files to understand the structure.\n\nFor example, this PreToolUse hook filters test output to show only failures:",
-            "### Move instructions from CLAUDE.md to skills\n\nYour [CLAUDE.md](/en/memory) file is loaded into context at session start. If it contains detailed instructions for specific workflows (like PR reviews or database migrations), those tokens are present even when you're doing unrelated work. [Skills](/en/skills) load on-demand only when invoked, so moving specialized instructions into skills keeps your base context smaller. Aim to keep CLAUDE.md under \\~500 lines by including only essentials.\n\n### Adjust extended thinking"
-          ]
+          "file": "apps/docs-tracker/docs/en/costs.md"
         }
       ]
     },
     {
       "content": "- Fixed order of consecutive Ctrl+K lines when pasting with Ctrl+Y",
       "prefix": "Fixed",
-      "importance_score": 4,
       "related_docs": []
     },
     {
       "content": "- Improved @ mention file suggestion speed (~3× faster in git repositories)",
       "prefix": "Improved",
-      "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Improved file suggestion performance in repos with `.ignore` or `.rgignore` files",
       "prefix": "Improved",
-      "importance_score": 6,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/hooks.md",
-          "hit_count": 5,
-          "context_score": 22,
-          "total_score": 110,
-          "snippets": [
-            "| :--------------------------------------------------------- | :---------------------------- | :--------------------------------- |\n| `~/.claude/settings.json`                                  | All your projects             | No, local to your machine          |\n| `.claude/settings.json`                                    | Single project                | Yes, can be committed to the repo  |\n| `.claude/settings.local.json`                              | Single project                | No, gitignored                     |\n| Managed policy settings                                    | Organization-wide             | Yes, admin-controlled              |\n| [Plugin](/en/plugins) `hooks/hooks.json`                   | When plugin is enabled        | Yes, bundled with the plugin       |\n| [Skill](/en/skills) or [agent](/en/sub-agents) frontmatter | While the component is active | Yes, defined in the component file |",
-            "}\n```\n\n`UserPromptSubmit` and `Stop` don't support matchers and always fire on every occurrence. If you add a `matcher` field to these events, it is silently ignored.\n\n#### Match MCP tools",
-            "### Exit code output\n\nThe exit code from your hook command tells Claude Code whether the action should proceed, be blocked, or be ignored.\n\n**Exit 0** means success. Claude Code parses stdout for [JSON output fields](#json-output) like `decision` or `reason`. JSON output is only processed on exit 0. For most events, stdout is only shown in verbose mode (`Ctrl+O`). The exceptions are `UserPromptSubmit` and `SessionStart`, where stdout is added as context that Claude can see and act on.\n\n**Exit 2** means a blocking error. Claude Code ignores stdout and any JSON in it. Instead, stderr text is fed back to Claude as an error message. The effect depends on the event: `PreToolUse` blocks the tool call, `UserPromptSubmit` rejects the prompt, and so on. See [exit code 2 behavior](#exit-code-2-behavior-per-event) for the full list.\n\n**Any other exit code** is a non-blocking error. stderr is shown in verbose mode (`Ctrl+O`) and execution continues.",
-            "### JSON output\n\nYou must choose one approach per hook, not both: either use exit codes alone for signaling, or exit 0 and print JSON for structured control. Claude Code only processes JSON on exit 0. If you exit 2, any JSON is ignored.\n\nInstead of relying on exit codes alone, hooks can print JSON to stdout on exit 0. Claude Code reads specific fields from this JSON to decide what to do next."
-          ]
+          "file": "apps/docs-tracker/docs/en/hooks.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/settings.md",
-          "hit_count": 4,
-          "context_score": 19,
-          "total_score": 76,
-          "snippets": [
-            "| **Managed** | System-level `managed-settings.json` | All users on the machine             | Yes (deployed by IT)   |\n| **User**    | `~/.claude/` directory               | You, across all projects             | No                     |\n| **Project** | `.claude/` in repository             | All collaborators on this repository | Yes (committed to git) |\n| **Local**   | `.claude/*.local.*` files            | You, in this repository only         | No (gitignored)        |\n\n### When to use each scope",
-            "projects.\n* **Project settings** are saved in your project directory:\n  * `.claude/settings.json` for settings that are checked into source control and shared with your team\n  * `.claude/settings.local.json` for settings that are not checked in, useful for personal preferences and experimentation. Claude Code will configure git to ignore `.claude/settings.local.json` when it is created.\n* **Managed settings**: For organizations that need centralized control, Claude Code supports `managed-settings.json` and `managed-mcp.json` files that can be deployed to system directories:\n\n  * macOS: `/Library/Application Support/ClaudeCode/`",
-            "| `otelHeadersHelper`          | Script to generate dynamic OpenTelemetry headers. Runs at startup and periodically (see [Dynamic headers](/en/monitoring-usage#dynamic-headers))                                                                                                                                | `/bin/generate_otel_headers.sh`                                         |\n| `statusLine`                 | Configure a custom status line to display context. See [`statusLine` documentation](/en/statusline)                                                                                                                                                                             | `{\"type\": \"command\", \"command\": \"~/.claude/statusline.sh\"}`             |\n| `fileSuggestion`             | Configure a custom script for `@` file autocomplete. See [File suggestion settings](#file-suggestion-settings)                                                                                                                                                                  | `{\"type\": \"command\", \"command\": \"~/.claude/file-suggestion.sh\"}`        |\n| `respectGitignore`           | Control whether the `@` file picker respects `.gitignore` patterns. When `true` (default), files matching `.gitignore` patterns are excluded from suggestions                                                                                                                   | `false`                                                                 |\n| `outputStyle`                | Configure an output style to adjust the system prompt. See [output styles documentation](/en/output-styles)                                                                                                                                                                     | `\"Explanatory\"`                                                         |\n| `forceLoginMethod`           | Use `claudeai` to restrict login to Claude.ai accounts, `console` to restrict login to Claude Console (API usage billing) accounts                                                                                                                                              | `claudeai`                                                              |\n| `forceLoginOrgUUID`          | Specify the UUID of an organization to automatically select it during login, bypassing the organization selection step. Requires `forceLoginMethod` to be set                                                                                                                   | `\"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"`                                |",
-            "}\n```\n\nThis replaces the deprecated `ignorePatterns` configuration. Files matching these patterns are excluded from file discovery and search results, and read operations on these files are denied.\n\n## Subagent configuration"
-          ]
+          "file": "apps/docs-tracker/docs/en/settings.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
-          "hit_count": 2,
-          "context_score": 5,
-          "total_score": 10,
-          "snippets": [
-            "| :-------- | :---------------------------- | :------------------------------------------------------- |\n| `user`    | `~/.claude/settings.json`     | Personal plugins available across all projects (default) |\n| `project` | `.claude/settings.json`       | Team plugins shared via version control                  |\n| `local`   | `.claude/settings.local.json` | Project-specific plugins, gitignored                     |\n| `managed` | `managed-settings.json`       | Managed plugins (read-only, update only)                 |\n\nPlugins use the same scope system as other Claude Code configurations. For installation instructions and scope flags, see [Install plugins](/en/discover-plugins#install-plugins). For a complete explanation of scopes, see [Configuration scopes](/en/settings#configuration-scopes).",
-            "# Install to project scope (shared with team)\nclaude plugin install formatter@my-marketplace --scope project\n\n# Install to local scope (gitignored)\nclaude plugin install formatter@my-marketplace --scope local\n```"
-          ]
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
         }
       ]
     },
     {
       "content": "- Improved settings validation errors to be more prominent",
       "prefix": "Improved",
-      "importance_score": 6,
       "related_docs": []
     },
     {
       "content": "- Changed thinking toggle from Tab to Alt+T to avoid accidental triggers",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": []
     }
   ]

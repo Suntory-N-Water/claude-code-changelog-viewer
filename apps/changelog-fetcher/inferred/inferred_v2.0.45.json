@@ -4,67 +4,29 @@
     {
       "content": "- Added support for Microsoft Foundry! See https://code.claude.com/docs/en/azure-ai-foundry",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": []
     },
     {
       "content": "- Added `PermissionRequest` hook to automatically approve or deny tool permission requests with custom logic",
       "prefix": "Added",
-      "importance_score": 8,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/hooks.md",
-          "hit_count": 13,
-          "context_score": 22,
-          "total_score": 286,
-          "snippets": [
-            "| `SessionStart`       | When a session begins or resumes                     |\n| `UserPromptSubmit`   | When you submit a prompt, before Claude processes it |\n| `PreToolUse`         | Before a tool call executes. Can block it            |\n| `PermissionRequest`  | When a permission dialog appears                     |\n| `PostToolUse`        | After a tool call succeeds                           |\n| `PostToolUseFailure` | After a tool call fails                              |\n| `Notification`       | When Claude Code sends a notification                |",
-            "| Event                                                                  | What the matcher filters  | Example matcher values                                                         |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                               |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                        |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `bypass_permissions_disabled`, `other` |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog`       |",
-            "#### Match MCP tools\n\n[MCP](/en/mcp) server tools appear as regular tools in tool events (`PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest`), so you can match them the same way you match any other tool name.\n\nMCP tools follow the naming pattern `mcp__<server>__<tool>`, for example:",
-            "| Hook event           | Can block? | What happens on exit 2                                    |\n| :------------------- | :--------- | :-------------------------------------------------------- |\n| `PreToolUse`         | Yes        | Blocks the tool call                                      |\n| `PermissionRequest`  | Yes        | Denies the permission                                     |\n| `UserPromptSubmit`   | Yes        | Blocks prompt processing and erases the prompt            |\n| `Stop`               | Yes        | Prevents Claude from stopping, continues the conversation |\n| `SubagentStop`       | Yes        | Prevents the subagent from stopping                       |",
-            "`\"approve\"` and `\"block\"` map to `\"allow\"` and `\"deny\"` respectively.\n</Note>\n\n### PermissionRequest\n\nRuns when the user is shown a permission dialog.\nUse [PermissionRequest decision control](#permissionrequest-decision-control) to allow or deny on behalf of the user.\n\nMatches on tool name, same values as PreToolUse.\n\n#### PermissionRequest input\n\nPermissionRequest hooks receive `tool_name` and `tool_input` fields like PreToolUse hooks, but without `tool_use_id`. An optional `permission_suggestions` array contains the \"always allow\" options the user would normally see in the permission dialog. The difference is when the hook fires: PermissionRequest hooks run when a permission dialog is about to be shown to the user, while PreToolUse hooks run before tool execution regardless of permission status.\n\n```json  theme={null}\n{"
-          ]
+          "file": "apps/docs-tracker/docs/en/hooks.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/hooks-guide.md",
-          "hit_count": 4,
-          "context_score": 16,
-          "total_score": 64,
-          "snippets": [
-            "| `SessionStart`       | When a session begins or resumes                     |\n| `UserPromptSubmit`   | When you submit a prompt, before Claude processes it |\n| `PreToolUse`         | Before a tool call executes. Can block it            |\n| `PermissionRequest`  | When a permission dialog appears                     |\n| `PostToolUse`        | After a tool call succeeds                           |\n| `PostToolUseFailure` | After a tool call fails                              |\n| `Notification`       | When Claude Code sends a notification                |",
-            "| Event                                                                  | What the matcher filters  | Example matcher values                                                   |\n| :--------------------------------------------------------------------- | :------------------------ | :----------------------------------------------------------------------- |\n| `PreToolUse`, `PostToolUse`, `PostToolUseFailure`, `PermissionRequest` | tool name                 | `Bash`, `Edit\\|Write`, `mcp__.*`                                         |\n| `SessionStart`                                                         | how the session started   | `startup`, `resume`, `clear`, `compact`                                  |\n| `SessionEnd`                                                           | why the session ended     | `clear`, `logout`, `prompt_input_exit`, `other`                          |\n| `Notification`                                                         | notification type         | `permission_prompt`, `idle_prompt`, `auth_success`, `elicitation_dialog` |",
-            "* Hooks communicate through stdout, stderr, and exit codes only. They cannot trigger slash commands or tool calls directly.\n* Hook timeout is 10 minutes by default, configurable per hook with the `timeout` field (in seconds).\n* `PostToolUse` hooks cannot undo actions since the tool has already executed.\n* `PermissionRequest` hooks do not fire in [non-interactive mode](/en/headless) (`-p`). Use `PreToolUse` hooks for automated permission decisions.\n* `Stop` hooks fire whenever Claude finishes responding, not only at task completion. They do not fire on user interrupts.\n\n### Hook not firing",
-            "* Run `/hooks` and confirm the hook appears under the correct event\n* Check that the matcher pattern matches the tool name exactly (matchers are case-sensitive)\n* Verify you're triggering the right event type (e.g., `PreToolUse` fires before tool execution, `PostToolUse` fires after)\n* If using `PermissionRequest` hooks in non-interactive mode (`-p`), switch to `PreToolUse` instead\n\n### Hook error in output"
-          ]
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
         },
         {
-          "file": "apps/docs-tracker/docs/en/plugins-reference.md",
-          "hit_count": 1,
-          "context_score": 1,
-          "total_score": 1,
-          "snippets": [
-            "* `PreToolUse`: Before Claude uses any tool\n* `PostToolUse`: After Claude successfully uses any tool\n* `PostToolUseFailure`: After Claude tool execution fails\n* `PermissionRequest`: When a permission dialog is shown\n* `UserPromptSubmit`: When user submits a prompt\n* `Notification`: When Claude Code sends notifications\n* `Stop`: When Claude attempts to stop"
-          ]
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
         }
       ]
     },
     {
       "content": "- Send background tasks to Claude Code on the web by starting a message with `&`",
       "prefix": "Changed",
-      "importance_score": 6,
       "related_docs": [
         {
-          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md",
-          "hit_count": 14,
-          "context_score": 28,
-          "total_score": 392,
-          "snippets": [
-            "Claude Code is also available on the Claude iOS app for kicking off tasks on the go and monitoring work in progress.\n\nYou can move between local and remote development: [send tasks from your terminal to run on the web](#from-terminal-to-web) with the `&` prefix, or [teleport web sessions back to your terminal](#from-web-to-terminal) to continue locally.\n\n## Who can use Claude Code on the web?",
-            "You can start tasks on the web and continue them in your terminal, or send tasks from your terminal to run on the web. Web sessions persist even if you close your laptop, and you can monitor them from anywhere including the Claude iOS app.\n\n<Note>\n  Session handoff is one-way: you can pull web sessions into your terminal, but you can't push an existing terminal session to the web. The [`&` prefix](#from-terminal-to-web) creates a *new* web session with your current conversation context.\n</Note>\n\n### From terminal to web\n\nStart a message with `&` inside Claude Code to send a task to run on the web:\n\n```\n& Fix the authentication bug in src/auth/login.ts\n```\n\nThis creates a new web session on claude.ai with your current conversation context. The task runs in the cloud while you continue working locally. Use `/tasks` to check progress, or open the session on claude.ai or the Claude iOS app to interact directly. From there you can steer Claude, provide feedback, or answer questions just like any other conversation.",
-            "In plan mode, Claude can only read files and explore the codebase. Once you're satisfied with the plan, send it to the web for autonomous execution:\n\n```\n& Execute the migration plan we discussed\n```\n\nThis pattern gives you control over the strategy while letting Claude execute autonomously in the cloud.\n\n**Run tasks in parallel**: Each `&` command creates its own web session that runs independently. You can kick off multiple tasks and they'll all run simultaneously in separate sessions:\n\n```\n& Fix the flaky test in auth.spec.ts\n& Update the API documentation\n& Refactor the logger to use structured output\n```\n\nMonitor all sessions with `/tasks`. When a session completes, you can create a PR from the web interface or [teleport](#from-web-to-terminal) the session to your terminal to continue working.",
-            "**To update an existing environment:** Select the current environment, to the right of the environment name, and select the settings button. This will open a dialog where you can update the environment name, network access, and environment variables.\n\n**To select your default environment from the terminal:** If you have multiple environments configured, run `/remote-env` to choose which one to use when starting web sessions from your terminal with `&` or `--remote`. With a single environment, this command shows your current configuration.\n\n<Note>\n  Environment variables must be specified as key-value pairs, in [`.env` format](https://www.dotenv.org/). For example:",
-            "* launchpad.net\n* [www.launchpad.net](http://www.launchpad.net)\n\n#### Development Tools & Platforms\n\n* dl.k8s.io (Kubernetes)\n* pkgs.k8s.io"
-          ]
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
         }
       ]
     }
