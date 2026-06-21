@@ -37,6 +37,10 @@ const LOG_CATALOG = {
   APLG0021: { level: 'INFO', template: '$0 を保存しました' },
   /** $0 を送信しました */
   APLG0023: { level: 'INFO', template: '$0 を送信しました' },
+  /** HTTPリクエストを受信しました */
+  APLG0030: { level: 'INFO', template: 'HTTPリクエストを受信しました' },
+  /** HTTPリクエストが完了しました */
+  APLG0031: { level: 'INFO', template: 'HTTPリクエストが完了しました' },
 
   // --- WARN ---
   /** $0 の取得に失敗しました */
