@@ -76,6 +76,34 @@ const docsDiffCollection = defineCollection({
   }),
 });
 
+const blogCollection = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
+  schema: z.object({
+    source: z.enum(['claude-blog', 'anthropic-news', 'anthropic-engineering']),
+    url: z.string().url(),
+    title: z.string(),
+    published_at: z.iso.datetime(),
+    content_hash: z.string(),
+    lang: z.literal('en'),
+  }),
+});
+
+const youtubeCollection = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/youtube' }),
+  schema: z.object({
+    source: z.literal('youtube'),
+    url: z.string().url(),
+    title: z.string(),
+    published_at: z.iso.datetime(),
+    content_hash: z.string(),
+    lang: z.literal('en'),
+    video_id: z.string(),
+    channel_id: z.string(),
+    duration_sec: z.number(),
+    has_transcript: z.boolean(),
+  }),
+});
+
 const settingsReferenceCollection = defineCollection({
   loader: glob({ pattern: '**/*.json', base: './src/content/settings' }),
   schema: z.object({
@@ -93,8 +121,10 @@ const settingsReferenceCollection = defineCollection({
 });
 
 export const collections = {
+  blog: blogCollection,
   changelog: changelogCollection,
   diff: diffCollection,
   docsDiff: docsDiffCollection,
   settingsReference: settingsReferenceCollection,
+  youtube: youtubeCollection,
 };
