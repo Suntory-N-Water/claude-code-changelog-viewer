@@ -1,6 +1,6 @@
 ---
 import type { Prefix } from '@claude-code-changelog-viewer/common';
-import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
+import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 import {
   PREFIX_DEFAULT_STYLE,
   PREFIX_ICONS,
@@ -11,7 +11,7 @@ import { formatChangelogContent } from '../../lib/format-changelog-content';
 type PrefixGroup = {
   prefix: string;
   label: string;
-  items: { item: ChangelogItem; originalIndex: number }[];
+  items: { item: InferredChangelogItem; originalIndex: number }[];
 };
 
 type Props = {
@@ -36,12 +36,10 @@ const shouldShow = groups.length >= 2;
           const style =
             PREFIX_STYLES[group.prefix as Prefix] || PREFIX_DEFAULT_STYLE;
           const iconPath = PREFIX_ICONS[group.prefix as Prefix];
-          // importance_score が最大のアイテムの content_ja を代表テキストとして使用
-          const representative = group.items.reduce((best, current) =>
-            current.item.importance_score > best.item.importance_score
-              ? current
-              : best,
-          );
+          const representative = group.items[0];
+          if (!representative) {
+            return null;
+          }
           const repText =
             representative.item.content_ja || representative.item.content;
           const truncated = formatChangelogContent(

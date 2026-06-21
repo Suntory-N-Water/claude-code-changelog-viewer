@@ -5,7 +5,7 @@
  * features/index.astro / features/[area].astro / ChangelogItemCard で共通利用
  */
 
-import type { ChangelogItem } from '@claude-code-changelog-viewer/types';
+import type { InferredChangelogItem } from '@claude-code-changelog-viewer/types';
 
 /** ページ生成に必要な最小アイテム数(これ未満のエリアはページを生成しない) */
 export const MIN_ITEMS_FOR_PAGE = 3;
@@ -56,19 +56,19 @@ export function getFeatureAreaDescription(area: string): string {
   );
 }
 
-export type FeatureAreaItem = { version: string; item: ChangelogItem };
-export type VersionGroup = { version: string; items: ChangelogItem[] };
+export type FeatureAreaItem = { version: string; item: InferredChangelogItem };
+export type VersionGroup = { version: string; items: InferredChangelogItem[] };
 
 /** Astro content collection エントリから aggregateByFeatureArea が受け取る形式に変換 */
 export function extractChangelogData(
-  entries: { data: { version: string; items: ChangelogItem[] } }[],
-): { version: string; items: ChangelogItem[] }[] {
+  entries: { data: { version: string; items: InferredChangelogItem[] } }[],
+): { version: string; items: InferredChangelogItem[] }[] {
   return entries.map((e) => ({ version: e.data.version, items: e.data.items }));
 }
 
 /** ページが存在する feature_area の Set を返す(MIN_ITEMS_FOR_PAGE 以上のエリア) */
 export function getLinkedAreas(
-  changelogs: { version: string; items: ChangelogItem[] }[],
+  changelogs: { version: string; items: InferredChangelogItem[] }[],
 ): Set<string> {
   const areaMap = aggregateByFeatureArea(changelogs);
   return new Set(
@@ -80,7 +80,7 @@ export function getLinkedAreas(
 
 /** 全 changelog から feature_area 別にアイテムを集約 */
 export function aggregateByFeatureArea(
-  changelogs: { version: string; items: ChangelogItem[] }[],
+  changelogs: { version: string; items: InferredChangelogItem[] }[],
 ): Map<string, FeatureAreaItem[]> {
   const map = new Map<string, FeatureAreaItem[]>();
 
@@ -105,12 +105,12 @@ export function aggregateByFeatureArea(
   return map;
 }
 
-/** バージョン降順 → グループ内 importance_score 降順にソート */
+/** バージョン降順でソートし、グループ内は JSON 配列順を保つ */
 export function groupByVersion(
   items: FeatureAreaItem[],
   compareFn: (a: string, b: string) => number,
 ): VersionGroup[] {
-  const groupMap = new Map<string, ChangelogItem[]>();
+  const groupMap = new Map<string, InferredChangelogItem[]>();
 
   for (const { version, item } of items) {
     const existing = groupMap.get(version);
@@ -124,10 +124,9 @@ export function groupByVersion(
   // バージョン降順ソート
   const sorted = [...groupMap.entries()].sort(([a], [b]) => compareFn(a, b));
 
-  // グループ内 importance_score 降順
   return sorted.map(([version, groupItems]) => ({
     version,
-    items: groupItems.sort((a, b) => b.importance_score - a.importance_score),
+    items: groupItems,
   }));
 }
 

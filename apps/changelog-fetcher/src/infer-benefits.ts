@@ -6,7 +6,7 @@ import { inferBenefits, type InferencePort } from './usecase/infer-benefits';
 import { GeminiInferenceClient } from './infrastructure/ai/gemini-inference-client';
 import { createInferredFileStore } from './infrastructure/filesystem/changelog-file-store';
 import {
-  toAnalysisJson,
+  toInferredJson,
   toChangelogAnalysis,
 } from './infrastructure/serializers/analysis-serializer';
 
@@ -63,7 +63,7 @@ async function main(): Promise<void> {
     inference,
     store,
   });
-  const inferred = toAnalysisJson(inferredAnalysis);
+  const inferred = toInferredJson(inferredAnalysis);
 
   mkdirSync(inferredDir, { recursive: true });
   const serializedInferred = JSON.stringify(inferred, null, 2);

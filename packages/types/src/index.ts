@@ -4,10 +4,6 @@ import { z } from 'zod';
 export const RelatedDocSchema = z.object({
   file: z.string(),
   hit_count: z.number(),
-  // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
-  context_score: z.number(),
-  // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
-  total_score: z.number(),
   snippets: z.array(z.string()),
 });
 export type RelatedDoc = z.infer<typeof RelatedDocSchema>;
@@ -36,8 +32,6 @@ export const ChangelogItemSchema = z.object({
   content: z.string(), // 英語原文
   content_ja: z.string().optional(), // 日本語翻訳
   prefix: z.string(),
-  // schema 互換のため残す固定値。現在は意味のある評価値として使わない。
-  importance_score: z.number(),
   feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),
   inference: InferenceResultSchema.optional(),
@@ -51,6 +45,25 @@ export const AnalysisSchema = z.object({
   items: z.array(ChangelogItemSchema),
 });
 export type Analysis = z.infer<typeof AnalysisSchema>;
+
+export const InferredRelatedDocSchema = z.object({
+  file: z.string(),
+});
+export type InferredRelatedDoc = z.infer<typeof InferredRelatedDocSchema>;
+
+export const InferredChangelogItemSchema = ChangelogItemSchema.omit({
+  related_docs: true,
+}).extend({
+  related_docs: z.array(InferredRelatedDocSchema),
+});
+export type InferredChangelogItem = z.infer<typeof InferredChangelogItemSchema>;
+
+export const InferredAnalysisSchema = AnalysisSchema.omit({
+  items: true,
+}).extend({
+  items: z.array(InferredChangelogItemSchema),
+});
+export type InferredAnalysis = z.infer<typeof InferredAnalysisSchema>;
 
 // NotificationAnalysis (通知配信用サブセット)
 // 通知 payload を Cloudflare Queues の 128KB 上限内に収めるため
