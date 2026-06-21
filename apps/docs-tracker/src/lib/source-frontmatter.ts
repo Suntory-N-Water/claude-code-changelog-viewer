@@ -122,7 +122,9 @@ export function serializeSourceDocument(
 ): string {
   const parsed = sourceFrontmatterSchema.parse(frontmatter);
   const normalizedBody = body.trim();
-  const serializedFrontmatter = YAML.stringify(parsed).trimEnd();
+  const serializedFrontmatter = YAML.stringify(parsed)
+    .replace(/^published_at: .*$/m, `published_at: "${parsed.published_at}"`)
+    .trimEnd();
 
   if (normalizedBody.length === 0) {
     return `---\n${serializedFrontmatter}\n---\n`;

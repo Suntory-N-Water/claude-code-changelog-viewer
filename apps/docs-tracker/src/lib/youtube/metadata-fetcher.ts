@@ -136,7 +136,7 @@ export class YoutubeMetadataFetcher {
         has_transcript: false,
       };
 
-      const fileName = `${frontmatter.published_at.slice(0, 10)}--${videoId}.md`;
+      const fileName = `${frontmatter.published_at.slice(0, 10)}_${videoId}.md`;
       await atomicWriteFile(
         path.join(sourceDir, fileName),
         serializeSourceDocument(frontmatter, body),

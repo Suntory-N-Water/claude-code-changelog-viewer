@@ -190,7 +190,7 @@ export class BlogFetcher {
       lang: 'en',
     };
 
-    const fileName = `${article.publishedAt.slice(0, 10)}--${article.slug}.md`;
+    const fileName = `${article.publishedAt.slice(0, 10)}_${article.slug}.md`;
     const filePath = path.join(sourceDir, fileName);
 
     await atomicWriteFile(
