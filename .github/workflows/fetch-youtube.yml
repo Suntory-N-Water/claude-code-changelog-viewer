@@ -1,6 +1,8 @@
 name: Fetch YouTube Sources
 
 on:
+  schedule:
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -119,9 +121,6 @@ jobs:
         with:
           name: youtube-new-ids
           path: ${{ github.workspace }}/artifacts
-
-      - name: Playwright Chromium をインストール
-        run: pnpm --filter docs-tracker exec playwright install chromium --with-deps
 
       - name: YouTube transcript を取得
         run: pnpm run fetch:youtube-transcripts -- --video-ids-file "${GITHUB_WORKSPACE}/artifacts/youtube-new-ids.json"
