@@ -89,6 +89,7 @@ The progress view shows each phase with its agent counts, token totals, and elap
 | `Enter` or `→` | Drill into the selected phase, then into an agent to read its prompt, recent tool calls, and result |
 | `Esc` | Back out one level |
 | `j` / `k` | Scroll within the agent detail when it overflows |
+| `f` | Filter the agent list in the selected phase by status. Press again to cycle |
 | `p` | Pause or resume the run |
 | `x` | Stop the selected agent, or stop the whole workflow when focus is on the run |
 | `r` | Restart the selected running agent |

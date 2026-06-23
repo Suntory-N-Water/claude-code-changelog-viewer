@@ -300,13 +300,14 @@ Diff 詳細ビューは、ページャースタイルのキーを標準的な[�
 
 設定アクション
 
-`Settings` コンテキストで利用可能なアクション：
+`Settings` コンテキストで利用可能なアクション。`select:accept` と `confirm:no` アクションは[選択](#select-actions)と[確認](#confirmation-actions)コンテキストから再利用されており、設定固有の動作があります：変更は設定を変更するとすぐに各設定に適用されるため、Escape は変更を破棄するのではなく、変更を保存して閉じます。
 
 | アクション | デフォルト | 説明 |
 | :- | :- | :- |
 | `settings:search` | / | 検索モードに入る |
 | `settings:retry` | R | 使用状況データの読み込みを再試行（エラー時） |
-| `settings:close` | Enter | 変更を保存して設定パネルを閉じます。Escape は変更を破棄して閉じます |
+| `select:accept` | Enter、Space | 選択した設定を変更するか、そのサブメニューを開く |
+| `confirm:no` | Escape | パネルを閉じます。変更は既に保存されています |
 
 Doctor アクション
 
