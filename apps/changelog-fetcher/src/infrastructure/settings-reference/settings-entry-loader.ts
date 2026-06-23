@@ -146,11 +146,17 @@ function stripMarkdown(value: string): string {
     .trim();
 }
 
+type EnvTableParseResult = {
+  entries: SettingsEntry[];
+  rawDescriptions: Map<string, string>;
+};
+
 function parseEnvTableRows(
   markdown: string,
   opts: { environmentTableOnly?: boolean } = {},
-) {
+): EnvTableParseResult {
   const entries: SettingsEntry[] = [];
+  const rawDescriptions = new Map<string, string>();
   let inEnvironmentTable = false;
 
   for (const line of markdown.split('\n')) {
@@ -179,6 +185,7 @@ function parseEnvTableRows(
 
     const descriptionRaw = match[2].split('|')[0]?.trim() ?? '';
     const description = stripMarkdown(descriptionRaw);
+    rawDescriptions.set(match[1], descriptionRaw);
     entries.push(
       createLoadedSettingsEntry({
         key: match[1],
@@ -196,6 +203,7 @@ function parseEnvTableRows(
       )) {
         const key = aliasMatch[1];
         if (key && key !== match[1]) {
+          rawDescriptions.set(key, descriptionRaw);
           entries.push(
             createLoadedSettingsEntry({
               key,
@@ -209,7 +217,7 @@ function parseEnvTableRows(
     }
   }
 
-  return entries;
+  return { entries, rawDescriptions };
 }
 
 /**
@@ -217,9 +225,128 @@ function parseEnvTableRows(
  */
 export async function parseEnvVarsMd(
   envVarsMdPath: string,
+  docsEnDir?: string,
 ): Promise<SettingsEntry[]> {
   const raw = await fs.readFile(envVarsMdPath, 'utf-8');
-  return parseEnvTableRows(raw);
+  const { entries, rawDescriptions } = parseEnvTableRows(raw);
+
+  if (docsEnDir === undefined) {
+    return entries;
+  }
+
+  const resolvedEntries: SettingsEntry[] = [];
+
+  for (const entry of entries) {
+    const rawDescription = rawDescriptions.get(entry.key);
+    if (rawDescription === undefined) {
+      resolvedEntries.push(entry);
+      continue;
+    }
+
+    const pureSeeMatch = rawDescription
+      .trim()
+      .match(/^See \[.+\]\((\/en\/.+)\)$/);
+    if (pureSeeMatch === null) {
+      resolvedEntries.push(entry);
+      continue;
+    }
+
+    const linkTarget = pureSeeMatch[1];
+    if (linkTarget === undefined) {
+      resolvedEntries.push(entry);
+      continue;
+    }
+
+    const [relativeDocPath, anchorFragment = ''] = linkTarget
+      .replace(/^\/en\//, '')
+      .split('#');
+    if (relativeDocPath === undefined) {
+      resolvedEntries.push(entry);
+      continue;
+    }
+
+    const docPath = path.join(
+      docsEnDir,
+      `${relativeDocPath.replace(/\.md$/, '')}.md`,
+    );
+    let content: string;
+    try {
+      content = await fs.readFile(docPath, 'utf-8');
+    } catch {
+      resolvedEntries.push(entry);
+      continue;
+    }
+
+    const section = anchorFragment
+      ? findSectionByAnchor(content, anchorFragment)
+      : (findSectionByAnchor(content, 'environment-variables') ?? content);
+    if (section === null) {
+      resolvedEntries.push(entry);
+      continue;
+    }
+
+    const directDescription = resolveDescriptionFromSection(
+      String(entry.key),
+      section,
+    );
+    if (directDescription !== null) {
+      resolvedEntries.push({
+        ...entry,
+        descriptionEn: directDescription,
+      });
+      continue;
+    }
+
+    const fallbackMatch = String(entry.key).match(
+      /^ANTHROPIC_DEFAULT_([A-Z]+)_MODEL(?:_(NAME|DESCRIPTION|SUPPORTED_CAPABILITIES))?$/,
+    );
+    if (fallbackMatch !== null) {
+      const tierName = fallbackMatch[1];
+      const suffix = fallbackMatch[2] ?? '';
+      if (tierName === undefined) {
+        resolvedEntries.push(entry);
+        continue;
+      }
+
+      const displayTierName = tierName[0] + tierName.slice(1).toLowerCase();
+      const fallbackKey = `ANTHROPIC_DEFAULT_OPUS_MODEL${suffix ? `_${suffix}` : ''}`;
+      const fallbackDescription = resolveDescriptionFromSection(
+        fallbackKey,
+        section,
+      );
+      if (fallbackDescription !== null) {
+        resolvedEntries.push({
+          ...entry,
+          descriptionEn: fallbackDescription.replace(/Opus/g, displayTierName),
+        });
+        continue;
+      }
+    }
+
+    if (
+      String(entry.key) ===
+      'ANTHROPIC_CUSTOM_MODEL_OPTION_SUPPORTED_CAPABILITIES'
+    ) {
+      const fallbackDescription = resolveDescriptionFromSection(
+        'ANTHROPIC_DEFAULT_OPUS_MODEL_SUPPORTED_CAPABILITIES',
+        section,
+      );
+      if (fallbackDescription !== null) {
+        resolvedEntries.push({
+          ...entry,
+          descriptionEn: fallbackDescription.replace(
+            /pinned Opus model/g,
+            'custom model option',
+          ),
+        });
+        continue;
+      }
+    }
+
+    resolvedEntries.push(entry);
+  }
+
+  return resolvedEntries;
 }
 
 export async function parsePublicEnvEntriesFromDocs(
@@ -234,7 +361,9 @@ export async function parsePublicEnvEntriesFromDocs(
 
   for (const file of files) {
     const raw = await fs.readFile(file, 'utf-8');
-    entries.push(...parseEnvTableRows(raw, { environmentTableOnly: true }));
+    entries.push(
+      ...parseEnvTableRows(raw, { environmentTableOnly: true }).entries,
+    );
     entries.push(...extractPublicEnvMentions(raw));
   }
 
@@ -347,7 +476,10 @@ export async function loadSettingsEntries(input: {
 }): Promise<RawSettingsEntries> {
   const { settings: schemaSettings, envFromSchema: schemaEnvEntries } =
     await parseSettingsSchema(input.schemaPath);
-  const mdEnvEntries = await parseEnvVarsMd(input.envVarsMdPath);
+  const mdEnvEntries = await parseEnvVarsMd(
+    input.envVarsMdPath,
+    input.docsEnDir,
+  );
   const docsEnvEntries = await parsePublicEnvEntriesFromDocs(input.docsEnDir);
 
   return {
@@ -370,4 +502,65 @@ function createLoadedSettingsEntry(input: {
     descriptionEn: input.descriptionEn,
     parentDescriptions: input.parentDescriptions,
   });
+}
+
+function findSectionByAnchor(content: string, anchor: string): string | null {
+  const targetAnchor = anchor.replace(/^#/, '').trim().toLowerCase();
+  const lines = content.split('\n');
+  let sectionStart = -1;
+  let sectionLevel = 0;
+
+  const toAnchor = (value: string): string =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[`]/g, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const match = lines[index]?.match(/^(#{1,6})\s+(.+?)\s*$/);
+    if (match == null) {
+      continue;
+    }
+
+    const headingMarker = match[1];
+    const headingText = match[2];
+    if (headingMarker === undefined || headingText === undefined) {
+      continue;
+    }
+
+    const level = headingMarker.length;
+    if (sectionStart !== -1 && level <= sectionLevel) {
+      return lines.slice(sectionStart, index).join('\n').trim();
+    }
+
+    if (toAnchor(headingText) === targetAnchor) {
+      sectionStart = index + 1;
+      sectionLevel = level;
+    }
+  }
+
+  return sectionStart === -1
+    ? null
+    : lines.slice(sectionStart).join('\n').trim();
+}
+
+function resolveDescriptionFromSection(
+  envKey: string,
+  section: string,
+): string | null {
+  for (const line of section.split('\n')) {
+    const trimmed = line.trim();
+    const match = trimmed.match(/^\|\s*`([A-Z_][A-Z0-9_]*)`\s*\|(.+)$/);
+    if (match?.[1] !== envKey || !match[2]) {
+      continue;
+    }
+
+    const descriptionRaw = match[2].split('|')[0]?.trim() ?? '';
+    return stripMarkdown(descriptionRaw);
+  }
+
+  return null;
 }
