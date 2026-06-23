@@ -7,9 +7,11 @@ source: https://code.claude.com/docs/ja/slack.md
 
 > Slack ワークスペースから直接コーディングタスクを委任する
 
+Claude Code in Slack は、Team および Enterprise ワークスペース向けに [Claude Tag](https://claude.com/docs/claude-tag/overview) に置き換わります。Claude Tag は、管理者が設定したアクセス権限を持つ組織の共有 ID として @Claude を実行し、同じ Slack アプリの下で動作するため、再インストールする必要がなく、既存のセットアップは移行中も機能し続けます。ワークスペースを切り替えるには、[Claude in Slack の以前のバージョンから移行する](https://claude.com/docs/claude-tag/admins/migrate-from-earlier)を参照してください。
+
 Slack での Claude Code は、Claude Code の機能を Slack ワークスペースに直接もたらします。`@Claude` にコーディングタスクをメンションすると、Claude は自動的に意図を検出し、ウェブ上で Claude Code セッションを作成します。これにより、チームの会話を離れることなく開発作業を委任できます。
 
-この統合は既存の Claude for Slack アプリに基づいていますが、コーディング関連のリクエストに対して Claude Code ウェブへのインテリジェントなルーティングを追加しています。
+この統合は既存の Claude for Slack アプリに基づいていますが、コーディング関連のリクエストに対して Claude Code ウェブへのインテリジェントなルーティングを追加しています。各セッションは自分の Claude アカウントで実行され、接続されたリポジトリと自分のプラン制限を使用します。
 
 ユースケース
 
@@ -160,6 +162,10 @@ Slack とウェブの使い分け
 
 トラブルシューティング
 
+'Claude Code がアカウントで有効になっていません'
+
+このエラーは、Claude アカウントにまだクラウド環境がないことを意味します。管理者が何かを有効にする必要があるわけではありません。Slack に接続したのと同じアカウントで [claude.ai/code](https://claude.ai/code) に 1 回サインインしてください。初回訪問時にデフォルトのクラウド環境が作成され、次回のメンション時にエラーが解消されます。各ユーザーが個別に実行する必要があります。
+
 セッションが開始しない
 
 1. Claude アカウントが Claude App Home で接続されていることを確認します
@@ -200,6 +206,8 @@ Slack とウェブの使い分け
 ウェブ上の Claude Code について詳しく学ぶ
 
 Claude for Slack の一般的なドキュメント
+
+Slack での組織管理の @Claude（管理者が設定したアクセス権限付き）
 
 Slack Marketplace から Claude アプリをインストール
 

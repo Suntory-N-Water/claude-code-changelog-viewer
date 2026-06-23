@@ -757,3 +757,4 @@ Remote Control セッションの有効期限切れまたはアクセス拒否
 - [設定リファレンス](/ja/settings)：すべての設定オプション
 - [セキュリティ](/ja/security)：分離保証とデータ処理
 - [データ使用](/ja/data-usage)：Anthropic がクラウドセッションから保持するもの
+- [Claude Tag](https://claude.com/docs/claude-tag/overview)：Slack で実行される組織管理の @Claude で、同じクラウド環境で動作

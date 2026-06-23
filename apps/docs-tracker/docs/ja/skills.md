@@ -823,3 +823,4 @@ Claude がスキルを使用したくない場合：
 - **[メモリ](/ja/memory)**：永続的なコンテキストのための CLAUDE.md ファイルを管理する
 - **[コマンド](/ja/commands)**：組み込みコマンドとバンドルされたスキルのリファレンス
 - **[権限](/ja/permissions)**：ツールとスキルアクセスを制御する
+- **[Claude Tag スキル](https://claude.com/docs/claude-tag/admins/skills-repo)**：リポジトリにコミットされたプロジェクトスキルは、そのリポジトリが Claude Tag チャネルで使用される場合にも読み込まれます
