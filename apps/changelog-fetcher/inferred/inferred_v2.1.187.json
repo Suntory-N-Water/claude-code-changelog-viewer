@@ -1,0 +1,372 @@
+{
+  "version": "2.1.187",
+  "summary": "サンドボックス環境における機密情報の保護設定や、組織ポリシーによるモデル制限機能が追加され、セキュリティと管理性が強化されました。また、フルスクリーンモードでのマウス操作対応や、バックグラウンド実行、Git ワークツリーの自動クリーンアップなど、マルチタスク環境での操作安定性が大幅に向上しています。その他、CJK テキストの文字化け解消や VS Code 拡張機能のパフォーマンス修正など、多岐にわたるバグ修正が行われました。",
+  "items": [
+    {
+      "content": "- Added `sandbox.credentials` setting to block sandboxed commands from reading credential files and secret environment variables",
+      "content_ja": "サンドボックス設定に `sandbox.credentials` を追加し、認証情報ファイルや機密環境変数の読み取りをブロック可能に改善",
+      "prefix": "Added",
+      "feature_areas": ["Permissions", "Settings"],
+      "inference": {
+        "before": "サンドボックス環境下で実行されるコマンドに対して、ローカルの認証情報ファイルや機密性の高い環境変数へのアクセスを制限する詳細な設定が不足していました。",
+        "after": "新しく導入された `sandbox.credentials` 設定により、サンドボックス内のコマンドが特定の認証ファイルや秘密の環境変数を読み取ることを明示的にブロックできるようになりました。",
+        "benefit": "セキュリティが強化され、エージェントにコマンド実行を許可した際でも、意図せず重要な認証情報が読み取られるリスクを低減できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added org-configured model restrictions to the model picker, `--model`, `/model`, and `ANTHROPIC_MODEL`, with a \"restricted by your organization's settings\" message when a restricted model is selected",
+      "content_ja": "組織設定によるモデル制限機能を実装し、制限されたモデル選択時に警告メッセージを表示するように改善",
+      "prefix": "Added",
+      "feature_areas": ["Settings", "Permissions"],
+      "inference": {
+        "before": "組織のポリシーで使用が禁止されているモデルであっても、CLI上のモデルピッカーや `--model` フラグなどで選択できてしまう可能性がありました。",
+        "after": "組織で構成されたモデル制限が反映されるようになり、制限されたモデルを選択した際には「組織の設定により制限されています」というメッセージが表示されます。",
+        "benefit": "管理者が意図した通りのモデル利用を徹底でき、誤って高コストなモデルや未承認のモデルを使用してしまうことを防げます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added mouse click support to select menus (permission prompts, `/model`, `/config`, etc.) in fullscreen mode",
+      "content_ja": "フルスクリーンモードの各種選択メニュー（権限プロンプト、モデル選択、設定等）でマウス操作に対応",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "フルスクリーン（TUI）モードのメニュー操作はキーボードのみに制限されており、マウスでの直感的な選択ができませんでした。",
+        "after": "権限の承認プロンプトや `/model`、`/config` などの選択メニューにおいて、マウスでのクリック選択が可能になりました。",
+        "benefit": "キーボードから手を離してマウスを使用している際でも、スムーズに選択操作を行えるようになり利便性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `--resume` failing with \"No conversation found\" when the original `-p` run produced no model turns",
+      "content_ja": "`-p` フラグでの初回実行時にモデルの応答がなかった場合に `--resume` が失敗する問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "非インタラクティブモード（-p）で実行した際、モデルがターンを生成せずに終了すると、その会話を `--resume` で再開しようとしても「会話が見つかりません」というエラーが発生していました。",
+        "after": "モデルの応答が空の場合でも会話履歴が正しく記録されるようになり、後から正常にレジュームできるようになりました。",
+        "benefit": "スクリプト実行や自動化の過程で失敗したり応答がなかったりしたセッションでも、その時点からやり直すことが可能になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/authentication.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/channels.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `--json-schema` and workflow `agent({schema})` structured output: the model can no longer re-call `StructuredOutput` indefinitely after a successful call, and follow-up turns now reliably return structured output",
+      "content_ja": "構造化出力における `StructuredOutput` ツールの無限呼び出しを修正し、追従ターンの信頼性を向上",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "JSONスキーマ指定時やワークフロー実行において、モデルが正常な出力後も不必要にツールを呼び出し続けたり、継続ターンで構造化データが返らなくなったりすることがありました。",
+        "after": "ツール呼び出しのループが防止され、フォローアップのターンにおいても一貫して検証済みの構造化データが返されるようになります。",
+        "benefit": "プログラムから Claude Code を呼び出す際の挙動が安定し、不必要なトークン消費を抑えつつ正確な JSON データを取得できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/env-vars.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/headless.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed remote MCP tool calls that hang with no response for 5 minutes — they now abort with an error instead of blocking indefinitely (override with `CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT`)",
+      "content_ja": "リモートMCPツールの呼び出しが応答なしでハングする問題を修正し、タイムアウト設定を追加",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP", "Settings"],
+      "inference": {
+        "before": "リモートのMCPサーバーが応答を停止した場合、ツール呼び出しが5分間、あるいは無期限にブロックされることがありました。",
+        "after": "応答がない場合はエラーで中断されるようになり、`CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT` で待機時間をカスタマイズできるようになりました。",
+        "benefit": "ネットワークの問題や外部サーバーの不調によって CLI 全体がフリーズして作業が中断されるのを防ぎます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed Claude Code Remote sessions taking ~2.7s longer to start after the agent proxy CA system-trust install was added",
+      "content_ja": "リモートセッションの起動時に発生していた約2.7秒の遅延を解消",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エージェントプロキシ用の証明書インストール処理が追加された影響で、リモートセッションの開始までに余分な時間がかかっていました。",
+        "after": "起動プロセスが最適化され、以前のバージョンよりも素早くセッションを開始できるようになりました。",
+        "benefit": "リモート環境での作業開始時の待ち時間が短縮され、開発のテンポが損なわれません。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed pasted Korean/CJK text turning into mojibake in terminals that deliver paste as per-byte extended-key events",
+      "content_ja": "ペーストされた韓国語や CJK テキストが、一部のターミナルで文字化けする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed `/update` over Remote Control hanging when a startup trust dialog would have shown",
+      "content_ja": "リモートコントロール中に `/update` を実行した際、信頼ダイアログが表示されずハングする問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "リモートコントロール越しにアップデートを行うと、本来表示されるべきセキュリティ確認のダイアログが原因で進行が止まってしまうことがありました。",
+        "after": "ダイアログによるブロッキングが発生しないよう処理が修正され、リモートからでも安全にアップデートを完結できます。",
+        "benefit": "遠隔操作でのツール管理が容易になり、わざわざローカル環境に戻ることなく最新版を維持できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background jobs in the agents view getting stuck in \"working\" indefinitely when the agent ended a turn without producing structured output",
+      "content_ja": "構造化出力を生成せずにターンを終了した際、エージェントビューのジョブが「実行中」のまま固まる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed channel connections dropping after navigating to the agents view and back, and after `/bg`, `/tui`, or `/update`",
+      "content_ja": "エージェントビューの切り替えや `/bg`、`/tui` 等の実行後にチャンネル接続が切断される問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "エージェントビューへの移動や表示モードの切り替え、`/update` などの操作を行うたびに、通知用のチャンネル接続が途切れてしまうことがありました。",
+        "after": "セッションの状態変更やモードの移行後も、Telegram や Discord 等との連携接続が安定して維持されるようになりました。",
+        "benefit": "バックグラウンドでの作業中も、外部メッセージングツールへの通知を確実に受け取り続けることができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed agent stop notifications not correctly attributing who stopped the agent, and improved wording (\"finished\"/\"stopped\" instead of \"came to rest\")",
+      "content_ja": "エージェント停止時の通知で停止実行者の特定を修正し、「完了」や「停止」などの表現をより自然に改善しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed subagent depth tracking: resumed subagents now restore their original spawn depth, and forked subagents now count toward the depth cap",
+      "content_ja": "サブエージェントのネスト深度追跡を修正し、再開時やフォーク時の制限カウントを正確にしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed leaked agent worktree registrations: locked `.git/worktrees/` entries from killed agents are now cleaned up automatically",
+      "content_ja": "強制終了したエージェントによって残された Git ワークツリーを自動的にクリーンアップするよう改善",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "バックグラウンドエージェントが異常終了したりプロセスが殺されたりした際、`.git/worktrees/` 内の登録情報がロックされたまま残留し、手動での削除が必要になることがありました。",
+        "after": "不要になったワークツリーの登録が自動的に検知・解除されるようになり、Git 環境をクリーンに保てるようになりました。",
+        "benefit": "ディスク容量の無駄遣いや Git 操作時の予期せぬ競合を回避し、手動でのメンテナンスの手間を省けます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agents.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed Cmd+click not opening URLs in fullscreen mode in Ghostty on macOS",
+      "content_ja": "macOS の Ghostty ターミナルにおいて、フルスクリーンモードで Cmd+クリックによる URL 開きが機能しない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed `claude --help` not listing the `--bg`/`--background` flag",
+      "content_ja": "`claude --help` の一覧にバックグラウンド実行用の `--bg` フラグが表示されない問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "コマンドラインヘルプに `--bg` や `--background` フラグの記載が漏れており、正しい使い方の確認が困難でした。",
+        "after": "ヘルプメニューにこれらの主要なフラグが正しく追加され、ターミナル上で直接確認できるようになりました。",
+        "benefit": "ドキュメントを確認しなくても、CLI のヘルプから直接機能やオプションを把握しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed Esc, Ctrl-C, and Ctrl-D not working while `/share` is uploading",
+      "content_ja": "/shareコマンドでのアップロード中にEsc、Ctrl-C、Ctrl-Dが機能しない問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "/shareコマンド（または/feedback）を使用して会話内容を共有したりバグ報告をアップロードしたりしている間、ユーザーがEsc、Ctrl-C、Ctrl-Dキーを押しても操作を中断したりCLIを終了したりすることができませんでした。アップロードが完了するかタイムアウトするまで待機する必要があり、応答停止のように感じられる状況でした。",
+        "after": "アップロード処理中であっても、EscキーによるキャンセルやCtrl-C/Ctrl-Dによる中断・終了操作が即座に受け付けられるようになりました。",
+        "benefit": "ネットワーク状況によりアップロードに時間がかかっている場合でも、ユーザーが自分の意志で操作を中断して作業に戻れるようになり、CLIの操作性が向上しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved `/install-github-app`: GitHub Actions workflow setup is now optional — you can install just the GitHub App and skip the workflow/secret steps",
+      "content_ja": "`/install-github-app` で GitHub Actions の設定をスキップし、アプリのインストールのみを行えるよう改善",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "GitHub 連携の設定時、常にワークフローファイルやシークレットの設定まで完了させる必要がありました。",
+        "after": "GitHub アプリのインストールのみを行い、Actions 側の設定をスキップできるオプションが追加されました。",
+        "benefit": "とりあえず連携だけしておきたい場合や、自前で Actions を構成したい場合に、柔軟にセットアップを選択できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/env-vars.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/github-actions.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved `/btw` with ←/→ arrow navigation to step through earlier answers",
+      "content_ja": "`/btw` の回答履歴を矢印キー（←/→）で遡って確認できるように改善",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "ちょっとした質問（/btw）への回答はその場で見ることしかできず、一つ前の質問内容などを振り返るのが不便でした。",
+        "after": "左右の矢印キーを使用することで、過去の `/btw` で得た回答を順番にステップ実行して確認できるようになりました。",
+        "benefit": "メインの会話履歴を汚すことなく、以前確認した情報を再度参照できるため、思考を中断せずに作業を続けられます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved `/plugin` to surface plugins you haven't used recently so you can clean them up",
+      "content_ja": "`/plugin` メニューで長期間使用していないプラグインを表示し、整理を促すよう改善",
+      "prefix": "Improved",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "インストール済みのプラグインが増えると管理が煩雑になり、使わなくなった古いプラグインが残り続けていました。",
+        "after": "最近使用していないプラグインが優先的に表面化されるようになり、不要なプラグインのクリーンアップが容易になりました。",
+        "benefit": "ツールの肥大化を防ぎ、常に必要な機能だけが有効な最適な開発環境を維持できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/communications-kit.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "content": "- [VSCode] Fixed extension becoming unresponsive when resuming a large session",
+      "content_ja": "[VSCode] 大規模なセッションを再開した際に拡張機能の応答がなくなる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["IDE"],
+      "related_docs": []
+    }
+  ]
+}
