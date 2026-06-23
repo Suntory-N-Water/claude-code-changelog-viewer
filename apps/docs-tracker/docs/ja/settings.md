@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/ja/settings.md
 
 > Claude Code をグローバル設定とプロジェクトレベルの設定、および環境変数で構成します。
 
-Claude Code は、ニーズに合わせて動作を構成するためのさまざまな設定を提供しています。インタラクティブ REPL を使用する際に `/config` コマンドを実行することで Claude Code を構成できます。これにより、ステータス情報を表示し、構成オプションを変更できるタブ付き設定インターフェースが開きます。
+Claude Code は、ニーズに合わせて動作を構成するためのさまざまな設定を提供しています。`/config` コマンドを実行することで Claude Code を構成できます。これにより、ステータス情報を表示し、構成オプションを変更できるタブ付き設定インターフェースが開きます。v2.1.181 以降では、`/config` に `key=value` を渡すことで、インターフェースを開かずに単一のオプションを変更できます。例えば `/config verbose=true` のようにします。
 
 構成スコープ
 
@@ -211,6 +211,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `awaySummaryEnabled` | 数分間ターミナルから離れた後に戻ったときに、1 行のセッション要約を表示します。`false` に設定するか、`/config` でセッション要約をオフにして無効にします。[`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/ja/env-vars)と同じです | `true` |
 | `awsAuthRefresh` | `.aws` ディレクトリを変更するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `aws sso login --profile myprofile` |
 | `awsCredentialExport` | AWS 認証情報を含む JSON を出力するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `/bin/generate_aws_grant.sh` |
+| `axScreenReader` | スクリーンリーダーフレンドリーな出力をレンダリングします：装飾的なボーダーやアニメーションのないフラットテキスト。スクリーンリーダーモードは常にクラシックレンダラーを使用するため、`tui` 設定はアクティブな間は効果がありません。[`CLAUDE_AX_SCREEN_READER`](/ja/env-vars)環境変数と [`--ax-screen-reader`](/ja/cli-reference#cli-flags)フラグが優先されます。Claude Code v2.1.181 以降が必要です | `true` |
 | `blockedMarketplaces` | （Managed 設定のみ）マーケットプレイスソースのブロックリスト。マーケットプレイス追加時およびプラグインのインストール、更新、リフレッシュ、自動更新時に適用されるため、ポリシーが設定される前に追加されたマーケットプレイスは使用できません。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "untrusted/plugins" }]` |
 | `channelsEnabled` | （Managed 設定のみ）組織に対して[チャネル](/ja/channels)を許可します。Claude.ai Team および Enterprise プランでは、これが未設定または `false` の場合、チャネルはブロックされます。[Anthropic Console](/ja/authentication#claude-console-authentication)アカウントで API キー認証を使用している場合、チャネルはデフォルトで許可されます。ただし、組織が managed 設定をデプロイしている場合は、このキーを `true` に設定する必要があります | `true` |
 | `claudeMd` | （Managed 設定のみ）CLAUDE.md スタイルの命令が組織管理メモリとして注入されます。managed またはポリシー設定で設定されている場合のみ尊重され、ユーザー、プロジェクト、およびローカル設定では無視されます。[組織全体の CLAUDE.md](/ja/memory#deploy-organization-wide-claude-md)を参照してください | `"Always run make lint before committing."` |
@@ -221,8 +222,10 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `deniedMcpServers` | managed-settings.json で設定されている場合、明示的にブロックされた MCP サーバーの拒否リスト。managed サーバーを含むすべてのスコープに適用されます。拒否リストがホワイトリストよりも優先されます。[Managed MCP 構成](/ja/managed-mcp)を参照してください | `[{ "serverName": "filesystem" }]` |
 | `disableAgentView` | [バックグラウンドエージェントとエージェントビュー](/ja/agent-view)をオフにするために `true` に設定します：`claude agents`、`--bg`、`/background`、およびオンデマンドスーパーバイザー。通常は [managed 設定](/ja/permissions#managed-settings)で設定されます。`CLAUDE_CODE_DISABLE_AGENT_VIEW` を `1` に設定するのと同等です | `true` |
 | `disableAllHooks` | すべての [hooks](/ja/hooks) とカスタム [ステータスライン](/ja/statusline)を無効にします | `true` |
+| `disableArtifact` | [Artifact](/ja/artifacts)ツールを無効にするために `true` に設定します。このツールはセッション出力を claude.ai 上のプライベート Web ページとして公開します。`CLAUDE_CODE_DISABLE_ARTIFACT` を `1` に設定するのと同等です | `true` |
 | `disableAutoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)の有効化を防ぐために `"disable"` に設定します。`Shift+Tab` サイクルから `auto` を削除し、起動時に `--permission-mode auto` を拒否します。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `"disable"` |
 | `disableBundledSkills` | [skills](/ja/skills)とワークフローをオフにするために `true` に設定します。Claude Code に付属しています：バンドルされた skills とワークフローは完全に削除されますが、`/init` などの組み込みスラッシュコマンドは入力可能なままですが、モデルから非表示になります。プラグイン、`.claude/skills/`、および `.claude/commands/` からの Skills は影響を受けません。`CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` を `1` に設定するのと同等です | `true` |
+| `disableClaudeAiConnectors` | [claude.ai MCP コネクタ](/ja/mcp#use-mcp-servers-from-claude-ai)を無効にして、自動フェッチまたは接続されないようにします。任意の設定スコープで設定します。任意のソースの `true` が優先されるため、チェックインされたプロジェクト `.claude/settings.json` はリポジトリをクラウドコネクタから除外できますが、プロジェクトレベルの `false` はユーザーまたはポリシーレベルの `true` をオーバーライドできません。`--mcp-config` を通じて明示的に渡されたサーバーは影響を受けません。[個別のコネクタを拒否する](/ja/managed-mcp)には、代わりに [`deniedMcpServers`](/ja/managed-mcp)を使用します。Claude Code v2.1.182 以降が必要です | `true` |
 | `disableDeepLinkRegistration` | Claude Code が起動時にオペレーティングシステムで `claude-cli://` プロトコルハンドラーを登録するのを防ぐために `"disable"` に設定します。[ディープリンク](/ja/deep-links)を使用すると、外部ツールは事前入力されたプロンプトで Claude Code セッションを開くことができます。プロトコルハンドラー登録が制限されているか、別途管理されている環境で役立ちます | `"disable"` |
 | `disabledMcpjsonServers` | `.mcp.json` ファイルから拒否する特定の MCP サーバーのリスト | `["filesystem"]` |
 | `disableRemoteControl` | [リモートコントロール](/ja/remote-control)を無効にします：`claude remote-control`、`--remote-control` フラグ、自動開始、およびセッション内トグルをブロックします。通常は [managed 設定](/ja/permissions#managed-settings)に配置されます。デバイスごとの MDM 強制用ですが、任意のスコープから機能します。Claude Code v2.1.128 以降が必要です | `true` |
@@ -265,8 +268,10 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `preferredNotifChannel` | タスク完了および権限プロンプト通知の方法：`"auto"`、`"terminal_bell"`、`"iterm2"`、`"iterm2_with_bell"`、`"kitty"`、`"ghostty"`、または `"notifications_disabled"`。デフォルト：`"auto"`。iTerm2、Ghostty、Kitty ではデスクトップ通知を送信し、他のターミナルでは何もしません。任意のターミナルでベル文字を鳴らすには `"terminal_bell"` を設定します。`/config` に**通知**として表示されます。[ターミナルベルまたは通知を取得](/ja/terminal-config#get-a-terminal-bell-or-notification)を参照してください | `"terminal_bell"` |
 | `prefersReducedMotion` | アクセシビリティのために UI アニメーション（スピナー、シマー、フラッシュエフェクト）を削減または無効にします | `true` |
 | `prUrlTemplate` | フッターおよびツール結果サマリーに表示される PR バッジの URL テンプレート。`gh` レポートされた PR URL から `{host}`、`{owner}`、`{repo}`、`{number}`、および `{url}` を置き換えます。PR リンクを `github.com` の代わりに内部コードレビューツールにポイントするために使用します。Claude の散文の `#123` オートリンクには影響しません | `"https://reviews.example.com/{owner}/{repo}/pull/{number}"` |
+| `remoteControlAtStartup` | 各インタラクティブセッションの開始時に [リモートコントロール](/ja/remote-control)を自動的に接続します。`/remote-control` を待つ代わりに。`true` に設定して常に自動接続するか、`false` に設定して自動接続しないか、組織のデフォルトに従うために未設定のままにします。`/config` に**すべてのセッションでリモートコントロールを有効にする**として表示されます。[すべてのセッションでリモートコントロールを有効にする](/ja/remote-control#enable-remote-control-for-all-sessions)を参照してください | `false` |
 | `requiredMaximumVersion` | Managed 設定のみ。起動を許可される最大 Claude Code バージョン。実行中のバージョンがより新しい場合、Claude Code は起動時に終了し、ユーザーに組織の承認された方法を通じて承認されたバージョンをインストールするよう指示します。`claude install <version>` も機能する可能性があります。背景自動更新と `claude update` は上限を超えるバージョンをスキップするため、範囲内のインストールは範囲内のままです。`claude update`、`claude install`、および `claude doctor` は上限を超えて機能し続けるため、ユーザーは回復できます。この設定より前のバージョンはそれを無視します | `"2.1.150"` |
 | `requiredMinimumVersion` | Managed 設定のみ。起動に必要な最小 Claude Code バージョン。実行中のバージョンがより古い場合、Claude Code は起動時に終了し、ユーザーに組織の承認された方法を通じて更新するよう指示します。`claude update`、`claude install`、および `claude doctor` は下限を超えて機能し続けるため、ユーザーは回復できます。ダウングレードを防止するが起動をブロックしない `minimumVersion` とは異なります。この設定より前のバージョンはそれを無視します | `"2.1.150"` |
+| `respondToBashCommands` | 入力ボックス `!` シェルコマンドが実行された後に Claude が応答するかどうか。コマンド出力をコンテキストに追加するが応答なしで `false` に設定します。デフォルト：`true`。[`!` プレフィックス付きシェルモード](/ja/interactive-mode#shell-mode-with-prefix)を参照してください。Claude Code v2.1.186 以降が必要です | `false` |
 | `respectGitignore` | `@` ファイルピッカーが `.gitignore` パターンを尊重するかどうかを制御します。`true`（デフォルト）の場合、`.gitignore` パターンに一致するファイルは提案から除外されます | `false` |
 | `showClearContextOnPlanAccept` | プラン受け入れ画面に「コンテキストをクリア」オプションを表示します。デフォルトは `false` です。`true` に設定してオプションを復元します | `true` |
 | `showThinkingSummaries` | [拡張思考](/ja/model-config#extended-thinking)サマリーをインタラクティブセッションに表示します。未設定または `false`（インタラクティブモードのデフォルト）の場合、思考ブロックは API によって編集され、折りたたまれたスタブとして表示されます。編集は表示内容のみを変更し、モデルが生成するものは変更しません：思考支出を削減するには、[予算を低下させるか思考を無効にする](/ja/model-config#extended-thinking)代わりに。この設定は非インタラクティブモード（`-p`）、Agent SDK、または VS Code などの IDE 拡張機能には影響しません | `true` |
@@ -282,7 +287,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `strictKnownMarketplaces` | （Managed 設定のみ）プラグインマーケットプレイスソースのホワイトリスト。未定義 = 制限なし、空配列 = ロックダウン。マーケットプレイス追加時およびプラグインのインストール、更新、リフレッシュ、自動更新時に適用されるため、ポリシーが設定される前に追加されたマーケットプレイスは使用できません。[Managed マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください | `[{ "source": "github", "repo": "acme-corp/plugins" }]` |
 | `strictPluginOnlyCustomization` | （Managed 設定のみ）ユーザーおよびプロジェクトソースからの skills、agents、hooks、および MCP サーバーをブロックして、プラグインまたは managed 設定からのみ取得できるようにします。`true` は 4 つすべてをロックします。配列は名前付きのものだけをロックします。[`strictPluginOnlyCustomization`](#strictpluginonlycustomization)を参照してください | `["skills", "hooks"]` |
 | `syntaxHighlightingDisabled` | diff、コードブロック、ファイルプレビューの構文強調表示を無効にします | `true` |
-| `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`in-process`、または `tmux`。`--teammate-mode` はこれを 1 セッション間オーバーライドします。[表示モードを選択](/ja/agent-teams#choose-a-display-mode)を参照してください | `"in-process"` |
+| `teammateMode` | [エージェントチーム](/ja/agent-teams)チームメイトの表示方法：`in-process`（デフォルト）、`auto`（tmux または iTerm2 で分割ペインを選択、それ以外の場合はインプロセス）、`tmux`（tmux または iTerm2 を使用して分割ペインを選択、ターミナルから検出）、または `iterm2`（iTerm2 ネイティブ分割ペイン。v2.1.186 で追加された `it2` CLI 経由）。デフォルトは v2.1.179 で `auto` から変更されました。`--teammate-mode` はこれを 1 セッション間オーバーライドします。[表示モードを選択](/ja/agent-teams#choose-a-display-mode)を参照してください | `"auto"` |
 | `terminalProgressBarEnabled` | サポートされているターミナルでターミナル進行状況バーを表示します：ConEmu、Ghostty 1.2.0 以降、および iTerm2 3.6.6 以降。デフォルト：`true`。`/config` に**ターミナル進行状況バー**として表示されます | `false` |
 | `theme` | インターフェイスのカラーテーマ：`"auto"`、`"dark"`、`"light"`、`"dark-daltonized"`、`"light-daltonized"`、`"dark-ansi"`、`"light-ansi"`、または `"custom:<slug>"` または `"custom:<plugin-name>:<slug>"` などのカスタムテーマリファレンス。デフォルト：`"dark"`。[カスタムテーマを作成](/ja/terminal-config#create-a-custom-theme)を参照してください。`/config` に**テーマ**として表示されます | `"dark"` |
 | `tui` | ターミナル UI レンダラー。フリッカーのない[alt-screen レンダラー](/ja/fullscreen)を備えた仮想スクロールバック用に `"fullscreen"` を使用します。クラシックメインスクリーンレンダラー用に `"default"` を使用します。`/tui` で設定します。[`CLAUDE_CODE_NO_FLICKER`](/ja/env-vars)環境変数を設定することもできます。[エージェントビュー](/ja/agent-view)から開かれたバックグラウンドセッションは、この設定に関係なく常にフルスクリーンレンダラーを使用します | `"fullscreen"` |
@@ -376,6 +381,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `network.socksProxyPort` | 独自のプロキシを使用する場合に使用される SOCKS5 プロキシポート。指定されていない場合、Claude は独自のプロキシを実行します。 | `8081` |
 | `enableWeakerNestedSandbox` | 非特権 Docker 環境用の弱いサンドボックスを有効にします（Linux と WSL2 のみ）。**セキュリティを低下させます。** デフォルト：false | `true` |
 | `enableWeakerNetworkIsolation` | （macOS のみ）サンドボックス内のシステム TLS 信頼サービス（`com.apple.trustd.agent`）へのアクセスを許可します。`httpProxyPort` を MITM プロキシおよびカスタム CA と共に使用する場合、`gh`、`gcloud`、`terraform` などの Go ベースのツールが TLS 証明書を検証するために必要です。**セキュリティを低下させます**。データ流出の可能性のあるパスを開きます。デフォルト：false | `true` |
+| `allowAppleEvents` | （macOS のみ）サンドボックス化されたコマンドが Apple Events を送信することを許可します。`open`、`osascript`、および URL をブラウザで開くツールに必要です。これ以外の場合は error `-600` で失敗します。**コード実行分離を削除します。** サンドボックス化されたコマンドは、ユーザープロンプトなしで他のアプリケーションをサンドボックス化されていない状態で起動できます。また、Terminal などの実行中のアプリケーションに AppleScript コマンドを送信することもできます。macOS 自動化同意プロンプト（TCC）の対象となります。ユーザー、managed、または CLI 設定からのみ尊重され、プロジェクト設定からは尊重されません。デフォルト：false | `true` |
 | `bwrapPath` | （Managed 設定のみ、Linux/WSL2）bubblewrap（`bwrap`）バイナリへの絶対パス。`PATH` を通じた自動検出をオーバーライドします。[managed 設定](/ja/settings#settings-precedence)からのみ尊重され、ユーザーまたはプロジェクト設定からは尊重されません。managed 環境で `bwrap` が非標準の場所にインストールされている場合に役立ちます。 | `/opt/admin/bwrap` |
 | `socatPath` | （Managed 設定のみ、Linux/WSL2）サンドボックスネットワークプロキシに使用される `socat` バイナリへの絶対パス。`PATH` を通じた自動検出をオーバーライドします。managed 設定からのみ尊重されます。 | `/opt/admin/socat` |
 
@@ -431,6 +437,7 @@ Claude Code は git コミットとプルリクエストに属性を追加しま
 | :- | :- |
 | `commit` | git コミットの属性（トレーラーを含む）。空の文字列はコミット属性を非表示にします |
 | `pr` | プルリクエストの説明の属性。空の文字列はプルリクエスト属性を非表示にします |
+| `sessionUrl` | web またはリモートコントロールセッションから実行する場合、claude.ai セッションリンクを `Claude-Session` トレーラーとしてコミットに追加し、プルリクエストの説明にリンクとして追加するかどうか。デフォルト：`true`。`false` に設定してリンクを省略します |
 
 **デフォルトコミット属性：**
 
@@ -457,7 +464,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 }
 ```
 
-`attribution` 設定は非推奨の `includeCoAuthoredBy` 設定よりも優先されます。すべての属性を非表示にするには、`commit` と `pr` を空の文字列に設定します。
+`attribution` 設定は非推奨の `includeCoAuthoredBy` 設定よりも優先されます。すべての属性を非表示にするには、`commit` と `pr` を空の文字列に設定し、`sessionUrl` を `false` に設定します。
 
 ファイル提案設定
 
@@ -656,7 +663,7 @@ API キー、シークレット、環境ファイルなどの機密情報を含�
 }
 ```
 
-これは非推奨の `ignorePatterns` 構成に置き換わります。これらのパターンに一致するファイルはファイル検出と検索結果から除外され、これらのファイルの読み取り操作は拒否されます。
+これは非推奨の `ignorePatterns` 構成に置き換わります。これらのパターンに一致するファイルはファイル検出と検索結果から除外され、これらのファ イルの読み取り操作は拒否されます。
 
 Subagent 構成
 

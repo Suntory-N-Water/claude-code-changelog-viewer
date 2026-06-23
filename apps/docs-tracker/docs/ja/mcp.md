@@ -485,6 +485,22 @@ Claude Code で、コマンドを使用します：
 - ブラウザのリダイレクトが認証後に接続エラーで失敗する場合は、ブラウザのアドレスバーから完全なコールバック URL を Claude Code に表示される URL プロンプトに貼り付けてください
 - OAuth 認証は HTTP サーバーで機能します
 
+コマンドラインから認証する
+
+v2.1.186 以降、`claude mcp login <name>` はシェルから直接設定されたサーバーの OAuth フローを実行するため、セッション内で `/mcp` パネルを開く必要がありません。
+
+```bash
+claude mcp login sentry
+```
+
+後で保存された認証情報をクリアするには、`claude mcp logout <name>` を実行してください。
+
+SSH 経由で接続している場合は、`--no-browser` を追加して、ブラウザを開く代わりにコマンドが認可 URL を出力するようにします。ローカルマシンで URL を開き、ブラウザのアドレスバーから完全なリダイレクト URL をプロンプトに貼り付けます。コマンドは貼り付けステップのためにインタラクティブなターミナルが必要なため、`ssh -t` で接続してください。
+
+```bash
+claude mcp login sentry --no-browser
+```
+
 固定 OAuth コールバックポートを使用する
 
 一部の MCP サーバーは、事前に登録された特定のリダイレクト URI が必要です。デフォルトでは、Claude Code は OAuth コールバック用にランダムに利用可能なポートを選択します。`--callback-port` を使用してポートを固定し、`http://localhost:PORT/callback` の形式の事前登録されたリダイレクト URI と一致させます。
@@ -719,11 +735,27 @@ Claude Code で追加したサーバーは、同じ URL を指す claude.ai コ�
 
 Microsoft 365、Gmail、Google Calendar などの一部の Anthropic ホスト型コネクタは、アップストリーム ID プロバイダーが claude.ai が登録したリダイレクト URL のみを受け入れるため、Claude Code からのローカル OAuth をサポートしていません。v2.1.162 以降、これらのホストのいずれかを `/mcp` で認証すると、代わりに claude.ai の Settings → Connectors で接続するよう指示するメッセージが表示されます。そこで接続されると、コネクタは Claude Code に自動的に表示されます。
 
-Claude Code で claude.ai MCP サーバーを無効にするには、`ENABLE_CLAUDEAI_MCP_SERVERS` 環境変数を `false` に設定します：
+claude.ai コネクタを無効にする
+
+Claude Code で claude.ai MCP サーバーを無効にするには、任意の設定スコープで [`disableClaudeAiConnectors`](/ja/settings#available-settings) を `true` に設定します：
+
+```json
+{
+  "disableClaudeAiConnectors": true
+}
+```
+
+この設定は任意のソース true セマンティクスを使用します：任意の設定ソースの `true` が優先されます。チェックインされたプロジェクト `.claude/settings.json` はリポジトリをクラウドコネクタから除外できますが、プロジェクトレベルの `false` はユーザーレベルまたはポリシーレベルの `true` が無効にしたコネクタを再度有効にすることはできません。`--mcp-config` を介して明示的に渡されたサーバーは影響を受けません。
+
+`ENABLE_CLAUDEAI_MCP_SERVERS` 環境変数を `false` に設定することもできます。これは現在のシェルセッションに対して同じ効果があります：
 
 ```bash
 ENABLE_CLAUDEAI_MCP_SERVERS=false claude
 ```
+
+すべての claude.ai コネクタを無効にする代わりに個別の claude.ai コネクタをブロックするには、名前または URL パターンで [`deniedMcpServers`](/ja/managed-mcp) に追加します。たとえば、`serverName` エントリ `"claude.ai Slack"` は Slack コネクタをブロックします。現在のプロジェクトのみのコネクタのオン/オフを切り替えるには、`/mcp` パネルを使用します。
+
+これらのクライアント側の設定は、ローカル Claude Code セッションを管理します。[Claude Code on the web](/ja/claude-code-on-the-web) セッションでは、claude.ai コネクタはリモートホストによってプロビジョニングされ、明示的な `--mcp-config` エントリとして到着するため、`disableClaudeAiConnectors` は適用されません。コネクタ URL はセッションプロキシを通じて書き直されるため、ベンダー URL をターゲットとする `deniedMcpServers` `serverUrl` パターンは一致しません。クラウドセッションが使用できるコネクタを管理するには、claude.ai 組織設定から行います。
 
 Claude Code を MCP サーバーとして使用する
 

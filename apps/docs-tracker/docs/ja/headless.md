@@ -59,7 +59,9 @@ claude --bare -p "Summarize this file" --allowedTools "Read"
 
 終了時のバックグラウンドタスク
 
-Claude が `claude -p` 実行中に [バックグラウンド Bash タスク](/ja/tools-reference#bash-tool-behavior) を開始する場合（例えば、開発サーバーまたはウォッチビルド）、そのタスクは Claude が最終結果を返し、stdin が閉じられてから約 5 秒後に終了します。猶予期間により、結果の直後に終了するタスクでも出力を配信できます。v2.1.163 より前では、終了しないバックグラウンドプロセスは `claude -p` 呼び出しを無期限に開いたままにしていました。
+Claude が `claude -p` 実行中に [バックグラウンド Bash タスク](/ja/tools-reference#bash-tool-behavior) を開始する場合（例えば、開発サーバーまたはウォッチビルド）、そのシェルは Claude が最終結果を返し、stdin が閉じられてから約 5 秒後に終了します。猶予期間により、結果の直後に終了するタスクでも出力を配信できます。v2.1.163 より前では、終了しないバックグラウンドプロセスは `claude -p` 呼び出しを無期限に開いたままにしていました。
+
+バックグラウンド [サブエージェント](/ja/sub-agents) とワークフローは、その結果が最終出力の一部であるため、5 秒の猶予期間から除外されます。そのため `claude -p` はそれらが完了するまで待機します。v2.1.182 から、その待機はデフォルトで 10 分に制限されているため、スタックしたバックグラウンドエージェントがプロセスを無期限に開いたままにすることはできません。[`CLAUDE_CODE_PRINT_BG_WAIT_CEILING_MS`](/ja/env-vars) で上限を調整するか、`0` に設定して制限なく待機します。
 
 例
 
@@ -206,7 +208,7 @@ claude -p "Look at my staged changes and create an appropriate commit" \
 
 `--allowedTools` フラグは [パーミッションルール構文](/ja/settings#permission-rule-syntax) を使用します。末尾の ` *` はプレフィックスマッチングを有効にするため、`Bash(git diff *)` は `git diff` で始まるすべてのコマンドを許可します。スペースは重要です。スペースがない場合、`Bash(git diff*)` は `git diff-index` にも一致します。
 
-ユーザーが呼び出した [skills](/ja/skills) およびカスタムコマンドは `-p` モードで機能します。プロンプト文字列に `/skill-name` を含めると、Claude Code は実行前にそれを展開します。`/config` や `/login` などの対話ダイアログを開く組み込みコマンドは、`-p` モードでは利用できません。
+ユーザーが呼び出した [skills](/ja/skills) およびカスタムコマンドは `-p` モードで機能します。プロンプト文字列に `/skill-name` を含めると、Claude Code は実行前にそれを展開します。`/login` などの対話ダイアログを開く組み込みコマンドは、`-p` モードでは利用できません。`-p` 呼び出しから設定を変更するには、`/config` に `key=value` を渡します。例えば `/config thinking=false` です。
 
 システムプロンプトをカスタマイズする
 

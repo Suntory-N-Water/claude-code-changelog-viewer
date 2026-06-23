@@ -16,7 +16,7 @@ source: https://code.claude.com/docs/ja/statusline.md
 - 複数のセッション間で作業し、それらを区別する必要がある
 - git ブランチとステータスを常に表示したい
 
-Claude Code は [フッターリンクバッジ](/ja/settings#footer-link-badges) もレンダリングできます。これは、設定された正規表現が会話内のテキストと一致したときにフッターに表示されるクリック可能なチップです。これらはステータスラインとは独立しており、スクリプトと相互作用しません。[`footerLinksRegexes`](/ja/settings#footer-link-badges) 設定を使用して設定してください。
+ステータスラインは組み込みのフッターバッジの上にある独自の行にレンダリングされ、それらを置き換えません。会話内に ID が表示されたときにフッターにクリック可能なリンクバッジを追加する場合は、スクリプトを記述せずに [`footerLinksRegexes`](/ja/settings#footer-link-badges) を設定してください。
 
 以下は、最初の行に git 情報を表示し、2 番目の行にカラーコード化されたコンテキストバーを表示する [複数行ステータスライン](#display-multiple-lines) の例です。
 

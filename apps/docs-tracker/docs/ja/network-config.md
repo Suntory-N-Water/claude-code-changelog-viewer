@@ -101,6 +101,7 @@ Claude Code は以下の URL へのアクセスが必要です。プロキシ設
 | `downloads.claude.ai` | プラグイン実行可能ファイルのダウンロード、ネイティブインストーラーおよびネイティブ自動更新プログラム |
 | `storage.googleapis.com` | 2.1.116 より前のバージョンのネイティブインストーラーおよびネイティブ自動更新プログラム |
 | `bridge.claudeusercontent.com` | [Chrome の Claude](/ja/chrome) 拡張機能 WebSocket ブリッジ |
+| `*.claudeusercontent.com` | claude.ai での[アーティファクト](/ja/artifacts)の表示。ビューアーは各アーティファクトのコンテンツをこのオリジンのサンドボックス化されたサブドメインから読み込みます。ビューアーのブラウザーで必要です。CLI 自体では不要です |
 | `raw.githubusercontent.com` | [`/release-notes`](/ja/commands) のチェンジログフィード、更新後に表示されるリリースノート、プラグインマーケットプレイスのインストール数 |
 
 npm を通じて Claude Code をインストールするか、独自のバイナリ配布を管理する場合、エンドユーザーは `downloads.claude.ai` または `storage.googleapis.com` へのアクセスが不要な場合があります。

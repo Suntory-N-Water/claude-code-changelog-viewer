@@ -344,7 +344,7 @@ Cd
 | :- | :- |
 | `.claude/skills/` の [Skills](/ja/skills) | はい、ライブリロード付き |
 | `.claude/agents/` の [Subagents](/ja/sub-agents) | はい |
-| `.claude/settings.json` のプラグイン設定 | `enabledPlugins` と `extraKnownMarketplaces` のみ |
+| `.claude/settings.json` および `.claude/settings.local.json` の [Settings](/ja/settings) | `enabledPlugins` および `extraKnownMarketplaces` キーのみ |
 | [CLAUDE.md](/ja/memory) ファイル、`.claude/rules/`、および `CLAUDE.local.md` | `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` が設定されている場合のみ。`CLAUDE.local.md` はさらに `local` 設定ソースが必要です。これはデフォルトで有効になっています |
 
 コマンドおよび出力スタイルは、現在の作業ディレクトリとその親、`~/.claude/` のユーザーディレクトリ、および管理設定から検出されます。Hooks およびその他の `settings.json` キーは、現在の作業ディレクトリの `.claude/` フォルダから親ディレクトリへのフォールバックなしで読み込まれ、ユーザーの `~/.claude/settings.json` および管理設定と共に読み込まれます。その設定をプロジェクト全体で共有するには、次のいずれかのアプローチを使用します。

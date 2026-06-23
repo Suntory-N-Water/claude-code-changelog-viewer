@@ -1,0 +1,2380 @@
+{
+  "id": "20260623-003618",
+  "timestamp": "2026-06-23T00:36:18.587Z",
+  "aiSummary": "v2.1.186における新機能と設定変更が詳細に反映されました。iTerm2のネイティブ分割画面サポートや、MCPサーバーのOAuth認証をコマンドラインから直接実行できる機能が追加されています。また、APIリクエストのタイムアウトやリトライ動作、シェルモード実行時のAIによる自動応答など、実行制御に関する環境変数や設定項目が刷新されました。",
+  "files": [
+    {
+      "filename": "agent-sdk/python.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "CLAUDE_CODE_MAX_RETRIESの最大値が15に制限されたことと、容量エラー時に無制限にリトライを行うCLAUDE_CODE_RETRY_WATCHDOG変数の説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -833,7 +833,7 @@ options = ClaudeAgentOptions(",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `API_TIMEOUT_MS`: per-request timeout on the Anthropic client, in milliseconds. Default `600000`. Applies to the main loop and all subagents."
+            },
+            {
+              "type": "removed",
+              "content": "- `CLAUDE_CODE_MAX_RETRIES`: maximum API retries. Default `10`. Each retry gets its own `API_TIMEOUT_MS` window, so worst-case wall time is roughly `API_TIMEOUT_MS × (CLAUDE_CODE_MAX_RETRIES + 1)` plus backoff."
+            },
+            {
+              "type": "added",
+              "content": "- `CLAUDE_CODE_MAX_RETRIES`: maximum API retries. Default `10`, capped at `15`. Each retry gets its own `API_TIMEOUT_MS` window, so worst-case wall time is roughly `API_TIMEOUT_MS × (CLAUDE_CODE_MAX_RETRIES + 1)` plus backoff. For unattended runs that need to wait through longer outages, set `CLAUDE_CODE_RETRY_WATCHDOG=1` to retry capacity errors indefinitely."
+            },
+            {
+              "type": "context",
+              "content": "- `CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS`: stall watchdog for subagents launched with `run_in_background`. Default `600000`. Resets on each stream event; on stall it aborts the subagent, marks the task failed, and surfaces the error to the parent with any partial result. Does not apply to synchronous subagents."
+            },
+            {
+              "type": "context",
+              "content": "- `CLAUDE_ENABLE_STREAM_WATCHDOG=1` with `CLAUDE_STREAM_IDLE_TIMEOUT_MS`: aborts the request when headers have arrived but the response body stops streaming. When `CLAUDE_ENABLE_STREAM_WATCHDOG` is unset, the default is server-controlled on the direct Anthropic API and off on other providers. `CLAUDE_STREAM_IDLE_TIMEOUT_MS` defaults to `300000` and is clamped to that minimum. The aborted request goes through the normal retry path."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Python版と同様に、APIリトライ回数の上限設定と、長時間停止時に有効な新しいウォッチドッグ変数の仕様が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -474,7 +474,7 @@ const result = query({",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `API_TIMEOUT_MS`: per-request timeout on the Anthropic client, in milliseconds. Default `600000`. Applies to the main loop and all subagents."
+            },
+            {
+              "type": "removed",
+              "content": "- `CLAUDE_CODE_MAX_RETRIES`: maximum API retries. Default `10`. Each retry gets its own `API_TIMEOUT_MS` window, so worst-case wall time is roughly `API_TIMEOUT_MS × (CLAUDE_CODE_MAX_RETRIES + 1)` plus backoff."
+            },
+            {
+              "type": "added",
+              "content": "- `CLAUDE_CODE_MAX_RETRIES`: maximum API retries. Default `10`, capped at `15`. Each retry gets its own `API_TIMEOUT_MS` window, so worst-case wall time is roughly `API_TIMEOUT_MS × (CLAUDE_CODE_MAX_RETRIES + 1)` plus backoff. For unattended runs that need to wait through longer outages, set `CLAUDE_CODE_RETRY_WATCHDOG=1` to retry capacity errors indefinitely."
+            },
+            {
+              "type": "context",
+              "content": "- `CLAUDE_ASYNC_AGENT_STALL_TIMEOUT_MS`: stall watchdog for subagents launched with `run_in_background`. Default `600000`. Resets on each stream event; on stall it aborts the subagent, marks the task failed, and surfaces the error to the parent with any partial result. Does not apply to synchronous subagents."
+            },
+            {
+              "type": "context",
+              "content": "- `CLAUDE_ENABLE_STREAM_WATCHDOG=1` with `CLAUDE_STREAM_IDLE_TIMEOUT_MS`: aborts the request when headers have arrived but the response body stops streaming. When `CLAUDE_ENABLE_STREAM_WATCHDOG` is unset, the default is server-controlled on the direct Anthropic API and off on other providers. `CLAUDE_STREAM_IDLE_TIMEOUT_MS` defaults to `300000` and is clamped to that minimum. The aborted request goes through the normal retry path."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-teams.md",
+      "additions": 5,
+      "deletions": 1,
+      "explanation": "iTerm2のネイティブな分割画面モードが明示的に利用可能になり、必要なCLIツールのインストール方法や設定方法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -96,7 +96,11 @@ Agent teams support two display modes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`tmux` has known limitations on certain operating systems and traditionally works best on macOS. Using `tmux -CC` in iTerm2 is the suggested entrypoint into `tmux`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The default is `\"in-process\"`. Before v2.1.179 the default was `\"auto\"`, so upgraded sessions that previously opened split panes now stay in one terminal unless you set the mode explicitly. Set `\"auto\"` to enable split panes when you're already running inside a tmux session or your terminal is iTerm2, falling back to in-process otherwise. The `\"tmux\"` setting enables split-pane mode and auto-detects whether to use tmux or iTerm2 based on your terminal. To override, set [`teammateMode`](/en/settings#available-settings) in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "added",
+              "content": "The default is `\"in-process\"`. Before v2.1.179 the default was `\"auto\"`, so upgraded sessions that previously opened split panes now stay in one terminal unless you set the mode explicitly. Set `\"auto\"` to enable split panes when you're already running inside a tmux session or your terminal is iTerm2, falling back to in-process otherwise. The `\"tmux\"` setting enables split-pane mode and auto-detects whether to use tmux or iTerm2 based on your terminal."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.186, set `\"iterm2\"` to use iTerm2 native split panes explicitly. This mode requires the [`it2` CLI](https://github.com/mkusaka/it2) and shows an error with the install command if `it2` is missing. The setup prompt that offers to install `it2` or switch to tmux appears under `\"auto\"` or `\"tmux\"` when your terminal is iTerm2 and tmux is available as a fallback."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To override the default, set [`teammateMode`](/en/settings#available-settings) in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-platform-on-aws.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "awsAuthRefresh設定により、ログインコマンドからAWSの認証情報を再起動なしで更新できるようになったことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -107,6 +107,8 @@ If your SSO credentials expire mid-session, configure [`awsAuthRefresh`](/en/ama",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With `awsAuthRefresh` configured, `/login` shows a **Claude Platform on AWS · refresh credentials** option under **Using 3rd-party platforms**. Selecting it runs the configured command and re-reads your AWS credentials without restarting Claude Code."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Option B: Workspace API key**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A workspace API key is a long-lived secret, useful when you don't want to manage federated AWS credentials. Generate one in the AWS Console under **Claude Platform on AWS → API keys** and set it as `ANTHROPIC_AWS_API_KEY`:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -120,7 +122,7 @@ The key is sent as `x-api-key` and takes precedence over SigV4, so any AWS crede",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Treat workspace API keys like any other production credential. The [user settings file](/en/settings) `env` block is a convenient way to scope the key to your machine without exporting it globally."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "<Note>"
+            },
+            {
+              "type": "removed",
+              "content": "  The `/login` and `/logout` commands don't change Claude Platform on AWS authentication. Authentication runs through your AWS credentials or workspace API key, not through a Claude.ai subscription."
+            },
+            {
+              "type": "added",
+              "content": "  The `/login` and `/logout` commands don't sign you into a Claude.ai subscription for Claude Platform on AWS. Authentication runs through your AWS credentials or workspace API key. The exception is the **refresh credentials** option `/login` shows when `awsAuthRefresh` is configured, which re-reads your AWS credentials as described above."
+            },
+            {
+              "type": "context",
+              "content": "</Note>"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### 2. Configure Claude Code"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "MCPサーバーのログイン・ログアウトコマンドや、teammate-modeに追加されたiterm2オプションの仕様がリファレンスに追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -32,6 +32,8 @@ You can start sessions, pipe content, resume conversations, and manage updates w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude daemon stop --any` | Stop the background-session [supervisor](/en/agent-view#the-supervisor-process) and the sessions it hosts. Pass `--keep-workers` to leave background sessions running so the next supervisor reconnects to them. `--any` confirms stopping an on-demand supervisor, which is the default. Use this to recover from an [unresponsive supervisor](/en/agent-view#agent-view-says-the-background-service-did-not-respond) | `claude daemon stop --any --keep-workers` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude logs <id>` | Print recent output from a [background session](/en/agent-view#manage-sessions-from-the-shell) | `claude logs 7c5dcf5d` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude mcp` | Configure Model Context Protocol (MCP) servers | See the [Claude Code MCP documentation](/en/mcp). |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude mcp login <name>` | Run a configured MCP server's OAuth flow without opening the interactive `/mcp` panel. Works for HTTP, SSE, and claude.ai connector servers. Add `--no-browser` over SSH to print the authorization URL instead of opening a browser, then paste the redirect URL back at the prompt. Requires Claude Code v2.1.186 or later. See [Authenticate from the command line](/en/mcp#authenticate-from-the-command-line) | `claude mcp login sentry` |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude mcp logout <name>` | Clear stored OAuth credentials for an MCP server. Requires Claude Code v2.1.186 or later | `claude mcp logout sentry` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude plugin` | Manage Claude Code [plugins](/en/plugins). Alias: `claude plugins`. See [plugin reference](/en/plugins-reference#cli-commands-reference) for subcommands | `claude plugin install code-review@claude-plugins-official` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude project purge [path]` | Delete all local Claude Code state for a project: transcripts, task lists, debug logs, file-edit history, prompt history lines, and the project's entry in `~/.claude.json`. Omit `[path]` to pick from an interactive list. Flags: `--dry-run` to preview, `-y`/`--yes` to skip confirmation, `-i`/`--interactive` to confirm each item, `--all` for every project. See [Clear local data](/en/claude-directory#clear-local-data) | `claude project purge ~/work/repo --dry-run` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude remote-control` | Start a [Remote Control](/en/remote-control) server to control Claude Code from Claude.ai or the Claude app. Runs in server mode (no local interactive session). See [Server mode flags](/en/remote-control#start-a-remote-control-session) | `claude remote-control --name \"My Project\"` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -112,7 +114,7 @@ Customize Claude Code's behavior with these command-line flags. `claude --help`",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `--system-prompt` | Replace the entire system prompt with custom text | `claude --system-prompt \"You are a Python expert\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--system-prompt-file` | Load system prompt from a file, replacing the default prompt | `claude --system-prompt-file ./custom-prompt.txt` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--teleport` | Resume a [web session](/en/claude-code-on-the-web) in your local terminal | `claude --teleport` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `--teammate-mode` | Set how [agent team](/en/agent-teams) teammates display: `in-process` (default), `auto`, or `tmux`. The default changed from `auto` in v2.1.179. Overrides the [`teammateMode`](/en/settings#available-settings) setting for this session. See [Choose a display mode](/en/agent-teams#choose-a-display-mode) | `claude --teammate-mode auto` |"
+            },
+            {
+              "type": "added",
+              "content": "| `--teammate-mode` | Set how [agent team](/en/agent-teams) teammates display: `in-process` (default), `auto`, `tmux`, or `iterm2` (added in v2.1.186). The default changed from `auto` in v2.1.179. Overrides the [`teammateMode`](/en/settings#available-settings) setting for this session. See [Choose a display mode](/en/agent-teams#choose-a-display-mode) | `claude --teammate-mode auto` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--tmux` | Create a tmux session for the worktree. Requires `--worktree`. Uses iTerm2 native panes when available; pass `--tmux=classic` for traditional tmux | `claude -w feature-auth --tmux` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--tools` | Restrict which built-in tools Claude can use. Use `\"\"` to disable all, `\"default\"` for all, or tool names like `\"Bash,Edit,Read\"`. MCP tools are not affected; to deny those too, use `--disallowedTools \"mcp__*\"`, or pass `--strict-mcp-config` without `--mcp-config` so no MCP servers load | `claude --tools \"Bash,Edit,Read\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `--verbose` | Enable verbose logging, shows full turn-by-turn output. Overrides the [`viewMode`](/en/settings#available-settings) setting for this session | `claude --verbose` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "commands.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "reviewコマンドがGitHubのプルリクエスト番号で直接実行可能になったことや、自動応答に関する動作の詳細が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -23,7 +23,7 @@ Most commands are useful at a specific point in a session, from setting up a pro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Running work in parallel.** `/agents` opens the manager for the [subagents](/en/sub-agents) Claude can delegate side tasks to, and `/tasks` lists what's running in the background of the current session. `/background` detaches the whole session to keep running as a [background agent](/en/agent-view) and frees your terminal. For a large change that spans the codebase, `/batch` decomposes it into independent units and runs each in its own [worktree](/en/worktrees). See [Run agents in parallel](/en/agents) for how these approaches relate."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "**Before you ship.** `/diff` shows what changed, `/code-review` checks the diff for correctness bugs and cleanups and can apply the findings with `--fix`, and `/review` or `/security-review` give a deeper read-only pass. `/code-review ultra` runs a multi-agent review in the cloud."
+            },
+            {
+              "type": "added",
+              "content": "**Before you ship.** `/diff` shows what changed, `/code-review` checks the diff for correctness bugs and cleanups and can apply the findings with `--fix`, `/review` runs the same read-only review on a GitHub pull request, and `/security-review` gives a deeper read-only pass. `/code-review ultra` runs a multi-agent review in the cloud."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Between sessions.** `/clear` starts fresh on a new task while keeping project memory. `/resume` and `/branch` let you return to or fork an earlier conversation. `/teleport` pulls a web session into this terminal, and `/remote-control` lets you continue this local session from another device."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -109,7 +109,7 @@ Not every command appears for every user. Availability depends on your platform,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `/remote-env` | Choose the default environment for [cloud agents](/en/claude-code-on-the-web#configure-your-environment) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/rename [name]` | Rename the current session and show the name on the prompt bar. Without a name, auto-generates one from conversation history |"
+            },
+            {
+              "type": "context",
+              "content": "| `/resume [session]` | Resume a conversation by ID or name, or open the session picker. As of v2.1.144, [background sessions](/en/agent-view) appear in the picker marked with `bg`. Alias: `/continue` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/review [PR]` | Review a pull request locally in your current session. For a deeper cloud-based review, see [`/code-review ultra`](/en/ultrareview) |"
+            },
+            {
+              "type": "added",
+              "content": "| `/review [PR]` | Review a GitHub pull request by number, using the same review engine as `/code-review`. With no arguments, lists open PRs to pick from. For a cloud-based review, see [`/code-review ultra`](/en/ultrareview) |"
+            },
+            {
+              "type": "context",
+              "content": "| `/rewind` | Rewind the conversation and/or code to a previous point, or summarize from a selected message. See [checkpointing](/en/checkpointing). Aliases: `/checkpoint`, `/undo` |"
+            },
+            {
+              "type": "context",
+              "content": "| `/run` | **[Skill](/en/skills#bundled-skills).** Launch and drive your project's app to see a change working in the running app, not just in tests. See [Run and verify your app](/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `/run-skill-generator` | **[Skill](/en/skills#bundled-skills).** Teach `/run` and `/verify` how to build, launch, and drive your project's app from a clean environment by writing a per-project [skill](/en/skills#run-and-verify-your-app). Requires Claude Code v2.1.145 or later |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "CLAUDE_CODE_CONNECT_TIMEOUT_MSの廃止と、リトライウォッチドッグや取り消し線表示強制などの新しい環境変数が定義されました。",
+      "hunks": [
+        {
+          "header": "@@ -150,7 +150,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_CERT` | Path to client certificate file for mTLS authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_KEY` | Path to client private key file for mTLS authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_KEY_PASSPHRASE` | Passphrase for encrypted CLAUDE\\_CODE\\_CLIENT\\_KEY (optional) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_CONNECT_TIMEOUT_MS` | Timeout in milliseconds for the connect, TLS, and response-header phase of a streaming API request (default: 60000, or 60 seconds). If no response headers arrive within this window, the request is aborted and retried. Set to `0` to disable and rely on `API_TIMEOUT_MS` alone |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_CONNECT_TIMEOUT_MS` | Removed in v2.1.186 and now a no-op. Previously set a separate timeout for the connect, TLS, and response-header phase of a streaming API request. Use `API_TIMEOUT_MS` for the per-request timeout |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DEBUG_LOGS_DIR` | Override the debug log file path. Despite the name, this is a file path, not a directory. Requires debug mode to be enabled separately via `--debug`, `/debug`, or the `DEBUG` environment variable: setting this variable alone does not enable logging. The [`--debug-file`](/en/cli-reference#cli-flags) flag does both at once. Defaults to `~/.claude/debug/<session-id>.txt` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DEBUG_LOG_LEVEL` | Minimum log level written to the debug log file. Values: `verbose`, `debug` (default), `info`, `warn`, `error`. Set to `verbose` to include high-volume diagnostics like full status line command output, or raise to `error` to reduce noise |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_1M_CONTEXT` | Set to `1` to disable [1M context window](/en/model-config#extended-context) support. When set, 1M model variants are unavailable in the model picker. Useful for enterprise environments with compliance requirements |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -195,7 +195,8 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Set to `1` to enable [agent teams](/en/agent-teams). Agent teams are experimental and disabled by default |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EXTRA_BODY` | JSON object to merge into the top level of every API request body. Useful for passing provider-specific parameters that Claude Code does not expose directly |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FILE_READ_MAX_OUTPUT_TOKENS` | Override the default token limit for file reads. Useful when you need to read larger files in full |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_FORCE_SESSION_PERSISTENCE` | Set to `1` to force transcript persistence, prompt history, and `claude agents` registration even when this `claude` was launched from inside another Claude Code session. Use when an inherited `CLAUDE_CODE_CHILD_SESSION` value, for example from a tmux server first started by Claude Code's Bash tool, causes a genuine top-level session to be misclassified as nested. Also honored on v2.1.169 and earlier; has no effect on v2.1.170 and v2.1.171, where the nested-session detection it overrides was removed |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_FORCE_SESSION_PERSISTENCE` | Set to `1` to force transcript persistence, prompt history, and `claude agents` registration even when this `claude` was launched from inside another Claude Code session. Use when an inherited `CLAUDE_CODE_CHILD_SESSION` value, for example from a `screen` session or a background launcher first started by Claude Code's Bash tool, causes a genuine top-level session to be misclassified as nested. As of v2.1.178, Claude Code detects the tmux case automatically and ignores the inherited marker, so tmux no longer needs this variable. Also honored on v2.1.169 and earlier; has no effect on v2.1.170 and v2.1.171, where the nested-session detection it overrides was removed |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_FORCE_STRIKETHROUGH` | Set to `1` to force strikethrough rendering for `~~text~~` in Claude's responses when your terminal supports it but is not auto-detected, such as over SSH without `TERM_PROGRAM` forwarded. Without this, undetected terminals show the literal `~~` markers instead of rendering the text as strikethrough. Requires Claude Code v2.1.186 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORCE_SYNC_OUTPUT` | Set to `1` to force-enable DEC private mode 2026 [synchronized output](https://gist.github.com/christianparpart/d8a62cc1ab659194337d73e399004036) when your terminal supports it but is not auto-detected. Useful for emulators such as Emacs `eat` that implement BSU/ESU but do not reply to the capability probe. Has no effect under tmux |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_FORK_SUBAGENT` | Set to `1` to let Claude spawn [forked subagents](/en/sub-agents#fork-the-current-conversation), or `0` to disable them, overriding any server-side rollout. When enabled, Claude can request the `fork` subagent type to spawn a fork, a subagent that inherits the full conversation context instead of starting fresh. Spawns without a subagent type still use the general-purpose subagent, and all subagent spawns run in the background. The explicit [`/fork`](/en/commands) command works without this variable. Works in interactive mode and via the SDK or `claude -p` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_GIT_BASH_PATH` | Windows only: path to the Git Bash executable (`bash.exe`). Use when Git Bash is installed but not in your PATH. See [Windows setup](/en/setup#set-up-on-windows) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -208,7 +209,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_IDE_SKIP_VALID_CHECK` | Set to `1` to skip validation of IDE lockfile entries during connection. Use when auto-connect fails to find your IDE despite it running |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_CONTEXT_TOKENS` | Override the context window size Claude Code assumes for the active model. Only takes effect when `DISABLE_COMPACT` is also set. Use this when routing to a model through `ANTHROPIC_BASE_URL` whose context window does not match the built-in size for its name |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | Set the maximum number of output tokens for most requests. Defaults and caps vary by model; see [max output tokens](https://platform.claude.com/docs/en/about-claude/models/overview#latest-models-comparison). Increasing this value reduces the effective context window available before [auto-compaction](/en/costs#reduce-token-usage) triggers. |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_MAX_RETRIES` | Override the number of times to retry failed API requests (default: 10) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_MAX_RETRIES` | Override the number of times to retry failed API requests (default: 10). Capped at 15 as of v2.1.186. For unattended sessions that need to wait through longer outages, set `CLAUDE_CODE_RETRY_WATCHDOG` instead |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` | Maximum number of read-only tools and subagents that can execute in parallel (default: 10). Higher values increase parallelism but consume more resources |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_TURNS` | Cap the number of agentic turns when no explicit limit is passed. Equivalent to passing [`--max-turns`](/en/cli-reference#cli-flags), which takes precedence when both are set. A value that is not a positive integer is rejected at startup with an error rather than treated as no cap |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MCP_ALLOWLIST_ENV` | Set to `1` to spawn stdio MCP servers with only a safe baseline environment plus the server's configured `env`, instead of inheriting your shell environment |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -239,6 +240,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_REMOTE_SESSION_ID` | Set automatically in [cloud sessions](/en/claude-code-on-the-web) to the current session's ID. Read this to construct a link back to the session transcript. See [Link output back to the session](/en/claude-code-on-the-web#link-output-back-to-the-session) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_RESUME_INTERRUPTED_TURN` | Set to `1` to automatically resume if the previous session ended mid-turn. Used in SDK mode so the model continues without requiring the SDK to re-send the prompt |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_RESUME_PROMPT` | Override the continuation message injected when resuming a session that ended mid-turn. Defaults to `Continue from where you left off.`. Spawn scripts for long-running agents can set this to a more directive boot message. An empty string uses the default |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_RETRY_WATCHDOG` | Set to `1` for unattended sessions such as eval harnesses, CI jobs, or remote workers. Retries `429` and `529` capacity errors indefinitely instead of failing after `CLAUDE_CODE_MAX_RETRIES` attempts. The watchdog backs off up to 5 minutes between attempts, or until the limit resets when the response carries a rate-limit reset time, so a session that hits a usage limit waits out the remaining window. Requires Claude Code v2.1.186 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SAFE_MODE` | Set to `1` to start in safe mode: CLAUDE.md, skills, plugins, hooks, MCP servers, custom commands and agents, output styles, workflows, custom themes, custom keybindings, status line and file-suggestion commands, LSP servers, and auto-memory do not load, for troubleshooting a broken configuration. Managed settings policy still applies, including policy-configured hooks, status line, and file-suggestion commands; managed plugins, managed skills, managed CLAUDE.md, and policy-configured MCP servers do not. Equivalent to passing [`--safe-mode`](/en/cli-reference#cli-flags). Directly spawned child processes inherit the variable |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SCRIPT_CAPS` | JSON object limiting how many times specific scripts may be invoked per session when `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB` is set. Keys are substrings matched against the command text; values are integer call limits. For example, `{\"deploy.sh\": 2}` allows `deploy.sh` to be called at most twice. Matching is substring-based so shell-expansion tricks like `./scripts/deploy.sh $(evil)` still count against the cap. Runtime fan-out via `xargs` or `find -exec` is not detected; this is a defense-in-depth control |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SCROLL_SPEED` | Set the mouse wheel scroll multiplier in [fullscreen rendering](/en/fullscreen#mouse-wheel-scrolling). Accepts values from 1 to 20, and fractional values below 1 such as `0.5` to slow accelerated trackpad and wheel scrolling in terminals that already amplify wheel events. Set to `3` to match `vim` if your terminal sends one wheel event per notch without amplification. Ignored in the JetBrains IDE terminal, where Claude Code uses its own scroll handling |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 6,
+      "deletions": 2,
+      "explanation": "API応答待ちのスピナー表示条件が20秒に変更されたことと、リトライ回数の制限に関する挙動が詳細化されました。",
+      "hunks": [
+        {
+          "header": "@@ -40,6 +40,7 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `OAuth token revoked` / `OAuth token has expired` | [Authentication](#oauth-token-revoked-or-expired) |"
+            },
+            {
+              "type": "context",
+              "content": "| `does not meet scope requirement user:profile` | [Authentication](#oauth-scope-requirement) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Unable to connect to API` | [Network](#unable-to-connect-to-api) |"
+            },
+            {
+              "type": "added",
+              "content": "| `Waiting for API response · will retry in` | [Automatic retries](#automatic-retries), or [Network](#unable-to-connect-to-api) if it persists |"
+            },
+            {
+              "type": "context",
+              "content": "| `SSL certificate verification failed` | [Network](#ssl-certificate-errors) |"
+            },
+            {
+              "type": "context",
+              "content": "| `403` with `x-deny-reason: host_not_allowed` in a cloud or routine session | [Network](#host-not-allowed-in-a-cloud-session) |"
+            },
+            {
+              "type": "context",
+              "content": "| `Prompt is too long` | [Request errors](#prompt-is-too-long) |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -61,11 +62,14 @@ Match the message you see in your terminal to a section below.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code retries transient failures before showing you an error. Server errors, overloaded responses, request timeouts, temporary 429 throttles, and dropped connections are all retried up to 10 times with exponential backoff. While retrying, the spinner shows a `Retrying in Ns · attempt x/y` countdown."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When you see one of the errors on this page, those retries have already been exhausted. You can tune the behavior with two environment variables:"
+            },
+            {
+              "type": "added",
+              "content": "If no data arrives on the response stream for 20 seconds while a request is still pending, the spinner shows `Waiting for API response · will retry in … · check your network` before any retry has started. The request has not failed yet: the countdown runs to the point where Claude Code aborts the stalled connection and retries, so the banner clears on its own once data resumes or the retry succeeds. As of v2.1.185 the threshold is 20 seconds; earlier versions show the banner after 10 seconds with different wording. If it reappears on every attempt, treat it as a [network issue](#unable-to-connect-to-api)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When you see one of the errors on this page, those retries have already been exhausted. You can tune the behavior with these environment variables:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Variable | Default | Effect |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| [`CLAUDE_CODE_MAX_RETRIES`](/en/env-vars) | 10 | Number of retry attempts. Lower it to surface failures faster in scripts; raise it to wait through longer incidents. |"
+            },
+            {
+              "type": "added",
+              "content": "| [`CLAUDE_CODE_MAX_RETRIES`](/en/env-vars) | 10 | Number of retry attempts. Capped at 15 as of v2.1.186. Lower it to surface failures faster in scripts. |"
+            },
+            {
+              "type": "added",
+              "content": "| [`CLAUDE_CODE_RETRY_WATCHDOG`](/en/env-vars) | unset | Set to `1` in unattended sessions such as CI jobs to retry `429` and `529` capacity errors indefinitely instead of failing after `CLAUDE_CODE_MAX_RETRIES` attempts. |"
+            },
+            {
+              "type": "context",
+              "content": "| [`API_TIMEOUT_MS`](/en/env-vars) | 600000 | Per-request timeout in milliseconds. Raise it for slow networks or proxies. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Server errors"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "シェルモードでコマンドを実行した際、Claudeがその出力を自動的に解析して応答するようになった動作変更と設定による無効化方法が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -79,7 +79,7 @@ Shift+Enter works without configuration in iTerm2, WezTerm, Ghostty, Kitty, Warp",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Shortcut | Description | Notes |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `/` at start | Command or skill | See [commands](#commands) and [skills](/en/skills) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `!` at start | Shell mode | Run commands directly and add execution output to the session |"
+            },
+            {
+              "type": "added",
+              "content": "| `!` at start | Shell mode | Run a command directly, add its output to the session, and have Claude respond to it |"
+            },
+            {
+              "type": "context",
+              "content": "| `@` | File path mention | Trigger file path autocomplete |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Transcript viewer"
+            }
+          ]
+        },
+        {
+          "header": "@@ -281,6 +281,8 @@ Shell mode:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Exit with `Escape`, `Backspace`, or `Ctrl+U` on an empty prompt"
+            },
+            {
+              "type": "context",
+              "content": "- Pasting text that starts with `!` into an empty prompt enters shell mode automatically, matching typed `!` behavior"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.186, Claude responds to the command output automatically once it lands in the transcript, so you can run `! npm test` and get an explanation of the failures without a second prompt. The response costs the same as sending a normal prompt. To restore the earlier behavior where the output is added to context without a response, set [`respondToBashCommands`](/en/settings#available-settings) to `false` in `settings.json`. Before v2.1.186, shell mode always added output to context without a response."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This is useful for quick shell operations while maintaining conversation context."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Prompt suggestions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 16,
+      "deletions": 0,
+      "explanation": "コマンドラインから直接OAuth認証を行う手順や、SSH接続時にブラウザを開かずに認証を完結させる方法が解説されています。",
+      "hunks": [
+        {
+          "header": "@@ -485,6 +485,22 @@ Tips:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- If the browser redirect fails with a connection error after authenticating, paste the full callback URL from your browser's address bar into the URL prompt that appears in Claude Code"
+            },
+            {
+              "type": "context",
+              "content": "- OAuth authentication works with HTTP servers"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Authenticate from the command line"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "From v2.1.186, `claude mcp login <name>` runs a configured server's OAuth flow directly from your shell, so you don't need to open the `/mcp` panel inside a session."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude mcp login sentry"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "To clear stored credentials later, run `claude mcp logout <name>`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When you're connected over SSH, add `--no-browser` so the command prints the authorization URL instead of opening a browser. Open the URL on your local machine, then paste the full redirect URL from your browser's address bar back at the prompt. The command needs an interactive terminal for the paste step, so connect with `ssh -t`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "claude mcp login sentry --no-browser"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Use a fixed OAuth callback port"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Some MCP servers require a specific redirect URI registered in advance. By default, Claude Code picks a random available port for the OAuth callback. Use `--callback-port` to fix the port so it matches a pre-registered redirect URI of the form `http://localhost:PORT/callback`."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "イベント属性に含まれるリトライ回数の上限値に関する記述が最新の仕様に合わせて更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -1039,7 +1039,7 @@ All metrics can be segmented by the [standard attributes](#standard-attributes).",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code retries failed API requests internally and emits a single `claude_code.api_error` event only after it gives up, so the event itself is the terminal signal for that request. Intermediate retry attempts are not logged as separate events."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `attempt` attribute on the event records how many attempts were made in total. A value greater than `CLAUDE_CODE_MAX_RETRIES` (default `10`) indicates the request exhausted all retries on a transient error. A lower value indicates a non-retryable error such as a `400` response."
+            },
+            {
+              "type": "added",
+              "content": "The `attempt` attribute on the event records how many attempts were made in total. A value greater than `CLAUDE_CODE_MAX_RETRIES` (default `10`, capped at `15`) indicates the request exhausted all retries on a transient error. A lower value indicates a non-retryable error such as a `400` response."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To distinguish a session that recovered from one that stalled, group events by `session.id` and check whether a later `api_request` event exists after the error."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "設定ファイルとして.claude/settings.local.jsonが新たに対象として明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -344,7 +344,7 @@ The following configuration types are loaded from `--add-dir` directories:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| [Skills](/en/skills) in `.claude/skills/` | Yes, with live reload |"
+            },
+            {
+              "type": "context",
+              "content": "| [Subagents](/en/sub-agents) in `.claude/agents/` | Yes |"
+            },
+            {
+              "type": "removed",
+              "content": "| Plugin settings in `.claude/settings.json` | `enabledPlugins` and `extraKnownMarketplaces` only |"
+            },
+            {
+              "type": "added",
+              "content": "| [Settings](/en/settings) in `.claude/settings.json` and `.claude/settings.local.json` | `enabledPlugins` and `extraKnownMarketplaces` keys only |"
+            },
+            {
+              "type": "context",
+              "content": "| [CLAUDE.md](/en/memory) files, `.claude/rules/`, and `CLAUDE.local.md` | Only when `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` is set. `CLAUDE.local.md` additionally requires the `local` setting source, which is enabled by default |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Commands and output styles are discovered from the current working directory and its parents, your user directory at `~/.claude/`, and managed settings. Hooks and other `settings.json` keys load from the current working directory's `.claude/` folder with no parent-directory fallback, alongside your user `~/.claude/settings.json` and managed settings. To share that configuration across projects, use one of these approaches:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-marketplaces.md",
+      "additions": 4,
+      "deletions": 3,
+      "explanation": "プラグインのマーケットプレイス設定に、利用状況に応じて推奨を表示するrelevanceフィールドが追加され、AWS CodeCommit等の制約も追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -166,7 +166,7 @@ Each plugin entry needs at minimum a `name` and `source` (where to fetch it from",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Plugin entries"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Each plugin entry in the `plugins` array describes a plugin and where to find it. You can include any field from the [plugin manifest schema](/en/plugins-reference#plugin-manifest-schema) (like `description`, `version`, `author`, `commands`, `hooks`, etc.), plus these marketplace-specific fields: `source`, `category`, `tags`, and `strict`."
+            },
+            {
+              "type": "added",
+              "content": "Each plugin entry in the `plugins` array describes a plugin and where to find it. You can include any field from the [plugin manifest schema](/en/plugins-reference#plugin-manifest-schema) (like `description`, `version`, `author`, `commands`, `hooks`, etc.), plus these marketplace-specific fields: `source`, `category`, `tags`, `strict`, and `relevance`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Required fields"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -192,6 +192,7 @@ Each plugin entry in the `plugins` array describes a plugin and where to find it",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `category` | string | Plugin category for organization |"
+            },
+            {
+              "type": "context",
+              "content": "| `tags` | array | Tags for searchability |"
+            },
+            {
+              "type": "context",
+              "content": "| `strict` | boolean | Controls whether `plugin.json` is the authority for component definitions (default: true). See [Strict mode](#strict-mode) below. |"
+            },
+            {
+              "type": "added",
+              "content": "| `relevance` | object | Signals that tell Claude Code when to suggest this plugin to users. Takes effect only for marketplaces an administrator allowlists in managed settings. See [Recommend plugins for your org](/en/plugin-relevance). Requires Claude Code v2.1.152 or later. |"
+            },
+            {
+              "type": "context",
+              "content": "| `defaultEnabled` | boolean | Whether the plugin is enabled after install (default: true). Set to `false` to install the plugin disabled until the user opts in. Takes precedence over the same field in the plugin's `plugin.json`. See [Default enablement](/en/plugins-reference#default-enablement). Requires Claude Code v2.1.154 or later. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**Component configuration fields:**"
+            }
+          ]
+        },
+        {
+          "header": "@@ -226,7 +227,7 @@ Once a plugin is cloned or copied into the local machine, it is copied into the",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For example, a marketplace hosted at `acme-corp/plugin-catalog` (marketplace source) can list a plugin fetched from `acme-corp/code-formatter` (plugin source). The marketplace source and plugin source point to different repositories and are pinned independently."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The git-based source types below are `github`, `url`, and `git-subdir`. When both `ref` and `sha` are set on any of them, the `sha` is the effective pin. Claude Code fetches and checks out the pinned commit directly, so installation succeeds even if the branch or tag named by `ref` has since been deleted upstream, as long as the commit is still reachable from the repository."
+            },
+            {
+              "type": "added",
+              "content": "The git-based source types below are `github`, `url`, and `git-subdir`. When both `ref` and `sha` are set on any of them, the `sha` is the effective pin. Claude Code fetches and checks out the pinned commit directly. On most git hosts, including GitHub, GitLab, and Bitbucket, this means installation succeeds even if the branch or tag named by `ref` has since been deleted upstream, as long as the commit is still reachable from the repository. Some servers, such as AWS CodeCommit, do not support fetching commits by SHA. On those servers the `ref` must still exist and the pinned commit must be reachable from it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Relative paths"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -970,7 +971,7 @@ To validate an individual plugin's `plugin.json` and its skill, agent, command,",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Check that plugin directories contain required files"
+            },
+            {
+              "type": "context",
+              "content": "- For GitHub sources, ensure repositories are public or you have access"
+            },
+            {
+              "type": "context",
+              "content": "- Test plugin sources manually by cloning/downloading"
+            },
+            {
+              "type": "removed",
+              "content": "- If the source pins both `ref` and `sha`, a deleted upstream branch or tag does not block installation. If the install still fails, confirm the pinned commit still exists in the repository"
+            },
+            {
+              "type": "added",
+              "content": "- If the source pins both `ref` and `sha`, a deleted upstream branch or tag does not block installation on most git hosts, including GitHub, GitLab, and Bitbucket. On servers that do not support fetching commits by SHA, such as AWS CodeCommit, the `ref` must still exist and the pinned commit must be reachable from it. If the install still fails, confirm the pinned commit still exists in the repository"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Private repository authentication fails"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "plugin-relevance.md",
+      "additions": 169,
+      "deletions": 0,
+      "explanation": "ユーザーの作業内容に基づき、特定のディレクトリやコマンド実行時に最適なプラグインを推奨する機能の仕組みと設定方法が新規作成されました。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,169 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: plugin-relevance"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/plugin-relevance.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Recommend plugins for your org"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Add a relevance block to marketplace plugin entries so Claude Code suggests them when a user's work matches."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you operate a plugin marketplace for your organization, you can have Claude Code suggest specific plugins to users based on what they are working on. Add a `relevance` block to a plugin's entry in `marketplace.json`, then allowlist the marketplace in managed settings. When a user's session matches one of the declared signals, Claude Code surfaces an install suggestion for that plugin."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Marketplace-declared suggestions are opt-in per marketplace through [managed settings](/en/settings#settings-files). No marketplace's `relevance` declarations produce suggestions until an administrator adds it to the allowlist, including the official Anthropic marketplace. Claude Code also includes one built-in suggestion that is independent of this allowlist; that tip and all marketplace-declared tips are disabled when [`spinnerTipsEnabled`](/en/settings#available-settings) is set to `false`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This feature requires Claude Code v2.1.152 or later. Older clients ignore the `relevance` field."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page is for marketplace operators and enterprise administrators. If you are looking to install plugins, see [Discover and install plugins](/en/discover-plugins)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## How it works"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each plugin entry in `marketplace.json` can carry a `relevance` object. The object names a topic and one or more signals. A signal is a pattern that Claude Code tests against the current session, such as the working directory or files Claude has read."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Signal matching happens locally on the user's machine. The matching adds no network traffic and does not report which signals matched, or their values, to Anthropic or to the marketplace operator."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When a signal matches and the plugin is not already installed, Claude Code shows the plugin in three places:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Spinner tip**: a \"Working with *topic*? Install the *plugin* plugin\" message with the `/plugin install` command appears below the spinner while Claude is responding."
+            },
+            {
+              "type": "added",
+              "content": "- **Session-start suggestion**: if the `cwd` signal matches the working directory, a one-line `plugin suggestion: <name>@<marketplace> · /plugin` notification appears before the first turn. This surface requires Claude Code v2.1.153 or later."
+            },
+            {
+              "type": "added",
+              "content": "- **`/plugin` Discover tab**: the plugin is pinned to the top of the Discover list with an annotation such as \"suggested for this directory\" or \"suggested for stripe commands\". This surface requires Claude Code v2.1.154 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The spinner tip and the session-start notification are part of the spinner-tips system. Both are disabled when the user or project sets `spinnerTipsEnabled` to `false`, or when a custom `spinnerTipsOverride` is configured with `excludeDefault`. The Discover-tab pin is independent of tip settings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code never installs a plugin automatically. The user always confirms."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Add relevance to a plugin entry"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Add a `relevance` object to the plugin's entry in your `marketplace.json`. The following example declares that the `terraform-helpers` plugin is relevant when Claude reads a `.tf` file or when Claude runs `terraform`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"name\": \"acme-corp-plugins\","
+            },
+            {
+              "type": "added",
+              "content": "  \"owner\": { \"name\": \"Acme Platform Team\" },"
+            },
+            {
+              "type": "added",
+              "content": "  \"plugins\": ["
+            },
+            {
+              "type": "added",
+              "content": "    {"
+            },
+            {
+              "type": "added",
+              "content": "      \"name\": \"terraform-helpers\","
+            },
+            {
+              "type": "added",
+              "content": "      \"source\": \"./plugins/terraform-helpers\","
+            },
+            {
+              "type": "added",
+              "content": "      \"description\": \"Acme conventions and helpers for Terraform\","
+            },
+            {
+              "type": "added",
+              "content": "      \"relevance\": {"
+            },
+            {
+              "type": "added",
+              "content": "        \"topic\": \"Terraform\","
+            },
+            {
+              "type": "added",
+              "content": "        \"signals\": {"
+            },
+            {
+              "type": "added",
+              "content": "          \"cli\": [\"terraform\"],"
+            },
+            {
+              "type": "added",
+              "content": "          \"filesRead\": [\"**/*.tf\"]"
+            },
+            {
+              "type": "added",
+              "content": "        }"
+            },
+            {
+              "type": "added",
+              "content": "      }"
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  ]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A plugin with a `relevance` block but no matching signal behaves like any other marketplace entry. It appears in the Discover list in its normal position and never surfaces as a spinner tip."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Field reference"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### `relevance`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Type | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `topic` | string | Optional. The phrase that fills \"Working with *topic*?\" in the spinner tip. Often the product name, for example `Stripe`. Use a domain such as `design` when the plugin name does not read naturally as a topic. Defaults to the plugin name with each hyphen segment capitalized. The session-start notification does not use this value. Maximum 64 characters. |"
+            },
+            {
+              "type": "added",
+              "content": "| `signals` | object | Matchers that determine when the plugin is relevant. At least one signal is required for the plugin to be suggestible. See the table below. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### `relevance.signals`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Type | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `cwd` | array of strings | Glob patterns matched against the session's working directory. Matched as an absolute path and, when inside a git repository, as a path relative to the repository root. Forward-slash normalized and case-insensitive. Every pattern matches the directory itself and everything under it, so `infra`, `infra/`, and `infra/**` behave identically. This is the only signal that can match at session start, before the first turn. Maximum 10 patterns of 256 characters each. |"
+            },
+            {
+              "type": "added",
+              "content": "| `cli` | array of strings | Command names from shell commands Claude has run this session, for example `[\"stripe\"]`. Applies on every platform: commands run on Windows through PowerShell or Git Bash are recorded the same way. Claude Code records one command name per shell tool invocation: the first token after any leading environment variable assignments and `sudo`. Compound commands contribute only their leading command, so `cd infra && terraform plan` records `cd`, not `terraform`. Exact match. Maximum 10 entries of 64 characters each. |"
+            },
+            {
+              "type": "added",
+              "content": "| `hosts` | array of strings | Hostnames seen in `http://` or `https://` URLs in Bash commands this session, for example `[\"api.stripe.com\"]`. Bare lowercase hostname only: no scheme, port, or path. Exact case-insensitive match. Maximum 20 entries of 128 characters each. |"
+            },
+            {
+              "type": "added",
+              "content": "| `filesRead` | array of strings | Glob patterns matched against the paths of files Claude has read this session, for example `[\"**/*.tf\"]`. Forward-slash normalized and case-insensitive. Maximum 10 patterns of 256 characters each. |"
+            },
+            {
+              "type": "added",
+              "content": "| `manifestDeps` | array of objects | Dependencies declared in package manifests Claude has read this session. Each entry is `{ \"file\": \"...\", \"pattern\": \"...\" }`, where `file` is a regular expression matched against the manifest file's path as recorded in session state, typically an absolute path, and `pattern` is a regular expression matched against that file's contents. Anchor `file` at the end, for example `[/\\\\\\\\]package\\\\.json$` in JSON-escaped form, because a start-anchored pattern never matches an absolute path. Paths are not separator-normalized for this signal, so Windows paths use backslashes. Manifest files larger than 512 KB are skipped. Both values are JavaScript `RegExp` source strings of at most 256 characters. `file` matches case-insensitively. `pattern` is case-sensitive. Maximum 10 entries. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `cli`, `hosts`, `filesRead`, and `manifestDeps` signals need session history, so they can only match on the spinner tip and the Discover tab. Only `cwd` can match at session start. The `filesRead` and `manifestDeps` signals test the session's recorded file state, which also includes files Claude has written or edited and auto-loaded `CLAUDE.md` memory files."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The following example uses `manifestDeps` to suggest a Stripe plugin once Claude has read a `package.json` that depends on `stripe`. The `file` pattern uses `[/\\\\\\\\]` so it matches both forward-slash and backslash path separators, and `\\\\.` so the dot is literal. In JSON, each backslash in the regular expression is written twice."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"name\": \"stripe-helpers\","
+            },
+            {
+              "type": "added",
+              "content": "  \"source\": \"./plugins/stripe-helpers\","
+            },
+            {
+              "type": "added",
+              "content": "  \"relevance\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"topic\": \"Stripe\","
+            },
+            {
+              "type": "added",
+              "content": "    \"signals\": {"
+            },
+            {
+              "type": "added",
+              "content": "      \"manifestDeps\": ["
+            },
+            {
+              "type": "added",
+              "content": "        {"
+            },
+            {
+              "type": "added",
+              "content": "          \"file\": \"[/\\\\\\\\]package\\\\.json$\","
+            },
+            {
+              "type": "added",
+              "content": "          \"pattern\": \"\\\"stripe\\\"\\\\s*:\""
+            },
+            {
+              "type": "added",
+              "content": "        }"
+            },
+            {
+              "type": "added",
+              "content": "      ]"
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  }"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Unknown fields under `relevance` and `relevance.signals` are ignored at load time so older Claude Code clients continue to load your marketplace. Run `claude plugin validate` to surface them as warnings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Enable suggestions in managed settings"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Declaring `relevance` in `marketplace.json` is not enough on its own. An administrator must allowlist the marketplace in [managed settings](/en/settings#settings-files) before its suggestions appear to users."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Add the marketplace name to `pluginSuggestionMarketplaces`. For any marketplace other than the official Anthropic marketplace, also declare the marketplace source in the same managed settings, either as that name's entry in `extraKnownMarketplaces` or as an entry in `strictKnownMarketplaces`. The allowlisted name is ignored if the marketplace registered on the machine came from a different source. This prevents an unrelated source from registering under an allowlisted name to have its plugins suggested across your org."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The following `managed-settings.json` registers an org marketplace from a GitHub repository and enables its suggestions:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"extraKnownMarketplaces\": {"
+            },
+            {
+              "type": "added",
+              "content": "    \"acme-corp-plugins\": {"
+            },
+            {
+              "type": "added",
+              "content": "      \"source\": {"
+            },
+            {
+              "type": "added",
+              "content": "        \"source\": \"github\","
+            },
+            {
+              "type": "added",
+              "content": "        \"repo\": \"acme-corp/claude-plugins\""
+            },
+            {
+              "type": "added",
+              "content": "      }"
+            },
+            {
+              "type": "added",
+              "content": "    }"
+            },
+            {
+              "type": "added",
+              "content": "  },"
+            },
+            {
+              "type": "added",
+              "content": "  \"pluginSuggestionMarketplaces\": [\"acme-corp-plugins\"]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The official marketplace is exempt from the source-declaration requirement because its name can only register from the official Anthropic source. Allowlisting the name alone is sufficient:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"pluginSuggestionMarketplaces\": [\"claude-plugins-official\"]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See the [settings reference](/en/settings) for `pluginSuggestionMarketplaces` and [`extraKnownMarketplaces`](/en/settings#extraknownmarketplaces) for full configuration details."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## What the user sees"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When a signal matches during a session, the spinner tip reads:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Working with Terraform? Install the terraform-helpers plugin:"
+            },
+            {
+              "type": "added",
+              "content": "/plugin install terraform-helpers@acme-corp-plugins"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "At session start, a matching `cwd` signal surfaces the one-line notification:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "plugin suggestion: terraform-helpers@acme-corp-plugins · /plugin"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A given plugin's suggestion appears at most once every three sessions across the spinner tip and the session-start notification combined, and neither repeats once the plugin is installed. The session-start notification additionally stops appearing after the suggestion has been shown twice."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "In the `/plugin` Discover tab, the plugin is pinned above the other results with an annotation that names the matching signal, such as `suggested for this directory` or `suggested for terraform commands`. The Discover tab pins a given plugin once; later visits list it in normal order. The Discover-tab pin requires Claude Code v2.1.154 or later. On v2.1.152 only the spinner tip appears; the session-start notification is added in v2.1.153."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Validate your marketplace"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Run `claude plugin validate` against your marketplace directory to check the `relevance` block before publishing:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": "claude plugin validate ./my-marketplace"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The validator reports unknown keys under `relevance` and `relevance.signals` as warnings, flags a `relevance` value that is not an object, and rejects a `signals.hosts` entry that includes a scheme, port, or path."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## See also"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Create and distribute a plugin marketplace](/en/plugin-marketplaces): build the marketplace that hosts your plugins"
+            },
+            {
+              "type": "added",
+              "content": "- [Recommend your plugin from your CLI](/en/plugin-hints): prompt users from your own CLI instead of from Claude Code's session signals"
+            },
+            {
+              "type": "added",
+              "content": "- [Settings](/en/settings): full reference for `pluginSuggestionMarketplaces` and `extraKnownMarketplaces`"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "設定可能な項目に新しいオプションが追加されたことに伴い、リンクや参照情報が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -275,6 +275,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `requiredMaximumVersion` | Managed settings only. Maximum Claude Code version allowed to start. If the running version is newer, Claude Code exits at startup and instructs the user to install an approved version through the organization's approved method; `claude install <version>` may also work. Background auto-updates and `claude update` skip versions above the ceiling, so an in-range installation stays in range. `claude update`, `claude install`, and `claude doctor` keep working above the ceiling so users can recover. Versions that predate this setting ignore it | `\"2.1.150\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `requiredMinimumVersion` | Managed settings only. Minimum Claude Code version required to start. If the running version is older, Claude Code exits at startup and instructs the user to update through the organization's approved method. `claude update`, `claude install`, and `claude doctor` keep working below the floor so users can recover. Differs from `minimumVersion`, which prevents downgrades but never blocks startup. Versions that predate this setting ignore it | `\"2.1.150\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `respectGitignore` | Control whether the `@` file picker respects `.gitignore` patterns. When `true` (default), files matching `.gitignore` patterns are excluded from suggestions | `false` |"
+            },
+            {
+              "type": "added",
+              "content": "| `respondToBashCommands` | Whether Claude responds after an input-box `!` shell command runs. Set to `false` to add the command output to context without a response. Default: `true`. See [Shell mode with `!` prefix](/en/interactive-mode#shell-mode-with-prefix). Requires Claude Code v2.1.186 or later | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showClearContextOnPlanAccept` | Show the \"clear context\" option on the plan accept screen. Defaults to `false`. Set to `true` to restore the option | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showThinkingSummaries` | Show [extended thinking](/en/model-config#extended-thinking) summaries in interactive sessions. When unset or `false` (default in interactive mode), thinking blocks are redacted by the API and shown as a collapsed stub. Redaction only changes what you see, not what the model generates: to reduce thinking spend, [lower the budget or disable thinking](/en/model-config#extended-thinking) instead. This setting has no effect in non-interactive mode (`-p`), the Agent SDK, or IDE extensions such as VS Code | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `showTurnDuration` | Show turn duration messages after responses, e.g. \"Cooked for 1m 6s\". Default: `true`. Appears in `/config` as **Show turn duration** | `false` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -289,7 +290,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `strictKnownMarketplaces` | (Managed settings only) Allowlist of plugin marketplace sources. Undefined = no restrictions, empty array = lockdown. Enforced on marketplace add and on plugin install, update, refresh, and auto-update, so a marketplace added before the policy was set cannot be used to fetch plugins. See [Managed marketplace restrictions](/en/plugin-marketplaces#managed-marketplace-restrictions) | `[{ \"source\": \"github\", \"repo\": \"acme-corp/plugins\" }]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `strictPluginOnlyCustomization` | (Managed settings only) Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings. `true` locks all four surfaces; an array locks only the named ones. See [`strictPluginOnlyCustomization`](#strictpluginonlycustomization) | `[\"skills\", \"hooks\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `syntaxHighlightingDisabled` | Disable syntax highlighting in diffs, code blocks, and file previews | `true` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `in-process` (the default), `auto` (split panes when running inside tmux or iTerm2, in-process otherwise), or `tmux` (split panes using tmux or iTerm2, detected from your terminal). The default changed from `auto` in v2.1.179. `--teammate-mode` overrides this for one session. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `\"auto\"` |"
+            },
+            {
+              "type": "added",
+              "content": "| `teammateMode` | How [agent team](/en/agent-teams) teammates display: `in-process` (the default), `auto` (split panes when running inside tmux or iTerm2, in-process otherwise), `tmux` (split panes using tmux or iTerm2, detected from your terminal), or `iterm2` (iTerm2 native split panes via the `it2` CLI, added in v2.1.186). The default changed from `auto` in v2.1.179. `--teammate-mode` overrides this for one session. See [choose a display mode](/en/agent-teams#choose-a-display-mode) | `\"auto\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `terminalProgressBarEnabled` | Show the terminal progress bar in supported terminals: ConEmu, Ghostty 1.2.0+, and iTerm2 3.6.6+. Default: `true`. Appears in `/config` as **Terminal progress bar** | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `theme` | Color theme for the interface: `\"auto\"`, `\"dark\"`, `\"light\"`, `\"dark-daltonized\"`, `\"light-daltonized\"`, `\"dark-ansi\"`, `\"light-ansi\"`, or a custom theme reference such as `\"custom:<slug>\"` or `\"custom:<plugin-name>:<slug>\"`. Default: `\"dark\"`. See [Create a custom theme](/en/terminal-config#create-a-custom-theme). Appears in `/config` as **Theme** | `\"dark\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `tui` | Terminal UI renderer. Use `\"fullscreen\"` for the flicker-free [alt-screen renderer](/en/fullscreen) with virtualized scrollback. Use `\"default\"` for the classic main-screen renderer. Set via `/tui`. You can also set the [`CLAUDE_CODE_NO_FLICKER`](/en/env-vars) environment variable. Background sessions opened from [agent view](/en/agent-view) always use the fullscreen renderer regardless of this setting | `\"fullscreen\"` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "skills.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "スキル関連のセクションにおいて、他の機能更新と整合性を保つための調整が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -797,6 +797,8 @@ If Claude doesn't use your skill when expected:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "3. Try rephrasing your request to match the description more closely"
+            },
+            {
+              "type": "context",
+              "content": "4. Invoke it directly with `/skill-name` if the skill is user-invocable"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If the frontmatter YAML is malformed, Claude Code loads the skill body with empty metadata, so `/skill-name` still works but Claude has no `description` to match against. Run with `--debug` to see the parse error."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Skill triggers too often"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude uses your skill when you don't want it:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sub-agents.md",
+      "additions": 4,
+      "deletions": 6,
+      "explanation": "サブエージェントの動作や設定に関する記述が最新のバージョンに合わせて微調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -668,9 +668,7 @@ The CLI flag overrides the setting if both are present.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Subagents can run in the foreground (blocking) or background (concurrent):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Foreground subagents** block the main conversation until complete. Permission prompts are passed through to you as they come up."
+            },
+            {
+              "type": "removed",
+              "content": "- **Background subagents** run concurrently while you continue working. They run with the permissions already granted in the session and auto-deny any tool call that would otherwise prompt. If a background subagent needs to ask clarifying questions, that tool call fails but the subagent continues."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If a background subagent fails due to missing permissions, you can start a new foreground subagent with the same task to retry with interactive prompts."
+            },
+            {
+              "type": "added",
+              "content": "- **Background subagents** run concurrently while you continue working. As of v2.1.186, when a background subagent reaches a tool call that needs permission, the prompt surfaces in your main session and names the subagent that is asking. Approve to let the subagent continue, or press Esc to deny that one tool call without stopping the subagent. Before v2.1.186, background subagents auto-denied any tool call that would have prompted."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude decides whether to run subagents in the foreground or background based on the task. You can also:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -679,7 +677,7 @@ Claude decides whether to run subagents in the foreground or background based on",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To disable all background task functionality, set the `CLAUDE_CODE_DISABLE_BACKGROUND_TASKS` environment variable to `1`. See [Environment variables](/en/env-vars)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When [`CLAUDE_CODE_FORK_SUBAGENT`](#fork-the-current-conversation) is set to `1`, every subagent spawn runs in the background regardless of the `background` field. Forks still surface permission prompts in your terminal as they occur; named subagents auto-deny anything that would prompt, as described above."
+            },
+            {
+              "type": "added",
+              "content": "When [`CLAUDE_CODE_FORK_SUBAGENT`](#fork-the-current-conversation) is set to `1`, every subagent spawn runs in the background regardless of the `background` field. Permission prompts from these background subagents surface in your main session as described above."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Common patterns"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -768,7 +766,7 @@ Each subagent invocation creates a new instance with fresh context. To continue",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Resumed subagents retain their full conversation history, including all previous tool calls, results, and reasoning. The subagent picks up exactly where it stopped rather than starting fresh."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When a subagent completes, Claude receives its agent ID. The built-in Explore and Plan agents are one-shot and return no agent ID, so they can't be resumed; use `general-purpose` or a custom subagent when you need to continue the work. Claude uses the `SendMessage` tool with the agent's ID as the `to` field to resume it. The `SendMessage` tool is only available when [agent teams](/en/agent-teams) are enabled via `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`."
+            },
+            {
+              "type": "added",
+              "content": "When a subagent completes, Claude receives its agent ID. The built-in Explore and Plan agents are one-shot and return no agent ID, so they can't be resumed; use `general-purpose` or a custom subagent when you need to continue the work. Claude uses the `SendMessage` tool with the agent's ID as the `to` field to resume it. The `SendMessage` tool is always available for resuming subagents by agent ID or name. Structured team-protocol messages such as `shutdown_request` and `plan_approval_response` require [agent teams](/en/agent-teams) to be enabled."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To resume a subagent, ask Claude to continue the previous work:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -850,7 +848,7 @@ A fork inherits everything the main session has at the moment it spawns. A named",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Context | Full conversation history | Fresh context with the prompt you pass |"
+            },
+            {
+              "type": "context",
+              "content": "| System prompt and tools | Same as main session | From the subagent's [definition file](#write-subagent-files) |"
+            },
+            {
+              "type": "context",
+              "content": "| Model | Same as main session | From the subagent's `model` field |"
+            },
+            {
+              "type": "removed",
+              "content": "| Permissions | Prompts surface in your terminal | [Auto-denied](#run-subagents-in-foreground-or-background) when running in the background |"
+            },
+            {
+              "type": "added",
+              "content": "| Permissions | Prompts surface in your terminal | [Prompts surface in your main session](#run-subagents-in-foreground-or-background) when running in the background |"
+            },
+            {
+              "type": "context",
+              "content": "| Prompt cache | Shared with main session | Separate cache |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Because a fork's system prompt and tool definitions are identical to the parent, its first request reuses the parent's [prompt cache](/en/prompt-caching#subagents-and-the-cache). This makes forking cheaper than spawning a fresh subagent for tasks that need the same context."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "tools-reference.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ツールの使用方法や制約事項について、APIの変更を反映した修正が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -37,7 +37,7 @@ To add custom tools, connect an [MCP server](/en/mcp). To extend Claude with reu",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `ReadMcpResourceTool` | Reads a specific MCP resource by URI | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `RemoteTrigger` | Creates, updates, runs, and lists [Routines](/en/routines) on claude.ai. Backs the `/schedule` command. Routines live on claude.ai and require a Pro, Max, Team, or Enterprise plan, so this tool is not accessible from Amazon Bedrock, Google Vertex AI, or Microsoft Foundry | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ScheduleWakeup` | Reschedules the next iteration of a [self-paced `/loop`](/en/scheduled-tasks#let-claude-choose-the-interval). Claude calls this at the end of each iteration to pick when the next one runs, between one minute and one hour out; you don't call it directly. The pending wakeup appears in `session_crons` in [Stop hook input](/en/hooks#stop-input). Not available on Amazon Bedrock, Google Vertex AI, or Microsoft Foundry, where a `/loop` prompt with no interval runs on a fixed schedule instead | No |"
+            },
+            {
+              "type": "removed",
+              "content": "| `SendMessage` | Sends a message to an [agent team](/en/agent-teams) teammate, or [resumes a subagent](/en/sub-agents#resume-subagents) by its agent ID. Stopped subagents auto-resume in the background. Only available when `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set | No |"
+            },
+            {
+              "type": "added",
+              "content": "| `SendMessage` | Sends a message to an [agent team](/en/agent-teams) teammate, or [resumes a subagent](/en/sub-agents#resume-subagents) by its agent ID. Stopped subagents auto-resume in the background. Structured team-protocol messages require agent teams | No |"
+            },
+            {
+              "type": "context",
+              "content": "| `ShareOnboardingGuide` | Uploads `ONBOARDING.md` and returns a share link teammates can open in Claude Code. Called from `/team-onboarding` after the guide is written. Available to claude.ai subscribers on Pro, Max, Team, and Enterprise plans | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `Skill` | Executes a [skill](/en/skills#control-who-invokes-a-skill) within the main conversation | Yes |"
+            },
+            {
+              "type": "context",
+              "content": "| `TaskCreate` | Creates a new task in the task list | No |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -100,7 +100,7 @@ Which tools a named subagent can use depends on the `tools` and `disallowedTools",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Launching the subagent does not itself prompt for permission. The subagent's own tool calls are checked against your permission rules as it runs:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Foreground subagents** show the same permission prompts you would see in the main conversation, at the moment each tool call happens."
+            },
+            {
+              "type": "removed",
+              "content": "- **Background subagents** do not show prompts. They run with the permissions already granted in the session and auto-deny any tool call that would otherwise prompt. After a denial, the subagent keeps going without that tool."
+            },
+            {
+              "type": "added",
+              "content": "- **Background subagents** surface permission prompts in your main session as of v2.1.186. The prompt names which subagent is asking, and pressing Esc denies that one tool call without stopping the subagent. Before v2.1.186, background subagents auto-denied any tool call that would otherwise prompt and continued without that tool."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To limit what a subagent can reach in the first place, narrow its `tools` field, leave Bash off the list, or set deny rules in your settings, as described in [Control subagent capabilities](/en/sub-agents#control-subagent-capabilities). For more on choosing between foreground and background, see [Run subagents in foreground or background](/en/sub-agents#run-subagents-in-foreground-or-background)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "ultrareview.md",
+      "additions": 13,
+      "deletions": 12,
+      "explanation": "マルチエージェントによる高度なレビュー機能について、プルリクエストとの連携などの詳細が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -11,10 +11,10 @@ Ultrareview is a research preview feature available in Claude Code v2.1.86 and l",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ultrareview is a deep code review that runs on Claude Code on the web infrastructure. When you run `/code-review ultra`, Claude Code launches a fleet of reviewer agents in a remote sandbox to find bugs in your branch or pull request."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Compared to a local `/review`, ultrareview offers:"
+            },
+            {
+              "type": "added",
+              "content": "Compared to a local `/code-review` or `/review`, ultrareview offers:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Higher signal**: every reported finding is independently reproduced and verified, so the results focus on real bugs rather than style suggestions"
+            },
+            {
+              "type": "removed",
+              "content": "- **Broader coverage**: many reviewer agents explore the change in parallel, which surfaces issues that a single-pass review can miss"
+            },
+            {
+              "type": "added",
+              "content": "- **Broader coverage**: a larger fleet of reviewer agents explores the change in parallel, which surfaces issues that a medium-effort local review can miss"
+            },
+            {
+              "type": "context",
+              "content": "- **No local resource use**: the review runs entirely in a remote sandbox, so your terminal stays free for other work while it runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Ultrareview requires authentication with a Claude.ai account because it runs on Claude Code on the web infrastructure. If you are signed in with an API key only, run `/login` and authenticate with Claude.ai first. Ultrareview is not available when using Claude Code with Amazon Bedrock, Google Cloud Vertex AI, or Microsoft Foundry, and it is not available to organizations that have enabled Zero Data Retention."
+            }
+          ]
+        },
+        {
+          "header": "@@ -86,19 +86,20 @@ Running `claude ultrareview` requires the same authentication and usage credit c",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For automatic reviews on GitHub pull requests, [Code Review](/en/code-review) integrates with your repository directly and posts findings as inline PR comments without a CLI step."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## How ultrareview compares to /review"
+            },
+            {
+              "type": "added",
+              "content": "## How ultrareview compares to /code-review and /review"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Both commands review code, but they target different stages of your workflow."
+            },
+            {
+              "type": "added",
+              "content": "All three commands review code, but they target different stages of your workflow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "| | `/review` | `/code-review ultra` |"
+            },
+            {
+              "type": "removed",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "removed",
+              "content": "| Runs | locally in your session | remotely in a cloud sandbox |"
+            },
+            {
+              "type": "removed",
+              "content": "| Depth | single-pass review | multi-agent fleet with independent verification |"
+            },
+            {
+              "type": "removed",
+              "content": "| Duration | seconds to a few minutes | roughly 5 to 10 minutes |"
+            },
+            {
+              "type": "removed",
+              "content": "| Cost | counts toward normal usage | free runs, then roughly $5 to $20 per review as usage credits |"
+            },
+            {
+              "type": "removed",
+              "content": "| Best for | quick feedback while iterating | pre-merge confidence on substantial changes |"
+            },
+            {
+              "type": "added",
+              "content": "| | `/code-review` | `/review <pr>` | `/code-review ultra` |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| Target | your working diff | a GitHub pull request | your working diff or a pull request |"
+            },
+            {
+              "type": "added",
+              "content": "| Runs | locally in your session | locally in your session | remotely in a cloud sandbox |"
+            },
+            {
+              "type": "added",
+              "content": "| Depth | scales with the effort argument | the medium `/code-review` engine | multi-agent fleet with independent verification |"
+            },
+            {
+              "type": "added",
+              "content": "| Duration | seconds to a few minutes | a few minutes | roughly 5 to 10 minutes |"
+            },
+            {
+              "type": "added",
+              "content": "| Cost | counts toward normal usage | counts toward normal usage | free runs, then roughly $5 to $20 per review as usage credits |"
+            },
+            {
+              "type": "added",
+              "content": "| Best for | quick feedback while iterating | reviewing a teammate's PR before approving | pre-merge confidence on substantial changes |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `/review` for fast feedback as you work. Use `/code-review ultra` before merging a substantial change when you want a deeper pass that catches issues a single review might miss."
+            },
+            {
+              "type": "added",
+              "content": "Use `/code-review` for fast feedback as you work. Use `/review <pr>` to look over a pull request the same way you would before approving it. Use `/code-review ultra` before merging a substantial change when you want a deeper pass that catches issues a local review might miss."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "workflows.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "ワークフロー実行時における特定の条件下での動作について補足が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -89,6 +89,7 @@ The progress view shows each phase with its agent counts, token totals, and elap",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `Enter` or `→` | Drill into the selected phase, then into an agent to read its prompt, recent tool calls, and result |"
+            },
+            {
+              "type": "context",
+              "content": "| `Esc` | Back out one level |"
+            },
+            {
+              "type": "context",
+              "content": "| `j` / `k` | Scroll within the agent detail when it overflows |"
+            },
+            {
+              "type": "added",
+              "content": "| `f` | Filter the agent list in the selected phase by status. Press again to cycle |"
+            },
+            {
+              "type": "context",
+              "content": "| `p` | Pause or resume the run |"
+            },
+            {
+              "type": "context",
+              "content": "| `x` | Stop the selected agent, or stop the whole workflow when focus is on the run |"
+            },
+            {
+              "type": "context",
+              "content": "| `r` | Restart the selected running agent |"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -624,7 +624,7 @@ Claude への API リクエストが失敗するときにログされます。
 
 API 拒否イベント
 
-API リクエストが `stop_reason: "refusal"` を返すときにログされます。拒否は HTTP エラーではなく、成功したレスポンスストリームで到着するため、`api_error` イベントは発火しません。このイベントを使用すると、拒否の頻度を追跡できます。
+API リクエストが `stop_reason: "refusal"` を返すときにログされます。拒否は HTTP エラーではなく、成功したレスポンスストリームで到着するため、`api_error` イベントは発火しません。このイベントを使用すると、拒否の頻度を追跡でき、拒否を `api_request` および `api_error` と同じ属性でグループ化できます。
 
 **イベント名**: `claude_code.api_refusal`
 
@@ -636,6 +636,15 @@ API リクエストが `stop_reason: "refusal"` を返すときにログされ�
 - `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
 - `model`: リクエストからのモデル識別子
 - `request_id`: レスポンスの `request-id` ヘッダーからの Anthropic API リクエスト ID。例: `"req_011..."`。API が返す場合のみ存在します。
+- `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名。定義については [`api_request`](#api-request-event)を参照してください。
+- `speed`: [高速モード](/ja/fast-mode)がアクティブな場合は `"fast"`、または `"normal"`
+- `attempt`: 再試行試行番号。最初の試行は `1` です。
+- `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。モデルが努力をサポートしない場合は存在しません。
+- `server_fallback_hop`: API のサーバー側モデルフォールバックがすでにこの拒否を別のモデルで再試行した場合は `true`。ユーザーはこの特定の拒否を見ませんでした。リクエストが拒否で終了した場合は `false`。単一のターンは、フォールバックモデルも拒否する場合、`true` ホップイベントと後の `false` 最終イベントの両方を出力できます。
+- `has_category`: API レスポンスが `stop_details.category` の `"cyber"`、`"bio"`、`"frontier_llm"`、または `"reasoning_extraction"` を含む場合は `true`。レスポンスがカテゴリを含まないか、そのセット外の値を含む場合は `false`。`server_fallback_hop` が `true` の場合は存在しません。ホップブロックは `stop_details` を含まないためです。
+- `has_explanation`: API レスポンスが `stop_details.explanation` を含む場合は `true`、それ以外の場合は `false`。`server_fallback_hop` が `true` の場合は存在しません。
+- `category`: API レスポンスからの `stop_details.category` 値。`"cyber"`、`"bio"`、`"frontier_llm"`、または `"reasoning_extraction"` のいずれか。`OTEL_LOG_TOOL_DETAILS=1` が設定され、`has_category` が `true` の場合にのみ存在します。
+- `agent.name`、`skill.name`、`plugin.name`、`marketplace.name`、`mcp_server.name`、`mcp_tool.name`: リクエストのスキル、プラグイン、エージェント、および MCP 属性。定義と編集動作については [コストカウンター](#cost-counter)を参照してください。
 
 API リクエストボディイベント
 
@@ -1030,7 +1039,7 @@ API リクエストが複数回の試行後に失敗した場合に 1 回ログ�
 
 Claude Code は失敗した API リクエストを内部的に再試行し、あきらめた後にのみ単一の `claude_code.api_error` イベントを出力するため、イベント自体がそのリクエストの終端信号です。中間再試行試行は個別のイベントとしてログされません。
 
-イベントの `attempt` 属性は、試行の総数を記録します。`CLAUDE_CODE_MAX_RETRIES` (デフォルト `10`) より大きい値は、リクエストが一時的なエラーのすべての再試行を枯渇させたことを示します。より低い値は、`400` レスポンスなどの再試行不可能なエラーを示します。
+イベントの `attempt` 属性は、試行の総数を記録します。`CLAUDE_CODE_MAX_RETRIES` (デフォルト `10`、上限 `15`) より大きい値は、リクエストが一時的なエラーのすべての再試行を枯渇させたことを示します。より低い値は、`400` レスポンスなどの再試行不可能なエラーを示します。
 
 セッションが回復したものと停止したものを区別するには、イベントを `session.id` でグループ化し、エラーの後に後続の `api_request` イベントが存在するかどうかを確認します。
 

@@ -157,7 +157,7 @@ Claude はインタラクションシーケンスを記録し、GIF ファイル
 
 拡張機能が検出されない
 
-Claude Code の setup-issues 行に `chrome` がリストされている場合：
+Claude Code が Chrome 拡張機能を検出できない場合：
 
 1. Chrome 拡張機能が `chrome://extensions` にインストールされ、有効になっていることを確認します
 2. `claude --version` を実行して Claude Code が最新であることを確認します
