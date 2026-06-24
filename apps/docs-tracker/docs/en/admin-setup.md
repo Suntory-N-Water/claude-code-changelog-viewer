@@ -58,7 +58,7 @@ The plist and HKLM registry locations work with any provider and resist tamperin
 
 By default WSL reads only the Linux file path at `/etc/claude-code`. To extend your Windows registry and `C:\Program Files\ClaudeCode` policy to WSL on the same machine, set [`wslInheritsWindowsSettings: true`](/en/settings#available-settings) in either of those admin-only Windows sources.
 
-Whichever mechanism you choose, managed values take precedence over user and project settings. Array settings such as `permissions.allow` and `permissions.deny` merge entries from all sources, so developers can extend managed lists but not remove from them.
+Whichever mechanism you choose, managed values take precedence over user and project settings. Array settings such as `permissions.allow` and `permissions.deny` merge entries from all sources, so developers can extend managed lists but not remove from them, with [two exceptions](/en/settings#settings-precedence) where the managed value replaces lower layers rather than merging: `fallbackModel` and `availableModels`.
 
 See [Server-managed settings](/en/server-managed-settings) and [Settings files and precedence](/en/settings#settings-files).
 
@@ -77,6 +77,7 @@ Managed settings can lock down tools, sandbox execution, restrict MCP servers an
 | [Customization lockdown](/en/settings#strictpluginonlycustomization) | Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings | `strictPluginOnlyCustomization` |
 | [Hook restrictions](/en/settings#hook-configuration) | Only managed hooks load; restrict HTTP hook URLs | `allowManagedHooksOnly`, `allowedHttpHookUrls` |
 | [Disable agent view](/en/agent-view#how-background-sessions-are-hosted) | Turn off `claude agents`, `--bg`, `/background`, and the on-demand supervisor | `disableAgentView` |
+| [Model restrictions](/en/model-config#restrict-model-selection) | Restrict which models users can select, and optionally also apply the allowlist to the Default model selection. See [surface coverage](/en/model-config#surface-coverage) for how this setting reaches the CLI, web, and IDE | `availableModels`, `enforceAvailableModels` |
 | [Version floor](/en/settings) | Prevent auto-update from installing below an org-wide minimum | `minimumVersion` |
 | [Required version range](/en/settings) | Refuse to start at all when the running version is outside an org-approved range. Stronger than `minimumVersion`, which only blocks downgrades | `requiredMinimumVersion`, `requiredMaximumVersion` |
 
