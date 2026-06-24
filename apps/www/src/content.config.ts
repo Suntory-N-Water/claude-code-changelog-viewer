@@ -116,6 +116,7 @@ const settingsReferenceCollection = defineCollection({
     use_case_ja: z.string().optional(),
     parent_descriptions: z.array(z.string()),
     doc_snippets: z.array(z.string()),
+    fetched_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     related_changelog: z.array(z.unknown()),
   }),
 });

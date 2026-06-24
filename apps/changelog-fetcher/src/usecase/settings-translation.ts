@@ -22,6 +22,7 @@ export type SettingReferenceOutput = {
   parentDescriptions: string[];
   docSnippets: string[];
   relatedChangelog: RelatedChangelogOutput[];
+  fetchedAt: string;
 };
 
 export type SettingsReferenceContext = {

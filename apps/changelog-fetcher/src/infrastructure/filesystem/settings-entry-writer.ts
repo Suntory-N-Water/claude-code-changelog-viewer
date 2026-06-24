@@ -53,6 +53,7 @@ function toSettingReferenceJson(reference: SettingReferenceOutput): {
   use_case_ja?: string;
   parent_descriptions: string[];
   doc_snippets: string[];
+  fetched_at: string;
   related_changelog: {
     version: string;
     content: string;
@@ -76,6 +77,7 @@ function toSettingReferenceJson(reference: SettingReferenceOutput): {
       : {}),
     parent_descriptions: reference.parentDescriptions,
     doc_snippets: reference.docSnippets,
+    fetched_at: reference.fetchedAt,
     related_changelog: reference.relatedChangelog.map((changelog) => ({
       version: changelog.version,
       content: changelog.content,

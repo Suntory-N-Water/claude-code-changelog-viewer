@@ -5,7 +5,7 @@
   "source": "settings",
   "description_en": "Override the default model used by Claude Code. For finer control, use environment variables: ANTHROPIC_MODEL (runtime override), ANTHROPIC_DEFAULT_OPUS_MODEL, ANTHROPIC_DEFAULT_SONNET_MODEL, ANTHROPIC_DEFAULT_HAIKU_MODEL (per-class pinning), CLAUDE_CODE_SUBAGENT_MODEL (subagent model). See https://code.claude.com/docs/en/model-config",
   "description_ja": "Claude Code が使用するデフォルトのモデルを上書きします。",
-  "use_case_ja": "- 標準の Sonnet ではなく、より推論能力の高い Opus を常に使いたい場合や、速度重視で Haiku に固定したい場合に設定します。\n- 環境変数（ANTHROPIC_MODEL）やコマンド引数（--model）と組み合わせることで、特定のセッションのみモデルを切り替える柔軟な運用が可能です。",
+  "use_case_ja": "- 標準の Sonnet ではなく、より推論能力の高い Opus を常に使いたい場合や、速度重視で Haiku に固定したい場合に設定します。\n- 環境変数(ANTHROPIC_MODEL)やコマンド引数(--model)と組み合わせることで、特定のセッションのみモデルを切り替える柔軟な運用が可能です。",
   "parent_descriptions": [],
   "doc_snippets": [
     "tmux : install through your system's package manager. See the tmux wiki for platform-specific instructions. iTerm2 : install the it2 CLI , then enable the Python API in iTerm2 → Settings → General → Magic → Enable Python API . Specify teammates and models Claude decides the number of teammates to spawn based on your task, or you can specify exactly what you want:",
@@ -177,7 +177,7 @@
       "content_ja": "モデルが`/init`や`/review`などのビルトイン・スラッシュコマンドを自ら発見し、Skillツール経由で実行可能に改善",
       "inference": {
         "before": "モデルはビルトインの特殊なワークフローコマンドを直接認識できず、ユーザーが手動でコマンドを入力して指示する必要がありました。",
-        "after": "エージェントがSkillツールを通じて自律的に適切なスラッシュコマンド（`/init`、`/security-review`等）を選択し、実行できるようになりました。",
+        "after": "エージェントがSkillツールを通じて自律的に適切なスラッシュコマンド(`/init`、`/security-review`等)を選択し、実行できるようになりました。",
         "benefit": "プロジェクトの初期化やコードレビューなどの定型的な高度なタスクを、Claudeに任せるだけで自動的に最適なツールを使って完遂してくれます。"
       }
     },
@@ -187,7 +187,7 @@
       "content_ja": "会話の途中でモデルを切り替える際、キャッシュが無効化され履歴の再読み込みが発生することを警告するよう改善",
       "inference": {
         "before": "セッション途中で`/model`を使用して切り替えると、意図せず全履歴のトークンが再消費され、コストや時間がかかることが分かりにくい状態でした。",
-        "after": "モデル切り替え時に、次のレスポンスがフルヒストリーの読み込み（アンキャッシュ状態）になる旨の警告が表示されるようになりました。",
+        "after": "モデル切り替え時に、次のレスポンスがフルヒストリーの読み込み(アンキャッシュ状態)になる旨の警告が表示されるようになりました。",
         "benefit": "予期せぬトークン消費や待ち時間の増加を事前に把握し、モデル切り替えのタイミングを適切に判断できます。"
       }
     },
@@ -196,7 +196,7 @@
       "content": "- Fixed `/model` picker on AWS Bedrock in non-US regions persisting invalid `us.*` model IDs to `settings.json` when inference profile discovery is still in-flight",
       "content_ja": "AWS Bedrockを米国以外のリージョンで利用する際、無効なモデルIDがsettings.jsonに保存されてしまう問題を修正しました",
       "inference": {
-        "before": "インフェレンスプロファイルの検出中に、リージョンに合わない不正なモデルID（us.*など）が設定ファイルに書き込まれてしまうことがありました。",
+        "before": "インフェレンスプロファイルの検出中に、リージョンに合わない不正なモデルID(us.*など)が設定ファイルに書き込まれてしまうことがありました。",
         "after": "プロファイル検出の完了を適切に待機し、正しいモデルIDが永続化されるようになりました。",
         "benefit": "AWS環境でのリージョン設定に関するトラブルが減り、安定してBedrock上のモデルを利用できるようになります。"
       }
@@ -204,7 +204,7 @@
     {
       "version": "2.1.113",
       "content": "- Fixed `CLAUDE_CODE_EXTRA_BODY` `output_config.effort` causing 400 errors on subagent calls to models that don't support effort and on Vertex AI",
-      "content_ja": "思考負荷（Effort）設定をサポートしていないモデルやVertex AIを使用している際に発生していた400エラーを修正しました",
+      "content_ja": "思考負荷(Effort)設定をサポートしていないモデルやVertex AIを使用している際に発生していた400エラーを修正しました",
       "inference": {
         "before": "特定のプロバイダーや古いモデルで、新しい機能であるEffort設定が不適切に送信され、通信エラーが発生することがありました。",
         "after": "接続先のモデルがサポートしている機能を自動判別し、適切なパラメータのみを送信するように改善されました。",
@@ -224,9 +224,9 @@
     {
       "version": "2.1.117",
       "content": "- OpenTelemetry: `user_prompt` events now include `command_name` and `command_source` for slash commands; `cost.usage`, `token.usage`, `api_request`, and `api_error` now include an `effort` attribute when the model supports effort levels. Custom/MCP command names are redacted unless `OTEL_LOG_TOOL_DETAILS=1` is set",
-      "content_ja": "OpenTelemetry の拡張：スラッシュコマンドのソース情報や、モデルの思考（Effort）レベルごとのコスト・使用量、API リクエスト情報の取得に対応しました",
+      "content_ja": "OpenTelemetry の拡張：スラッシュコマンドのソース情報や、モデルの思考(Effort)レベルごとのコスト・使用量、API リクエスト情報の取得に対応しました",
       "inference": {
-        "before": "テレメトリデータにおいて、どのコマンドから実行されたかや、モデルの「思考の深さ（Effort）」がコストにどう影響しているかを詳細に分析することが困難でした。",
+        "before": "テレメトリデータにおいて、どのコマンドから実行されたかや、モデルの「思考の深さ(Effort)」がコストにどう影響しているかを詳細に分析することが困難でした。",
         "after": "コマンド名やソース、および `effort` 属性が各イベントに付与され、組織レベルでの詳細な利用状況の可視化が可能になります。",
         "benefit": "開発チーム全体での Claude Code の利用効率やコストパフォーマンスを、より正確なデータに基づいて最適化できます。"
       }
@@ -239,9 +239,9 @@
     {
       "version": "2.1.122",
       "content": "- Fixed `/model` not showing the Effort option for Bedrock application inference profile ARNs, and those ARNs not receiving `output_config.effort`",
-      "content_ja": "Bedrockのアプリケーション推論プロファイルARNを使用する際に、/model で思考（Effort）オプションが表示されない、および出力設定に反映されない問題を修正しました",
+      "content_ja": "Bedrockのアプリケーション推論プロファイルARNを使用する際に、/model で思考(Effort)オプションが表示されない、および出力設定に反映されない問題を修正しました",
       "inference": {
-        "before": "Bedrockの推論プロファイル機能を使用している場合、モデルが思考（reasoning）に対応していても、その強度を調整するインターフェースが表示されませんでした。",
+        "before": "Bedrockの推論プロファイル機能を使用している場合、モデルが思考(reasoning)に対応していても、その強度を調整するインターフェースが表示されませんでした。",
         "after": "ARN指定時でも適切に思考レベルの設定オプションが表示され、APIリクエストにも output_config.effort が正しく含まれるようになりました。",
         "benefit": "AWS環境でBedrockを利用しているユーザーも、タスクの複雑さに応じてモデルの思考の深さを柔軟に調整できるようになります。"
       }
@@ -278,7 +278,7 @@
       "inference": {
         "before": "`/clear`やコンパクションの後にモデル設定を変更すると、実際には問題がない場合でもキャッシュに関する警告が表示されることがありました。",
         "after": "設定変更時のキャッシュ状態の判定が正確になり、不要な警告でユーザーを混乱させることがなくなります。",
-        "benefit": "警告表示に煩わされることなく、タスクに応じて最適なモデルや推論効率（effort）をスムーズに切り替えられます。"
+        "benefit": "警告表示に煩わされることなく、タスクに応じて最適なモデルや推論効率(effort)をスムーズに切り替えられます。"
       }
     },
     {
@@ -306,7 +306,7 @@
       "content": "- Fixed sessions on 1M-context models with a smaller autocompact window being falsely blocked with \"Prompt is too long\" before reaching the actual API limit",
       "content_ja": "1M コンテキストモデルにおいて、オートコンパクションウィンドウが小さい場合に、実際の API 制限に達する前に誤って \"Prompt is too long\" でブロックされる問題を修正",
       "inference": {
-        "before": "100万トークンの広大なコンテキストを扱えるモデルを使用している際、設定されたコンパクション（圧縮）しきい値が小さいと、まだ余裕があるにもかかわらず「プロンプトが長すぎます」というエラーが発生していました。",
+        "before": "100万トークンの広大なコンテキストを扱えるモデルを使用している際、設定されたコンパクション(圧縮)しきい値が小さいと、まだ余裕があるにもかかわらず「プロンプトが長すぎます」というエラーが発生していました。",
         "after": "コンパクションの計算ロジックが修正され、モデルの真の限界までコンテキストをフル活用できるようになりました。",
         "benefit": "大規模なコードベースを扱う際のセッションの中断を減らし、より長い対話を安定して継続できます。"
       }
@@ -314,7 +314,7 @@
     {
       "version": "2.1.128",
       "content": "- Fixed banner showing \"with X effort\" on models that don't support effort",
-      "content_ja": "思考の「努力レベル（effort）」をサポートしていないモデルで、バナーに努力レベルが表示される問題を修正しました。"
+      "content_ja": "思考の「努力レベル(effort)」をサポートしていないモデルで、バナーに努力レベルが表示される問題を修正しました。"
     },
     {
       "version": "2.1.128",
@@ -469,7 +469,7 @@
     {
       "version": "2.1.68",
       "content": "- Opus 4.6 now defaults to medium effort for Max and Team subscribers. Medium effort works well for most tasks — it's the sweet spot between speed and thoroughness. You can change this anytime with `/model`",
-      "content_ja": "MaxおよびTeamプランの購読者において、Opus 4.6のデフォルトの思考レベル（effort）が「medium」に変更されました。mediumレベルは速度と丁寧さのバランスに優れており、ほとんどのタスクに最適です。この設定は `/model` コマンドでいつでも変更可能です。",
+      "content_ja": "MaxおよびTeamプランの購読者において、Opus 4.6のデフォルトの思考レベル(effort)が「medium」に変更されました。mediumレベルは速度と丁寧さのバランスに優れており、ほとんどのタスクに最適です。この設定は `/model` コマンドでいつでも変更可能です。",
       "inference": {
         "before": "これまでは、プランに関わらずデフォルトの思考レベルが一律であったか、あるいは詳細な調整が明示的に行われていませんでした。",
         "after": "Max/Teamユーザーのデフォルトがmediumに設定され、標準的なタスクにおいて十分な推論品質を維持しつつ、より迅速な応答が得られるようになります。",
@@ -479,7 +479,7 @@
     {
       "version": "2.1.68",
       "content": "- Removed Opus 4 and 4.1 from Claude Code on the first-party API — users with these models pinned are automatically moved to Opus 4.6",
-      "content_ja": "Anthropic API経由のClaude CodeからOpus 4および4.1を削除しました。これらの旧モデルを固定（ピン留め）して使用していたユーザーは、自動的にOpus 4.6へ移行されます。",
+      "content_ja": "Anthropic API経由のClaude CodeからOpus 4および4.1を削除しました。これらの旧モデルを固定(ピン留め)して使用していたユーザーは、自動的にOpus 4.6へ移行されます。",
       "inference": {
         "before": "Opus 4や4.1といった旧バージョンのモデルが利用可能で、特定の環境ではこれらが固定して使用されていました。",
         "after": "旧バージョンが廃止され、より高性能なOpus 4.6へ集約されます。",
@@ -528,15 +528,15 @@
       "inference": {
         "before": "設定ファイルに旧バージョンのモデル名が記載されていると、起動するたびに「最新モデルへの更新」通知が表示され、ユーザーにとってノイズになっていました。",
         "after": "モデルの自動アップグレード処理と通知ロジックが整理され、不必要な繰り返し通知が表示されないようになりました。",
-        "benefit": "起動時の不要な通知に邪魔されることなく、常に最新モデル（Opus 4.6）を最適な状態で利用できます。"
+        "benefit": "起動時の不要な通知に邪魔されることなく、常に最新モデル(Opus 4.6)を最適な状態で利用できます。"
       }
     },
     {
       "version": "2.1.75",
       "content": "- Fixed the Claude Code header not updating the displayed model name after switching models with `/model` or Option+P",
-      "content_ja": "`/model` やショートカットキー（Option+P）でモデルを切り替えた際、ヘッダーのモデル名表示が更新されない問題を修正",
+      "content_ja": "`/model` やショートカットキー(Option+P)でモデルを切り替えた際、ヘッダーのモデル名表示が更新されない問題を修正",
       "inference": {
-        "before": "モデルを切り替えても画面上部の表示が変わらないため、実際にどのモデル（Sonnet 4.6 や Opus 4.6 など）が動作しているか不安になることがありました。",
+        "before": "モデルを切り替えても画面上部の表示が変わらないため、実際にどのモデル(Sonnet 4.6 や Opus 4.6 など)が動作しているか不安になることがありました。",
         "after": "モデル変更が即座にヘッダー表示へ反映され、現在アクティブなモデルを正確に把握できるようになりました。",
         "benefit": "意図したモデルが正しく選択されていることを視覚的に確信できるため、安心して作業を継続できます。"
       }
@@ -546,7 +546,7 @@
       "content": "- Restored the `model` parameter on the Agent tool for per-invocation model overrides",
       "content_ja": "Agent ツールで呼び出しごとのモデル上書きを可能にする model パラメータを復元",
       "inference": {
-        "before": "サブエージェントを呼び出す際、特定の呼び出しにおいて一時的に異なるモデル（例：推論に優れた Opus など）を使用する柔軟性が欠けていました。",
+        "before": "サブエージェントを呼び出す際、特定の呼び出しにおいて一時的に異なるモデル(例：推論に優れた Opus など)を使用する柔軟性が欠けていました。",
         "after": "Agent ツールの引数として model パラメータが再び利用可能になり、呼び出しごとに最適なモデルを指定できるようになりました。",
         "benefit": "基本は高速な Sonnet を使いつつ、難解なタスクのサブタスクのみ Opus に任せるといった、コストと精度の細かな調整が可能になります。"
       }
@@ -574,7 +574,7 @@
     {
       "version": "2.1.74",
       "content": "- Fixed full model IDs (e.g., `claude-opus-4-5`) being silently ignored in agent frontmatter `model:` field and `--agents` JSON config — agents now accept the same model values as `--model`",
-      "content_ja": "エージェントのフロントマターや `--agents` JSON設定で、フルモデルID（例: `claude-opus-4-5`）が無視されていた問題を修正し、`--model` と同じ値を指定可能に改善",
+      "content_ja": "エージェントのフロントマターや `--agents` JSON設定で、フルモデルID(例: `claude-opus-4-5`)が無視されていた問題を修正し、`--model` と同じ値を指定可能に改善",
       "inference": {
         "before": "サブエージェントの設定で詳細なモデルバージョンを指定しても無視されることがあり、期待した性能のモデルが起動しない場合がありました。",
         "after": "サブエージェントの設定で、メインセッションと同じように正確なモデルIDを使用して、特定の用途に最適なモデルを確実に割り当てられるようになります。",
@@ -634,9 +634,9 @@
     {
       "version": "2.1.76",
       "content": "- Added `/effort` slash command to set model effort level",
-      "content_ja": "モデルの思考レベル（Effort Level）を設定するための`/effort`スラッシュコマンドを追加",
+      "content_ja": "モデルの思考レベル(Effort Level)を設定するための`/effort`スラッシュコマンドを追加",
       "inference": {
-        "before": "モデルの思考の深さ（努力量）を調整するには、環境変数の設定や設定ファイルの編集、あるいは`/model`コマンドの奥にある設定を変更する必要がありました。",
+        "before": "モデルの思考の深さ(努力量)を調整するには、環境変数の設定や設定ファイルの編集、あるいは`/model`コマンドの奥にある設定を変更する必要がありました。",
         "after": "`/effort`コマンドを使用して、チャットインターフェースから直接「low」「medium」「high」のレベルを切り替えられるようになりました。",
         "benefit": "単純な作業には低い努力量で高速に、複雑な設計には高い努力量でじっくりと考えさせるなど、タスクの性質に合わせてパフォーマンスとコストを瞬時に最適化できます。"
       }
@@ -654,7 +654,7 @@
     {
       "version": "2.1.76",
       "content": "- Fixed \"adaptive thinking is not supported on this model\" error when using non-standard model strings",
-      "content_ja": "標準的でないモデル名を使用した場合に「このモデルは適応的思考（adaptive thinking）をサポートしていません」という誤エラーが出る問題を修正しました。"
+      "content_ja": "標準的でないモデル名を使用した場合に「このモデルは適応的思考(adaptive thinking)をサポートしていません」という誤エラーが出る問題を修正しました。"
     },
     {
       "version": "2.1.76",
@@ -669,10 +669,10 @@
     {
       "version": "2.1.80",
       "content": "- Added `effort` frontmatter support for skills and slash commands to override the model effort level when invoked",
-      "content_ja": "スキルやスラッシュコマンドのフロントマターで `effort` を指定し、呼び出し時にモデルの思考レベル（エフォートレベル）を上書き可能に",
+      "content_ja": "スキルやスラッシュコマンドのフロントマターで `effort` を指定し、呼び出し時にモデルの思考レベル(エフォートレベル)を上書き可能に",
       "inference": {
         "before": "スキルを実行する際、セッション全体の思考レベル設定がそのまま適用されるため、特定の高度なタスクを実行するたびに手動でレベルを切り替える必要がありました。",
-        "after": "スキルの定義ファイル（SKILL.md など）のフロントマターで `effort` レベルを事前に設定できるようになり、実行時に自動で最適な思考深さが選択されます。",
+        "after": "スキルの定義ファイル(SKILL.md など)のフロントマターで `effort` レベルを事前に設定できるようになり、実行時に自動で最適な思考深さが選択されます。",
         "benefit": "「コードレビューは high」、「簡単な挨拶は low」のように、タスクの性質に合わせて最適な推論リソースを自動配分でき、速度と精度のバランスを最適化できます。"
       }
     },
@@ -711,7 +711,7 @@
       "content": "- Fixed `ANTHROPIC_BETAS` environment variable being silently ignored when using Haiku models",
       "content_ja": "Haikuモデルの使用時に `ANTHROPIC_BETAS` 環境変数が無視される問題を修正しました",
       "inference": {
-        "before": "Haikuモデル（Claude 3 Haikuや3.5 Haikuなど）を使用してClaude Codeを実行する際、ベータ機能を利用するための `ANTHROPIC_BETAS` 環境変数を設定しても、システム側でサイレントに無視されていました。",
+        "before": "Haikuモデル(Claude 3 Haikuや3.5 Haikuなど)を使用してClaude Codeを実行する際、ベータ機能を利用するための `ANTHROPIC_BETAS` 環境変数を設定しても、システム側でサイレントに無視されていました。",
         "after": "Haikuモデルを使用する場合でも `ANTHROPIC_BETAS` ヘッダーが正しくAPIリクエストに反映されるようになりました。",
         "benefit": "軽量で高速なHaikuモデルをメインまたはサブエージェントとして利用している環境でも、最新のベータ機能や実験的なプロンプトキャッシュ機能を確実に有効化できるようになります。"
       }
@@ -736,7 +736,7 @@
       "content": "- Added `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL_SUPPORTS` env vars to override effort/thinking capability detection for pinned default models for 3p (Bedrock, Vertex, Foundry), and `_MODEL_NAME`/`_DESCRIPTION` to customize the `/model` picker label",
       "content_ja": "サードパーティプロバイダーにおける思考能力検出の上書きと、モデル選択ラベルのカスタマイズ機能を追加",
       "inference": {
-        "before": "BedrockやVertex AIなどの外部プロバイダーを利用する際、特定のモデルバージョンを固定すると、Claude Codeがそのモデルの思考（Thinking）能力や推論レベルを正しく認識できない場合がありました。また、モデル選択画面での表示名を変更することもできませんでした。",
+        "before": "BedrockやVertex AIなどの外部プロバイダーを利用する際、特定のモデルバージョンを固定すると、Claude Codeがそのモデルの思考(Thinking)能力や推論レベルを正しく認識できない場合がありました。また、モデル選択画面での表示名を変更することもできませんでした。",
         "after": "環境変数 `ANTHROPIC_DEFAULT_{OPUS,SONNET,HAIKU}_MODEL_SUPPORTS` でモデルの能力を明示的に上書きできるようになりました。また、`_MODEL_NAME` や `_DESCRIPTION` 変数を使用して、`/model` ピッカーに表示される名前や説明を自由にカスタマイズ可能です。",
         "benefit": "社内のLLMゲートウェイ経由や特定の推論プロファイルを使用している場合でも、Claudeの高度な推論機能を確実に有効化でき、かつユーザーが識別しやすい名前を付けて運用効率を高めることができます。"
       }
@@ -756,7 +756,7 @@
       "content": "- Added `PermissionDenied` hook that fires after auto mode classifier denials — return `{retry: true}` to tell the model it can retry",
       "content_ja": "Autoモードの判定で拒否された際に実行される `PermissionDenied` フックを追加しました。`{retry: true}` を返すことでモデルに再試行を促せます",
       "inference": {
-        "before": "Autoモード（研究プレビュー）において、AIの操作がセキュリティポリシー等で拒否された場合、AIがその理由を理解して別の方法でリトライすることが困難でした。",
+        "before": "Autoモード(研究プレビュー)において、AIの操作がセキュリティポリシー等で拒否された場合、AIがその理由を理解して別の方法でリトライすることが困難でした。",
         "after": "このフックを利用して `{retry: true}` を返すと、AIに操作が拒否されたことを伝え、安全な代替案を自律的に考案させることが可能になります。",
         "benefit": "AIが一度の拒否で止まってしまうことを防ぎ、ユーザーが手動で指示し直す手間を省きながら、タスクの完了率を高めることができます。"
       }
@@ -856,7 +856,7 @@
       "content": "- Fixed skills with `disable-model-invocation: true` failing when invoked via `/<skill>` mid-message",
       "content_ja": "`disable-model-invocation: true`が設定されたスキルを、メッセージの途中で`/`コマンドにより呼び出した際に失敗する問題を修正",
       "inference": {
-        "before": "AIによる自動実行を禁止している特定のスキル（デプロイなど）を、チャットの入力途中で手動呼び出ししようとすると正しく認識されないバグがありました。",
+        "before": "AIによる自動実行を禁止している特定のスキル(デプロイなど)を、チャットの入力途中で手動呼び出ししようとすると正しく認識されないバグがありました。",
         "after": "どのような入力タイミングでも、明示的なスキル呼び出しが確実に実行されるように修正されました。",
         "benefit": "「特定の操作は必ず自分の手で実行したい」というルールが徹底され、AIとの連携における信頼性が向上します。"
       }
@@ -866,7 +866,7 @@
       "content": "- Added `xhigh` effort level for Opus 4.7, sitting between `high` and `max`. Available via `/effort`, `--effort`, and the model picker; other models fall back to `high`",
       "content_ja": "Opus 4.7において、`high`と`max`の中間に位置する新しい思考レベル`xhigh`を追加しました。`/effort`コマンド、`--effort`フラグ、またはモデル選択メニューから指定でき、未対応モデルでは自動的に`high`にフォールバックされます。",
       "inference": {
-        "before": "以前のモデル（Sonnet 4.6など）では思考レベルの選択肢が限られており、Opus 4.7のデフォルトかつ推奨される思考の深さを指定する専用のレベルが存在しませんでした。",
+        "before": "以前のモデル(Sonnet 4.6など)では思考レベルの選択肢が限られており、Opus 4.7のデフォルトかつ推奨される思考の深さを指定する専用のレベルが存在しませんでした。",
         "after": "Opus 4.7専用の`xhigh`レベルが追加され、コーディングやエージェントとしてのタスクに最適な、速度と推論能力の高度なバランスを簡単に選択できるようになりました。",
         "benefit": "Opus 4.7の能力を最大限に引き出す設定がデフォルトとなり、複雑な開発タスクにおいて、過剰なトークン消費を抑えつつ最も精度の高い推論結果を得られるようになります。"
       }
@@ -974,7 +974,7 @@
     {
       "version": "2.1.69",
       "content": "- Fixed `--model claude-opus-4-0` and `--model claude-opus-4-1` resolving to deprecated Opus versions instead of current",
-      "content_ja": "`--model` で指定したOpusの旧バージョン（4-0, 4-1）が、現行の推奨バージョンではなく非推奨バージョンに解決されていた問題を修正",
+      "content_ja": "`--model` で指定したOpusの旧バージョン(4-0, 4-1)が、現行の推奨バージョンではなく非推奨バージョンに解決されていた問題を修正",
       "inference": {
         "before": "最新のモデル性能を期待してバージョンを指定しても、実際には古いバージョンのモデルが呼び出されていました。",
         "after": "モデル名の解決ロジックが更新され、指定に応じて適切な現行モデルが使用されるようになりました。",
@@ -993,14 +993,14 @@
     {
       "version": "2.1.83",
       "content": "- Fixed scrollback jumping to top when the model starts or stops thinking",
-      "content_ja": "モデルが思考（Thinking）を開始または停止した際に、表示が最上部まで勝手にスクロールする問題を修正しました。"
+      "content_ja": "モデルが思考(Thinking)を開始または停止した際に、表示が最上部まで勝手にスクロールする問題を修正しました。"
     },
     {
       "version": "2.1.89",
       "content": "- Added `PermissionDenied` hook that fires after auto mode classifier denials — return `{retry: true}` to tell the model it can retry",
       "content_ja": "オートモードの分類器による拒否の後に実行される `PermissionDenied` フックを追加しました。`{retry: true}` を返すことで、モデルに再試行を促すことができます。",
       "inference": {
-        "before": "オートモード（auto mode）で操作が拒否された際、プログラム的に介入して修正を促したり、特定の条件下で再試行を許可したりする柔軟な手段がありませんでした。",
+        "before": "オートモード(auto mode)で操作が拒否された際、プログラム的に介入して修正を促したり、特定の条件下で再試行を許可したりする柔軟な手段がありませんでした。",
         "after": "拒否イベントをトリガーにフックを実行できるようになり、拒否理由に基づいてモデルに指示を出し直すなどの動的な制御が可能になりました。",
         "benefit": "安全性を保ちつつ、誤検知による中断を自動でリカバーさせることができ、オートモードでの作業の自律性が高まります。"
       }
@@ -1008,7 +1008,7 @@
     {
       "version": "2.1.98",
       "content": "- Added interactive Google Vertex AI setup wizard accessible from the login screen when selecting \"3rd-party platform\", guiding you through GCP authentication, project and region configuration, credential verification, and model pinning",
-      "content_ja": "ログイン画面の「サードパーティ・プラットフォーム」選択時からアクセス可能な、Google Vertex AI 用の対話型セットアップウィザードを追加しました。GCP認証、プロジェクトとリージョンの設定、認証情報の検証、およびモデルの固定（ピン留め）をガイドします。",
+      "content_ja": "ログイン画面の「サードパーティ・プラットフォーム」選択時からアクセス可能な、Google Vertex AI 用の対話型セットアップウィザードを追加しました。GCP認証、プロジェクトとリージョンの設定、認証情報の検証、およびモデルの固定(ピン留め)をガイドします。",
       "inference": {
         "before": "Vertex AI を使用する場合、環境変数や設定ファイルをユーザー自身が手動で構成する必要があり、初期セットアップのハードルが高くなっていました。",
         "after": "CLIの初期画面からウィザード形式で設定を進められるようになり、GCPプロジェクトの選択からモデルの固定までを対話的に完了できます。",
@@ -1018,12 +1018,13 @@
     {
       "version": "2.1.98",
       "content": "- Fixed `/effort max` being denied for unknown or future model IDs",
-      "content_ja": "未知のモデル ID や将来追加されるモデル ID に対して、`/effort max`（推論思考の最大化）が拒否される問題を修正しました。",
+      "content_ja": "未知のモデル ID や将来追加されるモデル ID に対して、`/effort max`(推論思考の最大化)が拒否される問題を修正しました。",
       "inference": {
         "before": "新しくリリースされたモデルやカスタムモデルを使用している際、最大思考レベルの設定ができない制限がありました。",
         "after": "モデルの種類に関わらず、対応している場合には常に最大の思考リソースを割り当てられるようになりました。",
         "benefit": "常に最新のモデル性能を引き出し、より複雑な問題解決に AI を活用できます。"
       }
     }
-  ]
+  ],
+  "fetched_at": "2000-01-01"
 }
