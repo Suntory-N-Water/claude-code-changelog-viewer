@@ -50,7 +50,7 @@ Each session runs in a fresh Anthropic-managed VM with your repository cloned. T
 
 ### What's available in cloud sessions
 
-Cloud sessions start from a fresh clone of your repository. Anything committed to the repo is available. Anything you've installed or configured only on your own machine is not.
+Cloud sessions start from a fresh clone of your repository. Anything committed to the repo is available. Anything you've installed or configured only on your own machine is not; your organization's policy arrives separately through [server-managed settings](/en/server-managed-settings).
 
 | | Available in cloud sessions | Why |
 | :- | :- | :- |
@@ -60,6 +60,7 @@ Cloud sessions start from a fresh clone of your repository. Anything committed t
 | Your repo's `.claude/rules/` | Yes | Part of the clone |
 | Your repo's `.claude/skills/`, `.claude/agents/`, `.claude/commands/` | Yes | Part of the clone |
 | Plugins declared in `.claude/settings.json` | Yes | Installed at session start from the [marketplace](/en/plugin-marketplaces) you declared. Requires network access to reach the marketplace source |
+| Your organization's [server-managed settings](/en/server-managed-settings) | Yes | Fetched from Anthropic's servers when the session starts. See [Surface coverage](/en/model-config#surface-coverage) for how `availableModels` is enforced in cloud sessions. Settings deployed to your device through MDM or managed settings files do not apply, because the session runs on an Anthropic-managed VM |
 | Your user `~/.claude/CLAUDE.md` | No | Lives on your machine, not in the repo |
 | Your user `~/.claude/skills/`, `~/.claude/agents/`, `~/.claude/commands/` | No | Live on your machine, not in the repo. Commit them to the repo's `.claude/` directory instead. Skills you enable on claude.ai are loaded into cloud sessions automatically |
 | Plugins enabled only in your user settings | No | User-scoped `enabledPlugins` lives in `~/.claude/settings.json`. Declare them in the repo's `.claude/settings.json` instead |
@@ -67,7 +68,7 @@ Cloud sessions start from a fresh clone of your repository. Anything committed t
 | Static API tokens and credentials | No | No dedicated secrets store exists yet. See below |
 | Interactive auth like AWS SSO | No | Not supported. SSO requires browser-based login that can't run in a cloud session |
 
-To make configuration available in cloud sessions, commit it to the repo. A dedicated secrets store is not yet available. Both environment variables and setup scripts are stored in the environment configuration, visible to anyone who can edit that environment. If you need secrets in a cloud session, add them as environment variables with that visibility in mind.
+To make your own configuration available in cloud sessions, commit it to the repo; organization policy arrives separately through [server-managed settings](/en/server-managed-settings). A dedicated secrets store is not yet available. Both environment variables and setup scripts are stored in the environment configuration, visible to anyone who can edit that environment. If you need secrets in a cloud session, add them as environment variables with that visibility in mind.
 
 ### Installed tools
 
@@ -206,7 +207,7 @@ Both run at the start of a session, but they belong to different places:
 | Runs | Before Claude Code launches, when no [cached environment](#environment-caching) is available | After Claude Code launches, on every session including resumed |
 | Scope | Cloud environments only | Both local and cloud |
 
-SessionStart hooks can also be defined in your user-level `~/.claude/settings.json` locally, but user-level settings don't carry over to cloud sessions. In the cloud, only hooks committed to the repo run.
+SessionStart hooks can also be defined in your user-level `~/.claude/settings.json` locally, but user-level settings don't carry over to cloud sessions. In the cloud, hooks come from the repo and from your organization's [server-managed settings](/en/server-managed-settings).
 
 ### Install dependencies with a SessionStart hook
 
