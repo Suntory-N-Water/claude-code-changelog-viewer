@@ -562,7 +562,7 @@ Team または Enterprise プランの組織は、管理コンソールコント
 
 管理設定
 
-管理設定はプロジェクトおよびユーザー設定をオーバーライドし、Desktop が CLI セッションを生成するときに適用されます。これらのキーを組織の[管理設定](/ja/settings#settings-precedence)ファイルで設定するか、管理コンソールを通じてリモートでプッシュできます。
+管理設定はプロジェクトおよびユーザー設定をオーバーライドし、Claude Code セッションに Desktop で適用されます。これらのキーを組織の[管理設定](/ja/settings#settings-precedence)ファイルで設定するか、管理コンソールを通じてリモートでプッシュできます。
 
 | キー | 説明 |
 | - | - |
@@ -571,9 +571,13 @@ Team または Enterprise プランの組織は、管理コンソールコント
 | `autoMode` | 組織全体で auto mode 分類器が信頼およびブロックするものをカスタマイズします。[auto mode を設定する](/ja/auto-mode-config)を参照してください。 |
 | `sshConfigs` | 環境ドロップダウンに表示される[SSH 接続](#pre-configure-ssh-connections-for-your-team)を事前設定します。ユーザーは管理接続を編集または削除できません。 |
 | `sshHostAllowlist` | [SSH セッション](#restrict-which-ssh-hosts-users-can-connect-to)を、解決されたホスト名がこれらのパターンのいずれかと一致するホストに制限します。空の配列は SSH セッションを無効にします。管理設定からのみ読み取られます。 |
-| `managedMcpServers` | MCP サーバー設定をサードパーティデプロイメント内のすべてのユーザーにプッシュします。各エントリは`"http"`、`"sse"`、または`"stdio"`のトランスポート、接続詳細、およびオプションで、そのサーバー内のどのツールをユーザーが呼び出せるかを制限する`toolPolicy`マップを指定します。サードパーティ（3P）Desktop デプロイメントでのみ利用可能です。 |
+| `managedMcpServers` | MCP サーバー設定をサードパーティデプロイメント内のすべてのユーザーにプッシュします。各エントリは`"http"`、`"sse"`、または`"stdio"`のトランスポート、接続詳細、およびオプションで、そのサーバー内のどのツールをユーザーが呼び出せるかを制限する`toolPolicy`マップを指定します。サードパーティ（3P）Desktop デプロイメントでのみ利用可能です。管理設定ファイルまたは MDM を通じてこのキーを配信してください。サードパーティデプロイメントは管理コンソール設定を受け取らないためです。 |
 
-ディスク上の各マシンにデプロイされた管理設定ファイルは Desktop セッションに適用されます。管理コンソールを通じてリモートでプッシュされた管理設定は、現在 CLI および IDE セッションにのみ適用されるため、Desktop デプロイメントの場合は MDM 経由でファイルを配布するか、上記の[管理コンソールコントロール](#admin-console-controls)を使用してください。
+Desktop セッションがどこで実行されるかに応じて、どの管理設定がそのセッションに到達するかが異なります。[`availableModels`](/ja/model-config#restrict-model-selection)などのモデル制限は、Desktop の Claude Code セッションでターミナル CLI と同じ方法で適用されます。[surface coverage](/ja/model-config#surface-coverage)を参照してください。
+
+- **このマシン上のローカルセッション**：ディスクにデプロイされた管理設定ファイルが適用されます。管理コンソールを通じてリモートでプッシュされた管理設定は、セッションが組織ログインまたは直接設定された API キーで認証する場合、Anthropic の API でこれらのセッションに到達します。ターミナル CLI と同じ[設定の優先順位](/ja/settings#settings-precedence)に従います。
+- **[クラウドセッション](#cloud-sessions)**：Anthropic が管理する VM で実行され、[サーバー管理設定](/ja/server-managed-settings)のみを受け取ります。
+- **[SSH セッション](#ssh-sessions)**：セッションはリモートホストから管理設定ファイルを読み取ります。Desktop 自体は接続を作成するときに、ローカルマシンの管理設定から`sshConfigs`と`sshHostAllowlist`を読み取ります。
 
 `permissions.disableBypassPermissionsMode`と`disableAutoMode`はユーザーおよびプロジェクト設定でも機能しますが、管理設定に配置するとユーザーがそれらをオーバーライドするのを防ぎます。`autoMode`はユーザー設定、`.claude/settings.local.json`、および管理設定から読み取られますが、チェックイン済みの`.claude/settings.json`からは読み取られません：クローンされたリポジトリは独自の分類器ルールを注入できません。`allowManagedPermissionRulesOnly`と`allowManagedHooksOnly`を含む管理専用設定の完全なリストについては、[管理専用設定](/ja/permissions#managed-only-settings)を参照してください。
 

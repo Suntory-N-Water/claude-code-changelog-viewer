@@ -17,7 +17,7 @@ Claude Code は、**スコープシステム**を使用して、構成がどこ�
 
 | スコープ | 場所 | 影響を受けるユーザー | チームと共有? |
 | :- | :- | :- | :- |
-| **Managed** | サーバー管理設定、plist / レジストリ、またはシステムレベルの `managed-settings.json` | マシン上のすべてのユーザー | はい（IT により展開） |
+| **Managed** | サーバー管理設定、plist / レジストリ、またはシステムレベルの `managed-settings.json` | サーバー管理配信の場合はすべての組織メンバー、plist、HKLM レジストリ、ファイル配信の場合はマシン上のすべてのユーザー、HKCU レジストリ配信の場合は現在のユーザー | はい（IT により展開） |
 | **User** | `~/.claude/` ディレクトリ | すべてのプロジェクト全体でのあなた | いいえ |
 | **Project** | リポジトリ内の `.claude/` | このリポジトリのすべてのコラボレーター | はい（git にコミット） |
 | **Local** | `.claude/settings.local.json` | このリポジトリ内のあなたのみ | いいえ（Claude Code が作成する場合は gitignored） |
@@ -207,7 +207,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、`soft_deny`、および `hard_deny` 配列の散文ルールを含みます。リテラル文字列 `"$defaults"` を配列に含めて、その位置で組み込みルールを継承します。[自動モードを構成](/ja/auto-mode-config)を参照してください。共有プロジェクト設定から読み込まれません | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
 | `autoScrollEnabled` | [フルスクリーンレンダリング](/ja/fullscreen)で、新しい出力を会話の下部に追従します。デフォルト：`true`。`/config` に**自動スクロール**として表示されます。権限プロンプトはこれがオフの場合でもビューにスクロールします | `false` |
 | `autoUpdatesChannel` | 更新に従うリリースチャネル。約 1 週間古いバージョンで、大きな回帰のあるバージョンをスキップする `"stable"` を使用するか、最新リリースの `"latest"`（デフォルト）を使用します。自動更新を完全に無効にするには、`env` で [`DISABLE_AUTOUPDATER`](/ja/setup#disable-auto-updates)を設定します | `"stable"` |
-| `availableModels` | ユーザーがメインセッション、[subagents](/ja/sub-agents)、および [advisor](/ja/advisor)用に選択できるモデルを制限します。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください。`enforceAvailableModels` も参照してください。デフォルトを制限します | `["sonnet", "haiku"]` |
+| `availableModels` | ユーザーがメインセッション、[subagents](/ja/sub-agents)、[skills](/ja/skills)、および [advisor](/ja/advisor)用に選択できるモデルを制限します。`enforceAvailableModels` も設定されている場合を除き、デフォルトオプションには影響しません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください | `["sonnet", "haiku"]` |
 | `awaySummaryEnabled` | 数分間ターミナルから離れた後に戻ったときに、1 行のセッション要約を表示します。`false` に設定するか、`/config` でセッション要約をオフにして無効にします。[`CLAUDE_CODE_ENABLE_AWAY_SUMMARY`](/ja/env-vars)と同じです | `true` |
 | `awsAuthRefresh` | `.aws` ディレクトリを変更するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `aws sso login --profile myprofile` |
 | `awsCredentialExport` | AWS 認証情報を含む JSON を出力するカスタムスクリプト（[高度な認証情報構成](/ja/amazon-bedrock#advanced-credential-configuration)を参照） | `/bin/generate_aws_grant.sh` |
@@ -235,7 +235,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `effortLevel` | [努力レベル](/ja/model-config#adjust-effort-level)をセッション全体で永続化します。`"low"`、`"medium"`、`"high"`、または `"xhigh"` を受け入れます。これらの値のいずれかで `/effort` を実行すると自動的に書き込まれます。`--effort` と [`CLAUDE_CODE_EFFORT_LEVEL`](/ja/env-vars)はこれを 1 セッション間オーバーライドします。[努力レベルを調整](/ja/model-config#adjust-effort-level)でサポートされているモデルを参照してください | `"xhigh"` |
 | `enableAllProjectMcpServers` | プロジェクト `.mcp.json` ファイルで定義されたすべての MCP サーバーを自動的に承認します | `true` |
 | `enabledMcpjsonServers` | `.mcp.json` ファイルから承認する特定の MCP サーバーのリスト | `["memory", "github"]` |
-| `enforceAvailableModels` | managed またはポリシー設定で `true` で `availableModels` が空でないリストの場合、デフォルトモデルもホワイトリストに制限されます。詳細については [モデル選択を制限](/ja/model-config#restrict-model-selection)を参照し、`availableModels` が複数のレベルで設定されている場合の[マージ動作](/ja/model-config#merge-behavior)を参照してください。Claude Code v2.1.175 以降が必要です | `true` |
+| `enforceAvailableModels` | managed 設定で `true` で `availableModels` が空でないリストの場合、デフォルトモデルもホワイトリストに制限されます。利用可能なモデルが最初のホワイトリストエントリにフォールバックします。`availableModels` が未設定または空の場合は効果がありません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください。Claude Code v2.1.175 以降が必要です | `true` |
 | `env` | すべてのセッションに適用される環境変数。v2.1.143 以降、`NO_COLOR` と `FORCE_COLOR` がここで設定されている場合、サブプロセスに渡されますが、Claude Code 自体のインターフェイスの色は変更されません。インターフェイスの色を変更するには、`claude` を起動する前にシェルでこれらを設定します | `{"FOO": "bar"}` |
 | `fallbackModel` | プライマリモデルがオーバーロードされているか利用できない場合に順番に試すフォールバックモデル。Claude Code はチェーン内の次の利用可能なモデルに切り替え、ターンの残りを表示し、通知を表示します。`"default"` はデフォルトモデルに展開されます。チェーンは 3 つのモデルに制限されます。余分なエントリは無視されます。ほとんどの配列設定とは異なり、このキーはスコープ全体でマージされません：これを定義する最高優先度ファイルが全体の値を提供します。[`--fallback-model`](/ja/cli-reference#cli-flags)フラグはこれを 1 セッション間オーバーライドします。[フォールバックモデルチェーン](/ja/model-config#fallback-model-chains)を参照してください | `["claude-sonnet-4-6", "claude-haiku-4-5"]` |
 | `fastModePerSessionOptIn` | `true` の場合、高速モードはセッション全体で永続化されません。各セッションは高速モードがオフで開始され、ユーザーが `/fast` で有効にする必要があります。ユーザーの高速モード設定は引き続き保存されます。[セッションごとのオプトインを要求](/ja/fast-mode#require-per-session-opt-in)を参照してください | `true` |
@@ -370,6 +370,8 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `filesystem.denyRead` | サンドボックス化されたコマンドが読み取りできないパス。配列はすべての設定スコープ全体でマージされます。`Read(...)` deny 権限ルールからのパスともマージされます。 | `["~/.aws/credentials"]` |
 | `filesystem.allowRead` | `denyRead` 領域内での読み取りを再度許可するパス。`denyRead` よりも優先されます。配列はすべての設定スコープ全体でマージされます。これを使用してワークスペースのみの読み取りアクセスパターンを作成します。 | `["."]` |
 | `filesystem.allowManagedReadPathsOnly` | （Managed 設定のみ）managed 設定からの `filesystem.allowRead` パスのみが尊重されます。`denyRead` はすべてのソースからマージされます。デフォルト：false | `true` |
+| `credentials.files` | サンドボックス化されたコマンドが読み取りできない認証情報ファイルまたはディレクトリ。`filesystem.denyRead` と同じ読み取りブロックを適用します。個別のキーは認証情報パスを `credentials.envVars` と一緒にグループ化し、一般的なファイルシステムルールから離します。各エントリは `{ "path": "...", "mode": "deny" }` です。パス は `filesystem.*` 設定と同じ[プレフィックス](#sandbox-path-prefixes)を使用します。配列はすべての設定スコープ全体でマージされます。`deny` のみがサポートされています。Claude Code v2.1.187 以降が必要です。 | `[{ "path": "~/.aws/credentials", "mode": "deny" }]` |
+| `credentials.envVars` | サンドボックス化されたコマンドを実行する前に設定解除する環境変数。各エントリは `{ "name": "...", "mode": "deny" }` です。配列はすべての設定スコープ全体でマージされます。`deny` のみがサポートされています。Claude Code v2.1.187 以降が必要です。 | `[{ "name": "GITHUB_TOKEN", "mode": "deny" }]` |
 | `network.allowUnixSockets` | （macOS のみ）サンドボックスでアクセス可能な Unix ソケットパス。Linux と WSL2 では無視されます。seccomp フィルターは `socket(AF_UNIX, ...)` 呼び出しをブロックできないため、代わりに `allowAllUnixSockets` を使用します。 | `["~/.ssh/agent-socket"]` |
 | `network.allowAllUnixSockets` | サンドボックス内のすべての Unix ソケット接続を許可します。Linux と WSL2 ではこれが Unix ソケットを許可する唯一の方法です。seccomp フィルターをスキップするため、`socket(AF_UNIX, ...)` 呼び出しをブロックします。デフォルト：false | `true` |
 | `network.allowLocalBinding` | localhost ポートへのバインドを許可します（macOS のみ）。デフォルト：false | `true` |
@@ -387,7 +389,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 
 サンドボックスパスプレフィックス
 
-`filesystem.allowWrite`、`filesystem.denyWrite`、`filesystem.denyRead`、および `filesystem.allowRead` のパスは、これらのプレフィックスをサポートしています：
+`filesystem.allowWrite`、`filesystem.denyWrite`、`filesystem.denyRead`、`filesystem.allowRead`、および `credentials.files` のパスは、これらのプレフィックスをサポートしています：
 
 | プレフィックス | 意味 | 例 |
 | :- | :- | :- |
@@ -622,7 +624,12 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 
 たとえば、ユーザー設定が `permissions.defaultMode` を `acceptEdits` に設定しているが、プロジェクトの共有設定がそれを `default` に設定している場合、プロジェクト値が適用されます。以下の例は、配列値の設定（権限ルールなど）がどのように結合されるかについて説明しています。
 
-**配列設定はスコープ全体でマージされます。** 同じ配列値の設定（`sandbox.filesystem.allowWrite` や `permissions.allow` など）が複数のスコープに表示される場合、配列は**連結および重複排除**され、置き換えられません。これは、低優先度のスコープが高優先度のスコープで設定されたエントリをオーバーライドすることなくエントリを追加でき、その逆も同様です。たとえば、managed 設定が `allowWrite` を `["/opt/company-tools"]` に設定し、ユーザーが `["~/.kube"]` を追加する場合、両方のパスが最終構成に含まれます。唯一の例外は [`fallbackModel`](#available-settings)。位置が意味を持つ順序付きチェーン：これを定義する最高優先度ファイルが全体の値を提供します。v2.1.175 以降、[`availableModels`](#available-settings)。managed またはポリシー値は低優先度エントリを完全に置き換えます。[マージ動作](/ja/model-config#merge-behavior)を参照してください。
+**配列設定はスコープ全体でマージされます。** 同じ配列値の設定（`sandbox.filesystem.allowWrite` や `permissions.allow` など）が複数のスコープに表示される場合、配列は**連結および重複排除**され、置き換えられません。これは、低優先度のスコープが高優先度のスコープで設定されたエントリをオーバーライドすることなくエントリを追加でき、その逆も同様です。たとえば、managed 設定が `allowWrite` を `["/opt/company-tools"]` に設定し、ユーザーが `["~/.kube"]` を追加する場合、両方のパスが最終構成に含まれます。
+
+2 つの配列設定はこのようにマージされません：
+
+- [`fallbackModel`](#available-settings) は位置が意味を持つ順序付きチェーン：これを定義する最高優先度ファイルが全体の値を提供します。
+- [`availableModels`](#available-settings)：[最高優先度の managed ソース](/ja/server-managed-settings#settings-precedence)がこれを定義する場合、そのリストはそのまま適用され、ユーザー、プロジェクト、およびローカルエントリはそれを拡張できません。非 managed スコープ全体では、配列は通常どおりマージされます。[マージ動作](/ja/model-config#merge-behavior)を参照してください。
 
 アクティブな設定を確認
 
@@ -639,7 +646,7 @@ Claude Code 内で `/status` を実行して、どの設定ソースがアクテ
 - **Skills**：`/skill-name` で呼び出すか、Claude によって自動的に読み込むことができるカスタムプロンプト
 - **MCP サーバー**：追加のツールと統合で Claude Code を拡張します
 - **優先度**：高レベルの構成（Managed）が低レベルの構成（User/Project）をオーバーライドします
-- **継承**：設定はマージされ、スカラー値はより高い優先度のスコープからオーバーライドされ、配列は連結されます。例外：`fallbackModel`。位置が意味を持つ順序付きチェーン：これを定義する最高優先度ファイルが全体の値を提供します。v2.1.175 以降、`availableModels`。managed またはポリシー値は低優先度エントリを完全に置き換えます
+- **継承**：設定はマージされ、スカラー値はより高い優先度のスコープからオーバーライドされ、配列は連結されます。例外：`fallbackModel` は位置が意味を持つ順序付きチェーン：これを定義する最高優先度ファイルが全体の値を提供します。v2.1.175 以降、`availableModels` は managed またはポリシー値が低優先度エントリを完全に置き換えます
 
 システムプロンプト
 

@@ -33,9 +33,9 @@ Claude Code Action
 
 クイックセットアップ
 
-このアクションをセットアップする最も簡単な方法は、ターミナルで Claude Code を使用することです。claude を開いて `/install-github-app` を実行するだけです。
+Claude Code ターミナルで `/install-github-app` を実行して、統合をインタラクティブにセットアップします。このコマンドは Claude GitHub App をリポジトリにインストールし、GitHub Actions ワークフローと API キーシークレットの追加をガイドします。
 
-このコマンドは、GitHub アプリと必要なシークレットのセットアップをガイドします。
+GitHub App がインストールされた後、コマンドは GitHub Actions セットアップを続行するかどうかを尋ねます。Claude Code v2.1.187 以降では、**Skip for now** を選択して App のインストールのみで停止し、後で `/install-github-app` を再度実行してワークフローとシークレットのステップに戻ることができます。以前のバージョンではワークフロー選択に直接進みます。
 
 - GitHub アプリをインストールしてシークレットを追加するには、リポジトリ管理者である必要があります
 - GitHub アプリは、Contents、Issues、Pull requests に対する読み取りと書き込みのアクセス許可をリクエストします
