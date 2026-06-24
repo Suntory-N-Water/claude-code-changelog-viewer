@@ -168,6 +168,10 @@ export async function generateSettingsReference(input: {
     log,
   });
 
+  const fetchedAt = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'Asia/Tokyo',
+  }).format(new Date());
+
   const references = newEntries.flatMap((entry, index) => {
     const translation = translationMap.get(index);
     if (!translation) {
@@ -186,6 +190,7 @@ export async function generateSettingsReference(input: {
         parentDescriptions: entry.parentDescriptions,
         docSnippets: relatedContext.docSnippetsMap.get(entry.key) ?? [],
         relatedChangelog: relatedContext.changelogsMap.get(entry.key) ?? [],
+        fetchedAt,
       },
     ];
   });

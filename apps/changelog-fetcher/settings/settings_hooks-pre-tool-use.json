@@ -5,7 +5,7 @@
   "source": "settings",
   "description_en": "Hooks that run before tool calls",
   "description_ja": "ツールの呼び出し前に実行されるフック。",
-  "use_case_ja": "- 破壊的なコマンドの実行を事前に検知してブロックしたり、AI にツール実行前の追加コンテキストを提供して意思決定を支援したりします。\n- ヘッドレス環境において AI からの質問（AskUserQuestion）に自動回答するミドルウェアとしても活用可能です。",
+  "use_case_ja": "- 破壊的なコマンドの実行を事前に検知してブロックしたり、AI にツール実行前の追加コンテキストを提供して意思決定を支援したりします。\n- ヘッドレス環境において AI からの質問(AskUserQuestion)に自動回答するミドルウェアとしても活用可能です。",
   "parent_descriptions": [
     "Custom commands to run before/after tool executions. See https://code.claude.com/docs/en/hooks"
   ],
@@ -47,7 +47,7 @@
       "content": "- Fixed PreToolUse hooks returning `\"allow\"` bypassing `deny` permission rules, including enterprise managed settings",
       "content_ja": "`PreToolUse` フックが `\"allow\"` を返した際に、管理設定などの拒否ルールをバイパスしてしまう問題を修正しました",
       "inference": {
-        "before": "フック側で許可（allow）を出すと、エンタープライズの管理ポリシー等で定義された強力な拒否ルールすら上書きされてしまう脆弱な状態でした。",
+        "before": "フック側で許可(allow)を出すと、エンタープライズの管理ポリシー等で定義された強力な拒否ルールすら上書きされてしまう脆弱な状態でした。",
         "after": "パーミッション評価順序が厳格化され、フックの出力に関わらず拒否ルールが常に優先されるようになりました。",
         "benefit": "組織レベルで設定したセキュリティポリシーが確実に適用されるため、安全にフック機能を活用できます。"
       }
@@ -57,8 +57,8 @@
       "content": "- PreToolUse hooks can now satisfy `AskUserQuestion` by returning `updatedInput` alongside `permissionDecision: \"allow\"`, enabling headless integrations that collect answers via their own UI",
       "content_ja": "PreToolUseフックがupdatedInputとpermissionDecision: \"allow\"を返すことで、AskUserQuestionに応答可能になり、ヘッドレス環境での対話をサポート",
       "inference": {
-        "before": "ヘッドレス（非対話）モードでの実行中、Claudeがユーザーに質問（AskUserQuestion）を投げると、外部から動的に回答を供給するスマートな方法が不足していました。",
-        "after": "フック経由で質問への回答（updatedInput）を返せるようになったため、独自のUIや自動化スクリプトを介してClaudeの質問に回答できます。",
+        "before": "ヘッドレス(非対話)モードでの実行中、Claudeがユーザーに質問(AskUserQuestion)を投げると、外部から動的に回答を供給するスマートな方法が不足していました。",
+        "after": "フック経由で質問への回答(updatedInput)を返せるようになったため、独自のUIや自動化スクリプトを介してClaudeの質問に回答できます。",
         "benefit": "CLIを直接操作できないCI/CD環境やカスタムアプリ経由の利用において、Claudeとの対話を自動化または外部UI化することが可能になります。"
       }
     },
@@ -89,7 +89,7 @@
       "inference": {
         "before": "特定の条件でツール実行を拒否しようとしても、フックの出力形式や終了コードの組み合わせによってはブロック処理が正しく動作しない不具合がありました。",
         "after": "フックからのブロック指示が確実に処理され、セキュリティ上の制約やバリデーションが厳密に適用されます。",
-        "benefit": "独自に作成したフックによる実行制限（破壊的なコマンドの禁止など）が意図通りに機能し、安全性が向上します。"
+        "benefit": "独自に作成したフックによる実行制限(破壊的なコマンドの禁止など)が意図通りに機能し、安全性が向上します。"
       }
     },
     {
@@ -97,7 +97,7 @@
       "content": "- Fixed `permissions.deny` rules not overriding a PreToolUse hook's `permissionDecision: \"ask\"` — previously the hook could downgrade a deny into a prompt",
       "content_ja": "`permissions.deny` ルールが `PreToolUse` フックの `permissionDecision: \"ask\"` よりも優先されるよう修正",
       "inference": {
-        "before": "設定ファイルで特定のコマンドを「拒否（deny）」していても、フックの設定によってはユーザーに「確認（ask）」を求めてしまい、拒否ルールをバイパスできてしまう場合がありました。",
+        "before": "設定ファイルで特定のコマンドを「拒否(deny)」していても、フックの設定によってはユーザーに「確認(ask)」を求めてしまい、拒否ルールをバイパスできてしまう場合がありました。",
         "after": "「拒否」ルールが常に最優先されるようになり、フックによって承認待ちにダウングレードされることがなくなります。",
         "benefit": "セキュリティ設定の優先順位が明確になり、意図しないツールの実行をより確実に防止できます。"
       }
@@ -120,7 +120,7 @@
     {
       "version": "2.1.110",
       "content": "- Fixed `PreToolUse` hook `additionalContext` being dropped when the tool call fails",
-      "content_ja": "ツール実行失敗時に`PreToolUse`フックから提供された追加コンテキスト（`additionalContext`）が失われる問題を修正",
+      "content_ja": "ツール実行失敗時に`PreToolUse`フックから提供された追加コンテキスト(`additionalContext`)が失われる問題を修正",
       "inference": {
         "before": "フックを使ってAIに補足情報を与えていても、その直後のツール実行が一度失敗すると、せっかくの補足情報が消えてしまい、AIが状況を正しくリトライできないことがありました。",
         "after": "ツール実行の成否にかかわらず、フックによって注入されたコンテキストが正しく保持され、AIに共有され続けるようになりました。",
@@ -130,7 +130,7 @@
     {
       "version": "2.1.119",
       "content": "- Hooks: `PostToolUse` and `PostToolUseFailure` hook inputs now include `duration_ms` (tool execution time, excluding permission prompts and PreToolUse hooks)",
-      "content_ja": "フック機能の改善：`PostToolUse` および `PostToolUseFailure` の入力 JSON に、ツールの純粋な実行時間を示す `duration_ms` が含まれるようになりました（承認待機時間は除く）",
+      "content_ja": "フック機能の改善：`PostToolUse` および `PostToolUseFailure` の入力 JSON に、ツールの純粋な実行時間を示す `duration_ms` が含まれるようになりました(承認待機時間は除く)",
       "inference": {
         "before": "フックからツールの実行時間を把握することが難しく、どの操作に時間がかかっているかの正確な計測が困難でした。",
         "after": "フックへの入力データにミリ秒単位の `duration_ms` が追加され、ユーザーの承認待ち時間を除いた純粋な処理時間を取得できるようになりました。",
@@ -152,8 +152,8 @@
       "content": "- Added `\"defer\"` permission decision to `PreToolUse` hooks — headless sessions can pause at a tool call and resume with `-p --resume` to have the hook re-evaluate",
       "content_ja": "PreToolUseフックに \"defer\" 判定を追加しました。ヘッドレスセッションでツール実行を一時停止し、`-p --resume` で再開してフックを再評価させることが可能です。",
       "inference": {
-        "before": "ヘッドレスモード（-p）において、フックがツールの実行を条件付きで保留し、後からユーザーの判断を待って再開させる明確な仕組みが不足していました。",
-        "after": "フックが \"defer\"（保留）を返せるようになり、実行を中断したセッションを `-p --resume` で再開する際に、再度フックを走らせて最終的な実行可否を決定できるようになりました。",
+        "before": "ヘッドレスモード(-p)において、フックがツールの実行を条件付きで保留し、後からユーザーの判断を待って再開させる明確な仕組みが不足していました。",
+        "after": "フックが \"defer\"(保留)を返せるようになり、実行を中断したセッションを `-p --resume` で再開する際に、再度フックを走らせて最終的な実行可否を決定できるようになりました。",
         "benefit": "自動化スクリプトやCI環境において、重要な操作の直前で一時停止し、人間が確認してから安全に続行させるワークフローが構築しやすくなります。"
       }
     },
@@ -167,5 +167,6 @@
         "benefit": "フックを利用した複雑な自動処理や検証スクリプトの作成が、より簡単かつ確実になります。"
       }
     }
-  ]
+  ],
+  "fetched_at": "2000-01-01"
 }
