@@ -169,7 +169,7 @@ osascript -e 'display notification "test"'
 
 Claude が編集するすべてのファイルで [Prettier](https://prettier.io/) を自動的に実行し、手動操作なしでフォーマットの一貫性を保ちます。
 
-この hook は `PostToolUse` イベントを `Edit|Write` マッチャーで使用するため、ファイル編集ツールの後にのみ実行されます。コマンドは [`jq`](https://jqlang.github.io/jq/) で編集されたファイルパスを抽出し、Prettier に渡します。これをプロジェクトルートの `.claude/settings.json` に追加します：
+この hook は `PostToolUse` イベントを `Edit|Write` マッチャーで使用するため、ファイル編集ツールの後にのみ実行されます。Claude Code v2.1.191 以降では、マッチャーを `Edit,Write` として記述することもできます。これらのバージョンではツール名マッチャーの `|` と `,` は相互に交換可能なリスト区切り文字だからです。コマンドは [`jq`](https://jqlang.github.io/jq/) で編集されたファイルパスを抽出し、Prettier に渡します。これをプロジェクトルートの `.claude/settings.json` に追加します：
 
 ```json
 {
