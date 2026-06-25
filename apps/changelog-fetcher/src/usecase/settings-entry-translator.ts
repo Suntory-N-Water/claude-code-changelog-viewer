@@ -1,6 +1,7 @@
 import type { AppLogger } from '@claude-code-changelog-viewer/common';
 import type { SettingsEntry } from '../domain/settings-reference/setting-entry';
 import type {
+  SchemaInfo,
   SettingsReferenceContext,
   SettingsTranslation,
   SettingsTranslationMap,
@@ -16,6 +17,7 @@ export type SettingsTranslatorPort = {
 type TranslateContext = {
   relatedContext: SettingsReferenceContext;
   settingsTranslator: SettingsTranslatorPort;
+  schemaInfoMap?: Map<string, SchemaInfo>;
   log: AppLogger;
 };
 
@@ -26,7 +28,7 @@ export async function translateInBatches(
   entries: SettingsEntry[],
   ctx: TranslateContext,
 ): Promise<SettingsTranslationMap> {
-  const { relatedContext, settingsTranslator, log } = ctx;
+  const { relatedContext, settingsTranslator, schemaInfoMap, log } = ctx;
   const BATCH_SIZE = 30;
   const resultMap: SettingsTranslationMap = new Map();
 
@@ -46,6 +48,7 @@ export async function translateInBatches(
         entry,
         docSnippets: relatedContext.docSnippetsMap.get(entry.key) ?? [],
         relatedChangelog: relatedContext.changelogsMap.get(entry.key) ?? [],
+        ...schemaInfoMap?.get(entry.key),
       })),
     );
 

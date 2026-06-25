@@ -11,11 +11,15 @@ import {
 type SchemaEnvProperty = {
   description?: string;
   type?: string;
+  default?: unknown;
+  enum?: unknown[];
 };
 
 type SchemaProperty = {
   description?: string;
   type?: string;
+  default?: unknown;
+  enum?: unknown[];
   properties?: Record<string, SchemaProperty>;
   items?: SchemaProperty;
 };
@@ -29,12 +33,35 @@ export type RawSettingsEntries = {
   mdEnvEntries: SettingsEntry[];
   schemaEnvEntries: SettingsEntry[];
   docsEnvEntries: SettingsEntry[];
+  schemaInfoMap: Map<string, { schemaDefault?: string; schemaEnum?: string[] }>;
 };
 
 type CollectLeafCtx = {
   parentDescriptions: string[];
   source: SettingSource;
+  schemaInfoMap: Map<string, { schemaDefault?: string; schemaEnum?: string[] }>;
 };
+
+function extractSchemaInfo(obj: {
+  default?: unknown;
+  enum?: unknown[];
+}): { schemaDefault?: string; schemaEnum?: string[] } | undefined {
+  const schemaDefault =
+    obj.default !== undefined ? JSON.stringify(obj.default) : undefined;
+  const schemaEnum =
+    obj.enum !== undefined ? obj.enum.map((v) => String(v)) : undefined;
+  if (schemaDefault === undefined && schemaEnum === undefined) {
+    return;
+  }
+  const info: { schemaDefault?: string; schemaEnum?: string[] } = {};
+  if (schemaDefault !== undefined) {
+    info.schemaDefault = schemaDefault;
+  }
+  if (schemaEnum !== undefined) {
+    info.schemaEnum = schemaEnum;
+  }
+  return info;
+}
 
 /**
  * スキーマノードを再帰的に走査してリーフノードを収集する
@@ -56,6 +83,10 @@ function collectLeafEntries(
         parentDescriptions: ctx.parentDescriptions,
       }),
     );
+    const info = extractSchemaInfo(obj);
+    if (info !== undefined) {
+      ctx.schemaInfoMap.set(keyPath, info);
+    }
     return results;
   }
 
@@ -70,6 +101,7 @@ function collectLeafEntries(
       ...collectLeafEntries(childValue, childPath, {
         parentDescriptions: currentDescs,
         source: ctx.source,
+        schemaInfoMap: ctx.schemaInfoMap,
       }),
     );
   }
@@ -84,12 +116,17 @@ function collectLeafEntries(
 export async function parseSettingsSchema(schemaPath: string): Promise<{
   settings: SettingsEntry[];
   envFromSchema: SettingsEntry[];
+  schemaInfoMap: Map<string, { schemaDefault?: string; schemaEnum?: string[] }>;
 }> {
   const raw = await fs.readFile(schemaPath, 'utf-8');
   const schema = JSON.parse(raw) as SettingsJsonSchema;
 
   const settings: SettingsEntry[] = [];
   const envFromSchema: SettingsEntry[] = [];
+  const schemaInfoMap = new Map<
+    string,
+    { schemaDefault?: string; schemaEnum?: string[] }
+  >();
   const props = schema.properties ?? {};
 
   for (const [key, value] of Object.entries(props)) {
@@ -100,14 +137,19 @@ export async function parseSettingsSchema(schemaPath: string): Promise<{
     if (key === 'env') {
       const envProps = value.properties ?? {};
       for (const [envKey, envValue] of Object.entries(envProps)) {
+        const envProp = envValue as SchemaEnvProperty;
         envFromSchema.push(
           createLoadedSettingsEntry({
             key: envKey,
             source: 'env',
-            descriptionEn: (envValue as SchemaEnvProperty).description ?? '',
+            descriptionEn: envProp.description ?? '',
             parentDescriptions: [],
           }),
         );
+        const info = extractSchemaInfo(envProp);
+        if (info !== undefined) {
+          schemaInfoMap.set(envKey, info);
+        }
       }
       continue;
     }
@@ -115,11 +157,12 @@ export async function parseSettingsSchema(schemaPath: string): Promise<{
     const leaves = collectLeafEntries(value, key, {
       parentDescriptions: [],
       source: 'settings',
+      schemaInfoMap,
     });
     settings.push(...leaves);
   }
 
-  return { settings, envFromSchema };
+  return { settings, envFromSchema, schemaInfoMap };
 }
 
 function isEnvName(value: string): boolean {
@@ -474,8 +517,11 @@ export async function loadSettingsEntries(input: {
   envVarsMdPath: string;
   docsEnDir: string;
 }): Promise<RawSettingsEntries> {
-  const { settings: schemaSettings, envFromSchema: schemaEnvEntries } =
-    await parseSettingsSchema(input.schemaPath);
+  const {
+    settings: schemaSettings,
+    envFromSchema: schemaEnvEntries,
+    schemaInfoMap,
+  } = await parseSettingsSchema(input.schemaPath);
   const mdEnvEntries = await parseEnvVarsMd(
     input.envVarsMdPath,
     input.docsEnDir,
@@ -487,6 +533,7 @@ export async function loadSettingsEntries(input: {
     mdEnvEntries,
     schemaEnvEntries,
     docsEnvEntries,
+    schemaInfoMap,
   };
 }
 

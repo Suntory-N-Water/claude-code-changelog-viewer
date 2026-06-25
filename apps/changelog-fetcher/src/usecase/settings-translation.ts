@@ -30,12 +30,17 @@ export type SettingsReferenceContext = {
   docSnippetsMap: Map<SettingKey, string[]>;
 };
 
+export type SchemaInfo = {
+  schemaDefault?: string;
+  schemaEnum?: string[];
+};
+
 export type SettingsTranslationTarget = {
   id: number;
   entry: SettingsEntry;
   docSnippets: string[];
   relatedChangelog: RelatedChangelogOutput[];
-};
+} & SchemaInfo;
 
 export type SettingsTranslation = {
   id: number;
