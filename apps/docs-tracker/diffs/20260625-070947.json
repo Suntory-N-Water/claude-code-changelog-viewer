@@ -1,0 +1,1204 @@
+{
+  "id": "20260625-070947",
+  "timestamp": "2026-06-25T07:09:47.099Z",
+  "aiSummary": "LLMゲートウェイに関するドキュメントが大幅に拡充され、接続プロトコルや展開方法、接続手順に関する3つの詳細なガイドが新設されました。ゲートウェイ経由でのモデル自動検出機能（CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY）や、認証用環境変数の適用範囲の明確化など、エンタープライズ利用向けの機能解説が追加されています。また、BedrockやVertex AI利用時のヘッダー転送仕様や、コスト追跡のためのセッションID付与といったテクニカルリファレンスが整備されました。",
+  "files": [
+    {
+      "filename": "authentication.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "apiKeyHelperや環境変数の適用範囲がCLIだけでなく、VS Code拡張機能やGitHub Actionsにも及ぶことが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -99,7 +99,7 @@ Claude Code securely manages your authentication credentials:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Refresh intervals**: by default, `apiKeyHelper` is called after 5 minutes or on HTTP 401 response. Set `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` environment variable for custom refresh intervals."
+            },
+            {
+              "type": "context",
+              "content": "- **Slow helper notice**: if `apiKeyHelper` takes longer than 10 seconds to return a key, Claude Code displays a warning notice in the prompt bar showing the elapsed time. If you see this notice regularly, check whether your credential script can be optimized."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`apiKeyHelper`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_AUTH_TOKEN` apply to terminal CLI sessions only. Claude Desktop and cloud sessions use OAuth exclusively and do not call `apiKeyHelper` or read API key environment variables."
+            },
+            {
+              "type": "added",
+              "content": "`apiKeyHelper`, `ANTHROPIC_API_KEY`, and `ANTHROPIC_AUTH_TOKEN` apply to the CLI and the surfaces that wrap it, including the VS Code extension, the Agent SDK, and GitHub Actions. Claude Desktop and cloud sessions do not call `apiKeyHelper` or read these environment variables: they use OAuth, except desktop sessions running an [organization-distributed third-party inference configuration](/en/llm-gateway-connect#desktop-app), which authenticate with that configuration's credential."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Authentication precedence"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "costs.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "クラウド環境でのコスト管理について、外部ツールへの言及を削除し、LLMゲートウェイ側でのトラッキングを推奨する内容に変更されました。",
+      "hunks": [
+        {
+          "header": "@@ -42,7 +42,7 @@ When you first authenticate Claude Code with your Claude Console account, a work",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For organizations with custom rate limits, Claude Code traffic in this workspace counts toward your organization's overall API rate limits. You can set a [workspace rate limit](https://platform.claude.com/docs/en/api/rate-limits#setting-lower-limits-for-workspaces) on this workspace's Limits page in the Claude Console to cap Claude Code's share and protect other production workloads."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Bedrock, Vertex, and Foundry, Claude Code does not send metrics from your cloud. To get cost metrics, several large enterprises reported using [LiteLLM](/en/llm-gateway#litellm-configuration), which is an open-source tool that helps companies [track spend by key](https://docs.litellm.ai/docs/proxy/virtual_keys#tracking-spend). This project is unaffiliated with Anthropic and has not been audited for security."
+            },
+            {
+              "type": "added",
+              "content": "On Bedrock, Vertex, and Foundry, Claude Code does not send metrics from your cloud. Organizations that already route Claude Code through an [LLM gateway](/en/llm-gateway) can track spend there, since the gateway sees every request."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Rate limit recommendations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "CLAUDE_CODE_SKIP_FOUNDRY_AUTH使用時の注意点として、ゲートウェイ利用時にはANTHROPIC_FOUNDRY_API_KEYの設定が必要である旨が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -253,7 +253,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SIMPLE_SYSTEM_PROMPT` | Set to `1` to use a shorter system prompt and abbreviated tool descriptions on any model. Set to `0`, `false`, `no`, or `off` to opt out even on models where the experiment or server configuration would otherwise enable it. The full tool set, hooks, MCP servers, and CLAUDE.md discovery remain enabled |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH` | Skip client-side authentication for [Claude Platform on AWS](/en/claude-platform-on-aws), for gateways that sign requests themselves |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_BEDROCK_AUTH` | Skip AWS authentication for Bedrock (for example, when using an LLM gateway) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_SKIP_FOUNDRY_AUTH` | Skip Azure authentication for Microsoft Foundry (for example, when using an LLM gateway) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_SKIP_FOUNDRY_AUTH` | Skip Azure authentication for Microsoft Foundry. For a gateway, set the credential in `ANTHROPIC_FOUNDRY_API_KEY` instead; without an API key this variable leaves the Foundry client unable to send requests |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_MANTLE_AUTH` | Skip AWS authentication for Bedrock Mantle (for example, when using an LLM gateway) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_PROMPT_HISTORY` | Set to `1` to skip writing prompt history and session transcripts to disk. Sessions started with this variable set do not appear in `--resume`, `--continue`, or up-arrow history. Useful for ephemeral scripted sessions |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_SKIP_VERTEX_AUTH` | Skip Google authentication for Vertex (for example, when using an LLM gateway) |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ゲートウェイ設定に関連するトラブルシューティングの参照先が、新設された詳細ドキュメントへ更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -447,7 +447,7 @@ Common causes include no internet access, a VPN that blocks `api.anthropic.com`,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Confirm you can reach the API host from the same shell by running `curl -I https://api.anthropic.com`. On Windows PowerShell use `curl.exe -I https://api.anthropic.com` so the built-in `Invoke-WebRequest` alias is not used."
+            },
+            {
+              "type": "context",
+              "content": "- If you are behind a corporate proxy, set `HTTPS_PROXY` before launching Claude Code and see [Network configuration](/en/network-config)"
+            },
+            {
+              "type": "removed",
+              "content": "- If you route through an LLM gateway or relay, set [`ANTHROPIC_BASE_URL`](/en/env-vars) to its address. See [LLM gateway configuration](/en/llm-gateway) for setup."
+            },
+            {
+              "type": "added",
+              "content": "- If you route through an LLM gateway or relay, set [`ANTHROPIC_BASE_URL`](/en/env-vars) to its address. See [Connect Claude Code to an LLM gateway](/en/llm-gateway-connect) for setup."
+            },
+            {
+              "type": "context",
+              "content": "- Ensure your firewall allows the hosts listed in [Network access requirements](/en/network-config#network-access-requirements)"
+            },
+            {
+              "type": "context",
+              "content": "- Intermittent failures are [retried automatically](#automatic-retries); persistent failures point to a local network issue"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -610,7 +610,7 @@ Claude Code sends beta-only fields such as `context_management`, `effort`, and t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- Configure your gateway to forward the `anthropic-beta` header. See [LLM gateway configuration](/en/llm-gateway)."
+            },
+            {
+              "type": "added",
+              "content": "- Configure your gateway to forward the `anthropic-beta` header. See [feature pass-through](/en/llm-gateway-protocol#feature-pass-through) for what gateways must forward."
+            },
+            {
+              "type": "context",
+              "content": "- As a fallback, set [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1`](/en/env-vars) before launching. This disables features that require the beta header so requests succeed through a gateway that cannot forward it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### There's an issue with the selected model"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-connect.md",
+      "additions": 412,
+      "deletions": 0,
+      "explanation": "個々の開発者がClaude Codeを組織のLLMゲートウェイに接続するための具体的な設定手順を解説するページが新設されました。",
+      "hunks": []
+    },
+    {
+      "filename": "llm-gateway-protocol.md",
+      "additions": 175,
+      "deletions": 0,
+      "explanation": "ゲートウェイが遵守すべきAPIプロトコル、転送が必要なヘッダー、モデル検出の仕様などを網羅したリファレンスが追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,175 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: llm-gateway-protocol"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/llm-gateway-protocol.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Gateway protocol reference"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> The API contract between Claude Code and an LLM gateway: endpoints, headers and body fields to forward, feature degradation when fields are stripped, attribution headers for cost tracking, and model discovery."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page documents the requests Claude Code sends to a gateway, including the endpoints it calls, the headers and body fields the gateway must forward, and which features stop working when it doesn't. It is written for operators configuring a gateway product to work with Claude Code."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- To roll out an existing or third-party gateway for your organization, see [Roll out an LLM gateway](/en/llm-gateway-rollout)"
+            },
+            {
+              "type": "added",
+              "content": "- If you're an individual developer authenticating Claude Code to a gateway with a credential you were given, see [Connect Claude Code to an LLM gateway](/en/llm-gateway-connect)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page covers:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [API formats](#api-formats) and the endpoints to serve for each"
+            },
+            {
+              "type": "added",
+              "content": "- [Request headers](#request-headers): which must reach the upstream and which your gateway can consume"
+            },
+            {
+              "type": "added",
+              "content": "- The [system prompt attribution block](#system-prompt-attribution-block) and how it interacts with prompt caching"
+            },
+            {
+              "type": "added",
+              "content": "- [Feature pass-through](#feature-pass-through): what breaks when headers or body fields are stripped"
+            },
+            {
+              "type": "added",
+              "content": "- [Model discovery](#model-discovery)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page uses two terms for what your gateway does with each header and body field:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Forward unchanged**: pass it to the upstream byte-for-byte"
+            },
+            {
+              "type": "added",
+              "content": "- **Consume**: the gateway may read it for routing, attribution, or tracing and need not forward it"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Anything not marked forward unchanged is yours to consume or ignore."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## API formats"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A gateway must expose at least one of the following API formats to Claude Code clients. Which format Claude Code speaks is determined by the client's configuration: the variable in the Selected by column of the table below points Claude Code at your gateway in that format."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Format | Selected by | Endpoints | Forward unchanged |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| Anthropic Messages | `ANTHROPIC_BASE_URL` | `/v1/messages`, `/v1/messages/count_tokens` (optional) | `anthropic-beta` and `anthropic-version` request headers |"
+            },
+            {
+              "type": "added",
+              "content": "| Bedrock InvokeModel | `ANTHROPIC_BEDROCK_BASE_URL` with `CLAUDE_CODE_USE_BEDROCK=1` | `/model/{model}/invoke`, `/model/{model}/invoke-with-response-stream` | `anthropic_beta` and `anthropic_version` request body fields |"
+            },
+            {
+              "type": "added",
+              "content": "| Vertex rawPredict | `ANTHROPIC_VERTEX_BASE_URL` with `CLAUDE_CODE_USE_VERTEX=1` | `:rawPredict`, `:streamRawPredict`, `count-tokens:rawPredict` (optional) | `anthropic-beta` and `anthropic-version` request headers, and the `anthropic_version` request body field |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Foundry and Claude Platform on AWS"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Microsoft Foundry and the [Claude Platform on AWS](/en/claude-platform-on-aws) implement the Anthropic Messages format. Claude Code routes to them through their own variables, `ANTHROPIC_FOUNDRY_BASE_URL` and `ANTHROPIC_AWS_BASE_URL`, but a gateway fronting either implements the Anthropic Messages row above. A gateway fronting the Claude Platform on AWS must also forward the `anthropic-workspace-id` header, which [that platform requires on every request](/en/claude-platform-on-aws)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Optional endpoints and startup traffic"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Token-counting endpoints are the only optional ones: when they're absent, Claude Code estimates context usage locally. Inference requests post to `/v1/messages?beta=true`, so match on the path, not the full URL. The Vertex method suffixes attach to the publisher model path, as in `/projects/{project}/locations/{location}/publishers/anthropic/models/{model}:streamRawPredict`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A gateway also sees best-effort startup traffic it can reject without breaking anything: a `HEAD /` connectivity probe, and on Bedrock-format gateways a `GET /inference-profiles?type=SYSTEM_DEFINED` request."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Streaming"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Inference responses must stream. Claude Code consumes server-sent events as they arrive, so a gateway that buffers complete responses before relaying them stalls the client."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Format mismatch with the upstream"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Which format the client speaks determines what your gateway receives. The common failure mode is a mismatch between the format the client sends to your gateway and the format the upstream provider behind it accepts."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- When the client speaks the Bedrock or Vertex format, Claude Code sends only the subset of its full capability set that those providers accept"
+            },
+            {
+              "type": "added",
+              "content": "- When the client speaks the Anthropic Messages format, Claude Code sends the full set, even if your gateway forwards to a Bedrock or Vertex upstream"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Bridging that difference is your gateway's job. [Feature pass-through](#feature-pass-through) describes what breaks when it doesn't."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Request headers"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code includes these headers on API requests. Header names are case-insensitive on the wire. Forward `anthropic-version` and `anthropic-beta` unchanged, plus `anthropic-workspace-id` when the upstream is the [Claude Platform on AWS](/en/claude-platform-on-aws); the rest the gateway may consume for routing, attribution, and tracing, and need not forward."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Header | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| `Authorization`, `x-api-key` | The developer's gateway credential, in one or both headers depending on which [credential variable](/en/llm-gateway-connect#set-the-credential-variable) they set |"
+            },
+            {
+              "type": "added",
+              "content": "| `anthropic-version` | API version, currently `2023-06-01`. Bedrock- and Vertex-format requests also carry the `anthropic_version` body field, whose value is the provider dialect string, not this header's value |"
+            },
+            {
+              "type": "added",
+              "content": "| `anthropic-beta` | Comma-separated capability values for the request. Forward the header verbatim; do not allowlist individual values, because the set changes with Claude Code releases. When the developer authenticates with a claude.ai login, which is possible when `ANTHROPIC_BASE_URL` is set without a gateway credential variable, this header also carries an OAuth capability that the upstream requires, and stripping it fails those requests with `401` |"
+            },
+            {
+              "type": "added",
+              "content": "| `x-claude-code-session-id` | A unique identifier for the current Claude Code session. Use it to aggregate all requests from one session without parsing request bodies |"
+            },
+            {
+              "type": "added",
+              "content": "| `x-claude-code-agent-id` | Identifier of the [subagent](/en/sub-agents) that issued the request, present only on requests from an agent Claude Code spawned inside the session. Use it with the session ID to attribute cost to parallel agents |"
+            },
+            {
+              "type": "added",
+              "content": "| `x-claude-code-parent-agent-id` | Identifier of the agent that spawned the requesting agent, present only for nested agents |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Subagent IDs are generated fresh for each spawn. Teammate agents, the named members of an [agent team](/en/agent-teams), reuse a stable name-based ID across reconnections. In both cases the ID identifies an agent, not a person or a device, so do not treat the agent ID header as a user identifier."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If your developers set `ANTHROPIC_CUSTOM_HEADERS`, those headers appear on requests as well."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Forward as open lists"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Treat the headers and body fields as open lists, not closed ones. Claude Code gains capabilities over releases, and they arrive as new `anthropic-beta` values, new request body fields, and occasionally new `anthropic-*` or `x-claude-code-*` headers."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When forwarding to an Anthropic-format upstream, pass `anthropic-*` request headers and request body fields through unchanged rather than allowlisting the ones you see today. A gateway pinned to an observed list strips the next capability's header or field and breaks it on the release that introduces it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The exception is a non-Anthropic upstream such as Bedrock or Vertex, where bridging the schema difference is the gateway's job; see [feature pass-through](#feature-pass-through)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## System prompt attribution block"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code prepends a short attribution block to the system prompt containing the client version and a fingerprint derived from the conversation. The `api.anthropic.com` endpoint strips the block before processing, so it does not affect first-party prompt caching; any other upstream receives it as part of the prompt. Anthropic and the cloud providers' Claude endpoints read it for attribution, so to omit it set [`CLAUDE_CODE_ATTRIBUTION_HEADER=0`](/en/env-vars) rather than stripping it in the gateway."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "From Claude Code v2.1.181, the block is stable for the lifetime of a conversation when requests route through a custom base URL, so a gateway-side prompt cache keyed on the full request body works without disabling it. Before v2.1.181 the block included a per-request token; on those versions, set `CLAUDE_CODE_ATTRIBUTION_HEADER=0` if your gateway implements such a cache."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Feature pass-through"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code treats an `ANTHROPIC_BASE_URL` gateway as an Anthropic-format endpoint and sends it the beta headers and request body fields it sends to `api.anthropic.com`, except a small set of diagnostics and defaults reserved for direct connections."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Capabilities that add body fields pair them with a beta header, and the pair travels together. A gateway that strips the header while passing the body, or forwards an Anthropic-format body to an upstream with a different schema, produces hard `400` errors; only when both halves are absent together does the feature turn off quietly. A gateway that rewrites or redacts request bodies for content inspection breaks the pairing the same way stripping does, so inspect without modifying. The table notes where a feature deviates from the pairing."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Fine-grained tool streaming is one of the direct-connection defaults: it is off by default whenever requests route through a custom base URL, and a gateway receives it when developers set [`CLAUDE_CODE_ENABLE_FINE_GRAINED_TOOL_STREAMING=1`](/en/env-vars)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Feature | Header and body pair | Symptom when broken | Remediation |"
+            },
+            {
+              "type": "added",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "added",
+              "content": "| [Adaptive reasoning](/en/model-config#adjust-effort-level) | No beta header. Claude Code sends `thinking: {\"type\": \"adaptive\"}` for Claude 4.6 and later, and treats model names it doesn't recognize, such as gateway aliases, as current models that receive the field | `400` naming the `thinking` field or the `adaptive` tag when the upstream model build doesn't accept it | Upgrade the upstream. On Opus 4.6 and Sonnet 4.6, developers can set `CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING=1` instead |"
+            },
+            {
+              "type": "added",
+              "content": "| [Context management](https://platform.claude.com/docs/en/build-with-claude/context-management) | Context management beta header pairs with the `context_management` body field | `400` with `Extra inputs are not permitted`. Common when a gateway accepts Anthropic-format requests but forwards them to Bedrock | Forward both, or [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1`](/en/env-vars) |"
+            },
+            {
+              "type": "added",
+              "content": "| [Extended context](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) and [interleaved thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#interleaved-thinking) | Beta headers only, no body field | Silently unavailable when the header is stripped; the upstream never sees the capability request | Forward `anthropic-beta` verbatim |"
+            },
+            {
+              "type": "added",
+              "content": "| Beta [tool fields](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview) | Tool-related beta headers pair with tool schema fields such as `strict` and `defer_loading` | `400` naming the unrecognized tool schema field when the body passes through without its header | Forward both, or `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` |"
+            },
+            {
+              "type": "added",
+              "content": "| [Effort](https://platform.claude.com/docs/en/build-with-claude/effort) and [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) | The `output_config` body field carries effort, structured-output format, and task budget settings; each pairs with its own beta header | `400` naming `output_config`, often `Extra inputs are not permitted`, on Bedrock and Vertex upstreams | Forward the field and its headers together |"
+            },
+            {
+              "type": "added",
+              "content": "| [Token counting](https://platform.claude.com/docs/en/build-with-claude/token-counting) | No beta pairing; uses the `count_tokens` endpoint | Claude Code falls back to estimating context usage locally | Expose the endpoint if you want exact counts |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `ANTHROPIC_DEFAULT_*_MODEL_SUPPORTED_CAPABILITIES` [variables](/en/model-config) declare model capabilities only in the provider configurations: `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, and [`CLAUDE_CODE_USE_MANTLE`](/en/amazon-bedrock#use-the-mantle-endpoint). They have no effect behind an `ANTHROPIC_BASE_URL` gateway."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Automatic retry and error forwarding"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code retries automatically after some upstream rejections and disables the rejected capability for the rest of the conversation. Rejections of the `thinking` field, of [thinking signatures](https://platform.claude.com/docs/en/build-with-claude/extended-thinking), and of mid-conversation system messages all recover this way. Context management and tool schema field rejections do not retry; those `400` errors reach the developer."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The retry logic matches on the upstream's error wording, so forward error response bodies unmodified. A gateway that wraps upstream errors in its own envelope breaks the recovery path even when it preserves the status code."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Disable pre-release capabilities"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` stops Claude Code from sending pre-release capabilities and their body fields on every provider, including context management and the beta tool fields. It does not affect adaptive reasoning, which is selected by model rather than by beta, and it never suppresses the OAuth capability that subscription authentication requires."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The set of capabilities Claude Code sends grows over releases. For current beta header strings, see the [beta headers reference](https://platform.claude.com/docs/en/api/beta-headers); test your gateway against new Claude Code releases rather than pinning to an observed list."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Model discovery"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When `ANTHROPIC_BASE_URL` points at a gateway that exposes the Anthropic Messages format, Claude Code can query the gateway's `/v1/models` endpoint at startup and add the returned models to the `/model` picker."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Developers enable it by setting [`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`](/en/env-vars), in their own environment or through managed settings. Discovery is off by default so that gateways backed by a shared API key do not surface every model the key can access to every user. This requires Claude Code v2.1.129 or later."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### When discovery runs"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Discovery applies only to the Anthropic Messages format. It does not run when:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- Any `CLAUDE_CODE_USE_*` provider variable is set, even if `ANTHROPIC_BASE_URL` is also set"
+            },
+            {
+              "type": "added",
+              "content": "- `ANTHROPIC_BASE_URL` is unset or points at `api.anthropic.com`"
+            },
+            {
+              "type": "added",
+              "content": "- Nonessential traffic is disabled, through [`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`](/en/env-vars) or organization policy"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Request and response"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The request is `GET /v1/models?limit=1000` with a 3-second timeout, and any redirect is treated as failure so the credential cannot leak to a redirect target. A gateway that responds slowly or redirects `/v1/models`, even `http` to `https`, fails discovery silently; serve the endpoint directly at the configured base URL."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The discovery request sends exactly one credential header:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `ANTHROPIC_AUTH_TOKEN` as a bearer token, when set"
+            },
+            {
+              "type": "added",
+              "content": "- Otherwise the resolved API key, including an [`apiKeyHelper`](/en/llm-gateway-connect#rotate-credentials-with-apikeyhelper) value, in the `x-api-key` header"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This differs from inference requests, which send a helper value in both headers. A gateway that authenticates `/v1/models` must accept `x-api-key` for helper deployments. Any headers from `ANTHROPIC_CUSTOM_HEADERS` are included as well."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code reads `id` and the optional `display_name` from each entry in the response's `data` array, and ignores entries whose `id` doesn't begin with `claude` or `anthropic`:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```json"
+            },
+            {
+              "type": "added",
+              "content": "{"
+            },
+            {
+              "type": "added",
+              "content": "  \"data\": ["
+            },
+            {
+              "type": "added",
+              "content": "    { \"id\": \"claude-sonnet-4-6\", \"display_name\": \"Claude Sonnet 4.6\" },"
+            },
+            {
+              "type": "added",
+              "content": "    { \"id\": \"claude-opus-4-7\" }"
+            },
+            {
+              "type": "added",
+              "content": "  ]"
+            },
+            {
+              "type": "added",
+              "content": "}"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Picker entries and caching"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The picker is the interactive model list that opens when a developer runs `/model` in Claude Code. Each discovered entry is labeled \"From gateway\" and uses `display_name` when provided. A discovered ID is skipped only when it exactly matches a row already in the picker, or when both the discovered and existing IDs resolve to [Fable](/en/model-config#work-with-fable-5). Built-in rows are keyed on aliases such as `sonnet`, so a discovered ID such as `claude-sonnet-4-6` adds its own \"From gateway\" row alongside the built-in entry. The [`availableModels` managed setting](/en/settings#available-settings) bounds what discovery can add."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Results are cached to `~/.claude/cache/gateway-models.json`, or `%USERPROFILE%\\.claude\\cache\\gateway-models.json` on Windows, and refreshed on each startup. If the request fails or the gateway does not implement `/v1/models`, the picker falls back to the cached list from the previous startup or to the built-in model list. If your gateway serves Claude models under aliases that don't match the discovery filter, developers can add those aliases manually with the [model configuration](/en/model-config) variables."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Related resources"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For the rest of the gateway documentation set and the underlying API references:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [LLM gateways overview](/en/llm-gateway): what a gateway is and how it interacts with claude.ai subscriptions"
+            },
+            {
+              "type": "added",
+              "content": "- [Roll out an LLM gateway for your organization](/en/llm-gateway-rollout): the admin checklist that uses this contract"
+            },
+            {
+              "type": "added",
+              "content": "- [Connect Claude Code to an LLM gateway](/en/llm-gateway-connect): per-developer configuration and the troubleshooting table"
+            },
+            {
+              "type": "added",
+              "content": "- [Beta headers reference](https://platform.claude.com/docs/en/api/beta-headers): the current set of `anthropic-beta` values"
+            },
+            {
+              "type": "added",
+              "content": "- [Messages API](https://platform.claude.com/docs/en/api/messages): the API format an Anthropic-format gateway implements"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-rollout.md",
+      "additions": 243,
+      "deletions": 0,
+      "explanation": "組織全体にLLMゲートウェイを導入・展開するための管理者向けガイドラインが新設されました。",
+      "hunks": []
+    },
+    {
+      "filename": "llm-gateway.md",
+      "additions": 50,
+      "deletions": 175,
+      "explanation": "プロトコルに関する詳細を別ファイルに分離し、ゲートウェイの概要とサブスクリプションとの関係に焦点を当てた内容に再構成されました。",
+      "hunks": []
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ゲートウェイの/v1/modelsエンドポイントを利用したモデル一覧の自動検出機能についての説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -18,7 +18,7 @@ For the `model` setting in Claude Code, you can configure either:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - Foundry: a deployment name"
+            },
+            {
+              "type": "context",
+              "content": "  - Vertex: a version name"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`ANTHROPIC_BASE_URL` changes where requests are sent, not which model answers them. To route Claude through an LLM gateway, see [LLM gateway configuration](/en/llm-gateway)."
+            },
+            {
+              "type": "added",
+              "content": "`ANTHROPIC_BASE_URL` changes where requests are sent, not which model answers them. To route Claude through an LLM gateway, see [LLM gateways](/en/llm-gateway)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Model aliases"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -433,7 +433,7 @@ You can see which model you're currently using in several ways:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Add a custom model option"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use `ANTHROPIC_CUSTOM_MODEL_OPTION` to add a single custom entry to the `/model` picker without replacing the built-in aliases. This is useful for testing model IDs that Claude Code does not list by default. For LLM gateway deployments, Claude Code can populate the picker from the gateway's `/v1/models` endpoint when `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` is set, so this variable is needed only when discovery is disabled or does not return the model you want. See [LLM gateway model selection](/en/llm-gateway#model-selection)."
+            },
+            {
+              "type": "added",
+              "content": "Use `ANTHROPIC_CUSTOM_MODEL_OPTION` to add a single custom entry to the `/model` picker without replacing the built-in aliases. This is useful for testing model IDs that Claude Code does not list by default. For LLM gateway deployments, Claude Code can populate the picker from the gateway's `/v1/models` endpoint when `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` is set, so this variable is needed only when discovery is disabled or does not return the model you want. See [gateway model discovery](/en/llm-gateway-protocol#model-discovery)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This example sets all three variables to make a gateway-routed Opus deployment selectable:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "apiKeyHelperがWindowsのcmdやmacOS/Linuxのshを通じて実行されるコマンドであることを明確化し、パスの例が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -203,7 +203,7 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `allowManagedMcpServersOnly` | (Managed settings only) Only `allowedMcpServers` from managed settings are respected. `deniedMcpServers` still merges from all sources. Users can still add MCP servers, but only the admin-defined allowlist applies. See [Managed MCP configuration](/en/managed-mcp) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `allowManagedPermissionRulesOnly` | (Managed settings only) Prevent user and project settings from defining `allow`, `ask`, or `deny` permission rules. Only rules in managed settings apply. See [Managed-only settings](/en/permissions#managed-only-settings) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `alwaysThinkingEnabled` | Enable [extended thinking](/en/model-config#extended-thinking) by default for all sessions. Typically configured via the `/config` command rather than editing directly. To force thinking off regardless of this setting, set [`MAX_THINKING_TOKENS=0`](/en/env-vars) in `env`, which disables thinking on the Anthropic API except on Fable 5, which cannot have thinking turned off. On [third-party providers](/en/third-party-integrations) this omits the `thinking` parameter instead, and adaptive-reasoning models may still think | `true` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `apiKeyHelper` | Custom script, to be executed in `/bin/sh`, to generate an auth value. This value will be sent as `X-Api-Key` and `Authorization: Bearer` headers for model requests. Set the refresh interval with [`CLAUDE_CODE_API_KEY_HELPER_TTL_MS`](/en/env-vars) | `/bin/generate_temp_api_key.sh` |"
+            },
+            {
+              "type": "added",
+              "content": "| `apiKeyHelper` | Custom command, run through the system shell (`/bin/sh` on macOS and Linux, `cmd` on Windows), to generate an auth value. This value will be sent as `X-Api-Key` and `Authorization: Bearer` headers for model requests. Set the refresh interval with [`CLAUDE_CODE_API_KEY_HELPER_TTL_MS`](/en/env-vars) | `/bin/generate_temp_api_key.sh` |"
+            },
+            {
+              "type": "context",
+              "content": "| `attribution` | Customize attribution for git commits and pull requests. See [Attribution settings](#attribution-settings) | `{\"commit\": \"🤖 Generated with Claude Code\", \"pr\": \"\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoCompactEnabled` | Automatically compact the conversation when context approaches the limit. Default: `true`. Appears in `/config` as **Auto-compact**. To disable via environment variable, set [`DISABLE_AUTO_COMPACT`](/en/env-vars) in `env` | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `autoMemoryDirectory` | Custom directory for [auto memory](/en/memory#storage-location) storage. Accepts an absolute path or a `~/`-prefixed path. From project or local settings, this is honored only after you accept the workspace trust dialog, since a cloned repository can supply this file | `\"~/my-memory-dir\"` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "third-party-integrations.md",
+      "additions": 4,
+      "deletions": 2,
+      "explanation": "サードパーティ統合の例として、FoundryやVertex AIをゲートウェイ経由で利用する際の環境変数設定例が具体化されました。",
+      "hunks": [
+        {
+          "header": "@@ -187,7 +187,7 @@ Select a deployment option to view setup instructions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "Most organizations can use a cloud provider directly without additional configuration. However, you may need to configure a corporate proxy or LLM gateway if your organization has specific network or management requirements. These are different configurations that can be used together:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "* **Corporate proxy**: Routes traffic through an HTTP/HTTPS proxy. Use this if your organization requires all outbound traffic to pass through a proxy server for security monitoring, compliance, or network policy enforcement. Configure with the `HTTPS_PROXY` or `HTTP_PROXY` environment variables. Learn more in [Enterprise network configuration](/en/network-config)."
+            },
+            {
+              "type": "removed",
+              "content": "* **LLM Gateway**: A service that sits between Claude Code and the cloud provider to handle authentication and routing. Use this if you need centralized usage tracking across teams, custom rate limiting or budgets, or centralized authentication management. Configure with the `ANTHROPIC_BASE_URL`, `ANTHROPIC_BEDROCK_BASE_URL`, `ANTHROPIC_AWS_BASE_URL`, or `ANTHROPIC_VERTEX_BASE_URL` environment variables. Learn more in [LLM gateway configuration](/en/llm-gateway)."
+            },
+            {
+              "type": "added",
+              "content": "* **LLM Gateway**: A service that sits between Claude Code and the cloud provider to handle authentication and routing. Use this if you need centralized usage tracking across teams, custom rate limiting or budgets, or centralized authentication management. Configure with the `ANTHROPIC_BASE_URL`, `ANTHROPIC_BEDROCK_BASE_URL`, `ANTHROPIC_AWS_BASE_URL`, or `ANTHROPIC_VERTEX_BASE_URL` environment variables. Learn more in [LLM gateways](/en/llm-gateway)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The following examples show the environment variables to set in your shell or shell profile (`.bashrc`, `.zshrc`). See [Settings](/en/settings) for other configuration methods."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -247,7 +247,7 @@ The following examples show the environment variables to set in your shell or sh",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "    # Configure LLM gateway"
+            },
+            {
+              "type": "context",
+              "content": "    export ANTHROPIC_FOUNDRY_BASE_URL='https://your-llm-gateway.com'"
+            },
+            {
+              "type": "removed",
+              "content": "    export CLAUDE_CODE_SKIP_FOUNDRY_AUTH=1  # If gateway handles Azure auth"
+            },
+            {
+              "type": "added",
+              "content": "    export ANTHROPIC_FOUNDRY_API_KEY=your-gateway-key  # Sent as x-api-key"
+            },
+            {
+              "type": "context",
+              "content": "    ```"
+            },
+            {
+              "type": "context",
+              "content": "  </Tab>"
+            },
+            {
+              "type": "context",
+              "content": "</Tabs>"
+            }
+          ]
+        },
+        {
+          "header": "@@ -279,6 +279,8 @@ The following examples show the environment variables to set in your shell or sh",
+          "lines": [
+            {
+              "type": "context",
+              "content": "    # Configure LLM gateway"
+            },
+            {
+              "type": "context",
+              "content": "    export ANTHROPIC_VERTEX_BASE_URL='https://your-llm-gateway.com/vertex'"
+            },
+            {
+              "type": "context",
+              "content": "    export CLAUDE_CODE_SKIP_VERTEX_AUTH=1  # If gateway handles GCP auth"
+            },
+            {
+              "type": "added",
+              "content": "    export ANTHROPIC_VERTEX_PROJECT_ID=your-gcp-project-id"
+            },
+            {
+              "type": "added",
+              "content": "    export CLOUD_ML_REGION=us-east5"
+            },
+            {
+              "type": "context",
+              "content": "    ```"
+            },
+            {
+              "type": "context",
+              "content": "  </Tab>"
+            },
+            {
+              "type": "context",
+              "content": "</Tabs>"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
