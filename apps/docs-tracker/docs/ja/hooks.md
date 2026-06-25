@@ -158,8 +158,10 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 | マッチャー値 | 評価方法 | 例 |
 | :- | :- | :- |
 | `"*"`、`""`、または省略 | すべてにマッチ | イベントのすべての出現で発火 |
-| 文字、数字、`_`、`\|` のみ | 完全一致、または `\|` で区切られた完全一致のリスト | `Bash` は Bash ツールのみにマッチ。`Edit\|Write` はいずれかのツールに完全にマッチ |
+| 文字、数字、`_`、スペース、`,`、`\|` のみ | 完全一致、または `\|` または `,` で区切られた完全一致のリスト（オプションで周囲の空白を含む） | `Bash` は Bash ツールのみにマッチ。`Edit\|Write` と `Edit, Write` はいずれかのツールに完全にマッチ |
 | その他の文字を含む | JavaScript 正規表現 | `^Notebook` は Notebook で始まるツールにマッチ。`mcp__memory__.*` は `memory` サーバーのすべてのツールにマッチ |
+
+カンマ区切り文字と周囲の空白許容度には Claude Code v2.1.191 以降が必要です。`FileChanged` と `StopFailure` イベントは `|` のみをリスト区切り文字として受け入れ、`,` をリテラル文字として扱います。後続の表にリストされている他のすべてのイベントは `|` または `,` を受け入れます。
 
 `FileChanged` イベントは監視リストを構築するときにこれらのルールに従いません。[FileChanged](#filechanged)を参照してください。
 
@@ -705,7 +707,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 # Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
 input=$(cat)
 title="Claude Code'
-body=$(jq -r '.message // 'Needs your attention'' <<<'$input")
+body=$(jq -r '.message // 'Needs your attention'' <<<'$input')
 seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```

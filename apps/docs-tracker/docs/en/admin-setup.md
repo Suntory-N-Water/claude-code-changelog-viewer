@@ -77,7 +77,7 @@ Managed settings can lock down tools, sandbox execution, restrict MCP servers an
 | [Customization lockdown](/en/settings#strictpluginonlycustomization) | Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings | `strictPluginOnlyCustomization` |
 | [Hook restrictions](/en/settings#hook-configuration) | Only managed hooks load; restrict HTTP hook URLs | `allowManagedHooksOnly`, `allowedHttpHookUrls` |
 | [Disable agent view](/en/agent-view#how-background-sessions-are-hosted) | Turn off `claude agents`, `--bg`, `/background`, and the on-demand supervisor | `disableAgentView` |
-| [Model restrictions](/en/model-config#restrict-model-selection) | Restrict which models users can select, and optionally also apply the allowlist to the Default model selection. See [surface coverage](/en/model-config#surface-coverage) for how this setting reaches the CLI, web, and IDE | `availableModels`, `enforceAvailableModels` |
+| [Model restrictions](/en/model-config#restrict-model-selection) | `availableModels` filters which models appear in the picker. Adding `enforceAvailableModels` also constrains the auto-selected default model. See [surface coverage](/en/model-config#surface-coverage) for how this setting reaches the CLI, web, and IDE | `availableModels`, `enforceAvailableModels` |
 | [Version floor](/en/settings) | Prevent auto-update from installing below an org-wide minimum | `minimumVersion` |
 | [Required version range](/en/settings) | Refuse to start at all when the running version is outside an org-approved range. Stronger than `minimumVersion`, which only blocks downgrades | `requiredMinimumVersion`, `requiredMaximumVersion` |
 

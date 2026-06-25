@@ -1,0 +1,1099 @@
+{
+  "id": "20260625-042526",
+  "timestamp": "2026-06-25T04:25:26.170Z",
+  "aiSummary": "v2.1.191以降の新機能として、/clear実行後のセッション再開機能やフック設定におけるカンマ区切りのサポートが追加されました。MCPサーバー接続時のリトライ処理の強化や、ブラウザがない環境での自動検知など、接続性と利便性が向上しています。また、APIのセーフティチェックによるエラーへの対処法や、サンドボックス内でのドメイン承認の挙動に関する詳細な説明が整備されました。",
+  "files": [
+    {
+      "filename": "admin-setup.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "モデル選択制限の設定項目であるavailableModelsとenforceAvailableModelsの挙動について、より具体的な説明に更新されています。",
+      "hunks": [
+        {
+          "header": "@@ -77,7 +77,7 @@ Managed settings can lock down tools, sandbox execution, restrict MCP servers an",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Customization lockdown](/en/settings#strictpluginonlycustomization) | Block skills, agents, hooks, and MCP servers from user and project sources, so they can only come from plugins or managed settings | `strictPluginOnlyCustomization` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Hook restrictions](/en/settings#hook-configuration) | Only managed hooks load; restrict HTTP hook URLs | `allowManagedHooksOnly`, `allowedHttpHookUrls` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Disable agent view](/en/agent-view#how-background-sessions-are-hosted) | Turn off `claude agents`, `--bg`, `/background`, and the on-demand supervisor | `disableAgentView` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Model restrictions](/en/model-config#restrict-model-selection) | Restrict which models users can select, and optionally also apply the allowlist to the Default model selection. See [surface coverage](/en/model-config#surface-coverage) for how this setting reaches the CLI, web, and IDE | `availableModels`, `enforceAvailableModels` |"
+            },
+            {
+              "type": "added",
+              "content": "| [Model restrictions](/en/model-config#restrict-model-selection) | `availableModels` filters which models appear in the picker. Adding `enforceAvailableModels` also constrains the auto-selected default model. See [surface coverage](/en/model-config#surface-coverage) for how this setting reaches the CLI, web, and IDE | `availableModels`, `enforceAvailableModels` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Version floor](/en/settings) | Prevent auto-update from installing below an org-wide minimum | `minimumVersion` |"
+            },
+            {
+              "type": "context",
+              "content": "| [Required version range](/en/settings) | Refuse to start at all when the running version is outside an org-approved range. Stronger than `minimumVersion`, which only blocks downgrades | `requiredMinimumVersion`, `requiredMaximumVersion` |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/claude-code-features.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "エンドポイント管理ポリシーとサーバー管理設定の読み込み条件に関する記述が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -82,7 +82,7 @@ The `cwd` option determines where the SDK looks for project-level inputs. CLAUDE",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Input | Behavior | To disable |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Managed policy settings | Endpoint-managed policy, whether MDM plist, registry policy, or managed settings files, loads from the host; [server-managed settings](/en/server-managed-settings) are fetched when the session authenticates with an organization OAuth login or a directly configured API key, on an [eligible configuration](/en/server-managed-settings#platform-availability) | Endpoint policy: remove the managed settings file, plist, or registry policy from the host. Server-managed settings: controlled by your org admin; cannot be disabled from the SDK |"
+            },
+            {
+              "type": "added",
+              "content": "| Managed policy settings | Endpoint-managed policy, such as an MDM plist, registry policy, or managed settings file, loads from the host. [Server-managed settings](/en/server-managed-settings) are fetched on an [eligible configuration](/en/server-managed-settings#platform-availability) when the session authenticates with an organization OAuth login or a directly configured API key | Endpoint policy: remove the managed settings file, plist, or registry policy from the host. Server-managed settings: controlled by your org admin; cannot be disabled from the SDK |"
+            },
+            {
+              "type": "context",
+              "content": "| `~/.claude.json` global config | Always read | Relocate with `CLAUDE_CONFIG_DIR` in `env` |"
+            },
+            {
+              "type": "context",
+              "content": "| Auto memory at `~/.claude/projects/<project>/memory/` | Loaded by default into the system prompt | Set `autoMemoryEnabled: false` in settings, or `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1` in `env` |"
+            },
+            {
+              "type": "context",
+              "content": "| [claude.ai MCP connectors](/en/mcp#use-mcp-servers-from-claude-ai) | Loaded when the active authentication method is a claude.ai subscription. Passing `mcpServers: {}` does not suppress them | Set `strictMcpConfig: true`, [`disableClaudeAiConnectors: true`](/en/mcp#disable-claude-ai-connectors) in settings, or `ENABLE_CLAUDEAI_MCP_SERVERS=false` in `env` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/hooks.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "SDKのツールマッチャーにおいて、従来のパイプ記号に加えてカンマや空白を区切り文字として使用できるようになったことが明記されています。",
+      "hunks": [
+        {
+          "header": "@@ -188,7 +188,7 @@ The `hooks` option is a dictionary (Python) or object (TypeScript) where:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Use matchers to filter when your callbacks fire. The `matcher` field matches against a different value depending on the hook event type. For example, tool-based hooks match against the tool name, while `Notification` hooks match against the notification type. See the [Claude Code hooks reference](/en/hooks#matcher-patterns) for the full list of matcher values for each event type."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "SDK matchers follow the same rules as [matchers in settings files](/en/hooks#matcher-patterns): a matcher containing only letters, digits, `_`, and `|` is compared as an exact string, with `|` separating alternatives, so `Write|Edit` matches exactly those two tools. A matcher of `*`, an empty string, or omitting the matcher entirely matches every occurrence of the event; a matcher containing any other character is evaluated as a regular expression, so `^mcp__` matches every MCP tool. A matcher like `mcp__memory` contains only letters and underscores, so it is compared as an exact string and matches no tool; use `mcp__memory__.*` to match every tool from that server."
+            },
+            {
+              "type": "added",
+              "content": "SDK matchers follow the same rules as [matchers in settings files](/en/hooks#matcher-patterns): a matcher containing only letters, digits, `_`, spaces, `,`, and `|` is compared as an exact string, with alternatives separated by `|` or `,` and optional surrounding whitespace, so `Write|Edit` and `Write, Edit` each match exactly those two tools. A matcher of `*`, an empty string, or omitting the matcher entirely matches every occurrence of the event; a matcher containing any other character is evaluated as a regular expression, so `^mcp__` matches every MCP tool. A matcher like `mcp__memory` contains only letters and underscores, so it is compared as an exact string and matches no tool; use `mcp__memory__.*` to match every tool from that server."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Option | Type | Default | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "agent-sdk/typescript.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "設定ソースの読み込みオプションにおいて、エンドポイント管理ポリシーの参照先リンクが追加され、一貫性が保たれています。",
+      "hunks": [
+        {
+          "header": "@@ -354,7 +354,7 @@ function resolveSettings(",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Parameter | Type | Default | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `options.cwd` | `string` | `process.cwd()` | Directory to resolve project and local settings relative to |"
+            },
+            {
+              "type": "removed",
+              "content": "| `options.settingSources` | [`SettingSource`](#settingsource)`[]` | All sources | Which filesystem sources to load. Pass `[]` to skip user, project, and local settings. Endpoint-managed policy loads in all cases. Server-managed settings are taken from `serverManagedSettings` when the host passes it, or read from the CLI's on-disk cache otherwise; the snapshot does not fetch them from the network |"
+            },
+            {
+              "type": "added",
+              "content": "| `options.settingSources` | [`SettingSource`](#settingsource)`[]` | All sources | Which filesystem sources to load. Pass `[]` to skip user, project, and local settings. [Endpoint-managed policy](/en/settings#settings-files) loads in all cases. Server-managed settings are taken from `serverManagedSettings` when the host passes it, or read from the CLI's on-disk cache otherwise; the snapshot does not fetch them from the network |"
+            },
+            {
+              "type": "context",
+              "content": "| `options.managedSettings` | `Settings` | `undefined` | Restrictive policy-tier settings supplied by the embedding host. Dropped by default when an admin-deployed managed tier is present; merged under that tier when [`parentSettingsBehavior`](/en/settings#available-settings) is `\"merge\"`. Non-restrictive keys such as `model` are silently dropped so this option can tighten managed policy but not loosen it |"
+            },
+            {
+              "type": "context",
+              "content": "| `options.serverManagedSettings` | `Settings` | `undefined` | Server-managed settings payload from `/api/claude_code/settings`. Non-restrictive keys pass through unfiltered |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -442,7 +442,7 @@ Configuration object for the `query()` function.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `sessionStore` | [`SessionStore`](/en/agent-sdk/session-storage#the-sessionstore-interface) | `undefined` | Mirror session transcripts to an external backend so any host can resume them. See [Persist sessions to external storage](/en/agent-sdk/session-storage) |"
+            },
+            {
+              "type": "context",
+              "content": "| `sessionStoreFlush` | `'batched' \\| 'eager'` | `'batched'` | *Alpha.* Flush mode for `sessionStore`. Ignored when `sessionStore` is not set |"
+            },
+            {
+              "type": "context",
+              "content": "| `settings` | `string \\| Settings` | `undefined` | Inline [settings](/en/settings) object or path to a settings file. Populates the flag-settings layer in the [precedence order](/en/settings#settings-precedence). Change at runtime with [`applyFlagSettings()`](#applyflagsettings) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `settingSources` | [`SettingSource`](#settingsource)`[]` | CLI defaults (all sources) | Control which filesystem settings to load. Pass `[]` to disable user, project, and local settings. Endpoint-managed policy loads regardless; server-managed settings are fetched when the session authenticates with an organization credential on an [eligible configuration](/en/server-managed-settings#platform-availability). See [Use Claude Code features](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) |"
+            },
+            {
+              "type": "added",
+              "content": "| `settingSources` | [`SettingSource`](#settingsource)`[]` | CLI defaults (all sources) | Control which filesystem settings to load. Pass `[]` to disable user, project, and local settings. [Endpoint-managed policy](/en/settings#settings-files) loads regardless; server-managed settings are fetched when the session authenticates with an organization credential on an [eligible configuration](/en/server-managed-settings#platform-availability). See [Use Claude Code features](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) |"
+            },
+            {
+              "type": "context",
+              "content": "| `skills` | `string[] \\| 'all'` | `undefined` | Skills available to the session. Pass `'all'` to enable every discovered skill, or a list of skill names. When set, the SDK adds the Skill tool to `allowedTools` automatically. If you also pass `tools`, include `'Skill'` in that list. See [Skills](/en/agent-sdk/skills) |"
+            },
+            {
+              "type": "context",
+              "content": "| `spawnClaudeCodeProcess` | `(options: SpawnOptions) => SpawnedProcess` | `undefined` | Custom function to spawn the Claude Code process. Use to run Claude Code in VMs, containers, or remote environments |"
+            },
+            {
+              "type": "context",
+              "content": "| `stderr` | `(data: string) => void` | `undefined` | Callback for stderr output |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -666,7 +666,7 @@ type SettingSource = \"user\" | \"project\" | \"local\";",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Default behavior"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When `settingSources` is omitted or `undefined`, `query()` loads the same filesystem settings as the Claude Code CLI: user, project, and local. Endpoint-managed policy is loaded in all cases; server-managed settings are fetched when the session authenticates with an organization credential on an [eligible configuration](/en/server-managed-settings#platform-availability). See [What settingSources does not control](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) for inputs that are read regardless of this option, and how to disable them."
+            },
+            {
+              "type": "added",
+              "content": "When `settingSources` is omitted or `undefined`, `query()` loads the same filesystem settings as the Claude Code CLI: user, project, and local. [Endpoint-managed policy](/en/settings#settings-files) is loaded in all cases; server-managed settings are fetched when the session authenticates with an organization credential on an [eligible configuration](/en/server-managed-settings#platform-availability). See [What settingSources does not control](/en/agent-sdk/claude-code-features#what-settingsources-does-not-control) for inputs that are read regardless of this option, and how to disable them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Why use settingSources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "モデルのエイリアスと特定のモデルIDが同じファミリーとして解決される際の、マージ挙動に関する補足説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -422,7 +422,7 @@ export CLAUDE_CODE_USE_BEDROCK=1",
+          "lines": [
+            {
+              "type": "context",
+              "content": "export CLAUDE_CODE_USE_MANTLE=1"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "To surface a Mantle model in the `/model` picker, list its ID in `availableModels` in your [settings file](/en/settings). This setting also restricts the picker to the listed entries. Listing `anthropic.claude-haiku-4-5` removes the bare `haiku` alias from the picker, so also list version prefixes or full IDs for the versions you want to keep selectable. See [Merge behavior](/en/model-config#merge-behavior):"
+            },
+            {
+              "type": "added",
+              "content": "To surface a Mantle model in the `/model` picker, list its ID in `availableModels` in your [settings file](/en/settings). This setting also restricts the picker to the listed entries. Listing `anthropic.claude-haiku-4-5` removes the bare `haiku` alias from the picker, so also list version prefixes or full IDs for the versions you want to keep selectable. The Mantle ID and the `haiku` alias resolve to the same model family, so the merge keeps only the more specific entry. See [Merge behavior](/en/model-config#merge-behavior):"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "checkpointing.md",
+      "additions": 4,
+      "deletions": 0,
+      "explanation": "会話をクリアした後に直前のセッションを再開できる、/resumeコマンドの新しい選択肢についての説明が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -40,6 +40,10 @@ After restoring the conversation or choosing Summarize from here, the original p",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Choosing Summarize up to here leaves you at the end of the conversation with the input empty."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "#### Rewind past a cleared conversation"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If you ran `/clear` earlier in the same Claude Code process, the rewind menu shows an additional entry at the top of the list labeled `/resume <session-id> (previous session)`. Select it to resume the conversation that was active before `/clear` ran. The entry is available until you exit Claude Code or resume a different session, and requires Claude Code v2.1.191 or later. On earlier versions, run `/resume` and pick the previous session from the list instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Restore vs. summarize"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The restore options revert state: they undo code changes, conversation history, or both. The summarize options compress part of the conversation into an AI-generated summary without changing files on disk:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "discover-plugins.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "長期間使用されていないプラグインを特定するための判定基準について、表現がより正確に修正されています。",
+      "hunks": [
+        {
+          "header": "@@ -271,7 +271,7 @@ From the list you can:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The detail view shows the components the plugin contributes: commands, skills, agents, hooks, MCP servers, and LSP servers. The same inventory is available from the command line with `claude plugin details`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "In Claude Code v2.1.187 and later, the Installed tab adds a **Not used recently** group for marketplace plugins you installed yourself but haven't invoked in at least two weeks and across at least 10 sessions, and the detail view shows a **Last used** line for each plugin. Use these to find plugins that you no longer use but that are still adding startup and context cost, then disable or uninstall them."
+            },
+            {
+              "type": "added",
+              "content": "In Claude Code v2.1.187 and later, the Installed tab adds a **Not used recently** group for marketplace plugins you installed yourself but haven't invoked in at least two weeks, over a span of at least 10 sessions, and the detail view shows a **Last used** line for each plugin. Use these to find plugins that you no longer use but that are still adding startup and context cost, then disable or uninstall them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Plugins that your organization manages or that you load with `--plugin-dir` are never listed as unused, and plugins that contribute an LSP server, theme, output style, monitor, or workflow are also never listed, since those deliver value without an invocation to track. The group and the **Last used** line are both hidden when your organization restricts marketplaces with [`strictKnownMarketplaces`](/en/settings#strictknownmarketplaces)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "MCPツールのアイドルタイムアウトに関する環境変数の説明で、タイムアウトの対象範囲がより明確に記述されています。",
+      "hunks": [
+        {
+          "header": "@@ -213,7 +213,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_TOOL_USE_CONCURRENCY` | Maximum number of read-only tools and subagents that can execute in parallel (default: 10). Higher values increase parallelism but consume more resources |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MAX_TURNS` | Cap the number of agentic turns when no explicit limit is passed. Equivalent to passing [`--max-turns`](/en/cli-reference#cli-flags), which takes precedence when both are set. A value that is not a positive integer is rejected at startup with an error rather than treated as no cap |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_MCP_ALLOWLIST_ENV` | Set to `1` to spawn stdio MCP servers with only a safe baseline environment plus the server's configured `env`, instead of inheriting your shell environment |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT` | Idle timeout in milliseconds for remote MCP tool calls (default: 300000, or 5 minutes). When an HTTP, SSE, WebSocket, or [claude.ai connector](/en/mcp#use-mcp-servers-from-claude-ai) MCP server sends no response and no progress notification for this long, the tool call aborts with an error instead of waiting for the wall-clock `MCP_TOOL_TIMEOUT`. Set to `0` to disable the idle check. Values below 1000 are raised to one second, and the value is capped at the effective `MCP_TOOL_TIMEOUT`. Does not apply to stdio or IDE servers. Requires Claude Code v2.1.187 or later |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_MCP_TOOL_IDLE_TIMEOUT` | Idle timeout in milliseconds for remote MCP tool calls (default: 300000, or 5 minutes). When an HTTP, SSE, WebSocket, or [claude.ai connector](/en/mcp#use-mcp-servers-from-claude-ai) MCP server sends no response and no progress notification for this long, the tool call aborts with an error instead of waiting for the overall `MCP_TOOL_TIMEOUT`. Set to `0` to disable the idle check. Values below 1000 are raised to one second, and the value is capped at the effective `MCP_TOOL_TIMEOUT`. Does not apply to stdio or IDE servers. Requires Claude Code v2.1.187 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_NATIVE_CURSOR` | Set to `1` to show the terminal's own cursor at the input caret instead of a drawn block. The cursor respects the terminal's blink, shape, and focus settings |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_NEW_INIT` | Set to `1` to make `/init` run an interactive setup flow. The flow asks which files to generate, including CLAUDE.md, skills, and hooks, before exploring the codebase and writing them. Without this variable, `/init` generates a CLAUDE.md automatically without prompting. |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_NO_FLICKER` | Set to `1` to enable [fullscreen rendering](/en/fullscreen), a research preview that reduces flicker and keeps memory flat in long conversations. Equivalent to the [`tui`](/en/settings#available-settings) setting; you can also switch with `/tui fullscreen` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "errors.md",
+      "additions": 12,
+      "deletions": 0,
+      "explanation": "会話内容に起因するAPIセーフティチェックによってリクエストがブロックされた際のエラー内容と、その対処法が新設されました。",
+      "hunks": [
+        {
+          "header": "@@ -157,6 +157,18 @@ Auto mode could not evaluate this action and is blocking it for safety — run w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Retry the action; this usually succeeds on the next attempt"
+            },
+            {
+              "type": "context",
+              "content": "- Run `claude --debug` and repeat the action to see the underlying classifier response in the debug log"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When a separate API safety check blocked the classifier request because of earlier conversation content:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```text"
+            },
+            {
+              "type": "added",
+              "content": "Auto mode could not evaluate this action and is blocking it for safety — a safety check separate from auto mode blocked this request because of earlier conversation content — it isn't about the action itself — run with --debug for details"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "**What to do:**"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- This is not a decision about your action. A safety filter on the API was triggered by existing content in your conversation when auto mode sent the conversation to the classifier"
+            },
+            {
+              "type": "added",
+              "content": "- Retrying will not help; the same conversation content will trigger the filter again"
+            },
+            {
+              "type": "added",
+              "content": "- Switch to a different [permission mode](/en/permission-modes) so you can approve the action when prompted, or start a fresh conversation without the triggering content"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the conversation has grown larger than the classifier's context window:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "fast-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "高速モード利用時にモデルを切り替えるのではなく、現在のモデルで高速モードを有効化する挙動についての例外規定が更新されています。",
+      "hunks": [
+        {
+          "header": "@@ -97,7 +97,7 @@ Fast mode usage draws directly from usage credits, even if you have remaining us",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Admin enablement for Team and Enterprise**: fast mode is disabled by default for Team and Enterprise organizations. An admin must explicitly [enable fast mode](#enable-fast-mode-for-your-organization) before users can access it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If your admin has not enabled fast mode for your organization, the `/fast` command will show \"Fast mode has been disabled by your organization.\" If your organization's [`availableModels`](/en/model-config#restrict-model-selection) allowlist excludes the fast-mode Opus model, `/fast` is refused with \"is not in your organization's allowed models\". The exception is a session already running on an allowed Opus model that supports fast mode: `/fast` then applies to that model."
+            },
+            {
+              "type": "added",
+              "content": "If your admin has not enabled fast mode for your organization, the `/fast` command will show \"Fast mode has been disabled by your organization.\" If your organization's [`availableModels`](/en/model-config#restrict-model-selection) allowlist excludes the fast-mode Opus model, `/fast` is refused with \"is not in your organization's allowed models\". The exception is a session already running on an allowed Opus model that supports fast mode: `/fast` enables fast mode on your current model instead of switching models."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Enable fast mode for your organization"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "glossary.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "管理設定がユーザーやプロジェクト設定によって上書きされないことを示す記述が、より簡潔に整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -153,7 +153,7 @@ Learn more: [Get started with hooks](/en/hooks-guide) · [Hooks reference](/en/h",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Managed settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Settings enforced org-wide by IT or DevOps, delivered from Anthropic's servers through the admin console or deployed to devices at an OS-level path outside `~/.claude`. Users cannot override managed settings from lower-precedence scopes. Server-managed delivery applies on [eligible configurations](/en/server-managed-settings#platform-availability); see [Security considerations](/en/server-managed-settings#security-considerations). Use this for security policies, compliance requirements, or standardized tooling across a fleet."
+            },
+            {
+              "type": "added",
+              "content": "Settings enforced org-wide by IT or DevOps, delivered from Anthropic's servers through the admin console or deployed to devices at an OS-level path outside `~/.claude`. User and project settings cannot override managed settings. Server-managed delivery applies on [eligible configurations](/en/server-managed-settings#platform-availability); see [Security considerations](/en/server-managed-settings#security-considerations). Use this for security policies, compliance requirements, or standardized tooling across a fleet."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Learn more: [Server-managed settings](/en/server-managed-settings) · [Settings files](/en/settings#settings-files)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "ツール実行を制御するフックのパターン定義で、カンマ区切りと空白の許容がv2.1.191からサポートされたことが記述されています。",
+      "hunks": [
+        {
+          "header": "@@ -158,9 +158,11 @@ The `matcher` field filters when hooks fire. How a matcher is evaluated depends",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Matcher value | Evaluated as | Example |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `\"*\"`, `\"\"`, or omitted | Match all | fires on every occurrence of the event |"
+            },
+            {
+              "type": "removed",
+              "content": "| Only letters, digits, `_`, and `\\|` | Exact string, or `\\|`-separated list of exact strings | `Bash` matches only the Bash tool; `Edit\\|Write` matches either tool exactly |"
+            },
+            {
+              "type": "added",
+              "content": "| Only letters, digits, `_`, spaces, `,`, and `\\|` | Exact string, or list of exact strings separated by `\\|` or `,` with optional surrounding whitespace | `Bash` matches only the Bash tool; `Edit\\|Write` and `Edit, Write` each match either tool exactly |"
+            },
+            {
+              "type": "context",
+              "content": "| Contains any other character | JavaScript regular expression | `^Notebook` matches any tool starting with Notebook; `mcp__memory__.*` matches every tool from the `memory` server |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Comma separators and the surrounding whitespace tolerance require Claude Code v2.1.191 or later. The `FileChanged` and `StopFailure` events accept only `|` as the list separator and treat `,` as a literal character; all other events listed in the table that follows accept `|` or `,`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `FileChanged` event does not follow these rules when building its watch list. See [FileChanged](#filechanged)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Each event type matches on a different field:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "interactive-mode.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "履歴検索中にコマンドメニューを開くためのショートカットキーのヒントが表示されるようになった旨が追記されています。",
+      "hunks": [
+        {
+          "header": "@@ -145,7 +145,7 @@ Enable vim-style editing via `/config` → Editor mode.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `T{char}` | Jump to just after previous occurrence of character |"
+            },
+            {
+              "type": "context",
+              "content": "| `;` | Repeat last f/F/t/T motion |"
+            },
+            {
+              "type": "context",
+              "content": "| `,` | Repeat last f/F/t/T motion in reverse |"
+            },
+            {
+              "type": "removed",
+              "content": "| `/` | Open reverse history search, same as `Ctrl+R` |"
+            },
+            {
+              "type": "added",
+              "content": "| `/` | Open reverse history search, same as `Ctrl+R`. As of v2.1.191, the empty search prompt shows a hint: press `Esc` then `i` then `/` to open the command menu instead |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "In vim normal mode, if the cursor is at the beginning or end of input and cannot move further, `j`/`k` and the arrow keys navigate command history instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "mcp.md",
+      "additions": 3,
+      "deletions": 1,
+      "explanation": "接続時のリトライ処理の導入や、ブラウザが利用できない環境を自動検知してURLを表示する改善について説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -165,6 +165,8 @@ If an HTTP or SSE server disconnects mid-session, Claude Code automatically reco",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The same backoff applies when an HTTP or SSE server fails its initial connection at startup. As of v2.1.121, Claude Code retries the initial connection up to three times on transient errors such as a 5xx response, a connection refused, or a timeout, then marks the server as failed if it still cannot connect. Authentication and not-found errors are not retried because they require a configuration change to resolve."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.191, the capability discovery requests that run after a successful connection, such as `tools/list`, `prompts/list`, and `resources/list`, also retry transient network and server errors up to three times with short backoff. Authentication errors, 4xx responses, and request timeouts are not retried."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Push messages with channels"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "An MCP server can also push messages directly into your session so Claude can react to external events like CI results, monitoring alerts, or chat messages. To enable this, your server declares the `claude/channel` capability and you opt it in with the `--channels` flag at startup. See [Channels](/en/channels) to use an officially supported channel, or [Channels reference](/en/channels-reference) to build your own."
+            }
+          ]
+        },
+        {
+          "header": "@@ -497,7 +499,7 @@ claude mcp login sentry",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To clear stored credentials later, run `claude mcp logout <name>`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When you're connected over SSH, add `--no-browser` so the command prints the authorization URL instead of opening a browser. Open the URL on your local machine, then paste the full redirect URL from your browser's address bar back at the prompt. The command needs an interactive terminal for the paste step, so connect with `ssh -t`."
+            },
+            {
+              "type": "added",
+              "content": "As of v2.1.191, the command detects when no local browser is available, such as during an SSH session or on Linux without a display server, and prints the authorization URL instead of trying to open a browser. Open the URL on your local machine, then paste the full redirect URL from your browser's address bar back at the prompt. The command needs an interactive terminal for the paste step, so connect with `ssh -t`. Pass `--no-browser` to force the URL prompt even when a local browser is detected."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "claude mcp login sentry --no-browser"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 3,
+      "deletions": 3,
+      "explanation": "モデル制限が適用されない場合のフォールバック挙動や、各プロバイダーにおける制限の適用範囲について詳細が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -165,7 +165,7 @@ Set `enforceAvailableModels: true` alongside a non-empty `availableModels` in ma",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When the default model for the user's account type is not in the allowlist, the Default option instead resolves to the first `availableModels` entry that names an allowed, available model, and the `/model` picker's Default row shows that model. This applies everywhere the default is reached: session startup, selecting Default in `/model`, the `\"default\"` keyword in [fallback model chains](#fallback-model-chains), and the fallback used when an excluded selection is dropped."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`enforceAvailableModels` has no effect when `availableModels` is unset or empty: with `availableModels: []`, the Default model for the account type remains usable, so the setting cannot lock users out of every model. When `availableModels` is non-empty but no entry resolves to an allowed and available model, enforcement degrades and Default falls through to the account-type default, with a warning visible only under `--debug`. Keep at least one guaranteed-available entry in the list to avoid this."
+            },
+            {
+              "type": "added",
+              "content": "`enforceAvailableModels` has no effect when `availableModels` is unset or empty: with `availableModels: []`, the Default model for the account type remains usable, so the setting cannot lock users out of every model. When `availableModels` is non-empty but no entry resolves to an allowed and available model, enforcement is skipped and Default resolves to the account-type default, with a warning visible only under `--debug`. Keep at least one guaranteed-available entry in the list to avoid this."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Deploy both keys in the [highest-precedence managed source](/en/settings#settings-precedence): admin-deployed managed sources do not merge, so a pair placed in a managed settings file is ignored when the admin console delivers any settings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -211,7 +211,7 @@ Use the Console toggle instead of `availableModels` when your members authentica",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A restricted model is hidden from the `/model` picker. Selecting it by name with `--model`, the `ANTHROPIC_MODEL` environment variable, or the `model` setting shows the notice `Model \"<name>\" is restricted by your organization's settings. Using <model> instead.` and the session starts on an allowed model. Typing `/model <name>` for a restricted model is rejected with `Model '<name>' is restricted by your organization's settings. Run /model to choose a different model.` and the session keeps its current model."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The two mechanisms compose: a model is selectable only when it is permitted by `availableModels` and not restricted by the organization. Organization restrictions are delivered to sessions on the Anthropic API and [LLM gateway](/en/llm-gateway) deployments. Sessions on Bedrock, Vertex AI, Foundry, and Claude Platform on AWS do not receive them, so use `availableModels` on those providers instead."
+            },
+            {
+              "type": "added",
+              "content": "Both restrictions apply together: a model is selectable only when it is permitted by `availableModels` and not restricted by the organization. Organization restrictions are delivered to sessions on the Anthropic API and [LLM gateway](/en/llm-gateway) deployments. Sessions on Bedrock, Vertex AI, Foundry, and Claude Platform on AWS do not receive them, so use `availableModels` on those providers instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Special model behavior"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -283,7 +283,7 @@ Fable 5 runs with safety classifiers for cybersecurity and biology content. When",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The session then continues on that Opus model. To return to Fable 5, run `/model fable`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The fallback target is checked against [`availableModels`](#restrict-model-selection). When it is blocked, no fallback occurs. The refusal surfaces as a normal error and the session's model is unchanged."
+            },
+            {
+              "type": "added",
+              "content": "The fallback target is checked against [`availableModels`](#restrict-model-selection). When it is blocked, no fallback occurs. The refusal is shown as a normal error and the session's model is unchanged."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Check what triggered fallback"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "sandboxing.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "サンドボックス内でのドメイン許可がセッション中保持されるようになったことや、認証情報の制限設定に関する記述が修正されています。",
+      "hunks": [
+        {
+          "header": "@@ -171,7 +171,7 @@ The `.` in `allowRead` resolves to the project root because this configuration l",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Protect credentials"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The `sandbox.credentials` setting declares credential files and environment variables that sandboxed commands must not access. Listed file paths are denied for reads inside the sandbox, the same block that `filesystem.denyRead` applies, and listed environment variables are unset before each sandboxed command runs. The dedicated `credentials` block keeps credential rules grouped with the environment-variable unset and separate from general filesystem rules. Requires Claude Code v2.1.187 or later."
+            },
+            {
+              "type": "added",
+              "content": "The `sandbox.credentials` setting declares credential files and environment variables that sandboxed commands must not access. Listed file paths are denied for reads inside the sandbox, the same restriction that `filesystem.denyRead` applies, and listed environment variables are unset before each sandboxed command runs. The dedicated `credentials` block keeps credential rules grouped with the environment variables to unset and separate from general filesystem rules. Requires Claude Code v2.1.187 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The example below blocks reads of the AWS credentials file and the SSH directory and removes `GITHUB_TOKEN` and `NPM_TOKEN` from the environment of sandboxed commands:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -215,7 +215,7 @@ You can grant write access to additional paths using `sandbox.filesystem.allowWr",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Network access is controlled through a proxy server running outside the sandbox:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Domain restrictions**: no domains are pre-allowed. The first time a command needs a new domain, Claude Code prompts for approval. Pre-allow domains with [`allowedDomains`](/en/settings#sandbox-settings) to avoid the prompt."
+            },
+            {
+              "type": "added",
+              "content": "- **Domain restrictions**: no domains are pre-allowed. The first time a command needs a new domain, Claude Code prompts for approval. As of v2.1.191, choosing Yes allows the host for the rest of the current session, so later connections to the same host do not prompt again. Pre-allow domains with [`allowedDomains`](/en/settings#sandbox-settings) to avoid the prompt entirely."
+            },
+            {
+              "type": "context",
+              "content": "- **Managed lockdown**: if [`allowManagedDomainsOnly`](/en/settings#sandbox-settings) is set in managed settings, non-allowed domains are blocked automatically instead of prompting, and only `allowedDomains` from managed settings are honored."
+            },
+            {
+              "type": "context",
+              "content": "- **Custom proxy support**: advanced users can implement custom rules on outgoing traffic"
+            },
+            {
+              "type": "context",
+              "content": "- **Comprehensive coverage**: restrictions apply to all scripts, programs, and subprocesses spawned by commands"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "server-managed-settings.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "初回の起動時から強制的に設定を適用するためのMDMプロファイル活用法と、キャッシュ制御の仕様が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -171,6 +171,8 @@ To enable this, add the key to your managed settings configuration:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "You can also set this key in an [endpoint-managed](/en/settings#settings-files) MDM profile or system `managed-settings.json` file to enforce fail-closed behavior on first launch, before any server payload has been delivered. As of v2.1.191, this flag is an exception to the [precedence rule](#settings-precedence) above: it is honored when set in any managed source even if a cached server-managed payload is also present, so an MDM-delivered value is not ignored when server-managed settings exist. The settings fetch also sends a `Cache-Control: no-cache` header so intermediate HTTP proxies do not serve a stale response."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Before enabling this setting, ensure your network policies allow connectivity to `api.anthropic.com`. If that endpoint is unreachable, the CLI exits at startup and users cannot start Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "As of v2.1.139, the `claude auth` subcommands such as `claude auth login` are exempt from this check, so users can re-authenticate when expired credentials are the reason the settings fetch fails."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "サンドボックスの認証情報設定において、無効な値が含まれていた場合の警告と適用ルールに関する表が更新されています。",
+      "hunks": [
+        {
+          "header": "@@ -172,6 +172,7 @@ Security-enforcement fields are handled per field instead of being stripped whol",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `enforceAvailableModels` | Treated as `true`. Applies in v2.1.175 and later. |"
+            },
+            {
+              "type": "context",
+              "content": "| `forceLoginOrgUUID` | No organization is permitted to log in until the value is fixed. |"
+            },
+            {
+              "type": "context",
+              "content": "| `deniedMcpServers` | An individual invalid entry is stripped and the valid subset is enforced. A wholly invalid value is dropped with a warning, since denying every server would block servers the policy never named. |"
+            },
+            {
+              "type": "added",
+              "content": "| `sandbox.credentials` | An individual invalid entry in `files` or `envVars` is stripped with a warning and the valid subset is enforced. A wholly invalid `credentials` value is dropped with a warning while the rest of `sandbox` still applies. Applies in v2.1.191 and later. |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`requiredMinimumVersion` and `requiredMaximumVersion` fail open by design: an invalid value is stripped rather than enforced, so a bad policy push cannot prevent Claude Code from starting."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -169,6 +169,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `enforceAvailableModels` | `true` として扱われます。v2.1.175 以降に適用されます。 |
 | `forceLoginOrgUUID` | 値が修正されるまで、どの組織もログインを許可されません。 |
 | `deniedMcpServers` | 個別の無効なエントリは削除され、有効なサブセットが強制されます。完全に無効な値は警告とともに削除されます。すべてのサーバーを拒否するとポリシーが名前を付けなかったサーバーをブロックするため。 |
+| `sandbox.credentials` | 個別の無効なエントリが `files` または `envVars` に含まれている場合は、警告とともに削除され、有効なサブセットが強制されます。完全に無効な `credentials` 値は警告とともに削除されますが、`sandbox` の残りは引き続き適用されます。v2.1.191 以降に適用されます。 |
 
 `requiredMinimumVersion` と `requiredMaximumVersion` は設計上失敗して開きます：無効な値は強制されるのではなく削除されるため、不正なポリシープッシュが Claude Code の起動を防ぐことはできません。
 
