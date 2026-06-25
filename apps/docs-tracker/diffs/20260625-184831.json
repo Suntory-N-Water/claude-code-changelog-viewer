@@ -1,0 +1,453 @@
+{
+  "id": "20260625-184831",
+  "timestamp": "2026-06-25T18:48:31.999Z",
+  "aiSummary": "Team and Enterpriseプラン向けに、セキュリティを強化するTrusted Devices機能の詳細が新たに追加されました。フック設定のmatcherにおいて、v2.1.191以降はコンマが区切り文字として利用可能になったことが明記されています。また、分割ペインモードにおける努力レベル継承の仕様が補足されました。",
+  "files": [
+    {
+      "filename": "agent-teams.md",
+      "additions": 2,
+      "deletions": 0,
+      "explanation": "分割ペインモード使用時における、リーダーからチームメイトへの努力レベル継承の仕様について補足されました。",
+      "hunks": [
+        {
+          "header": "@@ -130,6 +130,8 @@ each teammate.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Teammates don't inherit the lead's `/model` selection by default. To change the model used when the prompt doesn't specify one, set **Default teammate model** in `/config`. Pick **Default (leader's model)** to have teammates follow the lead's current model."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Teammates inherit the lead's [effort level](/en/model-config#adjust-effort-level). In split-pane mode this applies from v2.1.186; earlier versions did not pass the lead's session effort to split-pane teammates."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Require plan approval for teammates"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For complex or risky tasks, you can require teammates to plan before implementing. The teammate works in read-only plan mode until the lead approves their approach:"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "debug-your-config.md",
+      "additions": 2,
+      "deletions": 1,
+      "explanation": "v2.1.191以降はフックのmatcher設定でコンマが区切り文字として使用できる旨が追記され、トラブルシューティング情報が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -59,7 +59,7 @@ For configuration locations and scope rules, see [MCP](/en/mcp).",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Run `/hooks` to list every hook registered for the current session, grouped by event. If a hook you defined doesn't appear, it isn't being read: hooks go under the `\"hooks\"` key in a settings file, not in a standalone file."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If the hook appears but doesn't fire, the matcher is the usual cause. The `matcher` field is a single string that uses `|` to match multiple tool names, for example `\"Edit|Write\"`. A misspelled tool name fails silently because the matcher never matches. An array value is a schema error: Claude Code shows a settings error notice, `/doctor` reports the validation failure, and the hook entry is dropped so it won't appear in `/hooks`."
+            },
+            {
+              "type": "added",
+              "content": "If the hook appears but doesn't fire, the matcher is the usual cause. The `matcher` field is a single string that uses `|` to match multiple tool names, for example `\"Edit|Write\"`. On Claude Code v2.1.191 or later, `,` also works as a separator, so `\"Edit,Write\"` is equivalent. On earlier versions a comma falls through to regex evaluation and the matcher never matches, so use `|` if you aren't on v2.1.191 yet. A misspelled tool name fails silently for the same reason. An array value is a schema error: Claude Code shows a settings error notice, `/doctor` reports the validation failure, and the hook entry is dropped so it won't appear in `/hooks`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Edits to `settings.json` take effect in the running session after a brief file-stability delay. You don't need to restart. If `/hooks` still shows the old definition a few seconds after saving, run `/hooks` again to refresh the view."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -90,6 +90,7 @@ Most configuration surprises trace back to a small set of location and syntax ru",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Symptom | Cause | Fix |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| Hook never fires | `matcher` is a JSON array instead of a string | Use a single string with `\\|` to match multiple tools, for example `\"Edit\\|Write\"`. See [matcher patterns](/en/hooks#matcher-patterns). |"
+            },
+            {
+              "type": "added",
+              "content": "| Hook never fires | `matcher` uses `,` as a separator on a version before v2.1.191 | Claude Code v2.1.191 or later treats `,` as a list separator like `\\|`. Earlier versions evaluate a comma as a literal character, so `\"Edit,Write\"` matches nothing. Use `\\|` instead, or upgrade Claude Code. |"
+            },
+            {
+              "type": "context",
+              "content": "| Hook never fires | `matcher` value is lowercase, for example `\"bash\"` | Matching is case-sensitive. Tool names are capitalized: `Bash`, `Edit`, `Write`, `Read`. |"
+            },
+            {
+              "type": "context",
+              "content": "| Hook never fires | Hooks are defined in a standalone file instead of `settings.json` | There is no standalone hooks file for project or user config. Define hooks under the `\"hooks\"` key in `settings.json`. Only [plugins](/en/plugins-reference#hooks) load a separate `hooks/hooks.json`. See [hook configuration](/en/hooks). |"
+            },
+            {
+              "type": "context",
+              "content": "| Permissions, hooks, or env set globally are ignored | Configuration was added to `~/.claude.json` | `~/.claude.json` holds app state and UI toggles. `permissions`, `hooks`, and `env` belong in `~/.claude/settings.json`. These are two different files. |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "hooks-guide.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "フック設定のmatcherにおいて、v2.1.191以降はパイプ文字に加えてコンマも使用可能になった旨が記述されました。",
+      "hunks": [
+        {
+          "header": "@@ -169,7 +169,7 @@ Type `/hooks` and select `Notification` to confirm the hook is registered. For t",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Automatically run [Prettier](https://prettier.io/) on every file Claude edits, so formatting stays consistent without manual intervention."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "This hook uses the `PostToolUse` event with an `Edit|Write` matcher, so it runs only after file-editing tools. The command extracts the edited file path with [`jq`](https://jqlang.github.io/jq/) and passes it to Prettier. Add this to `.claude/settings.json` in your project root:"
+            },
+            {
+              "type": "added",
+              "content": "This hook uses the `PostToolUse` event with an `Edit|Write` matcher, so it runs only after file-editing tools. On Claude Code v2.1.191 or later you can also write the matcher as `Edit,Write`, since `|` and `,` are interchangeable list separators for tool-name matchers on those versions. The command extracts the edited file path with [`jq`](https://jqlang.github.io/jq/) and passes it to Prettier. Add this to `.claude/settings.json` in your project root:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "remote-control.md",
+      "additions": 53,
+      "deletions": 0,
+      "explanation": "組織の管理者が設定可能なセキュリティ機能として、デバイスの認証を必須とするTrusted Devicesの詳細が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -135,6 +135,51 @@ Your local Claude Code session makes outbound HTTPS requests only and never open",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "All traffic travels through the Anthropic API over TLS, the same transport security as any Claude Code session. The connection uses multiple short-lived credentials, each scoped to a single purpose and expiring independently."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Trusted Devices"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Trusted Devices is currently in beta. Features and functionality may evolve as the experience is refined."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Trusted Devices is available on Team and Enterprise plans. It is off by default until an admin enables it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Trusted Devices is an organization-wide setting that requires members to verify their device before they can view or steer Remote Control sessions from claude.ai, the Claude mobile apps, or Claude Desktop. It ties Remote Control access to a known device and a recent authentication, not just a signed-in account."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When the setting is on, interacting with a Remote Control session requires both of the following:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **An enrolled device**: each browser, phone, or desktop app a member uses for Remote Control enrolls its own credential. Enrollment is only offered shortly after a full sign-in, so a device joins the trusted list as part of a real authentication rather than silently in the background."
+            },
+            {
+              "type": "added",
+              "content": "- **A recent sign-in**: the member's sign-in must be no more than 18 hours old. Instead of signing in again each day, members confirm presence with Face ID, Touch ID, Windows Hello, or a passkey. This biometric step-up refreshes the session immediately."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Biometric checks run on the device through the operating system or browser, the same mechanism as passkey sign-in. Anthropic never receives or stores fingerprints, face data, or any other biometric information. Only the device's public key and basic metadata such as display name, platform, and enrollment time are stored."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The setting applies only to Remote Control. Regular Claude chat, Claude Code in the terminal, and API usage are unaffected."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Enable Trusted Devices for your organization"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Admins enable the setting from the Claude Code admin console."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Go to [claude.ai/admin-settings/claude-code](https://claude.ai/admin-settings/claude-code). The **Require trusted devices** toggle appears under the Remote Control setting."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The setting applies to every member of the organization and to Remote Control sessions started after you enable it. Sessions that were already running before the toggle was turned on are not retroactively protected and continue without the device requirement until they end. Per-team or per-project scoping is not available."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The first time a member views or steers a new Remote Control session from a browser, phone, or desktop app after the setting is enabled, they are prompted to enroll that device. Letting them know ahead of time avoids confusion."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### What members see"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Enrollment is a one-time step per device. After that, the only visible change is an occasional biometric prompt."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **First use on each device**: the member is asked to enroll. If their sign-in is not recent, they sign in first through your normal flow, including SSO if configured, then confirm enrollment."
+            },
+            {
+              "type": "added",
+              "content": "- **Day to day**: members with an enrolled device and a recent sign-in see no prompts. When the sign-in ages past 18 hours, the next Remote Control interaction shows a single Face ID, Touch ID, Windows Hello, or passkey prompt."
+            },
+            {
+              "type": "added",
+              "content": "- **Unenrolled devices**: Remote Control sessions cannot be viewed or steered until the device is enrolled. Regular Claude chat on that device is unaffected."
+            },
+            {
+              "type": "added",
+              "content": "- **No platform authenticator**: members on a machine without Face ID, Touch ID, or Windows Hello can use a hardware security key, or sign in again instead of stepping up."
+            },
+            {
+              "type": "added",
+              "content": "- **In the terminal**: the machine running Claude Code receives its own credential automatically when the developer signs in to the CLI. There is no separate enrollment step in the terminal."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Manage enrolled devices"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Members can review and revoke their own devices from account settings."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Open [claude.ai/settings/account](https://claude.ai/settings/account#trusted-devices) and find the **Trusted devices** section to see every enrolled device with its name, platform, and enrollment date. Removing a device revokes its credential immediately, and the device can re-enroll later after a fresh sign-in. Credentials also expire on their own if not renewed, so an unused device drops off the trusted list automatically."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For a lost or stolen device, the member removes it from this page. If the member cannot sign in, an admin can use **Sign out everywhere** in the admin console to revoke every session and enrolled device for that member, after which the member re-enrolls the devices they still hold."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Remote Control vs Claude Code on the web"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Remote Control and [Claude Code on the web](/en/claude-code-on-the-web) both use the claude.ai/code interface. The key difference is where the session runs: Remote Control executes on your machine, so your local MCP servers, tools, and project configuration stay available. Claude Code on the web executes in Anthropic-managed cloud infrastructure."
+            }
+          ]
+        },
+        {
+          "header": "@@ -223,6 +268,14 @@ Common causes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Network or proxy issue: a firewall or proxy may be blocking the outbound HTTPS request. Remote Control requires access to the Anthropic API on port 443."
+            },
+            {
+              "type": "context",
+              "content": "- Session creation failed: if you also see `Session creation failed — see debug log`, the failure happened earlier in setup. Check that your subscription is active."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### \"Your organization requires Trusted Devices for Remote Control, but this device is not enrolled\""
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Your organization has [Trusted Devices](#trusted-devices) enabled and this machine has not enrolled yet. Run `/login` in Claude Code. Enrollment happens as part of sign-in, and there is no separate enrollment command."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### \"session expired for trusted-device check\""
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Your sign-in is more than 18 hours old. Run `/login` in Claude Code, or confirm with Face ID, Touch ID, Windows Hello, or a passkey when claude.ai or the mobile app prompts you. See [Trusted Devices](#trusted-devices)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Choose the right approach"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code offers several ways to work when you're not at your terminal. They differ in what triggers the work, where Claude runs, and how much you need to set up."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
