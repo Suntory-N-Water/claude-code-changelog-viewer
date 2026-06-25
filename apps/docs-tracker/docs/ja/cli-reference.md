@@ -62,7 +62,7 @@ CLI フラグ
 | `--ax-screen-reader` | スクリーンリーダーフレンドリーな出力をレンダリングします：装飾的なボーダーやアニメーションなしのフラットテキスト。クラシックレンダラーを強制するため、このセッションでは [`tui`](/ja/settings#available-settings) 設定は効果がありません。[`CLAUDE_AX_SCREEN_READER`](/ja/env-vars) と [`axScreenReader`](/ja/settings#available-settings) 設定より優先されます。Claude Code v2.1.181 以降が必要です | `claude --ax-screen-reader` |
 | `--bare` | 最小限モード：hooks、skills、plugins、MCP サーバー、自動メモリ、CLAUDE.md の自動検出をスキップして、スクリプト化された呼び出しをより高速に開始します。Claude は Bash、ファイル読み取り、ファイル編集ツールにアクセスできます。[`CLAUDE_CODE_SIMPLE`](/ja/env-vars) を設定します。[bare mode](/ja/headless#start-faster-with-bare-mode) を参照してください | `claude --bare -p "query"` |
 | `--betas` | API リクエストに含めるベータヘッダー（API キーユーザーのみ） | `claude --betas interleaved-thinking` |
-| `--bg` | セッションを [バックグラウンドエージェント](/ja/agent-view) として開始し、すぐに戻ります。セッション ID と管理コマンドを出力します。`--exec` と組み合わせて、Claude セッションの代わりにシェルコマンドをバックグラウンドジョブとして実行するか、`--agent` と組み合わせて特定の subagent を実行します | `claude --bg "investigate the flaky test"` |
+| `--bg`、`--background` | セッションを [バックグラウンドエージェント](/ja/agent-view) として開始し、すぐに戻ります。セッション ID と管理コマンドを出力します。`--exec` と組み合わせて、Claude セッションの代わりにシェルコマンドをバックグラウンドジョブとして実行するか、`--agent` と組み合わせて特定の subagent を実行します | `claude --bg "investigate the flaky test"` |
 | `--channels` | （研究プレビュー）Claude がこのセッションでリッスンすべき [channel](/ja/channels) 通知を持つ MCP サーバー。`plugin:<name>@<marketplace>` エントリのスペース区切りリスト。Claude.ai 認証が必要です | `claude --channels plugin:my-notifier@my-marketplace` |
 | `--chrome` | Web 自動化とテストのための [Chrome ブラウザ統合](/ja/chrome) を有効にします | `claude --chrome` |
 | `--continue`、`-c` | 現在のディレクトリで最新の会話を読み込みます。このディレクトリを `/add-dir` で追加したセッションを含みます | `claude --continue` |

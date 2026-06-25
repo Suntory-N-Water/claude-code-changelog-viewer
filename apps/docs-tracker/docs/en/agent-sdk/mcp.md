@@ -170,12 +170,24 @@ Wildcards (`*`) let you allow all tools from a server without listing each one i
 
 To see what tools an MCP server provides, check the server's documentation or connect to the server and inspect the `system` init message:
 
-```typescript
+```typescript TypeScript theme={null}
 for await (const message of query({ prompt: "...", options })) {
   if (message.type === "system" && message.subtype === "init") {
     console.log("Available MCP tools:", message.mcp_servers);
   }
 }
+```
+
+```python Python theme={null}
+import asyncio
+from claude_agent_sdk import query, SystemMessage
+
+async def main():
+    async for message in query(prompt="...", options=options):
+        if isinstance(message, SystemMessage) and message.subtype == "init":
+            print("Available MCP tools:", message.data["mcp_servers"])
+
+asyncio.run(main())
 ```
 
 ## Transport types
