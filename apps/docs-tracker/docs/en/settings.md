@@ -172,6 +172,7 @@ Security-enforcement fields are handled per field instead of being stripped whol
 | `enforceAvailableModels` | Treated as `true`. Applies in v2.1.175 and later. |
 | `forceLoginOrgUUID` | No organization is permitted to log in until the value is fixed. |
 | `deniedMcpServers` | An individual invalid entry is stripped and the valid subset is enforced. A wholly invalid value is dropped with a warning, since denying every server would block servers the policy never named. |
+| `sandbox.credentials` | An individual invalid entry in `files` or `envVars` is stripped with a warning and the valid subset is enforced. A wholly invalid `credentials` value is dropped with a warning while the rest of `sandbox` still applies. Applies in v2.1.191 and later. |
 
 `requiredMinimumVersion` and `requiredMaximumVersion` fail open by design: an invalid value is stripped rather than enforced, so a bad policy push cannot prevent Claude Code from starting.
 

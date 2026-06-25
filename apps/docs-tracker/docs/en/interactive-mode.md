@@ -145,7 +145,7 @@ Enable vim-style editing via `/config` → Editor mode.
 | `T{char}` | Jump to just after previous occurrence of character |
 | `;` | Repeat last f/F/t/T motion |
 | `,` | Repeat last f/F/t/T motion in reverse |
-| `/` | Open reverse history search, same as `Ctrl+R` |
+| `/` | Open reverse history search, same as `Ctrl+R`. As of v2.1.191, the empty search prompt shows a hint: press `Esc` then `i` then `/` to open the command menu instead |
 
 In vim normal mode, if the cursor is at the beginning or end of input and cannot move further, `j`/`k` and the arrow keys navigate command history instead.
 
