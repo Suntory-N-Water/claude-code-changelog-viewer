@@ -3,208 +3,83 @@ title: llm-gateway
 source: https://code.claude.com/docs/ja/llm-gateway.md
 ---
 
-# LLM gateway設定
+# LLM gateway
 
-> Claude CodeをLLM gatewayソリューションと連携するための設定方法を学びます。gateway要件、認証設定、モデル選択、プロバイダー固有のエンドポイント設定をカバーしています。
+> Claude Code を LLM gateway 経由でルーティングして、集中型認証、使用状況追跡、コスト管理を実現します。Claude Code をゲートウェイに接続する方法、組織向けのロールアウト、Claude Code がゲートウェイに送信する内容、ゲートウェイと claude.ai サブスクリプションの相互作用について説明します。
 
-LLM gatewayは、Claude Codeとモデルプロバイダー間の集中型プロキシレイヤーを提供し、以下のような機能をしばしば提供します：
+LLM gateway は、Claude Code とモデルプロバイダー間に組織が実行するプロキシです。Claude Code は API トラフィックをゲートウェイに送信し、ゲートウェイは組織が管理する認証情報を使用してプロバイダーにそれを転送します。
 
-- **集中型認証** - API キー管理の単一ポイント
-- **使用状況追跡** - チームとプロジェクト全体での使用状況の監視
-- **コスト管理** - 予算とレート制限の実装
-- **監査ログ** - コンプライアンスのためのすべてのモデル相互作用の追跡
-- **モデルルーティング** - コード変更なしでプロバイダー間の切り替え
+このページでは、以下について説明します：
 
-このページでは、Claude Code CLI のgateway要件と設定について説明します。Enterprise Desktop デプロイメントは、[管理設定](https://support.claude.com/ja/articles/12622667-enterprise-configuration)を通じてgatewayプロバイダーを設定できます。Claude Desktop アプリは、[Cowork on 3P research preview](https://claude.com/docs/cowork/3p/gateway)を通じて自己ホスト型gatewayに対して実行することもでき、これは独自の設定キーを使用します。
+- [ゲートウェイが提供するもの](#what-a-gateway-provides)
+- [ルーティングと認証情報の仕組み](#how-a-gateway-works)
+- [ロールアウトの手順](#roll-out-a-gateway)
+- [ゲートウェイと claude.ai サブスクリプションの相互作用](#subscriptions-and-gateways)
+- [ゲートウェイとは別に設定されるもの](#configure-separately-from-the-gateway)
 
-Gateway要件
+* 既存のゲートウェイに接続する開発者の場合：[Claude Code をゲートウェイに接続](/ja/llm-gateway-connect)
+* 組織向けのゲートウェイをロールアウトする管理者の場合：[ゲートウェイをデプロイして配布](/ja/llm-gateway-rollout)
+* ゲートウェイ製品を設定している場合：[ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)
 
-LLM gatewayがClaude Codeと連携するには、以下の要件を満たす必要があります：
+ゲートウェイが提供するもの
 
-**API形式**
+ゲートウェイは、組織が以下を管理する 1 つの場所を提供します：
 
-gatewayは、クライアントに対して以下のAPI形式の少なくとも1つを公開する必要があります：
+- **認証情報**：プロバイダーキーはサーバー側に留まり、開発者はゲートウェイ認証情報を保持します
+- **使用状況追跡**：リクエストを処理するプロバイダーに関係なく、開発者またはチームごとに使用状況を属性付けします
+- **コスト管理**：予算とレート制限を 1 つの場所で実施します
+- **監査ログ**：コンプライアンスのためにすべてのモデルリクエストをログに記録します
+- **プロバイダー切り替え**：開発者マシンに触れることなく、ゲートウェイ設定でプロバイダーを変更します
 
-1. **Anthropic Messages**: `/v1/messages`、`/v1/messages/count_tokens`
-   - リクエストヘッダーを転送する必要があります：`anthropic-beta`、`anthropic-version`
+プロバイダー切り替え以外のすべてが、アップストリームが Anthropic の API であるか[クラウドプロバイダー](/ja/third-party-integrations)であるかに関わらず適用されます。
 
-2. **Bedrock InvokeModel**: `/invoke`、`/invoke-with-response-stream`
-   - リクエストボディフィールドを保持する必要があります：`anthropic_beta`、`anthropic_version`
+トレードオフとして、ゲートウェイは組織が運用するインフラストラクチャになります。Claude Code は各リリースで機能を追加し、ゲートウェイがそれらを転送しない場合、対応する機能が破損するため、Claude Code の進化に合わせてゲートウェイ製品を最新に保つ必要があります。[ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)では、何を転送するかについて説明しています。
 
-3. **Vertex rawPredict**: `:rawPredict`、`:streamRawPredict`、`/count-tokens:rawPredict`
-   - リクエストヘッダーを転送する必要があります：`anthropic-beta`、`anthropic-version`
+ゲートウェイの仕組み
 
-ヘッダーの転送またはボディフィールドの保持に失敗すると、機能が低下したり、Claude Code機能を使用できなくなる可能性があります。
+デフォルトでは、Claude Code は `api.anthropic.com` の Anthropic API に直接リクエストを送信します。ゲートウェイ経由でルーティングするには、`ANTHROPIC_BASE_URL` をゲートウェイのアドレスに設定します。Claude Code は代わりにそこに同じリクエストを送信します。ゲートウェイは開発者を認証し、組織のプロバイダー認証情報を添付し、各リクエストを設定されているプロバイダーに転送します。
 
-Claude Codeは、API形式に基づいて有効にする機能を決定します。Anthropic Messages形式をBedrocまたはVertexで使用する場合、環境変数 `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` を設定する必要があります。
+`ANTHROPIC_BASE_URL` はほとんどのゲートウェイのアドレス変数です。Bedrock、Vertex、Foundry、または AWS 上の Claude Platform など、特定のクラウドプロバイダーの前に立つゲートウェイは、代わりにそのプロバイダーのベース URL 変数を使用します。[API 形式](/ja/llm-gateway-protocol#api-formats)では、各設定でどの変数が使用されるかを示しています。
 
-**リクエストヘッダー**
+2 種類の認証情報が関係しています：
 
-Claude Codeは、すべてのAPI リクエストに以下のヘッダーを含めます：
+- **開発者認証情報**：各開発者が保持する独自のもので、ゲートウェイによって発行されます。ゲートウェイに対して認証し、使用状況追跡で開発者を識別します
+- **プロバイダー認証情報**：ゲートウェイが保持する、プロバイダーアカウント用の 1 つの認証情報で、転送されるすべてのトラフィックで共有されます。開発者ごとにプロバイダーキーをプロビジョニングしません
 
-| ヘッダー | 説明 |
-| :- | :- |
-| `X-Claude-Code-Session-Id` | 現在のClaude Codeセッションの一意の識別子。プロキシはこれを使用して、リクエストボディを解析することなく、単一セッションからのすべてのAPI リクエストを集約できます。 |
-| `X-Claude-Code-Agent-Id` | リクエストを発行したサブエージェントまたはチームメイトの識別子。プロキシはこれを使用して、リクエストボディを解析することなく、セッション内の個別の並列サブエージェントにAPI コストを属性付けできます。インプロセスサブエージェントまたはチームメイトによって発行されたリクエストの場合のみ存在します。 |
-| `X-Claude-Code-Parent-Agent-Id` | リクエストを行うエージェントを生成したエージェントの識別子。これを `X-Claude-Code-Agent-Id` と共に使用して、プロキシ内のネストされたエージェント全体にAPI コストを属性付けします。リクエストするエージェント自体が別のエージェントによって生成された場合のみ存在します。 |
+ゲートウェイは、Anthropic API、[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、[Microsoft Foundry](/ja/microsoft-foundry)、または[AWS 上の Claude Platform](/ja/claude-platform-on-aws) など、設定したプロバイダーにリクエストを転送します。Claude Code はゲートウェイとのみ通信するため、プロバイダーの選択はクライアントではなくゲートウェイの設定です。
 
-両方のエージェントIDヘッダーは、永続的なユーザーまたはデバイスIDではなく、スポーン単位の一時的な識別子です。
+ゲートウェイをロールアウトする
 
-Claude Codeはまた、クライアントバージョンと会話から派生したフィンガープリントを含む短い帰属ブロックをシステムプロンプトの前に付加します。Anthropic APIはこのブロックを処理前に削除するため、ファーストパーティプロンプトキャッシングには影響しません。gatewayが完全なリクエストボディをキーとしたプロンプトキャッシュを実装している場合は、[`CLAUDE_CODE_ATTRIBUTION_HEADER=0`](/ja/env-vars)を設定して、それを省略してください。
+組織に LLM gateway をロールアウトする準備ができたら、選択するゲートウェイ製品に関わらず、シーケンスは同じです：
 
-設定
+1. ゲートウェイをデプロイし、転送するリクエストを認証できるようにプロバイダー認証情報を提供します。
+2. 各開発者にゲートウェイ認証情報を発行し、使用状況が開発者に属性付けられ、オフボーディングが 1 つの認証情報を取り消すようにします。
+3. [管理設定ファイル](/ja/settings#settings-files)とシークレットツーリングを通じて設定を配布し、すべてのマシンがベース URL と認証情報を受け取るようにします。両方が配布されると、開発者は何も設定しません。設定配布が整っていない場合、開発者は[接続ページ](/ja/llm-gateway-connect)に従って変数を自分で設定します。
+4. 各開発者に[Claude Code で設定を確認](/ja/llm-gateway-connect#check-for-an-existing-configuration)させ、配布の問題がゲートウェイに依存する前に表面化するようにします。
 
-モデル選択
+[組織向けの LLM gateway をロールアウト](/ja/llm-gateway-rollout)では、各ステップを説明し、各ステップで配布する設定ファイルを示しています。ゲートウェイは組織セットアップの 1 つの部分です。ポリシー実施、使用状況の可視性、データ処理の決定については、[組織向けに Claude Code をセットアップ](/ja/admin-setup)を参照してください。
 
-デフォルトでは、Claude Code は選択した API 形式の標準モデル名を使用します。
+サードパーティゲートウェイ
 
-`ANTHROPIC_BASE_URL` が Anthropic Messages 形式を公開するゲートウェイを指している場合、Claude Code はスタートアップ時にゲートウェイの `/v1/models` エンドポイントをクエリし、返されたモデルを `/model` ピッカーに追加できます。`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1` を設定して、この機能を有効にしてください。検出はデフォルトでオフになっており、共有 API キーでバックアップされたゲートウェイが、キーがアクセスできるすべてのモデルをすべてのユーザーに表示しないようにします。検出された各エントリは「From gateway」というラベルが付けられ、レスポンスから提供されている場合は `display_name` フィールドを使用します。これには Claude Code v2.1.129 以降が必要です。
+[サポートされている API 形式](/ja/llm-gateway-protocol#api-formats)を公開するゲートウェイはすべて機能します。Anthropic は、サードパーティゲートウェイ製品を推奨、保守、または監査していません。独自のドキュメントに従ってデプロイし、[ロールアウト手順](/ja/llm-gateway-rollout)で Claude Code 側のロールアウトを完了します。
 
-検出は Anthropic Messages 形式にのみ適用されます。Bedrock または Vertex パススルーエンドポイントでは実行されず、`ANTHROPIC_BASE_URL` が設定されていない場合または `api.anthropic.com` を指している場合にも実行されません。
+サブスクリプションとゲートウェイ
 
-検出リクエストは推論リクエストと同じ方法で認証されます。認証トークンが設定されていない場合は、`ANTHROPIC_AUTH_TOKEN` をベアラートークンとして、または `ANTHROPIC_API_KEY` を `x-api-key` ヘッダーとして送信し、`ANTHROPIC_CUSTOM_HEADERS` からのヘッダーと共に送信されます。ID が `claude` または `anthropic` で始まるモデルのみがピッカーに追加されます。結果は `~/.claude/cache/gateway-models.json` にキャッシュされ、スタートアップのたびに更新されます。リクエストが失敗するか、ゲートウェイが `/v1/models` を実装していない場合、ピッカーは前回のスタートアップからのキャッシュリストまたは組み込みモデルリストにフォールバックします。
+[ゲートウェイ認証情報変数](/ja/llm-gateway-connect#set-the-credential-variable)または `apiKeyHelper` がアクティブな場合、開発者の claude.ai サブスクリプションは使用されません：認証情報がそのセッションのサブスクリプションログインを置き換え、サブスクリプションの使用制限は適用されません。そのトラフィックは、ゲートウェイが転送する認証情報の所有者（組織の Anthropic Console アカウント、またはゲートウェイがそこにルーティングする場合の Bedrock、Vertex、Foundry アカウント）にトークンごとに請求されます。
 
-ゲートウェイが検出フィルターと一致しないモデル名を使用している場合は、[モデル設定](/ja/model-config)に記載されている環境変数を使用して、手動で追加してください。
+ゲートウェイ認証情報なしで `ANTHROPIC_BASE_URL` のみを設定しても、サブスクリプションは置き換わりません。リクエストはゲートウェイ経由でルーティングされますが、保存された claude.ai ログインはアクティブな認証情報のままなので、その使用制限と請求が適用されます。このトラフィックを Anthropic に渡すゲートウェイは、`anthropic-beta` の OAuth 機能を転送する必要があります。[リクエストヘッダーリファレンス](/ja/llm-gateway-protocol#request-headers)を参照してください。
 
-LiteLLM 設定
+ゲートウェイとは別に設定されるもの
 
-LiteLLM PyPI バージョン 1.82.7 および 1.82.8 は、認証情報を盗むマルウェアで侵害されました。これらのバージョンをインストールしないでください。既にインストールしている場合：
+ゲートウェイは、モデル API リクエストが送信される場所を決定します。モデル選択、Claude Code の残りのネットワークトラフィック、企業プロキシは別に設定されます：
 
-- パッケージを削除してください
-- 影響を受けたシステムのすべての認証情報をローテーションしてください
-- [BerriAI/litellm#24518](https://github.com/BerriAI/litellm/issues/24518)の修復手順に従ってください
+- **モデル選択**：ベース URL は、リクエストが送信される場所を決定し、どのモデルが応答するかではありません。`/model` コマンドまたはモデル環境変数でモデルを選択します。[モデルを設定する方法](/ja/model-config#setting-your-model)を参照してください
+- **クライアント側トラフィック**：バージョンチェックとオプションのクライアントテレメトリ（両方とも [`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`](/ja/env-vars) で無効化）、および claude.ai または Console ログインが使用中の場合のログイントラフィックは、ゲートウェイではなく Anthropic の更新および認証エンドポイントに送信されます。ドメインについては[ネットワークアクセス要件](/ja/network-config#network-access-requirements)を参照してください
+- **企業プロキシ**：`HTTPS_PROXY` で設定されたプロキシは、Claude Code とゲートウェイを含むすべてのサーバー間に位置します。ネットワークがプロキシを必要とする場合は、両方を設定します。[プロキシ設定](/ja/network-config#proxy-configuration)を参照してください
 
-LiteLLM はサードパーティのプロキシサービスです。Anthropic は、LiteLLM のセキュリティまたは機能を推奨、保守、または監査していません。このガイドは情報提供目的で提供されており、古くなる可能性があります。自己判断で使用してください。
+関連ページ
 
-前提条件
-
-- Claude Code が最新バージョンに更新されている
-- LiteLLM Proxy Server がデプロイされてアクセス可能
-- 選択したプロバイダーを通じて Claude モデルへのアクセス
-
-基本的な LiteLLM セットアップ
-
-**Claude Code を設定する**：
-
-認証方法
-
-静的 API キー
-
-固定 API キーを使用した最も簡単な方法：
-
-```bash
-# 環境で設定
-export ANTHROPIC_AUTH_TOKEN=sk-litellm-static-key
-
-# または Claude Code 設定で
-{
-  "env": {
-    "ANTHROPIC_AUTH_TOKEN": "sk-litellm-static-key"
-  }
-}
-```
-
-この値は `Authorization` ヘッダーとして送信されます。
-
-ヘルパーを使用した動的 API キー
-
-キーのローテーションまたはユーザーごとの認証の場合：
-
-1. API キーヘルパースクリプトを作成します：
-
-```bash
-#!/bin/bash
-# ~/bin/get-litellm-key.sh
-
-# 例：vault からキーを取得
-vault kv get -field=api_key secret/litellm/claude-code
-
-# 例：JWT トークンを生成
-jwt encode \
-  --secret="${JWT_SECRET}" \
-  --exp="+1h" \
-  '{"user":"'${USER}'","team":"engineering"}'
-```
-
-2. ヘルパーを使用するように Claude Code 設定を構成します：
-
-```json
-{
-  "apiKeyHelper": "~/bin/get-litellm-key.sh"
-}
-```
-
-3. トークンリフレッシュ間隔を設定します：
-
-```bash
-# 1 時間ごとにリフレッシュ（3600000 ms）
-export CLAUDE_CODE_API_KEY_HELPER_TTL_MS=3600000
-```
-
-この値は `Authorization` および `X-Api-Key` ヘッダーとして送信されます。`apiKeyHelper` は `ANTHROPIC_AUTH_TOKEN` または `ANTHROPIC_API_KEY` より優先度が低くなります。
-
-統合エンドポイント（推奨）
-
-LiteLLM の[Anthropic 形式エンドポイント](https://docs.litellm.ai/docs/anthropic_unified)を使用：
-
-```bash
-export ANTHROPIC_BASE_URL=https://litellm-server:4000
-```
-
-**統合エンドポイントのパススルーエンドポイント上での利点：**
-
-- ロードバランシング
-- フェイルオーバー
-- コスト追跡とエンドユーザー追跡の一貫したサポート
-
-プロバイダー固有のパススルーエンドポイント（代替）
-
-LiteLLM を通じた Claude API
-
-[パススルーエンドポイント](https://docs.litellm.ai/docs/pass_through/anthropic_completion)を使用：
-
-```bash
-export ANTHROPIC_BASE_URL=https://litellm-server:4000/anthropic
-```
-
-LiteLLM を通じた Amazon Bedrock
-
-[パススルーエンドポイント](https://docs.litellm.ai/docs/pass_through/bedrock)を使用：
-
-```bash
-export ANTHROPIC_BEDROCK_BASE_URL=https://litellm-server:4000/bedrock
-export CLAUDE_CODE_SKIP_BEDROCK_AUTH=1
-export CLAUDE_CODE_USE_BEDROCK=1
-```
-
-LiteLLM を通じた Google Vertex AI
-
-[パススルーエンドポイント](https://docs.litellm.ai/docs/pass_through/vertex_ai)を使用：
-
-```bash
-export ANTHROPIC_VERTEX_BASE_URL=https://litellm-server:4000/vertex_ai/v1
-export ANTHROPIC_VERTEX_PROJECT_ID=your-gcp-project-id
-export CLAUDE_CODE_SKIP_VERTEX_AUTH=1
-export CLAUDE_CODE_USE_VERTEX=1
-export CLOUD_ML_REGION=us-east5
-```
-
-AWS を通じた Claude Platform
-
-[Claude Platform on AWS](/ja/claude-platform-on-aws) エンドポイントに転送するゲートウェイにルーティング：
-
-```bash
-export ANTHROPIC_AWS_BASE_URL=https://litellm-server:4000/anthropic-aws
-export ANTHROPIC_AWS_WORKSPACE_ID=wrkspc_01ABCDEFGHIJKLMN
-export CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH=1
-export CLAUDE_CODE_USE_ANTHROPIC_AWS=1
-```
-
-詳細については、[LiteLLM ドキュメント](https://docs.litellm.ai/)を参照してください。
-
-追加リソース
-
-- [LiteLLMドキュメント](https://docs.litellm.ai/)
-- [Claude Code設定](/ja/settings)
-- [エンタープライズネットワーク設定](/ja/network-config)
-- [サードパーティ統合の概要](/ja/third-party-integrations)
+- [Claude Code を LLM gateway に接続](/ja/llm-gateway-connect)：自分のマシンでベース URL と認証情報を設定し、サーフェスごとの設定とトラブルシューティングテーブルを含みます
+- [組織向けの LLM gateway をロールアウト](/ja/llm-gateway-rollout)：ゲートウェイをデプロイし、開発者認証情報を発行し、管理設定を配布するための管理者チェックリスト
+- [ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)：Claude Code がゲートウェイに送信するもの、ゲートウェイを設定する運用者向け、エンドポイント、転送するヘッダー、機能パススルーをカバーしています
+- [組織向けに Claude Code をセットアップ](/ja/admin-setup)：ゲートウェイが 1 つの部分である、ポリシー実施と使用状況の可視性を含む、より広いロールアウト決定

@@ -191,7 +191,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 ほとんどの組織は、追加の構成なしでクラウドプロバイダーを直接使用できます。ただし、組織に特定のネットワークまたは管理要件がある場合は、企業プロキシまたは LLM ゲートウェイを構成する必要がある場合があります。これらは一緒に使用できる異なる構成です。
 
 * **企業プロキシ**: HTTP/HTTPS プロキシを通じてトラフィックをルーティングします。組織がセキュリティ監視、コンプライアンス、またはネットワークポリシー実装のためにすべての送信トラフィックをプロキシサーバーを通じて渡す必要がある場合に使用します。`HTTPS_PROXY` または `HTTP_PROXY` 環境変数で構成します。[エンタープライズネットワーク構成](/ja/network-config)で詳細をご覧ください。
-* **LLM ゲートウェイ**: Claude Code とクラウドプロバイダーの間に位置して、認証とルーティングを処理するサービスです。チーム全体の一元化された使用状況追跡、カスタムレート制限または予算、または一元化された認証管理が必要な場合に使用します。`ANTHROPIC_BASE_URL`、`ANTHROPIC_BEDROCK_BASE_URL`、`ANTHROPIC_AWS_BASE_URL`、または `ANTHROPIC_VERTEX_BASE_URL` 環境変数で構成します。[LLM ゲートウェイ構成](/ja/llm-gateway)で詳細をご覧ください。
+* **LLM ゲートウェイ**: Claude Code とクラウドプロバイダーの間に位置して、認証とルーティングを処理するサービスです。チーム全体の一元化された使用状況追跡、カスタムレート制限または予算、または一元化された認証管理が必要な場合に使用します。`ANTHROPIC_BASE_URL`、`ANTHROPIC_BEDROCK_BASE_URL`、`ANTHROPIC_AWS_BASE_URL`、または `ANTHROPIC_VERTEX_BASE_URL` 環境変数で構成します。[LLM ゲートウェイ](/ja/llm-gateway)で詳細をご覧ください。
 
 以下の例は、シェルまたはシェルプロファイル（`.bashrc`、`.zshrc`）で設定する環境変数を示しています。その他の構成方法については、[設定](/ja/settings)を参照してください。
 
@@ -255,7 +255,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
     # LLM ゲートウェイを構成
     export ANTHROPIC_FOUNDRY_BASE_URL='https://your-llm-gateway.com'
-    export CLAUDE_CODE_SKIP_FOUNDRY_AUTH=1  # ゲートウェイが Azure 認証を処理する場合
+    export ANTHROPIC_FOUNDRY_API_KEY=your-gateway-key  # x-api-key として送信
     ```
   </Tab>
 </Tabs>
@@ -289,6 +289,8 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
     # LLM ゲートウェイを構成
     export ANTHROPIC_VERTEX_BASE_URL='https://your-llm-gateway.com/vertex'
     export CLAUDE_CODE_SKIP_VERTEX_AUTH=1  # ゲートウェイが GCP 認証を処理する場合
+    export ANTHROPIC_VERTEX_PROJECT_ID=your-gcp-project-id
+    export CLOUD_ML_REGION=us-east5
     ```
   </Tab>
 </Tabs>
