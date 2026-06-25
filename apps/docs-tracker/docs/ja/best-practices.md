@@ -474,7 +474,7 @@ claude -p "<your prompt>" --output-format json | your_command
 
 auto mode で自律的に実行する
 
-無中断の実行と背景のセーフティチェックについては、[auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) を使用します。分類器モデルはコマンドを実行前にレビューし、スコープエスカレーション、未知のインフラストラクチャ、敵対的なコンテンツ駆動のアクションをブロックしながら、ルーチンワークをプロンプトなしで進めさせます。
+無中断の実行とバックグラウンドのセーフティチェックについては、[auto mode](/ja/permission-modes#eliminate-prompts-with-auto-mode) を使用します。分類器モデルはコマンドを実行前にレビューし、スコープエスカレーション、未知のインフラストラクチャ、敵対的なコンテンツ駆動のアクションをブロックしながら、ルーチンワークをプロンプトなしで進めさせます。
 
 ```bash
 claude --permission-mode auto -p "fix all lint errors"
