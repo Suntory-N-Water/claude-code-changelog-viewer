@@ -1,0 +1,252 @@
+{
+  "version": "2.1.193",
+  "summary": "Autoモードにおいて全てのシェルコマンドを分類器で検証する設定や、認証が必要なMCPサーバーの通知機能が追加されました。バックグラウンドエージェントの動作安定性が向上し、意図しない再確認や重複実行などのバグが修正されています。モニタリングのためのOpenTelemetryログ拡充や、Bashモードでのパス補完など、開発効率を高める改善も行われました。",
+  "items": [
+    {
+      "content": "- Added `autoMode.classifyAllShell` setting to route all Bash/PowerShell commands through the auto-mode classifier instead of only arbitrary-code-execution patterns",
+      "content_ja": "すべてのBash/PowerShellコマンドをAutoモードの分類器経由で実行する `autoMode.classifyAllShell` 設定を追加",
+      "prefix": "Added",
+      "feature_areas": ["Permissions", "Settings"],
+      "inference": {
+        "before": "デフォルトでは特定の危険なパターン（任意のコード実行など）のみが分類器でチェックされ、その他のコマンドは通常の権限確認プロセスに従っていました。",
+        "after": "この設定を有効にすると、すべてのシェルコマンドが分類器を通過するようになり、一貫した自動承認判定が可能になります。",
+        "benefit": "安全性を維持しつつ、信頼できる環境での定型的なシェル操作に対する手動承認の頻度をさらに減らすことができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added auto-mode denial reasons to the transcript, the denial toast, and `/permissions` recent denials",
+      "content_ja": "トランスクリプト、通知、および `/permissions` 内の拒否履歴にAutoモードの拒否理由を表示する機能を追加",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "Autoモードで操作が拒否された際、なぜ分類器がそのアクションをブロックしたのかという具体的な理由がユーザーに明示されていませんでした。",
+        "after": "拒否理由がログやUIに表示されるようになり、`/permissions` コマンドから最近の拒否理由を詳しく確認できるようになりました。",
+        "benefit": "拒否された原因（信頼されていないドメインへのアクセスなど）が明確になるため、設定の修正や例外ルールの追加を迅速に行えるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added `claude_code.assistant_response` OpenTelemetry log event containing the model's response text. Redacted unless `OTEL_LOG_ASSISTANT_RESPONSES=1`; when that var is unset it follows `OTEL_LOG_USER_PROMPTS`, so deployments that already log prompt content will start receiving response content on upgrade — set `OTEL_LOG_ASSISTANT_RESPONSES=0` to keep prompts-only.",
+      "content_ja": "OpenTelemetry ログイベントにモデルの応答テキストを含む `claude_code.assistant_response` を追加",
+      "prefix": "Added",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "これまではユーザーのプロンプト内容は記録できましたが、それに対するアシスタントの応答内容を構造化されたログとして収集する手段が不足していました。",
+        "after": "OpenTelemetry経由で応答テキストを送信できるようになりました。プライバシー保護のためデフォルトでは秘匿されていますが、環境変数で有効化できます。",
+        "benefit": "組織内での利用において、プロンプトと応答の両方を監視・分析することで、品質改善やコンプライアンスの確認が容易になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/env-vars.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added live file path autocomplete to bash mode (`!`)",
+      "content_ja": "Bashモード（`!` プレフィックス）でのリアルタイムなファイルパス補完機能を追加",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "シェルモード（!）でコマンドを入力する際、ファイルパスの自動補完が効かず、長いパスを手動で入力する必要がありました。",
+        "after": "通常のプロンプトと同様に、シェルモードでも入力中に適切なファイルパスが提案され、Tabキーなどで補完できるようになります。",
+        "benefit": "ターミナルでの直接的なコマンド実行がよりスムーズになり、入力ミスを減らしながら作業効率を向上させることができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/security-guidance.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added a startup notice when MCP servers need authentication, pointing at `/mcp`",
+      "content_ja": "起動時にMCPサーバーの認証が必要な場合の通知を表示し、`/mcp` へ誘導する機能を追加",
+      "prefix": "Added",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "MCPサーバーのOAuth認証などが切れている場合、なぜツールが動かないのか原因が分かりにくく、設定画面へ辿り着くのに手間がかかっていました。",
+        "after": "起動時に認証が必要なサーバーを検知して通知が表示され、ワンクリックまたはコマンド入力で設定画面へ移動できるようになります。",
+        "benefit": "認証エラーによる作業の停滞を防ぎ、必要な設定を迷うことなく完了させて開発を再開できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/channels-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added automatic memory-pressure reaping for idle background shell commands (disable with `CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1`)",
+      "content_ja": "アイドル状態のバックグラウンドシェルコマンドに対するメモリの自動解放機能を追加",
+      "prefix": "Added",
+      "feature_areas": [],
+      "inference": {
+        "before": "バックグラウンドで実行されたまま放置されたシェルコマンドが、メモリを消費し続けてシステムのパフォーマンスに影響を与える可能性がありました。",
+        "after": "システムにメモリ負荷がかかった際、アイドル状態のバックグラウンドプロセスを自動的にクリーンアップする仕組みが導入されました。",
+        "benefit": "長時間 CLI を使用していてもリソースの枯渇を防ぎ、常に安定した動作環境を維持することができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `/model` and other client-data-gated UI showing stale/empty state immediately after `/login`",
+      "content_ja": "`/login` 直後に `/model` などのUIが古いデータや空の状態で表示される問題を修正",
+      "prefix": "Fixed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "ログイン直後、古いセッション情報やデフォルト設定がキャッシュされたままになり、モデル選択などのUIが正しく更新されないことがありました。",
+        "after": "ログイン完了と同時にクライアントデータが適切にリフレッシュされ、最新の利用可能なモデルや設定が即座に反映されるようになります。",
+        "benefit": "ログイン後の再起動などが不要になり、アカウントに紐づく最新の機能をすぐに使い始めることができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed backgrounding (←←) spuriously cancelling with \"N background tasks would be abandoned\" when all running tasks carry over to the new session",
+      "content_ja": "バックグラウンド化（←←）時に、実行中のタスクがすべて新しいセッションに引き継がれる場合でも、「N個のバックグラウンドタスクが破棄されます」という誤った警告が出る問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed pinned background agents being re-prompted to \"Continue from where you left off\" after every auto-update",
+      "content_ja": "ピン留めされたバックグラウンドエージェントが、自動アップデートのたびに「中断した場所から続行しますか」と再確認される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed backgrounding the main turn spawning a phantom \"general-purpose (resumed)\" subagent that re-ran the main conversation",
+      "content_ja": "メインのターンをバックグラウンド化した際に、メインの会話を再実行してしまう幽霊のような「汎用（再開済み）」サブエージェントが生成される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed agent panel hiding sibling agents when viewing a subagent",
+      "content_ja": "サブエージェントを表示中に、エージェントパネルで兄弟関係にある他のエージェントが非表示になってしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Improved background agents: the launch result no longer instructs Claude to \"end your response\" — it keeps working on other tasks while the agent runs",
+      "content_ja": "バックグラウンドエージェントの挙動を改善し、起動結果でClaudeに「応答を終了するように」指示しないようになりました。これにより、エージェントの実行中も他のタスクを継続できます。",
+      "prefix": "Improved",
+      "feature_areas": ["Sub-agents"],
+      "related_docs": []
+    },
+    {
+      "content": "- Improved MCP `headersHelper` auth: the helper now re-runs and reconnects automatically when a tool call returns 401/403",
+      "content_ja": "MCPの `headersHelper` 認証において、401/403エラー発生時の自動再試行と再接続を改善",
+      "prefix": "Improved",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "ツール呼び出し中に認証トークンが失効して401や403エラーが返された際、手動で再接続を行わない限りツールが失敗し続けていました。",
+        "after": "認証エラーを検知すると `headersHelper` が自動的に再実行され、最新の認証情報を用いて自動的に再接続を試みるようになります。",
+        "benefit": "トークンの有効期限切れによるツールの失敗を意識することなく、シームレスに外部ツールを利用し続けることができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/managed-mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved plugin auto-rename: marketplace `renames` maps are now followed automatically, updating your settings to the new name",
+      "content_ja": "プラグインの自動リネーム機能を改善：マーケットプレイスの名称変更マップを自動追跡し、設定を新しい名前に更新するようになりました",
+      "prefix": "Improved",
+      "feature_areas": ["Plugins", "Settings"],
+      "inference": {
+        "before": "マーケットプレイス上でプラグインの名称が変更された際、ユーザー側の設定ファイル(settings.json)には古い名前が残ったままになり、依存関係の解決や更新に支障が出る可能性がありました。",
+        "after": "マーケットプレイスの名称変更マップ（renames maps）を自動的に参照するようになり、プラグイン名が変更されるとユーザーの設定も新しい名前に自動的に追従して更新されます。",
+        "benefit": "プラグインの名称変更をユーザーが手動で監視して設定を書き換える手間がなくなり、常に最新の名称で正しくプラグインを利用し続けることができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/managed-mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-dependencies.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved `/add-dir` message when the directory is already a working directory",
+      "content_ja": "対象ディレクトリが既にワーキングディレクトリとして登録されている場合の `/add-dir` メッセージを改善しました",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "`/add-dir` コマンドで既に追加済みのディレクトリを指定した際、現在の状態が分かりにくかったり、重複して登録しようとしていることが不明確なメッセージが表示されていました。",
+        "after": "指定したディレクトリが既に現在のセッションのワーキングディレクトリに含まれている場合、その旨を正確に伝える分かりやすいメッセージが表示されるようになりました。",
+        "benefit": "コマンドの実行結果が明確になり、無駄なディレクトリ追加操作を防ぐとともに、現在の作業コンテキストを正しく把握しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        }
+      ]
+    }
+  ]
+}
