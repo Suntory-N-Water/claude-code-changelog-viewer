@@ -13,7 +13,27 @@ export type SettingEntryForPrompt = {
       benefit: string;
     };
   }[];
+  schema_default?: string;
+  schema_enum?: string[];
 };
+
+function buildSchemaText(
+  schema_default: string | undefined,
+  schema_enum: string[] | undefined,
+): string {
+  const parts: string[] = [];
+  if (schema_default !== undefined) {
+    parts.push(`デフォルト値: ${JSON.stringify(schema_default)}`);
+  }
+  if (schema_enum !== undefined && schema_enum.length > 0) {
+    parts.push(
+      `選択肢: [${schema_enum.map((v) => JSON.stringify(v)).join(', ')}]`,
+    );
+  }
+  return parts.length > 0
+    ? ['### スキーマ情報', `- ${parts.join(', ')}`].join('\n')
+    : '';
+}
 
 /**
  * 設定・環境変数の翻訳と用途解説プロンプトを構築
@@ -41,6 +61,8 @@ export function buildSettingsTranslatePrompt(
         parent_descriptions,
         doc_snippets,
         related_changelog,
+        schema_default,
+        schema_enum,
       }) => {
         const sourceLabel =
           source === 'settings' ? 'settings.json 設定' : '環境変数';
@@ -77,12 +99,14 @@ export function buildSettingsTranslatePrompt(
                   .join('\n'),
               ].join('\n')
             : '';
+        const schemaText = buildSchemaText(schema_default, schema_enum);
 
         return [
           ['#### エントリ id=', id, ' (', sourceLabel, ')'].join(''),
           ['- キー: `', key, '`'].join(''),
           ['- 英語説明: ', description_en].join(''),
           parentText,
+          schemaText,
           docsText,
           changelogText,
         ]
@@ -94,14 +118,18 @@ export function buildSettingsTranslatePrompt(
     .join('\n\n');
 
   const translationSection = withoutContext
-    .map(({ id, key, source, description_en }) => {
+    .map(({ id, key, source, description_en, schema_default, schema_enum }) => {
       const sourceLabel =
         source === 'settings' ? 'settings.json 設定' : '環境変数';
+      const schemaText = buildSchemaText(schema_default, schema_enum);
       return [
         ['#### エントリ id=', id, ' (', sourceLabel, ')'].join(''),
         ['- キー: `', key, '`'].join(''),
         ['- 英語説明: ', description_en].join(''),
-      ].join('\n');
+        schemaText,
+      ]
+        .filter((line) => line.length > 0)
+        .join('\n');
     })
     .join('\n\n');
 
@@ -112,6 +140,11 @@ export function buildSettingsTranslatePrompt(
     '- Claude Code は開発者向けの AI アシスタント CLI ツールである',
     '- ユーザーは設定名・環境変数名で検索して来訪し、「この設定は何をするのか・いつ使うのか」を知りたい',
     '- 用途解説は単なる翻訳ではなく、具体的な使いどころや課題解決の観点で書く',
+    '- デフォルト値・有効化/無効化の条件・取りうる値はユーザーが即座に活用するための重要な情報',
+    '- ドキュメント・スキーマ・英語説明に記載のない内容は絶対に書かない',
+    '',
+    '## 動機 (Motive)',
+    '設定のデフォルト値や選択肢はスキーマから取得できるが、「なぜその値を変えるのか」「どんな状況で有効化するのか」はドキュメントや更新履歴にしか載っていない。両者を組み合わせてユーザーが即座に使える情報を提供する。',
     '',
     '## 状況 (Situation)',
     ['Claude Code の設定・環境変数 ', entries.length, ' 件を処理する。'].join(
@@ -121,7 +154,7 @@ export function buildSettingsTranslatePrompt(
     '## 目的 (Purpose)',
     '以下の2つのタスクを実行する:',
     '1. **翻訳+用途解説** (コンテキストあり): 関連ドキュメントまたは更新履歴がある設定について、翻訳 + 用途解説を生成',
-    '2. **翻訳のみ** (コンテキストなし): 参照情報がない設定について、日本語翻訳のみ生成',
+    '2. **翻訳+操作情報** (コンテキストなし): 参照情報がない設定について、日本語翻訳 + スキーマ情報から読み取れる操作情報を生成',
     '',
     '---',
     '',
@@ -132,6 +165,7 @@ export function buildSettingsTranslatePrompt(
     '## 制約',
     '- description_ja: 英語説明を技術的に正確かつ自然な日本語に翻訳する(1文)',
     '- use_case_ja: 関連ドキュメントと更新履歴を参照し、「何をする設定か・どんな課題を解決するか」を 2〜3 行の箇条書きで表現する',
+    '  - デフォルト値・有効化条件・選択肢が分かる場合はそれも含める',
     '  - 固定フォーマットは不要。AI が重要な情報を選んで箇条書きにする',
     '  - ドキュメントや更新履歴に記載がない内容は書かない',
     '  - 箇条書きは「- 」で始める',
@@ -144,13 +178,16 @@ export function buildSettingsTranslatePrompt(
     '',
     '---',
     '',
-    '# タスク2: 翻訳のみ (コンテキストなし)',
+    '# タスク2: 翻訳+操作情報 (コンテキストなし)',
     '',
-    '以下の各エントリについて、description_ja のみを生成する。use_case_ja は空文字で返す。',
+    '以下の各エントリについて、description_ja を生成する。スキーマ情報(デフォルト値・選択肢)がある場合は use_case_ja も生成する。',
     '',
     '## 制約',
     '- description_ja: 英語説明を技術的に正確かつ自然な日本語に翻訳する(1文)',
     '- 開発者向けの自然な日本語表現を心がける',
+    '- use_case_ja: スキーマ情報から読み取れるデフォルト値・選択肢を箇条書きで表現する。スキーマ情報がない場合は空文字で返す',
+    '  - description_en・スキーマに記載のない内容は書かない',
+    '  - 箇条書きは「- 」で始める',
     '- id は入力値をそのまま返すこと',
     '',
     '## 対象エントリ',

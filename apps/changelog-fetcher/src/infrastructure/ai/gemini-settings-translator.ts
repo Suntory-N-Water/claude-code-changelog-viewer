@@ -50,5 +50,11 @@ function toPromptEntry(
         ? { inference: changelog.inference }
         : {}),
     })),
+    ...(target.schemaDefault !== undefined
+      ? { schema_default: target.schemaDefault }
+      : {}),
+    ...(target.schemaEnum !== undefined
+      ? { schema_enum: target.schemaEnum }
+      : {}),
   };
 }

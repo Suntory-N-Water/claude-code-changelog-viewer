@@ -8,6 +8,7 @@ import {
   type SettingsTranslatorPort,
 } from './settings-entry-translator';
 import type {
+  SchemaInfo,
   SettingReferenceOutput,
   SettingsReferenceContext,
   SettingsTranslationMap,
@@ -18,6 +19,7 @@ export type RawSettingsEntries = {
   mdEnvEntries: SettingsEntry[];
   schemaEnvEntries: SettingsEntry[];
   docsEnvEntries: SettingsEntry[];
+  schemaInfoMap: Map<string, SchemaInfo>;
 };
 
 export type LoadedSettingsReferenceContext = {
@@ -162,6 +164,7 @@ export async function generateSettingsReference(input: {
     entries: newEntries,
     noAiMode: input.noAiMode,
     relatedContext,
+    schemaInfoMap: rawEntries.schemaInfoMap,
     ...(input.settingsTranslator !== undefined
       ? { settingsTranslator: input.settingsTranslator }
       : {}),
@@ -216,6 +219,7 @@ async function translateEntries(input: {
   entries: SettingsEntry[];
   noAiMode: boolean;
   relatedContext: SettingsReferenceContext;
+  schemaInfoMap?: Map<string, SchemaInfo>;
   settingsTranslator?: SettingsTranslatorPort;
   log: AppLogger;
 }): Promise<SettingsTranslationMap> {
@@ -230,6 +234,9 @@ async function translateEntries(input: {
 
   return translateInBatches(input.entries, {
     relatedContext: input.relatedContext,
+    ...(input.schemaInfoMap !== undefined
+      ? { schemaInfoMap: input.schemaInfoMap }
+      : {}),
     settingsTranslator: input.settingsTranslator,
     log: input.log,
   });
