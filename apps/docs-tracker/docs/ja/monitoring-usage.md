@@ -429,7 +429,7 @@ Claude Code は以下のメトリクスをエクスポートします:
 **属性**:
 
 - すべての[標準属性](#standard-attributes)
-- `start_type`: セッションがどのように開始されたか。`"fresh"`、`"resume"`、または `"continue"` のいずれか
+- `start_type`: セッションがどのように開始されたか。`"fresh"`、`"resume"`、`"continue"`、または `"agents_view"` のいずれか。`"agents_view"` 値は `claude agents` ダッシュボードプロセス (会話セッションではなく、ユーザーが起動したローカル UI) を識別します。ダッシュボードで UI プロセス起動を会話セッションから分離するには、この値でフィルタリングしてください。
 
 コード行カウンター
 

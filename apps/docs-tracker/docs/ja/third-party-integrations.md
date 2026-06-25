@@ -175,6 +175,8 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
   </tbody>
 </table>
 
+各オプションで利用可能な機能の詳細な比較については、[機能の可用性](/ja/feature-availability)を参照してください。
+
 デプロイメントオプションを選択してセットアップ手順を表示します。
 
 * [Claude for Teams または Enterprise](/ja/authentication#claude-for-teams-or-enterprise)
