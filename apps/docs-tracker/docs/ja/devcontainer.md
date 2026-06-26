@@ -9,12 +9,7 @@ source: https://code.claude.com/docs/ja/devcontainer.md
 
 [開発コンテナ](https://containers.dev/)（dev container）を使用すると、チームのすべてのエンジニアが実行できる同一の分離環境を定義できます。Claude Code がそのコンテナにインストールされている場合、Claude が実行するコマンドはホストマシンではなくコンテナ内で実行され、プロジェクトファイルへの編集はローカルリポジトリに表示されます。
 
-このページでは、[開発コンテナに Claude Code をインストール](#add-claude-code-to-your-dev-container)する方法と、その後の設定トピックについて説明します。各トピックは独立しているため、必要な設定に合わせてジャンプしてください：
-
-- [再構築時に認証と設定を保持する](#persist-authentication-and-settings-across-rebuilds)
-- [組織ポリシーを適用する](#enforce-organization-policy)
-- [ネットワークエグレスを制限する](#restrict-network-egress)
-- [権限プロンプトなしで実行する](#run-without-permission-prompts)
+このページでは、[開発コンテナに Claude Code をインストール](#add-claude-code-to-your-dev-container)する方法と、その後の自己完結型の設定トピックについて説明します。認証をリビルド全体で保持する、組織ポリシーを適用する、ネットワークエグレスを制限する、権限プロンプトなしで実行するなどです。セットアップに合致するものをお読みください。
 
 開発コンテナは実質的な保護を提供していますが、すべての攻撃に完全に耐性のあるシステムはありません。
 `--dangerously-skip-permissions` で実行する場合、開発コンテナは、[`~/.claude`](/ja/claude-directory) に保存されている Claude Code の認証情報を含む、コンテナ内でアクセス可能なものを悪意のあるプロジェクトが流出させることを防ぎません。
