@@ -9,17 +9,9 @@ source: https://code.claude.com/docs/ja/llm-gateway.md
 
 LLM gateway は、Claude Code とモデルプロバイダー間に組織が実行するプロキシです。Claude Code は API トラフィックをゲートウェイに送信し、ゲートウェイは組織が管理する認証情報を使用してプロバイダーにそれを転送します。
 
-このページでは、以下について説明します：
-
-- [ゲートウェイが提供するもの](#what-a-gateway-provides)
-- [ルーティングと認証情報の仕組み](#how-a-gateway-works)
-- [ロールアウトの手順](#roll-out-a-gateway)
-- [ゲートウェイと claude.ai サブスクリプションの相互作用](#subscriptions-and-gateways)
-- [ゲートウェイとは別に設定されるもの](#configure-separately-from-the-gateway)
-
-* 既存のゲートウェイに接続する開発者の場合：[Claude Code をゲートウェイに接続](/ja/llm-gateway-connect)
-* 組織向けのゲートウェイをロールアウトする管理者の場合：[ゲートウェイをデプロイして配布](/ja/llm-gateway-rollout)
-* ゲートウェイ製品を設定している場合：[ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)
+- 既存のゲートウェイに接続する開発者の場合：[Claude Code をゲートウェイに接続](/ja/llm-gateway-connect)
+- 組織向けのゲートウェイをロールアウトする管理者の場合：[ゲートウェイをデプロイして配布](/ja/llm-gateway-rollout)
+- ゲートウェイ製品を設定している場合：[ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)
 
 ゲートウェイが提供するもの
 

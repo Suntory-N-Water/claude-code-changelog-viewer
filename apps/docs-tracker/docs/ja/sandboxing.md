@@ -9,13 +9,6 @@ source: https://code.claude.com/docs/ja/sandboxing.md
 
 Bash サンドボックスを使用すると、Claude はほとんどのシェルコマンドを実行できます。各コマンドの実行許可を求める代わりに、コマンドがアクセスできるファイルとネットワークドメインを定義し、オペレーティングシステムがすべての Bash コマンドとその子プロセスに対してその境界を実施します。
 
-このページでは、以下の方法について説明します。
-
-- [サンドボックスを有効化](#get-started)し、サンドボックス化されたコマンドがどのように承認されるかを選択する
-- [サンドボックス化を設定](#configure-sandboxing)して、コマンドがアクセスできるパスとネットワークドメインを定義する
-- [サンドボックス化を許可ルールと許可モードと組み合わせる](#how-sandboxing-relates-to-permissions-and-permission-modes)
-- [組織全体でサンドボックス化を実施](#configure-the-sandbox-for-your-organization)する（管理設定を使用）
-
 dev コンテナ、カスタムコンテナ、仮想マシンなどの他の分離アプローチを比較するには、[Sandbox environments](/ja/sandbox-environments) を参照してください。Bash 以外のツールの許可プロンプトを削減するには、[permission modes](/ja/permission-modes) を参照してください。
 
 開始方法
