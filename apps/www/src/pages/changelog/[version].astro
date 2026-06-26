@@ -215,44 +215,73 @@ const totalItemCount = items.length;
         }
         {
           itemChangeEvents.length > 0 && (
-            <details class='text-sm text-gray-600 mt-2'>
-              <summary class='cursor-pointer hover:text-[hsl(var(--cc-main-orange))]'>
+            <>
+              <button
+                type='button'
+                popovertarget='changelog-history-popover'
+                class='inline-flex items-center gap-1 mt-2 text-sm text-gray-600 hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+              >
                 公式のCHANGELOG.mdでの変更履歴
-              </summary>
-              <div class='mt-2 space-y-2 pl-4 border-l-2 border-[hsl(var(--cc-gray))]'>
-                {itemChangeEvents.map((event: DiffEvent) => (
-                  <div>
-                    <p class='font-medium text-gray-700'>
-                      {formatDiffDateTime(event.detected_at)}
+                <Icon
+                  name='chevron-down'
+                  class='w-3.5 h-3.5'
+                  aria-hidden='true'
+                />
+              </button>
+              <div
+                id='changelog-history-popover'
+                popover
+                class='changelog-history-popover m-0 p-5 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] shadow-xl max-w-md w-[min(90vw,28rem)] max-h-[70vh] overflow-y-auto'
+              >
+                <div class='flex items-center justify-between mb-3 pb-2 border-b border-[hsl(var(--cc-gray))]'>
+                  <p class='text-sm font-semibold text-[hsl(var(--cc-main-black))]'>
+                    公式のCHANGELOG.mdでの変更履歴
+                  </p>
+                  <button
+                    type='button'
+                    popovertarget='changelog-history-popover'
+                    popovertargetaction='hide'
+                    class='inline-flex items-center justify-center w-6 h-6 rounded text-gray-400 hover:text-[hsl(var(--cc-main-black))] cursor-pointer'
+                    aria-label='閉じる'
+                  >
+                    <Icon name='close' class='w-4 h-4' aria-hidden='true' />
+                  </button>
+                </div>
+                <div class='space-y-2 text-sm text-gray-600'>
+                  {itemChangeEvents.map((event: DiffEvent) => (
+                    <div>
+                      <p class='font-medium text-gray-700'>
+                        {formatDiffDateTime(event.detected_at)}
+                        {event.items_added.length > 0 && (
+                          <span class='text-green-700 ml-2'>
+                            +{event.items_added.length}件追加
+                          </span>
+                        )}
+                        {event.items_removed.length > 0 && (
+                          <span class='text-red-700 ml-2'>
+                            -{event.items_removed.length}件削除
+                          </span>
+                        )}
+                      </p>
                       {event.items_added.length > 0 && (
-                        <span class='text-green-700 ml-2'>
-                          +{event.items_added.length}件追加
-                        </span>
+                        <ul class='mt-1 space-y-0.5'>
+                          {event.items_added.map((item: string) => (
+                            <li class='text-green-700 text-xs'>+ {item}</li>
+                          ))}
+                        </ul>
                       )}
                       {event.items_removed.length > 0 && (
-                        <span class='text-red-700 ml-2'>
-                          -{event.items_removed.length}件削除
-                        </span>
+                        <ul class='mt-1 space-y-0.5'>
+                          {event.items_removed.map((item: string) => (
+                            <li class='text-red-700 text-xs'>- {item}</li>
+                          ))}
+                        </ul>
                       )}
-                    </p>
-                    {event.items_added.length > 0 && (
-                      <ul class='mt-1 space-y-0.5'>
-                        {event.items_added.map((item: string) => (
-                          <li class='text-green-700 text-xs'>+ {item}</li>
-                        ))}
-                      </ul>
-                    )}
-                    {event.items_removed.length > 0 && (
-                      <ul class='mt-1 space-y-0.5'>
-                        {event.items_removed.map((item: string) => (
-                          <li class='text-red-700 text-xs'>- {item}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </details>
+            </>
           )
         }
       </header>
@@ -343,8 +372,18 @@ const totalItemCount = items.length;
         </a>
       </aside>
 
-      <div class='mt-8 flex items-center gap-3'>
+      <div id='share-section' class='mt-8 flex flex-wrap items-center gap-3'>
         <span class='text-sm text-gray-500'>シェア:</span>
+        <button
+          id='web-share-btn'
+          type='button'
+          hidden
+          class='inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[hsl(var(--cc-main-orange))] text-xs text-white hover:bg-[hsl(var(--cc-orange-hover))] transition-[background-color,transform] active:scale-[0.96] cursor-pointer'
+          aria-label='シェア'
+        >
+          <Icon name='bell' class='w-3.5 h-3.5' aria-hidden='true' />
+          シェアする
+        </button>
         <a
           href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(`${import.meta.env.SITE}/changelog/v${version}`)}&text=${encodeURIComponent(`Claude Code v${version} の変更点`)}`}
           target='_blank'
@@ -424,6 +463,43 @@ const totalItemCount = items.length;
       const version =
         document.querySelector<HTMLHeadingElement>('h1')?.textContent?.trim() ??
         '';
+
+      // Web Share API (対応環境のみシェアボタンを表示、フォールバックは非表示)
+      const webShareBtn = document.getElementById('web-share-btn');
+      if (webShareBtn instanceof HTMLButtonElement && 'share' in navigator) {
+        const shareData = {
+          title: `Claude Code v${version} の変更点`,
+          text: `Claude Code v${version} の変更点`,
+          url: location.href,
+        };
+        const canShareData =
+          typeof navigator.canShare === 'function'
+            ? navigator.canShare(shareData)
+            : true;
+        if (canShareData) {
+          webShareBtn.hidden = false;
+          // 個別シェアリンク (X / はてブ / コピー) を非表示にして統合
+          document
+            .querySelectorAll<HTMLElement>(
+              '#share-section [data-share], #share-section #copy-url-btn',
+            )
+            .forEach((el) => {
+              el.hidden = true;
+            });
+          webShareBtn.addEventListener('click', async () => {
+            try {
+              await navigator.share(shareData);
+              window.gtag?.('event', 'share_clicked', {
+                event_category: 'engagement',
+                share_method: 'web_share',
+                version,
+              });
+            } catch {
+              // ユーザーキャンセル等は無視
+            }
+          });
+        }
+      }
 
       // URLコピーボタン
       const btn = document.getElementById('copy-url-btn');

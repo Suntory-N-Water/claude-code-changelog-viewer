@@ -14,6 +14,42 @@
 }
 
 @layer base {
+  /* height: auto への補間を許可 (details の高さアニメーション等) */
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
+  /* details の開閉を ::details-content + interpolate-size でアニメーション
+   * .details-animated を付与した details のみ対象
+   */
+  .details-animated::details-content {
+    block-size: 0;
+    overflow: clip;
+    opacity: 0;
+    transition:
+      block-size 0.25s ease,
+      opacity 0.2s ease,
+      content-visibility 0.25s allow-discrete;
+  }
+
+  .details-animated[open]::details-content {
+    block-size: auto;
+    opacity: 1;
+  }
+
+  /* FAQ リストで開いている項目以外をフェード (:has() による親側スタイル) */
+  .faq-list:has(details[open]) details:not([open]) {
+    opacity: 0.55;
+    transition: opacity 0.25s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .details-animated::details-content,
+    .faq-list:has(details[open]) details:not([open]) {
+      transition: none;
+    }
+  }
+
   /* Pagefind UI カスタムプロパティ */
   :root {
     --pagefind-ui-primary: hsl(var(--cc-main-orange));
