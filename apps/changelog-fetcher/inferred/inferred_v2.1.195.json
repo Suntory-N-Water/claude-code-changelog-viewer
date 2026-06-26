@@ -1,0 +1,180 @@
+{
+  "version": "2.1.195",
+  "summary": "フルスクリーンモードでのマウス操作無効化機能や、エージェント一覧画面での表示最適化など、ユーザーインターフェースと操作性が向上しました。さらに、フックマッチングの精度向上やプラグイン管理の不具合修正など、安定した運用を支えるための細かな機能改善とバグ修正が実施されています。",
+  "items": [
+    {
+      "content": "- Added `CLAUDE_CODE_DISABLE_MOUSE_CLICKS` to disable mouse click/drag/hover in fullscreen mode while keeping wheel scroll",
+      "content_ja": "フルスクリーンモードでマウスのクリック、ドラッグ、ホバー操作を無効化する設定「CLAUDE_CODE_DISABLE_MOUSE_CLICKS」を追加しました。",
+      "prefix": "Added",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "フルスクリーンモード中に意図しないマウス操作が発生し、作業が中断されることがありました。",
+        "after": "環境変数でマウス操作を無効化できるようになり、マウスホイールでのスクロールのみを許可する設定が可能になりました。",
+        "benefit": "フルスクリーンでのコーディング中にマウスを触っても意図しない操作を防げるため、キーボード操作に集中しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed hook matchers with hyphenated identifiers (e.g. `code-reviewer`, `mcp__brave-search`) accidentally substring-matching — they now exact-match. Use `mcp__brave-search__.*` to match all tools from a hyphenated MCP server.",
+      "content_ja": "ハイフンを含む識別子のフックマッチングを修正し、部分一致ではなく完全一致するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks", "MCP"],
+      "inference": {
+        "before": "ハイフンを含む識別子（例: code-reviewer, mcp__brave-search）を使用すると、意図しないサブストリングマッチングが発生していました。",
+        "after": "識別子が完全一致するように変更されました。なお、ハイフンを含むMCPサーバーの全ツールを指定する場合は、「mcp__brave-search__.*」を使用してください。",
+        "benefit": "フックの設定がより直感的かつ正確になり、意図しないフックの起動を防ぐことができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed voice dictation on macOS capturing silence in long-running sessions after the default input device changes",
+      "content_ja": "macOSにおいて、デフォルトの入力デバイス変更後に長時間セッションで無音状態を拾ってしまう音声入力の不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed voice dictation auto-submit never firing for languages written without spaces (Japanese, Chinese, Thai)",
+      "content_ja": "日本語、中国語、タイ語など、単語間にスペースを使用しない言語で音声入力の自動送信が機能しない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed external plugins enabled only by project `.claude/settings.json` not requiring explicit install consent on every loader path",
+      "content_ja": "プロジェクトの .claude/settings.json でのみ有効化された外部プラグインが、すべてのローダーパスで明示的なインストール同意を求めない不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins", "Settings"],
+      "inference": {
+        "before": "特定の設定ファイルで有効化されたプラグインが、パスごとに不必要にインストール同意を求めていました。",
+        "after": "ローダーパスに関わらず、適切な権限管理下で動作するように修正されました。",
+        "benefit": "プラグイン導入時の手間が削減され、スムーズに作業を開始できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `/plugin` Enable/Disable not working when a plugin's `plugin.json` `name` differs from its marketplace entry name",
+      "content_ja": "プラグインの plugin.json 内の name がマーケットプレイスの登録名と異なる場合に、プラグインの有効化/無効化が機能しない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "マーケットプレイス上の名称と設定ファイル内の名称が不一致だと、プラグインの管理コマンドが正常に動作しないケースがありました。",
+        "after": "内部識別子と表示名の紐付けが最適化され、プラグイン管理が正常に行えるようになりました。",
+        "benefit": "インストール済みのプラグインを確実に管理・切替できるようになり、環境構築の信頼性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/communications-kit.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background jobs disappearing from `claude agents` or losing data when written by a newer Claude Code version",
+      "content_ja": "新しいバージョンの Claude Code で書き込まれたバックグラウンドジョブが「claude agents」の一覧から消えたり、データが失われたりする不具合を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "バージョンアップ後に古いバックグラウンドジョブが正常に認識されず、データ消失が発生する可能性がありました。",
+        "after": "データ構造の互換性が確保され、バックグラウンドジョブの永続性と視認性が保護されるようになりました。",
+        "benefit": "長期間実行するバックグラウンドタスクでも、バージョンを気にせず安全にジョブを継続管理できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agents.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed reopening a crashed background task showing a blank screen for up to 5 seconds instead of its restart",
+      "content_ja": "クラッシュしたバックグラウンドタスクを再開する際、再起動までの最大5秒間空白画面が表示される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed background agent daemons running unreachable when the control socket fails to start, blocking restarts",
+      "content_ja": "コントロールソケットの起動に失敗した際、バックグラウンドエージェントのデーモンが再接続不能となり、再起動がブロックされる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Improved voice mode on Linux: now distinguishes \"no microphone\" from \"SoX not installed\" when SoX is present but no audio capture device exists",
+      "content_ja": "Linuxでの音声モードを改善し、SoXが存在しても音声キャプチャデバイスが存在しない場合に「マイクなし」と「SoX未インストール」を区別するようにしました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Improved `claude agents` completed list to fill available vertical space; on short terminals the header compacts so live sessions stay visible",
+      "content_ja": "「claude agents」完了タスク一覧の表示を改善し、端末の垂直スペースを有効活用するように調整しました。",
+      "prefix": "Improved",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "ターミナルの高さが低い場合、ヘッダー情報によって現在実行中のタスクが見えにくくなることがありました。",
+        "after": "ヘッダーがコンパクト化され、実行中のセッションが常に表示されるようになりました。",
+        "benefit": "画面の狭い環境でも実行中のエージェントの状態を常に把握でき、効率的に作業を切り替えられます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agents.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved Remote session startup with a provisioning checklist while the container starts",
+      "content_ja": "リモートセッション起動時にコンテナの準備状況を確認できるプロビジョニングチェックリストを表示するように改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "related_docs": []
+    }
+  ]
+}
