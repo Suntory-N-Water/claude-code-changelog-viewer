@@ -732,7 +732,7 @@ Remote Control セッションの有効期限切れまたはアクセス拒否
 
 - ローカルで `/login` を実行して認証情報をリフレッシュし、再接続してください
 - セッションを所有する同じアカウントにサインインしていることを確認してください
-- `Remote Control may not be available for this organization` が表示される場合、管理者がプランのクラウドセッションを有効にしていません
+- `Remote Control may not be available for this organization` が表示される場合、Owner がクラウドセッションを組織に対して有効にしていません
 
 環境の有効期限切れ
 
