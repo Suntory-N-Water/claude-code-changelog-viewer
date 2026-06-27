@@ -1,9 +1,17 @@
+import { getLogger } from '@claude-code-changelog-viewer/common';
+
 const CHANGELOG_URL =
   'https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md';
 const KV_KEY = 'changelog-detection-state';
 const DISPATCH_URL =
   'https://api.github.com/repos/Suntory-N-Water/claude-code-changelog-viewer/actions/workflows/changelog-auto-inference.yml/dispatches';
 const USER_AGENT = 'notification-worker-changelog-detection';
+
+const logger = getLogger({
+  name: 'changelog-detection',
+  level: 'INFO',
+  format: 'json',
+});
 
 type ChangelogDetectionState = {
   readonly contentHash: string;
@@ -33,6 +41,7 @@ export async function detectChangelogUpdate(
   const previous = await readState(bindings.CHANGELOG_DETECTION_KV);
 
   if (previous && previous.contentHash === contentHash) {
+    logger.info('CHANGELOG に変化なし', { hash: contentHash });
     await writeState(bindings.CHANGELOG_DETECTION_KV, {
       ...previous,
       lastCheckedAt: fetchedAt,
@@ -40,6 +49,10 @@ export async function detectChangelogUpdate(
     return;
   }
 
+  logger.info('CHANGELOG の変化を検知、workflow_dispatch を起動', {
+    previousHash: previous?.contentHash ?? null,
+    newHash: contentHash,
+  });
   await dispatchWorkflow(
     bindings.GITHUB_DISPATCH_TOKEN,
     contentHash,
