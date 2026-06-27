@@ -125,7 +125,3 @@ graph TD
 - Zod
 - pnpm
 - Cloudflare Workers / D1 / Queues
-
-## ライセンス
-
-MIT

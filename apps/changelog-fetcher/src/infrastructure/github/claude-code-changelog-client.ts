@@ -1,24 +1,17 @@
-import { execFileSync } from 'node:child_process';
 import { getLogger } from '@claude-code-changelog-viewer/common';
 import type { ChangelogSourcePort } from '../../usecase/fetch-changelog';
 import { parseChangelogReleases } from '../docs/changelog-markdown-parser';
+
+const CHANGELOG_URL =
+  'https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md';
 
 const log = getLogger({ name: 'changelog-fetcher' });
 
 export class ClaudeCodeChangelogClient implements ChangelogSourcePort {
   async fetchReleases() {
-    const downloadUrl = execFileSync(
-      'gh',
-      [
-        'api',
-        'repos/anthropics/claude-code/contents/CHANGELOG.md',
-        '--jq',
-        '.download_url',
-      ],
-      { encoding: 'utf-8' },
-    ).trim();
-
-    const response = await fetch(downloadUrl);
+    const response = await fetch(`${CHANGELOG_URL}?cb=${Date.now()}`, {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     if (!response.ok) {
       throw new Error(
         `CHANGELOG.md の取得に失敗しました: ${response.status} ${response.statusText}`,

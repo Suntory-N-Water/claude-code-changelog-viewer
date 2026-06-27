@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.1/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -41,7 +41,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "suspicious": {
         "noExplicitAny": "error",
         "noImplicitAnyLet": "error",
@@ -49,7 +49,12 @@
         "noImportCycles": "error",
         "noUnusedExpressions": "error",
         // package.json の依存重複を検出(モノレポ向け)
-        "noDuplicateDependencies": "error"
+        "noDuplicateDependencies": "error",
+        "noUnnecessaryConditions": "error",
+        // .then() / .catch() のネストを禁止し async/await を促進
+        "noNestedPromises": "error",
+        // for...in を禁止(Object.keys/entries を使用)
+        "noForIn": "error"
       },
       "style": {
         "useConsistentTypeDefinitions": {
@@ -61,7 +66,11 @@
         "noParameterAssign": "error",
         "useConsistentArrayType": "error",
         "useArrayLiterals": "error",
-        "useBlockStatements": "error"
+        "useBlockStatements": "error",
+        // a = b = c のような連鎖代入を禁止
+        "noMultiAssign": "error",
+        // ++ / -- を禁止し += 1 / -= 1 に統一
+        "noIncrementDecrement": "error"
       },
       "correctness": {
         // 解決できない import を検出(bun:* / astro:* は overrides で除外)
@@ -79,17 +88,15 @@
         }
       },
       "nursery": {
-        "noUnnecessaryConditions": "error",
         "noFloatingPromises": "error",
-        "noMisusedPromises": "error",
-        // .then() / .catch() のネストを禁止し async/await を促進
-        "noNestedPromises": "error",
-        // a = b = c のような連鎖代入を禁止
-        "noMultiAssign": "error",
-        // for...in を禁止(Object.keys/entries を使用)
-        "noForIn": "error",
-        // ++ / -- を禁止し += 1 / -= 1 に統一
-        "noIncrementDecrement": "error"
+        "noMisusedPromises": "error"
+      },
+      "a11y": {
+        "useKeyWithClickEvents": "error",
+        "noStaticElementInteractions": "error",
+        "useKeyWithMouseEvents": "error",
+        "useHeadingContent": "error",
+        "useValidAnchor": "error"
       }
     }
   },
@@ -188,6 +195,9 @@
           },
           "complexity": {
             "useMaxParams": "off"
+          },
+          "suspicious": {
+            "noUnnecessaryConditions": "off"
           }
         }
       }
@@ -199,6 +209,35 @@
         "rules": {
           "correctness": {
             "noUnresolvedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      // discriminated union の exhaustive switch に対する biome の偽陽性を回避
+      "includes": [
+        "apps/notification-worker/src/routes/webhooks.ts",
+        "apps/notification-worker/src/queue/consumer.ts",
+        "apps/notification-worker/src/index.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnnecessaryConditions": "off"
+          }
+        }
+      }
+    },
+    {
+      // aria-current={condition ? 'page' : undefined} に対する biome の偽陽性を回避
+      "includes": [
+        "apps/www/src/components/MobileMenu.astro",
+        "apps/www/src/layouts/Layout.astro"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useValidAriaValues": "off"
           }
         }
       }
