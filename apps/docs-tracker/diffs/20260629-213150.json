@@ -1,0 +1,3537 @@
+{
+  "id": "20260629-213150",
+  "timestamp": "2026-06-29T21:31:50.846Z",
+  "aiSummary": "自組織でホスティング可能なClaude apps gateway機能が導入され、SSOログインや利用制限を一元管理できるようになりました。Bedrock、Vertex AI、Foundryなどのクラウドプロバイダー利用時でも、開発者ごとのコスト追跡や利用額上限の設定が可能です。管理設定の優先順位にpolicyHelperが追加されたほか、Auto modeをサードパーティ製プロバイダーで有効化する際の手順が更新されています。",
+  "files": [
+    {
+      "filename": "admin-setup.md",
+      "additions": 7,
+      "deletions": 5,
+      "explanation": "管理設定の優先順位におけるpolicyHelperの扱いと、Claude apps gatewayを介したコスト追跡や監査ログの仕組みが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -41,16 +41,18 @@ Proxy and firewall requirements in [Network configuration](/en/network-config) a",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Decide how settings reach devices"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Managed settings define policy that takes precedence over local developer configuration. Claude Code checks the four sources below in priority order and applies the first one that returns a non-empty configuration."
+            },
+            {
+              "type": "added",
+              "content": "Managed settings define policy that takes precedence over local developer configuration. Claude Code checks the four sources below in priority order and applies the first one that returns a non-empty configuration, with one exception: a small set of [cross-source lock keys](/en/settings#settings-precedence), such as the sandbox allowlist locks, is honored when any admin-controlled source sets them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Mechanism | Delivery | Priority | Platforms |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "removed",
+              "content": "| Server-managed | claude.ai admin console | Highest | All |"
+            },
+            {
+              "type": "added",
+              "content": "| Server-managed | claude.ai admin console, or a self-hosted [Claude apps gateway](/en/claude-apps-gateway) for gateway sign-ins | Highest | All |"
+            },
+            {
+              "type": "context",
+              "content": "| plist / registry policy | macOS: `com.anthropic.claudecode` plistWindows: `HKLM\\SOFTWARE\\Policies\\ClaudeCode` | High | macOS, Windows |"
+            },
+            {
+              "type": "context",
+              "content": "| File-based managed | macOS: `/Library/Application Support/ClaudeCode/managed-settings.json`Linux and WSL: `/etc/claude-code/managed-settings.json`Windows: `C:\\Program Files\\ClaudeCode\\managed-settings.json` | Medium | All |"
+            },
+            {
+              "type": "context",
+              "content": "| Windows user registry | `HKCU\\SOFTWARE\\Policies\\ClaudeCode` | Lowest | Windows only |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Server-managed settings reach devices at authentication time and refresh hourly during active sessions, with no endpoint infrastructure. They require a Claude for Teams or Enterprise plan, so deployments on other providers need one of the file-based or OS-level mechanisms instead."
+            },
+            {
+              "type": "added",
+              "content": "A configured [`policyHelper`](/en/settings#compute-managed-settings-with-a-policy-helper) preempts all four sources: its output becomes the only managed configuration for the run. See [Settings precedence](/en/settings#settings-precedence)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Server-managed settings reach devices at authentication time and refresh hourly during active sessions, with no endpoint infrastructure. Delivery through the claude.ai admin console requires a Claude for Teams or Enterprise plan. Deployments on Bedrock, Vertex AI, or Foundry can get the same remote delivery by running a [Claude apps gateway](/en/claude-apps-gateway), or use one of the file-based or OS-level mechanisms instead."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If your organization mixes providers, configure [server-managed settings](/en/server-managed-settings) for claude.ai users plus a [file-based or plist/registry fallback](/en/settings#settings-files) so other users still receive managed policy."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -93,7 +95,7 @@ Choose monitoring based on what you need to report on.",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| Usage monitoring | OpenTelemetry export of sessions, tools, and tokens | All providers | [Monitoring usage](/en/monitoring-usage) |"
+            },
+            {
+              "type": "context",
+              "content": "| Analytics dashboard | Per-user metrics, contribution tracking, leaderboard | Anthropic only | [Analytics](/en/analytics) |"
+            },
+            {
+              "type": "removed",
+              "content": "| Cost tracking | Spend limits, rate limits, and usage attribution | Anthropic only | [Costs](/en/costs) |"
+            },
+            {
+              "type": "added",
+              "content": "| Cost tracking | Spend limits, rate limits, and usage attribution | Anthropic; on third-party clouds, a [Claude apps gateway](/en/claude-apps-gateway) provides per-user attribution and [spend limits](/en/claude-apps-gateway-spend-limits) | [Costs](/en/costs) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Cloud providers expose spend through AWS Cost Explorer, GCP Billing, or Azure Cost Management. Claude for Teams and Enterprise plans include a usage dashboard at [claude.ai/analytics/claude-code](https://claude.ai/analytics/claude-code)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -107,7 +109,7 @@ On Team, Enterprise, Claude API, and cloud provider plans, Anthropic doesn't tra",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Zero Data Retention (ZDR) | Nothing stored after the request completes. Available to qualified accounts on Claude for Enterprise | [Zero data retention](/en/zero-data-retention) |"
+            },
+            {
+              "type": "context",
+              "content": "| Security architecture | Network model, encryption, authentication, audit trail | [Security](/en/security) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you need request-level audit logging or to route traffic by data sensitivity, place an [LLM gateway](/en/llm-gateway) between developers and your provider. For regulatory requirements and certifications, see [Legal and compliance](/en/legal-and-compliance)."
+            },
+            {
+              "type": "added",
+              "content": "If you need request-level audit logging or to route traffic by data sensitivity, place a gateway between developers and your provider: a self-hosted [Claude apps gateway](/en/claude-apps-gateway) records a per-request audit log with IdP identity, or use another [LLM gateway](/en/llm-gateway). For regulatory requirements and certifications, see [Legal and compliance](/en/legal-and-compliance)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Verify and onboard"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "authentication.md",
+      "additions": 5,
+      "deletions": 1,
+      "explanation": "SSOを利用したゲートウェイログインと、プロバイダー設定よりもゲートウェイのセッショントークンが優先される仕様が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -23,6 +23,7 @@ You can authenticate with any of these account types:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Claude for Teams or Enterprise**: log in with the Claude.ai account your team admin invited you to."
+            },
+            {
+              "type": "context",
+              "content": "- **Claude Console**: log in with your Console credentials. Your admin must have [invited you](#claude-console-authentication) first."
+            },
+            {
+              "type": "context",
+              "content": "- **Cloud providers**: if your organization uses [Amazon Bedrock](/en/amazon-bedrock), [Google Vertex AI](/en/google-vertex-ai), or [Microsoft Foundry](/en/microsoft-foundry), set the required environment variables before running `claude`. No browser login is needed."
+            },
+            {
+              "type": "added",
+              "content": "- **Cloud gateway**: if your organization runs a self-hosted [Claude apps gateway](/en/claude-apps-gateway), sign in with corporate SSO through `/login`. The gateway-issued token is the session's only credential."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To log out and re-authenticate, type `/logout` at the Claude Code prompt."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -34,6 +35,7 @@ For teams and organizations, you can configure Claude Code access in one of thes",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- [Claude for Teams or Enterprise](#claude-for-teams-or-enterprise), recommended for most teams"
+            },
+            {
+              "type": "context",
+              "content": "- [Claude Console](#claude-console-authentication)"
+            },
+            {
+              "type": "added",
+              "content": "- [Claude apps gateway](/en/claude-apps-gateway), a self-hosted gateway that signs developers in with your IdP and routes inference to the cloud provider you configure"
+            },
+            {
+              "type": "context",
+              "content": "- [Amazon Bedrock](/en/amazon-bedrock)"
+            },
+            {
+              "type": "context",
+              "content": "- [Google Vertex AI](/en/google-vertex-ai)"
+            },
+            {
+              "type": "context",
+              "content": "- [Microsoft Foundry](/en/microsoft-foundry)"
+            }
+          ]
+        },
+        {
+          "header": "@@ -94,7 +96,7 @@ Claude Code securely manages your authentication credentials:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - On Windows, credentials are stored in `%USERPROFILE%\\.claude\\.credentials.json` and inherit the access controls of your user profile directory, which restricts the file to your user account by default."
+            },
+            {
+              "type": "context",
+              "content": "  - If you've set the `CLAUDE_CONFIG_DIR` environment variable on Linux or Windows, the `.credentials.json` file lives under that directory instead."
+            },
+            {
+              "type": "context",
+              "content": "  - Claude Code manages `.credentials.json` through `/login` and `/logout`. To route requests through a custom API endpoint, set the [`ANTHROPIC_BASE_URL`](/en/env-vars) environment variable instead."
+            },
+            {
+              "type": "removed",
+              "content": "- **Supported authentication types**: Claude.ai credentials, Claude API credentials, Azure Auth, Bedrock Auth, and Vertex Auth."
+            },
+            {
+              "type": "added",
+              "content": "- **Supported authentication types**: Claude.ai credentials, Claude API credentials, Azure Auth, Bedrock Auth, Vertex Auth, and [Claude apps gateway](/en/claude-apps-gateway) session tokens."
+            },
+            {
+              "type": "context",
+              "content": "- **Custom credential scripts**: the [`apiKeyHelper`](/en/settings#available-settings) setting can be configured to run a shell script that returns an API key."
+            },
+            {
+              "type": "context",
+              "content": "- **Refresh intervals**: by default, `apiKeyHelper` is called after 5 minutes or on HTTP 401 response. Set `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` environment variable for custom refresh intervals."
+            },
+            {
+              "type": "context",
+              "content": "- **Slow helper notice**: if `apiKeyHelper` takes longer than 10 seconds to return a key, Claude Code displays a warning notice in the prompt bar showing the elapsed time. If you see this notice regularly, check whether your credential script can be optimized."
+            }
+          ]
+        },
+        {
+          "header": "@@ -112,6 +114,8 @@ When multiple credentials are present, Claude Code chooses one in this order:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "5. `CLAUDE_CODE_OAUTH_TOKEN` environment variable. A long-lived OAuth token generated by [`claude setup-token`](#generate-a-long-lived-token). Use this for CI pipelines and scripts where browser login isn't available."
+            },
+            {
+              "type": "context",
+              "content": "6. Subscription OAuth credentials from `/login`. This is the default for Claude Pro, Max, Team, and Enterprise users."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A signed-in [Claude apps gateway](/en/claude-apps-gateway) session sits outside this list: it is a provider selection like Bedrock or Vertex, and it outranks them. When a gateway session exists, the CLI authenticates with the gateway token even if `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, or `CLAUDE_CODE_USE_FOUNDRY` is set, and the bearer token, API key, and `apiKeyHelper` entries above are not used."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you have an active Claude subscription but also have `ANTHROPIC_API_KEY` set in your environment, the API key takes precedence once approved. This can cause authentication failures if the key belongs to a disabled or expired organization. Run `unset ANTHROPIC_API_KEY` to fall back to your subscription, and check `/status` to confirm which method is active."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Claude Code on the Web](/en/claude-code-on-the-web) always uses your subscription credentials. `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` in the sandbox environment do not override them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "auto-mode-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Claude apps gatewayを経由したセッションにおいても、Auto modeを有効にするための設定が必要である旨が明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -9,7 +9,7 @@ source: https://code.claude.com/docs/en/auto-mode-config.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) lets Claude Code run without routine permission prompts by routing tool calls through a classifier that blocks anything irreversible, destructive, or aimed outside your environment. Deny and explicit ask rules are evaluated before the classifier and still block or prompt. Use the `autoMode` settings block to tell that classifier which repos, buckets, and domains your organization trusts, so it stops blocking routine internal operations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto mode is available to all users on the Anthropic API. On Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry, you must first [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry). If Claude Code reports auto mode as unavailable for your account, check the [full requirements](/en/permission-modes#eliminate-prompts-with-auto-mode), which also cover the supported models and Owner enablement on Team and Enterprise plans."
+            },
+            {
+              "type": "added",
+              "content": "Auto mode is available to all users on the Anthropic API. On Amazon Bedrock, Google Cloud Vertex AI, Microsoft Foundry, and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, you must first [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry). If Claude Code reports auto mode as unavailable for your account, check the [full requirements](/en/permission-modes#eliminate-prompts-with-auto-mode), which also cover the supported models and Owner enablement on Team and Enterprise plans."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "By default, the classifier trusts only the working directory and the current repo's configured remotes. Actions like pushing to your company's source-control org or writing to a team cloud bucket are blocked until you add them to `autoMode.environment`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-apps-gateway-config.md",
+      "additions": 694,
+      "deletions": 0,
+      "explanation": "自社ホスト型ゲートウェイの具体的な設定方法に関するドキュメントが新規作成されました。",
+      "hunks": []
+    },
+    {
+      "filename": "claude-apps-gateway-deploy.md",
+      "additions": 254,
+      "deletions": 0,
+      "explanation": "ゲートウェイのデプロイ手順やデータベースの構成に関する詳細なガイドが追加されました。",
+      "hunks": []
+    },
+    {
+      "filename": "claude-apps-gateway-on-gcp.md",
+      "additions": 287,
+      "deletions": 0,
+      "explanation": "Google Cloud Platform上でゲートウェイを運用するための特定の設定手順が新規公開されました。",
+      "hunks": []
+    },
+    {
+      "filename": "claude-apps-gateway-spend-limits.md",
+      "additions": 141,
+      "deletions": 0,
+      "explanation": "開発者やグループごとに日次・週次・月次の利用額上限を設定し、自動でリクエストを遮断する機能の詳細が説明されています。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,141 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: claude-apps-gateway-spend-limits"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/claude-apps-gateway-spend-limits.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Claude apps gateway spend limits"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Cap each developer's spend through the Claude apps gateway by day, week, or month. Set limits with an Admin API and the gateway enforces them live on every request."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Spend limits cap how much each developer can spend through your [Claude apps gateway](/en/claude-apps-gateway) in a given day, week, or month. When a developer passes their cap, the gateway returns `429` on their next request and blocks them until the period resets or an admin raises the cap. Use spend limits to give each developer, group, or the whole organization a ceiling on a credential everyone shares."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A Claude apps gateway forwards all inference through one shared upstream credential, so your provider's bill attributes everything to that credential, not to individual developers. Without per-developer limits, one runaway agent fleet can spend the organization's entire commitment. Spend limits are the gateway's per-developer view and circuit breaker on top of that shared bill."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Set a cap"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "With the [`admin:`](/en/claude-apps-gateway-config#admin) block configured in `gateway.yaml`, the gateway serves an admin API at `/v1/organizations/spend_limits` and enforces caps live on every inference request. Caps themselves are set through that API, not in `gateway.yaml`; each `POST /v1/organizations/spend_limits` request creates or replaces one cap from `{scope, amount, period}`. The API mirrors the wire shapes of Anthropic's public [Admin API](https://platform.claude.com/docs/en/manage-claude/admin-api) spend-limits endpoints, so an HTTP client written against that contract can target the gateway by changing its base URL."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This request sets an org-wide default of $500 per month for every developer:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "curl -sS https://claude-gateway.internal.example.com/v1/organizations/spend_limits \\"
+            },
+            {
+              "type": "added",
+              "content": "  -H \"x-api-key: $GATEWAY_ADMIN_WRITE_KEY\" \\"
+            },
+            {
+              "type": "added",
+              "content": "  -H \"Content-Type: application/json\" \\"
+            },
+            {
+              "type": "added",
+              "content": "  -d '{\"scope\": {\"type\": \"organization\"}, \"amount\": \"50000\", \"period\": \"monthly\"}'"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This request layers a tighter $100-per-day cap on each member of the `contractors` group:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "```bash"
+            },
+            {
+              "type": "added",
+              "content": "curl -sS https://claude-gateway.internal.example.com/v1/organizations/spend_limits \\"
+            },
+            {
+              "type": "added",
+              "content": "  -H \"x-api-key: $GATEWAY_ADMIN_WRITE_KEY\" \\"
+            },
+            {
+              "type": "added",
+              "content": "  -H \"Content-Type: application/json\" \\"
+            },
+            {
+              "type": "added",
+              "content": "  -d '{\"scope\": {\"type\": \"rbac_group\", \"rbac_group_id\": \"contractors\"}, \"amount\": \"10000\", \"period\": \"daily\"}'"
+            },
+            {
+              "type": "added",
+              "content": "```"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Field | Values | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `scope.type` | `user`, `rbac_group`, `organization` | `user` targets one developer by their OpenID Connect (OIDC) `sub`, the stable user ID your identity provider assigns; pass it as `scope.user_id`. `rbac_group` targets an [IdP group](/en/claude-apps-gateway-config#managed) by name; pass it as `scope.rbac_group_id`. `organization` is the org-wide default. The gateway accepts all three; Anthropic's public `POST` is user-only today. |"
+            },
+            {
+              "type": "added",
+              "content": "| `amount` | Whole-number string of USD cents, or `null` | `null` is unlimited. `\"0\"` is a zero cap, which blocks every request. |"
+            },
+            {
+              "type": "added",
+              "content": "| `period` | `daily`, `weekly`, `monthly` | A scope can hold one cap per period, and each enforces independently: a developer is blocked if over any of them. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A group or organization cap is a per-seat default that each member inherits, not a shared pool. Per period, a developer's effective cap resolves in this order: a per-user override, then the most restrictive of their group caps, then the org default, then unlimited. [`admin.group_limit_mode: max`](/en/claude-apps-gateway-config#admin) flips the multi-group tie-break to least-restrictive instead."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Authenticate to the admin API"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Send one of:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- An `x-api-key` header matching a key in [`admin.write_keys`](/en/claude-apps-gateway-config#admin) for full access, or `admin.read_keys` for `GET`-only access. Each key carries an `id` that appears in the audit log as `admin-key:<id>`, so give Terraform, CI, and each automation its own."
+            },
+            {
+              "type": "added",
+              "content": "- A gateway bearer token whose `groups` claim includes one of [`admin.admin_groups`](/en/claude-apps-gateway-config#admin). This is full access and audits as `oidc:<sub>`, so prefer it for human admins."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## How enforcement works"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "On each `/v1/messages` request, the gateway resolves the developer's caps and period-to-date spend in one Postgres query. If they're over any cap, the request returns `429` with `error.type: billing_error` and the header `x-should-retry: false`. The message is `spend limit reached`, followed by your [`admin.blocked_message`](/en/claude-apps-gateway-config#admin) if set."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`/v1/messages/count_tokens` is exempt. Token counting is free, so it runs regardless of cap state."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "After each response, a usage meter reads token counts off the response as it streams to the client, prices them at USD list price, and increments Postgres counters for all three period buckets. The meter is a single reader on the stream, so the client's bytes are untouched and a metering failure doesn't break the response."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Spend limits estimate spend from token counts at USD list price; they're a circuit breaker, not an invoice. For authoritative billing, reconcile against your provider's own usage reporting, such as the Anthropic Usage & Cost Admin API, invocation logs on Bedrock, or Cloud Monitoring on Google Cloud."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Pricing uses the same table the Claude Code CLI uses for its own cost display, with the same model-ID canonicalization across Anthropic, Bedrock (`us.anthropic.…-v1:0`), Agent Platform (`claude-…@date`), and Foundry ID forms. A model ID the table can't place, such as a Foundry deployment name or an inference-profile ARN, is priced at the unknown-model default tier of $5/$25 per million input/output tokens rather than zero, so an unrecognized ID can't bypass a cap by going unmetered. The gateway warns at boot and once per ID at runtime when a model prices through the fallback."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Client aborts are billed too. The upstream reports output tokens only in the stream's terminal frame, so an aborted stream doesn't carry them. The meter keeps a conservative floor estimate from the streamed content size, about four characters per token, and bills it when and only when the terminal usage frame is missing. A complete stream always bills the upstream-reported count. Without this, a capped developer could stream output and abort each request immediately before the end, spending without ever being counted."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Postgres availability"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The pre-check queries Postgres with a two-second timeout. If the store is unreachable or times out, enforcement fails open by default: the request proceeds and the gateway logs a warning. Set [`enforcement.fail_closed_on_error: true`](/en/claude-apps-gateway-config#enforcement) to fail closed instead, which returns the same `429 billing_error` with the message `spend limit unavailable`. Fail-open keeps a store outage from becoming an inference outage; fail-closed guarantees no unmetered spend."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Admin API reference"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The endpoints below are served under `/v1/organizations/spend_limits`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Method and path | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `GET /v1/organizations/spend_limits` | List configured caps. Query: `?limit=&after_id=&before_id=`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `POST /v1/organizations/spend_limits` | Create or replace a cap for `{scope, period}`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `GET /v1/organizations/spend_limits/{id}` | Fetch one cap by its `spl_`-prefixed ID. |"
+            },
+            {
+              "type": "added",
+              "content": "| `DELETE /v1/organizations/spend_limits/{id}` | Delete one cap. Returns `{type: \"spend_limit_deleted\", id}`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `GET /v1/organizations/spend_limits/effective` | Resolved cap and to-date spend per principal per period. |"
+            },
+            {
+              "type": "added",
+              "content": "| `GET /v1/organizations/spend_limits/audit` | Admin mutation trail, newest-first. Query: `?limit=`. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Conventions mirror Anthropic's Admin API:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- A `type` on every object"
+            },
+            {
+              "type": "added",
+              "content": "- `spl_`-prefixed IDs"
+            },
+            {
+              "type": "added",
+              "content": "- Amounts as whole-number strings of USD cents; `POST` rejects any other `currency` with `400`"
+            },
+            {
+              "type": "added",
+              "content": "- The `{type: \"error\", error: {type, message}, request_id}` error envelope"
+            },
+            {
+              "type": "added",
+              "content": "- A `request-id` response header on every admin response, success or error, matching the body's `request_id`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Every mutation writes a before/after row to `admin_audit` in the same transaction, attributed to `admin-key:<id>` or `oidc:<sub>`."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The `spend_limit_increase_requests` queue is not implemented."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### `/effective`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`GET /v1/organizations/spend_limits/effective` returns Anthropic's `SpendSummary` schema: each row is a principal for a period, with the resolved cap, period-to-date spend, and an `actor` object. Gateway-specific differences:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- `user_id` is the OIDC `sub`."
+            },
+            {
+              "type": "added",
+              "content": "- `actor.name` and `actor.email_address` are `null` until the principal's first inference request through the gateway. The gateway has no user directory; it records last-seen values from each user's own session JWT."
+            },
+            {
+              "type": "added",
+              "content": "- Each row also carries a `groups` array, the principal's last-seen IdP groups. This is a gateway extension so an admin UI can show every cap tier that applies; Anthropic-shaped clients ignore it."
+            },
+            {
+              "type": "added",
+              "content": "- Without a `user_ids[]` filter, it lists principals with recorded spend, because the gateway can't enumerate all org members."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Group-sourced caps resolve against those last-seen groups with the same `group_limit_mode` tie-break that enforcement uses, so the viewer shows the cap that actually applies."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Query parameter | Description |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `user_ids[]` | Repeatable. Filter to specific principals by OIDC `sub`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `period[]` | Repeatable. Filter to `daily`, `weekly`, or `monthly` rows. |"
+            },
+            {
+              "type": "added",
+              "content": "| `sort` | `spend_desc` lists top spenders first. Requires exactly one `period[]`. |"
+            },
+            {
+              "type": "added",
+              "content": "| `q` | Case-insensitive substring filter over the OIDC `sub`, last-seen email, and last-seen display name. |"
+            },
+            {
+              "type": "added",
+              "content": "| `limit` / `page` | Page size (1–1000, default 20) and the opaque cursor from the previous response's `next_page`. |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`q=` and `user_ids[]=` ride GET query strings, so any fronting proxy or load balancer captures them in its access logs. If your PII log policy is strict, scrub these parameters there."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### `/audit`"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Returns the spend-limit mutation trail: who changed which cap, before/after snapshots, and the optional reason, newest-first. `has_more` is exact. This endpoint follows the local Admin API conventions rather than a first-party wire shape."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Pagination"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The raw list pages by `after_id` and `before_id`, which are mutually exclusive `spl_…` IDs; results are ordered by creation and `has_more` reflects the traversal direction. `/effective` pages by the opaque `next_page` token passed back as `?page=`, with principals ordered ascending so pages stay stable while spend is being recorded. `limit` is 1–1000, default 20, on both."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Data lifecycle"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The gateway holds four spend-related tables; an hourly sweep enforces the retention windows:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "| Table | Contents | Retention |"
+            },
+            {
+              "type": "added",
+              "content": "| - | - | - |"
+            },
+            {
+              "type": "added",
+              "content": "| `spend` | Per-principal period-to-date counters in cents | [`admin.spend_retention_months`](/en/claude-apps-gateway-config#admin), default 13 |"
+            },
+            {
+              "type": "added",
+              "content": "| `spend_limits` | The configured caps | Until deleted via the API |"
+            },
+            {
+              "type": "added",
+              "content": "| `admin_audit` | The mutation trail | [`admin.audit_retention_days`](/en/claude-apps-gateway-config#admin), default 365 |"
+            },
+            {
+              "type": "added",
+              "content": "| `principal_emails` | Each principal's last-seen email, display name, and IdP groups. Contains PII. | [`admin.identity_retention_days`](/en/claude-apps-gateway-config#admin) since last activity, default 90 |"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "`identity_retention_days` is deliberately shorter than `spend_retention_months`: a deprovisioned identity stops refreshing and ages out, while its anonymous spend counters remain for year-over-year reporting."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When a developer leaves, delete any per-user cap via `DELETE /v1/organizations/spend_limits/{id}`; their spend and identity rows age out on the retention windows above. To erase one person immediately, for offboarding or a data subject access request (DSAR), run `DELETE FROM principal_emails WHERE principal = '<sub>'` directly against the gateway database. That removes the only table holding their email, name, and groups. The `spend` and `admin_audit` rows reference the pseudonymous OIDC `sub` only and age out on their own windows."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Related"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [`admin` and `enforcement` configuration](/en/claude-apps-gateway-config#admin): enabling the admin API and tuning retention"
+            },
+            {
+              "type": "added",
+              "content": "- [Deployment guide](/en/claude-apps-gateway-deploy#postgres): Postgres schema and backup guidance"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-apps-gateway.md",
+      "additions": 294,
+      "deletions": 0,
+      "explanation": "Claude Code専用の自社ホスト型ゲートウェイ機能の概要を説明するドキュメントが追加されました。",
+      "hunks": []
+    },
+    {
+      "filename": "cli-reference.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "ゲートウェイサーバーを起動するための新しいコマンドであるclaude gatewayの使い方が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -21,6 +21,7 @@ You can start sessions, pipe content, resume conversations, and manage updates w",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `claude -c -p \"query\"` | Continue via SDK | `claude -c -p \"Check for type errors\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude -r \"<session>\" \"query\"` | Resume session by ID or name | `claude -r \"auth-refactor\" \"Finish this PR\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude update` | Update to latest version | `claude update` |"
+            },
+            {
+              "type": "added",
+              "content": "| `claude gateway` | Start the self-hosted [Claude apps gateway](/en/claude-apps-gateway) server, for administrators deploying SSO and policy in front of Claude Code on Bedrock, Vertex AI, or Foundry. Requires `--config` pointing at a [`gateway.yaml`](/en/claude-apps-gateway-config). Available in Claude Code v2.1.195 and later. | `claude gateway --config gateway.yaml` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude install [version]` | Install or reinstall the native binary. Accepts a version like `2.1.118`, or `stable` or `latest`. See [Install a specific version](/en/setup#install-a-specific-version) | `claude install stable` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auth login` | Sign in to your Anthropic account. Use `--email` to pre-fill your email address, `--sso` to force SSO authentication, and `--console` to sign in with Anthropic Console for API usage billing instead of a Claude subscription | `claude auth login --console` |"
+            },
+            {
+              "type": "context",
+              "content": "| `claude auth logout` | Log out from your Anthropic account | `claude auth logout` |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "costs.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "サードパーティプロバイダー利用時でもゲートウェイを通じてユーザーごとのコスト属性を把握できる利点が記述されました。",
+      "hunks": [
+        {
+          "header": "@@ -42,7 +42,7 @@ When you first authenticate Claude Code with your Claude Console account, a work",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For organizations with custom rate limits, Claude Code traffic in this workspace counts toward your organization's overall API rate limits. You can set a [workspace rate limit](https://platform.claude.com/docs/en/api/rate-limits#setting-lower-limits-for-workspaces) on this workspace's Limits page in the Claude Console to cap Claude Code's share and protect other production workloads."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On Bedrock, Vertex, and Foundry, Claude Code does not send metrics from your cloud. Organizations that already route Claude Code through an [LLM gateway](/en/llm-gateway) can track spend there, since the gateway sees every request."
+            },
+            {
+              "type": "added",
+              "content": "On Bedrock, Vertex, and Foundry, Claude Code doesn't send metrics from your cloud. A self-hosted [Claude apps gateway](/en/claude-apps-gateway) provides per-user usage attribution, OTLP metrics with token counts, and [per-user spend limits](/en/claude-apps-gateway-spend-limits) on these providers. Organizations that route Claude Code through a different [LLM gateway](/en/llm-gateway) can track spend at the gateway instead, since it sees every request."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Rate limit recommendations"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "data-usage.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ゲートウェイセッション中のテレメトリ無効化や、フィードバック送信時のローカルアーカイブ保存に関する挙動が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -30,7 +30,7 @@ When you see the \"How is Claude doing this session?\" prompt in Claude Code, resp",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "After the rating prompt, you may see a separate follow-up asking \"Can Anthropic look at your session transcript to help us improve Claude Code?\". This is an optional second step distinct from the rating:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Yes**: uploads your conversation transcript, any subagent transcripts, and the raw session log file from disk to Anthropic. Known API key and token patterns are redacted before upload. Source code, file contents, and other conversation content are uploaded as-is. Shared transcripts are retained for up to 6 months."
+            },
+            {
+              "type": "added",
+              "content": "- **Yes**: uploads your conversation transcript, any subagent transcripts, and the raw session log file from disk to Anthropic. Known API key and token patterns are redacted before upload. Source code, file contents, and other conversation content are uploaded as-is. Shared transcripts are retained for up to 6 months. On Bedrock, Vertex AI, Foundry, and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, Yes writes the same payload to a local archive under `~/.claude/feedback-bundles/` instead of uploading; nothing leaves your machine until you forward that file."
+            },
+            {
+              "type": "context",
+              "content": "- **No**: declines without sending anything"
+            },
+            {
+              "type": "context",
+              "content": "- **Don't ask again**: declines and stops this follow-up from appearing in future sessions"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -104,7 +104,7 @@ When you use a third-party provider such as Bedrock or Vertex, or have no Anthro",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Default behaviors by API provider"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, error reporting, telemetry, and bug reporting are disabled when using Bedrock, Vertex, Foundry, or Claude Platform on AWS. Session quality surveys and the WebFetch domain safety check are exceptions and run regardless of provider. You can opt out of all non-essential traffic, including surveys, at once by setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`. This variable does not affect the WebFetch check, which has its own opt-out. Here are the full default behaviors:"
+            },
+            {
+              "type": "added",
+              "content": "By default, error reporting, telemetry, and bug reporting are disabled when using Bedrock, Vertex, Foundry, or Claude Platform on AWS. Session quality surveys and the WebFetch domain safety check are exceptions and run regardless of provider. On a signed-in [Claude apps gateway](/en/claude-apps-gateway) session, usage analytics, error reporting, and survey ratings to Anthropic are disabled by the gateway credential itself, with no setting to re-enable them. You can opt out of all non-essential traffic, including surveys, at once by setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`. This variable does not affect the WebFetch check, which has its own opt-out. Here are the full default behaviors:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Service | Claude API | Vertex API | Bedrock API | Foundry API | Claude Platform on AWS |"
+            },
+            {
+              "type": "context",
+              "content": "| - | - | - | - | - | - |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "env-vars.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "CLAUDE_CODE_CERT_STOREのOS信頼ストア読み込みに関する詳細と、Auto mode有効化変数の適用範囲の更新が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -145,7 +145,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ATTRIBUTION_HEADER` | Set to `0` to omit the attribution block (client version and prompt fingerprint) from the start of the system prompt. Disabling it improves prompt-cache hit rates when routing through an [LLM gateway](/en/llm-gateway). Anthropic API caching is unaffected |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_AUTO_COMPACT_WINDOW` | Set the context capacity in tokens used for auto-compaction calculations. Defaults to the model's context window: 200K for standard models or 1M for [extended context](/en/model-config#extended-context) models. Use a lower value like `500000` on a 1M model to treat the window as 500K for compaction purposes. The value is capped at the model's actual context window. `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` is applied as a percentage of this value. Setting this variable decouples the compaction threshold from the status line's `used_percentage`, which always uses the model's full context window |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_AUTO_CONNECT_IDE` | Override automatic [IDE connection](/en/vs-code). By default, Claude Code connects automatically when launched inside a supported IDE's integrated terminal. Set to `false` to prevent this. Set to `true` to force a connection attempt when auto-detection fails, such as when tmux obscures the parent terminal. Takes precedence over the [`autoConnectIde`](/en/settings#global-config-settings) global config setting |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_CERT_STORE` | Comma-separated list of CA certificate sources for TLS connections. `bundled` is the Mozilla CA set shipped with Claude Code. `system` is the operating system trust store. Default is `bundled,system` |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_CERT_STORE` | Comma-separated list of CA certificate sources for TLS connections. `bundled` is the Mozilla CA set shipped with Claude Code. `system` is the operating system trust store, read only on runtimes with `tls.getCACertificates`: the native binary, or Node 22.15 or later for npm installs. See [CA certificate store](/en/network-config#ca-certificate-store). Default is `bundled,system` |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CHILD_SESSION` | Set to `1` in subprocesses Claude Code spawns via the Bash, PowerShell, and Monitor tools, [hook](/en/hooks) commands, and [status line](/en/statusline) commands. Not set for stdio [MCP server](/en/mcp) subprocesses, which are long-lived and outlive the session that spawned them. Unlike `CLAUDECODE`, this is only set by Claude Code itself when it launches a subprocess and not by IDE extensions, so it reliably distinguishes a nested session from a top-level `claude` launched in an IDE-integrated terminal. A nested interactive `claude` TUI started this way is automatically excluded from `--resume`, `--continue`, up-arrow history, and the `claude agents` list. Non-interactive `claude -p` sessions still persist. Set `CLAUDE_CODE_FORCE_SESSION_PERSISTENCE=1` to override this exclusion. Requires Claude Code v2.1.172 or later |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_CERT` | Path to client certificate file for mTLS authentication |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_CLIENT_KEY` | Path to client private key file for mTLS authentication |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -181,7 +181,7 @@ Claude Code reads environment variables at startup, so changes take effect the n",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL` | Set to `1` to disable virtual scrolling in [fullscreen rendering](/en/fullscreen) and render every message in the transcript. Use this if scrolling in fullscreen mode shows blank regions where messages should appear |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_DISABLE_WORKFLOWS` | Set to `1` to disable [workflows](/en/workflows#turn-workflows-off). Equivalent to the [`disableWorkflows`](/en/settings#available-settings) setting |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_EFFORT_LEVEL` | Set the effort level for supported models. Values: `low`, `medium`, `high`, `xhigh`, `max`, or `auto` to use the model default. Available levels depend on the model. Takes precedence over `/effort` and the `effortLevel` setting. See [Adjust effort level](/en/model-config#adjust-effort-level) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_ENABLE_AUTO_MODE` | Set to `1` to make [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) available on Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry. Requires Claude Code v2.1.158 or later. Has no effect on the Anthropic API, where auto mode is available by default. See [Enable auto mode on Bedrock, Vertex AI, or Foundry](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_ENABLE_AUTO_MODE` | Set to `1` to make [auto mode](/en/permission-modes#eliminate-prompts-with-auto-mode) available on Amazon Bedrock, Google Cloud Vertex AI, Microsoft Foundry, and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions. Requires Claude Code v2.1.158 or later. Has no effect on the Anthropic API, where auto mode is available by default. See [Enable auto mode on Bedrock, Vertex AI, or Foundry](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry) |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_AWAY_SUMMARY` | Override [session recap](/en/interactive-mode#session-recap) availability. Set to `0` to force recaps off regardless of the `/config` toggle. Set to `1` to force recaps on when [`awaySummaryEnabled`](/en/settings#available-settings) is `false`. Takes precedence over the setting and `/config` toggle |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_BACKGROUND_PLUGIN_REFRESH` | Set to `1` to refresh plugin state at turn boundaries in [non-interactive mode](/en/headless) after a background install completes. Off by default because the refresh changes the system prompt mid-session, which invalidates [prompt caching](/en/prompt-caching) for that turn |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` | Set to `1` to route the \"How is Claude doing?\" session quality survey to your own [OpenTelemetry collector](/en/monitoring-usage) when Anthropic-bound nonessential traffic is blocked. Survey ratings are emitted only as OTEL events to your configured collector. No survey data is sent to Anthropic in this mode. Applies when `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`, `DISABLE_TELEMETRY`, or `DO_NOT_TRACK` is set, and has no effect otherwise. `CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY` and the organization product feedback policy take precedence |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "gateways.md",
+      "additions": 70,
+      "deletions": 0,
+      "explanation": "既存のLLMゲートウェイと新設されたClaude apps gatewayの選択基準やアーキテクチャの解説が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -0,0 +1,70 @@",
+          "lines": [
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": "title: gateways"
+            },
+            {
+              "type": "added",
+              "content": "source: https://code.claude.com/docs/en/gateways.md"
+            },
+            {
+              "type": "added",
+              "content": "---"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "# Run Claude Code through a gateway"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "> Route Claude Code through a self-hosted gateway for centralized credentials, usage tracking, and cost controls. Covers the architecture, Anthropic's Claude apps gateway, and using other gateway products."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A gateway is a proxy your organization runs between Claude Code and a model provider. Claude Code sends API traffic to the gateway instead of directly to the provider, and the gateway forwards it using a credential your organization holds. Developers authenticate to the gateway rather than holding provider credentials, so authentication, usage tracking, budgets, and audit logging happen in one place you control."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code includes a self-hosted gateway, [Claude apps gateway](/en/claude-apps-gateway), in the `claude` binary, so you don't have to adopt a separate gateway product to run one. If your organization already runs an [LLM gateway](/en/llm-gateway), Claude Code works with that too."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "This page covers:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [How a gateway sits between Claude Code and your provider](#how-a-gateway-works)"
+            },
+            {
+              "type": "added",
+              "content": "- [Choosing between Claude apps gateway and a gateway you already run](#choose-a-gateway)"
+            },
+            {
+              "type": "added",
+              "content": "- [How gateways interact with claude.ai subscriptions](#subscriptions-and-gateways)"
+            },
+            {
+              "type": "added",
+              "content": "- [What's configured separately from the gateway](#configure-separately-from-the-gateway)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## How a gateway works"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Each developer's Claude Code is pointed at the gateway's address and authenticates with a gateway-issued credential."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The gateway authenticates the developer, applies whatever access and budget rules you configure, and forwards the request to your provider with the organization's credential. The provider can be Anthropic's API or a [cloud provider](/en/third-party-integrations) such as Amazon Bedrock, Google Cloud's Agent Platform, or Microsoft Foundry; the gateway's configuration decides. With Claude apps gateway, or another gateway that exposes a single Anthropic-format endpoint, changing provider doesn't require touching developer machines."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Two kinds of credential are involved:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Developer credential**: each developer holds their own, issued by the gateway. It authenticates them to the gateway and identifies them in usage tracking"
+            },
+            {
+              "type": "added",
+              "content": "- **Provider credential**: the gateway holds one credential for your provider account, shared by all forwarded traffic"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Choose a gateway"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude Code works with Anthropic's own gateway or with a gateway your organization already runs."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Claude apps gateway"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Claude apps gateway is Anthropic's self-hosted gateway, included in the `claude` binary. It routes to Amazon Bedrock, Google Cloud, Microsoft Foundry, or the Anthropic API as the upstream. Developers sign in with your corporate identity provider through `/login`, the gateway enforces model access and [managed settings](/en/permissions#managed-settings) by IdP group, and it emits [OpenTelemetry Protocol (OTLP)](/en/monitoring-usage) usage metrics to your own observability stack."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Because it is built and tested alongside each Claude Code release, it forwards the headers and request fields Claude Code sends. A gateway maintained separately needs its [forwarding rules updated](/en/llm-gateway-protocol#forward-as-open-lists) as those headers and fields change with each release; Claude apps gateway releases with the CLI, so there is no list to keep current. See [Availability and limitations](/en/claude-apps-gateway#availability-and-limitations) for the small set of features that behave differently on a gateway session."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The gateway sign-in is a browser SSO step, and there is no service-token flow, so a CI pipeline with no developer to approve the sign-in can't authenticate through it; configure those against your provider directly. Agent SDK sessions and `claude -p` runs on a machine where a developer has signed in use that machine's gateway session and are governed by its policies. See [CI pipelines and remote machines](/en/claude-apps-gateway#ci-pipelines-and-remote-machines)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "See [Claude apps gateway](/en/claude-apps-gateway) to deploy it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "### Other gateways"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "If your organization already runs an LLM gateway or API gateway, you can use it instead. Anthropic doesn't endorse, maintain, or audit other gateway products, and doesn't support routing Claude Code to non-Claude models through any gateway. See [Other LLM gateways](/en/llm-gateway) for the admin rollout checklist, what a gateway must implement, and how to point Claude Code at it."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Subscriptions and gateways"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When developers connect through a gateway with a gateway credential, usage is billed to your organization's provider account at API rates, and their claude.ai subscriptions aren't used or charged. Setting [`ANTHROPIC_AUTH_TOKEN`](/en/env-vars) for a gateway you run, or signing in to a Claude apps gateway with `/login`, turns off subscription login for that session. Every request forwarded under that credential is charged to the account behind the gateway's provider credential."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The exception is setting only `ANTHROPIC_BASE_URL`, with no gateway credential. Requests still route through the gateway, but a saved claude.ai login stays the active credential, so the subscription's usage limits and billing apply. [Other LLM gateways](/en/llm-gateway#subscriptions-and-gateways) covers that configuration and what the gateway has to forward for it to work."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Configure separately from the gateway"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A gateway routes model API requests. A few things you might expect it to handle are configured elsewhere:"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- **Which model answers**: pick the model with the `/model` command or [model environment variables](/en/model-config#setting-your-model). The gateway decides where requests go, not which model the developer selects. Claude apps gateway can bound the choice with a per-group `availableModels` allowlist, but the developer still picks within it."
+            },
+            {
+              "type": "added",
+              "content": "- **Other network traffic**: Claude Code itself sends version checks and downloads directly to Anthropic, separate from the gateway path. Whether the optional client telemetry stream is also on depends on your provider; the [telemetry defaults table](/en/data-usage#telemetry-services) covers each case. On a signed-in Claude apps gateway session, the gateway credential disables the Anthropic-bound analytics and, when [telemetry forwarding](/en/claude-apps-gateway-config#telemetry) is configured, pins OTLP export to the gateway. Your network still needs egress to the [required domains](/en/network-config), or set [`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`](/en/env-vars) to turn off the optional streams."
+            },
+            {
+              "type": "added",
+              "content": "- **Corporate HTTP proxies**: an `HTTPS_PROXY` sits between Claude Code and every server it talks to, including the gateway. If your network requires one, [configure the proxy](/en/network-config) in addition to the gateway. For Claude apps gateway specifically, [sign-in checks that the proxy host is also on a private network](/en/claude-apps-gateway#prerequisites); if it isn't, add the gateway host to `NO_PROXY` so the CLI connects to it directly."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "## Next steps"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "The next page depends on who runs the gateway. Anthropic's gateway runs from the `claude` binary and has its own setup guide; a gateway your organization already runs has a protocol to implement and an admin rollout checklist."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Claude apps gateway](/en/claude-apps-gateway) to deploy Anthropic's self-hosted gateway with SSO sign-in and OTLP telemetry"
+            },
+            {
+              "type": "added",
+              "content": "- [Other LLM gateways](/en/llm-gateway) for what a gateway your organization already runs must implement, and how to point Claude Code at it"
+            },
+            {
+              "type": "added",
+              "content": "- [Set up Claude Code for your organization](/en/admin-setup) for the wider rollout decisions a gateway is one part of"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-connect.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "既存のLLMゲートウェイとの接続設定に関する記述が微修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -180,7 +180,7 @@ steps:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "      anthropic_api_key: ${{ secrets.GATEWAY_API_KEY }}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For a bearer-token gateway, pass the same secret as both the `anthropic_api_key` input and `ANTHROPIC_AUTH_TOKEN` in the workflow `env` block. The action requires `anthropic_api_key`, `CLAUDE_CODE_OAUTH_TOKEN`, or workload identity federation before it launches Claude Code, and it doesn't read `ANTHROPIC_AUTH_TOKEN`, so the input satisfies that launch check while the env variable puts the key in the `Authorization` header the gateway reads. The copy in `x-api-key` is ignored:"
+            },
+            {
+              "type": "added",
+              "content": "For a bearer-token gateway, pass the same secret twice: as the `anthropic_api_key` input and as `ANTHROPIC_AUTH_TOKEN` in the workflow `env` block. The action requires `anthropic_api_key`, `CLAUDE_CODE_OAUTH_TOKEN`, or workload identity federation before it launches Claude Code, and it doesn't read `ANTHROPIC_AUTH_TOKEN`, so the input is there only to satisfy that launch check. The env variable is what puts the key in the `Authorization` header the gateway reads; the copy in `x-api-key` is ignored:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```yaml"
+            },
+            {
+              "type": "context",
+              "content": "env:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -251,7 +251,7 @@ You can also set `ANTHROPIC_CUSTOM_HEADERS` in the `env` block of a settings fil",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```json"
+            },
+            {
+              "type": "context",
+              "content": "{"
+            },
+            {
+              "type": "context",
+              "content": "  \"env\": {"
+            },
+            {
+              "type": "removed",
+              "content": "    \"ANTHROPIC_CUSTOM_HEADERS\": \"X-Org-Route: prod\\nX-Tenant: acme\""
+            },
+            {
+              "type": "added",
+              "content": "    \"ANTHROPIC_CUSTOM_HEADERS\": \"X-Org-Route: prod\\nX-Tenant: example\""
+            },
+            {
+              "type": "context",
+              "content": "  }"
+            },
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            }
+          ]
+        },
+        {
+          "header": "@@ -309,9 +309,9 @@ The helper's value is sent in both the `Authorization` and `x-api-key` headers,",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Route to a cloud provider through a gateway"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "These configurations point Claude Code at a gateway through a provider-specific base URL variable in place of `ANTHROPIC_BASE_URL`. Bedrock and Vertex gateways accept those providers' native request formats; Foundry and Claude Platform on AWS gateways accept the Anthropic Messages format and differ only in which base URL variable reaches them."
+            },
+            {
+              "type": "added",
+              "content": "These configurations point Claude Code at a gateway through a provider-specific base URL variable in place of `ANTHROPIC_BASE_URL`. Bedrock and Agent Platform gateways accept those providers' native request formats; Foundry and Claude Platform on AWS gateways accept the Anthropic Messages format and differ only in which base URL variable reaches them."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Use one only if your gateway team specifically named Bedrock, Vertex, Foundry, or the Claude Platform on AWS. If the [verification request](#verify-the-connection) above returned JSON, you can skip this section."
+            },
+            {
+              "type": "added",
+              "content": "Use one only if your gateway team specifically named Bedrock, Agent Platform, Foundry, or the Claude Platform on AWS. If the [verification request](#verify-the-connection) above returned JSON, you can skip this section."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set the block for the provider your gateway team named. The skip-auth variables tell Claude Code not to sign requests with provider credentials, since the gateway holds those. If the gateway needs its own token, add `ANTHROPIC_AUTH_TOKEN` after the block, except for Foundry, which uses `ANTHROPIC_FOUNDRY_API_KEY` as shown."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -329,7 +329,7 @@ $env:CLAUDE_CODE_SKIP_BEDROCK_AUTH = \"1\"",
+          "lines": [
+            {
+              "type": "context",
+              "content": "$env:CLAUDE_CODE_USE_BEDROCK = \"1\""
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "#### Google Vertex AI"
+            },
+            {
+              "type": "added",
+              "content": "#### Google Cloud's Agent Platform"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash theme={null}"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_VERTEX_BASE_URL=https://llm-gateway.example.com/vertex"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-protocol.md",
+      "additions": 25,
+      "deletions": 20,
+      "explanation": "ゲートウェイ間の通信プロトコルに関する仕様の詳細が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -9,6 +9,8 @@ source: https://code.claude.com/docs/en/llm-gateway-protocol.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "This page documents the requests Claude Code sends to a gateway, including the endpoints it calls, the headers and body fields the gateway must forward, and which features stop working when it doesn't. It is written for operators configuring a gateway product to work with Claude Code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A running [Claude apps gateway](/en/claude-apps-gateway) serves a machine-readable version of this contract at `GET /protocol`, covering the same forwarding requirements plus the Claude apps gateway-specific endpoints for SSO sign-in, managed-settings delivery, and telemetry. Claude apps gateway runs from the same `claude` binary as the CLI, so the [Claude apps gateway quickstart](/en/claude-apps-gateway#quickstart) is the shortest path to a running instance you can fetch the spec from."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- To roll out an existing or third-party gateway for your organization, see [Roll out an LLM gateway](/en/llm-gateway-rollout)"
+            },
+            {
+              "type": "context",
+              "content": "- If you're an individual developer authenticating Claude Code to a gateway with a credential you were given, see [Connect Claude Code to an LLM gateway](/en/llm-gateway-connect)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -29,13 +31,13 @@ Anything not marked forward unchanged is yours to consume or ignore.",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## API formats"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A gateway must expose at least one of the following API formats to Claude Code clients. Which format Claude Code speaks is determined by the client's configuration: the variable in the Selected by column of the table below points Claude Code at your gateway in that format."
+            },
+            {
+              "type": "added",
+              "content": "A gateway must expose at least one of the following API formats to Claude Code clients. Which format Claude Code speaks is determined by the client's configuration: the variable in the Selected by column of the table below points Claude Code at your gateway in that format. Agent Platform is Google Cloud's Claude endpoint, formerly Vertex AI; its variable names keep the `VERTEX` spelling."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "| Format | Selected by | Endpoints | Forward unchanged |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- | :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| Anthropic Messages | `ANTHROPIC_BASE_URL` | `/v1/messages`, `/v1/messages/count_tokens` (optional) | `anthropic-beta` and `anthropic-version` request headers |"
+            },
+            {
+              "type": "context",
+              "content": "| Bedrock InvokeModel | `ANTHROPIC_BEDROCK_BASE_URL` with `CLAUDE_CODE_USE_BEDROCK=1` | `/model/{model}/invoke`, `/model/{model}/invoke-with-response-stream` | `anthropic_beta` and `anthropic_version` request body fields |"
+            },
+            {
+              "type": "removed",
+              "content": "| Vertex rawPredict | `ANTHROPIC_VERTEX_BASE_URL` with `CLAUDE_CODE_USE_VERTEX=1` | `:rawPredict`, `:streamRawPredict`, `count-tokens:rawPredict` (optional) | `anthropic-beta` and `anthropic-version` request headers, and the `anthropic_version` request body field |"
+            },
+            {
+              "type": "added",
+              "content": "| Agent Platform rawPredict | `ANTHROPIC_VERTEX_BASE_URL` with `CLAUDE_CODE_USE_VERTEX=1` | `:rawPredict`, `:streamRawPredict`, `count-tokens:rawPredict` (optional) | `anthropic-beta` and `anthropic-version` request headers, and the `anthropic_version` request body field |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Foundry and Claude Platform on AWS"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -43,7 +45,7 @@ Microsoft Foundry and the [Claude Platform on AWS](/en/claude-platform-on-aws) i",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Optional endpoints and startup traffic"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Token-counting endpoints are the only optional ones: when they're absent, Claude Code estimates context usage locally. Inference requests post to `/v1/messages?beta=true`, so match on the path, not the full URL. The Vertex method suffixes attach to the publisher model path, as in `/projects/{project}/locations/{location}/publishers/anthropic/models/{model}:streamRawPredict`."
+            },
+            {
+              "type": "added",
+              "content": "Token-counting endpoints are the only optional ones: when they're absent, Claude Code estimates context usage locally. Inference requests post to `/v1/messages?beta=true`, so match on the path, not the full URL. The Agent Platform method suffixes attach to the publisher model path, as in `/projects/{project}/locations/{location}/publishers/anthropic/models/{model}:streamRawPredict`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A gateway also sees best-effort startup traffic it can reject without breaking anything: a `HEAD /` connectivity probe, and on Bedrock-format gateways a `GET /inference-profiles?type=SYSTEM_DEFINED` request."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -55,8 +57,8 @@ Inference responses must stream. Claude Code consumes server-sent events as they",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Which format the client speaks determines what your gateway receives. The common failure mode is a mismatch between the format the client sends to your gateway and the format the upstream provider behind it accepts."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- When the client speaks the Bedrock or Vertex format, Claude Code sends only the subset of its full capability set that those providers accept"
+            },
+            {
+              "type": "removed",
+              "content": "- When the client speaks the Anthropic Messages format, Claude Code sends the full set, even if your gateway forwards to a Bedrock or Vertex upstream"
+            },
+            {
+              "type": "added",
+              "content": "- When the client speaks the Bedrock or Agent Platform format, Claude Code sends only the subset of its full capability set that those providers accept"
+            },
+            {
+              "type": "added",
+              "content": "- When the client speaks the Anthropic Messages format, Claude Code sends the full set, even if your gateway forwards to a Bedrock or Agent Platform upstream"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Bridging that difference is your gateway's job. [Feature pass-through](#feature-pass-through) describes what breaks when it doesn't."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -67,13 +69,13 @@ Claude Code includes these headers on API requests. Header names are case-insens",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Header | Description |"
+            },
+            {
+              "type": "context",
+              "content": "| :- | :- |"
+            },
+            {
+              "type": "context",
+              "content": "| `Authorization`, `x-api-key` | The developer's gateway credential, in one or both headers depending on which [credential variable](/en/llm-gateway-connect#set-the-credential-variable) they set |"
+            },
+            {
+              "type": "removed",
+              "content": "| `anthropic-version` | API version, currently `2023-06-01`. Bedrock- and Vertex-format requests also carry the `anthropic_version` body field, whose value is the provider dialect string, not this header's value |"
+            },
+            {
+              "type": "removed",
+              "content": "| `anthropic-beta` | Comma-separated capability values for the request. Forward the header verbatim; do not allowlist individual values, because the set changes with Claude Code releases. When the developer authenticates with a claude.ai login, which is possible when `ANTHROPIC_BASE_URL` is set without a gateway credential variable, this header also carries an OAuth capability that the upstream requires, and stripping it fails those requests with `401` |"
+            },
+            {
+              "type": "added",
+              "content": "| `anthropic-version` | API version, currently `2023-06-01`. Bedrock- and Agent Platform-format requests also carry the `anthropic_version` body field, whose value is the provider dialect string, not this header's value |"
+            },
+            {
+              "type": "added",
+              "content": "| `anthropic-beta` | Comma-separated capability values for the request. Forward the header verbatim; don't allowlist individual values, because the set changes with Claude Code releases. When the developer authenticates with a claude.ai login, which is possible when `ANTHROPIC_BASE_URL` is set without a gateway credential variable, this header also carries an OAuth capability that the upstream requires, and stripping it fails those requests with `401` |"
+            },
+            {
+              "type": "context",
+              "content": "| `x-claude-code-session-id` | A unique identifier for the current Claude Code session. Use it to aggregate all requests from one session without parsing request bodies |"
+            },
+            {
+              "type": "context",
+              "content": "| `x-claude-code-agent-id` | Identifier of the [subagent](/en/sub-agents) that issued the request, present only on requests from an agent Claude Code spawned inside the session. Use it with the session ID to attribute cost to parallel agents |"
+            },
+            {
+              "type": "context",
+              "content": "| `x-claude-code-parent-agent-id` | Identifier of the agent that spawned the requesting agent, present only for nested agents |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Subagent IDs are generated fresh for each spawn. Teammate agents, the named members of an [agent team](/en/agent-teams), reuse a stable name-based ID across reconnections. In both cases the ID identifies an agent, not a person or a device, so do not treat the agent ID header as a user identifier."
+            },
+            {
+              "type": "added",
+              "content": "Subagent IDs are generated fresh for each spawn. Teammate agents, the named members of an [agent team](/en/agent-teams), reuse a stable name-based ID across reconnections. In both cases the ID identifies an agent, not a person or a device, so don't treat the agent ID header as a user identifier."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If your developers set `ANTHROPIC_CUSTOM_HEADERS`, those headers appear on requests as well."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -83,17 +85,17 @@ Treat the headers and body fields as open lists, not closed ones. Claude Code ga",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When forwarding to an Anthropic-format upstream, pass `anthropic-*` request headers and request body fields through unchanged rather than allowlisting the ones you see today. A gateway pinned to an observed list strips the next capability's header or field and breaks it on the release that introduces it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The exception is a non-Anthropic upstream such as Bedrock or Vertex, where bridging the schema difference is the gateway's job; see [feature pass-through](#feature-pass-through)."
+            },
+            {
+              "type": "added",
+              "content": "The exception is a non-Anthropic upstream such as Bedrock or Agent Platform, where bridging the schema difference is the gateway's job; see [feature pass-through](#feature-pass-through)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## System prompt attribution block"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code prepends a short attribution block to the system prompt containing the client version and a fingerprint derived from the conversation. The `api.anthropic.com` endpoint strips the block before processing, so it does not affect first-party prompt caching; any other upstream receives it as part of the prompt. Anthropic and the cloud providers' Claude endpoints read it for attribution, so to omit it set [`CLAUDE_CODE_ATTRIBUTION_HEADER=0`](/en/env-vars) rather than stripping it in the gateway."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code prepends a short attribution block to the system prompt containing the client version and a fingerprint derived from the conversation. The `api.anthropic.com` endpoint strips the block before processing, so it doesn't affect first-party prompt caching; any other upstream receives it as part of the prompt. Anthropic and the cloud providers' Claude endpoints read it for attribution, so to omit it set [`CLAUDE_CODE_ATTRIBUTION_HEADER=0`](/en/env-vars) rather than stripping it in the gateway."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "From Claude Code v2.1.181, the block is stable for the lifetime of a conversation when requests route through a custom base URL, so a gateway-side prompt cache keyed on the full request body works without disabling it. Before v2.1.181 the block included a per-request token; on those versions, set `CLAUDE_CODE_ATTRIBUTION_HEADER=0` if your gateway implements such a cache."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Feature pass-through"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code treats an `ANTHROPIC_BASE_URL` gateway as an Anthropic-format endpoint and sends it the beta headers and request body fields it sends to `api.anthropic.com`, except a small set of diagnostics and defaults reserved for direct connections."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code treats an `ANTHROPIC_BASE_URL` gateway as an Anthropic-format endpoint and sends it the beta headers and request body fields it sends to `api.anthropic.com`, except a small set of diagnostics and defaults reserved for direct connections, such as the fine-grained tool streaming default covered below. That set varies by release, so don't depend on its contents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Capabilities that add body fields pair them with a beta header, and the pair travels together. A gateway that strips the header while passing the body, or forwards an Anthropic-format body to an upstream with a different schema, produces hard `400` errors; only when both halves are absent together does the feature turn off quietly. A gateway that rewrites or redacts request bodies for content inspection breaks the pairing the same way stripping does, so inspect without modifying. The table notes where a feature deviates from the pairing."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -105,20 +107,20 @@ Fine-grained tool streaming is one of the direct-connection defaults: it is off",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| [Context management](https://platform.claude.com/docs/en/build-with-claude/context-management) | Context management beta header pairs with the `context_management` body field | `400` with `Extra inputs are not permitted`. Common when a gateway accepts Anthropic-format requests but forwards them to Bedrock | Forward both, or [`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1`](/en/env-vars) |"
+            },
+            {
+              "type": "context",
+              "content": "| [Extended context](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) and [interleaved thinking](https://platform.claude.com/docs/en/build-with-claude/extended-thinking#interleaved-thinking) | Beta headers only, no body field | Silently unavailable when the header is stripped; the upstream never sees the capability request | Forward `anthropic-beta` verbatim |"
+            },
+            {
+              "type": "context",
+              "content": "| Beta [tool fields](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview) | Tool-related beta headers pair with tool schema fields such as `strict` and `defer_loading` | `400` naming the unrecognized tool schema field when the body passes through without its header | Forward both, or `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` |"
+            },
+            {
+              "type": "removed",
+              "content": "| [Effort](https://platform.claude.com/docs/en/build-with-claude/effort) and [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) | The `output_config` body field carries effort, structured-output format, and task budget settings; each pairs with its own beta header | `400` naming `output_config`, often `Extra inputs are not permitted`, on Bedrock and Vertex upstreams | Forward the field and its headers together |"
+            },
+            {
+              "type": "added",
+              "content": "| [Effort](https://platform.claude.com/docs/en/build-with-claude/effort) and [structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs) | The `output_config` body field carries effort, structured-output format, and task budget settings; each pairs with its own beta header | `400` naming `output_config`, often `Extra inputs are not permitted`, on Bedrock and Agent Platform upstreams | Forward the field and its headers together |"
+            },
+            {
+              "type": "context",
+              "content": "| [Token counting](https://platform.claude.com/docs/en/build-with-claude/token-counting) | No beta pairing; uses the `count_tokens` endpoint | Claude Code falls back to estimating context usage locally | Expose the endpoint if you want exact counts |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `ANTHROPIC_DEFAULT_*_MODEL_SUPPORTED_CAPABILITIES` [variables](/en/model-config) declare model capabilities only in the provider configurations: `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`, and [`CLAUDE_CODE_USE_MANTLE`](/en/amazon-bedrock#use-the-mantle-endpoint). They have no effect behind an `ANTHROPIC_BASE_URL` gateway."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Automatic retry and error forwarding"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Code retries automatically after some upstream rejections and disables the rejected capability for the rest of the conversation. Rejections of the `thinking` field, of [thinking signatures](https://platform.claude.com/docs/en/build-with-claude/extended-thinking), and of mid-conversation system messages all recover this way. Context management and tool schema field rejections do not retry; those `400` errors reach the developer."
+            },
+            {
+              "type": "added",
+              "content": "Claude Code retries automatically after some upstream rejections and disables the rejected capability for the rest of the conversation. Rejections of the `thinking` field, of [thinking signatures](https://platform.claude.com/docs/en/build-with-claude/extended-thinking), and of mid-conversation system messages all recover this way. Context management and tool schema field rejections don't retry; those `400` errors reach the developer."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The retry logic matches on the upstream's error wording, so forward error response bodies unmodified. A gateway that wraps upstream errors in its own envelope breaks the recovery path even when it preserves the status code."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Disable pre-release capabilities"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` stops Claude Code from sending pre-release capabilities and their body fields on every provider, including context management and the beta tool fields. It does not affect adaptive reasoning, which is selected by model rather than by beta, and it never suppresses the OAuth capability that subscription authentication requires."
+            },
+            {
+              "type": "added",
+              "content": "`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` stops Claude Code from sending pre-release capabilities and their body fields on every provider, including context management and the beta tool fields. It doesn't affect adaptive reasoning, which is selected by model rather than by beta, and it never suppresses the OAuth capability that subscription authentication requires."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The set of capabilities Claude Code sends grows over releases. For current beta header strings, see the [beta headers reference](https://platform.claude.com/docs/en/api/beta-headers); test your gateway against new Claude Code releases rather than pinning to an observed list."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -126,11 +128,11 @@ The set of capabilities Claude Code sends grows over releases. For current beta",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When `ANTHROPIC_BASE_URL` points at a gateway that exposes the Anthropic Messages format, Claude Code can query the gateway's `/v1/models` endpoint at startup and add the returned models to the `/model` picker."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Developers enable it by setting [`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`](/en/env-vars), in their own environment or through managed settings. Discovery is off by default so that gateways backed by a shared API key do not surface every model the key can access to every user. This requires Claude Code v2.1.129 or later."
+            },
+            {
+              "type": "added",
+              "content": "Developers enable it by setting [`CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1`](/en/env-vars), in their own environment or through managed settings. Discovery is off by default so that gateways backed by a shared API key don't surface every model the key can access to every user. This requires Claude Code v2.1.129 or later."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### When discovery runs"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Discovery applies only to the Anthropic Messages format. It does not run when:"
+            },
+            {
+              "type": "added",
+              "content": "Discovery applies only to the Anthropic Messages format. It doesn't run when:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Any `CLAUDE_CODE_USE_*` provider variable is set, even if `ANTHROPIC_BASE_URL` is also set"
+            },
+            {
+              "type": "context",
+              "content": "- `ANTHROPIC_BASE_URL` is unset or points at `api.anthropic.com`"
+            }
+          ]
+        },
+        {
+          "header": "@@ -138,7 +140,7 @@ Discovery applies only to the Anthropic Messages format. It does not run when:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Request and response"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The request is `GET /v1/models?limit=1000` with a 3-second timeout, and any redirect is treated as failure so the credential cannot leak to a redirect target. A gateway that responds slowly or redirects `/v1/models`, even `http` to `https`, fails discovery silently; serve the endpoint directly at the configured base URL."
+            },
+            {
+              "type": "added",
+              "content": "The request is `GET /v1/models?limit=1000` with a 3-second timeout, and any redirect is treated as failure so the credential can't leak to a redirect target. A gateway that responds slowly or redirects `/v1/models`, even `http` to `https`, fails discovery silently; serve the endpoint directly at the configured base URL."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The discovery request sends exactly one credential header:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -160,15 +162,18 @@ Claude Code reads `id` and the optional `display_name` from each entry in the re",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Picker entries and caching"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The picker is the interactive model list that opens when a developer runs `/model` in Claude Code. Each discovered entry is labeled \"From gateway\" and uses `display_name` when provided. A discovered ID is skipped only when it exactly matches a row already in the picker, or when both the discovered and existing IDs resolve to [Fable](/en/model-config#work-with-fable-5). Built-in rows are keyed on aliases such as `sonnet`, so a discovered ID such as `claude-sonnet-4-6` adds its own \"From gateway\" row alongside the built-in entry. The [`availableModels` managed setting](/en/settings#available-settings) bounds what discovery can add."
+            },
+            {
+              "type": "added",
+              "content": "The picker is the interactive model list that opens when a developer runs `/model` in Claude Code. Each discovered entry is labeled \"From gateway\" and uses `display_name` when provided. The [`availableModels` managed setting](/en/settings#available-settings) bounds what discovery can add."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "A discovered ID is skipped only when it exactly matches a row already in the picker, or when both the discovered and existing IDs resolve to [Fable](/en/model-config#work-with-fable-5). Built-in rows are keyed on aliases such as `sonnet`, so a discovered ID such as `claude-sonnet-4-6` adds its own \"From gateway\" row alongside the built-in entry rather than replacing it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Results are cached to `~/.claude/cache/gateway-models.json`, or `%USERPROFILE%\\.claude\\cache\\gateway-models.json` on Windows, and refreshed on each startup. If the request fails or the gateway does not implement `/v1/models`, the picker falls back to the cached list from the previous startup or to the built-in model list. If your gateway serves Claude models under aliases that don't match the discovery filter, developers can add those aliases manually with the [model configuration](/en/model-config) variables."
+            },
+            {
+              "type": "added",
+              "content": "Results are cached to `~/.claude/cache/gateway-models.json`, or `%USERPROFILE%\\.claude\\cache\\gateway-models.json` on Windows, and refreshed on each startup. If the request fails or the gateway doesn't implement `/v1/models`, the picker falls back to the cached list from the previous startup or to the built-in model list. If your gateway serves Claude models under aliases that don't match the discovery filter, developers can add those aliases manually with the [model configuration](/en/model-config) variables."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related resources"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "For the rest of the gateway documentation set and the underlying API references:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- [LLM gateways overview](/en/llm-gateway): what a gateway is and how it interacts with claude.ai subscriptions"
+            },
+            {
+              "type": "added",
+              "content": "- [Gateway overview](/en/gateways): what a gateway is and how to choose between Claude apps gateway and another product"
+            },
+            {
+              "type": "added",
+              "content": "- [Other LLM gateways](/en/llm-gateway): how to roll out a gateway your organization runs and how it interacts with claude.ai subscriptions"
+            },
+            {
+              "type": "context",
+              "content": "- [Roll out an LLM gateway for your organization](/en/llm-gateway-rollout): the admin checklist that uses this contract"
+            },
+            {
+              "type": "context",
+              "content": "- [Connect Claude Code to an LLM gateway](/en/llm-gateway-connect): per-developer configuration and the troubleshooting table"
+            },
+            {
+              "type": "context",
+              "content": "- [Beta headers reference](https://platform.claude.com/docs/en/api/beta-headers): the current set of `anthropic-beta` values"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway-rollout.md",
+      "additions": 5,
+      "deletions": 5,
+      "explanation": "組織内へのゲートウェイ展開に関する手順が整理されました。",
+      "hunks": [
+        {
+          "header": "@@ -19,7 +19,7 @@ To complete the rollout, you'll need:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- A gateway deployed on your infrastructure, serving HTTPS at the exact address you'll distribute to developers, not an address that redirects to it, and configured to route Claude model names to your provider"
+            },
+            {
+              "type": "context",
+              "content": "- A provider credential for the gateway to forward with:"
+            },
+            {
+              "type": "context",
+              "content": "  - For the Anthropic API: an API key from the [Claude Console](https://platform.claude.com/settings/keys)"
+            },
+            {
+              "type": "removed",
+              "content": "  - For a cloud provider: cloud credentials with model access. See the prerequisites on the [Amazon Bedrock](/en/amazon-bedrock#prerequisites), [Google Vertex AI](/en/google-vertex-ai#prerequisites), or [Microsoft Foundry](/en/microsoft-foundry#prerequisites) page"
+            },
+            {
+              "type": "added",
+              "content": "  - For a cloud provider: cloud credentials with model access. See the prerequisites on the [Amazon Bedrock](/en/amazon-bedrock#prerequisites), [Google Cloud's Agent Platform](/en/google-vertex-ai#prerequisites), or [Microsoft Foundry](/en/microsoft-foundry#prerequisites) page"
+            },
+            {
+              "type": "context",
+              "content": "- A way to deliver settings files to developer machines, such as MDM or configuration management"
+            },
+            {
+              "type": "context",
+              "content": "  - If you don't have one yet, [how settings reach devices](/en/admin-setup#decide-how-settings-reach-devices) compares the options"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -148,9 +148,9 @@ The same set of variables applies whichever path you choose. Most rollouts only",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `apiKeyHelper`, or a credential in `ANTHROPIC_AUTH_TOKEN` or `ANTHROPIC_API_KEY` | Authenticates each request to the gateway. The helper runs a command to fetch the key; the variables hold a static key, sent as `Authorization: Bearer` and `x-api-key` respectively | Always; one of the three |"
+            },
+            {
+              "type": "context",
+              "content": "| `ANTHROPIC_CUSTOM_HEADERS` | Adds extra HTTP headers to every API request | Your gateway requires a tenant or routing header on every request |"
+            },
+            {
+              "type": "context",
+              "content": "| `CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY` | Queries the gateway's `/v1/models` at startup and adds the returned names to the `/model` picker | Your gateway serves `/v1/models` and you want developers' pickers populated from it |"
+            },
+            {
+              "type": "removed",
+              "content": "| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Stops Claude Code sending pre-release capability headers and body fields | Your gateway forwards to a Bedrock or Vertex upstream that rejects beta fields; see [Gateway requirements](#gateway-requirements) |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ANTHROPIC_MODEL` or [`ANTHROPIC_DEFAULT_HAIKU_MODEL`](/en/model-config) | Set which model name Claude Code requests for the main session and for background traffic | Your gateway routes model names that don't match Claude Code's defaults, or you route [background functionality](/en/costs#background-token-usage) to a different model. Route both the override names and Claude Code's default names at the gateway, since some sub-calls can request the default name regardless of the override |"
+            },
+            {
+              "type": "removed",
+              "content": "| `ANTHROPIC_BEDROCK_BASE_URL`, `ANTHROPIC_VERTEX_BASE_URL`, `ANTHROPIC_FOUNDRY_BASE_URL`, or `ANTHROPIC_AWS_BASE_URL` with the [variables for that provider](/en/llm-gateway-connect#route-to-a-cloud-provider-through-a-gateway) | Point Claude Code at the gateway through a provider-specific base URL. Bedrock and Vertex also switch to those providers' native request format | Your gateway fronts Bedrock, Vertex, Foundry, or the Claude Platform on AWS; see [API formats](/en/llm-gateway-protocol#api-formats) |"
+            },
+            {
+              "type": "added",
+              "content": "| `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS` | Stops Claude Code sending pre-release capability headers and body fields | Your gateway forwards to a Bedrock or Agent Platform upstream that rejects beta fields; see [Gateway requirements](#gateway-requirements) |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_MODEL` or [`ANTHROPIC_DEFAULT_HAIKU_MODEL`](/en/model-config) | Set which model name Claude Code requests for the main session and for background traffic | Your gateway routes model names that don't match Claude Code's defaults, or you route [background functionality](/en/costs#background-token-usage) to a different model. Route both the override names and the built-in model IDs Claude Code requests when no override is set, since some background sub-calls request a built-in ID regardless of the override; [model configuration](/en/model-config) covers which model each part of a session uses |"
+            },
+            {
+              "type": "added",
+              "content": "| `ANTHROPIC_BEDROCK_BASE_URL`, `ANTHROPIC_VERTEX_BASE_URL`, `ANTHROPIC_FOUNDRY_BASE_URL`, or `ANTHROPIC_AWS_BASE_URL` with the [variables for that provider](/en/llm-gateway-connect#route-to-a-cloud-provider-through-a-gateway) | Point Claude Code at the gateway through a provider-specific base URL. Bedrock and Agent Platform also switch to those providers' native request format | Your gateway fronts Bedrock, Agent Platform, Foundry, or the Claude Platform on AWS; see [API formats](/en/llm-gateway-protocol#api-formats) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "#### Distribute through managed settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -167,7 +167,7 @@ Deliver the variables through the `env` block of a [managed settings file](/en/s",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Add the conditional variables from the table to the same `env` block. A managed `ANTHROPIC_BASE_URL` is enforced and cannot be overridden by a developer's shell export, since Claude Code applies it over the process environment and lower-precedence settings."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Do not include `forceLoginMethod` or `forceLoginOrgUUID` in managed settings alongside a gateway credential. On Claude Code v2.1.146 and later, either key blocks `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, and `apiKeyHelper` at startup, so developers see `This machine's managed settings require a first-party login` and cannot proceed.&#x20;"
+            },
+            {
+              "type": "added",
+              "content": "Do not include `forceLoginMethod` or `forceLoginOrgUUID` in managed settings alongside a gateway credential. On Claude Code v2.1.146 and later, either key, with any value, blocks `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, and `apiKeyHelper` at startup, so developers see `This machine's managed settings require a first-party login` and cannot proceed.&#x20;"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Server-managed settings](/en/server-managed-settings#platform-availability) delivery requires a direct connection to `api.anthropic.com`, so it does not reach gateway-routed sessions. Gateway deployments use this file-based managed settings path, which enforces the same keys."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "llm-gateway.md",
+      "additions": 10,
+      "deletions": 32,
+      "explanation": "LLMゲートウェイの全般的な説明について、新しいゲートウェイ機能の導入に伴う内容の整理が行われました。",
+      "hunks": [
+        {
+          "header": "@@ -3,16 +3,18 @@ title: llm-gateway",
+          "lines": [
+            {
+              "type": "context",
+              "content": "source: https://code.claude.com/docs/en/llm-gateway.md"
+            },
+            {
+              "type": "context",
+              "content": "---"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "# LLM gateways"
+            },
+            {
+              "type": "added",
+              "content": "# Other LLM gateways"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "> Route Claude Code through an LLM gateway for centralized authentication, usage tracking, and cost controls. Covers connecting Claude Code to a gateway, rolling one out for your organization, what Claude Code sends to a gateway, and how gateways interact with claude.ai subscriptions."
+            },
+            {
+              "type": "added",
+              "content": "> Route Claude Code through an LLM gateway your organization already runs. Covers connecting Claude Code to a gateway, rolling one out for your organization, and what Claude Code sends to a gateway."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "An LLM gateway is a proxy your organization runs between Claude Code and a model provider. Claude Code sends API traffic to the gateway, and the gateway forwards it to the provider using a credential your organization controls."
+            },
+            {
+              "type": "added",
+              "content": "This section covers using a gateway product your organization already runs, rather than [Claude apps gateway](/en/claude-apps-gateway). For what a gateway is, how it sits between Claude Code and your provider, and how to choose between Claude apps gateway and another product, see the [gateway overview](/en/gateways)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- If you're a developer connecting to an existing gateway: [connect Claude Code to your gateway](/en/llm-gateway-connect)"
+            },
+            {
+              "type": "context",
+              "content": "- If you're an admin rolling out a gateway for your organization: [deploy and distribute a gateway](/en/llm-gateway-rollout)"
+            },
+            {
+              "type": "context",
+              "content": "- If you're configuring a gateway product: the [gateway protocol reference](/en/llm-gateway-protocol)"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "Any gateway that exposes a [supported API format](/en/llm-gateway-protocol#api-formats) works. Anthropic doesn't endorse, maintain, or audit third-party gateway products, and doesn't support routing Claude Code to non-Claude models through any gateway. Deploy the gateway following its own documentation, then complete the Claude Code side with the [rollout steps below](#roll-out-a-gateway)."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## What a gateway provides"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "A gateway gives your organization one place to manage:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -23,23 +25,10 @@ A gateway gives your organization one place to manage:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Audit logging**: log every model request for compliance"
+            },
+            {
+              "type": "context",
+              "content": "- **Provider switching**: change the provider in gateway configuration, without touching developer machines"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "All of these except provider switching apply whether the upstream is Anthropic's API or a [cloud provider](/en/third-party-integrations)."
+            },
+            {
+              "type": "added",
+              "content": "All of these except provider switching apply whether the upstream is Anthropic's API or a [cloud provider](/en/third-party-integrations). Provider switching without reconfiguring developer machines also depends on the gateway exposing a single [Anthropic-format endpoint](/en/llm-gateway-protocol#api-formats) regardless of upstream; a gateway that exposes a provider's own format ties the client configuration to that provider."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The tradeoff is that the gateway becomes infrastructure your organization operates. Claude Code adds capabilities with each release, and a gateway that doesn't forward them breaks the corresponding features, so the gateway product needs to be kept updated as Claude Code evolves. The [gateway protocol reference](/en/llm-gateway-protocol) covers what to forward."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## How a gateway works"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, Claude Code sends requests directly to Anthropic's API at `api.anthropic.com`. To route through a gateway, set `ANTHROPIC_BASE_URL` to the gateway's address; Claude Code sends the same requests there instead. The gateway authenticates the developer, attaches your organization's provider credential, and forwards each request to whichever provider it's configured for."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "`ANTHROPIC_BASE_URL` is the address variable for most gateways. A gateway that fronts a specific cloud provider, such as Bedrock, Vertex, Foundry, or the Claude Platform on AWS, uses that provider's base URL variable instead; [API formats](/en/llm-gateway-protocol#api-formats) lists which variable goes with each configuration."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Two kinds of credential are involved:"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Developer credentials**: each developer holds their own, issued by the gateway. It authenticates them to the gateway and identifies them in usage tracking"
+            },
+            {
+              "type": "removed",
+              "content": "- **Provider credential**: the gateway holds one credential for your provider account, shared by all forwarded traffic. You don't provision provider keys per developer"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The gateway forwards each request to the provider you configure, such as the Anthropic API, [Amazon Bedrock](/en/amazon-bedrock), [Google Vertex AI](/en/google-vertex-ai), [Microsoft Foundry](/en/microsoft-foundry), or the [Claude Platform on AWS](/en/claude-platform-on-aws). Because Claude Code talks only to the gateway, the provider choice is the gateway's configuration, not the client's."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Roll out a gateway"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When you're ready to roll out an LLM gateway to your organization, the sequence is the same whichever gateway product you choose:"
+            }
+          ]
+        },
+        {
+          "header": "@@ -51,27 +40,16 @@ When you're ready to roll out an LLM gateway to your organization, the sequence",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Roll out an LLM gateway for your organization](/en/llm-gateway-rollout) walks each step and shows the configuration files to distribute at each one. The gateway is one part of organization setup; for policy enforcement, usage visibility, and data handling decisions, see [Set up Claude Code for your organization](/en/admin-setup)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Third-party gateways"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Any gateway that exposes a [supported API format](/en/llm-gateway-protocol#api-formats) works. Anthropic doesn't endorse, maintain, or audit third-party gateway products. Deploy them following their own documentation, then complete the Claude Code side of the rollout with the [rollout steps](/en/llm-gateway-rollout)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Subscriptions and gateways"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "While a [gateway credential variable](/en/llm-gateway-connect#set-the-credential-variable) or `apiKeyHelper` is active, a developer's claude.ai subscription isn't used: the credential replaces the subscription login for that session, and the subscription's usage limits don't apply. That traffic is billed per token to whoever owns the credential the gateway forwards, such as your organization's Anthropic Console account, or your Bedrock, Vertex, or Foundry account when the gateway routes there."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Setting only `ANTHROPIC_BASE_URL`, without a gateway credential, doesn't replace the subscription. Requests still route through the gateway, but a saved claude.ai login remains the active credential, so its usage limits and billing apply. Gateways that pass this traffic on to Anthropic must forward the OAuth capability in `anthropic-beta`; see the [request headers reference](/en/llm-gateway-protocol#request-headers)."
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "## Configure separately from the gateway"
+            },
+            {
+              "type": "removed",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "A gateway determines where model API requests are sent. Model selection, the rest of Claude Code's network traffic, and corporate proxies are configured separately:"
+            },
+            {
+              "type": "added",
+              "content": "While a [gateway credential variable](/en/llm-gateway-connect#set-the-credential-variable) or `apiKeyHelper` is active, a developer's claude.ai subscription isn't used: the credential replaces the subscription login for that session, and the subscription's usage limits don't apply. That traffic is billed per token to whoever owns the credential the gateway forwards, such as your organization's Anthropic Console account, or your Bedrock, Agent Platform, or Foundry account when the gateway routes there."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "- **Model selection**: the base URL decides where requests go, not which model answers them. Pick the model with the `/model` command or the model environment variables; see [how to set your model](/en/model-config#setting-your-model)"
+            },
+            {
+              "type": "removed",
+              "content": "- **Client-side traffic**: version checks and optional client telemetry, both disabled with [`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`](/en/env-vars), and login traffic when a claude.ai or Console login is in use, go to Anthropic's update and authentication endpoints rather than the gateway. See [network access requirements](/en/network-config#network-access-requirements) for the domains"
+            },
+            {
+              "type": "removed",
+              "content": "- **Corporate proxies**: a proxy set with `HTTPS_PROXY` sits between Claude Code and every server it talks to, including the gateway. If your network requires a proxy, configure both; see [proxy configuration](/en/network-config#proxy-configuration)"
+            },
+            {
+              "type": "added",
+              "content": "[`ANTHROPIC_BASE_URL`](/en/llm-gateway-connect#set-the-base-url-and-credential) is the variable that points Claude Code at the gateway. Setting only that variable, without a gateway credential, doesn't replace the subscription. Requests still route through the gateway, but a saved claude.ai login remains the active credential, so its usage limits and billing apply. Gateways that pass this traffic on to Anthropic must forward the OAuth capability in `anthropic-beta`; see the [request headers reference](/en/llm-gateway-protocol#request-headers)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Related pages"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "- [Gateway overview](/en/gateways): how a gateway works and how to choose between Claude apps gateway and another product"
+            },
+            {
+              "type": "added",
+              "content": "- [Claude apps gateway](/en/claude-apps-gateway): Anthropic's self-hosted gateway with SSO sign-in and OTLP telemetry"
+            },
+            {
+              "type": "context",
+              "content": "- [Connect Claude Code to an LLM gateway](/en/llm-gateway-connect): set the base URL and credential on your own machine, with per-surface configuration and a troubleshooting table"
+            },
+            {
+              "type": "context",
+              "content": "- [Roll out an LLM gateway for your organization](/en/llm-gateway-rollout): the admin checklist for deploying a gateway, issuing developer credentials, and distributing managed settings"
+            },
+            {
+              "type": "context",
+              "content": "- [Gateway protocol reference](/en/llm-gateway-protocol): what Claude Code sends to a gateway, for operators configuring one, covering endpoints, headers to forward, and feature pass-through"
+            },
+            {
+              "type": "removed",
+              "content": "- [Set up Claude Code for your organization](/en/admin-setup): the wider rollout decisions a gateway is one part of, including policy enforcement and usage visibility"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "monitoring-usage.md",
+      "additions": 5,
+      "deletions": 3,
+      "explanation": "ゲートウェイを利用した使用状況のモニタリング手法に関する説明が更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -395,6 +395,8 @@ All metrics and events share these standard attributes:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `terminal.type` | Terminal type, such as `iTerm.app`, `vscode`, `cursor`, or `tmux` | Always included when detected |"
+            },
+            {
+              "type": "context",
+              "content": "| Keys from `OTEL_RESOURCE_ATTRIBUTES` | Custom attributes you set, such as `department` or `team.id`. See [Multi-team organization support](#multi-team-organization-support) | `OTEL_METRICS_INCLUDE_RESOURCE_ATTRIBUTES` (default: true) |"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "When Claude Code is signed in to a [Claude apps gateway](/en/claude-apps-gateway), the CLI stamps exports with the authenticated identity from the gateway session: `user.id` is the IdP subject rather than an anonymous installation identifier, `user.email` is the signed-in email, and `user.groups` carries IdP group membership as a comma-separated string. Each export also carries `identity.source: gateway-oidc`. The gateway identity is applied last, so `user.*` and `identity.*` keys set through `OTEL_RESOURCE_ATTRIBUTES` are ignored on gateway sessions."
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Events additionally include the following attributes. These are never attached to metrics because they would cause unbounded cardinality:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- `prompt.id`: UUID correlating a user prompt with all subsequent events until the next prompt. See [Event correlation attributes](#event-correlation-attributes)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -1061,11 +1063,11 @@ OpenTelemetry events are the audit data source for Claude Code activity. Every e",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Attribute actions to users"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The [standard attributes](#standard-attributes) on each event include the authenticated user's identity: `user.email`, `user.account_uuid`, `user.account_id`, and `organization.id` when signed in with a Claude account, plus the installation-scoped `user.id` and the per-session `session.id`."
+            },
+            {
+              "type": "added",
+              "content": "The [standard attributes](#standard-attributes) on each event include the authenticated user's identity: `user.email`, `user.account_uuid`, `user.account_id`, and `organization.id` when signed in with a Claude account, plus `user.id` and the per-session `session.id`. `user.id` is an installation-scoped identifier, except on [Claude apps gateway](/en/claude-apps-gateway) sessions, where it is the IdP subject from the gateway-issued token."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "MCP tool calls, Bash commands, and file edits are therefore attributed to the developer who started the session. Claude Code doesn't act under a separate service account; the identity recorded on each event is the developer's own Claude account."
+            },
+            {
+              "type": "added",
+              "content": "MCP tool calls, Bash commands, and file edits are therefore attributed to the developer who started the session. Claude Code doesn't act under a separate service account; the identity recorded on each event is the developer's own Claude account, or the developer's IdP identity on a [Claude apps gateway](/en/claude-apps-gateway) session."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When Claude Code authenticates with a direct API key, or against Bedrock, Vertex AI, or Microsoft Foundry, there is no Claude account in the session and only `user.id` and `session.id` are populated. In these deployments, attach user identity yourself with `OTEL_RESOURCE_ATTRIBUTES`, set per user through the [managed settings](#administrator-configuration) file or a launch wrapper:"
+            },
+            {
+              "type": "added",
+              "content": "When Claude Code authenticates with a direct API key, or against Bedrock, Vertex AI, or Microsoft Foundry, there is no Claude account in the session and only `user.id` and `session.id` are populated. In these deployments, attach user identity yourself with `OTEL_RESOURCE_ATTRIBUTES`, set per user through the [managed settings](#administrator-configuration) file or a launch wrapper. Claude apps gateway sessions need none of this: the CLI stamps the IdP identity automatically, as described in [Standard attributes](#standard-attributes)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export OTEL_RESOURCE_ATTRIBUTES=\"enduser.id=jdoe@example.com,enduser.directory_id=S-1-5-21-...\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "network-config.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "ネットワーク設定における証明書ストアの参照先に関する補足が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -48,7 +48,7 @@ For proxies requiring advanced authentication (NTLM, Kerberos, etc.), consider u",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## CA certificate store"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "By default, Claude Code trusts both its bundled Mozilla CA certificates and your operating system's certificate store. Enterprise TLS-inspection proxies such as CrowdStrike Falcon and Zscaler work without additional configuration when their root certificate is installed in the OS trust store."
+            },
+            {
+              "type": "added",
+              "content": "By default, Claude Code trusts both its bundled Mozilla CA certificates and your operating system's certificate store. Reading the OS store requires a runtime with `tls.getCACertificates`: the native installer always has it, and npm installs need Node 22.15 or later. On older Node versions, only the bundled set and `NODE_EXTRA_CA_CERTS` apply. Enterprise TLS-inspection proxies such as CrowdStrike Falcon and Zscaler work without additional configuration when their root certificate is installed in the OS trust store and the runtime can read it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "`CLAUDE_CODE_CERT_STORE` accepts a comma-separated list of sources. Recognized values are `bundled` for the Mozilla CA set shipped with Claude Code and `system` for the operating system trust store. The default is `bundled,system`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -108,7 +108,7 @@ If you install Claude Code through npm or manage your own binary distribution, e",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude Code also sends optional operational telemetry by default, which you can disable with environment variables. See [Telemetry services](/en/data-usage#telemetry-services) for how to disable it before finalizing your allowlist."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When using [Amazon Bedrock](/en/amazon-bedrock), [Google Vertex AI](/en/google-vertex-ai), or [Microsoft Foundry](/en/microsoft-foundry), model traffic and authentication go to your provider instead of `api.anthropic.com`, `claude.ai`, or `platform.claude.com`. The WebFetch tool still calls `api.anthropic.com` for its [domain safety check](/en/data-usage#webfetch-domain-safety-check) unless you set `skipWebFetchPreflight: true` in [settings](/en/settings)."
+            },
+            {
+              "type": "added",
+              "content": "When using [Amazon Bedrock](/en/amazon-bedrock), [Google Vertex AI](/en/google-vertex-ai), [Microsoft Foundry](/en/microsoft-foundry), or a signed-in [Claude apps gateway](/en/claude-apps-gateway) session, model traffic and authentication go to your provider or gateway instead of `api.anthropic.com`, `claude.ai`, or `platform.claude.com`. The WebFetch tool still calls `api.anthropic.com` for its [domain safety check](/en/data-usage#webfetch-domain-safety-check) unless you set `skipWebFetchPreflight: true` in [settings](/en/settings)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "[Claude Code on the web](/en/claude-code-on-the-web) and [Code Review](/en/code-review) connect to your repositories from Anthropic-managed infrastructure. If your GitHub Enterprise Cloud organization restricts access by IP address, enable [IP allow list inheritance for installed GitHub Apps](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#allowing-access-by-github-apps). The Claude GitHub App registers its IP ranges, so enabling this setting allows access without manual configuration. To [add the ranges to your allow list manually](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#adding-an-allowed-ip-address) instead, or to configure other firewalls, see the [Anthropic API IP addresses](https://platform.claude.com/docs/en/api/ip-addresses)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 4,
+      "deletions": 4,
+      "explanation": "権限モードの設定に関連するリンクやプロバイダー固有の記述が修正されました。",
+      "hunks": [
+        {
+          "header": "@@ -159,8 +159,8 @@ Auto mode is available only when your account meets all of these requirements:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Plan**: All plans."
+            },
+            {
+              "type": "context",
+              "content": "- **Owner**: on Team and Enterprise, an Owner must enable it in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) before users can turn it on. Administrators can also lock it off by setting `permissions.disableAutoMode` to `\"disable\"` in [managed settings](/en/permissions#managed-settings)."
+            },
+            {
+              "type": "removed",
+              "content": "- **Model**: on the Anthropic API, Claude Opus 4.6 or later, or Sonnet 4.6. On Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry, only Claude Opus 4.7 and Opus 4.8. Older models, including Sonnet 4.5, Opus 4.5, Haiku, and claude-3 models, are not supported on any provider."
+            },
+            {
+              "type": "removed",
+              "content": "- **Provider**: available by default on the Anthropic API. On Amazon Bedrock, Google Cloud Vertex AI, and Microsoft Foundry, auto mode is off until you [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)."
+            },
+            {
+              "type": "added",
+              "content": "- **Model**: on the Anthropic API, Claude Opus 4.6 or later, or Sonnet 4.6. On Amazon Bedrock, Google Cloud Vertex AI, Microsoft Foundry, and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, only Claude Opus 4.7 and Opus 4.8. Older models, including Sonnet 4.5, Opus 4.5, Haiku, and claude-3 models, are not supported on any provider."
+            },
+            {
+              "type": "added",
+              "content": "- **Provider**: available by default on the Anthropic API. On Amazon Bedrock, Google Cloud Vertex AI, Microsoft Foundry, and signed-in Claude apps gateway sessions, auto mode is off until you [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports auto mode as unavailable, one of these requirements is unmet; this is not a transient outage. A separate message that names a model and says auto mode \"cannot determine the safety\" of an action is a transient classifier outage; see the [error reference](/en/errors#auto-mode-cannot-determine-the-safety-of-an-action)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -168,7 +168,7 @@ If you set `defaultMode: \"auto\"` in [settings](/en/settings#available-settings)",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Enable auto mode on Bedrock, Vertex AI, or Foundry"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud Vertex AI](/en/google-vertex-ai), and [Microsoft Foundry](/en/microsoft-foundry), auto mode does not appear in the `Shift+Tab` cycle until `CLAUDE_CODE_ENABLE_AUTO_MODE` is set to `1`. The variable works in Claude Code v2.1.158 and later. Only Claude Opus 4.7 and Opus 4.8 are supported on these providers."
+            },
+            {
+              "type": "added",
+              "content": "On [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud Vertex AI](/en/google-vertex-ai), [Microsoft Foundry](/en/microsoft-foundry), and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, auto mode does not appear in the `Shift+Tab` cycle until `CLAUDE_CODE_ENABLE_AUTO_MODE` is set to `1`. The variable works in Claude Code v2.1.158 and later. Only Claude Opus 4.7 and Opus 4.8 are supported on these providers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To enable it for one developer, add the variable to the `env` block in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -186,7 +186,7 @@ Once the variable is set, auto mode appears in the `Shift+Tab` cycle for every s",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To prevent developers from enabling auto mode, set `disableAutoMode` to `\"disable\"` in managed settings. This overrides the enable variable."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "If you connect through an [LLM gateway](/en/llm-gateway) configured with `ANTHROPIC_BASE_URL`, auto mode may already be reachable without the enable variable, because the gateway routes requests through the Anthropic API. The `disableAutoMode` setting applies the same way in that configuration."
+            },
+            {
+              "type": "added",
+              "content": "If you connect through an [LLM gateway](/en/llm-gateway) configured with `ANTHROPIC_BASE_URL`, auto mode may already be reachable without the enable variable, because the gateway routes requests through the Anthropic API. This does not apply to a signed-in [Claude apps gateway](/en/claude-apps-gateway) session, which is its own provider class and requires the enable variable. The `disableAutoMode` setting applies the same way in either configuration."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### What the classifier blocks by default"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permissions.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "アクセス許可に関するドキュメント内の内部リンクが更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -381,7 +381,7 @@ Commands that won't run sandboxed, such as excluded commands, respect the bare `",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Managed settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "For organizations that need centralized control over Claude Code configuration, administrators can deploy managed settings that can't be overridden by user or project settings. These policy settings follow the same format as regular settings files and can be delivered through MDM/OS-level policies, managed settings files, or [server-managed settings](/en/server-managed-settings). See [settings files](/en/settings#settings-files) for delivery mechanisms and file locations."
+            },
+            {
+              "type": "added",
+              "content": "For organizations that need centralized control over Claude Code configuration, administrators can deploy managed settings that can't be overridden by user or project settings. These policy settings follow the same format as regular settings files and can be delivered through MDM/OS-level policies, managed settings files, [server-managed settings](/en/server-managed-settings), or a self-hosted [Claude apps gateway](/en/claude-apps-gateway). See [settings files](/en/settings#settings-files) for delivery mechanisms and file locations."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Managed-only settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "quickstart.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "クイックスタートガイドにゲートウェイ関連の参照情報が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -85,6 +85,7 @@ You can log in using any of these account types:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- [Claude Pro, Max, Team, or Enterprise](https://claude.com/pricing?utm_source=claude_code\\&utm_medium=docs\\&utm_content=quickstart_login) (recommended)"
+            },
+            {
+              "type": "context",
+              "content": "- [Claude Console](https://console.anthropic.com/) (API access with pre-paid credits). On first login, a \"Claude Code\" workspace is automatically created in the Console for centralized cost tracking."
+            },
+            {
+              "type": "context",
+              "content": "- [Amazon Bedrock, Google Vertex AI, or Microsoft Foundry](/en/third-party-integrations) (enterprise cloud providers)"
+            },
+            {
+              "type": "added",
+              "content": "- A self-hosted [Claude apps gateway](/en/claude-apps-gateway), if your organization runs one: your admin pre-configures the gateway URL, and `/login` opens directly on the **Cloud gateway** screen for you to sign in with corporate SSO"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Once logged in, your credentials are stored and you won't need to log in again."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "server-managed-settings.md",
+      "additions": 5,
+      "deletions": 2,
+      "explanation": "サーバー管理設定におけるポリシーヘルパーの優先順位と動作について詳細が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -126,7 +126,7 @@ Server-managed settings have the following limitations:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Server-managed settings and [endpoint-managed settings](/en/settings#settings-files) both occupy the highest tier in the Claude Code [settings hierarchy](/en/settings#settings-precedence). No other settings level can override them, including command line arguments."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Within the managed tier, the first source that delivers a non-empty configuration wins. Server-managed settings are checked first, then endpoint-managed settings. Sources do not merge: if server-managed settings deliver any keys at all, endpoint-managed settings are ignored entirely. If server-managed settings deliver nothing, endpoint-managed settings apply."
+            },
+            {
+              "type": "added",
+              "content": "Within the managed tier, a configured [`policyHelper`](/en/settings#compute-managed-settings-with-a-policy-helper) preempts every other managed source, including server-managed settings: its output becomes the only managed configuration for the run. Otherwise the first source that delivers a non-empty configuration wins. Server-managed settings are checked first, then endpoint-managed settings. Sources do not merge: if server-managed settings deliver any keys at all, other endpoint-managed settings are ignored. One exception applies: a small set of [cross-source lock keys](/en/settings#settings-precedence), such as the sandbox allowlist locks, is honored when any admin-controlled managed source sets them; the user-writable HKCU registry tier is excluded. If server-managed settings deliver nothing, endpoint-managed settings apply."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If you clear your server-managed configuration in the admin console with the intent of falling back to an endpoint-managed plist or registry policy, be aware that [cached settings](#fetch-and-caching-behavior) persist on client machines until the next successful fetch. Run `/status` to see which managed source is active."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -187,6 +187,7 @@ Certain settings that could pose security risks require explicit user approval b",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- **Shell command settings**: settings that execute shell commands"
+            },
+            {
+              "type": "context",
+              "content": "- **Custom environment variables**: variables not in the known safe allowlist"
+            },
+            {
+              "type": "context",
+              "content": "- **Hook configurations**: any hook definition"
+            },
+            {
+              "type": "added",
+              "content": "- **Managed CLAUDE.md content**: a `claudeMd` value delivered through managed settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "When these settings are present, users see a security dialog explaining what is being configured. Users must approve to proceed. If a user rejects the settings, Claude Code exits."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -200,7 +201,9 @@ Server-managed settings require a direct connection to `api.anthropic.com`, and",
+          "lines": [
+            {
+              "type": "context",
+              "content": "- Google Vertex AI"
+            },
+            {
+              "type": "context",
+              "content": "- Microsoft Foundry"
+            },
+            {
+              "type": "context",
+              "content": "- [Claude Platform on AWS](/en/claude-platform-on-aws)"
+            },
+            {
+              "type": "removed",
+              "content": "- Custom API endpoints via `ANTHROPIC_BASE_URL` or [LLM gateways](/en/llm-gateway)"
+            },
+            {
+              "type": "added",
+              "content": "- Custom API endpoints via `ANTHROPIC_BASE_URL` or third-party [LLM gateways](/en/llm-gateway)"
+            },
+            {
+              "type": "added",
+              "content": ""
+            },
+            {
+              "type": "added",
+              "content": "For Bedrock, Vertex AI, and Foundry deployments, a self-hosted [Claude apps gateway](/en/claude-apps-gateway) provides the equivalent remote managed-settings delivery: gateway-signed-in clients fetch managed settings from the gateway instead of `api.anthropic.com`. The failure semantics differ at startup: a gateway client that can't reach the gateway exits with an error instead of falling back to cached settings, while the hourly background refresh is fail-open on both channels."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## Audit logging"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "settings.md",
+      "additions": 6,
+      "deletions": 5,
+      "explanation": "設定の優先順位に関する表が更新され、新しいロックキーやポリシーヘルパーの仕組みが反映されました。",
+      "hunks": [
+        {
+          "header": "@@ -88,7 +88,7 @@ Code through hierarchical settings:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "  - `.claude/settings.local.json` for settings that are not checked in, useful for personal preferences and experimentation. When Claude Code creates `.claude/settings.local.json`, it configures git to ignore the file. If you create the file yourself, add it to your gitignore manually."
+            },
+            {
+              "type": "context",
+              "content": "- **Managed settings**: For organizations that need centralized control, Claude Code supports multiple delivery mechanisms for managed settings. All use the same JSON format and cannot be overridden by user or project settings:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "  - **Server-managed settings**: delivered from Anthropic's servers via the Claude.ai admin console. See [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "added",
+              "content": "  - **Server-managed settings**: delivered remotely at sign-in, either from Anthropic's servers via the claude.ai admin console or from a self-hosted [Claude apps gateway](/en/claude-apps-gateway). See [server-managed settings](/en/server-managed-settings)."
+            },
+            {
+              "type": "context",
+              "content": "  - **MDM/OS-level policies**: delivered through native device management on macOS and Windows:"
+            },
+            {
+              "type": "context",
+              "content": "    - macOS: `com.anthropic.claudecode` managed preferences domain. The plist's top-level keys mirror `managed-settings.json`, with nested settings as dictionaries and arrays as plist arrays. Deploy via configuration profiles in Jamf, Iru (Kandji), or similar MDM tools."
+            },
+            {
+              "type": "context",
+              "content": "    - Windows: `HKLM\\SOFTWARE\\Policies\\ClaudeCode` registry key with a `Settings` value (REG\\_SZ or REG\\_EXPAND\\_SZ) containing JSON (deployed via Group Policy or Intune)"
+            }
+          ]
+        },
+        {
+          "header": "@@ -249,7 +249,8 @@ This tolerance applies only to managed settings. User, project, and local settin",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| `fileCheckpointingEnabled` | **Default**: `true`. Snapshot files before each edit so [`/rewind`](/en/checkpointing) can restore them. Appears in `/config` as **Rewind code (checkpoints)**. To disable via environment variable, set [`CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING`](/en/env-vars) in `env` | `false` |"
+            },
+            {
+              "type": "context",
+              "content": "| `fileSuggestion` | Configure a custom script for `@` file autocomplete. See [File suggestion settings](#file-suggestion-settings) | `{\"type\": \"command\", \"command\": \"~/.claude/file-suggestion.sh\"}` |"
+            },
+            {
+              "type": "context",
+              "content": "| `footerLinksRegexes` | Render extra clickable badges in the footer when a regex matches turn output. Each entry has a `pattern`, a `url` template with `{name}` placeholders filled from named capture groups, and an optional `label`. Read from user, `--settings` flag, and managed settings only. See [Footer link badges](#footer-link-badges) for URL constraints, scheme allowlist, and limits. Requires Claude Code v2.1.176 or later | `[{\"type\": \"regex\", \"pattern\": \"\\\\b(?<key>PROJ-\\\\d+)\\\\b\", \"url\": \"https://issues.example.com/browse/{key}\", \"label\": \"{key}\"}]` |"
+            },
+            {
+              "type": "removed",
+              "content": "| `forceLoginMethod` | Use `claudeai` to restrict login to Claude.ai accounts, `console` to restrict login to Claude Console accounts. When set in managed settings, sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup, since neither value can be satisfied without first-party OAuth. Third-party provider sessions such as Bedrock, Vertex, and Foundry are not blocked: they authenticate against your cloud provider rather than Anthropic | `claudeai` |"
+            },
+            {
+              "type": "added",
+              "content": "| `forceLoginMethod` | Use `claudeai` to restrict login to Claude.ai accounts, `console` to restrict login to Claude Console accounts, or `gateway` to restrict login to a cloud gateway; see [Claude apps gateway](/en/claude-apps-gateway). When set to any value in managed settings, sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup, since an environment credential cannot satisfy the required login method. Third-party provider sessions such as Bedrock, Vertex, and Foundry are not blocked: they authenticate against your cloud provider rather than Anthropic | `claudeai` |"
+            },
+            {
+              "type": "added",
+              "content": "| `forceLoginGatewayUrl` | Pre-fills and locks the gateway URL on the `/login` Cloud gateway screen. Either this key or `forceLoginMethod: \"gateway\"` surfaces that screen; set both so the URL is filled in. Honored only at the managed policy tier; ignored in user and project settings. See [Claude apps gateway](/en/claude-apps-gateway#set-the-gateway-url) | `\"https://claude-gateway.example.com\"` |"
+            },
+            {
+              "type": "context",
+              "content": "| `forceLoginOrgUUID` | Require login to belong to a specific Anthropic organization. Accepts a single UUID string, which also pre-selects that organization during login, or an array of UUIDs where any listed organization is accepted without pre-selection. When set in managed settings, login fails if the authenticated account does not belong to a listed organization, and sessions authenticated by `ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, or `apiKeyHelper` are blocked at startup since organization membership cannot be verified for them. Third-party provider sessions such as Bedrock, Vertex, and Foundry are not blocked: use your cloud IAM to restrict which cloud accounts can be used. An empty array fails closed and blocks login with a misconfiguration message | `\"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"` or `[\"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\", \"yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy\"]` |"
+            },
+            {
+              "type": "context",
+              "content": "| `forceRemoteSettingsRefresh` | (Managed settings only) Block CLI startup until remote managed settings are freshly fetched from the server. If the fetch fails, the CLI exits rather than continuing with cached or no settings. When not set, startup continues without waiting for remote settings. See [fail-closed enforcement](/en/server-managed-settings#enforce-fail-closed-startup) | `true` |"
+            },
+            {
+              "type": "context",
+              "content": "| `gcpAuthRefresh` | Custom script that refreshes GCP Application Default Credentials when they expire or cannot be loaded. See [advanced credential configuration](/en/google-vertex-ai#advanced-credential-configuration) | `gcloud auth application-default login` |"
+            }
+          ]
+        },
+        {
+          "header": "@@ -603,7 +604,7 @@ The helper writes a JSON envelope to stdout. Put the settings under a `managedSe",
+          "lines": [
+            {
+              "type": "context",
+              "content": "}"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "When the helper emits `managedSettings`, that object replaces the file-based managed settings for the run. When the helper exits non-zero at startup, Claude Code prints the error and refuses to start, so a helper that needs outage resilience should serve from its own cache and exit `0`."
+            },
+            {
+              "type": "added",
+              "content": "When the helper emits `managedSettings`, that object becomes the only managed settings source for the run, taking precedence over remote, MDM, and file-based sources. When the helper exits non-zero at startup, Claude Code prints the error and refuses to start, so a helper that needs outage resilience should serve from its own cache and exit `0`."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Settings precedence"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -612,7 +613,7 @@ Settings apply in order of precedence. From highest to lowest:",
+          "lines": [
+            {
+              "type": "context",
+              "content": "1. **Managed settings** ([server-managed](/en/server-managed-settings), [MDM/OS-level policies](#configuration-scopes), or [managed settings](/en/settings#settings-files))"
+            },
+            {
+              "type": "context",
+              "content": "   - Policies deployed by IT through server delivery, MDM configuration profiles, registry policies, or managed settings files"
+            },
+            {
+              "type": "context",
+              "content": "   - Cannot be overridden by any other level, including command line arguments"
+            },
+            {
+              "type": "removed",
+              "content": "   - Within the managed tier, precedence is: server-managed > MDM/OS-level policies > file-based (`managed-settings.d/*.json` + `managed-settings.json`) > HKCU registry (Windows only). Only one managed source is used; sources do not merge across tiers. Within the file-based tier, drop-in files and the base file are merged together."
+            },
+            {
+              "type": "added",
+              "content": "   - Within the managed tier, precedence is: [`policyHelper`](#compute-managed-settings-with-a-policy-helper) output, which when configured is the only managed source used > remote (claude.ai [server-managed](/en/server-managed-settings) or [Claude apps gateway](/en/claude-apps-gateway)-delivered) > MDM/OS-level policies > file-based (`managed-settings.d/*.json` + `managed-settings.json`) > HKCU registry (Windows only). Only one managed source is used; sources do not merge across tiers, with one exception: the sandbox lock keys `sandbox.network.allowManagedDomainsOnly` and `sandbox.filesystem.allowManagedReadPathsOnly`, with their associated allowlists, `allowAllClaudeAiMcps`, and the sandbox binary paths `sandbox.bwrapPath` and `sandbox.socatPath` are honored when any admin-controlled managed source sets them; the user-writable HKCU tier is excluded. Within the file-based tier, drop-in files and the base file are merged together."
+            },
+            {
+              "type": "context",
+              "content": "   - Embedding hosts such as Claude Desktop can supply policy via the SDK `managedSettings` option. By default this is ignored when an admin-deployed managed source is present: server-managed settings, an MDM or OS-level policy, or a managed settings file. The user-writable HKCU registry fallback does not count as an admin-deployed source. Administrators can opt in by setting [`parentSettingsBehavior`](#available-settings) to `\"merge\"`. The embedder's values are filtered so they can tighten managed policy but not loosen it."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "2. **Command line arguments**"
+            }
+          ]
+        },
+        {
+          "header": "@@ -640,7 +641,7 @@ Two array settings do not merge this way:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Verify active settings"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Run `/status` inside Claude Code to see which settings sources are active. Inside the menu, the **Status** tab includes a `Setting sources` line that lists each layer Claude Code loaded for the current session, such as `User settings` or `Project local settings`. When [managed settings](/en/admin-setup#decide-how-settings-reach-devices) are in effect, the entry shows the delivery channel in parentheses, for example `Enterprise managed settings (remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. A layer appears in the list only when that source is loaded with at least one key, so an empty list means no settings sources were found."
+            },
+            {
+              "type": "added",
+              "content": "Run `/status` inside Claude Code to see which settings sources are active. Inside the menu, the **Status** tab includes a `Setting sources` line that lists each layer Claude Code loaded for the current session, such as `User settings` or `Project local settings`. When [managed settings](/en/admin-setup#decide-how-settings-reach-devices) are in effect, the entry shows the delivery channel in parentheses, for example `Enterprise managed settings (remote)`, `(plist)`, `(HKLM)`, `(HKCU)`, or `(file)`. The `remote` channel covers both claude.ai server-managed settings and [Claude apps gateway](/en/claude-apps-gateway)-delivered policies. A layer appears in the list only when that source is loaded with at least one key, so an empty list means no settings sources were found."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `Setting sources` line confirms which sources are being read. It does not show which layer supplied each individual key. The **Config** tab in the same dialog is an editor for a fixed set of toggles such as theme and verbose output, not a view of your `settings.json` contents."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "third-party-integrations.md",
+      "additions": 1,
+      "deletions": 0,
+      "explanation": "サードパーティ製クラウドプロバイダーとの統合におけるゲートウェイの役割が追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -179,6 +179,7 @@ Select a deployment option to view setup instructions:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "* [Claude for Teams or Enterprise](/en/authentication#claude-for-teams-or-enterprise)"
+            },
+            {
+              "type": "context",
+              "content": "* [Anthropic Console](/en/authentication#claude-console-authentication)"
+            },
+            {
+              "type": "added",
+              "content": "* [Claude apps gateway](/en/claude-apps-gateway), a self-hosted gateway that adds IdP sign-in in front of Amazon Bedrock, Google Vertex AI, Microsoft Foundry, or the Anthropic API"
+            },
+            {
+              "type": "context",
+              "content": "* [Amazon Bedrock](/en/amazon-bedrock)"
+            },
+            {
+              "type": "context",
+              "content": "* [Claude Platform on AWS](/en/claude-platform-on-aws)"
+            },
+            {
+              "type": "context",
+              "content": "* [Google Vertex AI](/en/google-vertex-ai)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
