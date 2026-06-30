@@ -48,7 +48,7 @@ export HTTPS_PROXY=http://username:password@proxy.example.com:8080
 
 CA 証明書ストア
 
-デフォルトでは、Claude Code はバンドルされた Mozilla CA 証明書とオペレーティングシステムの証明書ストアの両方を信頼しています。CrowdStrike Falcon や Zscaler などのエンタープライズ TLS インスペクションプロキシは、ルート証明書が OS 信頼ストアにインストールされている場合、追加の設定なしで動作します。
+デフォルトでは、Claude Code はバンドルされた Mozilla CA 証明書とオペレーティングシステムの証明書ストアの両方を信頼しています。OS ストアを読み取るには、`tls.getCACertificates` を備えたランタイムが必要です。ネイティブインストーラーは常にこれを備えており、npm インストールは Node 22.15 以降が必要です。古い Node バージョンでは、バンドルされたセットと `NODE_EXTRA_CA_CERTS` のみが適用されます。CrowdStrike Falcon や Zscaler などのエンタープライズ TLS インスペクションプロキシは、ルート証明書が OS 信頼ストアにインストールされており、ランタイムがそれを読み取ることができる場合、追加の設定なしで動作します。
 
 `CLAUDE_CODE_CERT_STORE` はカンマ区切りのソースリストを受け入れます。認識される値は、Claude Code に付属する Mozilla CA セットの場合は `bundled`、オペレーティングシステムの信頼ストアの場合は `system` です。デフォルトは `bundled,system` です。
 
@@ -108,7 +108,7 @@ npm を通じて Claude Code をインストールするか、独自のバイナ
 
 Claude Code はデフォルトでオプションの運用テレメトリを送信します。これは環境変数で無効にできます。ホワイトリストを最終化する前に、[テレメトリサービス](/ja/data-usage#telemetry-services) を参照して無効にする方法を確認してください。
 
-[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、または [Microsoft Foundry](/ja/microsoft-foundry) を使用する場合、モデルトラフィックと認証は `api.anthropic.com`、`claude.ai`、または `platform.claude.com` ではなくプロバイダーに送信されます。WebFetch ツールは、[settings](/ja/settings) で `skipWebFetchPreflight: true` を設定しない限り、[ドメイン安全性チェック](/ja/data-usage#webfetch-domain-safety-check) のために `api.anthropic.com` を呼び出します。
+[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、[Microsoft Foundry](/ja/microsoft-foundry)、または署名済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションを使用する場合、モデルトラフィックと認証は `api.anthropic.com`、`claude.ai`、または `platform.claude.com` ではなくプロバイダーまたはゲートウェイに送信されます。WebFetch ツールは、[settings](/ja/settings) で `skipWebFetchPreflight: true` を設定しない限り、[ドメイン安全性チェック](/ja/data-usage#webfetch-domain-safety-check) のために `api.anthropic.com` を呼び出します。
 
 [Claude Code on the web](/ja/claude-code-on-the-web) および [Code Review](/ja/code-review) は、Anthropic が管理するインフラストラクチャからリポジトリに接続します。GitHub Enterprise Cloud 組織が IP アドレスによるアクセスを制限している場合は、[インストール済み GitHub Apps の IP 許可リスト継承を有効にします](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#allowing-access-by-github-apps)。Claude GitHub App は IP 範囲を登録するため、この設定を有効にするとマニュアル設定なしでアクセスが可能になります。代わりに[範囲を許可リストに手動で追加する](https://docs.github.com/en/enterprise-cloud@latest/organizations/keeping-your-organization-secure/managing-security-settings-for-your-organization/managing-allowed-ip-addresses-for-your-organization#adding-an-allowed-ip-address)場合、または他のファイアウォールを設定する場合は、[Anthropic API IP アドレス](https://platform.claude.com/docs/en/api/ip-addresses) を参照してください。
 

@@ -64,7 +64,11 @@ Claude Code には、特定のタスク向けの追加のヘルパーエージ�
 | statusline-setup | Sonnet | `/statusline` を実行してステータスラインを設定する場合 |
 | claude-code-guide | Haiku | Claude Code 機能について質問する場合 |
 
-組み込みサブエージェントは常にインタラクティブセッションに登録されます。特定の組み込みタイプをブロックするには、[特定のサブエージェントを無効にする](#disable-specific-subagents)に示されているように `permissions.deny` に追加します。Claude がサブエージェントに委譲することを防ぐには、[`permissions.deny`](/ja/permissions#tool-specific-permission-rules)で `Agent` ツール自体を拒否します。[非インタラクティブモード](/ja/headless)および [Agent SDK](/ja/agent-sdk/overview)では、[`CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1`](/ja/env-vars)を設定して、すべての組み込みタイプを削除し、独自のものだけを提供します。
+組み込みサブエージェントは常にインタラクティブセッションに登録されます。これらを制限するには：
+
+- 特定の組み込みタイプをブロックするには、[特定のサブエージェントを無効にする](#disable-specific-subagents)に示されているように `permissions.deny` に追加します。
+- Claude がサブエージェントに委譲することを防ぐには、[`permissions.deny`](/ja/permissions#tool-specific-permission-rules)で `Agent` ツール自体を拒否します。
+- [非インタラクティブモード](/ja/headless)および [Agent SDK](/ja/agent-sdk/overview)では、[`CLAUDE_AGENT_SDK_DISABLE_BUILTIN_AGENTS=1`](/ja/env-vars)を設定して、すべての組み込みタイプを削除し、独自のものだけを提供します。
 
 これらの組み込みサブエージェント以外に、カスタムプロンプト、ツール制限、権限モード、hooks、および skills を使用して独自のサブエージェントを作成できます。以下のセクションでは、開始方法とサブエージェントのカスタマイズ方法を示します。
 
@@ -76,7 +80,7 @@ Claude Code には、特定のタスク向けの追加のヘルパーエージ�
 
 Claude Code で、以下を実行します：
 
-```text theme={null}
+```text wrap theme={null}
 /agents
 ```
 
@@ -84,7 +88,7 @@ Claude Code で、以下を実行します：
 
 **Generate with Claude** を選択します。プロンプトが表示されたら、サブエージェントを説明します：
 
-```text theme={null}
+```text wrap theme={null}
 A code improvement agent that scans files and suggests improvements
 for readability, performance, and best practices. It should explain
 each issue, show the current code, and provide an improved version.
@@ -102,7 +106,7 @@ Claude は識別子、説明、およびシステムプロンプトを生成し�
 
 設定概要を確認します。`s` または `Enter` を押して保存するか、`e` を押してエディターで保存して編集します。サブエージェントはすぐに利用可能になります。試してみます：
 
-```text theme={null}
+```text wrap theme={null}
 Use the code-improver agent to suggest improvements in this project
 ```
 
@@ -146,7 +150,7 @@ Markdown ファイルとして手動でサブエージェントを作成した�
 
 **ユーザーサブエージェント** (`~/.claude/agents/`)は、すべてのプロジェクトで利用可能な個人用サブエージェントです。
 
-Claude Code は `.claude/agents/` と `~/.claude/agents/` を再帰的にスキャンするため、`agents/review/` や `agents/research/` などのサブフォルダに定義を整理できます。サブディレクトリパスはサブエージェントの識別方法や呼び出し方法に影響しません。これは `name` フロントマターフィールドからのみ識別されるためです。`name` 値をツリー全体で一意に保ちます：1 つのスコープ内の 2 つのファイルが同じ名前を宣言する場合、Claude Code は 1 つを保持し、警告なしに他を破棄します。
+Claude Code は `.claude/agents/` と `~/.claude/agents/` を再帰的にスキャンするため、`agents/review/` や `agents/research/` などのサブフォルダに定義を整理できます。サブディレクトリパスはサブエージェントの識別方法や呼び出し方法に影響しません。これは `name` フロントマターフィールドからのみ識別されるためです。`name` 値をツリー全体で一意に保ちます：1 つのスコープ内の 2 つのファイルが同じ名前を宣言する場合、Claude Code は 1 つを保持し、警告なしに他を破棄します。v2.1.196 以降、`/doctor` を実行すると、同じスコープの重複するエージェント名が報告され、どの定義がアクティブであるかが表示されます。
 
 プラグイン `agents/` ディレクトリも再帰的にスキャンされます。プロジェクトおよびユーザースコープとは異なり、プラグインの `agents/` ディレクトリ内のサブフォルダは[スコープ付き識別子](#invoke-subagents-explicitly)の一部になります：プラグイン `my-plugin` の `agents/review/security.md` にあるファイルは `my-plugin:review:security` として登録されます。
 
@@ -236,7 +240,7 @@ specific, actionable feedback on quality, security, and best practices.
 | `background` | いいえ | `true` に設定して、このサブエージェントを常に[バックグラウンドタスク](#run-subagents-in-foreground-or-background)として実行します。デフォルト：`false` |
 | `effort` | いいえ | このサブエージェントがアクティブな場合の努力レベル。セッション努力レベルをオーバーライドします。デフォルト：セッションから継承。オプション：`low`、`medium`、`high`、`xhigh`、`max`。利用可能なレベルはモデルに依存します |
 | `isolation` | いいえ | `worktree` に設定して、サブエージェントを一時的な[git worktree](/ja/worktrees)で実行し、リポジトリの分離されたコピーを提供します。デフォルトでは[デフォルトブランチ](/ja/worktrees#choose-the-base-branch)から分岐し、親セッションの `HEAD` ではなく、サブエージェントが変更を加えない場合、worktree は自動的にクリーンアップされます |
-| `color` | いいえ | タスクリストとトランスクリプトでサブエージェントの表示色。`red`、`blue`、`green`、`yellow`、`purple`、`orange`、`pink`、または `cyan` を受け入れます |
+| `color` | いいえ | タスクリストとトランスクリプトでサブエージェントの表示カラー。`red`、`blue`、`green`、`yellow`、`purple`、`orange`、`pink`、または `cyan` を受け入れます |
 | `initialPrompt` | いいえ | このエージェントがメインセッションエージェント（`--agent` または `agent` 設定を通じて）として実行される場合、最初のユーザーターンとして自動送信されます。[コマンド](/ja/commands)および[スキル](/ja/skills)が処理されます。ユーザーが提供するプロンプトの前に付加されます |
 
 モデルを選択する
@@ -244,7 +248,7 @@ specific, actionable feedback on quality, security, and best practices.
 `model` フィールドは、サブエージェントが使用する[AI モデル](/ja/model-config)を制御します：
 
 - **モデルエイリアス**：利用可能なエイリアスの 1 つを使用します：`sonnet`、`opus`、`haiku`、または `fable`
-- **完全なモデル ID**：`claude-opus-4-8` または `claude-sonnet-4-6` などの完全なモデル ID を使用します。`--model` フラグと同じ値を受け入れます
+- **完全なモデル ID**：`claude-opus-4-8` または `claude-sonnet-5` などの完全なモデル ID を使用します。`--model` フラグと同じ値を受け入れます
 - **inherit**：メイン会話と同じモデルを使用します
 - **省略**：指定されていない場合、デフォルトは `inherit`（メイン会話と同じモデルを使用）です
 
@@ -254,6 +258,8 @@ Claude がサブエージェントを呼び出すときに、その特定の呼�
 2. 呼び出しごとの `model` パラメーター
 3. サブエージェント定義の `model` フロントマター
 4. メイン会話のモデル
+
+v2.1.196 以降、`CLAUDE_CODE_SUBAGENT_MODEL` を `inherit` に設定することは、設定しないのと同じです：解決は呼び出しごとの `model` パラメーター、その後フロントマターで続きます。以前のバージョンでは、`inherit` はサブエージェントをメイン会話のモデルに強制し、これらの両方のソースを無視していました。
 
 環境変数、呼び出しごとのパラメーター、およびフロントマター値は、組織の [`availableModels`](/ja/model-config#restrict-model-selection)許可リストに対してチェックされます。除外されたモデルに解決される値は使用されず、サブエージェントは継承されたモデルで実行されます。
 
@@ -519,8 +525,8 @@ claude --disallowedTools "Agent(Explore)"
 
 サブエージェントは、サブエージェントのライフサイクル中に実行される[hooks](/ja/hooks)を定義できます。hooks を設定する方法は 2 つあります：
 
-1. **サブエージェントのフロントマター内**：そのサブエージェントがアクティブな間のみ実行される hooks を定義します
-2. **`settings.json` 内**：サブエージェントが開始または停止するときにメインセッションで実行される hooks を定義します
+- **サブエージェントのフロントマター内**：そのサブエージェントがアクティブな間のみ実行される hooks を定義します
+- **`settings.json` 内**：サブエージェントが開始または停止するときにメインセッションで実行される hooks を定義します
 
 サブエージェントフロントマター内の hooks
 
@@ -567,7 +573,9 @@ hooks:
 | `SubagentStart` | エージェント型名 | サブエージェントが実行を開始する場合 |
 | `SubagentStop` | エージェント型名 | サブエージェントが完了する場合 |
 
-両方のイベントは、名前でエージェント型をターゲットにするマッチャーをサポートします。この例は、`db-agent` サブエージェントが開始するときのみセットアップスクリプトを実行し、サブエージェントが停止するときにクリーンアップスクリプトを実行します：
+両方のイベントは、名前でエージェント型をターゲットにするマッチャーをサポートします。マッチャー値は、プロジェクトレベルおよびユーザーレベルのサブエージェントの場合はエージェントのフロントマター `name`、または `my-plugin:db-agent` などの[プラグインサブエージェント](/ja/plugins)の場合はプラグインスコープ識別子です。スコープ付き名にはコロンが含まれるため、[アンカーなしの正規表現](/ja/hooks#matcher-patterns)として評価されます。`^my-plugin:db-agent$` のように `^` と `$` でアンカーして、そのエージェントのみと一致させます。
+
+この例は、`db-agent` サブエージェントが開始するときのみセットアップスクリプトを実行し、サブエージェントが停止するときにクリーンアップスクリプトを実行します：
 
 ```json
 {
@@ -591,6 +599,8 @@ hooks:
 }
 ```
 
+ハイフン付きマッチャー（`db-agent` など）は Claude Code v2.1.195 以降で正確に一致します。以前のバージョンでは、アンカーなしの正規表現として評価され、`prod-db-agent` などそれを含むエージェント型でも発火します。これらのバージョンでは `^db-agent$` のようにアンカーしてください。
+
 完全な hook 設定形式については、[Hooks](/ja/hooks)を参照してください。
 
 サブエージェントを使用する
@@ -609,20 +619,22 @@ Claude は、リクエスト内のタスク説明、サブエージェント設�
 
 自然言語の場合、特別な構文はありません。サブエージェントに名前を付けると、Claude は通常委譲します：
 
-```text
+```text wrap
 Use the test-runner subagent to fix failing tests
 Have the code-reviewer subagent look at my recent changes
 ```
 
 **サブエージェントを @-mention します。** `@` を入力し、タイプアヘッドからサブエージェントを選択します。ファイルを @-mention する方法と同じです。これにより、Claude の選択ではなく、特定のサブエージェントが実行されることが保証されます：
 
-```text
+```text wrap
 @"code-reviewer (agent)" look at the auth changes
 ```
 
 完全なメッセージは引き続き Claude に送信され、Claude はあなたが何を尋ねたかに基づいてサブエージェントのタスクプロンプトを作成します。@-mention は Claude が呼び出すサブエージェントを制御し、受け取るプロンプトではありません。
 
-有効な[プラグイン](/ja/plugins)から提供されるサブエージェントは、タイプアヘッドに `my-plugin:code-reviewer` または `my-plugin:review:security` などのスコープ付き名で表示されます。プラグインが[サブエージェントをサブフォルダに整理](#choose-the-subagent-scope)する場合です。セッションで現在実行されている名前付きバックグラウンドサブエージェントもタイプアヘッドに表示され、名前の横にステータスが表示されます。ピッカーを使用せずに手動で mention を入力することもできます：ローカルサブエージェントの場合は `@agent-<name>`、プラグインサブエージェントの場合はスコープ付き名の後に `@agent-` を続けます。例えば `@agent-my-plugin:code-reviewer`。
+有効な[プラグイン](/ja/plugins)から提供されるサブエージェントは、タイプアヘッドに `my-plugin:code-reviewer` または `my-plugin:review:security` などのスコープ付き名で表示されます。プラグインが[サブエージェントをサブフォルダに整理](#choose-the-subagent-scope)する場合です。セッションで現在実行されている名前付きバックグラウンドサブエージェントもタイプアヘッドに表示され、名前の横にステータスが表示されます。
+
+ピッカーを使用せずに手動で mention を入力することもできます：ローカルサブエージェントの場合は `@agent-<name>`、プラグインサブエージェントの場合はスコープ付き名の後に `@agent-` を続けます。例えば `@agent-my-plugin:code-reviewer`。
 
 **セッション全体をサブエージェントとして実行します。** [`--agent <name>`](/ja/cli-reference)を渡して、メインスレッド自体がそのサブエージェントのシステムプロンプト、ツール制限、およびモデルを採用するセッションを開始します：
 
@@ -660,7 +672,7 @@ claude --agent my-plugin:security-reviewer
 
 サブエージェントをフォアグラウンドまたはバックグラウンドで実行する
 
-サブエージェントは、フォアグラウンド（ブロッキング）またはバックグラウンド（並行）で実行できます：
+サブエージェントは、フォアグラウンドまたはバックグラウンドで実行できます：
 
 - **フォアグラウンドサブエージェント** は、完了するまでメイン会話をブロックします。権限プロンプトは発生時にあなたに渡されます。
 - **バックグラウンドサブエージェント** は、作業を続ける間に並行して実行されます。v2.1.186 以降、バックグラウンドサブエージェントが権限が必要なツール呼び出しに到達すると、プロンプトがメインセッションに表示され、要求しているサブエージェントの名前が付けられます。承認してサブエージェントを続行させるか、Esc を押してそのツール呼び出しのみを拒否し、サブエージェントを停止しないようにします。v2.1.186 より前は、バックグラウンドサブエージェントはプロンプトが表示されるツール呼び出しを自動拒否していました。
@@ -680,7 +692,7 @@ Claude は、タスクに基づいてサブエージェントをフォアグラ�
 
 サブエージェントの最も効果的な用途の 1 つは、大量の出力を生成する操作を分離することです。テストの実行、ドキュメントの取得、またはログファイルの処理は、かなりのコンテキストを消費できます。これらをサブエージェントに委譲することで、詳細な出力はサブエージェントのコンテキストに留まり、関連する概要のみがメイン会話に返されます。
 
-```text
+```text wrap
 Use a subagent to run the test suite and report only the failing tests with their error messages
 ```
 
@@ -688,7 +700,7 @@ Use a subagent to run the test suite and report only the failing tests with thei
 
 独立した調査の場合、複数のサブエージェントを生成して同時に動作させます：
 
-```text
+```text wrap
 Research the authentication, database, and API modules in parallel using separate subagents
 ```
 
@@ -702,7 +714,7 @@ Research the authentication, database, and API modules in parallel using separat
 
 マルチステップワークフローの場合、Claude にサブエージェントを順序立てて使用するよう依頼します。各サブエージェントはタスクを完了して結果を Claude に返し、Claude は関連するコンテキストを次のサブエージェントに渡します。
 
-```text
+```text wrap
 Use the code-reviewer subagent to find performance issues, then use the optimizer subagent to fix them
 ```
 
@@ -711,7 +723,7 @@ Use the code-reviewer subagent to find performance issues, then use the optimize
 **メイン会話** を使用する場合：
 
 - タスクが頻繁なやり取りまたは反復的な改善が必要な場合
-- 複数のフェーズが重要なコンテキストを共有する場合（計画 → 実装 → テスト）
+- 複数のフェーズが重要なコンテキストを共有する場合（計画、実装、テスト）
 - 迅速でターゲット化された変更を行う場合
 - レイテンシが重要な場合。サブエージェントは新規に開始し、コンテキストを収集するのに時間がかかる場合があります
 
@@ -721,7 +733,7 @@ Use the code-reviewer subagent to find performance issues, then use the optimize
 - 特定のツール制限または権限を強制したい場合
 - 作業が自己完結型で、概要を返すことができる場合
 
-代わりに[スキル](/ja/skills)を検討してください。メイン会話コンテキストで実行される再利用可能なプロンプトまたはワークフローが必要な場合、分離されたサブエージェントコンテキストではなく。
+代わりに[Skills](/ja/skills)を検討してください。メイン会話コンテキストで実行される再利用可能なプロンプトまたはワークフローが必要な場合、分離されたサブエージェントコンテキストではなく。
 
 会話に既にあるものについての簡単な質問の場合は、サブエージェントの代わりに[`/btw`](/ja/interactive-mode#side-questions-with-%2Fbtw)を使用します。完全なコンテキストを表示しますが、ツールアクセスはなく、答えは履歴に追加されるのではなく破棄されます。
 
@@ -729,7 +741,7 @@ Use the code-reviewer subagent to find performance issues, then use the optimize
 
 Claude Code v2.1.172 以降、サブエージェントは独自のサブエージェントを生成できます。委譲されたタスク自体が並行サブタスクに分割される場合、これを使用します。例えば、レビュアーサブエージェントが検出結果ごとに検証者をディスパッチする場合、中間出力がメイン会話に到達することはありません。トップレベルのサブエージェントの概要のみがあなたに返されます。
 
-ネストされたサブエージェントは、トップレベルのものと同じ方法で設定され、同じ[スコープ](#choose-the-subagent-scope)から解決されます。プロンプト入力の下のサブエージェントパネルは、完全なツリーを表示します：各行は子孫の `(+N)` カウントを表示し、行を開くとそのサブエージェントの直接の子が `main` へのパスとともに表示されます。[`/agents`](#use-the-%2Fagents-command)の Running タブは、実行中のサブエージェントをフラットリストとして表示します。
+ネストされたサブエージェントは、トップレベルのものと同じ方法で設定され、同じ[スコープ](#choose-the-subagent-scope)から解決されます。プロンプト入力の下のサブエージェントパネルは、完全なツリーを表示します：各行は子孫の `(+N)` カウントを表示し、v2.1.193 以降、行を開くとそのサブエージェントの兄弟と直接の子が `main` へのパスとともに表示されます。[`/agents`](#use-the-%2Fagents-command)の Running タブは、実行中のサブエージェントをフラットリストとして表示します。
 
 深さは、各レベルが[フォアグラウンドまたはバックグラウンド](#run-subagents-in-foreground-or-background)で実行されるかどうかに関係なく、メイン会話の下のサブエージェントレベルの数として数えられます。深さ 5 のサブエージェントは Agent ツールを受け取らず、さらに生成することはできません。制限は固定されており、設定不可能です。
 
@@ -763,11 +775,11 @@ Explore および Plan は、CLAUDE.md と git ステータスを省略する唯
 
 再開されたサブエージェントは、すべての前のツール呼び出し、結果、および推論を含む、完全な会話履歴を保持します。サブエージェントは、新規に開始するのではなく、停止した場所から正確に再開します。
 
-サブエージェントが完了すると、Claude はエージェント ID を受け取ります。組み込みの Explore および Plan エージェントは 1 回限りで、エージェント ID を返さないため、再開できません。作業を続ける必要がある場合は、`general-purpose` またはカスタムサブエージェントを使用してください。Claude は `SendMessage` ツールを使用してエージェントの ID を `to` フィールドとして使用してサブエージェントを再開します。`SendMessage` ツールは、[エージェントチーム](/ja/agent-teams)が有効になっている場合に常に利用可能です。`shutdown_request` および `plan_approval_response` などの構造化チームプロトコルメッセージには、[エージェントチーム](/ja/agent-teams)が有効になっている必要があります。
+サブエージェントが完了すると、Claude はエージェント ID を受け取ります。組み込みの Explore および Plan エージェントは 1 回限りで、エージェント ID を返さないため、再開できません。作業を続ける必要がある場合は、`general-purpose` またはカスタムサブエージェントを使用してください。Claude は `SendMessage` ツールを使用してエージェントの ID を `to` フィールドとして使用してサブエージェントを再開します。`SendMessage` ツールは、エージェント ID または名前でサブエージェントを再開するために常に利用可能です。`shutdown_request` および `plan_approval_response` などの構造化チームプロトコルメッセージには、[エージェントチーム](/ja/agent-teams)が有効になっている必要があります。
 
 サブエージェントを再開するには、Claude に前の作業を続けるよう依頼します：
 
-```text
+```text wrap
 Use the code-reviewer subagent to review the authentication module
 [Agent completes]
 
@@ -819,7 +831,7 @@ Continue that code review and now analyze the authorization logic
 
 `/fork` の後に指示を続けて、フォークを自分で開始できます。変数が設定されているかどうかに関わらず実行できます。Claude Code はフォークに指示の最初の単語から名前を付けます。次の例は、メインセッションで実装を続ける間に、フォークが会話をドラフトテストケースに分岐させます：
 
-```text
+```text wrap
 /fork draft unit tests for the parser changes so far
 ```
 

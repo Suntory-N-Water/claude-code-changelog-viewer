@@ -527,6 +527,14 @@ AWS SSO を使用する場合にブラウザタブが繰り返し生成される
 
 Claude Code は Bedrock [Invoke API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InvokeModelWithResponseStream.html) を使用し、Converse API はサポートしていません。
 
+<h3 id="zero-token-counts-in-/context">
+  /context でのゼロトークンカウント
+</h3>
+
+`/context` コマンドは、ツールスキーマを Bedrock count-tokens API に送信することで、各ツールグループのトークンをカウントします。{/* min-version: 2.1.196 */}Claude Code v2.1.196 より前のバージョンでは、スキーマが count-tokens API が受け入れないフィールドを含んでいたため、Bedrock がそのリクエストを拒否し、すべてのツールグループが 0 トークンを表示していました。メッセージやメモリファイルなど、内訳の他の行は影響を受けません。
+
+v2.1.196 以降に更新してください。
+
 <h3 id="mantle-endpoint-errors">
   Mantle エンドポイントエラー
 </h3>

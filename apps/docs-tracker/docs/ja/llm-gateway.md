@@ -3,15 +3,17 @@ title: llm-gateway
 source: https://code.claude.com/docs/ja/llm-gateway.md
 ---
 
-# LLM gateway
+# その他の LLM gateway
 
-> Claude Code を LLM gateway 経由でルーティングして、集中型認証、使用状況追跡、コスト管理を実現します。Claude Code をゲートウェイに接続する方法、組織向けのロールアウト、Claude Code がゲートウェイに送信する内容、ゲートウェイと claude.ai サブスクリプションの相互作用について説明します。
+> 組織が既に実行している LLM gateway を通じて Claude Code をルーティングします。Claude Code をゲートウェイに接続する方法、組織向けのロールアウト、Claude Code がゲートウェイに送信する内容について説明します。
 
-LLM gateway は、Claude Code とモデルプロバイダー間に組織が実行するプロキシです。Claude Code は API トラフィックをゲートウェイに送信し、ゲートウェイは組織が管理する認証情報を使用してプロバイダーにそれを転送します。
+このセクションでは、[Claude apps gateway](/ja/claude-apps-gateway) ではなく、組織が既に実行しているゲートウェイ製品を使用する方法について説明します。ゲートウェイとは何か、Claude Code とプロバイダー間にどのように位置するか、Claude apps gateway と別の製品のどちらを選択するかについては、[ゲートウェイの概要](/ja/gateways)を参照してください。
 
 - 既存のゲートウェイに接続する開発者の場合：[Claude Code をゲートウェイに接続](/ja/llm-gateway-connect)
 - 組織向けのゲートウェイをロールアウトする管理者の場合：[ゲートウェイをデプロイして配布](/ja/llm-gateway-rollout)
 - ゲートウェイ製品を設定している場合：[ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)
+
+[サポートされている API 形式](/ja/llm-gateway-protocol#api-formats)を公開するゲートウェイはすべて機能します。Anthropic は、サードパーティゲートウェイ製品を推奨、保守、または監査していません。また、任意のゲートウェイを通じて Claude Code を非 Claude モデルにルーティングすることはサポートしていません。ゲートウェイを独自のドキュメントに従ってデプロイしてから、以下の[ロールアウト手順](#roll-out-a-gateway)で Claude Code 側を完了してください。
 
 ゲートウェイが提供するもの
 
@@ -23,22 +25,9 @@ LLM gateway は、Claude Code とモデルプロバイダー間に組織が実�
 - **監査ログ**：コンプライアンスのためにすべてのモデルリクエストをログに記録します
 - **プロバイダー切り替え**：開発者マシンに触れることなく、ゲートウェイ設定でプロバイダーを変更します
 
-プロバイダー切り替え以外のすべてが、アップストリームが Anthropic の API であるか[クラウドプロバイダー](/ja/third-party-integrations)であるかに関わらず適用されます。
+プロバイダー切り替え以外のすべてが、アップストリームが Anthropic の API であるか[クラウドプロバイダー](/ja/third-party-integrations)であるかに関わらず適用されます。プロバイダー切り替えが開発者マシンの再設定なしで機能するには、アップストリームに関わらず、ゲートウェイが単一の [Anthropic 形式エンドポイント](/ja/llm-gateway-protocol#api-formats)を公開する必要があります。プロバイダー独自の形式を公開するゲートウェイは、クライアント設定をそのプロバイダーに結び付けます。
 
 トレードオフとして、ゲートウェイは組織が運用するインフラストラクチャになります。Claude Code は各リリースで機能を追加し、ゲートウェイがそれらを転送しない場合、対応する機能が破損するため、Claude Code の進化に合わせてゲートウェイ製品を最新に保つ必要があります。[ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)では、何を転送するかについて説明しています。
-
-ゲートウェイの仕組み
-
-デフォルトでは、Claude Code は `api.anthropic.com` の Anthropic API に直接リクエストを送信します。ゲートウェイ経由でルーティングするには、`ANTHROPIC_BASE_URL` をゲートウェイのアドレスに設定します。Claude Code は代わりにそこに同じリクエストを送信します。ゲートウェイは開発者を認証し、組織のプロバイダー認証情報を添付し、各リクエストを設定されているプロバイダーに転送します。
-
-`ANTHROPIC_BASE_URL` はほとんどのゲートウェイのアドレス変数です。Bedrock、Vertex、Foundry、または AWS 上の Claude Platform など、特定のクラウドプロバイダーの前に立つゲートウェイは、代わりにそのプロバイダーのベース URL 変数を使用します。[API 形式](/ja/llm-gateway-protocol#api-formats)では、各設定でどの変数が使用されるかを示しています。
-
-2 種類の認証情報が関係しています：
-
-- **開発者認証情報**：各開発者が保持する独自のもので、ゲートウェイによって発行されます。ゲートウェイに対して認証し、使用状況追跡で開発者を識別します
-- **プロバイダー認証情報**：ゲートウェイが保持する、プロバイダーアカウント用の 1 つの認証情報で、転送されるすべてのトラフィックで共有されます。開発者ごとにプロバイダーキーをプロビジョニングしません
-
-ゲートウェイは、Anthropic API、[Amazon Bedrock](/ja/amazon-bedrock)、[Google Vertex AI](/ja/google-vertex-ai)、[Microsoft Foundry](/ja/microsoft-foundry)、または[AWS 上の Claude Platform](/ja/claude-platform-on-aws) など、設定したプロバイダーにリクエストを転送します。Claude Code はゲートウェイとのみ通信するため、プロバイダーの選択はクライアントではなくゲートウェイの設定です。
 
 ゲートウェイをロールアウトする
 
@@ -51,27 +40,16 @@ LLM gateway は、Claude Code とモデルプロバイダー間に組織が実�
 
 [組織向けの LLM gateway をロールアウト](/ja/llm-gateway-rollout)では、各ステップを説明し、各ステップで配布する設定ファイルを示しています。ゲートウェイは組織セットアップの 1 つの部分です。ポリシー実施、使用状況の可視性、データ処理の決定については、[組織向けに Claude Code をセットアップ](/ja/admin-setup)を参照してください。
 
-サードパーティゲートウェイ
-
-[サポートされている API 形式](/ja/llm-gateway-protocol#api-formats)を公開するゲートウェイはすべて機能します。Anthropic は、サードパーティゲートウェイ製品を推奨、保守、または監査していません。独自のドキュメントに従ってデプロイし、[ロールアウト手順](/ja/llm-gateway-rollout)で Claude Code 側のロールアウトを完了します。
-
 サブスクリプションとゲートウェイ
 
-[ゲートウェイ認証情報変数](/ja/llm-gateway-connect#set-the-credential-variable)または `apiKeyHelper` がアクティブな場合、開発者の claude.ai サブスクリプションは使用されません：認証情報がそのセッションのサブスクリプションログインを置き換え、サブスクリプションの使用制限は適用されません。そのトラフィックは、ゲートウェイが転送する認証情報の所有者（組織の Anthropic Console アカウント、またはゲートウェイがそこにルーティングする場合の Bedrock、Vertex、Foundry アカウント）にトークンごとに請求されます。
+[ゲートウェイ認証情報変数](/ja/llm-gateway-connect#set-the-credential-variable)または `apiKeyHelper` がアクティブな場合、開発者の claude.ai サブスクリプションは使用されません：認証情報がそのセッションのサブスクリプションログインを置き換え、サブスクリプションの使用制限は適用されません。そのトラフィックは、ゲートウェイが転送する認証情報の所有者（組織の Anthropic Console アカウント、またはゲートウェイがそこにルーティングする場合の Bedrock、Agent Platform、または Foundry アカウント）にトークンごとに請求されます。
 
-ゲートウェイ認証情報なしで `ANTHROPIC_BASE_URL` のみを設定しても、サブスクリプションは置き換わりません。リクエストはゲートウェイ経由でルーティングされますが、保存された claude.ai ログインはアクティブな認証情報のままなので、その使用制限と請求が適用されます。このトラフィックを Anthropic に渡すゲートウェイは、`anthropic-beta` の OAuth 機能を転送する必要があります。[リクエストヘッダーリファレンス](/ja/llm-gateway-protocol#request-headers)を参照してください。
-
-ゲートウェイとは別に設定されるもの
-
-ゲートウェイは、モデル API リクエストが送信される場所を決定します。モデル選択、Claude Code の残りのネットワークトラフィック、企業プロキシは別に設定されます：
-
-- **モデル選択**：ベース URL は、リクエストが送信される場所を決定し、どのモデルが応答するかではありません。`/model` コマンドまたはモデル環境変数でモデルを選択します。[モデルを設定する方法](/ja/model-config#setting-your-model)を参照してください
-- **クライアント側トラフィック**：バージョンチェックとオプションのクライアントテレメトリ（両方とも [`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`](/ja/env-vars) で無効化）、および claude.ai または Console ログインが使用中の場合のログイントラフィックは、ゲートウェイではなく Anthropic の更新および認証エンドポイントに送信されます。ドメインについては[ネットワークアクセス要件](/ja/network-config#network-access-requirements)を参照してください
-- **企業プロキシ**：`HTTPS_PROXY` で設定されたプロキシは、Claude Code とゲートウェイを含むすべてのサーバー間に位置します。ネットワークがプロキシを必要とする場合は、両方を設定します。[プロキシ設定](/ja/network-config#proxy-configuration)を参照してください
+[`ANTHROPIC_BASE_URL`](/ja/llm-gateway-connect#set-the-base-url-and-credential)は Claude Code をゲートウェイに指し示す変数です。ゲートウェイ認証情報なしでその変数のみを設定しても、サブスクリプションは置き換わりません。リクエストはゲートウェイ経由でルーティングされますが、保存された claude.ai ログインはアクティブな認証情報のままなので、その使用制限と請求が適用されます。このトラフィックを Anthropic に渡すゲートウェイは、`anthropic-beta` の OAuth 機能を転送する必要があります。[リクエストヘッダーリファレンス](/ja/llm-gateway-protocol#request-headers)を参照してください。
 
 関連ページ
 
+- [ゲートウェイの概要](/ja/gateways)：ゲートウェイの仕組みと Claude apps gateway と別の製品のどちらを選択するかについて
+- [Claude apps gateway](/ja/claude-apps-gateway)：SSO サインインと OTLP テレメトリを備えた Anthropic の自己ホスト型ゲートウェイ
 - [Claude Code を LLM gateway に接続](/ja/llm-gateway-connect)：自分のマシンでベース URL と認証情報を設定し、サーフェスごとの設定とトラブルシューティングテーブルを含みます
 - [組織向けの LLM gateway をロールアウト](/ja/llm-gateway-rollout)：ゲートウェイをデプロイし、開発者認証情報を発行し、管理設定を配布するための管理者チェックリスト
 - [ゲートウェイプロトコルリファレンス](/ja/llm-gateway-protocol)：Claude Code がゲートウェイに送信するもの、ゲートウェイを設定する運用者向け、エンドポイント、転送するヘッダー、機能パススルーをカバーしています
-- [組織向けに Claude Code をセットアップ](/ja/admin-setup)：ゲートウェイが 1 つの部分である、ポリシー実施と使用状況の可視性を含む、より広いロールアウト決定
