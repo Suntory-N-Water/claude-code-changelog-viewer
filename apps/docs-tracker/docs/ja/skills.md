@@ -212,7 +212,7 @@ Your skill instructions here...
 | `when_to_use` | いいえ | Claude がスキルを呼び出すべき場合の追加コンテキスト（トリガーフレーズやリクエスト例など）。スキルリストの `description` に追加され、1,536 文字の上限にカウントされます。 |
 | `argument-hint` | いいえ | 予想される引数を示すためにオートコンプリート中に表示されるヒント。例：`[issue-number]` または `[filename] [format]`。 |
 | `arguments` | いいえ | スキルコンテンツの [`$name` 置換](#available-string-substitutions)用の名前付き位置引数。スペース区切り文字列または YAML リストを受け入れます。名前は順序で位置にマップされます。 |
-| `disable-model-invocation` | いいえ | Claude がこのスキルを自動的に読み込むのを防ぐには `true` に設定します。`/name` で手動でトリガーするワークフロー用です。また、スキルが[サブエージェントにプリロードされる](/ja/sub-agents#preload-skills-into-subagents)のを防ぎます。デフォルト：`false`。 |
+| `disable-model-invocation` | いいえ | Claude がこのスキルを自動的に読み込むのを防ぐには `true` に設定します。`/name` で手動でトリガーするワークフロー用です。また、スキルが[サブエージェントにプリロードされる](/ja/sub-agents#preload-skills-into-subagents)のを防ぎます。v2.1.196 以降では、[スケジュール済みタスク](/ja/scheduled-tasks)がスキルをプロンプトとして発火するときにスキルが実行されるのも防ぎます。デフォルト：`false`。 |
 | `user-invocable` | いいえ | `/` メニューから非表示にするには `false` に設定します。ユーザーが直接呼び出すべきではないバックグラウンド知識用です。デフォルト：`true`。 |
 | `allowed-tools` | いいえ | このスキルがアクティブな場合、Claude が許可を求めずに使用できるツール。スペース区切り文字列または YAML リストを受け入れます。 |
 | `disallowed-tools` | いいえ | このスキルがアクティブな場合、Claude の利用可能なプールから削除されるツール。`AskUserQuestion` など、特定のツールを呼び出すべきではない自律スキル用です。スペース区切り文字列または YAML リストを受け入れます。制限は次のメッセージを送信するときにクリアされます。 |
@@ -253,6 +253,9 @@ Your skill instructions here...
 | `${CLAUDE_SESSION_ID}` | 現在のセッション ID。ログ、セッション固有のファイルの作成、またはスキル出力とセッションの相関付けに便利です。 |
 | `${CLAUDE_EFFORT}` | 現在の努力レベル：`low`、`medium`、`high`、`xhigh`、または `max`。Ultracode は個別のレベルではなく、`xhigh` として報告されます。スキル指示をアクティブな努力設定に適応させるために使用します。 |
 | `${CLAUDE_SKILL_DIR}` | スキルの `SKILL.md` ファイルを含むディレクトリ。プラグインスキルの場合、これはプラグインルートではなく、プラグイン内のスキルのサブディレクトリです。bash インジェクションコマンドでこれを使用して、現在の作業ディレクトリに関係なく、スキルにバンドルされたスクリプトまたはファイルを参照します。 |
+| `${CLAUDE_PROJECT_DIR}` | プロジェクトルートディレクトリ。これは[フック](/ja/hooks#reference-scripts-by-path)と MCP サーバーが `CLAUDE_PROJECT_DIR` として受け取るのと同じパスです。`${CLAUDE_PROJECT_DIR}/.claude/hooks/helper.sh` など、スキルがインストールされている場所に関係なく、プロジェクトローカルスクリプトまたはファイルを参照するために使用します。 |
+
+`${CLAUDE_PROJECT_DIR}` 置換には Claude Code v2.1.196 以降が必要です。スキル本体と [`allowed-tools`](#frontmatter-reference) フロントマターの両方に適用されるため、`Bash(${CLAUDE_PROJECT_DIR}/scripts/lint.sh *)` のような権限ルールはスキル本体が使用するのと同じパスに解決されます。
 
 インデックス付き引数はシェルスタイルのクォートを使用するため、複数単語の値をシングル引数として渡すためにクォートで囲みます。たとえば、`/my-skill "hello world" second` は `$0` を `hello world` に、`$1` を `second` に展開します。`$ARGUMENTS` プレースホルダーは常に、入力されたとおりの完全な引数文字列に展開されます。
 
@@ -810,7 +813,9 @@ Claude がスキルを使用したくない場合：
 
 スキルの説明がコンテキストに読み込まれるため、Claude は利用可能なものを知っています。すべてのスキル名は常に含まれていますが、多くのスキルがある場合、説明は文字予算に合わせて短縮される可能性があり、Claude が一致するために必要なキーワードを削除できます。予算はモデルのコンテキストウィンドウの 1% でスケーリングされます。オーバーフローすると、最も呼び出しが少ないスキルの説明が最初に削除され、実際に使用するスキルは完全なテキストを保持します。`/doctor` を実行して、スキルの説明がどの程度短縮または削除されているか、どのスキルが影響を受けているかを確認します。
 
-予算を上げるには、[`skillListingBudgetFraction`](/ja/settings#available-settings) 設定（例：`0.02` = 2%）または `SLASH_COMMAND_TOOL_CHAR_BUDGET` 環境変数を固定文字数に設定します。他のスキルの予算を解放するには、[`skillOverrides`](#override-skill-visibility-from-settings) で低優先度のエントリを `"name-only"` に設定して、説明なしでリストアップします。ソースで `description` と `when_to_use` テキストをトリミングすることもできます。各エントリの組み合わせテキストは予算に関係なく 1,536 文字でキャップされているため、主要なユースケースを前置きしてください。キャップは [`maxSkillDescriptionChars`](/ja/settings#available-settings) で設定可能です。
+v2.1.196 以降、`/context` のスキル行は予算が適用された後のリストのサイズを報告するため、モデルが受け取るものと一致します。以前のバージョンではすべての説明の完全なテキストをカウントしていたため、この行は予算 `/doctor` が報告する値より数倍大きい値を表示できました。
+
+予算を上げるには、[`skillListingBudgetFraction`](/ja/settings#available-settings) 設定（例：`0.02` = 2%）または `SLASH_COMMAND_TOOL_CHAR_BUDGET` 環境変数を固定文字数に設定します。他のスキルの予算を解放するには、[`skillOverrides`](#override-skill-visibility-from-settings) で低優先度のエントリを `"name-only"` に設定して、説明なしでリストアップします。ソースで `description` と `when_to_use` テキストをトリミングすることもできます。各エントリの組み合わせテキストは予算に関係なく 1,536 文字でキャップされているため、主要なユースケースを前置きしてください。キャップは [`skillListingMaxDescChars`](/ja/settings#available-settings) で設定可能です。
 
 関連リソース
 

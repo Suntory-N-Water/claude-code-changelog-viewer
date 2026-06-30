@@ -181,6 +181,7 @@ source: https://code.claude.com/docs/ja/third-party-integrations.md
 
 * [Claude for Teams または Enterprise](/ja/authentication#claude-for-teams-or-enterprise)
 * [Anthropic Console](/ja/authentication#claude-console-authentication)
+* [Claude apps gateway](/ja/claude-apps-gateway)、Amazon Bedrock、Google Vertex AI、Microsoft Foundry、または Anthropic API の前に IdP サインインを追加するセルフホスト型ゲートウェイ
 * [Amazon Bedrock](/ja/amazon-bedrock)
 * [Claude Platform on AWS](/ja/claude-platform-on-aws)
 * [Google Vertex AI](/ja/google-vertex-ai)

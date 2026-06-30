@@ -21,7 +21,7 @@ Claude Code は、パワーと安全性のバランスを取るために、段�
 
 権限を管理する
 
-`/permissions` を使用して、Claude Code のツール権限を表示および管理できます。この UI は、すべての権限ルールと、それらが取得される settings.json ファイルをリストします。
+`/permissions` を使用して、Claude Code のツール権限を表示および管理できます。この UI は、すべての権限ルールと、それらが取得される `settings.json` ファイルをリストします。
 
 - **Allow** ルールは、Claude Code が手動承認なしで指定されたツールを使用できるようにします。
 - **Ask** ルールは、Claude Code が指定されたツールを使用しようとするたびに確認を促します。
@@ -35,7 +35,7 @@ Deny ルールは、ツール名を指定するか、ツール内のパターン
 
 権限モード
 
-Claude Code は、ツールの承認方法を制御するいくつかの権限モードをサポートしています。[権限モード](/ja/permission-modes)を参照して、各モードをいつ使用するかを確認してください。[設定ファイル](/ja/settings#settings-files)で `defaultMode` を設定します。
+Claude Code は、ツール呼び出しの承認方法を制御するいくつかの権限モードをサポートしています。[権限モード](/ja/permission-modes)を参照して、各モードをいつ使用するかを確認してください。[設定ファイル](/ja/settings#settings-files)で `defaultMode` を設定します。
 
 | モード | 説明 |
 | :- | :- |
@@ -44,9 +44,9 @@ Claude Code は、ツールの承認方法を制御するいくつかの権限�
 | `plan` | Plan Mode。Claude はファイルを読み取り、読み取り専用シェルコマンドを実行して探索しますが、ソースファイルを編集しません |
 | `auto` | バックグラウンド安全チェック付きでツール呼び出しを自動承認し、アクションがリクエストと一致することを確認します。現在は研究プレビューです |
 | `dontAsk` | `/permissions` または `permissions.allow` ルールで事前に承認されていない限り、ツールを自動的に拒否します |
-| `bypassPermissions` | すべての権限プロンプトをスキップします。ファイルシステムルートまたはホームディレクトリの削除（`rm -rf /` など）は回路遮断器として引き続きプロンプトを表示します |
+| `bypassPermissions` | 権限プロンプトをスキップします。ただし、明示的な `ask` ルールで強制されたプロンプトは除きます。ファイルシステムルートまたはホームディレクトリの削除（`rm -rf /` など）も回路遮断器として引き続きプロンプトを表示します |
 
-`bypassPermissions` モードはすべての権限プロンプトをスキップします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、`.mvn` への書き込みを含みます。ファイルシステムルートまたはホームディレクトリを対象とした削除（`rm -rf /` や `rm -rf ~` など）は、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。管理者は、[管理設定](#managed-settings)で `permissions.disableBypassPermissionsMode` を `"disable"` に設定することで、このモードを防止できます。
+`bypassPermissions` モードは権限プロンプトをスキップします。`.git`、`.config/git`、`.claude`、`.vscode`、`.idea`、`.husky`、`.cargo`、`.devcontainer`、`.yarn`、`.mvn` への書き込みを含みます。明示的な `ask` ルールは引き続きプロンプトを強制し、ファイルシステムルートまたはホームディレクトリを対象とした削除（`rm -rf /` や `rm -rf ~` など）も、モデルエラーに対する回路遮断器として引き続きプロンプトを表示します。このモードは、Claude Code が損害を引き起こせないコンテナや VM などの隔離された環境でのみ使用してください。
 
 `bypassPermissions` または `auto` モードが使用されるのを防ぐには、任意の[設定ファイル](/ja/settings#settings-files)で `permissions.disableBypassPermissionsMode` または `permissions.disableAutoMode` を `"disable"` に設定します。これらは、オーバーライドできない[管理設定](#managed-settings)で最も有用です。
 
@@ -78,7 +78,7 @@ Claude Code は、ツールの承認方法を制御するいくつかの権限�
 
 入力パラメータでマッチさせる
 
-拒否ルールと確認ルールは、`Tool(param:value)` を使用して任意のツール上のトップレベル入力パラメータをマッチさせることができます。ルールは Claude がそのパラメータをその正確な値に設定してツールを呼び出すときにマッチします。この構文は拒否ルールと確認ルール用です。1 つのパラメータ値に対する許可ルールは、その呼び出しが全体的に安全であることを確立しないため、許可ルールは各ツール独自のスペシファイア構文を使用し続けます。これはツールが受け入れるスカラーパラメータで機能します。
+拒否ルールと確認ルールは、`Tool(param:value)` を使用して任意のツール上のトップレベル入力パラメータをマッチさせることができます。ルールは Claude がそのパラメータをその正確な値に設定してツールを呼び出すときにマッチします。1 つのパラメータ値に対する許可ルールは、その呼び出しが全体的に安全であることを確立しないため、許可ルールは各ツール独自のスペシファイア構文を使用し続けます。これはツールが受け入れるスカラーパラメータで機能します。
 
 | ルール | マッチ |
 | :- | :- |
@@ -186,7 +186,7 @@ Claude Code は、Bash コマンドの組み込みセットを読み取り専用
 
 - URL の前のオプション：`curl -X GET http://github.com/...`
 - 異なるプロトコル：`curl https://github.com/...`
-- リダイレクト：`curl -L http://bit.ly/xyz`（github にリダイレクト）
+- リダイレクト：`curl -L http://bit.ly/xyz`（GitHub にリダイレクト）
 - 変数：`URL=http://github.com && curl $URL`
 - 余分なスペース：`curl  http://github.com`
 
@@ -274,8 +274,10 @@ WebFetch ルールは `domain:` プレフィックスを使用し、リクエス
 
 MCP
 
-- `mcp__puppeteer` は `puppeteer` サーバーによって提供されるツール（Claude Code で設定された名前）をマッチさせます
-- `mcp__puppeteer__*` ワイルドカード構文は、`puppeteer` サーバーからのすべてのツールもマッチさせます
+MCP ルールは、Claude Code で設定されたサーバー名を使用し、オプションでそのサーバーからのツールの名前が続きます。
+
+- `mcp__puppeteer` は `puppeteer` サーバーによって提供されるツールをマッチさせます
+- `mcp__puppeteer__*` ワイルドカード構文を使用し、`puppeteer` サーバーからのすべてのツールもマッチさせます
 - `mcp__puppeteer__puppeteer_navigate` は `puppeteer` サーバーによって提供される `puppeteer_navigate` ツールをマッチさせます
 
 Agent（subagents）
@@ -367,11 +369,17 @@ Cd
 - サンドボックス内のファイルシステム制限は、[`sandbox.filesystem`](/ja/sandboxing) 設定と Read および Edit deny ルールを組み合わせます。両方が最終的なサンドボックス境界にマージされます
 - ネットワーク制限は、WebFetch 権限ルールとサンドボックスの `allowedDomains` および `deniedDomains` リストを組み合わせます
 
-サンドボックスが `autoAllowBashIfSandboxed: true` で有効になっている場合（デフォルト）、サンドボックス化された Bash コマンドは、権限に bare `Bash` ask ルール、または[同等の `Bash(*)` 形式](#match-all-uses-of-a-tool)が含まれている場合でもプロンプトなしで実行されます。サンドボックス境界は、そのツール全体のプロンプトの代わりになります。`Bash(git push *)` のようなコンテンツスコープ ask ルールは、引き続きプロンプトを強制し、明示的な deny ルールは引き続き適用され、`/`、ホームディレクトリ、またはその他の重要なシステムパスをターゲットとする `rm` または `rmdir` コマンドは、引き続きプロンプトをトリガーします。除外されたコマンドなど、サンドボックス化されて実行されないコマンドは、通常どおり bare `Bash` ask ルールを尊重します。[サンドボックスモード](/ja/sandboxing#sandbox-modes)を参照して、この動作を変更してください。
+サンドボックスが `autoAllowBashIfSandboxed: true` で有効になっている場合（デフォルト）、サンドボックス化された Bash コマンドは、権限に bare `Bash` ask ルール、または[同等の `Bash(*)` 形式](#match-all-uses-of-a-tool)が含まれている場合でもプロンプトなしで実行されます。サンドボックス境界は、そのツール全体のプロンプトの代わりになります。これらのチェックは引き続き適用されます。
+
+- `Bash(git push *)` のようなコンテンツスコープ ask ルールは、引き続きプロンプトを強制します
+- 明示的な deny ルールは引き続き適用されます
+- `/`、ホームディレクトリ、またはその他の重要なシステムパスをターゲットとする `rm` または `rmdir` コマンドは、引き続きプロンプトをトリガーします
+
+除外されたコマンドなど、サンドボックス化されて実行されないコマンドは、通常どおり bare `Bash` ask ルールを尊重します。[サンドボックスモード](/ja/sandboxing#sandbox-modes)を参照して、この動作を変更してください。
 
 管理設定
 
-Claude Code 設定の一元的な制御が必要な組織の場合、管理者はユーザーまたはプロジェクト設定でオーバーライドできない管理設定をデプロイできます。これらのポリシー設定は通常の設定ファイルと同じ形式に従い、MDM/OS レベルのポリシー、管理設定ファイル、または[サーバー管理設定](/ja/server-managed-settings)を通じて配信できます。配信メカニズムとファイルの場所については、[設定ファイル](/ja/settings#settings-files)を参照してください。
+Claude Code 設定の一元的な制御が必要な組織の場合、管理者はユーザーまたはプロジェクト設定でオーバーライドできない管理設定をデプロイできます。これらのポリシー設定は通常の設定ファイルと同じ形式に従い、MDM/OS レベルのポリシー、管理設定ファイル、[サーバー管理設定](/ja/server-managed-settings)、または自己ホスト型の[Claude apps gateway](/ja/claude-apps-gateway)を通じて配信できます。配信メカニズムとファイルの場所については、[設定ファイル](/ja/settings#settings-files)を参照してください。
 
 管理のみの設定
 
@@ -386,6 +394,7 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 | `allowManagedPermissionRulesOnly` | `true` の場合、ユーザーおよびプロジェクト設定が `allow`、`ask`、または `deny` 権限ルールを定義することを防止します。管理設定のルールのみが適用されます。MCP サーバーのホワイトリストには影響しません。その場合は、`allowManagedMcpServersOnly` を設定してください |
 | `blockedMarketplaces` | マーケットプレイスソースのブロックリスト。ブロックされたソースはダウンロード前にチェックされるため、ファイルシステムに触れることはありません。[管理マーケットプレイス制限](/ja/plugin-marketplaces#managed-marketplace-restrictions)を参照してください |
 | `channelsEnabled` | 組織の[チャネル](/ja/channels)を許可します。各プランのデフォルトについては、[エンタープライズコントロール](/ja/channels#enterprise-controls)を参照してください |
+| `disableSideloadFlags` | `--plugin-dir`、`--plugin-url`、`--agents`、および `--mcp-config` CLI フラグをスタートアップで拒否します。これがない場合、ユーザーはこれらのフラグを渡すことで、単一の実行に対して `strictKnownMarketplaces` をバイパスできます。[`disableSideloadFlags`](/ja/settings#available-settings)を参照してください。Claude Code v2.1.193 以降が必要です |
 | `forceRemoteSettingsRefresh` | `true` の場合、リモート管理設定が新しく取得されるまで CLI 起動をブロックし、取得に失敗した場合は終了します。[フェイルクローズ強制](/ja/server-managed-settings#enforce-fail-closed-startup)を参照してください |
 | `pluginTrustMessage` | インストール前に表示されるプラグイン信頼警告に追加されるカスタムメッセージ |
 | `sandbox.filesystem.allowManagedReadPathsOnly` | `true` の場合、管理設定からの `filesystem.allowRead` パスのみが尊重されます。`denyRead` はすべてのソースからマージされます |
@@ -396,7 +405,7 @@ Claude Code 設定の一元的な制御が必要な組織の場合、管理者�
 
 `disableBypassPermissionsMode` は通常、組織ポリシーを強制するために管理設定に配置されますが、任意のスコープから機能します。ユーザーは独自の設定で設定して、自分自身をバイパスモードからロックアウトできます。
 
-Team および Enterprise プランでは、管理者が [Claude Code 管理設定](https://claude.ai/admin-settings/claude-code)で[リモートコントロール](/ja/remote-control)と[ウェブセッション](/ja/claude-code-on-the-web)を組織全体で有効または無効にします。リモートコントロールは、[`disableRemoteControl`](/ja/settings#available-settings)管理設定でデバイスごとに無効にすることもできます。ウェブセッションにはデバイスごとの管理設定キーはありません。
+Team および Enterprise プランでは、Owner が [Claude Code 管理設定](https://claude.ai/admin-settings/claude-code)で[リモートコントロール](/ja/remote-control)と[ウェブセッション](/ja/claude-code-on-the-web)を組織全体で有効または無効にします。リモートコントロールは、[`disableRemoteControl`](/ja/settings#available-settings)設定でデバイスごとに無効にすることもできます。ウェブセッションにはデバイスごとの管理設定キーはありません。
 
 設定の優先順位
 
@@ -410,9 +419,9 @@ Team および Enterprise プランでは、管理者が [Claude Code 管理設�
 
 ツールがいずれかのレベルで拒否されている場合、他のレベルはそれを許可できません。たとえば、管理設定の deny は `--allowedTools` でオーバーライドできず、`--disallowedTools` は管理設定が定義する内容を超えて制限を追加できます。
 
-埋め込みホストは、[`parentSettingsBehavior`](/ja/settings#settings-precedence)が `"merge"` に設定されている場合、SDK の `managedSettings` オプションを介して追加の管理ポリシーを提供できます。埋め込み元の値はポリシーを厳しくできますが、緩和することはできません。
+設定スコープ全体でも同じことが当てはまります。ユーザー設定で権限が許可されており、プロジェクト設定で拒否されている場合、拒否ルールがそれをブロックします。逆も同様です。ユーザーレベルの deny がプロジェクトレベルの allow をブロックします。これは、任意のスコープからの deny ルールが allow ルールの前に評価されるためです。
 
-たとえば、ユーザー設定で権限が許可されており、プロジェクト設定で拒否されている場合、拒否ルールがそれをブロックします。逆も同様です。ユーザーレベルの deny がプロジェクトレベルの allow をブロックします。これは、任意のスコープからの deny ルールが allow ルールの前に評価されるためです。
+埋め込みホストは、[`parentSettingsBehavior`](/ja/settings#settings-precedence)が `"merge"` に設定されている場合、SDK の `managedSettings` オプションを介して追加の管理ポリシーを提供できます。埋め込み元の値はポリシーを厳しくできますが、緩和することはできません。
 
 設定例
 

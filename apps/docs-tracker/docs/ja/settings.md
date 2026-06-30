@@ -86,7 +86,7 @@ Windows では、`~/.claude` として表示されるパスは `%USERPROFILE%\.c
   - `.claude/settings.local.json` チェックインされない設定用。個人設定と実験に役立ちます。Claude Code は作成時に `.claude/settings.local.json` を無視するように git を構成します。自分でファイルを作成する場合は、gitignore に手動で追加してください。
 - **Managed 設定**：集中管理が必要な組織向けに、Claude Code は managed 設定の複数の配信メカニズムをサポートしています。すべて同じ JSON 形式を使用し、ユーザー設定またはプロジェクト設定でオーバーライドできません：
 
-  - **サーバー管理設定**：Anthropic のサーバーから Claude.ai 管理コンソール経由で配信されます。[サーバー管理設定](/ja/server-managed-settings)を参照してください。
+  - **サーバー管理設定**：Anthropic のサーバーから Claude.ai 管理コンソール経由で配信されるか、自己ホスト型の [Claude apps gateway](/ja/claude-apps-gateway)から配信されます。[サーバー管理設定](/ja/server-managed-settings)を参照してください。
   - **MDM/OS レベルのポリシー**：macOS と Windows のネイティブデバイス管理を通じて配信されます：
     - macOS：`com.anthropic.claudecode` managed preferences ドメイン。plist のトップレベルキーは `managed-settings.json` をミラーリングし、ネストされた設定は辞書として、配列は plist 配列として機能します。Jamf、Iru（Kandji）、または同様の MDM ツールの構成プロファイルを通じて展開します。
     - Windows：`HKLM\SOFTWARE\Policies\ClaudeCode` レジストリキーと JSON を含む `Settings` 値（REG\_SZ または REG\_EXPAND\_SZ）。グループポリシーまたは Intune を通じて展開します
@@ -206,6 +206,7 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `autoMemoryDirectory` | [自動メモリ](/ja/memory#storage-location)ストレージ用のカスタムディレクトリ。絶対パスまたは `~/` プレフィックス付きパスを受け入れます。プロジェクトまたはローカル設定からは、ワークスペース信頼ダイアログを受け入れた後にのみ尊重されます。クローンされたリポジトリがこのファイルを提供できるため | `"~/my-memory-dir"` |
 | `autoMemoryEnabled` | **デフォルト**：`true`。[自動メモリ](/ja/memory#enable-or-disable-auto-memory)を有効にします。`false` の場合、Claude は自動メモリディレクトリから読み込んだり、書き込んだりしません。セッション中に `/memory` でこれを切り替えることもできます。環境変数で無効にするには、`env` で [`CLAUDE_CODE_DISABLE_AUTO_MEMORY`](/ja/env-vars)を設定します | `false` |
 | `autoMode` | [自動モード](/ja/permission-modes#eliminate-prompts-with-auto-mode)分類器がブロックおよび許可するものをカスタマイズします。`environment`、`allow`、`soft_deny`、および `hard_deny` 配列の散文ルールを含みます。リテラル文字列 `"$defaults"` を配列に含めて、その位置で組み込みルールを継承します。[自動モードを構成](/ja/auto-mode-config)を参照してください。共有プロジェクト設定から読み込まれません | `{"soft_deny": ["$defaults", "Never run terraform apply"]}` |
+| `autoMode.classifyAllShell` | **デフォルト**：`false`。`true` の場合、自動モードがアクティブな間、すべての Bash および PowerShell allow ルールを一時停止して、すべてのシェルコマンドが分類器を通じてルーティングされるようにします。任意のコード実行パターンに一致するルールだけではなく。[すべてのシェルコマンドを分類器を通じてルーティング](/ja/auto-mode-config#route-all-shell-commands-through-the-classifier)を参照してください。Claude Code v2.1.193 以降が必要です | `true` |
 | `autoScrollEnabled` | **デフォルト**：`true`。[フルスクリーンレンダリング](/ja/fullscreen)で、新しい出力を会話の下部に追従します。`/config` に**自動スクロール**として表示されます。権限プロンプトはこれがオフの場合でもビューにスクロールします | `false` |
 | `autoUpdatesChannel` | **デフォルト**：`"latest"`。更新に従うリリースチャネル。約 1 週間古いバージョンで、大きな回帰のあるバージョンをスキップする `"stable"` を使用するか、最新リリースの `"latest"` を使用します。自動更新を完全に無効にするには、`env` で [`DISABLE_AUTOUPDATER`](/ja/setup#disable-auto-updates)を設定します | `"stable"` |
 | `availableModels` | ユーザーがメインセッション、[subagents](/ja/sub-agents)、[skills](/ja/skills)、および [advisor](/ja/advisor)用に選択できるモデルを制限します。`enforceAvailableModels` も設定されている場合を除き、デフォルトオプションには影響しません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください | `["sonnet", "haiku"]` |
@@ -230,21 +231,24 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `disableDeepLinkRegistration` | Claude Code が起動時にオペレーティングシステムで `claude-cli://` プロトコルハンドラーを登録するのを防ぐために `"disable"` に設定します。[ディープリンク](/ja/deep-links)を使用すると、外部ツールは事前入力されたプロンプトで Claude Code セッションを開くことができます。プロトコルハンドラー登録が制限されているか、別途管理されている環境で役立ちます | `"disable"` |
 | `disabledMcpjsonServers` | `.mcp.json` ファイルから拒否する特定の MCP サーバーのリスト | `["filesystem"]` |
 | `disableRemoteControl` | [リモートコントロール](/ja/remote-control)を無効にします：`claude remote-control`、`--remote-control` フラグ、自動開始、およびセッション内トグルをブロックします。通常は [managed 設定](/ja/permissions#managed-settings)に配置されます。デバイスごとの MDM 強制用ですが、任意のスコープから機能します。Claude Code v2.1.128 以降が必要です | `true` |
+| `disableSideloadFlags` | （Managed 設定のみ）起動時に `--plugin-dir`、`--plugin-url`、`--agents`、および `--mcp-config` CLI フラグを拒否します。ユーザーはこれらを渡して、単一実行で [`strictKnownMarketplaces`](#strictknownmarketplaces)をバイパスできます。また、これらのフラグを内部的に使用して CLI を生成するサーフェスからのフラグも拒否します。現在 [Cowork](/ja/desktop)デスクトップアプリのローカルセッション。すべてのサーバーがインプロセス `type: "sdk"` エントリである `--mcp-config` は引き続き受け入れられるため、Agent SDK と VS Code 拡張機能は機能し続けます。`claude mcp add`、`.mcp.json`、または SDK `setMcpServers()` はブロックされません。[`allowedMcpServers`](/ja/managed-mcp)とペアにしてサーバーごとの MCP 制御を行います。Claude Code v2.1.193 以降が必要です | `true` |
 | `disableSkillShellExecution` | [skills](/ja/skills) およびユーザー、プロジェクト、プラグイン、または追加ディレクトリソースからのカスタムコマンド内の `` !`...` `` および ` ```! ` ブロックのインラインシェル実行を無効にします。コマンドは実行される代わりに `[shell command execution disabled by policy]` に置き換えられます。バンドルされた skills および managed skills は影響を受けません。[managed 設定](/ja/permissions#managed-settings)で最も役立ちます。ユーザーはこれをオーバーライドできません | `true` |
 | `disableWorkflows` | **デフォルト**：`false`。[動的ワークフロー](/ja/workflows#turn-workflows-off)とバンドルされたワークフローコマンドを無効にします。`CLAUDE_CODE_DISABLE_WORKFLOWS` を `1` に設定するのと同等です | `true` |
 | `editorMode` | **デフォルト**：`"normal"`。入力プロンプトのキーバインディングモード：`"normal"` または `"vim"`。`/config` に**エディターモード**として表示されます | `"vim"` |
 | `effortLevel` | [努力レベル](/ja/model-config#adjust-effort-level)をセッション全体で永続化します。`"low"`、`"medium"`、`"high"`、または `"xhigh"` を受け入れます。これらの値のいずれかで `/effort` を実行すると自動的に書き込まれます。`--effort` と [`CLAUDE_CODE_EFFORT_LEVEL`](/ja/env-vars)はこれを 1 セッション間オーバーライドします。[努力レベルを調整](/ja/model-config#adjust-effort-level)でサポートされているモデルを参照してください | `"xhigh"` |
-| `enableAllProjectMcpServers` | プロジェクト `.mcp.json` ファイルで定義されたすべての MCP サーバーを自動的に承認します | `true` |
-| `enabledMcpjsonServers` | `.mcp.json` ファイルから承認する特定の MCP サーバーのリスト | `["memory", "github"]` |
+| `enableAllProjectMcpServers` | プロジェクト `.mcp.json` ファイルで定義されたすべての MCP サーバーを自動的に承認します。v2.1.196 以降、`claude mcp list` と `claude mcp get` は [リポジトリにチェックインされていない設定ファイル](/ja/mcp#managing-your-servers)からのみ信頼されていないフォルダでこのキーを尊重します | `true` |
+| `enableArtifact` | このユーザーの [Artifact](/ja/artifacts)ツールを有効または無効にします。未設定の場合、デフォルトはあなたのアカウントの機能の[可用性](/ja/artifacts#availability)に従います。`/config` の **Artifacts** 行がこのキーを書き込みます。managed `disableArtifact` とあなたの組織の [管理者設定](/ja/artifacts#manage-artifacts-for-your-organization)が優先され、キーはプロジェクトおよびローカル設定（`.claude/settings.json`、`.claude/settings.local.json`）では無視されます。リポジトリはこれをコミットできます。Claude Code v2.1.196 以降が必要です | `true` |
+| `enabledMcpjsonServers` | `.mcp.json` ファイルから承認する特定の MCP サーバーのリスト。v2.1.196 以降、`claude mcp list` と `claude mcp get` は [リポジトリにチェックインされていない設定ファイル](/ja/mcp#managing-your-servers)からのみ信頼されていないフォルダでこのキーを尊重します | `["memory", "github"]` |
 | `enforceAvailableModels` | managed 設定で `true` で `availableModels` が空でないリストの場合、デフォルトモデルもホワイトリストに制限されます。利用可能なモデルが最初のホワイトリストエントリにフォールバックします。`availableModels` が未設定または空の場合は効果がありません。[モデル選択を制限](/ja/model-config#restrict-model-selection)を参照してください。Claude Code v2.1.175 以降が必要です | `true` |
-| `env` | すべてのセッションに適用される環境変数。v2.1.143 以降、`NO_COLOR` と `FORCE_COLOR` がここで設定されている場合、サブプロセスに渡されますが、Claude Code 自体のインターフェイスの色は変更されません。インターフェイスの色を変更するには、`claude` を起動する前にシェルでこれらを設定します | `{"FOO": "bar"}` |
-| `fallbackModel` | プライマリモデルがオーバーロードされているか利用できない場合に順番に試すフォールバックモデル。Claude Code はチェーン内の次の利用可能なモデルに切り替え、ターンの残りを表示し、通知を表示します。`"default"` はデフォルトモデルに展開されます。チェーンは 3 つのモデルに制限されます。余分なエントリは無視されます。ほとんどの配列設定とは異なり、このキーはスコープ全体でマージされません：これを定義する最高優先度ファイルが全体の値を提供します。[`--fallback-model`](/ja/cli-reference#cli-flags)フラグはこれを 1 セッション間オーバーライドします。[フォールバックモデルチェーン](/ja/model-config#fallback-model-chains)を参照してください | `["claude-sonnet-4-6", "claude-haiku-4-5"]` |
+| `env` | すべてのセッションに適用される環境変数。v2.1.143 以降、`NO_COLOR` と `FORCE_COLOR` がここで設定されている場合、サブプロセスに渡されますが、Claude Code 自体のインターフェイスの色は変更されません。インターフェイスの色を変更するには、`claude` を起動する前にシェルでこれらを設定します。v2.1.195 以降、Claude Code のホスティング環境が設定する ID 変数（`CLAUDE_CODE_REMOTE` や `CLAUDE_CODE_ACCOUNT_UUID` など）は、ここで設定されている場合は無視されます | `{"FOO": "bar"}` |
+| `fallbackModel` | プライマリモデルがオーバーロードされているか利用できない場合に順番に試すフォールバックモデル。Claude Code はチェーン内の次の利用可能なモデルに切り替え、ターンの残りを表示し、通知を表示します。`"default"` はデフォルトモデルに展開されます。チェーンは 3 つのモデルに制限されます。余分なエントリは無視されます。ほとんどの配列設定とは異なり、このキーはスコープ全体でマージされません：これを定義する最高優先度ファイルが全体の値を提供します。[`--fallback-model`](/ja/cli-reference#cli-flags)フラグはこれを 1 セッション間オーバーライドします。[フォールバックモデルチェーン](/ja/model-config#fallback-model-chains)を参照してください | `["claude-sonnet-5", "claude-haiku-4-5"]` |
 | `fastModePerSessionOptIn` | `true` の場合、高速モードはセッション全体で永続化されません。各セッションは高速モードがオフで開始され、ユーザーが `/fast` で有効にする必要があります。ユーザーの高速モード設定は引き続き保存されます。[セッションごとのオプトインを要求](/ja/fast-mode#require-per-session-opt-in)を参照してください | `true` |
 | `feedbackSurveyRate` | [セッション品質調査](/ja/data-usage#session-quality-surveys)が適格な場合に表示される確率（0～1）。完全に抑制するには `0` に設定するか、`env` で [`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`](/ja/env-vars)を設定します。Bedrock、Vertex、または Foundry を使用する場合に役立ちます。デフォルトのサンプルレートは適用されません | `0.05` |
 | `fileCheckpointingEnabled` | **デフォルト**：`true`。各編集の前にファイルをスナップショットして、[`/rewind`](/ja/checkpointing)でそれらを復元できるようにします。`/config` に\*\*コードを巻き戻す（チェックポイント）\*\*として表示されます。環境変数で無効にするには、`env` で [`CLAUDE_CODE_DISABLE_FILE_CHECKPOINTING`](/ja/env-vars)を設定します | `false` |
 | `fileSuggestion` | `@` ファイルオートコンプリート用のカスタムスクリプトを構成します。[ファイル提案設定](#file-suggestion-settings)を参照してください | `{"type": "command", "command": "~/.claude/file-suggestion.sh"}` |
 | `footerLinksRegexes` | ターン出力に正規表現がマッチするときにフッターにクリック可能なバッジをレンダリングします。各エントリには `pattern`、名前付きキャプチャグループから `{name}` プレースホルダーが入力される URL テンプレート、およびオプションの `label` があります。ユーザー、`--settings` フラグ、および managed 設定からのみ読み込まれます。[フッターリンクバッジ](#footer-link-badges)を参照してください。URL 制約、スキームホワイトリスト、および制限。Claude Code v2.1.176 以降が必要です | `[{"type": "regex", "pattern": "\\b(?<key>PROJ-\\d+)\\b", "url": "https://issues.example.com/browse/{key}", "label": "{key}"}]` |
-| `forceLoginMethod` | `claudeai` を使用して Claude.ai アカウントへのログインを制限するか、`console` を使用して Claude Console アカウントへのログインを制限します。managed 設定で設定されている場合、`ANTHROPIC_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、または `apiKeyHelper` で認証されたセッションは起動時にブロックされます。どちらの値も最初のパーティ OAuth なしでは満たされないため。Bedrock、Vertex、Foundry などのサードパーティプロバイダーセッションはブロックされません：これらはクラウドプロバイダーではなく Anthropic に対して認証されます | `claudeai` |
+| `forceLoginMethod` | `claudeai` を使用して Claude.ai アカウントへのログインを制限するか、`console` を使用して Claude Console アカウントへのログインを制限するか、`gateway` を使用してクラウドゲートウェイへのログインを制限します。[Claude apps gateway](/ja/claude-apps-gateway)を参照してください。managed 設定で設定されている場合、`ANTHROPIC_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、または `apiKeyHelper` で認証されたセッションは起動時にブロックされます。環境認証情報は必須のログイン方法を満たすことができないため。Bedrock、Vertex、Foundry などのサードパーティプロバイダーセッションはブロックされません：これらはクラウドプロバイダーではなく Anthropic に対して認証されます | `claudeai` |
+| `forceLoginGatewayUrl` | `/login` クラウドゲートウェイ画面でゲートウェイ URL を事前入力してロックします。このキーまたは `forceLoginMethod: "gateway"` のいずれかがその画面を表示します。両方を設定して URL が入力されるようにします。managed ポリシーティアでのみ尊重されます。ユーザーおよびプロジェクト設定では無視されます。[Claude apps gateway](/ja/claude-apps-gateway#set-the-gateway-url)を参照してください | `"https://claude-gateway.example.com"` |
 | `forceLoginOrgUUID` | ログインが特定の Anthropic 組織に属することを要求します。単一の UUID 文字列を受け入れます。これはログイン中にその組織を自動的に事前選択するか、リストされた組織のいずれかが受け入れられる UUID の配列を受け入れます。事前選択なし。managed 設定で設定されている場合、認証されたアカウントがリストされた組織に属していない場合、ログインは失敗します。`ANTHROPIC_API_KEY`、`ANTHROPIC_AUTH_TOKEN`、または `apiKeyHelper` で認証されたセッションは起動時にブロックされます。これらのセッションでは組織メンバーシップを検証できないため。Bedrock、Vertex、Foundry などのサードパーティプロバイダーセッションはブロックされません：クラウド IAM を使用して、どのクラウドアカウントを使用できるかを制限します。空配列は失敗して閉じられ、ログインを設定ミスメッセージでブロックします | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` または `["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"]` |
 | `forceRemoteSettingsRefresh` | （Managed 設定のみ）リモート managed 設定がサーバーから新しく取得されるまで CLI スタートアップをブロックします。フェッチが失敗した場合、キャッシュされた設定または設定なしで続行するのではなく、CLI は終了します。設定されていない場合、スタートアップはリモート設定を待たずに続行します。[fail-closed 強制](/ja/server-managed-settings#enforce-fail-closed-startup)を参照してください | `true` |
 | `gcpAuthRefresh` | GCP Application Default Credentials が期限切れになったか読み込めない場合にリフレッシュするカスタムスクリプト。[高度な認証情報構成](/ja/google-vertex-ai#advanced-credential-configuration)を参照してください | `gcloud auth application-default login` |
@@ -253,9 +257,8 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `includeGitInstructions` | **デフォルト**：`true`。Claude のシステムプロンプトに組み込みコミットおよび PR ワークフロー命令と git ステータススナップショットを含めます。たとえば、独自の git ワークフロースキルを使用する場合は、これらの命令を削除するために `false` に設定します。`CLAUDE_CODE_DISABLE_GIT_INSTRUCTIONS` 環境変数が設定されている場合、この設定よりも優先されます | `false` |
 | `inputNeededNotifEnabled` | **デフォルト**：`false`。[リモートコントロール](/ja/remote-control)が接続されている場合、権限プロンプトまたは質問があなたの入力を待っているときにスマートフォンにプッシュ通知を送信します。`/config` に**アクションが必要なときにプッシュ**として表示されます。[モバイルプッシュ通知](/ja/remote-control#mobile-push-notifications)を参照してください。Claude Code v2.1.119 以降が必要です | `true` |
 | `language` | Claude の優先応答言語を構成します（例：`"japanese"`、`"spanish"`、`"french"`）。Claude はデフォルトでこの言語で応答します。また、[音声ディクテーション](/ja/voice-dictation#change-the-dictation-language)言語も設定します。v2.1.176 以降、設定されていない場合、セッションタイトルは会話の言語と一致します | `"japanese"` |
-| `maxSkillDescriptionChars` | **デフォルト**：`1536`。[スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見る `description` と `when_to_use` テキストの結合されたスキルごとの文字上限。この長さより長いテキストは切り詰められます。長い説明を保持するために上げるか、より多くのスキルを [`skillListingBudgetFraction`](#available-settings)の下に収めるために下げます。Claude Code v2.1.105 以降が必要です | `2048` |
 | `minimumVersion` | バックグラウンド自動更新と `claude update` が特定のバージョン以下にインストールするのを防止するフロア。`"latest"` チャネルから `"stable"` に `/config` を通じて切り替えると、現在のバージョンに留まるか、ダウングレードを許可するかを求めるプロンプトが表示されます。留まることを選択すると、この値が設定されます。また、[managed 設定](/ja/permissions#managed-settings)で組織全体の最小値をピンするのに役立ちます。ハードフロアについては、`requiredMinimumVersion` を参照してください | `"2.1.100"` |
-| `model` | Claude Code に使用するデフォルトモデルをオーバーライドします。`--model` と [`ANTHROPIC_MODEL`](/ja/model-config#environment-variables)はこれを 1 セッション間オーバーライドします | `"claude-sonnet-4-6"` |
+| `model` | Claude Code に使用するデフォルトモデルをオーバーライドします。`--model` と [`ANTHROPIC_MODEL`](/ja/model-config#environment-variables)はこれを 1 セッション間オーバーライドします | `"claude-sonnet-5"` |
 | `modelOverrides` | Anthropic モデル ID を Bedrock 推論プロファイル ARN などのプロバイダー固有のモデル ID にマップします。各モデルピッカーエントリは、プロバイダー API を呼び出すときにマップされた値を使用します。[バージョンごとにモデル ID をオーバーライド](/ja/model-config#override-model-ids-per-version)を参照してください | `{"claude-opus-4-6": "arn:aws:bedrock:..."}` |
 | `otelHeadersHelper` | 動的 OpenTelemetry ヘッダーを生成するスクリプト。起動時および定期的に実行されます。[`CLAUDE_CODE_OTEL_HEADERS_HELPER_DEBOUNCE_MS`](/ja/env-vars)でリフレッシュ間隔を設定します。[動的ヘッダー](/ja/monitoring-usage#dynamic-headers)を参照してください | `/bin/generate_otel_headers.sh` |
 | `outputStyle` | システムプロンプトを調整するための出力スタイルを構成します。[出力スタイルドキュメント](/ja/output-styles)を参照してください | `"Explanatory"` |
@@ -271,12 +274,13 @@ Managed 設定は寛容に解析されます。managed 構成にスキーマ検�
 | `remoteControlAtStartup` | 各インタラクティブセッションの開始時に [リモートコントロール](/ja/remote-control)を自動的に接続します。`/remote-control` を待つ代わりに。`true` に設定して常に自動接続するか、`false` に設定して自動接続しないか、組織のデフォルトに従うために未設定のままにします。`/config` に**すべてのセッションでリモートコントロールを有効にする**として表示されます。[すべてのセッションでリモートコントロールを有効にする](/ja/remote-control#enable-remote-control-for-all-sessions)を参照してください | `false` |
 | `requiredMaximumVersion` | Managed 設定のみ。起動を許可される最大 Claude Code バージョン。実行中のバージョンがより新しい場合、Claude Code は起動時に終了し、ユーザーに組織の承認された方法を通じて承認されたバージョンをインストールするよう指示します。`claude install <version>` も機能する可能性があります。バックグラウンド自動更新と `claude update` は上限を超えるバージョンをスキップするため、範囲内のインストールは範囲内のままです。`claude update`、`claude install`、および `claude doctor` は上限を超えて機能し続けるため、ユーザーは回復できます。この設定より前のバージョンはそれを無視します | `"2.1.150"` |
 | `requiredMinimumVersion` | Managed 設定のみ。起動に必要な最小 Claude Code バージョン。実行中のバージョンがより古い場合、Claude Code は起動時に終了し、ユーザーに組織の承認された方法を通じて更新するよう指示します。`claude update`、`claude install`、および `claude doctor` は下限を超えて機能し続けるため、ユーザーは回復できます。ダウングレードを防止するが起動をブロックしない `minimumVersion` とは異なります。この設定より前のバージョンはそれを無視します | `"2.1.150"` |
-| `respondToBashCommands` | **デフォルト**：`true`。入力ボックス `!` シェルコマンドが実行された後に Claude が応答するかどうか。コマンド出力をコンテキストに追加するが応答なしで `false` に設定します。[`!` プレフィックス付きシェルモード](/ja/interactive-mode#shell-mode-with-prefix)を参照してください。Claude Code v2.1.186 以降が必要です | `false` |
 | `respectGitignore` | **デフォルト**：`true`。`@` ファイルピッカーが `.gitignore` パターンを尊重するかどうかを制御します。`true` の場合、`.gitignore` パターンに一致するファイルは提案から除外されます | `false` |
+| `respondToBashCommands` | **デフォルト**：`true`。入力ボックス `!` シェルコマンドが実行された後に Claude が応答するかどうか。コマンド出力をコンテキストに追加するが応答なしで `false` に設定します。[`!` プレフィックス付きシェルモード](/ja/interactive-mode#shell-mode-with-prefix)を参照してください。Claude Code v2.1.186 以降が必要です | `false` |
 | `showClearContextOnPlanAccept` | **デフォルト**：`false`。プラン受け入れ画面に「コンテキストをクリア」オプションを表示します。`true` に設定してオプションを復元します | `true` |
 | `showThinkingSummaries` | **デフォルト**：`false`。[拡張思考](/ja/model-config#extended-thinking)サマリーをインタラクティブセッションに表示します。未設定または `false` の場合、思考ブロックは API によって編集され、折りたたまれたスタブとして表示されます。編集は表示内容のみを変更し、モデルが生成するものは変更しません：思考支出を削減するには、[予算を低下させるか思考を無効にする](/ja/model-config#extended-thinking)代わりに。この設定は非インタラクティブモード（`-p`）、Agent SDK、または VS Code などの IDE 拡張機能には影響しません | `true` |
 | `showTurnDuration` | **デフォルト**：`true`。レスポンス後のターン期間メッセージを表示します（例：「Cooked for 1m 6s」）。`/config` に**ターン期間を表示**として表示されます | `false` |
 | `skillListingBudgetFraction` | **デフォルト**：`0.01`（1%）。[スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見るモデルのコンテキストウィンドウ用に予約されたフラクション。リスティングが予算を超える場合、最も使用頻度の低いスキルの説明は、Claude が引き続き呼び出すことができるが理由を見ることができないように、ベアネームに折りたたまれます。より多くの説明を表示するために上げるか、より多くのスキルを収めるために下げます。`/doctor` は現在の切り詰めカウントと影響を受けるスキルを表示します。Claude Code v2.1.105 以降が必要です | `0.02` |
+| `skillListingMaxDescChars` | **デフォルト**：`1536`。[スキルリスティング](/ja/skills#skill-descriptions-are-cut-short)Claude が各ターンで見る `description` と `when_to_use` テキストの結合されたスキルごとの文字上限。この長さより長いテキストは切り詰められます。長い説明を保持するために上げるか、より多くのスキルを [`skillListingBudgetFraction`](#available-settings)の下に収めるために下げます。Claude Code v2.1.105 以降が必要です | `2048` |
 | `skillOverrides` | スキル名でキー付けされたスキルごとの可視性オーバーライド。値は `"on"`、`"name-only"`、`"user-invocable-only"`、または `"off"` です。スキルの SKILL.md を編集することなく、スキルを非表示または折りたたむことができます。プラグインスキルには適用されません。これらは `/plugin` を通じて管理されます。`/skills` メニューはこれらを `.claude/settings.local.json` に書き込みます。[設定からスキルの可視性をオーバーライド](/ja/skills#override-skill-visibility-from-settings)を参照してください。Claude Code v2.1.129 以降が必要です | `{"legacy-context": "name-only", "deploy": "off"}` |
 | `skipWebFetchPreflight` | [WebFetch ドメイン安全チェック](/ja/data-usage#webfetch-domain-safety-check)をスキップします。このチェックは、フェッチ前に各リクエストされたホスト名を `api.anthropic.com` に送信します。Bedrock、Vertex AI、または制限的な出力を持つ Foundry デプロイメントなど、Anthropic へのトラフィックをブロックする環境で `true` に設定します。スキップされた場合、WebFetch はブロックリストを参照せずに任意の URL を試みます | `true` |
 | `spinnerTipsEnabled` | **デフォルト**：`true`。Claude が作業中にスピナーにヒントを表示します。ヒントを無効にするには `false` に設定します | `false` |
@@ -370,7 +374,7 @@ gitignored ファイル（`.env` など）を新しい worktrees にコピーす
 | `filesystem.denyRead` | サンドボックス化されたコマンドが読み取りできないパス。配列はすべての設定スコープ全体でマージされます。`Read(...)` deny 権限ルールからのパスともマージされます。 | `["~/.aws/credentials"]` |
 | `filesystem.allowRead` | `denyRead` 領域内での読み取りを再度許可するパス。`denyRead` よりも優先されます。配列はすべての設定スコープ全体でマージされます。これを使用してワークスペースのみの読み取りアクセスパターンを作成します。 | `["."]` |
 | `filesystem.allowManagedReadPathsOnly` | （Managed 設定のみ）managed 設定からの `filesystem.allowRead` パスのみが尊重されます。`denyRead` はすべてのソースからマージされます。デフォルト：false | `true` |
-| `credentials.files` | サンドボックス化されたコマンドが読み取りできない認証情報ファイルまたはディレクトリ。`filesystem.denyRead` と同じ読み取りブロックを適用します。個別のキーは認証情報パスを `credentials.envVars` と一緒にグループ化し、一般的なファイルシステムルールから離します。各エントリは `{ "path": "...", "mode": "deny" }` です。パス は `filesystem.*` 設定と同じ[プレフィックス](#sandbox-path-prefixes)を使用します。配列はすべての設定スコープ全体でマージされます。`deny` のみがサポートされています。Claude Code v2.1.187 以降が必要です。 | `[{ "path": "~/.aws/credentials", "mode": "deny" }]` |
+| `credentials.files` | サンドボックス化されたコマンドが読み取りできない認証情報ファイルまたはディレクトリ。`filesystem.denyRead` と同じ読み取りブロックを適用します。個別のキーは認証情報パスを `credentials.envVars` と一緒にグループ化し、一般的なファイルシステムルールから離します。各エントリは `{ "path": "...", "mode": "deny" }` です。パスは `filesystem.*` 設定と同じ[プレフィックス](#sandbox-path-prefixes)を使用します。配列はすべての設定スコープ全体でマージされます。`deny` のみがサポートされています。Claude Code v2.1.187 以降が必要です。 | `[{ "path": "~/.aws/credentials", "mode": "deny" }]` |
 | `credentials.envVars` | サンドボックス化されたコマンドを実行する前に設定解除する環境変数。各エントリは `{ "name": "...", "mode": "deny" }` です。配列はすべての設定スコープ全体でマージされます。`deny` のみがサポートされています。Claude Code v2.1.187 以降が必要です。 | `[{ "name": "GITHUB_TOKEN", "mode": "deny" }]` |
 | `network.allowUnixSockets` | （macOS のみ）サンドボックスでアクセス可能な Unix ソケットパス。Linux と WSL2 では無視されます。seccomp フィルターは `socket(AF_UNIX, ...)` 呼び出しをブロックできないため、代わりに `allowAllUnixSockets` を使用します。 | `["~/.ssh/agent-socket"]` |
 | `network.allowAllUnixSockets` | サンドボックス内のすべての Unix ソケット接続を許可します。Linux と WSL2 ではこれが Unix ソケットを許可する唯一の方法です。seccomp フィルターをスキップするため、`socket(AF_UNIX, ...)` 呼び出しをブロックします。デフォルト：false | `true` |
@@ -444,7 +448,7 @@ Claude Code は git コミットとプルリクエストに属性を追加しま
 **デフォルトコミット属性：**
 
 ```text
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 ```
 
 セッションのアクティブなモデルはトレーラーのモデル名を反映します。
@@ -605,8 +609,8 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 1. **Managed 設定**（[サーバー管理](/ja/server-managed-settings)、[MDM/OS レベルのポリシー](#configuration-scopes)、または [managed 設定](#settings-files)）
    - IT がサーバー配信、MDM 構成プロファイル、レジストリポリシー、または managed 設定ファイルを通じて展開するポリシー
    - コマンドラインの引数を含む他のレベルでオーバーライドできません
-   - managed ティア内では、優先度は：サーバー管理 > MDM/OS レベルのポリシー > ファイルベース（`managed-settings.d/*.json` + `managed-settings.json`）> HKCU レジストリ（Windows のみ）です。1 つの managed ソースのみが使用されます。ソースはマージされません。ファイルベースティア内では、ドロップインファイルとベースファイルがマージされます。
-   - Agent SDK または IDE 拡張機能などの埋め込みホストプロセスによってプログラム的に提供される managed 設定。デフォルトではこれは管理者デプロイ済みの managed ティアが存在する場合は無視されます。管理者は [`parentSettingsBehavior`](#available-settings) を `"merge"` に設定することでオプトインできます。埋め込み側の値はフィルタリングされるため、managed ポリシーを厳しくできますが、緩くすることはできません。
+   - managed ティア内では、優先度は：[`policyHelper`](#compute-managed-settings-with-a-policy-helper)出力（構成されている場合は唯一の managed ソースとして使用）> リモート（claude.ai [サーバー管理](/ja/server-managed-settings)または [Claude apps gateway](/ja/claude-apps-gateway)配信）> MDM/OS レベルのポリシー > ファイルベース（`managed-settings.d/*.json` + `managed-settings.json`）> HKCU レジストリ（Windows のみ）です。1 つの managed ソースのみが使用されます。ソースはマージされません。ただし、サンドボックスロックキー `sandbox.network.allowManagedDomainsOnly` と `sandbox.filesystem.allowManagedReadPathsOnly`、それらの関連ホワイトリスト、`allowAllClaudeAiMcps`、およびサンドボックスバイナリパス `sandbox.bwrapPath` と `sandbox.socatPath` は、管理者制御の managed ソースがそれらを設定する場合に尊重されます。ユーザー書き込み可能な HKCU ティアは除外されます。ファイルベースティア内では、ドロップインファイルとベースファイルがマージされます。
+   - Agent SDK または IDE 拡張機能などの埋め込みホストプロセスによってプログラム的に提供される managed 設定。デフォルトではこれは管理者デプロイ済みの managed ティアが存在する場合は無視されます：サーバー管理設定、MDM または OS レベルのポリシー、または managed 設定ファイル。ユーザー書き込み可能な HKCU レジストリフォールバックは管理者デプロイ済みソースとしてカウントされません。管理者は [`parentSettingsBehavior`](#available-settings)を `"merge"` に設定することでオプトインできます。埋め込み側の値はフィルタリングされるため、managed ポリシーを厳しくできますが、緩くすることはできません。
 
 2. **コマンドラインの引数**
    - 特定のセッションの一時的なオーバーライド。JSON は `--settings <file-or-json>` を通じて渡され、ファイルベース設定と同じルールを使用して他のレイヤーとマージされます：ここで設定されたキーはローカル、プロジェクト、またはユーザー設定の同じキーをオーバーライドし、キーを省略すると下位レイヤーの値が保持されます
@@ -633,11 +637,11 @@ HTTP hooks がヘッダー値に補間できる環境変数名を制限します
 
 アクティブな設定を確認
 
-Claude Code 内で `/status` を実行して、どの設定ソースがアクティブであるかを確認します。メニュー内の **Status** タブには、`Setting sources` 行が含まれており、このセッション用に Claude Code が読み込んだ各レイヤーをリストします。`User settings` または `Project local settings` などのレイヤーが表示される場合、そのソースはそのセッション用に読み込まれています。[managed 設定](/ja/admin-setup#decide-how-settings-reach-devices)が有効な場合、エントリは配信チャネルを括弧内に表示します。たとえば、`Enterprise managed settings (remote)`、`(plist)`、`(HKLM)`、`(HKCU)`、または `(file)` などです。レイヤーは、そのソースが少なくとも 1 つのキーで読み込まれた場合にのみリストに表示されるため、空のリストは設定ソースが見つからなかったことを意味します。
+Claude Code 内で `/status` を実行して、どの設定ソースがアクティブであるかを確認します。メニュー内の **Status** タブには、`Setting sources` 行が含まれており、このセッション用に Claude Code が読み込んだ各レイヤーをリストします。`User settings` または `Project local settings` などのレイヤーが表示される場合、そのソースはそのセッション用に読み込まれています。[managed 設定](/ja/admin-setup#decide-how-settings-reach-devices)が有効な場合、エントリは配信チャネルを括弧内に表示します。たとえば、`Enterprise managed settings (remote)`、`(plist)`、`(HKLM)`、`(HKCU)`、または `(file)` などです。`remote` チャネルは claude.ai サーバー管理設定と [Claude apps gateway](/ja/claude-apps-gateway)配信ポリシーの両方をカバーしています。レイヤーは、そのソースが少なくとも 1 つのキーで読み込まれた場合にのみリストに表示されるため、空のリストは設定ソースが見つからなかったことを意味します。
 
 `Setting sources` 行は、どのソースが読み込まれているかを確認します。各個別キーがどのレイヤーから供給されたかは表示されません。同じダイアログの **Config** タブは、テーマや詳細出力などの固定されたトグルセットのエディターであり、`settings.json` コンテンツのビューではありません。
 
-設定ファイルに無効な JSON やバリデーションに失敗する値などのエラーが含まれている場合、Claude Code は起動時にセットアップの問題通知を表示し、`/status` は影響を受けたファイルをリストします。各エラーの詳細については `/doctor` を実行してください。
+設定ファイルに無効な JSON やバリデーションに失敗する値などのエラーが含まれている場合、`/status` は影響を受けたファイルをリストします。各エラーの詳細については `/doctor` を実行してください。
 
 構成システムの重要なポイント
 
@@ -646,7 +650,7 @@ Claude Code 内で `/status` を実行して、どの設定ソースがアクテ
 - **Skills**：`/skill-name` で呼び出すか、Claude によって自動的に読み込むことができるカスタムプロンプト
 - **MCP サーバー**：追加のツールと統合で Claude Code を拡張します
 - **優先度**：高レベルの構成（Managed）が低レベルの構成（User/Project）をオーバーライドします
-- **継承**：設定はマージされ、スカラー値はより高い優先度のスコープからオーバーライドされ、配列は連結されます。例外：`fallbackModel` は位置が意味を持つ順序付きチェーン：これを定義する最高優先度ファイルが全体の値を提供します。v2.1.175 以降、`availableModels` は managed またはポリシー値が低優先度エントリを完全に置き換えます
+- **継承**：設定はマージされ、スカラー値はより高い優先度のスコープからオーバーライドされ、配列は連結されます。例外：[`fallbackModel`](#available-settings) は位置が意味を持つ順序付きチェーン：これを定義する最高優先度ファイルが全体の値を提供します。v2.1.175 以降、`availableModels` は managed またはポリシー値が低優先度エントリを完全に置き換えます
 
 システムプロンプト
 
@@ -670,7 +674,7 @@ API キー、シークレット、環境ファイルなどの機密情報を含�
 }
 ```
 
-これは非推奨の `ignorePatterns` 構成に置き換わります。これらのパターンに一致するファイルはファイル検出と検索結果から除外され、これらのファ イルの読み取り操作は拒否されます。
+これは非推奨の `ignorePatterns` 構成に置き換わります。これらのパターンに一致するファイルはファイル検出と検索結果から除外され、これらのファイルの読み取り操作は拒否されます。
 
 Subagent 構成
 
@@ -721,6 +725,8 @@ Claude Code は、skills、agents、hooks、および MCP サーバーで機能�
 プロジェクト設定はユーザー設定よりも優先されるため、`~/.claude/settings.json` でプラグインを `false` に設定しても、プロジェクトの `.claude/settings.json` が有効にするプラグインは無効になりません。プロジェクトで有効になっているプラグインをマシンでオプトアウトするには、代わりに `.claude/settings.local.json` で `false` に設定してください。
 
 Managed 設定で強制的に有効にされたプラグインは、Managed 設定がローカル設定をオーバーライドするため、この方法では無効にできません。
+
+外部ソース（GitHub リポジトリや npm パッケージなど）からのプラグインをプロジェクトの `.claude/settings.json` で有効にしても、他のユーザーにはインストールされません。Claude Code v2.1.195 以降、プラグインを読み込むすべてのパスは、実行前に各ユーザーに [プラグインをインストールして信頼する](/ja/discover-plugins#configure-team-marketplaces)よう求めます。
 
 **例**：
 
@@ -837,7 +843,7 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 { "source": "github", "repo": "acme-corp/plugins", "ref": "main", "path": "marketplace" }
 ```
 
-フィールド：`repo`（必須）、`ref`（オプション：ブランチ/タグ/SHA）、`path`（オプション：サブディレクトリ）
+フィールド：`repo`（必須）、`ref`（オプション：ブランチまたはタグ）、`path`（オプション：サブディレクトリ）
 
 2. **Git リポジトリ**：
 
@@ -847,7 +853,7 @@ Managed 設定で強制的に有効にされたプラグインは、Managed 設�
 { "source": "git", "url": "ssh://git@git.example.com/plugins.git", "ref": "v3.1", "path": "approved" }
 ```
 
-フィールド：`url`（必須）、`ref`（オプション：ブランチ/タグ/SHA）、`path`（オプション：サブディレクトリ）
+フィールド：`url`（必須）、`ref`（オプション：ブランチまたはタグ）、`path`（オプション：サブディレクトリ）
 
 3. **URL ベースのマーケットプレイス**：
 
@@ -944,7 +950,7 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 }
 ```
 
-例 - すべてのマーケットプレイス追加を無効にする：
+例：すべてのマーケットプレイス追加を無効にする：
 
 ```json
 {
@@ -967,13 +973,13 @@ URL ベースのマーケットプレイスは `marketplace.json` ファイル�
 
 **完全一致要件**：
 
-マーケットプレイスソースはユーザーの追加を許可するために**正確に**一致する必要があります。git ベースのソース（`github` と `git`）の場合、これはすべてのオプションフィールドを含みます：
+マーケットプレイスソースはユーザーの追加を許可するために正確に一致する必要があります。git ベースのソース（`github` と `git`）の場合、これはすべてのオプションフィールドを含みます：
 
 - `repo` または `url` は正確に一致する必要があります
 - `ref` フィールドは正確に一致する必要があります（または両方が未定義）
 - `path` フィールドは正確に一致する必要があります（または両方が未定義）
 
-一致**しない**ソースの例：
+一致しないソースの例：
 
 ```json
 // これらは異なるソースです：

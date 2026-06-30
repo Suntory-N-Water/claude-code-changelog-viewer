@@ -30,7 +30,7 @@ Claude Code で「How is Claude doing this session?」プロンプトが表示�
 
 数値評価プロンプトの後、「Can Anthropic look at your session transcript to help us improve Claude Code?」と尋ねる別の追加フォローアップが表示される場合があります。これは数値評価とは異なるオプションの 2 番目のステップです。
 
-- **Yes**：会話トランスクリプト、サブエージェントトランスクリプト、ディスクからの生のセッションログファイルを Anthropic にアップロードします。既知の API キーとトークンパターンはアップロード前に削除されます。ソースコード、ファイルコンテンツ、およびその他の会話コンテンツはそのままアップロードされます。共有されたトランスクリプトは最大 6 ヶ月間保持されます。
+- **Yes**：会話トランスクリプト、サブエージェントトランスクリプト、ディスクからの生のセッションログファイルを Anthropic にアップロードします。既知の API キーとトークンパターンはアップロード前に削除されます。ソースコード、ファイルコンテンツ、およびその他の会話コンテンツはそのままアップロードされます。共有されたトランスクリプトは最大 6 ヶ月間保持されます。Bedrock、Vertex AI、Foundry、およびサインイン済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションでは、Yes は同じペイロードを `~/.claude/feedback-bundles/` の下のローカルアーカイブに書き込みます。アップロードの代わりに、ファイルを転送するまで何もマシンから出ません。
 - **No**：何も送信せずに拒否します
 - **Don't ask again**：拒否し、今後のセッションでこのフォローアップが表示されなくなります
 
@@ -104,7 +104,7 @@ Bedrock や Vertex などのサードパーティプロバイダーを使用し�
 
 API プロバイダーのデフォルト動作
 
-デフォルトでは、Bedrock、Vertex、Foundry、または Claude Platform on AWS を使用する場合、エラーレポート、テレメトリ、およびバグレポートは無効になります。セッション品質調査と WebFetch ドメインセーフティチェックは例外であり、プロバイダーに関係なく実行されます。`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` を設定することで、調査を含むすべての非必須トラフィックをオプトアウトできます。この変数は WebFetch チェックに影響を与えません。WebFetch チェックには独自のオプトアウトがあります。以下は完全なデフォルト動作です：
+デフォルトでは、Bedrock、Vertex、Foundry、または Claude Platform on AWS を使用する場合、エラーレポート、テレメトリ、およびバグレポートは無効になります。セッション品質調査と WebFetch ドメインセーフティチェックは例外であり、プロバイダーに関係なく実行されます。署名済みの [Claude apps gateway](/ja/claude-apps-gateway) セッションでは、Anthropic への使用分析、エラーレポート、および調査評価はゲートウェイ認証情報自体によって無効になり、それらを再度有効にする設定はありません。`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` を設定することで、調査を含むすべての非必須トラフィックをオプトアウトできます。この変数は WebFetch チェックに影響を与えません。WebFetch チェックには独自のオプトアウトがあります。以下は完全なデフォルト動作です：
 
 | サービス | Claude API | Vertex API | Bedrock API | Foundry API | Claude Platform on AWS |
 | - | - | - | - | - | - |

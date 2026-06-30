@@ -199,6 +199,8 @@ GitHub から追加する
 
 完全な URL を提供することで、任意の git リポジトリを追加します。これは GitLab、Bitbucket、自己ホスト サーバーを含む任意の Git ホストで機能します。`.git` サフィックスを含めて、Claude Code がリポジトリをクローンするようにしてください。URL をホストされた `marketplace.json` ファイルへの直接リンクとして扱うのではなく。
 
+`https://` プレフィックスも含めてください。Claude Code v2.1.196 以降は、`gitlab.com/company/plugins.git` のようにプレフィックスなしで入力されたホストを無効な GitHub `owner/repo` ショートハンドとして拒否し、エラーメッセージでプレフィックスを追加するよう指示します。以前のバージョンでは、これを GitHub リポジトリパスとして誤読し、クローン時に失敗します。
+
 HTTPS を使用する場合：
 
 ```shell
@@ -243,17 +245,19 @@ URL ベースのマーケットプレイスは、Git ベースのマーケット
 
 プラグインをインストールする
 
-マーケットプレイスを追加したら、プラグインを直接インストールできます（デフォルトではユーザー スコープにインストール）：
+マーケットプレイスを追加したら、プラグインを直接インストールできます：
 
 ```shell
 /plugin install plugin-name@marketplace-name
 ```
 
-別の[インストール スコープ](/ja/settings#configuration-scopes)を選択するには、インタラクティブ UI を使用します。`/plugin` を実行して **Discover** タブに移動し、プラグインで **Enter** を押します。以下のオプションが表示されます：
+このコマンドはそのプラグインの詳細を開き、[インストール スコープ](/ja/settings#configuration-scopes)を選択できます。`/plugin` を実行して **Discover** タブに移動し、プラグインで **Enter** を押すと、同じ選択肢が表示されます：
 
 - **User scope**（デフォルト）: すべてのプロジェクト全体で自分用にインストール
 - **Project scope**: このリポジトリのすべてのコラボレーター用にインストール（`.claude/settings.json` に追加）
 - **Local scope**: このリポジトリ内で自分用にのみインストール（コラボレーターと共有されない）
+
+インタラクティブなステップなしでインストールするには、[`claude plugin install`](/ja/plugins-reference#plugin-install) シェル コマンドを使用します。このコマンドはユーザー スコープにインストールします。`--scope` を渡さない限り、ユーザー スコープにインストールされます。
 
 **managed** スコープのプラグインも表示される場合があります。これらは管理者が[管理設定](/ja/settings#settings-files)経由でインストールしたもので、変更することはできません。
 
@@ -298,6 +302,10 @@ Claude Code v2.1.187 以降では、Installed タブに **Not used recently** �
 ```shell
 /plugin enable plugin-name@marketplace-name
 ```
+
+これらの識別子では、`plugin-name` は [マーケットプレイスエントリ](/ja/plugin-marketplaces#plugin-entries) の `name` であり、プラグイン自体の `plugin.json` の `name` と異なる場合があります。
+
+Claude Code v2.1.195 以降では、`/plugin` インターフェイスの **Enable** と **Disable** は、2 つの名前が異なるプラグインに対して機能し、`/plugin enable` と `/plugin disable` はどちらの名前でも受け入れます。以前のバージョンでそのようなプラグインを無効化すると、Claude Code は `already disabled` を報告し、有効なままにします。
 
 プラグインを完全に削除します：
 
@@ -391,6 +399,8 @@ export FORCE_AUTOUPDATE_PLUGINS=1
 
 チーム管理者は、`.claude/settings.json` にマーケットプレイス構成を追加することで、プロジェクトの自動マーケットプレイス インストールを設定できます。チーム メンバーがリポジトリ フォルダを信頼すると、Claude Code はこれらのマーケットプレイスとプラグインをインストールするよう促します。
 
+Claude Code v2.1.195 以降、このインストール ステップはプラグインを読み込むすべてのパスに適用されます。プロジェクトの `.claude/settings.json` のみで有効にされ、GitHub リポジトリや npm パッケージなどの外部ソースから提供されるプラグインは、チーム メンバーがインストールするまで読み込まれません。それまでの間、Claude Code はプラグインがインストールされていないと報告し、実行する `claude plugin install` コマンドを表示します。
+
 プロジェクトの `.claude/settings.json` に `extraKnownMarketplaces` を追加します：
 
 ```json
@@ -420,7 +430,7 @@ export FORCE_AUTOUPDATE_PLUGINS=1
 
 1. **バージョンを確認する**: `claude --version` を実行して、インストールされているものを確認します。
 2. **Claude Code を更新する**:
-   - **Homebrew**: `brew upgrade claude-code`（または `brew upgrade claude-code@latest` をインストールした場合）
+   - **Homebrew**: `brew upgrade claude-code`、または `brew upgrade claude-code@latest` をインストールした場合は `brew upgrade claude-code@latest`
    - **npm**: `npm install -g @anthropic-ai/claude-code@latest`
    - **ネイティブ インストーラー**: [セットアップ](/ja/setup)からインストール コマンドを再実行します。
 3. **Claude Code を再起動する**: 更新後、ターミナルを再起動して `claude` を再度実行します。
@@ -428,7 +438,7 @@ export FORCE_AUTOUPDATE_PLUGINS=1
 一般的な問題
 
 - **マーケットプレイスが読み込まれない**: URL がアクセス可能であり、`.claude-plugin/marketplace.json` がパスに存在することを確認してください。
-- **プラグイン インストール エラー**: プラグイン ソース URL がアクセス可能であり、リポジトリが公開されている（またはアクセス権がある）ことを確認してください。
+- **プラグイン インストール エラー**: プラグイン ソース URL がアクセス可能であり、リポジトリが公開されている、またはアクセス権があることを確認してください。
 - **インストール後にファイルが見つからない**: プラグインはキャッシュにコピーされるため、プラグイン ディレクトリ外のファイルを参照するパスは機能しません。
 - **プラグイン スキルが表示されない**: `rm -rf ~/.claude/plugins/cache` でキャッシュをクリアし、Claude Code を再起動して、プラグインを再度インストールしてください。
 

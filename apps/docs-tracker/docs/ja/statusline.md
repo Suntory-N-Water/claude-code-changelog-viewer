@@ -165,6 +165,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 | `rate_limits.five_hour.resets_at`、`rate_limits.seven_day.resets_at` | 5 時間または 7 日のレート制限ウィンドウがリセットされる Unix エポック秒 |
 | `session_id` | 一意のセッション識別子 |
 | `session_name` | `--name` フラグまたは `/rename` で設定されたカスタムセッション名。カスタム名が設定されていない場合は不在 |
+| `prompt_id` | 現在処理中のユーザープロンプトを識別する UUID。OpenTelemetry イベントの [`prompt.id` 属性](/ja/monitoring-usage#event-correlation-attributes) と一致します。最初のユーザー入力まで不在。Claude Code v2.1.196 以降が必要です |
 | `transcript_path` | 会話トランスクリプトファイルへのパス |
 | `version` | Claude Code バージョン |
 | `output_style.name` | 現在の出力スタイルの名前 |
@@ -185,6 +186,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
   "cwd": "/current/working/directory",
   "session_id": "abc123...",
   "session_name": "my-session",
+  "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
   "transcript_path": "/path/to/transcript.jsonl",
   "model": {
     "id": "claude-opus-4-8",
@@ -266,6 +268,7 @@ Claude Code は以下の JSON フィールドを stdin 経由でスクリプト�
 **不在の可能性があるフィールド**（JSON に存在しない）：
 
 - `session_name`：`--name` または `/rename` でカスタム名が設定されている場合のみ表示
+- `prompt_id`：最初のユーザー入力の後のみ表示
 - `workspace.git_worktree`：現在のディレクトリがリンク git worktree 内にある場合のみ表示
 - `workspace.repo`：git リポジトリ内で `origin` リモートが設定されている場合のみ表示
 - `effort`：現在のモデルが推論努力パラメータをサポートしている場合のみ表示

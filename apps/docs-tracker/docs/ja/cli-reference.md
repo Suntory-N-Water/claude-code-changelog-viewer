@@ -21,6 +21,7 @@ CLI コマンド
 | `claude -c -p "query"` | SDK 経由で続行 | `claude -c -p "Check for type errors"` |
 | `claude -r "<session>" "query"` | セッション ID または名前でセッションを再開 | `claude -r "auth-refactor" "Finish this PR"` |
 | `claude update` | 最新バージョンに更新 | `claude update` |
+| `claude gateway` | 自己ホスト型 [Claude apps gateway](/ja/claude-apps-gateway) サーバーを開始します。Bedrock、Vertex AI、または Foundry 上の Claude Code の前に SSO とポリシーをデプロイする管理者向けです。`--config` で [`gateway.yaml`](/ja/claude-apps-gateway-config) を指す必要があります。Claude Code v2.1.195 以降で利用可能です。 | `claude gateway --config gateway.yaml` |
 | `claude install [version]` | ネイティブバイナリをインストールまたは再インストールします。`2.1.118` のようなバージョン、または `stable` または `latest` を受け入れます。[特定のバージョンをインストール](/ja/setup#install-a-specific-version) を参照してください | `claude install stable` |
 | `claude auth login` | Anthropic アカウントにサインインします。`--email` を使用してメールアドレスを事前入力し、`--sso` を使用して SSO 認証を強制し、`--console` を使用して Claude サブスクリプションの代わりに Anthropic Console で API 使用料金をサインインできます | `claude auth login --console` |
 | `claude auth logout` | Anthropic アカウントからログアウト | `claude auth logout` |
@@ -90,7 +91,7 @@ CLI フラグ
 | `--max-budget-usd` | 停止する前に API 呼び出しに費やす最大ドル金額（プリントモードのみ） | `claude -p --max-budget-usd 5.00 "query"` |
 | `--max-turns` | agentic ターンの数を制限します（プリントモードのみ）。制限に達するとエラーで終了します。デフォルトでは制限なし | `claude -p --max-turns 3 "query"` |
 | `--mcp-config` | JSON ファイルまたは文字列から MCP サーバーを読み込みます（スペース区切り） | `claude --mcp-config ./mcp.json` |
-| `--model` | 現在のセッションのモデルを、最新モデルのエイリアス（`sonnet`、`opus`、`haiku`、または `fable`）またはモデルの完全な名前で設定します。[`model`](/ja/settings#available-settings) 設定と [`ANTHROPIC_MODEL`](/ja/model-config#environment-variables) をオーバーライドします | `claude --model claude-sonnet-4-6` |
+| `--model` | 現在のセッションのモデルを、最新モデルのエイリアス（`sonnet`、`opus`、`haiku`、または `fable`）またはモデルの完全な名前で設定します。[`model`](/ja/settings#available-settings) 設定と [`ANTHROPIC_MODEL`](/ja/model-config#environment-variables) をオーバーライドします | `claude --model claude-sonnet-5` |
 | `--name`、`-n` | セッションの表示名を設定します。`/resume` とターミナルタイトルに表示されます。`claude --resume <name>` で名前付きセッションを再開できます。[`/rename`](/ja/commands) はセッション中に名前を変更し、プロンプトバーにも表示します | `claude -n "my-feature-work"` |
 | `--no-chrome` | このセッションの [Chrome ブラウザ統合](/ja/chrome) を無効にします | `claude --no-chrome` |
 | `--no-session-persistence` | セッション永続化を無効にして、セッションがディスクに保存されず、再開できないようにします（プリントモードのみ）。[`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/ja/env-vars) 環境変数は任意のモードで同じことを行います | `claude -p --no-session-persistence "query"` |

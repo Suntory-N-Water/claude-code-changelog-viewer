@@ -100,7 +100,7 @@ Claude Code GitHub Actions v1.0 は、ベータ版から v1.0 にアップグレ
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
     custom_instructions: "Follow our coding standards"
     max_turns: "10"
-    model: "claude-sonnet-4-6"
+    model: "claude-sonnet-5"
 ```
 
 **GA バージョン（v1.0）:**
@@ -113,7 +113,7 @@ Claude Code GitHub Actions v1.0 は、ベータ版から v1.0 にアップグレ
     claude_args: |
       --append-system-prompt "Follow our coding standards"
       --max-turns 10
-      --model claude-sonnet-4-6
+      --model claude-sonnet-5
 ```
 
 アクションは、設定に基づいて、インタラクティブモード（`@claude` メンションに応答）または自動化モード（プロンプト付きで即座に実行）で実行するかどうかを自動的に検出します。
@@ -189,7 +189,7 @@ jobs:
 
 イシューまたは PR コメント内：
 
-```text
+```text wrap
 @claude implement this feature based on the issue description
 @claude how should I implement user authentication for this endpoint?
 @claude fix the TypeError in the user dashboard component
@@ -602,13 +602,13 @@ CLI 引数を渡す
 `claude_args` パラメータは、任意の Claude Code CLI 引数を受け入れます。
 
 ```yaml
-claude_args: "--max-turns 5 --model claude-sonnet-4-6 --mcp-config /path/to/config.json"
+claude_args: "--max-turns 5 --model claude-sonnet-5 --mcp-config /path/to/config.json"
 ```
 
 一般的な引数：
 
 - `--max-turns`: 最大会話ターン数（デフォルト：10）
-- `--model`: 使用するモデル（例：`claude-sonnet-4-6`）
+- `--model`: 使用するモデル（例：`claude-sonnet-5`）
 - `--mcp-config`: MCP 設定へのパス
 - `--allowedTools`: 許可されたツールのカンマ区切りリスト。`--allowed-tools` エイリアスも機能します。
 - `--debug`: デバッグ出力を有効にします

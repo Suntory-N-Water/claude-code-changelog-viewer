@@ -439,7 +439,7 @@ claude plugin disable my-tool@skills-dir
 
 | フィールド | 型 | 説明 | 例 |
 | :- | :- | :- | :- |
-| `name` | string | 一意の識別子（kebab-case、スペースなし） | `"deployment-tools"` |
+| `name` | string | 一意の識別子（kebab-case、スペースなし）。[マーケットプレイスエントリ](/ja/plugin-marketplaces#plugin-entries)がプラグインを別の名前でリストする場合、マーケットプレイスエントリ名が `enabledPlugins` キーと `/plugin` で使用される名前です | `"deployment-tools"` |
 
 この名前はコンポーネントの名前空間に使用されます。たとえば、UI では、名前が `plugin-dev` のプラグインのエージェント `agent-creator` は `plugin-dev:agent-creator` として表示されます。
 

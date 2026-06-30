@@ -158,10 +158,16 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 | マッチャー値 | 評価方法 | 例 |
 | :- | :- | :- |
 | `"*"`、`""`、または省略 | すべてにマッチ | イベントのすべての出現で発火 |
-| 文字、数字、`_`、スペース、`,`、`\|` のみ | 完全一致、または `\|` または `,` で区切られた完全一致のリスト（オプションで周囲の空白を含む） | `Bash` は Bash ツールのみにマッチ。`Edit\|Write` と `Edit, Write` はいずれかのツールに完全にマッチ |
-| その他の文字を含む | JavaScript 正規表現 | `^Notebook` は Notebook で始まるツールにマッチ。`mcp__memory__.*` は `memory` サーバーのすべてのツールにマッチ |
+| 文字、数字、`_`、`-`、スペース、`,`、`\|` のみ | 完全一致、または `\|` または `,` で区切られた完全一致のリスト（オプションで周囲の空白を含む） | `Bash` は Bash ツールのみにマッチ。`Edit\|Write` と `Edit, Write` はいずれかのツールに完全にマッチ。`code-reviewer` はそのエージェント タイプのみにマッチ |
+| その他の文字を含む | JavaScript 正規表現、アンカーなし | `^Notebook` は Notebook で始まるツールにマッチ。`mcp__memory__.*` は `memory` サーバーのすべてのツールにマッチ |
 
-カンマ区切り文字と周囲の空白許容度には Claude Code v2.1.191 以降が必要です。`FileChanged` と `StopFailure` イベントは `|` のみをリスト区切り文字として受け入れ、`,` をリテラル文字として扱います。後続の表にリストされている他のすべてのイベントは `|` または `,` を受け入れます。
+正規表現パス上のマッチャーは JavaScript の `RegExp.prototype.test` でテストされます。これは値内のどこかでマッチすると成功します。`Edit.*` は `Edit` と `NotebookEdit` の両方にマッチします。完全文字列マッチが必要な場合は、`^Edit$` のようにパターンを `^` と `$` でラップしてください。
+
+カンマ区切り文字と周囲の空白許容度には Claude Code v2.1.191 以降が必要です。
+
+完全一致セット内のハイフンには Claude Code v2.1.195 以降が必要です。以前のバージョンでは、`code-reviewer` のようなハイフン付き名前はアンカーなしの正規表現として評価されるため、`senior-code-reviewer` でも発火します。これらのバージョンではそのような名前のみにマッチするように `^code-reviewer$` としてアンカーしてください。
+
+`FileChanged` と `StopFailure` は、文字、数字、`_`、`|` のみの狭い完全一致セットを使用します。これら 2 つのイベントのマッチャーにハイフン、スペース、またはカンマがあると、正規表現パスに留まり、`|` のみが代替を区切ります。後続の表でマッチャー サポートを持つ他のすべてのイベントは `|` または `,` を受け入れます。
 
 `FileChanged` イベントは監視リストを構築するときにこれらのルールに従いません。[FileChanged](#filechanged)を参照してください。
 
@@ -174,7 +180,7 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 | `Setup` | セットアップをトリガーした CLI フラグ | `init`、`maintenance` |
 | `SessionEnd` | セッションが終了した理由 | `clear`、`resume`、`logout`、`prompt_input_exit`、`bypass_permissions_disabled`、`other` |
 | `Notification` | 通知タイプ | `permission_prompt`、`idle_prompt`、`auth_success`、`elicitation_dialog`、`elicitation_complete`、`elicitation_response` |
-| `SubagentStart` | エージェント タイプ | `general-purpose`、`Explore`、`Plan`、またはカスタム エージェント名 |
+| `SubagentStart` | エージェント タイプ | `general-purpose`、`Explore`、`Plan`、カスタム エージェント名、またはプラグイン スコープ付き名前（`^my-plugin:reviewer$` など） |
 | `PreCompact`、`PostCompact` | コンパクションをトリガーしたもの | `manual`、`auto` |
 | `SubagentStop` | エージェント タイプ | `SubagentStart` と同じ値 |
 | `ConfigChange` | 設定ソース | `user_settings`、`project_settings`、`local_settings`、`policy_settings`、`skills` |
@@ -209,7 +215,7 @@ Claude Code は JSON 決定を読み取り、ツール呼び出しをブロッ�
 }
 ```
 
-`UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`CwdChanged` はマッチャーをサポートせず、すべての出現で常に発火します。これらのイベントに `matcher` フィールドを追加すると、サイレントに無視されます。
+`UserPromptSubmit`、`PostToolBatch`、`Stop`、`TeammateIdle`、`TaskCreated`、`TaskCompleted`、`WorktreeCreate`、`WorktreeRemove`、`MessageDisplay`、`CwdChanged` はマッチャーをサポートせず、すべての出現で常に発火します。これらのイベントに `matcher` フィールドを追加すると、サイレントに無視されます。
 
 ツール イベントの場合、個別のフック ハンドラーで [`if` フィールド](#common-fields)を設定することで、より狭くフィルタリングできます。`if` は[権限ルール構文](/ja/permissions)を使用してツール名と引数を一緒にマッチするため、`"Bash(git *)"` は `git *` に一致する Bash 入力のサブコマンドのいずれかに対して実行され、`"Edit(*.ts)"` は TypeScript ファイルのみに対して実行されます。
 
@@ -223,10 +229,13 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 - `mcp__filesystem__read_file`: Filesystem サーバーの read file ツール
 - `mcp__github__search_repositories`: GitHub サーバーの search ツール
 
-すべてのツールをサーバーからマッチするには、サーバー プレフィックスに `.*` を追加します。`.*` は必須です。`mcp__memory` のようなマッチャーは文字とアンダースコアのみを含むため、完全一致として比較され、ツールにマッチしません。
+すべてのツールをサーバーからマッチするには、サーバー プレフィックスに `.*` を追加します。`.*` は必須です。`mcp__memory` のようなマッチャーは完全一致文字のみを含むため、完全一致として比較され、ツールにマッチしません。
 
 - `mcp__memory__.*` は `memory` サーバーのすべてのツールにマッチ
+- `mcp__brave-search__.*` は名前にハイフンを含むサーバーのすべてのツールにマッチ
 - `mcp__.*__write.*` は任意のサーバーから「write」で始まるツールにマッチ
+
+完全一致セット内のハイフンには Claude Code v2.1.195 以降が必要です。以前のバージョンでは、`mcp__brave-search` のようなベアのハイフン付きプレフィックスはアンカーなしの正規表現として評価され、そのサーバーのすべてのツールにマッチします。`mcp__brave-search__.*` 形式はすべてのバージョンで機能します。
 
 この例は、すべてのメモリ サーバー操作をログし、任意の MCP サーバーからの書き込み操作を検証します。
 
@@ -266,6 +275,8 @@ MCP ツールは `mcp__<server>__<tool>` という命名パターンに従いま
 - **[MCP ツール フック](#mcp-tool-hook-fields)** （`type: "mcp_tool"`）: 既に接続されている[MCP サーバー](/ja/mcp)上のツールを呼び出します。ツールのテキスト出力はコマンド フック stdout のように扱われます。
 - **[プロンプト フック](#prompt-and-agent-hook-fields)** （`type: "prompt"`）: Claude モデルにプロンプトを送信して、単一ターンの評価を行います。モデルは yes/no 決定を JSON として返します。[プロンプト ベースのフック](#prompt-based-hooks)を参照してください。
 - **[エージェント フック](#prompt-and-agent-hook-fields)** （`type: "agent"`）: Read、Grep、Glob などのツールを使用して条件を検証してから決定を返すことができるサブエージェントを生成します。エージェント フックは実験的であり、変更される可能性があります。[エージェント ベースのフック](#agent-based-hooks)を参照してください。
+
+すべてのマッチング フックは並列で実行され、同一のハンドラーは自動的に重複排除されます。コマンド フックはコマンド文字列と `args` で重複排除され、HTTP フックは URL で重複排除されます。ハンドラーは Claude Code の環境を持つ現在のディレクトリで実行されます。`$CLAUDE_CODE_REMOTE` 環境変数はリモート Web 環境で `"true"` に設定され、ローカル CLI では設定されません。
 
 共通フィールド
 
@@ -422,8 +433,6 @@ MCP ツール フックは、Claude Code が MCP サーバーに接続した後�
 | `prompt` | はい | モデルに送信するプロンプト テキスト。フック入力 JSON のプレースホルダーとして `$ARGUMENTS` を使用します。バックスラッシュでエスケープしてリテラル テキストを含めます。`\$1.00` は `$1.00` としてレンダリングされます |
 | `model` | いいえ | 評価に使用するモデル。デフォルトは高速モデル |
 
-すべてのマッチング フックは並列で実行され、同一のハンドラーは自動的に重複排除されます。コマンド フックはコマンド文字列と `args` で重複排除され、HTTP フックは URL で重複排除されます。ハンドラーは Claude Code の環境を持つ現在のディレクトリで実行されます。`$CLAUDE_CODE_REMOTE` 環境変数はリモート Web 環境で `"true"` に設定され、ローカル CLI では設定されません。
-
 パスでフック スクリプトを参照
 
 フックが実行されるときの作業ディレクトリに関係なく、プロジェクトまたはプラグイン ルートを基準にしてフック スクリプトを参照するには、これらのプレースホルダーを使用します。
@@ -545,6 +554,7 @@ macOS と Linux では、コマンド フックは v2.1.139 以降、制御端�
 | フィールド | 説明 |
 | :- | :- |
 | `session_id` | 現在のセッション識別子 |
+| `prompt_id` | 現在処理中のユーザー プロンプトを識別する UUID。[OpenTelemetry イベントの `prompt.id` 属性](/ja/monitoring-usage#event-correlation-attributes)と一致するため、単一のプロンプトのテレメトリでフック出力を相関させることができます。最初のユーザー入力まで存在しません。Claude Code v2.1.196 以降が必要です |
 | `transcript_path` | 会話 JSON へのパス |
 | `cwd` | フックが呼び出されるときの現在の作業ディレクトリ |
 | `permission_mode` | 現在の[権限モード](/ja/permissions#permission-modes): `"default"`、`"plan"`、`"acceptEdits"`、`"auto"`、`"dontAsk"`、または `"bypassPermissions"`。すべてのイベントがこのフィールドを受け取るわけではありません。各イベントの JSON 例を確認してください |
@@ -556,15 +566,16 @@ macOS と Linux では、コマンド フックは v2.1.139 以降、制御端�
 | フィールド | 説明 |
 | :- | :- |
 | `agent_id` | サブエージェントの一意の識別子。フックがサブエージェント呼び出し内で発火する場合にのみ存在します。これを使用して、サブエージェント フック呼び出しをメイン スレッド呼び出しから区別します。 |
-| `agent_type` | エージェント名（例えば、`"Explore"` または `"security-reviewer"`）。セッションが `--agent` を使用するか、フックがサブエージェント内で発火する場合に存在します。サブエージェントの場合、サブエージェントのタイプがセッションの `--agent` 値よりも優先されます。[カスタム サブエージェント](/ja/sub-agents)の場合、これはエージェントのフロントマターの `name` フィールドであり、ファイル名ではありません。 |
+| `agent_type` | エージェント名（例えば、`"Explore"` または `"security-reviewer"`）。セッションが `--agent` を使用するか、フックがサブエージェント内で発火する場合に存在します。サブエージェントの場合、サブエージェントのタイプがセッションの `--agent` 値よりも優先されます。[カスタム サブエージェント](/ja/sub-agents)の場合、これはエージェントのフロントマターの `name` フィールドであり、ファイル名ではありません。[プラグイン](/ja/plugins)によって提供されるサブエージェントの場合、これは `my-plugin:reviewer` などのプラグイン スコープ識別子であり、フロントマター名ではありません。[SubagentStart](#subagentstart)を参照して、プラグイン スコープ名に対するマッチャーを記述する方法を確認してください。 |
 
-[`SessionStart`](#sessionstart) フックのみが `model` フィールドを受け取ります。`$CLAUDE_MODEL` 環境変数はありません。フック プロセスは親環境を継承するため、シェルで `$ANTHROPIC_MODEL` を設定した場合はそれを読み取ることができますが、セッション中に `/model` でモデルを切り替えるときにその値は変わりません。
+[`SessionStart`](#sessionstart) フックのみが `model` フィールドを受け取ることができ、存在することは保証されません。`$CLAUDE_MODEL` 環境変数はありません。フック プロセスは親環境を継承するため、シェルで `$ANTHROPIC_MODEL` を設定した場合はそれを読み取ることができますが、セッション中に `/model` でモデルを切り替えるときにその値は変わりません。
 
 例えば、Bash コマンドの `PreToolUse` フックは stdin で以下を受け取ります。
 
 ```json
 {
   "session_id": "abc123",
+  "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
   "transcript_path": "/home/user/.claude/projects/.../transcript.jsonl",
   "cwd": "/home/user/my-project",
   "permission_mode": "default",
@@ -707,7 +718,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 # Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
 input=$(cat)
 title="Claude Code'
-body=$(jq -r '.message // 'Needs your attention'' <<<'$input')
+body=$(jq -r '.message // "Needs your attention"' <<<"$input")
 seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
@@ -769,6 +780,15 @@ Claude が現在の環境の状態または実行されたばかりの操作に�
 | MessageDisplay | `hookSpecificOutput` | `displayContent` は画面に表示されるテキストを置き換えます。表示のみ: トランスクリプトと Claude が見るものは元のままです |
 | SessionStart、Setup、SubagentStart | コンテキストのみ | `hookSpecificOutput.additionalContext` は Claude 用にコンテキストを追加します。SessionStart は [`initialUserMessage`、`watchPaths`、`sessionTitle`、および `reloadSkills`](#sessionstart-decision-control)も受け入れます。ブロッキングまたは決定制御なし |
 | WorktreeRemove、Notification、SessionEnd、PostCompact、InstructionsLoaded、StopFailure、CwdChanged、FileChanged | なし | 決定制御なし。ログやクリーンアップなどの副作用に使用 |
+
+いくつかのイベントは、許可またはブロックするだけでなく、コンテンツを書き直すこともできます。
+
+- `PreToolUse`: `hookSpecificOutput` の直下の `updatedInput` は、ツールが実行される前にそのツールの引数を置き換えます。[PreToolUse 決定制御](#pretooluse-decision-control)を参照してください
+- `PermissionRequest`: `decision` オブジェクト内の `updatedInput`。[PermissionRequest 決定制御](#permissionrequest-decision-control)を参照してください
+- `PostToolUse`: `updatedToolOutput` はツールの結果を置き換えます。[PostToolUse 決定制御](#posttooluse-decision-control)を参照してください
+- `UserPromptSubmit`: プロンプトを置き換えることはできません。`additionalContext` をそれと一緒に注入するだけです
+
+編集またはトランスフォーメーション ユースケースの場合、アウトバウンド ツール入力の場合は `PreToolUse` で、インバウンド ツール結果の場合は `PostToolUse` で傍受します。
 
 各パターンの実行例を以下に示します。
 
@@ -832,7 +852,7 @@ SessionStart はすべてのセッションで実行されるため、これら�
 
 SessionStart 入力
 
-[共通入力フィールド](#common-input-fields)に加えて、SessionStart フックは `source`、`model`、およびオプションで `agent_type` と `session_title` を受け取ります。`source` フィールドはセッションがどのように開始されたかを示します。新しいセッションの場合は `"startup"`、再開されたセッションの場合は `"resume"`、`/clear` の後は `"clear"`、コンパクション後は `"compact"`。`model` フィールドはモデル識別子を含みます。例えば `/clear` の後、またはセッションが会話復旧を通じて復元されるときなど、フィールドが省略される可能性があるため、読み取る前にフィールドをチェックしてください。`claude --agent <name>` で Claude Code を開始する場合、`agent_type` フィールドはエージェント名を含みます。`session_title` フィールドは、例えば `--name` または `/rename` 経由で既に設定されている場合、現在のセッション タイトルを含みます。`sessionTitle` を発行するフックは、ユーザーが明示的に設定したタイトルを上書きしないように、最初に `session_title` をチェックできます。
+[共通入力フィールド](#common-input-fields)に加えて、SessionStart フックは `source` と、オプションで `model`、`agent_type`、`session_title` を受け取ります。`source` フィールドはセッションがどのように開始されたかを示します。新しいセッションの場合は `"startup"`、再開されたセッションの場合は `"resume"`、`/clear` の後は `"clear"`、コンパクション後は `"compact"`。`model` フィールドはアクティブなモデル識別子を含みます。例えば `/clear` の後、またはセッションが会話復旧を通じて復元されるときなど、フィールドが省略される可能性があるため、読み取る前にフィールドをチェックしてください。`claude --agent <name>` で Claude Code を開始する場合、`agent_type` フィールドはエージェント名を含みます。`session_title` フィールドは、例えば `--name` または `/rename` 経由で既に設定されている場合、現在のセッション タイトルを含みます。`sessionTitle` を発行するフックは、ユーザーが明示的に設定したタイトルを上書きしないように、最初に `session_title` をチェックできます。
 
 ```json
 {
@@ -841,7 +861,7 @@ SessionStart 入力
   "cwd": "/Users/...",
   "hook_event_name": "SessionStart",
   "source": "startup",
-  "model": "claude-sonnet-4-6"
+  "model": "claude-sonnet-5"
 }
 ```
 
@@ -1009,6 +1029,8 @@ UserPromptSubmit
 ユーザーがプロンプトを送信するときに実行されます。Claude がそれを処理する前に。これにより、プロンプト/会話に基づいて追加コンテキストを追加したり、プロンプトを検証したり、特定のタイプのプロンプトをブロックしたりできます。
 
 `UserPromptSubmit` フックは `command`、`http`、`mcp_tool` タイプのデフォルト タイムアウトが 30 秒で、他のイベントでのこれらのタイプの 600 秒のデフォルトより短くなっています。このフックはすべてのプロンプトの前に実行され、モデル処理がそれが完了するまでブロックされるため、スタックしたフックはセッションを停止させます。フックにより多くの時間が必要な場合は、フック エントリで `timeout` フィールドを設定します。
+
+タイムアウトに達した `UserPromptSubmit` フックはキャンセルされ、`additionalContext` を含むその出力は破棄されます。プロンプトは引き続き Claude に到達しますが、そのコンテキストなしで。v2.1.196 以降では、トランスクリプトはフックの名前、発火したタイムアウト、出力が破棄されたことを示す通知を表示します。以前のバージョンはフックを通知なしでキャンセルします。
 
 UserPromptSubmit 入力
 
@@ -1810,6 +1832,8 @@ SubagentStart
 
 Agent ツール経由でサブエージェントが生成されるときに実行されます。エージェント タイプ名でフィルタリングするマッチャーをサポート。組み込みエージェントの場合、これはエージェント名（`general-purpose`、`Explore`、`Plan` など）です。[カスタム サブエージェント](/ja/sub-agents)の場合、これはファイル名ではなく、エージェントのフロントマターの `name` フィールドです。
 
+[プラグイン](/ja/plugins)から出荷されたサブエージェントの場合、エージェント タイプはプラグイン スコープの識別子（`my-plugin:reviewer` など）で、ベアのフロントマター名ではありません。コロンはプラグイン スコープの名前を正規表現パスに配置するため、正確なマッチのためにマッチャーを `^` と `$` でアンカーします。`^my-plugin:reviewer$`。
+
 SubagentStart 入力
 
 [共通入力フィールド](#common-input-fields)に加えて、SubagentStart フックはサブエージェントの一意の識別子を含む `agent_id` とエージェント名を含む `agent_type`（`"general-purpose"`、`"Explore"`、`"Plan"` などの組み込みエージェント、またはカスタム エージェント名）を受け取ります。
@@ -2346,7 +2370,7 @@ WorktreeCreate フックは標準的な許可/ブロック決定モデルを使�
 
 WorktreeRemove
 
-[WorktreeCreate](#worktreecreate)のクリーンアップ対応。このフックはワークツリーが削除されるときに発火します。`--worktree` セッションを終了して削除を選択するか、`isolation: "worktree"` を持つサブエージェントが完了するとき。git ベースのワークツリーの場合、Claude は `git worktree remove` で自動的にクリーンアップを処理します。git 以外のバージョン管理システムの WorktreeCreate フックを設定した場合、クリーンアップを処理するために WorktreeRemove フックとペアにします。なければ、ワークツリー ディレクトリはディスク上に残ります。
+[WorktreeCreate](#worktreecreate)のクリーンアップ対応。このフックはワークツリーが削除されるときに発火します。`--worktree` セッションを終了して削除を選択するか、`isolation: "worktree"` を持つサブエージェントが完了するとき。git ベースのワークツリーの場合、Claude は `git worktree remove` で自動的にクリーンアップを処理します。git 以外のバージョン管理システムの WorktreeCreate フックを設定した場合、クリーンアップを処理するために WorktreeRemove フックとペアにします。なければ、ワークツリー ディレ クトリはディスク上に残ります。
 
 Claude Code は WorktreeCreate が返したパスを `worktree_path` としてフック入力に渡します。この例はそのパスを読み取り、ディレクトリを削除します。
 

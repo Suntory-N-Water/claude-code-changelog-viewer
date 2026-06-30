@@ -1,0 +1,515 @@
+{
+  "id": "20260630-213737",
+  "timestamp": "2026-06-30T21:37:37.579Z",
+  "aiSummary": "Claude Sonnet 5のサポート開始に伴い、Amazon BedrockやGoogle Cloud Vertex AI、Microsoft Foundryにおけるモデル設定とAuto modeの要件が更新されました。Sonnet 5は100万トークンのコンテキストウィンドウを標準でサポートし、特定のサフィックス指定なしで利用可能です。また、各プラットフォームでのデフォルトのSonnetモデルがSonnet 5へ変更され、Auto modeの対応モデルリストにSonnet 5が追加されました。データレジデンシー要件に関するリンクの改善や、MantleエンドポイントでのモデルID指定方法についても追記されています。",
+  "files": [
+    {
+      "filename": "amazon-bedrock.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Sonnet 5が100万トークンのコンテキストウィンドウを標準でサポートすることや、MantleエンドポイントにおけるSonnet 5の新しいモデルIDについて追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -354,7 +354,7 @@ For details, see [Bedrock IAM documentation](https://docs.aws.amazon.com/bedrock",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## 1M token context window"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Opus 4.6 and later, and Sonnet 4.6, support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Amazon Bedrock. Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "added",
+              "content": "Claude Sonnet 5, Opus 4.6 and later, and Sonnet 4.6 support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Amazon Bedrock. Sonnet 5 is served through the [Mantle endpoint](#use-the-mantle-endpoint) and always runs with the 1M window, with no `[1m]` variant to select. For the other models, Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The [setup wizard](#sign-in-with-bedrock) offers a 1M context option when it pins models. To enable it for a manually pinned model instead, append `[1m]` to the model ID. See [Pin models for third-party deployments](/en/model-config#pin-models-for-third-party-deployments) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -405,7 +405,7 @@ Run `/status` inside Claude Code to confirm. The provider line shows `Amazon Bed",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Select a Mantle model"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Mantle uses model IDs prefixed with `anthropic.` and without a version suffix, for example `anthropic.claude-haiku-4-5`. The models available to your account depend on what your organization has been granted; additional model IDs are listed in your onboarding materials from AWS. Contact your AWS account team to request access to allowlisted models."
+            },
+            {
+              "type": "added",
+              "content": "Mantle uses model IDs prefixed with `anthropic.` and without a version suffix, for example `anthropic.claude-sonnet-5` or `anthropic.claude-haiku-4-5`. The models available to your account depend on what your organization has been granted; additional model IDs are listed in your onboarding materials from AWS. Contact your AWS account team to request access to allowlisted models."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Set the model with the `--model` flag or with `/model` inside Claude Code:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-apps-gateway.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "データレジデンシー要件に関するリンクが更新され、Auto modeを利用可能なモデルの定義が最新の状態に合わせて調整されました。",
+      "hunks": [
+        {
+          "header": "@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/claude-apps-gateway.md",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "> Run Claude Code through Amazon Bedrock, Google Cloud, or Microsoft Foundry behind a self-hosted gateway with SSO sign-in, per-group model access, and OTLP telemetry."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "The Claude apps gateway is designed for organizations that must — or prefer to — route inference through their own cloud provider, for example to meet data residency requirements. If you don't have this requirement, and want access to other features such as SCIM provisioning or Claude Code on web & mobile, Claude Enterprise may be a better fit. See the feature availability page for a full comparison of all deployment methods."
+            },
+            {
+              "type": "added",
+              "content": "The Claude apps gateway is designed for organizations that must — or prefer to — route inference through their own cloud provider, for example to meet [data residency](/en/claude-apps-gateway-deploy#compliance-posture) requirements. If you don't have this requirement, and want access to other features such as SCIM provisioning or Claude Code on web & mobile, Claude Enterprise may be a better fit. See the [feature availability](/en/feature-availability) page for a full comparison of all deployment methods."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Claude apps gateway is a self-hosted service that sits between your developers' Claude Code clients and your model provider. Developers sign in with your corporate identity provider (IdP) instead of holding API keys or cloud credentials. The gateway holds the upstream credential, enforces model access and [managed settings](/en/permissions#managed-settings) by IdP group, and relays usage telemetry to your own observability stack."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -275,7 +275,7 @@ The gateway delivers the [`anthropic-beta`](https://platform.claude.com/docs/en/",
+          "lines": [
+            {
+              "type": "context",
+              "content": "| Server-side web search | Not available | The CLI can't see which upstream provider the gateway routes to, so it can't verify web search support and disables WebSearch on gateway sessions |"
+            },
+            {
+              "type": "context",
+              "content": "| Standard prompt caching | Available | `cache_control` breakpoints are forwarded to every upstream |"
+            },
+            {
+              "type": "context",
+              "content": "| 1-hour cache TTL | Not available | The CLI omits the extended-cache-ttl beta on gateway sessions, because not every upstream the gateway can route to supports the 1-hour TTL, so prompt caching through the gateway uses the 5-minute TTL; see the beta-header note above |"
+            },
+            {
+              "type": "removed",
+              "content": "| Auto mode | Available with opt-in | Follows the [third-party provider rules](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry): set `CLAUDE_CODE_ENABLE_AUTO_MODE=1`, deliverable through the managed policy `env` block, and only the Opus models eligible on third-party providers can use it |"
+            },
+            {
+              "type": "added",
+              "content": "| Auto mode | Available with opt-in | Follows the [third-party provider rules](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry): set `CLAUDE_CODE_ENABLE_AUTO_MODE=1`, deliverable through the managed policy `env` block, and only the models eligible on third-party providers can use it |"
+            },
+            {
+              "type": "context",
+              "content": "| First-party-only optimizations such as global cache scope and token-efficient tools | Not available | The CLI doesn't enable them on gateway sessions; see the beta-header note above |"
+            },
+            {
+              "type": "context",
+              "content": "| OTLP/gRPC | Not supported | OTLP over HTTP only |"
+            },
+            {
+              "type": "context",
+              "content": "| SAML, LDAP, and other non-OIDC auth | Not supported | OIDC only. Front with an OIDC bridge if needed |"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "claude-platform-on-aws.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "環境変数ANTHROPIC_DEFAULT_SONNET_MODELのデフォルト値がclaude-sonnet-5に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -148,7 +148,7 @@ If you deploy Claude Code to a team, pin the model IDs explicitly so a new relea",
+          "lines": [
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_FABLE_MODEL=claude-fable-5"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-7"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-4-6"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL=claude-sonnet-5"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-haiku-4-5"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "desktop.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "Google Cloud Vertex AIを介したエンタープライズ環境のAuto modeにおいて、Sonnet 5がサポート対象モデルとして追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -73,7 +73,7 @@ Permission modes control how much autonomy Claude has during a session: whether",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The `dontAsk` permission mode is available only in the [CLI](/en/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Auto mode is a research preview available to all users on the Anthropic API and requires Claude Opus 4.6 or later, or Sonnet 4.6 or later. In Enterprise deployments that route Desktop to Google Cloud Vertex AI, auto mode is off until you [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry), and only Claude Opus 4.7 and Opus 4.8 are supported there."
+            },
+            {
+              "type": "added",
+              "content": "Auto mode is a research preview available to all users on the Anthropic API and requires Claude Opus 4.6 or later, or Sonnet 4.6 or later. In Enterprise deployments that route Desktop to Google Cloud Vertex AI, auto mode is off until you [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry), and only Claude Sonnet 5, Opus 4.7, and Opus 4.8 are supported there."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "Start complex tasks in Plan mode so Claude maps out an approach before making changes. Once you approve the plan, switch to Auto accept edits or Ask permissions to execute it. See [explore first, then plan, then code](/en/best-practices#explore-first-then-plan-then-code) for more on this workflow."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "google-vertex-ai.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "デフォルトモデルがSonnet 5へ変更され、Sonnet 5では100万トークンウィンドウが常に有効であり、特定の識別子選択が不要であることが明記されました。",
+      "hunks": [
+        {
+          "header": "@@ -201,7 +201,7 @@ Without `ANTHROPIC_DEFAULT_OPUS_MODEL`, the `opus` alias on Vertex resolves to O",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-5'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        },
+        {
+          "header": "@@ -249,7 +249,7 @@ For details, see [Vertex IAM documentation](https://cloud.google.com/vertex-ai/d",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "## 1M token context window"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "Claude Opus 4.6 and later, and Sonnet 4.6, support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Vertex AI. Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "added",
+              "content": "Claude Sonnet 5, Opus 4.6 and later, and Sonnet 4.6 support the [1M token context window](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window) on Vertex AI. Sonnet 5 always runs with the 1M window, with no `[1m]` variant to select. For the other models, Claude Code automatically enables the extended context window when you select a 1M model variant."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "The [setup wizard](#sign-in-with-vertex-ai) offers a 1M context option when it pins models. To enable it for a manually pinned model instead, append `[1m]` to the model ID. See [Pin models for third-party deployments](/en/model-config#pin-models-for-third-party-deployments) for details."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "microsoft-foundry.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "デフォルトのSonnetモデルを指定する環境変数がclaude-sonnet-5に更新されました。",
+      "hunks": [
+        {
+          "header": "@@ -144,7 +144,7 @@ Without `ANTHROPIC_DEFAULT_OPUS_MODEL`, the `opus` alias on Foundry resolves to",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "```bash"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'"
+            },
+            {
+              "type": "removed",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'"
+            },
+            {
+              "type": "added",
+              "content": "export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-5'"
+            },
+            {
+              "type": "context",
+              "content": "export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5'"
+            },
+            {
+              "type": "context",
+              "content": "```"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "model-config.md",
+      "additions": 1,
+      "deletions": 1,
+      "explanation": "各クラウドプロバイダーにおいて、Sonnet 5はサフィックスの指定なしで常に100万トークンのコンテキストウィンドウで作動することが追記されました。",
+      "hunks": [
+        {
+          "header": "@@ -497,7 +497,7 @@ The `[1m]` suffix applies the 1M context window to all usage of the `opus` and `",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- Claude Code strips the suffix before sending the model ID to your provider."
+            },
+            {
+              "type": "context",
+              "content": "- Only append `[1m]` when the underlying model [supports 1M context](https://platform.claude.com/docs/en/build-with-claude/context-windows#1m-token-context-window)."
+            },
+            {
+              "type": "removed",
+              "content": "- The suffix is read per variable, not per model. On Bedrock, Vertex, and Foundry, a model ID without `[1m]` in one variable uses 200K context even if another variable sets the same model with the suffix."
+            },
+            {
+              "type": "added",
+              "content": "- The suffix is read per variable, not per model. On Bedrock, Vertex, and Foundry, a model ID without `[1m]` in one variable uses 200K context even if another variable sets the same model with the suffix. Sonnet 5 always runs with the 1M window on these providers and never needs the suffix."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "An `availableModels` allowlist delivered through [MDM or a managed settings file](/en/settings#settings-files) still applies when using third-party providers; [server-managed settings are not delivered there](/en/server-managed-settings#platform-availability). Filtering matches on a model alias such as `opus`, a version prefix such as `claude-opus-4-8`, or the full provider-form model ID. Provider-specific prefixes such as `us.anthropic.` are not stripped, so to allow a specific model, list the same provider-form ID the picker shows, or map it through [`modelOverrides`](#override-model-ids-per-version). Any `[1m]` suffix is stripped from both the allowlist entry and the requested model before matching."
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "filename": "permission-modes.md",
+      "additions": 2,
+      "deletions": 2,
+      "explanation": "Amazon BedrockやVertex AIなどの各プロバイダーにおけるAuto modeの対応モデルに、Claude Sonnet 5が追加されました。",
+      "hunks": [
+        {
+          "header": "@@ -159,7 +159,7 @@ Auto mode is available only when your account meets all of these requirements:",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "- **Plan**: All plans."
+            },
+            {
+              "type": "context",
+              "content": "- **Owner**: on Team and Enterprise, an Owner must enable it in [Claude Code admin settings](https://claude.ai/admin-settings/claude-code) before users can turn it on. Administrators can also lock it off by setting `permissions.disableAutoMode` to `\"disable\"` in [managed settings](/en/permissions#managed-settings)."
+            },
+            {
+              "type": "removed",
+              "content": "- **Model**: on the Anthropic API, Claude Opus 4.6 or later, or Sonnet 4.6 or later. On Amazon Bedrock, Google Cloud Vertex AI, Microsoft Foundry, and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, only Claude Opus 4.7 and Opus 4.8. Older models, including Sonnet 4.5, Opus 4.5, Haiku, and claude-3 models, are not supported on any provider."
+            },
+            {
+              "type": "added",
+              "content": "- **Model**: on the Anthropic API, Claude Opus 4.6 or later, or Sonnet 4.6 or later. On Amazon Bedrock, Google Cloud Vertex AI, Microsoft Foundry, and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, only Claude Sonnet 5, Opus 4.7, and Opus 4.8. Older models, including Sonnet 4.5, Opus 4.5, Haiku, and claude-3 models, are not supported on any provider."
+            },
+            {
+              "type": "context",
+              "content": "- **Provider**: available by default on the Anthropic API. On Amazon Bedrock, Google Cloud Vertex AI, Microsoft Foundry, and signed-in Claude apps gateway sessions, auto mode is off until you [set `CLAUDE_CODE_ENABLE_AUTO_MODE`](#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "If Claude Code reports auto mode as unavailable, one of these requirements is unmet; this is not a transient outage. A separate message that names a model and says auto mode \"cannot determine the safety\" of an action is a transient classifier outage; see the [error reference](/en/errors#auto-mode-cannot-determine-the-safety-of-an-action)."
+            }
+          ]
+        },
+        {
+          "header": "@@ -168,7 +168,7 @@ If you set `defaultMode: \"auto\"` in [settings](/en/settings#available-settings)",
+          "lines": [
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "### Enable auto mode on Bedrock, Vertex AI, or Foundry"
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "removed",
+              "content": "On [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud Vertex AI](/en/google-vertex-ai), [Microsoft Foundry](/en/microsoft-foundry), and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, auto mode does not appear in the `Shift+Tab` cycle until `CLAUDE_CODE_ENABLE_AUTO_MODE` is set to `1`. The variable works in Claude Code v2.1.158 and later. Only Claude Opus 4.7 and Opus 4.8 are supported on these providers."
+            },
+            {
+              "type": "added",
+              "content": "On [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud Vertex AI](/en/google-vertex-ai), [Microsoft Foundry](/en/microsoft-foundry), and signed-in [Claude apps gateway](/en/claude-apps-gateway) sessions, auto mode does not appear in the `Shift+Tab` cycle until `CLAUDE_CODE_ENABLE_AUTO_MODE` is set to `1`. The variable works in Claude Code v2.1.158 and later. Only Claude Sonnet 5, Opus 4.7, and Opus 4.8 are supported on these providers."
+            },
+            {
+              "type": "context",
+              "content": ""
+            },
+            {
+              "type": "context",
+              "content": "To enable it for one developer, add the variable to the `env` block in `~/.claude/settings.json`:"
+            },
+            {
+              "type": "context",
+              "content": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

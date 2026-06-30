@@ -82,6 +82,7 @@ Claude Code は、Bash ツール、フック、MCP サーバー、言語サー�
 | `OTEL_METRIC_EXPORT_INTERVAL` | エクスポート間隔 (ミリ秒単位、デフォルト: 60000) | `5000`、`60000` |
 | `OTEL_LOGS_EXPORT_INTERVAL` | ログエクスポート間隔 (ミリ秒単位、デフォルト: 5000) | `1000`、`10000` |
 | `OTEL_LOG_USER_PROMPTS` | ユーザープロンプトコンテンツのログを有効にする (デフォルト: 無効) | `1` で有効化 |
+| `OTEL_LOG_ASSISTANT_RESPONSES` | `assistant_response` イベントでアシスタント応答テキストのログを有効にする (デフォルト: 無効)。設定されていない場合、`OTEL_LOG_USER_PROMPTS` の値にフォールバックします。Claude Code v2.1.193 以降が必要です | `1` で有効化、`0` でマスク状態を保持 |
 | `OTEL_LOG_TOOL_DETAILS` | ツールイベントでツールパラメーターと入力引数のログを有効にする: Bash コマンド、MCP サーバーとツール名、スキル名、ツール入力。また、`user_prompt` イベントでカスタム、プラグイン、MCP コマンド名を有効にします (デフォルト: 無効) | `1` で有効化 |
 | `OTEL_LOG_TOOL_CONTENT` | スパンイベントでツール入力と出力コンテンツのログを有効にする (デフォルト: 無効)。[トレース](#traces-beta)が必要です。コンテンツは 60 KB で切り詰められます | `1` で有効化 |
 | `OTEL_LOG_RAW_API_BODIES` | Anthropic Messages API リクエストとレスポンス JSON 全体を `api_request_body` / `api_response_body` ログイベントとして出力します (デフォルト: 無効)。ボディには会話履歴全体が含まれます。これを有効にすることは、`OTEL_LOG_USER_PROMPTS`、`OTEL_LOG_TOOL_DETAILS`、および `OTEL_LOG_TOOL_CONTENT` が明かすすべてのものに同意することを意味します | `1` で 60 KB で切り詰められたインラインボディ、または `file:<dir>` でディスク上の切り詰められていないボディと、イベント内の `body_ref` ポインター |
@@ -307,8 +308,6 @@ Claude Code はこれらの値をすべてのメトリクスデータポイン�
 
 各カスタムキーはすべてのメトリクスシリーズのラベルになるため、高カーディナリティ値はメトリクスバックエンドのストレージコストを増加させます。カスタム属性をリソースブロックのみで送信し、データポイントラベルから省略するには、`OTEL_METRICS_INCLUDE_RESOURCE_ATTRIBUTES=false` を設定します。[メトリクスカーディナリティ制御](#metrics-cardinality-control)を参照してください。
 
-**OTEL\_RESOURCE\_ATTRIBUTES の重要なフォーマット要件:**
-
 `OTEL_RESOURCE_ATTRIBUTES` 環境変数はカンマ区切りのキー=値ペアを使用し、厳密なフォーマット要件があります:
 
 - **スペースは許可されません**: 値にスペースを含めることはできません。例えば、`user.organizationName=My Company` は無効です
@@ -316,21 +315,20 @@ Claude Code はこれらの値をすべてのメトリクスデータポイン�
 - **許可される文字**: 制御文字、空白、ダブルクォート、カンマ、セミコロン、バックスラッシュを除く US-ASCII 文字のみ
 - **特殊文字**: 許可された範囲外の文字はパーセントエンコードする必要があります
 
-**例:**
+スペースが必要な値の場合は、代わりにアンダースコアまたはキャメルケースを使用します。以下の例は、各形式で `org.name` を設定します:
 
 ```bash theme={null}
-# ❌ 無効 - スペースを含む
-export OTEL_RESOURCE_ATTRIBUTES="org.name=John's Organization"
-
-# ✅ 有効 - アンダースコアまたはキャメルケースを代わりに使用する
 export OTEL_RESOURCE_ATTRIBUTES="org.name=Johns_Organization"
 export OTEL_RESOURCE_ATTRIBUTES="org.name=JohnsOrganization"
+```
 
-# ✅ 有効 - 必要に応じて特殊文字をパーセントエンコードする
+許可された範囲外の文字だけでなく、任意の文字をパーセントエンコードできます。この例は、スペースとアポストロフィの両方をエンコードします:
+
+```bash theme={null}
 export OTEL_RESOURCE_ATTRIBUTES="org.name=John%27s%20Organization"
 ```
 
-注: 値をクォートで囲むことはスペースをエスケープしません。例えば、`org.name="My Company"` は `My Company` ではなく、リテラル値 `"My Company"` (クォート付き) になります。
+値をクォートで囲むことはスペースをエスケープしません。例えば、`org.name="My Company"` は `My Company` ではなく、リテラル値 `"My Company"` (クォート付き) になります。
 
 設定例
 
@@ -398,6 +396,8 @@ export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 | `terminal.type` | ターミナルタイプ。例: `iTerm.app`、`vscode`、`cursor`、`tmux` | 検出された場合は常に含まれます |
 | Keys from `OTEL_RESOURCE_ATTRIBUTES` | カスタム属性 (例: `department` または `team.id`)。[マルチチームの組織サポート](#multi-team-organization-support)を参照してください | `OTEL_METRICS_INCLUDE_RESOURCE_ATTRIBUTES` (デフォルト: true) |
 
+Claude Code が [Claude apps gateway](/ja/claude-apps-gateway) にサインインしている場合、CLI はゲートウェイセッションから認証済みアイデンティティでエクスポートをスタンプします: `user.id` は匿名インストール識別子ではなく IdP サブジェクト、`user.email` はサインイン済みメール、`user.groups` は IdP グループメンバーシップをコンマ区切り文字列として含みます。各エクスポートは `identity.source: gateway-oidc` も含みます。ゲートウェイアイデンティティは最後に適用されるため、`OTEL_RESOURCE_ATTRIBUTES` を通じて設定された `user.*` および `identity.*` キーはゲートウェイセッションで無視されます。
+
 イベントには、以下の追加属性が含まれます。これらはメトリクスに添付されることはありません。これらはバウンドされていないカーディナリティを引き起こすためです:
 
 - `prompt.id`: ユーザープロンプトを次のプロンプトまでのすべての後続イベントと相関させる UUID。[イベント相関属性](#event-correlation-attributes)を参照してください。
@@ -439,7 +439,7 @@ Claude Code は以下のメトリクスをエクスポートします:
 
 - すべての[標準属性](#standard-attributes)
 - `type`: (`"added"`、`"removed"`)
-- `model`: 変更を行ったモデルのモデル識別子 (例: "claude-sonnet-4-6")。Claude Code v2.1.172 以降が必要です
+- `model`: 変更を行ったモデルのモデル識別子 (例: "claude-sonnet-5")
 
 プルリクエストカウンター
 
@@ -464,7 +464,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 **属性**:
 
 - すべての[標準属性](#standard-attributes)
-- `model`: モデル識別子 (例: "claude-sonnet-4-6")
+- `model`: モデル識別子 (例: "claude-sonnet-5")
 - `query_source`: リクエストを発行したサブシステムのカテゴリ。`"main"`、`"subagent"`、または `"auxiliary"` のいずれか
 - `speed`: 高速モードを使用した場合は `"fast"`。それ以外の場合は存在しません
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level): `"low"`、`"medium"`、`"high"`、`"xhigh"`、または `"max"`。モデルが努力をサポートしない場合は存在しません。
@@ -483,7 +483,7 @@ Claude Code を介して git コミットを作成するときにインクリメ
 
 - すべての[標準属性](#standard-attributes)
 - `type`: (`"input"`、`"output"`、`"cacheRead"`、`"cacheCreation"`)
-- `model`: モデル識別子 (例: "claude-sonnet-4-6")
+- `model`: モデル識別子 (例: "claude-sonnet-5")
 - `query_source`: リクエストを発行したサブシステムのカテゴリ。`"main"`、`"subagent"`、または `"auxiliary"` のいずれか
 - `speed`: 高速モードを使用した場合は `"fast"`。それ以外の場合は存在しません
 - `effort`: リクエストに適用された[努力レベル](/ja/model-config#adjust-effort-level)。詳細は [コストカウンター](#cost-counter)を参照してください。
@@ -543,6 +543,24 @@ Claude Code は、OpenTelemetry ログ/イベント経由で以下のイベン�
 - `command_name`: プロンプトがコマンドを呼び出す場合のコマンド名。`compact` または `debug` などの組み込みおよびバンドルされたコマンド名はそのまま出力されます。`reset` などのエイリアスは、正規名ではなく入力されたとおりに出力されます。カスタム、プラグイン、MCP コマンド名は、`OTEL_LOG_TOOL_DETAILS=1` が設定されていない限り `custom` または `mcp` に折りたたまれます
 - `command_source`: コマンドが存在する場合のコマンドの起源: `builtin`、`custom`、または `mcp`。プラグイン提供のコマンドは `custom` として報告されます
 
+アシスタント応答イベント
+
+モデルからテキストコンテンツを返す各 API リクエスト後にログされます。レスポンスのテキストブロックのみが含まれます。思考ブロックとツール使用ブロックは除外されます。Claude Code v2.1.193 以降が必要です。
+
+**イベント名**: `claude_code.assistant_response`
+
+**属性**:
+
+- すべての[標準属性](#standard-attributes)
+- `event.name`: `"assistant_response"`
+- `event.timestamp`: ISO 8601 タイムスタンプ
+- `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
+- `response_length`: レスポンステキストの長さ (文字単位)
+- `response`: レスポンステキスト。60 KB で切り詰められます。デフォルトでは `<REDACTED>` にマスクされます。`OTEL_LOG_ASSISTANT_RESPONSES=1` で有効化します。`OTEL_LOG_ASSISTANT_RESPONSES` が設定されていない場合、`OTEL_LOG_USER_PROMPTS` が代わりに制御するため、プロンプトログが有効な場合でもレスポンスをマスクしたままにするには `OTEL_LOG_ASSISTANT_RESPONSES=0` を設定します
+- `model`: モデル識別子 (例: "claude-sonnet-4-6")
+- `request_id`: レスポンスの `request-id` ヘッダーからの Anthropic API リクエスト ID。API が返す場合のみ存在します
+- `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名
+
 ツール結果イベント
 
 ツールが実行を完了するときにログされます。ツール呼び出しが拒否された場合は出力されません。[ツール決定イベント](#tool-decision-event)を参照してください。
@@ -586,7 +604,7 @@ Claude への各 API リクエストについてログされます。
 - `event.name`: `"api_request"`
 - `event.timestamp`: ISO 8601 タイムスタンプ
 - `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
-- `model`: 使用されたモデル (例: "claude-sonnet-4-6")
+- `model`: 使用されたモデル (例: "claude-sonnet-5")
 - `cost_usd`: 推定コスト (USD)
 - `duration_ms`: リクエスト期間 (ミリ秒単位)
 - `input_tokens`: 入力トークンの数
@@ -611,7 +629,7 @@ Claude への API リクエストが失敗するときにログされます。
 - `event.name`: `"api_error"`
 - `event.timestamp`: ISO 8601 タイムスタンプ
 - `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
-- `model`: 使用されたモデル (例: "claude-sonnet-4-6")
+- `model`: 使用されたモデル (例: "claude-sonnet-5")
 - `error`: エラーメッセージ
 - `status_code`: HTTP ステータスコード (数値)。接続失敗などの非 HTTP エラーの場合は存在しません。
 - `duration_ms`: リクエスト期間 (ミリ秒単位)
@@ -1062,11 +1080,11 @@ OpenTelemetry イベントは Claude Code アクティビティの監査デー�
 
 属性アクションをユーザーに関連付ける
 
-各イベントの [標準属性](#standard-attributes) には、認証されたユーザーの ID が含まれます：Claude アカウントでサインインしている場合は `user.email`、`user.account_uuid`、`user.account_id`、および `organization.id`、さらにインストールスコープの `user.id` とセッションごとの `session.id`。
+各イベントの [標準属性](#standard-attributes) には、認証されたユーザーの ID が含まれます：Claude アカウントでサインインしている場合は `user.email`、`user.account_uuid`、`user.account_id`、および `organization.id`、さらにインストールスコープの `user.id` とセッションごとの `session.id`。`user.id` はインストールスコープの識別子です。ただし、[Claude apps gateway](/ja/claude-apps-gateway) セッションでは、ゲートウェイが発行したトークンからの IdP サブジェクトです。
 
-MCP ツール呼び出し、Bash コマンド、ファイル編集は、セッションを開始した開発者に属性付けられます。Claude Code は個別のサービスアカウントの下では機能しません。各イベントに記録される ID は、開発者自身の Claude アカウントです。
+MCP ツール呼び出し、Bash コマンド、ファイル編集は、セッションを開始した開発者に属性付けられます。Claude Code は個別のサービスアカウントの下では機能しません。各イベントに記録される ID は、開発者自身の Claude アカウント、または [Claude apps gateway](/ja/claude-apps-gateway) セッションでの開発者の IdP ID です。
 
-Claude Code が直接 API キーで認証する場合、または Bedrock、Vertex AI、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration) ファイルまたはローンチラッパーを通じてユーザーごとに設定します：
+Claude Code が直接 API キーで認証する場合、または Bedrock、Vertex AI、または Microsoft Foundry に対して認証する場合、セッションに Claude アカウントはなく、`user.id` と `session.id` のみが入力されます。これらのデプロイメントでは、`OTEL_RESOURCE_ATTRIBUTES` を使用してユーザー ID を自分で添付し、[管理設定](#administrator-configuration) ファイルまたはローンチラッパーを通じてユーザーごとに設定します。Claude apps gateway セッションはこれを必要としません：CLI は [標準属性](#standard-attributes) で説明されているように、IdP ID を自動的にスタンプします。
 
 ```bash
 export OTEL_RESOURCE_ATTRIBUTES="enduser.id=jdoe@example.com,enduser.directory_id=S-1-5-21-..."
@@ -1168,6 +1186,7 @@ ROI 測定リソース
 - 生のファイルコンテンツとコードスニペットはメトリクスやイベントに含まれません。トレーススパンは別のデータパスです: 以下の `OTEL_LOG_TOOL_CONTENT` の項目を参照してください
 - OAuth 経由で認証された場合、`user.email` はテレメトリ属性に含まれます。これが組織にとって懸念事項である場合は、テレメトリバックエンドと協力してこのフィールドをフィルタリングまたはマスクしてください
 - ユーザープロンプトコンテンツはデフォルトでは収集されません。プロンプト長のみが記録されます。プロンプトコンテンツを含めるには、`OTEL_LOG_USER_PROMPTS=1` を設定します
+- アシスタント応答テキストはデフォルトでは収集されません。応答長のみが記録されます。応答テキストを含めるには、`OTEL_LOG_ASSISTANT_RESPONSES=1` を設定します。Claude Code からのすべての OpenTelemetry データと同様に、応答テキストは設定した OTel エンドポイントにのみ送信され、Anthropic には送信されません。この変数が設定されていない場合、`OTEL_LOG_USER_PROMPTS` がフォールバックとして使用されるため、プロンプトコンテンツなしで応答コンテンツが必要な場合は `OTEL_LOG_ASSISTANT_RESPONSES=0` を設定してください
 - ツール入力引数とパラメーターはデフォルトではログされません。これらを含めるには、`OTEL_LOG_TOOL_DETAILS=1` を設定します。このデータは設定した OTEL エンドポイントにのみ送信され、Anthropic には送信されません。引数には機密値が含まれる可能性があるため、必要に応じてテレメトリバックエンドを設定してこれらの属性をフィルタリングまたはマスクしてください。有効にすると:
   - `tool_result` および `tool_decision` イベントには、Bash コマンド、MCP サーバーとツール名、スキル名を含む `tool_parameters` 属性が含まれます。`full_command` などのフィールドは切り詰められずに出力されます
   - `tool_result` イベントには、ファイルパス、URL、検索パターン、その他の引数を含む `tool_input` 属性が追加で含まれます。512 文字を超える個別の値は切り詰められ、合計は約 4 K 文字に制限されます

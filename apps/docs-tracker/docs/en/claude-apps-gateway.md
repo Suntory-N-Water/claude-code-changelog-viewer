@@ -7,7 +7,7 @@ source: https://code.claude.com/docs/en/claude-apps-gateway.md
 
 > Run Claude Code through Amazon Bedrock, Google Cloud, or Microsoft Foundry behind a self-hosted gateway with SSO sign-in, per-group model access, and OTLP telemetry.
 
-The Claude apps gateway is designed for organizations that must — or prefer to — route inference through their own cloud provider, for example to meet data residency requirements. If you don't have this requirement, and want access to other features such as SCIM provisioning or Claude Code on web & mobile, Claude Enterprise may be a better fit. See the feature availability page for a full comparison of all deployment methods.
+The Claude apps gateway is designed for organizations that must — or prefer to — route inference through their own cloud provider, for example to meet [data residency](/en/claude-apps-gateway-deploy#compliance-posture) requirements. If you don't have this requirement, and want access to other features such as SCIM provisioning or Claude Code on web & mobile, Claude Enterprise may be a better fit. See the [feature availability](/en/feature-availability) page for a full comparison of all deployment methods.
 
 Claude apps gateway is a self-hosted service that sits between your developers' Claude Code clients and your model provider. Developers sign in with your corporate identity provider (IdP) instead of holding API keys or cloud credentials. The gateway holds the upstream credential, enforces model access and [managed settings](/en/permissions#managed-settings) by IdP group, and relays usage telemetry to your own observability stack.
 
@@ -275,7 +275,7 @@ The gateway delivers the [`anthropic-beta`](https://platform.claude.com/docs/en/
 | Server-side web search | Not available | The CLI can't see which upstream provider the gateway routes to, so it can't verify web search support and disables WebSearch on gateway sessions |
 | Standard prompt caching | Available | `cache_control` breakpoints are forwarded to every upstream |
 | 1-hour cache TTL | Not available | The CLI omits the extended-cache-ttl beta on gateway sessions, because not every upstream the gateway can route to supports the 1-hour TTL, so prompt caching through the gateway uses the 5-minute TTL; see the beta-header note above |
-| Auto mode | Available with opt-in | Follows the [third-party provider rules](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry): set `CLAUDE_CODE_ENABLE_AUTO_MODE=1`, deliverable through the managed policy `env` block, and only the Opus models eligible on third-party providers can use it |
+| Auto mode | Available with opt-in | Follows the [third-party provider rules](/en/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry): set `CLAUDE_CODE_ENABLE_AUTO_MODE=1`, deliverable through the managed policy `env` block, and only the models eligible on third-party providers can use it |
 | First-party-only optimizations such as global cache scope and token-efficient tools | Not available | The CLI doesn't enable them on gateway sessions; see the beta-header note above |
 | OTLP/gRPC | Not supported | OTLP over HTTP only |
 | SAML, LDAP, and other non-OIDC auth | Not supported | OIDC only. Front with an OIDC bridge if needed |
