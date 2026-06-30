@@ -165,6 +165,7 @@ Claude Code sends the following JSON fields to your script via stdin:
 | `rate_limits.five_hour.resets_at`, `rate_limits.seven_day.resets_at` | Unix epoch seconds when the 5-hour or 7-day rate limit window resets |
 | `session_id` | Unique session identifier |
 | `session_name` | Custom session name set with the `--name` flag or `/rename`. Absent if no custom name has been set |
+| `prompt_id` | UUID identifying the user prompt currently being processed. Matches the [`prompt.id` attribute on OpenTelemetry events](/en/monitoring-usage#event-correlation-attributes). Absent until the first user input. Requires Claude Code v2.1.196 or later |
 | `transcript_path` | Path to conversation transcript file |
 | `version` | Claude Code version |
 | `output_style.name` | Name of the current output style |
@@ -185,6 +186,7 @@ Your status line command receives this JSON structure via stdin:
   "cwd": "/current/working/directory",
   "session_id": "abc123...",
   "session_name": "my-session",
+  "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
   "transcript_path": "/path/to/transcript.jsonl",
   "model": {
     "id": "claude-opus-4-8",
@@ -266,6 +268,7 @@ Your status line command receives this JSON structure via stdin:
 **Fields that may be absent** (not present in JSON):
 
 - `session_name`: appears only when a custom name has been set with `--name` or `/rename`
+- `prompt_id`: appears only after the first user input
 - `workspace.git_worktree`: appears only when the current directory is inside a linked git worktree
 - `workspace.repo`: appears only inside a git repository with an `origin` remote configured
 - `effort`: appears only when the current model supports the reasoning effort parameter

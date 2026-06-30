@@ -25,7 +25,7 @@ For detail on a specific category, follow up with the dedicated command:
 | `/hooks` | Active hook configurations |
 | `/mcp` | Connected MCP servers and their status |
 | `/permissions` | Resolved allow and deny rules currently in effect |
-| `/doctor` | Configuration diagnostics: invalid keys, schema errors, installation health |
+| `/doctor` | Configuration diagnostics: invalid keys, schema errors, installation health. As of v2.1.196, also reports duplicate [subagent](/en/sub-agents) names defined in the same scope and marks which one is active |
 | `/debug [issue]` | Enables debug logging for the session and prompts Claude to diagnose using the log output and settings paths |
 | `/status` | Active settings sources, including whether managed settings are in effect |
 
