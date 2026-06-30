@@ -53,6 +53,17 @@ const LOG_CATALOG = {
   APLG0014: { level: 'WARN', template: 'リトライを実行します' },
   /** $0 にフォールバックします */
   APLG0024: { level: 'WARN', template: '$0 にフォールバックします' },
+  /** CHANGELOG ハッシュ不一致のため再取得 ($0/$1 回目, expected=$2 actual=$3) */
+  APLG0025: {
+    level: 'WARN',
+    template:
+      'CHANGELOG ハッシュ不一致のため再取得 ($0/$1 回目, expected=$2 actual=$3)',
+  },
+  /** CHANGELOG 取得をリトライ ($0/$1 回目, reason=$2) */
+  APLG0026: {
+    level: 'WARN',
+    template: 'CHANGELOG 取得をリトライ ($0/$1 回目, reason=$2)',
+  },
 
   // --- ERROR ---
   /** $0 の取得に失敗しました */
