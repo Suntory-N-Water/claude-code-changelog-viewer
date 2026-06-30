@@ -89,7 +89,7 @@ Conventions mirror Anthropic's Admin API:
 
 Every mutation writes a before/after row to `admin_audit` in the same transaction, attributed to `admin-key:<id>` or `oidc:<sub>`.
 
-The `spend_limit_increase_requests` queue is not implemented.
+The gateway serves the spend-limits endpoints only. Other Admin API surfaces, such as the `spend_limit_increase_requests` queue, aren't part of the gateway's admin API.
 
 ### `/effective`
 
@@ -108,7 +108,7 @@ Group-sourced caps resolve against those last-seen groups with the same `group_l
 | `period[]` | Repeatable. Filter to `daily`, `weekly`, or `monthly` rows. |
 | `sort` | `spend_desc` lists top spenders first. Requires exactly one `period[]`. |
 | `q` | Case-insensitive substring filter over the OIDC `sub`, last-seen email, and last-seen display name. |
-| `limit` / `page` | Page size (1–1000, default 20) and the opaque cursor from the previous response's `next_page`. |
+| `limit` / `page` | Page size, 1–1000 with a default of 20, and the opaque cursor from the previous response's `next_page`. |
 
 `q=` and `user_ids[]=` ride GET query strings, so any fronting proxy or load balancer captures them in its access logs. If your PII log policy is strict, scrub these parameters there.
 
