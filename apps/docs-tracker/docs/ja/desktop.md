@@ -48,7 +48,7 @@ Claude に適切なコンテキストを提供し、それが独立して実行�
 
 プロンプトボックスを使用する
 
-Claude に実行させたいことを入力して**Enter**キーを押して送信します。Claude はプロジェクトファイルを読み取り、[権限モード](#choose-a-permission-mode)に基づいて変更を加えてコマンドを実行します。いつでも Claude を中断できます：停止ボタンをクリックするか、修正を入力して**Enter**キーを押します。Claude は実行を停止し、入力に基づいて調整します。
+Claude に実行させたいことを入力して**Enter**キーを押して送信します。Claude はプロジェクトファイルを読み取り、[権限モード](#choose-a-permission-mode)に基づいて変更を加えてコマンドを実行します。いつでも Claude を中断できます：停止ボタンをクリックして即座に中断するか、修正を入力して**Enter**キーを押して実行中のアクションを停止せずに送信します。Claude は現在のアクションが完了した後に修正を読み取り、次のステップの前に調整します。
 
 プロンプトボックスの横の\*\*+\*\*ボタンをクリックすると、ファイル添付、[スキル](#use-skills)、[コネクタ](#connect-external-tools)、および[プラグイン](#install-plugins)にアクセスできます。
 
@@ -73,7 +73,7 @@ Claude に実行させたいことを入力して**Enter**キーを押して送�
 
 `dontAsk`権限モードは[CLI](/ja/permission-modes#allow-only-pre-approved-tools-with-dontask-mode)でのみ利用可能です。
 
-Auto mode は Anthropic API のすべてのユーザーが利用できる研究プレビューです。Claude Opus 4.6 以降、または Sonnet 4.6 以降が必要です。Google Cloud Vertex AI にルーティングするエンタープライズデプロイメントでは、[`CLAUDE_CODE_ENABLE_AUTO_MODE`を設定](/ja/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)するまで auto mode はオフになり、そこでは Claude Opus 4.7 と Opus 4.8 のみがサポートされています。
+Auto mode は Anthropic API のすべてのユーザーが利用できる研究プレビューです。Claude Opus 4.6 以降、または Sonnet 4.6 以降が必要です。Google Cloud Vertex AI にルーティングするエンタープライズデプロイメントでは、[`CLAUDE_CODE_ENABLE_AUTO_MODE`を設定](/ja/permission-modes#enable-auto-mode-on-bedrock-vertex-ai-or-foundry)するまで auto mode はオフになり、そこでは Claude Sonnet 5、Opus 4.7、および Opus 4.8 のみがサポートされています。
 
 複雑なタスクを Plan mode で開始して、Claude が変更を加える前にアプローチをマップアウトするようにします。プランを承認したら、Auto accept edits または Ask permissions に切り替えて実行します。このワークフローの詳細については、[最初に探索してからプランしてからコード化する](/ja/best-practices#explore-first-then-plan-then-code)を参照してください。
 

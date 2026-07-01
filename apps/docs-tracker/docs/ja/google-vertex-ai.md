@@ -221,7 +221,7 @@ Claude Code は Vertex AI でデフォルトで [MCP tool search](/ja/mcp#scale-
 
 ```bash
 export ANTHROPIC_DEFAULT_OPUS_MODEL='claude-opus-4-8'
-export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-4-6'
+export ANTHROPIC_DEFAULT_SONNET_MODEL='claude-sonnet-5'
 export ANTHROPIC_DEFAULT_HAIKU_MODEL='claude-haiku-4-5@20251001'
 ```
 
@@ -275,7 +275,7 @@ Claude Code デフォルトより古いモデルバージョンをピン留め�
   100 万トークンコンテキストウィンドウ
 </h2>
 
-Claude Opus 4.6 以降および Sonnet 4.6 は、Vertex AI で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Claude Code は、100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
+Claude Sonnet 5、Opus 4.6 以降、および Sonnet 4.6 は、Vertex AI で[100 万トークンコンテキストウィンドウ](https://platform.claude.com/docs/ja/build-with-claude/context-windows#1m-token-context-window)をサポートしています。Sonnet 5 は常に 100 万ウィンドウで実行され、選択する `[1m]` バリアントはありません。その他のモデルについては、Claude Code は 100 万トークンモデルバリアントを選択すると、拡張コンテキストウィンドウを自動的に有効にします。
 
 [セットアップウィザード](#sign-in-with-vertex-ai)は、モデルをピン留めするときに 100 万トークンコンテキストオプションを提供します。手動でピン留めされたモデルの代わりに有効にするには、モデル ID に `[1m]` を追加します。詳細については、[サードパーティデプロイメント用のモデルをピン留めする](/ja/model-config#pin-models-for-third-party-deployments)を参照してください。
 
