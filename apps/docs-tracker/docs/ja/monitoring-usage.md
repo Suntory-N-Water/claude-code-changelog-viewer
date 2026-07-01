@@ -557,7 +557,7 @@ Claude Code は、OpenTelemetry ログ/イベント経由で以下のイベン�
 - `event.sequence`: セッション内のイベントを順序付けするための単調増加カウンター
 - `response_length`: レスポンステキストの長さ (文字単位)
 - `response`: レスポンステキスト。60 KB で切り詰められます。デフォルトでは `<REDACTED>` にマスクされます。`OTEL_LOG_ASSISTANT_RESPONSES=1` で有効化します。`OTEL_LOG_ASSISTANT_RESPONSES` が設定されていない場合、`OTEL_LOG_USER_PROMPTS` が代わりに制御するため、プロンプトログが有効な場合でもレスポンスをマスクしたままにするには `OTEL_LOG_ASSISTANT_RESPONSES=0` を設定します
-- `model`: モデル識別子 (例: "claude-sonnet-4-6")
+- `model`: モデル識別子 (例: "claude-sonnet-5")
 - `request_id`: レスポンスの `request-id` ヘッダーからの Anthropic API リクエスト ID。API が返す場合のみ存在します
 - `query_source`: リクエストを発行したサブシステム。例: `"repl_main_thread"`、`"compact"`、またはサブエージェント名
 

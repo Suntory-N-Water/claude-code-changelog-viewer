@@ -463,6 +463,8 @@ Claude Code 拡張機能をアンインストールするには：
 2. 「Claude Code」を検索します
 3. **Uninstall** をクリックします
 
+VS Code 統合ターミナルで `claude` を実行すると、拡張機能が自動的に再インストールされます。拡張機能をインストールされたままにしないようにするには、`/config` で **Auto-install IDE extension** をオフにするか、[`autoInstallIdeExtension`](/ja/settings#global-config-settings) を `false` に設定します。また、[`CLAUDE_CODE_IDE_SKIP_AUTO_INSTALL`](/ja/env-vars) 環境変数を `1` に設定することもできます。
+
 拡張機能データを削除してすべての設定をリセットするには、プラットフォーム用の拡張機能のストレージディレクトリを削除します。
 
 macOS の場合：
