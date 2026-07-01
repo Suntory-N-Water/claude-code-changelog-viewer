@@ -718,7 +718,7 @@ Claude を完全に停止するには、イベント タイプに関係なく。
 # Notification フック: Claude Code が注意を必要とするときにデスクトップに ping を送信します。
 input=$(cat)
 title="Claude Code'
-body=$(jq -r '.message // "Needs your attention"' <<<"$input")
+body=$(jq -r '.message // 'Needs your attention"' <<<"$input")
 seq=$(printf '\033]777;notify;%s;%s\007' "$title" "$body")
 jq -nc --arg seq "$seq" '{terminalSequence: $seq}'
 ```
@@ -1261,6 +1261,8 @@ $text = $batch.delta -replace '\*\*', '' -replace '`', ''
 PreToolUse
 
 Claude がツール パラメーターを作成した後、ツール呼び出しを処理する前に実行されます。ツール名でマッチします。`Bash`、`Edit`、`Write`、`Read`、`Glob`、`Grep`、`Agent`、`WebFetch`、`WebSearch`、`AskUserQuestion`、`ExitPlanMode`、および任意の[MCP ツール名](#match-mcp-tools)。
+
+PreToolUse は Claude がツールを呼び出すときのみ実行されます。[プロンプトで `@` を使用して参照する](/ja/common-workflows#reference-files-and-directories)ファイルは、ツール呼び出しなしで追加されます。Claude Code はプロンプトを構築しながらそれらのコンテンツを挿入するため、`Read` にマッチするフックを含む PreToolUse フックは発火しません。特定のパスを `@` 参照からブロックするには、代わりに[`Read` 拒否ルール](/ja/permissions#read-and-edit)を使用してください。
 
 [PreToolUse 決定制御](#pretooluse-decision-control)を使用して、ツール呼び出しを許可、拒否、質問、または遅延します。
 
@@ -2370,7 +2372,7 @@ WorktreeCreate フックは標準的な許可/ブロック決定モデルを使�
 
 WorktreeRemove
 
-[WorktreeCreate](#worktreecreate)のクリーンアップ対応。このフックはワークツリーが削除されるときに発火します。`--worktree` セッションを終了して削除を選択するか、`isolation: "worktree"` を持つサブエージェントが完了するとき。git ベースのワークツリーの場合、Claude は `git worktree remove` で自動的にクリーンアップを処理します。git 以外のバージョン管理システムの WorktreeCreate フックを設定した場合、クリーンアップを処理するために WorktreeRemove フックとペアにします。なければ、ワークツリー ディレ クトリはディスク上に残ります。
+[WorktreeCreate](#worktreecreate)のクリーンアップ対応。このフックはワークツリーが削除されるときに発火します。`--worktree` セッションを終了して削除を選択するか、`isolation: "worktree"` を持つサブエージェントが完了するとき。git ベースのワークツリーの場合、Claude は `git worktree remove` で自動的にクリーンアップを処理します。git 以外のバージョン管理システムの WorktreeCreate フックを設定した場合、クリーンアップを処理するために WorktreeRemove フックとペアにします。なければ、ワークツリー ディレクトリはディスク上に残ります。
 
 Claude Code は WorktreeCreate が返したパスを `worktree_path` としてフック入力に渡します。この例はそのパスを読み取り、ディレクトリを削除します。
 
@@ -2936,6 +2938,18 @@ Windows では、コマンド フックで `"shell": "powershell"` を設定す�
       }
     ]
   }
+}
+```
+
+PowerShell シェル形式のコマンドからプロジェクト ルートを参照するには、`$env:CLAUDE_PROJECT_DIR` を使用して環境変数として読み込みます。PowerShell は、`${CLAUDE_PROJECT_DIR}` の形式を環境ルックアップではなくローカル変数として扱い、Claude Code はシェル形式でのみそのプレースホルダーを [プラグイン フック](#reference-scripts-by-path) に対して置換します。`settings.json` で定義されたフックの場合は、`$env:` 形式を使用するか、[exec 形式](#exec-form-and-shell-form) に切り替えます。exec 形式では、フックが定義されている場所に関係なく、各 `args` 要素で `${CLAUDE_PROJECT_DIR}` が置換されます。
+
+以下の例は、`$env:` 形式でプロジェクト スクリプトを実行する `settings.json` フックを示しています。
+
+```json
+{
+  "type": "command",
+  "shell": "powershell",
+  "command": "& \"$env:CLAUDE_PROJECT_DIR\\.claude\\hooks\\check.ps1\""
 }
 ```
 
