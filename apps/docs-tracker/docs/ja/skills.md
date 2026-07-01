@@ -110,6 +110,8 @@ What did I change?
 
 `/deploy` を入力するとプロジェクトルートスキルが実行されます。修飾名 `/apps/web:deploy` を入力してネストされたバリアントを明示的に実行します。
 
+`<skill-name>` エントリは enterprise、personal、またはプロジェクトの場所にあり、ディスク上の別の場所のディレクトリへのシンボリックリンクにすることができます。Claude Code はシンボリックリンクをたどり、ターゲットディレクトリから `SKILL.md` を読み取ります。同じターゲットが複数の場所から到達可能な場合、Claude Code はスキルを 1 回だけ読み込みます。プラグインスキルはシンボリックリンクを異なる方法で処理します。[シンボリックリンクを使用してマーケットプレイス内でファイルを共有する](/ja/plugins-reference#share-files-within-a-marketplace-with-symlinks)を参照してください。
+
 スキルフォルダに `.claude-plugin/plugin.json` を追加すると、`<name>@skills-dir` という名前の[プラグイン](/ja/plugins-reference#skills-directory-plugins)として読み込まれるため、エージェント、hooks、および MCP サーバーをバンドルできます。プロジェクトの `.claude/skills/` では、これはまずワークスペーストラストダイアログを受け入れる必要があります。
 
 ライブ変更検出

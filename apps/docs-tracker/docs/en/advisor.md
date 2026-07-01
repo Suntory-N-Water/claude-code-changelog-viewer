@@ -72,7 +72,7 @@ The advisor must be at least as capable as the main model. The accepted advisors
 | Haiku 4.5 | Fable, Opus, Sonnet | Haiku can call the advisor but cannot act as one |
 | Sonnet 4.6 | Fable, Opus, Sonnet | |
 | Sonnet 5 | Fable, Opus, Sonnet 5 | A Sonnet 4.6 advisor is rejected |
-| Opus 4.6 or later | Fable, Opus at or above the main model's version | An Opus 4.7 main with an Opus 4.6 advisor is rejected |
+| Opus 4.6 or later | Fable, Opus at or above the main model's version | An Opus 4.7 main with an Opus 4.6 advisor is rejected. An Opus 4.6 main also accepts a Sonnet 5 advisor |
 | Fable 5 (v2.1.170+) | Fable | An Opus or Sonnet advisor is rejected |
 
 Fable 5 requires Claude Code v2.1.170 or later and Fable 5 access, whether it acts as the main model or the advisor.
