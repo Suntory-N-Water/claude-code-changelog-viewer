@@ -43,6 +43,7 @@ function buildSchemaText(
  */
 export function buildSettingsTranslatePrompt(
   entries: SettingEntryForPrompt[],
+  modelContext: string,
 ): string {
   const withContext = entries.filter(
     (e) => e.doc_snippets.length > 0 || e.related_changelog.length > 0,
@@ -142,6 +143,9 @@ export function buildSettingsTranslatePrompt(
     '- 用途解説は単なる翻訳ではなく、具体的な使いどころや課題解決の観点で書く',
     '- デフォルト値・有効化/無効化の条件・取りうる値はユーザーが即座に活用するための重要な情報',
     '- ドキュメント・スキーマ・英語説明に記載のない内容は絶対に書かない',
+    '',
+    '## Claude Code のモデル情報 (重要)',
+    modelContext,
     '',
     '## 動機 (Motive)',
     '設定のデフォルト値や選択肢はスキーマから取得できるが、「なぜその値を変えるのか」「どんな状況で有効化するのか」はドキュメントや更新履歴にしか載っていない。両者を組み合わせてユーザーが即座に使える情報を提供する。',

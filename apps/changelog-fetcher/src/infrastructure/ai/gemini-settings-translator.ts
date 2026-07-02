@@ -9,19 +9,25 @@ import {
   buildSettingsTranslatePrompt,
   type SettingEntryForPrompt,
 } from './prompts/settings-translate-prompt';
+import { loadModelContext } from './model-context';
 
 export class GeminiSettingsTranslator implements SettingsTranslatorPort {
   private client: GeminiClient;
+  private modelContext: string;
 
   constructor(apiKey: string, logger: AppLogger) {
     this.client = new GeminiClient(apiKey, logger);
+    this.modelContext = loadModelContext();
   }
 
   async translate(
     targets: SettingsTranslationTarget[],
   ): Promise<SettingsTranslation[]> {
     const result = await this.client.translateSettings(
-      buildSettingsTranslatePrompt(targets.map(toPromptEntry)),
+      buildSettingsTranslatePrompt(
+        targets.map(toPromptEntry),
+        this.modelContext,
+      ),
     );
 
     return result.results.map((item) => ({
