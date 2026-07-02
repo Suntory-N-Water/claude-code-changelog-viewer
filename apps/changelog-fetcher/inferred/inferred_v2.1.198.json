@@ -3,21 +3,28 @@
   "summary": "バックグラウンドエージェントの通知機能やPR作成の自動化など、並列作業効率を大幅に高める機能が追加されました。また、認証の自動リトライやエージェントチームの堅牢性向上に加え、操作性を改善するUI修正や各種不具合の解消が行われています。",
   "items": [
     {
+      "content": "- Subagents now run in the background by default, so Claude keeps working while they run and is notified when they finish (previously a gradual rollout)",
+      "content_ja": "サブエージェントがデフォルトでバックグラウンド実行されるようになり、Claudeは処理中も操作を継続し、完了時に通知を受け取るようになります。",
+      "prefix": "Changed",
+      "feature_areas": ["Sub-agents"],
+      "related_docs": []
+    },
+    {
       "content": "- Claude in Chrome is now generally available",
-      "content_ja": "Chrome用Claudeが正式に利用可能になりました。",
+      "content_ja": "Claude in Chrome機能が一般公開されました。",
       "prefix": "Changed",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Added background agent notifications in `claude agents` — sessions that need input or finish now fire the `Notification` hook (`agent_needs_input` / `agent_completed`)",
-      "content_ja": "バックグラウンドエージェントの通知機能が強化され、入力待ちや完了時にフックが発火するようになりました。",
+      "content_ja": "claude agents 内でバックグラウンドエージェントの通知機能が追加されました。入力待ちやタスク完了時にNotificationフック（agent_needs_input / agent_completed）がトリガーされるようになります。",
       "prefix": "Added",
       "feature_areas": ["Hooks"],
       "inference": {
-        "before": "バックグラウンドで実行中のセッションが入力待ちになったり、完了したりしても通知を受け取れず、定期的に確認する必要がありました。",
-        "after": "agent_needs_input や agent_completed フックが追加され、セッションの状態変化を検知できるようになりました。",
-        "benefit": "セッションを逐一監視する必要がなくなり、必要な時にだけ集中して作業を再開できるため、並列タスクの効率が大幅に向上します。"
+        "before": "バックグラウンドセッションが何をしているか、ユーザーが能動的に確認しに行く必要がありました。",
+        "after": "セッションがユーザーの入力を必要とするか、完了した際に自動的に通知が飛ぶようになりました。",
+        "benefit": "エージェントの状況を常に監視する必要がなくなり、必要なタイミングでのみ作業に介入できるため、マルチタスクの効率が大幅に向上します。"
       },
       "related_docs": [
         {
@@ -33,20 +40,20 @@
     },
     {
       "content": "- Added `/dataviz` skill for chart and dashboard design guidance with a runnable color-palette validator",
-      "content_ja": "チャートやダッシュボードのデザイン案を作成し、カラーパレットのバリデーションも行える /dataviz スキルを追加しました。",
+      "content_ja": "実行可能なカラーパレットバリデーターを備えた、チャートやダッシュボードデザイン用の /dataviz スキルを追加しました。",
       "prefix": "Added",
       "feature_areas": ["Skills"],
       "related_docs": []
     },
     {
       "content": "- Gateway: added Claude Platform on AWS (anthropicAws) as an upstream provider; model-not-found responses now advance the failover chain",
-      "content_ja": "Gateway: Claude Platform on AWS (anthropicAws) をアップストリームプロバイダーとして追加し、モデルが見つからない場合のフェイルオーバーチェーンを改善",
+      "content_ja": "Gateway環境でClaude Platform on AWS (anthropicAws) がアップストリームプロバイダーとして追加されました。モデルが見つからない場合のフェイルオーバーチェーンが改善されています。",
       "prefix": "Changed",
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "inference": {
-        "before": "特定のクラウド環境下でモデルが見つからない際に、次のプロバイダーへの切り替えがスムーズに行われない場合がありました。",
-        "after": "Claude Platform on AWS がプロバイダーとして統合され、モデル探索失敗時に自動的に次の手段へ連携するよう改善されました。",
-        "benefit": "利用可能なモデルの切り替えが自動化されるため、環境依存のトラブルが減り、安定した開発体験が得られます。"
+        "before": "特定のプロバイダーやモデルでリクエストが失敗した場合、代替ルートへの切り替えが限定的でした。",
+        "after": "AWS経由の接続がサポートされ、モデル不在時のフェイルオーバーがより確実に機能するようになりました。",
+        "benefit": "接続先の信頼性が高まり、API利用時の通信エラーによるセッション中断を最小限に抑えられます。"
       },
       "related_docs": [
         {
@@ -62,13 +69,13 @@
     },
     {
       "content": "- Background agents launched from `claude agents` now commit, push, and open a draft PR when they finish code work in a worktree, instead of stopping to ask",
-      "content_ja": "バックグラウンドエージェントが完了時に自動でコミット・プッシュし、ドラフトPRを作成するようになりました。",
+      "content_ja": "claude agents から起動したバックグラウンドエージェントがコード作業完了後に自動的にコミット・プッシュし、ドラフトPRを作成するようになりました。",
       "prefix": "Changed",
-      "feature_areas": [],
+      "feature_areas": ["Sub-agents"],
       "inference": {
-        "before": "エージェントの作業完了後、ユーザーが手動で確認・コミットしてPRを作成する必要があり、停止したまま待機していました。",
-        "after": "コード作業が完了すると、自動的にコミット、プッシュ、ドラフトPR作成まで一括で行われるようになりました。",
-        "benefit": "作業完了からPR作成までのプロセスが自動化され、確認作業だけで済むため、開発サイクルのスピードが上がります。"
+        "before": "エージェントが作業を終えるたびにユーザーに確認を求め、停止してしまうことがありました。",
+        "after": "ワークツリーでの作業完了後、ユーザーの手を介さずに自動で一連のGit操作とPR作成を行うようになりました。",
+        "benefit": "定型的なプルリクエスト作成プロセスが自動化され、作業のリードタイムが短縮されます。"
       },
       "related_docs": [
         {
@@ -84,27 +91,27 @@
     },
     {
       "content": "- The built-in Explore agent now inherits the main session's model (capped at opus) instead of running on haiku",
-      "content_ja": "Exploreエージェントが、標準のHaikuではなくセッションのメインモデル（最大Opusまで）を継承するように変更しました。",
+      "content_ja": "組み込みのExploreエージェントが、Haikuではなくメインセッションのモデル（最大Opus）を継承するようになりました。",
       "prefix": "Changed",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Subagents and context compaction now inherit the session's extended thinking configuration, improving output quality on delegated tasks",
-      "content_ja": "サブエージェントおよびコンテキスト圧縮処理がセッションの拡張思考（Extended Thinking）設定を継承するようにし、委譲したタスクの出力品質を向上させました。",
+      "content_ja": "サブエージェントとコンテキスト圧縮機能がセッションの拡張思考設定を継承するようになり、委譲されたタスクの出力品質が向上しました。",
       "prefix": "Changed",
       "feature_areas": ["Sub-agents"],
       "related_docs": []
     },
     {
       "content": "- Fixed brief network drops mid-response aborting the turn — transient errors like ECONNRESET now retry with backoff instead of failing",
-      "content_ja": "通信の一時的な中断による処理の中断を修正（ECONNRESET などのエラーで即座に失敗せず、バックオフを伴うリトライを実施）",
+      "content_ja": "通信エラー発生時の再試行ロジックが強化され、ECONNRESETなどの一時的なネットワーク切断時にバックオフ（待機）を伴うリトライが行われるようになりました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "inference": {
-        "before": "応答中に発生する微細なネットワーク瞬断によって、処理が強制終了されることがありました。",
-        "after": "一時的なネットワークエラー発生時に、即座に終了せずリトライ処理を実行するよう改善されました。",
-        "benefit": "短時間の通信不安定による作業の中断が減り、より堅牢でストレスのない操作が可能になります。"
+        "before": "わずかなネットワークドロップでもそのターンの処理が失敗し、作業が中断されることがありました。",
+        "after": "一時的なネットワーク障害であれば自動的にリトライされるため、ターン全体が失敗しにくくなりました。",
+        "benefit": "不安定なネットワーク環境下でもセッションを安定して継続でき、やり直しの手間が減ります。"
       },
       "related_docs": [
         {
@@ -114,20 +121,20 @@
     },
     {
       "content": "- Fixed excessive background classifier requests when sandboxed processes repeatedly accessed the same network host",
-      "content_ja": "サンドボックス化されたプロセスが同じネットワークホストへ繰り返しアクセスする際の、過度なバックグラウンド分類リクエストを削減しました。",
+      "content_ja": "サンドボックス化されたプロセスが同じネットワークホストに繰り返しアクセスする際、バックグラウンドでの分類リクエストが過剰に発生する問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed background tasks in web, desktop, and VS Code task panels getting stuck on \"Running\" after they finish or after resuming a session",
-      "content_ja": "Web、デスクトップ、VS Code のタスクパネルで、終了後やセッション復帰時にバックグラウンドタスクが「実行中」のまま止まる問題を修正",
+      "content_ja": "Web、デスクトップ、VS Codeのタスクパネルにおいて、タスク完了後やセッション再開後にステータスが「Running」のまま動かなくなるバグを修正しました。",
       "prefix": "Fixed",
-      "feature_areas": ["IDE"],
+      "feature_areas": [],
       "inference": {
-        "before": "バックグラウンドタスクが完了してもパネル上のステータスが「実行中」から変わらない不具合がありました。",
-        "after": "タスク終了状態が正しく検知・反映されるようになり、ステータスのスタックが解消されました。",
-        "benefit": "タスクの進行状況を正確に把握できるようになり、不要な混乱を防げます。"
+        "before": "タスクが終わっているにもかかわらず、UI上で実行中と表示され続け、誤解を招いていました。",
+        "after": "タスクの完了状態が正しく検知され、UIに即座に反映されるようになりました。",
+        "benefit": "タスクの進行状況を正確に把握でき、意図せずプロセスを放置するリスクを排除できます。"
       },
       "related_docs": [
         {
@@ -143,13 +150,13 @@
     },
     {
       "content": "- Fixed agent teams: a teammate that dies on an API error now reports \"failed\" to the lead, and messaging a stuck teammate wakes it to retry immediately",
-      "content_ja": "エージェントチームの堅牢性が向上し、APIエラー時の検知と復帰が自動化されました。",
+      "content_ja": "エージェントチームの動作を改善。APIエラーで停止したチームメイトはリードエージェントに「failed」と報告し、停止中のチームメイトにメッセージを送ると即座にリトライが開始されます。",
       "prefix": "Fixed",
       "feature_areas": ["Agent Teams"],
       "inference": {
-        "before": "チームメイトがエラーで停止した場合、メインエージェントがそれを把握できず、チーム全体の作業がデッドロックに陥ることがありました。",
-        "after": "エラーで停止したチームメイトは「失敗」と判定され、メッセージ送信時に即座に再試行を試みる仕組みになりました。",
-        "benefit": "エージェントチームの信頼性が高まり、一時的なエラーでチーム全体の作業が完全に止まるリスクが軽減されます。"
+        "before": "エラーで停止したチームメイトが沈黙し、プロジェクト全体の進行が止まることがありました。",
+        "after": "エラー報告と即時復帰が可能になり、チーム全体としての堅牢性が向上しました。",
+        "benefit": "エージェントチームによる共同作業中のトラブルからの復旧が迅速になり、生産性を維持できます。"
       },
       "related_docs": [
         {
@@ -165,13 +172,13 @@
     },
     {
       "content": "- Fixed the `/diff` panel not refreshing when you switch branches or commit outside the session",
-      "content_ja": "/diff パネルの更新処理を改善し、ブランチ切り替えや外部コミットを適切に反映するようにしました。",
+      "content_ja": "ブランチ切り替えやセッション外でのコミットを行った際に、/diff パネルが正常にリフレッシュされないバグを修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "inference": {
-        "before": "セッション外でブランチを切り替えたりコミットを行っても、/diff パネルの情報が古いままで手動更新が必要でした。",
-        "after": "ブランチ変更やGitの状態変化を検知し、パネルの内容が自動的に更新されるようになりました。",
-        "benefit": "Gitの操作とClaudeの表示の乖離がなくなり、現在の状態を常に正確に把握しながらコーディングに集中できます。"
+        "before": "外部からのGit変更が即座にdiffパネルに反映されず、現在の差分確認に齟齬が生じていました。",
+        "after": "環境の変化を検知して適切に表示が更新されるようになり、常に正確な差分を確認できます。",
+        "benefit": "コードレビューや変更確認時に古い情報に基づいた判断を防ぐことができます。"
       },
       "related_docs": [
         {
@@ -181,20 +188,20 @@
     },
     {
       "content": "- Fixed markdown tables overflowing and wrapping their right border when rendered in fullscreen mode",
-      "content_ja": "フルスクリーンモードでレンダリングした際、マークダウンのテーブルが枠を突き抜けて折り返される不具合を修正しました。",
+      "content_ja": "フルスクリーンモードでのレンダリング時に、マークダウンテーブルが右枠線をはみ出して折り返される問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed Claude Platform on AWS and Mantle sessions dead-ending with \"Please run /login\" when the STS token expires — `awsAuthRefresh` now runs automatically",
-      "content_ja": "AWS STSトークン期限切れによる認証エラー時に、自動再認証を行うように修正しました。",
+      "content_ja": "AWS STSトークンの期限切れ時に「Please run /login」という不適切なエラーで停止する問題を修正。awsAuthRefresh が自動的に実行されるようになります。",
       "prefix": "Fixed",
       "feature_areas": [],
       "inference": {
-        "before": "トークンの期限が切れると認証エラーでセッションが終了し、毎回手動で再ログインを要求されていました。",
-        "after": "awsAuthRefresh が自動的に実行されるようになり、再ログインの手間なく認証が更新されます。",
-        "benefit": "認証エラーによる予期せぬ中断が解消され、AWS環境での長時間にわたる開発がスムーズになります。"
+        "before": "トークンが切れるたびに手動でログインし直す必要があり、自動化環境などで障害となっていました。",
+        "after": "認証期限切れを自動検知し、認証スクリプトを再実行するため、スムーズに作業が継続されます。",
+        "benefit": "認証プロセスの管理コストが削減され、長時間稼働するエージェントがより使いやすくなります。"
       },
       "related_docs": [
         {
@@ -210,20 +217,20 @@
     },
     {
       "content": "- Fixed \"no route to host\" for local-network hosts in macOS background agent sessions by declaring Local Network entitlements",
-      "content_ja": "macOSのバックグラウンドセッションでローカルネットワークのホストに対して「no route to host」エラーが発生する問題を、Local Network権限の宣言により修正しました。",
+      "content_ja": "macOSのバックグラウンドエージェントセッションにおいて、ローカルネットワークホストへのアクセス時に「no route to host」が発生する問題を、権限付与により修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed `/desktop` failing with \"Cannot determine working directory\" after entering and exiting a worktree",
-      "content_ja": "ワークツリーへの出入り後に /desktop コマンドが「作業ディレクトリを特定できない」と失敗する問題を修正",
+      "content_ja": "ワークツリーへの入退室後に /desktop コマンドが「Cannot determine working directory」エラーで失敗する問題を修正しました。",
       "prefix": "Fixed",
-      "feature_areas": ["IDE"],
+      "feature_areas": [],
       "inference": {
-        "before": "Git のワークツリー間を移動した際に、Claude Code のデスクトップ連携機能がコンテキストを正しく認識できない状態でした。",
-        "after": "ワークツリーの移動を正しく追跡し、デスクトップアプリとの接続を維持できるように改善されました。",
-        "benefit": "複雑な Git 環境でもデスクトップアプリとの連携が安定し、スムーズなワークフローが維持されます。"
+        "before": "ワークツリー環境下での移動時にディレクトリ解決がうまくいかず、デスクトップ連携機能が使えないことがありました。",
+        "after": "ワークツリー内でも適切にディレクトリが識別され、デスクトップ連携が正しく機能するようになりました。",
+        "benefit": "ワークツリーを使用した並列作業環境でも、デスクトップアプリとの連携がシームレスに行えます。"
       },
       "related_docs": [
         {
@@ -239,20 +246,20 @@
     },
     {
       "content": "- Fixed background agents repeatedly showing \"Reconnecting…\" every ~52 seconds on macOS while the agents view was open",
-      "content_ja": "macOSにてエージェントビューを開いている間、バックグラウンドエージェントが約52秒ごとに「再接続中…」と表示し続ける問題を修正しました。",
+      "content_ja": "エージェントビューが開いている間、macOSでバックグラウンドエージェントが約52秒おきに「Reconnecting…」と繰り返し表示される問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed pressing `←` inside `claude attach <id>` exiting to the shell instead of opening the agent view",
-      "content_ja": "claude attach コマンド中の戻る動作を修正し、エージェントビューへ正しく戻れるようにしました。",
+      "content_ja": "claude attach で添付中に「←」キーを押した際、シェルに終了してしまう問題を修正し、エージェントビューに戻れるようにしました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "inference": {
-        "before": "アタッチ状態から左矢印キーを押すと、エージェントビューではなくシェルへ戻ってしまうバグがありました。",
-        "after": "アタッチ状態から戻る際に、期待通りエージェントの一覧画面（エージェントビュー）へ遷移するようになりました。",
-        "benefit": "エージェントビューへの戻りがスムーズになり、複数の作業セッションを切り替える際の操作性が向上しました。"
+        "before": "セッションから戻ろうとするとエージェントの一覧ではなく、シェル自体が終了する誤動作がありました。",
+        "after": "「←」キーでエージェントビューへ正しく遷移するようになり、操作の直感性が改善されました。",
+        "benefit": "セッション間の切り替えがスムーズになり、ナビゲーションのストレスが低減します。"
       },
       "related_docs": [
         {
@@ -268,13 +275,13 @@
     },
     {
       "content": "- Fixed `claude --bg` silently creating an unattachable session when combined with `--print`/`-p`; the conflicting flags are now rejected up front",
-      "content_ja": "claude --bg コマンドと --print/-p フラグの併用により未接続状態のセッションが生成される問題を修正（競合フラグを即座に拒否）",
+      "content_ja": "claude --bg コマンドと --print (-p) オプションを同時に指定した際、接続不可能なセッションがバックグラウンドで生成されてしまう問題を修正しました。今後はこれらの競合するフラグが指定された場合に、実行前にエラーとして拒否されるようになります。",
       "prefix": "Fixed",
-      "feature_areas": ["Settings"],
+      "feature_areas": [],
       "inference": {
-        "before": "誤ったフラグの組み合わせにより、不完全なバックグラウンドセッションが作成され、制御不能になることがありました。",
-        "after": "実行時にフラグの競合を事前にチェックし、無効なコマンド入力を事前に防ぐようになりました。",
-        "benefit": "意図しないセッションの作成を防ぎ、確実な環境構築が可能になります。"
+        "before": "バックグラウンド実行を意図した --bg と非対話的な出力を行う --print フラグを同時に使用すると、本来接続できないはずの無効なセッションが裏で作成されてしまう不具合がありました。",
+        "after": "フラグの競合を検知し、コマンド実行の初期段階で入力を拒否することで、不要なセッションの生成を未然に防ぐようになりました。",
+        "benefit": "意図しないセッションでリソースが消費されることを防ぎ、コマンド実行の予測可能性が向上します。"
       },
       "related_docs": [
         {
@@ -290,13 +297,13 @@
     },
     {
       "content": "- Fixed the workflow progress view dropping the earliest agents from the list while the phase counter stayed correct in SDK and desktop-app sessions",
-      "content_ja": "SDK およびデスクトップアプリセッションにおいて、ワークフロー進捗表示から古いエージェントが消えてしまう問題を修正",
+      "content_ja": "SDKおよびデスクトップ版セッションにおいて、ワークフロー進捗ビューがエージェントリストの初期要素を誤って消去する表示上の問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Sub-agents"],
       "inference": {
-        "before": "処理の進行に伴い、リスト上の古いエージェント情報が脱落する不具合がありました。",
-        "after": "ワークフローのフェーズカウンターと連動し、エージェントリストが正確に保持されるようになりました。",
-        "benefit": "長時間にわたるエージェントタスクの追跡が容易になり、全体の進行状況を把握しやすくなります。"
+        "before": "進捗カウンターは正しいものの、リストに表示されるはずのエージェントが消えてしまうことがありました。",
+        "after": "リストの同期が適切に保たれるようになり、進行中のすべてのエージェントを視認できます。",
+        "benefit": "並行処理を行っているタスク全体の把握が容易になり、ワークフローの管理が正確に行えます。"
       },
       "related_docs": [
         {
@@ -312,13 +319,13 @@
     },
     {
       "content": "- Fixed `.claude/rules/` conditional rules not loading when the target file is reached via a symlinked path",
-      "content_ja": ".claude/rules/ 内の条件付きルールが、シンボリックリンク経由でファイルに到達した場合に読み込まれない問題を修正",
+      "content_ja": "シンボリックリンク経由でファイルにアクセスした際、.claude/rules/ 内の条件付きルールが適用されない問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Memory"],
       "inference": {
-        "before": "シンボリックリンクを使用してファイルを開いた際に、ルールが適用されず意図しない挙動をとることがありました。",
-        "after": "パスの解決方法に関わらず、設定されたルールが正確にロードされるようになりました。",
-        "benefit": "複雑なディレクトリ構成やシンボリックリンクを使用する環境でも、一貫したコーディングルールを強制できます。"
+        "before": "ファイルパスの解決方法によって、適用されるべきコーディングルールが無視されていました。",
+        "after": "シンボリックリンク解決後も正しくパスを認識し、適切なルールが適用されるようになりました。",
+        "benefit": "複雑なプロジェクト構造や共有リンクを使用している場合でも、統一されたコーディングスタイルを維持できます。"
       },
       "related_docs": [
         {
@@ -334,20 +341,20 @@
     },
     {
       "content": "- Fixed Cmd+click not opening URLs in fullscreen mode in Warp on macOS",
-      "content_ja": "macOSのWarpターミナル上でフルスクリーンモードを使用中に、Cmd+クリックでURLを開けない問題を修正しました。",
+      "content_ja": "macOS上のWarpターミナルで、フルスクリーンモード時にCmd+クリックでURLが開かない問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Fixed double-click word selection in fullscreen mode to select the entire URL including the scheme",
-      "content_ja": "フルスクリーンモードでのダブルクリック時に、スキームを含む URL 全体を選択できるよう修正",
+      "content_ja": "フルスクリーンモードでのダブルクリックによる単語選択機能を改善し、URL全体（スキーム含む）が一度に選択されるようになりました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "inference": {
-        "before": "URL の一部しか選択できず、コピーやアクセス時に不便がありました。",
-        "after": "ダブルクリックでの選択範囲が URL 全体（プロトコル含む）をカバーするように改善されました。",
-        "benefit": "ターミナル上の URL を素早く確実にコピーでき、操作性が向上します。"
+        "before": "フルスクリーン表示時にURL内のテキストをダブルクリックしても、スキーム部分（http://など）が除外されてしまうなど、範囲選択が適切に行われないことがありました。",
+        "after": "ダブルクリックの判定ロジックが改善され、URLの先頭から末尾までを正確に選択できるようになりました。",
+        "benefit": "URLのコピー＆ペースト作業がスムーズになり、マウス操作による細かな修正の手間が省けます。"
       },
       "related_docs": [
         {
@@ -365,18 +372,23 @@
       "content": "- Fixed plan mode not auto-allowing read-only tool calls when a session starts in plan mode",
       "content_ja": "プランモードでセッションを開始した際、読み取り専用のツール呼び出しが自動的に許可されない問題を修正しました。",
       "prefix": "Fixed",
-      "feature_areas": ["Plan"],
+      "feature_areas": ["Plan", "Permissions"],
+      "inference": {
+        "before": "プランモード移行後に読み取り専用の確認ステップが挟まり、操作を中断されることがありました。",
+        "after": "プランモードの特性に合わせて、読み取り系のアクションは許可されるようになり、シームレスな調査が可能です。",
+        "benefit": "調査と計画のフェーズで過度な確認プロンプトを抑制でき、テンポ良く進められます。"
+      },
       "related_docs": []
     },
     {
       "content": "- Fixed `/branch` deriving its default fork name from the compaction summary instead of the first real prompt",
-      "content_ja": "/branch コマンドにおいて、デフォルトのフォーク名がコンパクションサマリーではなく最初のプロンプトから生成されるように修正",
+      "content_ja": " /branch コマンドにおいて、デフォルトのフォーク名が要約内容からではなく、最初のプロンプトから生成されるように修正しました。",
       "prefix": "Fixed",
-      "feature_areas": ["Agent Teams"],
+      "feature_areas": [],
       "inference": {
-        "before": "履歴のサマリーから名前が生成されていたため、フォーク時の目的が分かりにくい場合がありました。",
-        "after": "フォーク元の文脈（最初のプロンプト）に基づいた分かりやすい名前が自動生成されるようになりました。",
-        "benefit": "ブランチやフォークを多用する際に、各セッションの意図を把握しやすくなります。"
+        "before": "フォーク後の名前が不適切な短い要約になってしまうことがありました。",
+        "after": "最初の重要なプロンプトに基づいた名前が付けられるため、セッションを識別しやすくなります。",
+        "benefit": "フォークしたセッションの管理が容易になり、以前の作業履歴との区別が明確になります。"
       },
       "related_docs": [
         {
@@ -392,27 +404,27 @@
     },
     {
       "content": "- Improved focus mode: subagents launched in a turn now appear in its activity summary, and completed background notifications fold into a single count",
-      "content_ja": "フォーカスモードを改善し、ターン中に起動したサブエージェントをアクティビティサマリーに含め、完了したバックグラウンド通知を単一の件数に折りたたむようにしました。",
+      "content_ja": "フォーカスモードを改善し、ターン中に起動したサブエージェントがアクティビティ概要に表示され、完了したバックグラウンド通知が1つのカウントにまとめられるようになりました。",
       "prefix": "Improved",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Improved syntax highlighting accuracy in code blocks, diffs, and file previews by upgrading to highlight.js 11",
-      "content_ja": "highlight.jsをバージョン11へアップグレードし、コードブロック、diff、ファイルプレビューにおける構文強調表示の精度を向上させました。",
+      "content_ja": "highlight.js 11へのアップグレードにより、コードブロック、diff、ファイルプレビューでの構文強調表示の精度が向上しました。",
       "prefix": "Improved",
       "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Keyboard shortcut hints now show opt/cmd instead of alt/super when connected from a Mac over SSH",
-      "content_ja": "Mac から SSH 経由で接続した際のキーボードショートカットのヒント表示を最適化（alt/super ではなく opt/cmd を表示）",
+      "content_ja": "MacからSSH経由で接続している際、キーボードショートカットのヒントにAlt/SuperキーではなくOpt/Cmdキーが表示されるようになりました。",
       "prefix": "Changed",
       "feature_areas": [],
       "inference": {
-        "before": "Mac ユーザーが SSH 接続している際、Linux 形式のキーボード表記が表示され混乱を招いていました。",
-        "after": "接続元が Mac であることを検知し、Mac 向けのショートカット表記（Opt/Cmd）へ自動変更されるようになりました。",
-        "benefit": "直感的に正しい操作が可能になり、SSH 経由でのリモート開発が快適になります。"
+        "before": "MacからリモートサーバーへSSH接続してClaude Codeを使用している際、OSがMacであってもキーボードショートカットのガイドがLinux/Windows向けの「Alt」や「Super」として表示されていました。",
+        "after": "接続元がMacであることを検出し、ショートカットのヒントを「Opt」や「Cmd」といったMac特有のキー名称で正しく表示するようになりました。",
+        "benefit": "使い慣れたMacのキーボード表記でガイドが表示されるため、直感的に操作を理解でき、リモート環境での作業効率が向上します。"
       },
       "related_docs": [
         {
@@ -428,13 +440,13 @@
     },
     {
       "content": "- Improved API retry UX: the error reason is now shown after the second attempt, and a status page link replaces the spinner tip when the API is overloaded",
-      "content_ja": "API リトライ UX を改善。2回目の試行後にエラー理由を表示し、API 負荷が高い場合はスピナーの代わりにステータスページへのリンクを表示",
+      "content_ja": "APIリトライ時のユーザー体験を改善し、2回目の試行後にエラー原因を表示し、API過負荷時にはステータスページへのリンクが表示されるようになりました。",
       "prefix": "Improved",
       "feature_areas": [],
       "inference": {
-        "before": "エラー時に単に待機するだけで、理由や状態が不透明な場面がありました。",
-        "after": "エラーの詳細を表示し、サーバー混雑時には公式のステータスページへ誘導するように改善されました。",
-        "benefit": "何が起きているかが明確になるため、通信エラー発生時の不安が軽減されます。"
+        "before": "APIエラーが発生した際、内部的な再試行が行われている間は詳細な理由が分からず、過負荷時も読み込み中のスピナーが表示され続けるだけでした。",
+        "after": "2回目のリトライから具体的なエラー理由をユーザーに提示し、API制限などの過負荷時にはAnthropicのステータスページへのリンクを直接表示して状況を確認できるようになりました。",
+        "benefit": "エラーが発生した理由やサービス全体の稼働状況を即座に把握できるため、無駄に待ち続けることなく適切な対処や再開判断が可能になります。"
       },
       "related_docs": [
         {
@@ -450,13 +462,13 @@
     },
     {
       "content": "- `/login` now opens the sign-in dialog from the `claude agents` view instead of saying it isn't available",
-      "content_ja": "/login コマンドが claude agents ビューから利用可能になり、利用不可と表示される問題を修正",
+      "content_ja": "claude agents 画面において、ログインが利用不可と表示される代わりに、サインインダイアログが直接開くように改善しました。",
       "prefix": "Changed",
-      "feature_areas": ["Agent Teams"],
+      "feature_areas": [],
       "inference": {
-        "before": "特定のビューからログインを試みると機能が制限されているように見えました。",
-        "after": "エージェント管理画面から直接ログインダイアログを開けるように対応されました。",
-        "benefit": "ログインのために一度エージェント画面を閉じる必要がなくなり、作業の中断が減ります。"
+        "before": "ログインが必要な状況でエラーが表示され、そこからログイン画面へ辿り着くのが困難でした。",
+        "after": "エージェント画面から直接ログインフローへ誘導されるため、迷わず認証が行えます。",
+        "benefit": "認証切れの際のリカバリが迅速化され、作業の停止時間を最小限にできます。"
       },
       "related_docs": [
         {
@@ -472,20 +484,20 @@
     },
     {
       "content": "- Subagents now treat messages from the agent that launched them as normal task direction; an agent's message is still never treated as the user's approval",
-      "content_ja": "サブエージェントが呼び出し元エージェントからのメッセージを通常のタスク指示として扱うように変更しました（ただし、エージェントのメッセージがユーザーの承認と見なされることは引き続きありません）。",
+      "content_ja": "サブエージェントが自分を起動したエージェントからのメッセージを通常のタスク指示として扱うようにしました（承認メッセージとしては扱われません）。",
       "prefix": "Changed",
-      "feature_areas": ["Sub-agents"],
+      "feature_areas": [],
       "related_docs": []
     },
     {
       "content": "- Removed the `/agents` wizard; ask Claude to create or manage subagents, or edit `.claude/agents/` directly",
-      "content_ja": "/agents ウィザードを削除。今後は Claude に直接指示するか、.claude/agents/ を直接編集してサブエージェントを管理",
+      "content_ja": "/agents ウィザードを削除しました。サブエージェントの作成や管理を行う場合は、Claudeへの直接依頼、または .claude/agents/ ディレクトリの直接編集を利用してください。",
       "prefix": "Removed",
       "feature_areas": ["Sub-agents"],
       "inference": {
-        "before": "対話的なウィザードが提供されていましたが、柔軟性に欠けていました。",
-        "after": "より高度なカスタマイズが可能な直接的な編集フローへ統合されました。",
-        "benefit": "ファイル管理や直接対話により、サブエージェントの設定をより自由かつ直感的に管理できるようになります。"
+        "before": "対話的なウィザードメニューを通じてサブエージェントの設定を行う機能がありましたが、操作が限定的でした。",
+        "after": "ウィザードを廃止し、Claudeに対して直接指示を出すか、設定ファイルを直接編集するスタイルに集約されました。",
+        "benefit": "より柔軟で直感的なサブエージェントの管理が可能になり、CLIの構成を整理することでメンテナンス性が向上します。"
       },
       "related_docs": [
         {
