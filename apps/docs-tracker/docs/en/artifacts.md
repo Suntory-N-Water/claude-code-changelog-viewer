@@ -5,11 +5,11 @@ source: https://code.claude.com/docs/en/artifacts.md
 
 # Share session output as artifacts
 
-> Artifacts turn Claude Code's work into live, interactive pages at a private URL you can share inside your organization.
+> Artifacts turn Claude Code's work into live, interactive pages at a private URL on claude.ai.
 
-Artifacts require a Team or Enterprise plan and a session signed in with [`/login`](/en/setup#authenticate). See [Availability](#availability) for the full set of requirements.
+Artifacts are available on Pro, Max, Team, and Enterprise plans and require a session signed in with [`/login`](/en/setup#authenticate). See [Availability](#availability) for the full set of requirements.
 
-An artifact is a live, interactive web page that Claude Code publishes from your session to a private URL on claude.ai. You open it in a browser, and it updates in place as the session continues. Share it from the page header when you want a teammate to see it too. For example, use an artifact to walk a reviewer through a pull request with annotated diffs, build a dashboard from session data, or keep an investigation timeline that fills in as Claude works.
+An artifact is a live, interactive web page that Claude Code publishes from your session to a private URL on claude.ai. You open it in a browser, and it updates in place as the session continues. On Team and Enterprise plans, share it from the page header when you want a teammate to see it too. For example, use an artifact to walk a reviewer through a pull request with annotated diffs, build a dashboard from session data, or keep an investigation timeline that fills in as Claude works.
 
 ## When to use an artifact
 
@@ -67,7 +67,7 @@ Update https://claude.ai/code/artifact/5fbea6f3-... with today's numbers.
 
 ## Share an artifact
 
-A new artifact is visible only to you. Open it in your browser and use the **Share** control in the page header to grant access to specific people in your organization, or to everyone in it. The header names you as the artifact's author, so anyone you share it with can see who published the page. It also links to your gallery at [claude.ai/code/artifacts](https://claude.ai/code/artifacts), which lists every artifact you have created.
+A new artifact is visible only to you. On Pro and Max plans, artifacts stay private to you. On Team and Enterprise plans, open the artifact in your browser and use the **Share** control in the page header to grant access to specific people in your organization, or to everyone in it. The header names you as the artifact's author, so anyone you share it with can see who published the page. It also links to your gallery at [claude.ai/code/artifacts](https://claude.ai/code/artifacts), which lists every artifact you have created.
 
 Sharing stops at your organization. Viewers must sign in to claude.ai as a member of the same organization that published the artifact, and there is no option to make an artifact viewable outside it. To send the underlying content to someone outside your organization, ask Claude for the HTML file and share that file directly.
 
@@ -155,7 +155,7 @@ Artifacts require every condition below. When one is not met, Claude writes a lo
 
 | Requirement | Available when |
 | :- | :- |
-| Plan | Team or Enterprise. On Team plans, artifacts are on by default. On Enterprise plans, an Owner [enables them](#manage-artifacts-for-your-organization) in claude.ai admin settings. |
+| Plan | Pro, Max, Team, or Enterprise. On Pro and Max plans, artifacts are private to you, and no admin management applies. On Team plans, artifacts are on by default. On Enterprise plans, an Owner [enables them](#manage-artifacts-for-your-organization) in claude.ai admin settings. |
 | Authentication | Signed in to claude.ai with `/login`. Sessions using an API key, [gateway token](/en/llm-gateway), or cloud-provider credential cannot publish. |
 | Model provider | Anthropic API. Not available on [Amazon Bedrock](/en/amazon-bedrock), [Google Cloud Vertex AI](/en/google-vertex-ai), or [Microsoft Foundry](/en/microsoft-foundry). |
 | Organization policy | Customer-managed encryption keys (CMEK), HIPAA, and [Zero Data Retention](/en/zero-data-retention) are not enabled for the organization. |

@@ -81,7 +81,7 @@ Claude Code はカスタマイズ可能なキーボードショートカット�
 | `app:interrupt` | Ctrl+C | 現在の操作をキャンセル |
 | `app:exit` | Ctrl+D | Claude Code を終了 |
 | `app:redraw` | （アンバインド） | ターミナルを強制的に再描画 |
-| `app:toggleTodos` | Ctrl+T | タスクリストの表示を切り替え |
+| `app:toggleTodos` | Ctrl+T | Claude のタスクリストの表示を切り替えます。これは [`/tasks`](/ja/commands) バックグラウンドタスクビューではありません |
 | `app:toggleTranscript` | Ctrl+O | 詳細トランスクリプトの表示を切り替え |
 
 履歴アクション
