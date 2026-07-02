@@ -205,7 +205,11 @@ Mantle モデル ID
 
 組織モデル制限
 
-組織管理者は、Claude Console でモデルを無効にすることで、メンバーが実行できるモデルを制限します。メンバーが Anthropic API を通じて認証し、設定ファイルをデプロイせずに 1 つの組織全体のスイッチが必要な場合、`availableModels` の代わりに Console トグルを使用します。この制限は、Claude Code が認証するときにアカウントの権利と共に配信され、設定内の `availableModels` リストとは別であり、セッションが作成されるときにサーバーが同じ制限を独立して適用します。Claude Code v2.1.187 以降が必要です。
+Claude Enterprise プランの組織管理者は、claude.ai 管理コンソールで個別のモデルを無効にすることで、メンバーが実行できるモデルを制限します。この制限は、Claude Code が認証するときにアカウントの権利と共に配信され、設定内の `availableModels` リストとは別であり、セッションが作成されるときにサーバーが同じ制限を独立して適用します。Claude Code v2.1.187 以降が必要です。
+
+制限はメンバーがサインインするか、自分の API キーを使用する場合に適用されます。組織サービスキーなどの組織スコープの認証情報はユーザーに関連付けられていないため、制限は適用されません。
+
+Claude Console にはモデル制限制御がありません。Claude Enterprise プランを持たない組織（Anthropic API を通じて認証するメンバーを持つ組織を含む）は、[管理設定](/ja/settings#settings-files) で [`availableModels`](#restrict-model-selection) を使用してモデルを制限し、Default オプションをカバーするために [`enforceAvailableModels`](#enforce-the-allowlist-for-the-default-model) を追加します。これらの設定は、サーバーではなく Claude Code 自体によって適用されます。
 
 制限されたモデルは `/model` ピッカーから非表示になります。`--model`、`ANTHROPIC_MODEL` 環境変数、または `model` 設定で名前で選択すると、`Model "<name>" is restricted by your organization's settings. Using <model> instead.`という通知が表示され、セッションは許可されたモデルで開始されます。制限されたモデルに対して `/model <name>` と入力すると、`Model '<name>' is restricted by your organization's settings. Run /model to choose a different model.`で拒否され、セッションは現在のモデルを保持します。
 
