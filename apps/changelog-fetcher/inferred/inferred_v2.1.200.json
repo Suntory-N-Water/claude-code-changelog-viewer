@@ -1,0 +1,227 @@
+{
+  "version": "2.1.200",
+  "summary": "ユーザーへの質問ダイアログの自動継続仕様の変更やパーミッションモードの名称変更により、操作性がより直感的になりました。さらにバックグラウンドエージェントの安定性向上や、アクセシビリティ機能の改善、各種コマンド・プラグイン関連の不具合修正が行われ、より堅牢で使いやすい環境を提供します。",
+  "items": [
+    {
+      "content": "- Changed `AskUserQuestion` dialogs to no longer auto-continue by default; opt into an idle timeout via `/config`",
+      "content_ja": "ユーザーへの質問ダイアログ（AskUserQuestion）がデフォルトで自動継続しないよう変更され、/configからアイドルタイムアウトを選択できるようになりました。",
+      "prefix": "Changed",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "質問ダイアログはデフォルトで自動的に処理が継続されていました。",
+        "after": "自動継続がオフになり、ユーザーが希望する場合のみ設定でアイドルタイムアウトを有効化するように変更されました。",
+        "benefit": "意図しない自動進行を防ぎ、処理のタイミングをユーザー自身がコントロールできるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/authentication.md"
+        }
+      ]
+    },
+    {
+      "content": "- Changed the \"default\" permission mode to \"Manual\" across the CLI, `--help`, VS Code, and JetBrains; `--permission-mode manual` and `\"defaultMode\": \"manual\"` are accepted alongside `default`",
+      "content_ja": "「default」パーミッションモードが「Manual」へ名称変更されました。CLI、VS Code、JetBrains全体で適用され、新しい指定方法もサポートされます。",
+      "prefix": "Changed",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "パーミッションモードのデフォルト設定が「default」という名称でした。",
+        "after": "「Manual」が標準となり、従来の指定も引き続き受け入れられます。",
+        "benefit": "権限管理の動作が名称からより直感的に理解できるようになり、運用の混乱を防げます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/amazon-bedrock.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed a crash at startup when `disabledMcpServers` or `enabledMcpServers` in `.claude.json` is set to a non-array value",
+      "content_ja": ".claude.jsonのdisabledMcpServersやenabledMcpServersに配列以外の値が設定されていると起動時にクラッシュする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP", "Settings"],
+      "inference": {
+        "before": "設定ファイルが予期せぬ形式（配列以外）の場合、アプリケーションがクラッシュしていました。",
+        "after": "無効な設定値でもクラッシュせず、適切に処理または無視されるようになります。",
+        "benefit": "設定ミスによる突然のツール停止や起動不能を回避し、安定した環境で利用できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background sessions silently stopping mid-turn after sleep/wake or when reopening a stalled session",
+      "content_ja": "スリープや復帰、または停滞したセッションを再開した際に、バックグラウンドセッションがターン途中で黙って停止する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed background sessions re-running a turn cancelled with Esc after a stall respawn",
+      "content_ja": "停滞からの復帰後に、Escキーでキャンセルされたターンをバックグラウンドセッションが再実行してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed background agents never starting again after a crash left a stale `daemon.lock` whose PID the OS reused",
+      "content_ja": "クラッシュ後にdaemon.lockが残り、PIDが再利用されることでバックグラウンドエージェントが起動しなくなる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "PIDが使い回される状況で古いロックファイルが残ると、エージェントが再起動できないことがありました。",
+        "after": "ロックファイルの管理方法が改善され、PID重複時でも確実に再起動が試行されます。",
+        "benefit": "エージェントが長時間停止したままになるのを防ぎ、バックグラウンド処理の信頼性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background-agent daemon handover so a reinstalled older build can no longer take over the daemon; build recency is now judged by the version's embedded build timestamp",
+      "content_ja": "再インストールされた古いビルドがデーモンを乗っ取らないよう、ビルドの最新性をバージョンに埋め込まれたタイムスタンプで判断するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed background-agent roster issues: transient corruption permanently disabling orphan cleanup, older binaries not preserving fields written by newer versions, and socket auth tokens being stripped during daemon restarts",
+      "content_ja": "バックグラウンドエージェントの roster 関連の問題（一時的な破損が孤立したクリーンアップを永続的に無効化する問題や、古いバイナリによるフィールドの不適切な処理、再起動時に認証トークンが削除される問題）を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed subagents cut off by a rate limit before producing any text output returning an empty result instead of failing cleanly",
+      "content_ja": "サブエージェントがテキスト出力を生成する前にレート制限に達した場合、失敗として適切に処理されず空の戻り値が返されていた問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed control bytes from background-agent output reaching the terminal in the agent view",
+      "content_ja": "バックグラウンドエージェントの出力に含まれる制御バイトが、エージェントビューのターミナルに表示されてしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed `claude agents --plugin-dir <dir>` not showing the plugin's agents and skills in the agent view when the flag is placed after `agents`",
+      "content_ja": "claude agents --plugin-dir <dir> コマンドにおいて、フラグをagentsの後ろに配置した際にプラグインのスキルやエージェントが表示されない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins", "Skills", "Sub-agents"],
+      "inference": {
+        "before": "特定のコマンド引数の順序によって、プラグインのコンポーネントが正しく読み込まれない場合がありました。",
+        "after": "フラグの指定順序に関わらず、プラグインが正しく認識され一覧に表示されます。",
+        "benefit": "コマンド入力時の柔軟性が向上し、期待通りにプラグインを読み込めるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/settings.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed project-scoped plugins not loading correctly from git worktrees of the same repository",
+      "content_ja": "同一リポジトリ内の git worktree から、プロジェクトスコープのプラグインが正しく読み込まれない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins"],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed `/mcp` server list not tracking focus for screen readers and magnifiers",
+      "content_ja": "/mcpサーバーリストにおいて、スクリーンリーダーや拡大鏡を使用している際のフォーカス追跡機能を改善しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "アクセシビリティツールを使用している場合、フォーカスの移動が追跡しづらい状況でした。",
+        "after": "リストのフォーカス位置が適切に認識され、支援ツールを通じた操作性が向上しました。",
+        "benefit": "アクセシビリティ対応が強化され、視覚に制約のある環境でもMCP管理が容易になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/channels-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/chrome.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed voice dictation showing a misleading \"Voice connection failed\" message when a recording captures no audio",
+      "content_ja": "録音に音声が含まれていない場合に、音声ディクテーションが誤解を招く「音声接続に失敗しました」というメッセージを表示する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Fixed rendering flicker under tmux 3.4+ by enabling synchronized terminal output",
+      "content_ja": "tmux 3.4以降で同期されたターミナル出力を有効にすることで、レンダリングのちらつきを修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "related_docs": []
+    },
+    {
+      "content": "- Improved screen-reader output: decorative glyphs are now hidden, transcript symbols read as short labels, and nested tables read as `Header: value.` lines",
+      "content_ja": "スクリーンリーダーへの出力を改善し、装飾用の記号を非表示にするとともに、 transcript記号の読み上げを短縮し、テーブル構造の読み上げを分かりやすくしました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "スクリーンリーダーで読み上げた際に、装飾的な文字や複雑な表の構造が読み上げの妨げになっていました。",
+        "after": "不要な装飾を除去し、情報を簡潔かつ論理的な形式で読み上げるよう最適化されました。",
+        "benefit": "読み上げ内容が簡潔化され、アクセシビリティツール利用者が必要な情報を素早く把握できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/admin-setup.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/advisor.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved the install script to explain when installation is killed by the system running out of memory",
+      "content_ja": "システムのメモリ不足によりインストールが強制終了された場合、その旨を説明するようにインストールスクリプトを改善しました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "related_docs": []
+    }
+  ]
+}
