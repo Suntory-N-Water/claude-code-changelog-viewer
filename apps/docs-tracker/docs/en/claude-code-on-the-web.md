@@ -618,7 +618,7 @@ Teleport checks these requirements before resuming a session. If any requirement
 | Requirement | Details |
 | - | - |
 | Clean git state | Your working directory must have no uncommitted changes. Teleport prompts you to stash changes if needed. |
-| Correct repository | You must run `--teleport` from a checkout of the same repository, not a fork. |
+| Correct repository | You must run `--teleport` from a checkout of the same repository, not a fork. As of v2.1.199, Claude Code accepts a checkout even when it can't parse the remote into a hostname, such as an SSH host alias like `git@work:owner/repo.git` or an `insteadOf`-rewritten short form. It shows a confirmation prompt first, and only when the remote's owner and repository name match the session's repository. |
 | Branch available | The branch from the cloud session must have been pushed to the remote. Teleport automatically fetches and checks it out. |
 | Same account | You must be authenticated to the same claude.ai account used in the cloud session. |
 
