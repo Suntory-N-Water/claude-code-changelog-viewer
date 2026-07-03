@@ -47,7 +47,7 @@ Select a row with the arrow keys and press `Space` to open the peek panel. It sh
 
 Press `Enter` or `→` on a row to attach when you want the full conversation. The session takes over the terminal as a full interactive Claude Code session. Press `←` on an empty prompt to detach and return to the table.
 
-To move a session you already have open into agent view, run `/bg` inside it, or press `←` on an empty prompt to background it and open agent view in one step. The session keeps running and appears as a row alongside the ones you dispatched.
+This step needs a running session. If you followed the earlier steps you don't have one open in this terminal, so open a regular `claude` session in another terminal and send it a message first. To move a session you already have open into agent view, run `/bg` inside it, or press `←` on an empty prompt to background it and open agent view in one step. The session keeps running and appears as a row alongside the ones you dispatched.
 
 You can use `claude agents` as your primary entry point instead of `claude`: dispatch every task from agent view, attach when you want the full conversation, and press `←` to return to the table.
 
@@ -307,7 +307,7 @@ Pass `--name` to set the session's display name in agent view instead of the aut
 claude --bg --name "flaky-test-fix" "investigate the flaky SettingsChangeDetector test"
 ```
 
-After backgrounding, Claude prints the session's short ID and the commands for managing it. When you pass `--name`, the name appears after the short ID:
+After backgrounding, Claude prints the session's short ID and the commands for managing it. When the service that hosts background sessions isn't already running, `--bg` may first print `Starting background service…` above this output. When you pass `--name`, the name appears after the short ID:
 
 ```text
 backgrounded · 7c5dcf5d · flaky-test-fix
