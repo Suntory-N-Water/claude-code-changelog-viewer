@@ -232,10 +232,21 @@ Read と Edit ルールの両方は、[gitignore](https://git-scm.com/docs/gitig
 | - | - | - | - |
 | `//path` | ファイルシステムルートからの**絶対**パス | `Read(//Users/alice/secrets/**)` | `/Users/alice/secrets/**` |
 | `~/path` | **ホーム**ディレクトリからのパス | `Read(~/Documents/*.pdf)` | `/Users/alice/Documents/*.pdf` |
-| `/path` | **プロジェクトルートからの相対**パス | `Edit(/src/**/*.ts)` | `<project root>/src/**/*.ts` |
+| `/path` | 設定ソースからの相対パス | `Edit(/src/**/*.ts)` | `<project root>/src/**/*.ts` in project settings |
 | `path` または `./path` | **現在のディレクトリからの相対**パス | `Read(*.env)` | `<cwd>/*.env` |
 
-`/Users/alice/file` のようなパターンは絶対パスではありません。プロジェクトルートからの相対パスです。絶対パスには `//Users/alice/file` を使用してください。
+`/Users/alice/file` のようなパターンは絶対パスではありません。単一の先頭スラッシュは設定ソースにアンカーされており、ファイルシステムルートではありません。絶対パスには `//Users/alice/file` を使用してください。
+
+`/path` パターンは、それを定義する設定ファイルに関連付けられたディレクトリにアンカーされるため、同じルールは配置場所に応じて異なる場所にマッチします。
+
+| ルール定義場所 | `/path` の解決先 |
+| :- | :- |
+| `.claude/settings.json` などのプロジェクトまたはローカル設定 | `<project root>/path` |
+| `~/.claude/settings.json` のユーザー設定 | `~/.claude/path` |
+| `--settings <file>` で渡されたファイル | `<directory of file>/path` |
+| CLI フラグ、`/permissions`、またはセッションルール | `<original cwd>/path` |
+
+`Read(/secrets/**)` のような deny ルールをユーザー設定で記述すると、プロジェクト内の `secrets` ディレクトリではなく、`~/.claude/secrets/**` をブロックします。すべてのプロジェクト内に適用されるユーザー設定でルールを記述するには、`//` 絶対パスまたは `~/` ホーム相対パスを使用してください。
 
 Windows では、パスはマッチング前に POSIX 形式に正規化されます。`C:\Users\alice` は `/c/Users/alice` になるため、`//c/**/.env` を使用してそのドライブ上の `.env` ファイルをマッチさせます。すべてのドライブ全体でマッチさせるには、`//**/.env` を使用します。
 

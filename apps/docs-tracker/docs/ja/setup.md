@@ -370,7 +370,7 @@ echo "https://downloads.claude.ai/claude-code/apk/latest" >> /etc/apk/repositori
 
 npm でのインストール
 
-Claude Code をグローバル npm パッケージとしてインストールすることもできます。パッケージには [Node.js 18 以上](https://nodejs.org/en/download)が必要です。
+Claude Code をグローバル npm パッケージとしてインストールすることもできます。v2.1.198 以降、npm パッケージには [Node.js 22 以上](https://nodejs.org/en/download)が必要です。古い Node.js バージョンでは、npm はインストール中に `EBADENGINE` 警告を出力するのではなく失敗します。インストールは完了し、パッケージがランタイムで Node.js を使用しないネイティブバイナリをダウンロードするため、`claude` は引き続き実行されます。
 
 ```bash
 npm install -g @anthropic-ai/claude-code

@@ -3,7 +3,7 @@ title: chrome
 source: https://code.claude.com/docs/ja/chrome.md
 ---
 
-# Chrome で Claude Code を使用する（ベータ版）
+# Chrome で Claude Code を使用する
 
 > Claude Code を Chrome ブラウザに接続して、Web アプリをテストし、コンソールログでデバッグし、フォーム入力を自動化し、Web ページからデータを抽出します。
 
@@ -11,7 +11,7 @@ Claude Code は [Claude in Chrome ブラウザ拡張機能](https://chromewebsto
 
 Claude はブラウザタスク用に新しいタブを開き、ブラウザのログイン状態を共有するため、既にサインインしているサイトにアクセスできます。ブラウザアクションはリアルタイムで表示される Chrome ウィンドウで実行されます。Claude がログインページまたは CAPTCHA に遭遇した場合、一時停止して手動で処理するよう求めます。
 
-Chrome 統合はベータ版であり、現在 Google Chrome と Microsoft Edge で動作します。Brave、Arc、またはその他の Chromium ベースのブラウザではまだサポートされていません。WSL（Windows Subsystem for Linux）もサポートされていません。
+Chrome 統合は Google Chrome と Microsoft Edge で動作します。Brave、Arc、またはその他の Chromium ベースのブラウザではまだサポートされていません。Windows Subsystem for Linux（WSL）でもサポートされていません。
 
 機能
 
@@ -68,6 +68,15 @@ CLI で Chrome をデフォルトで有効にすると、ブラウザツール�
 サイト権限を管理する
 
 サイトレベルの権限は Chrome 拡張機能から継承されます。Chrome 拡張機能の設定で権限を管理して、Claude がブラウズ、クリック、入力できるサイトを制御します。
+
+ブラウザツールをプランモードで使用する
+
+[プランモード](/ja/permission-modes#analyze-before-you-edit-with-plan-mode) では、ページまたはブラウザの状態のみを読み取るブラウザツール呼び出しは権限プロンプトなしで実行され、状態を変更する呼び出しは承認を求めるプロンプトが表示されます。
+
+- **読み取り専用呼び出し**: `read_page`、`get_page_text`、`find`、コンソールメッセージまたはネットワークリクエストの読み取り、およびスクリーンショットの撮影
+- **状態変更呼び出し**: クリック、入力、ナビゲーション、タブとウィンドウ管理、および GIF の記録
+
+v2.1.199 以降、`tabs_context_mcp` の `createIfEmpty`、コンソールおよびネットワークリーダーの `clear`、またはスクリーンショットの `save_to_disk` など、状態変更入力フラグを設定する読み取り専用呼び出しも承認を求めるプロンプトが表示されます。`browser_batch` 呼び出しは、その内部のすべてのアクションが読み取り専用の場合にのみ、プロンプトなしで実行されます。
 
 ワークフロー例
 
@@ -166,6 +175,8 @@ Claude Code が Chrome 拡張機能を検出できない場合：
 5. 問題が解決しない場合、Claude Code と Chrome の両方を再起動します
 
 Chrome 統合を初めて有効にすると、Claude Code はネイティブメッセージングホスト設定ファイルをインストールします。Chrome はスタートアップ時にこのファイルを読み取るため、最初の試行で拡張機能が検出されない場合、Chrome を再起動して新しい設定を取得します。
+
+v2.1.199 以降、Claude Code は初回インストール時のみ拡張機能の接続を促すブラウザタブを開きます。設定ファイルを書き直す後続セッション（例えば Claude Code ビルドまたは設定ディレクトリを切り替えた後）では、再度開きません。
 
 接続がまだ失敗する場合、ホスト設定ファイルが以下の場所に存在することを確認します。
 

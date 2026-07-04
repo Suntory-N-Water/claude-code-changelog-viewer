@@ -72,7 +72,7 @@ disallowedTools: Write, Edit
 
 **統合ポイント**:
 
-- Agents は `/agents` インターフェイスに表示されます
+- Agents は [@-mention typeahead](/ja/sub-agents#invoke-subagents-explicitly) に、`my-plugin:code-reviewer` などのスコープ付き名の下に表示されます。プラグインが有効になると
 - Claude はタスクコンテキストに基づいて自動的にエージェントを呼び出すことができます
 - Agents はユーザーが手動で呼び出すことができます
 - プラグインエージェントは組み込みの Claude エージェントと一緒に動作します

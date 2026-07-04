@@ -178,7 +178,7 @@ create a pr
 enhance the PR description with more context about the security improvements
 ```
 
-When you create a PR using `gh pr create`, the session is automatically linked to that PR. To return to it later, run `claude --from-pr <number>` or paste the PR URL into the [`/resume` picker](/en/sessions#use-the-session-picker) search.
+When you create a PR using `gh pr create`, the session is automatically linked to that PR. To return to it later, run `claude --from-pr 123`, replacing 123 with the PR number, or paste the PR URL into the [`/resume` picker](/en/sessions#use-the-session-picker) search.
 
 Review Claude's generated PR before submitting and ask Claude to highlight potential risks or considerations.
 
