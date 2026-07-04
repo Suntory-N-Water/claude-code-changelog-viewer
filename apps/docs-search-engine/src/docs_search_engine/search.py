@@ -33,7 +33,9 @@ def tokenize(doc: Doc) -> list[str]:
     return [
         token.lemma_.lower()
         for token in doc
-        if not token.is_stop and not token.is_punct and not token.is_space
+        if not token.is_stop
+        and not token.is_punct
+        and not token.is_space
         and token.lemma_.strip()
     ]
 
@@ -50,8 +52,7 @@ class DocsSearchEngine:
     def search_batch(self, entries: list[str]) -> list[list[RelatedDocResult]]:
         expanded_entries = [synonyms.expand_query(entry) for entry in entries]
         return [
-            self._search_one(tokenize(doc))
-            for doc in self._nlp.pipe(expanded_entries)
+            self._search_one(tokenize(doc)) for doc in self._nlp.pipe(expanded_entries)
         ]
 
     def _search_one(self, query_tokens: list[str]) -> list[RelatedDocResult]:
@@ -74,7 +75,9 @@ class DocsSearchEngine:
         results = []
         for file in top_files:
             hits = sorted(hits_by_file[file], key=lambda hit: hit[0], reverse=True)
-            snippets = [self._chunks[index].text for _, index in hits[:MAX_SNIPPETS_PER_FILE]]
+            snippets = [
+                self._chunks[index].text for _, index in hits[:MAX_SNIPPETS_PER_FILE]
+            ]
             results.append(
                 RelatedDocResult(file=file, snippets=snippets, hit_count=len(hits))
             )

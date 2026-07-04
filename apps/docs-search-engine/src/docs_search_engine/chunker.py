@@ -22,9 +22,7 @@ class Chunk:
 def find_markdown_files(docs_dir: Path) -> list[Path]:
     """docs_dir 配下を再帰的に探索し、changelog.md を除いた .md ファイル一覧を返す。"""
     return sorted(
-        path
-        for path in docs_dir.rglob("*.md")
-        if path.name != EXCLUDED_FILE_NAME
+        path for path in docs_dir.rglob("*.md") if path.name != EXCLUDED_FILE_NAME
     )
 
 

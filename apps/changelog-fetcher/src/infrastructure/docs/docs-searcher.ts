@@ -1,13 +1,9 @@
 import * as fs from 'node:fs/promises';
 import { globSync } from 'node:fs';
 import * as path from 'node:path';
-import { normalizeMarkdownForAi } from '@claude-code-changelog-viewer/common';
 import type { KeywordSet } from '../../domain/analysis/keyword-set';
-import type { ChangelogEntry } from '../../domain/changelog/changelog-entry';
-import type { RelatedDoc } from '../../domain/analysis/related-doc';
 import { escapeRegex } from './escape-regex';
 import { PROJECT_ROOT, toAbsolutePath, toRelativePath } from './docs-paths';
-import { extractKeywords } from './keyword-extractor';
 
 export type SearchResult = {
   files: string[];
@@ -184,27 +180,3 @@ export async function extractSnippets(
     }),
   );
 }
-
-export type DocsSearcher = {
-  findRelatedDocs: (entry: ChangelogEntry) => Promise<RelatedDoc[]>;
-};
-
-export const docsSearcher: DocsSearcher = {
-  findRelatedDocs: async (entry) => {
-    const keywordSet = extractKeywords(entry);
-    const keywords = {
-      original: [...keywordSet.original],
-      normalized: [...keywordSet.normalized],
-    };
-    const searchResult = await searchDocs(keywords);
-    const snippetResults = await extractSnippets(searchResult.files, keywords);
-
-    return snippetResults.slice(0, 3).map(({ file, snippets, hit_count }) => ({
-      file,
-      snippets: snippets
-        .map(normalizeMarkdownForAi)
-        .filter((snippet) => snippet.length > 0),
-      hitCount: hit_count,
-    }));
-  },
-};

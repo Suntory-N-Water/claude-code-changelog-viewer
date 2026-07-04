@@ -12,7 +12,7 @@ import { createChangelogVersion } from '../domain/changelog/changelog-version';
 const log = getLogger({ name: 'changelog-analyzer' });
 
 export type DocsSearchPort = {
-  findRelatedDocs: (entry: ChangelogEntry) => Promise<RelatedDoc[]>;
+  findRelatedDocs: (entries: ChangelogEntry[]) => Promise<RelatedDoc[][]>;
 };
 
 export type AnalysisStorePort = {
@@ -39,21 +39,22 @@ export async function analyzeChangelog(input: {
     needsSearch: merged.entriesNeedingSearch.length,
   });
 
-  const searched = await Promise.all(
-    merged.entriesNeedingSearch.map(async (entry, index) => {
-      log.info(
-        `[${index + 1}/${merged.entriesNeedingSearch.length}] ${entry.content.slice(0, 60)}...`,
-      );
-
-      const relatedDocs = await input.docsSearch.findRelatedDocs(entry);
-
-      return createAnalyzedChangelogEntry({
-        content: entry.content,
-        prefix: entry.prefix,
-        relatedDocs,
-      });
-    }),
+  const relatedDocsList = await input.docsSearch.findRelatedDocs(
+    merged.entriesNeedingSearch,
   );
+
+  const searched = merged.entriesNeedingSearch.map((entry, index) => {
+    const relatedDocs = relatedDocsList[index];
+    if (relatedDocs === undefined) {
+      throw new Error('検索結果 relatedDocs が不足しています');
+    }
+
+    return createAnalyzedChangelogEntry({
+      content: entry.content,
+      prefix: entry.prefix,
+      relatedDocs,
+    });
+  });
 
   const items = merged.decisions.map((decision) => {
     if (decision.kind === 'existing') {
