@@ -219,7 +219,7 @@ const totalItemCount = items.length;
               <button
                 type='button'
                 popovertarget='changelog-history-popover'
-                class='inline-flex items-center gap-1 mt-2 text-sm text-gray-600 hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
+                class='changelog-history-trigger inline-flex items-center gap-1 mt-2 text-sm text-gray-600 hover:text-[hsl(var(--cc-main-orange))] transition-colors cursor-pointer'
               >
                 公式のCHANGELOG.mdでの変更履歴
                 <Icon
@@ -231,7 +231,7 @@ const totalItemCount = items.length;
               <div
                 id='changelog-history-popover'
                 popover
-                class='changelog-history-popover m-0 p-5 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] shadow-xl max-w-md w-[min(90vw,28rem)] max-h-[70vh] overflow-y-auto'
+                class='changelog-history-popover p-5 rounded-lg border border-[hsl(var(--cc-gray))] bg-[hsl(var(--cc-main-white))] shadow-xl max-w-md w-[min(90vw,28rem)] max-h-[70vh] overflow-y-auto'
               >
                 <div class='flex items-center justify-between mb-3 pb-2 border-b border-[hsl(var(--cc-gray))]'>
                   <p class='text-sm font-semibold text-[hsl(var(--cc-main-black))]'>
@@ -587,4 +587,52 @@ const totalItemCount = items.length;
       window.addEventListener('scroll', onScroll, { passive: true });
     });
   </script>
+
+  <style>
+    /* 開閉アニメーション (Popover API)。位置指定とは独立して translate を使用 */
+    .changelog-history-popover {
+      opacity: 0;
+      translate: 0 -0.5rem;
+      transition:
+        opacity 0.18s ease-out,
+        translate 0.18s ease-out,
+        overlay 0.18s allow-discrete,
+        display 0.18s allow-discrete;
+    }
+    .changelog-history-popover:popover-open {
+      opacity: 1;
+      translate: 0 0;
+    }
+    @starting-style {
+      .changelog-history-popover:popover-open {
+        opacity: 0;
+        translate: 0 -0.5rem;
+      }
+    }
+
+    /* Anchor Positioning 対応ブラウザではトリガー直下にドロップダウン表示。
+       未対応ブラウザは UA デフォルト (inset:0 + margin:auto) の中央寄せにフォールバック */
+    @supports (anchor-name: --x) {
+      .changelog-history-trigger {
+        anchor-name: --changelog-history-anchor;
+      }
+      .changelog-history-popover {
+        position: fixed;
+        position-anchor: --changelog-history-anchor;
+        inset: auto;
+        top: anchor(bottom);
+        left: anchor(left);
+        margin-top: 0.5rem;
+        /* 下に収まらなければ上へフリップ */
+        position-try-fallbacks: flip-block;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .changelog-history-popover {
+        transition: none;
+        translate: none;
+      }
+    }
+  </style>
 </Layout>
