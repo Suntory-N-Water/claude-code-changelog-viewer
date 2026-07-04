@@ -11,6 +11,10 @@ import type {
   SettingsReferenceContext,
 } from '../../usecase/settings-translation';
 import type { SettingsEntry } from '../../domain/settings-reference/setting-entry';
+import {
+  DOCS_DIR,
+  runDocsSearchEngine,
+} from '../docs/docs-search-engine-client';
 import { extractSnippets, searchDocs } from '../docs/docs-searcher';
 
 const EXCLUDED_DOC_FILES = new Set(['env-vars.md']);
@@ -120,6 +124,7 @@ export async function collectRelatedContext(
 ): Promise<SettingsReferenceContext> {
   const changelogsMap: SettingsReferenceContext['changelogsMap'] = new Map();
   const docSnippetsMap: SettingsReferenceContext['docSnippetsMap'] = new Map();
+  const zeroHitEntries: SettingsEntry[] = [];
 
   await Promise.all(
     entries.map(async (entry) => {
@@ -127,9 +132,33 @@ export async function collectRelatedContext(
         entry.key,
         findRelatedChangelogs(entry.key, allInferred),
       );
-      docSnippetsMap.set(entry.key, await searchRelatedDocs(entry.leafName));
+      const snippets = await searchRelatedDocs(entry.leafName);
+      docSnippetsMap.set(entry.key, snippets);
+      if (snippets.length === 0) {
+        zeroHitEntries.push(entry);
+      }
     }),
   );
+
+  if (zeroHitEntries.length > 0) {
+    const output = await runDocsSearchEngine({
+      docsDir: DOCS_DIR,
+      entries: zeroHitEntries.map((entry) => entry.leafName),
+    });
+
+    for (const [index, entry] of zeroHitEntries.entries()) {
+      const snippets = (output.results[index] ?? [])
+        .filter((doc) => !EXCLUDED_DOC_FILES.has(path.basename(doc.file)))
+        .flatMap((doc) => doc.snippets)
+        .map(normalizeMarkdownForAi)
+        .filter((snippet) => snippet.length > 0);
+
+      docSnippetsMap.set(entry.key, [
+        ...(docSnippetsMap.get(entry.key) ?? []),
+        ...snippets,
+      ]);
+    }
+  }
 
   return {
     changelogsMap,
