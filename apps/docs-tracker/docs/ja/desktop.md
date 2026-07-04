@@ -676,7 +676,7 @@ Desktop では利用できないもの
 - **Linux（ベータ版）**：Linux デスクトップアプリではコンピュータ使用はまだ利用できません。[Claude Desktop on Linux](/ja/desktop-linux)を参照してください。
 - **インラインコード提案**：Desktop はオートコンプリートスタイルの提案を提供しません。会話型プロンプトと明示的なコード変更を通じて機能します。
 - **エージェントチーム**：並列 Claude Code セッションが互いにメッセージを送信するのは [CLI](/ja/agent-teams) で利用可能であり、Desktop では利用できません。1 つのセッション内でマルチエージェント作業を行う場合は、[動的ワークフロー](/ja/workflows)を使用します。これは Desktop で実行されます。
-- **ターミナルダイアログコマンド**：`/permissions`、`/config`、`/agents`、`/doctor` などのターミナルで対話型パネルを開く組み込みコマンドは、Code タブでは利用できず、`isn't available in this environment` で応答します。[設定ファイル](/ja/settings)を直接編集して権限ルールと設定を管理するか、スタンドアロン CLI からコマンドを実行します。
+- **ターミナルダイアログコマンド**：`/permissions`、`/config`、`/doctor` などのターミナルで対話型パネルを開く組み込みコマンドは、Code タブでは利用できず、`isn't available in this environment` で応答します。[設定ファイル](/ja/settings)を直接編集して権限ルールと設定を管理するか、スタンドアロン CLI からコマンドを実行します。
 
 トラブルシューティング
 

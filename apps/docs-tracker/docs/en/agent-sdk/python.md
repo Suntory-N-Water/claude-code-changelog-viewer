@@ -1552,7 +1552,7 @@ class StreamEvent:
 | `uuid` | `str` | Unique identifier for this event |
 | `session_id` | `str` | Session identifier |
 | `event` | `dict[str, Any]` | The raw Claude API stream event data |
-| `parent_tool_use_id` | `str \| None` | Parent tool use ID if this event is from a subagent |
+| `parent_tool_use_id` | `str \| None` | Always `None`. Stream events are emitted for the main session only. For subagent attribution, use complete messages such as [`AssistantMessage`](#assistantmessage) |
 
 ### `RateLimitEvent`
 

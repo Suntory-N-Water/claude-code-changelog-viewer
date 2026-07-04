@@ -26,7 +26,7 @@ Claude Code の `model` 設定では、以下のいずれかを設定できま�
 
 | モデルエイリアス | 動作 |
 | - | - |
-| **`default`** | 特別な値で、モデルオーバーライドをクリアし、アカウントタイプに応じた推奨モデルに戻します。それ自体はモデルエイリアスではありません |
+| **`default`** | 特別な値で、モデルオーバーライドをクリアし、アカウントタイプに応じた推奨モデルに戻すか、管理者が設定した場合は[組織デフォルトモデル](#organization-default-model)に戻します。それ自体はモデルエイリアスではありません |
 | **`best`** | 組織がアクセスできる場合は Fable 5 を使用し、そうでない場合は最新の Opus モデルを使用 |
 | **`fable`** | 最も難しく、実行時間が長いタスク用に Claude Fable 5 を使用 |
 | **`sonnet`** | 日常的なコーディングタスク用に最新の Sonnet モデルを使用 |
@@ -71,7 +71,7 @@ v2.1.153 以降では、`/model` はあなたの選択をデフォルトとし�
 - `Enter`：モデルを切り替えてデフォルトとして保存
 - `s`：このセッションのみモデルを切り替え
 
-`/model <name>` を直接入力すると、`Enter` のように動作します。プロジェクトおよび管理設定は引き続き優先され、次の起動時に再度適用されます。
+`/model <name>` を直接入力すると、`Enter` のように動作します。プロジェクトおよび管理設定は引き続き優先され、次の起動時に再度適用されます。管理者が設定した[組織デフォルトモデル](#organization-default-model)も次の起動時に再度適用されます。
 
 v2.1.144 から v2.1.152 では、`/model` は現在のセッションにのみ適用され、ピッカーで `d` を押すとデフォルトが保存されました。
 
@@ -113,12 +113,12 @@ claude --model opus
 - **メインセッションモデル**：`/model`、`--model` フラグ、`ANTHROPIC_MODEL` 環境変数、`model` 設定、および [セッションを再開する](#setting-your-model) ときに復元されるモデル
 - **エイリアス解決**：`ANTHROPIC_DEFAULT_OPUS_MODEL`、`ANTHROPIC_DEFAULT_SONNET_MODEL`、`ANTHROPIC_DEFAULT_HAIKU_MODEL`、および `ANTHROPIC_DEFAULT_FABLE_MODEL` 環境変数は、許可されたエイリアスをリスト外のモデルにリダイレクトすることはできません
 - **高速モード**：`/fast` は、リスト外の Opus モデルに暗黙的に切り替わる場合、「is not in your organization's allowed models」というメッセージで切り替えを拒否します
-- **サブエージェントモデル**：[サブエージェント](/ja/sub-agents#choose-a-model) frontmatter の `model` フィールド、Agent ツールの `model` パラメータ、`/agents` のモデルピッカー、および `CLAUDE_CODE_SUBAGENT_MODEL`
+- **サブエージェントモデル**：[サブエージェント](/ja/sub-agents#choose-a-model) frontmatter の `model` フィールド、Agent ツールの `model` パラメータ、`CLAUDE_CODE_SUBAGENT_MODEL`、および v2.1.197 以前では `/agents` ウィザードのモデルピッカー&#x20;
 - **スキルおよびコマンドモデル**：[スキルおよびコマンド](/ja/skills) の `model` frontmatter
 - **アドバイザーモデル**：設定された [`advisorModel`](/ja/advisor) 設定および `--advisor` フラグ
 - **バックグラウンドエージェントモデル**：[ディスパッチピッカー](/ja/agent-view) で選択されたモデル
 
-`/model` でブロックされたモデルに切り替えるとエラーで拒否されますが、ブロックされた `--model` フラグ、`ANTHROPIC_MODEL`、または `model` 設定値は起動時に警告とともに置き換えられ、要求されたモデルと置き換えられたモデルの両方を名前で示し、セッションはデフォルトモデルで開始されます。ブロックされたサブエージェント、スキル、またはコマンドのオーバーライドは、リクエストを失敗させるのではなく、継承またはデフォルトモデルにフォールバックします。ブロックされた `advisorModel` 設定はセッションのアドバイザーを無効にし、ブロックされた `--advisor` フラグ値は起動時にエラーで終了します。除外されたモデルは `/model` ピッカーから非表示になります。
+`/model` でブロックされたモデルに切り替えるとエラーで拒否されますが、ブロックされた `--model` フラグ、`ANTHROPIC_MODEL`、または `model` 設定値は起動時に警告とともに置き換えられ、要求されたモデルと置き換えられたモデルの両方を名前で示し、セッションはデフォルトモデルで開始されます。ブロックされたサブエージェント、スキル、またはコマンドのオーバーライドは、リクエストを失敗させるのではなく、継承またはデフォルトモデルにフォールバックします。ブロックされた `advisorModel` 設定はセッションのアドバイザーを無効にし、ブロックされた `--advisor` フラグ値は起動時にエラーで終了します。除外されたモデルは `/model` ピッカーから非表示になります。v2.1.199 以降では、リストに組み込みピッカー行がない完全なモデル ID（リストがピン留めする古いバージョンなど）は、`/model` ピッカーに独自のラベル付き行として表示されます。以前のバージョンではそのような ID は `/model <id>` を入力することでのみ選択可能です。
 
 自動モデル変更は同じ方法でチェックされます。[フォールバックモデルチェーン](#fallback-model-chains) のアローリスト外の要素は削除され、[`opusplan`](#opusplan-model-setting) などのプランモードアップグレードが除外されたモデルに対して実行される場合、計画はセッションのモデルで続行されるようにスキップされ、ターゲットが除外されている [自動モデルフォールバック](#automatic-model-fallback) は実行されないため、フラグが付けられたリクエストは拒否で終了します。[高速モード](/ja/fast-mode) を有効にすることは、セッションが実行されるモデルがアローリスト外にある場合に拒否されます。
 
@@ -146,7 +146,7 @@ claude --model opus
 
 デフォルトモデルの動作
 
-モデルピッカーの Default オプションは、[`enforceAvailableModels`](#enforce-the-allowlist-for-the-default-model) も設定されていない限り、`availableModels` の影響を受けません。単独では、`availableModels` は Default を利用可能なままにし、[ユーザーのサブスクリプション層に基づいた](#default-model-setting) システムのランタイムデフォルトに解決されます。ティアのデフォルトが制限する予定のモデルである場合、`enforceAvailableModels` も設定してください。
+モデルピッカーの Default オプションは、[`enforceAvailableModels`](#enforce-the-allowlist-for-the-default-model) も設定されていない限り、`availableModels` の影響を受けません。単独では、`availableModels` は Default を利用可能なままにし、アカウントのシステムの [ランタイムデフォルト](#default-model-setting) に解決されます。ティアのデフォルトが制限する予定のモデルである場合、`enforceAvailableModels` も設定してください。
 
 空の `availableModels` 配列は Default モデル強制を実行しません。`availableModels: []` の場合、名前付きモデル選択はブロックされますが、アカウントタイプの Default モデルは `enforceAvailableModels` に関係なく使用可能なままです。
 
@@ -215,6 +215,42 @@ Claude Console にはモデル制限制御がありません。Claude Enterprise
 
 2 つの制限は一緒に適用されます。モデルは `availableModels` で許可され、組織によって制限されていない場合にのみ選択可能です。組織制限は Anthropic API および [LLM ゲートウェイ](/ja/llm-gateway) デプロイメント上のセッションに配信されます。Bedrock、Vertex AI、Foundry、および Claude Platform on AWS 上のセッションはそれらを受け取らないため、代わりにそれらのプロバイダーで `availableModels` を使用してください。
 
+組織デフォルトモデル
+
+Claude Enterprise プランの組織管理者は、claude.ai 管理コンソールから Claude Code メンバーのデフォルトモデルを、組織全体またはカスタムロール単位で設定できます。設定されている場合、Default オプションは [アカウントタイプのデフォルト](#default-model-setting) ではなく、そのモデルに解決されます。Claude Code v2.1.196 以降が必要です。
+
+`/model` ピッカーの Default 行は、組織デフォルトの名前を「Org default」というラベルで表示します。ラベルは、管理者が組織全体のデフォルトを設定したか、ロール用に設定したかに関係なく「Org default」と表示されます。ロールデフォルトはそのカスタムロールのメンバーをカバーし、組織全体のデフォルトより優先されます。複数のロールが異なるデフォルトを設定する場合、最も高性能なモデルが適用されます。
+
+組織デフォルトは開始点であり、制限ではなく、他のモデル選択はそれより優先されます。
+
+- `--model` フラグと `ANTHROPIC_MODEL` 環境変数
+- [管理設定](/ja/settings#settings-files) または `--settings` で提供される `model` 値
+- ユーザー、プロジェクト、またはローカル設定の `model` 値（`/model` で保存したモデルを含む）
+
+管理者は、組織デフォルトをユーザー選択をオーバーライドするように設定することもできます。オーバーライドがオンの場合、ユーザー、プロジェクト、およびローカル設定の `model` 値より優先されるため、`/model` で保存したモデルは現在のセッションに適用され、組織デフォルトは次の起動時に戻ります。選択が異なる場合、`/model` は `Your organization's default (<model>) applies on restart` を表示します。`--model` フラグ、`ANTHROPIC_MODEL`、管理設定、および `--settings` はオーバーライドがオンの場合でも優先されます。オーバーライドは限定的な組織セットで利用可能です。利用可能性については Anthropic アカウントチームに問い合わせてください。
+
+メンバーが選択できるモデルを制限するには、[組織モデル制限](#organization-model-restrictions) または [`availableModels`](#restrict-model-selection) を代わりに使用してください。
+
+Claude Code は起動時に組織デフォルトを 1 回読み込むため、管理者が中途で変更したデフォルトは次の起動時に有効になります。
+
+組織デフォルトがユーザー選択をオーバーライドしない場合、管理者がそれを変更した後の最初のインタラクティブ起動は、ユーザー設定から `model` キーを 1 回クリアするため、新しいデフォルトが適用されます。ファイル内の他の何も変更されず、その起動後に `/model` で保存したモデルは保持されます。
+
+組織デフォルトは、採用される前に他の Default モデルと同じ制限チェックを通過します。
+
+- [`availableModels`](#restrict-model-selection) 単独では Default オプションを制限しないため、アローリスト外の組織デフォルトは引き続き適用されます。[`enforceAvailableModels`](#enforce-the-allowlist-for-the-default-model) も設定されている場合、アローリスト外の組織デフォルトは、他の Default と同様に最初のアローリストエントリに再マップされます
+- [組織モデル制限](#organization-model-restrictions) がアカウントに対して拒否する組織デフォルトは、そのファミリーの最新許可モデル、またはそのバージョンがすべて制限されている場合は低コストファミリーに置き換えられます
+- [ゼロデータ保持](/ja/zero-data-retention) の下での Fable 5 など、アカウントで利用できない組織デフォルトはスキップされ、Default オプションはアカウントタイプのデフォルトに解決されます
+
+v2.1.199 以降では、組織デフォルトがアカウントタイプの通常のデフォルトと異なるモデルファミリーである場合、`/model` ピッカーはそのファミリーの別の行を保持するため、セッション用にそれに切り替えることができます。v2.1.196 から v2.1.198 ではその行はピッカーから欠落しています。
+
+組織デフォルトは Anthropic API で認証されたセッションに配信されます。[LLM ゲートウェイ](/ja/llm-gateway) デプロイメント、Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、および Claude Platform on AWS 上のセッションはそれを受け取りません。これらのデプロイメントでデフォルトを設定するには、[管理設定](/ja/settings#settings-files) で `model` キーを代わりに使用してください。
+
+組織努力制限
+
+Claude Enterprise プランの組織管理者は、ロールレベルの [組織モデル制限](#organization-model-restrictions) と一緒に、各カスタムロール用のモデルごとに最大 [努力レベル](#adjust-effort-level) を設定できます。キャップ以上のレベルは `/effort` ピッカーで提供されず、`--effort` または `/effort` で高いレベルを名前で指定すると、キャップで実行されます。インタラクティブセッションおよびプレーンテキスト `--print` 実行では、警告は要求されたレベルと適用されたレベルを名前で示します。`json` または `stream-json` 出力またはバックグラウンドエージェントでは、クランプは静かに適用されます。キャップはモデルごとであるため、モデルを切り替えると利用可能なレベルが変わる可能性があります。複数のロールが同じモデルを付与する場合、最も制限の少ないキャップが適用されます。Claude Code v2.1.195 以降が必要です。
+
+努力制限は [組織モデル制限](#organization-model-restrictions) と一緒に配信され、同じプロバイダー利用可能性に従います。Amazon Bedrock、Google Cloud の Agent Platform、Microsoft Foundry、および Claude Platform on AWS 上のセッションはそれらを受け取りません。
+
 特別なモデルの動作
 
 `default` モデル設定
@@ -228,7 +264,9 @@ Claude Console にはモデル制限制御がありません。Claude Enterprise
 
 Enterprise 従量課金とは、サブスクリプションシートではなく使用量で請求される Enterprise 組織を意味します。
 
-管理設定が[Default モデルの許可リストを強制](#enforce-the-allowlist-for-the-default-model)し、アカウントタイプのデフォルトが `availableModels` にない場合、`default` は上記のアカウントタイプのデフォルトではなく、強制された Default に解決されます。
+管理者が [組織デフォルトモデル](#organization-default-model) を設定している場合、`default` は上記のアカウントタイプのデフォルトではなく、そのモデルに解決されます。Claude Code v2.1.196 以降が必要です。
+
+管理設定が [Default モデルのアローリストを強制](#enforce-the-allowlist-for-the-default-model) し、アカウントタイプのデフォルトが `availableModels` にない場合、`default` は上記のアカウントタイプのデフォルトではなく、強制された Default に解決されます。両方が適用される場合、組織デフォルトはアカウントタイプのデフォルトを最初に置き換え、強制がそれに適用されます。許可リストに登録された組織デフォルトは保持され、リスト外のものは強制された Default に解決されます。
 
 Fable 5 はどのアカウントタイプでもデフォルトモデルではありません。セッションは `/model fable`、`model` 設定、または Fable 5 が利用可能な `best` エイリアスで選択した後にのみ Fable 5 を使用します。`/model` で選択すると、ユーザー設定で選択されたモデルとして保存されるため、モデルを変更するまで後続のセッションは Fable 5 で開始されます。
 
@@ -328,7 +366,7 @@ Bedrock、Vertex AI、Foundry でフォールバックを有効化
 | Sonnet 5、Opus 4.8、Opus 4.7 | `low`、`medium`、`high`、`xhigh`、`max` |
 | Opus 4.6 と Sonnet 4.6 | `low`、`medium`、`high`、`max` |
 
-アクティブなモデルがサポートしないレベルを設定した場合、Claude Code は設定したレベル以下の最高サポートレベルにフォールバックします。例えば、`xhigh` は Opus 4.6 では `high` として実行されます。
+アクティブなモデルがサポートしないレベルを設定した場合、Claude Code は設定したレベル以下の最高サポートレベルにフォールバックします。例えば、`xhigh` は Opus 4.6 では `high` として実行されます。組織は、モデルに対して利用可能なレベルをキャップすることもできます。[組織努力制限](#organization-effort-limits)を参照してください。
 
 デフォルト努力は Fable 5、Sonnet 5、Opus 4.8、Opus 4.6、Sonnet 4.6 では `high` で、Opus 4.7 では `xhigh` です。
 

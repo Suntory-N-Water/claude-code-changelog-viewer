@@ -886,6 +886,45 @@ MCP サーバーを構築している場合、ツールの `tools/list` 応答�
 
 特定の MCP サーバーで出力警告が頻繁に発生する場合は、`MAX_MCP_OUTPUT_TOKENS` 制限を増やすことを検討してください。制御していないサーバーの場合は、サーバー作成者に `anthropic/maxResultSizeChars` 注釈を追加するか、応答をページネーションするよう依頼することもできます。注釈は画像コンテンツを返すツールには影響しません。これらの場合、`MAX_MCP_OUTPUT_TOKENS` を引き上げることが唯一のオプションです。
 
+ツール入力スキーマとルートレベルのコンビネータ
+
+一部の MCP サーバーは、ツールの入力スキーマを JSON Schema ユニオンとして宣言し、スキーマの最上位に `anyOf`、`oneOf`、または `allOf` があります。Claude API はこれらのキーワードをスキーマルートで受け入れません。`properties` 内にネストされたコンビネータは受け入れます。これは Claude Code が変更されずに送信します。
+
+Claude Code v2.1.195 以降、ルートレベルのコンビネータを持つツールは利用可能なままです。API にツールを送信する前に、Claude Code はスキーマを単一のオブジェクトにフラット化し、ツールの説明の先頭に、どのパラメータグループが一緒に属しているかを Claude に伝える文を追加します：
+
+- `allOf`：すべてのブランチのプロパティがマージされ、各ブランチの `required` リストは引き続き適用されます
+- `anyOf` と `oneOf`：すべてのブランチのプロパティがマージされ、各ブランチの `required` リストはスキーマによって強制されるのではなく、ツール説明で説明されます
+
+サーバーは Claude が選択した引数を受け取るため、サーバー側で組み合わせの検証を続けてください。
+
+Claude Code が API が受け入れるスキーマを生成できない場合、またはリモート設定を受け取らないデプロイメント（オフラインマシンなど）では、そのツールをスキップし、理由をサーバーのログに記録し、サーバーの他のツールを利用可能なままにします。v2.1.195 より前のバージョンでは、入力スキーマにルートレベルの `anyOf`、`oneOf`、または `allOf` があるすべてのツールをスキップします。
+
+特定のツールの承認を要求する
+
+MCP サーバーを構築している場合、ツールの `tools/list` 応答エントリで `_meta["anthropic/requiresUserInteraction"]` を `true` に設定することで、ツールがすべての呼び出しで明示的な承認を必要とするとマークできます。値は JSON ブール値 `true` である必要があります。他の値は無視されます。
+
+Claude Code は、`acceptEdits`、`auto`、`bypassPermissions` [権限モード](/ja/permissions#permission-modes) でも、そのツールの権限プロンプトをすべての呼び出しで表示し、「今後は聞かない」オプションを提供しません。[許可ルール](/ja/permissions#permission-rule-syntax) がツールと一致しても、プロンプトをスキップしません。`dontAsk` モードでは、プロンプトを表示しないため、Claude Code は呼び出しを拒否します。
+
+プロンプトは人に到達する必要があります。[`--permission-prompt-tool`](/ja/cli-reference#cli-flags) を使用した非対話型モードでは、フラグ付きツールのプロンプトツールからの `allow` 結果は、メッセージ `MCP tool requires user interaction; not supported via --permission-prompt-tool` を含む拒否に変換されます。Agent SDK の [`canUseTool` コールバック](/ja/agent-sdk/permissions) はこれらの呼び出しを受け取り、承認できます。SDK ホストはユーザーに表示することが期待されるためです。
+
+これは、同意またはアクセス許可ステップなど、権限プロンプト自体がポイントであるツールに使用します。自動承認は人間が同意しないことを意味するため。同じサーバーの他のツールは通常の権限動作を保持します。
+
+次の `tools/list` エントリは、1 つのツールを常に承認が必要とマークします。
+
+```json
+{
+  "name": "grant_access",
+  "description": "Requests access to a protected resource",
+  "_meta": {
+    "anthropic/requiresUserInteraction": true
+  }
+}
+```
+
+`anthropic/requiresUserInteraction` 注釈には Claude Code v2.1.199 以降が必要です。以前のバージョンはそれを無視し、標準的な権限フローを適用します。
+
+セッションが [Remote Control](/ja/remote-control) または SDK ホストに接続されている場合、Claude Code は権限リクエストをユーザーインタラクションが必要とマークするため、クライアントはワンタップ承認アクションの代わりにツールの権限プロンプトを表示します。
+
 MCP 応答要求に対応する
 
 MCP サーバーはタスク中に構造化された入力をあなたに要求するための応答要求を使用できます。サーバーが独自に取得できない情報が必要な場合、Claude Code は対話的なダイアログを表示し、あなたの応答をサーバーに返します。設定は不要です。応答要求ダイアログはサーバーが要求したときに自動的に表示されます。

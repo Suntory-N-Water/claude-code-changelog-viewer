@@ -46,6 +46,8 @@ CLI コマンド
 
 サブコマンドを誤入力した場合、Claude Code は最も近い一致を提案して、セッションを開始せずに終了します。たとえば、`claude udpate` は `Did you mean claude update?` と出力します。
 
+v2.1.199 以降、`claude --dangerously-skip-permissions daemon <subcommand>` は `daemon` サブコマンドを実行します。以前のバージョンでは、`daemon <subcommand>` を新しいインタラクティブセッションのプロンプトとして扱ったため、フラグが最初に来た場合、サブコマンドは実行されませんでした。これは `claude` が フラグを含むようにエイリアスされている場合の一般的なセットアップです。先頭の `--dangerously-skip-permissions` または `--allow-dangerously-skip-permissions` のみが `daemon` にこの方法でルーティングされます。他の先頭フラグはまだインタラクティブセッションを開始します。
+
 CLI フラグ
 
 これらのコマンドラインフラグを使用して Claude Code の動作をカスタマイズします。`claude --help` はすべてのフラグをリストしていないため、`--help` にフラグが表示されていないことは、そのフラグが利用できないことを意味しません。
@@ -63,7 +65,7 @@ CLI フラグ
 | `--ax-screen-reader` | スクリーンリーダーフレンドリーな出力をレンダリングします：装飾的なボーダーやアニメーションなしのフラットテキスト。クラシックレンダラーを強制するため、このセッションでは [`tui`](/ja/settings#available-settings) 設定は効果がありません。[`CLAUDE_AX_SCREEN_READER`](/ja/env-vars) と [`axScreenReader`](/ja/settings#available-settings) 設定より優先されます。Claude Code v2.1.181 以降が必要です | `claude --ax-screen-reader` |
 | `--bare` | 最小限モード：hooks、skills、plugins、MCP サーバー、自動メモリ、CLAUDE.md の自動検出をスキップして、スクリプト化された呼び出しをより高速に開始します。Claude は Bash、ファイル読み取り、ファイル編集ツールにアクセスできます。[`CLAUDE_CODE_SIMPLE`](/ja/env-vars) を設定します。[bare mode](/ja/headless#start-faster-with-bare-mode) を参照してください | `claude --bare -p "query"` |
 | `--betas` | API リクエストに含めるベータヘッダー（API キーユーザーのみ） | `claude --betas interleaved-thinking` |
-| `--bg`、`--background` | セッションを [バックグラウンドエージェント](/ja/agent-view) として開始し、すぐに戻ります。セッション ID と管理コマンドを出力します。`--exec` と組み合わせて、Claude セッションの代わりにシェルコマンドをバックグラウンドジョブとして実行するか、`--agent` と組み合わせて特定の subagent を実行します | `claude --bg "investigate the flaky test"` |
+| `--bg`、`--background` | セッションを [バックグラウンドエージェント](/ja/agent-view) として開始し、すぐに戻ります。セッション ID と管理コマンドを出力します。`--exec` と組み合わせて、Claude セッションの代わりにシェルコマンドをバックグラウンドジョブとして実行するか、`--agent` と組み合わせて特定の subagent を実行します。`-p`/`--print` と組み合わせることはできません。[エラーリファレンス](/ja/errors#command-line-errors) を参照してください | `claude --bg "investigate the flaky test"` |
 | `--channels` | （研究プレビュー）Claude がこのセッションでリッスンすべき [channel](/ja/channels) 通知を持つ MCP サーバー。`plugin:<name>@<marketplace>` エントリのスペース区切りリスト。Claude.ai 認証が必要です | `claude --channels plugin:my-notifier@my-marketplace` |
 | `--chrome` | Web 自動化とテストのための [Chrome ブラウザ統合](/ja/chrome) を有効にします | `claude --chrome` |
 | `--continue`、`-c` | 現在のディレクトリで最新の会話を読み込みます。このディレクトリを `/add-dir` で追加したセッションを含みます | `claude --continue` |
@@ -97,7 +99,7 @@ CLI フラグ
 | `--no-session-persistence` | セッション永続化を無効にして、セッションがディスクに保存されず、再開できないようにします（プリントモードのみ）。[`CLAUDE_CODE_SKIP_PROMPT_HISTORY`](/ja/env-vars) 環境変数は任意のモードで同じことを行います | `claude -p --no-session-persistence "query"` |
 | `--output-format` | プリントモードの出力形式を指定します（オプション：`text`、`json`、`stream-json`） | `claude -p "query" --output-format json` |
 | `--permission-mode` | 指定された [権限モード](/ja/permission-modes) で開始します。`default`、`acceptEdits`、`plan`、`auto`、`dontAsk`、または `bypassPermissions` を受け入れます。設定ファイルの `defaultMode` をオーバーライドします | `claude --permission-mode plan` |
-| `--permission-prompt-tool` | 非インタラクティブモードで権限プロンプトを処理する MCP ツールを指定します | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
+| `--permission-prompt-tool` | 非インタラクティブモードで権限プロンプトを処理する MCP ツールを指定します。v2.1.199 以降、プロンプトツールは [ユーザーインタラクションが必要](/ja/mcp#require-approval-for-a-specific-tool) とマークされた MCP ツールを承認できません：そのようなツールの `allow` 結果は拒否に変換されます | `claude -p --permission-prompt-tool mcp_auth_tool "query"` |
 | `--plugin-dir` | このセッションのみのプラグインをディレクトリまたは `.zip` アーカイブから読み込みます。各フラグは 1 つのパスを取ります。複数のプラグインの場合はフラグを繰り返します：`--plugin-dir A --plugin-dir B.zip` | `claude --plugin-dir ./my-plugin` |
 | `--plugin-url` | このセッションのみのプラグイン `.zip` アーカイブを URL から取得します。複数のプラグインの場合はフラグを繰り返すか、スペース区切りの URL を単一の引用符で囲まれた値で渡します | `claude --plugin-url https://example.com/plugin.zip` |
 | `--print`、`-p` | インタラクティブモードなしで応答を出力します（プログラムによる使用の詳細については [Agent SDK ドキュメント](/ja/agent-sdk/overview) を参照） | `claude -p "query"` |
