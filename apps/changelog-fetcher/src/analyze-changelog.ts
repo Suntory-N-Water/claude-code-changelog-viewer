@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { getLogger, toError } from '@claude-code-changelog-viewer/common';
 import { parseChangelogEntries } from './infrastructure/docs/changelog-markdown-parser';
-import { docsSearcher } from './infrastructure/docs/docs-searcher';
+import { pythonDocsSearcher } from './infrastructure/docs/python-docs-searcher';
 import { createAnalysisFileStore } from './infrastructure/filesystem/changelog-file-store';
 import { analyzeChangelog } from './usecase/analyze-changelog';
 
@@ -24,7 +24,7 @@ async function main() {
   const analysis = await analyzeChangelog({
     version,
     entries: parseChangelogEntries(changelogContent),
-    docsSearch: docsSearcher,
+    docsSearch: pythonDocsSearcher,
     store: createAnalysisFileStore(process.cwd()),
   });
 
