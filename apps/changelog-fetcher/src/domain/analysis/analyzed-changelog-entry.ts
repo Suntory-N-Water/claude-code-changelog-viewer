@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type {
   ChangelogEntryContent,
   ChangelogPrefix,
@@ -7,6 +8,7 @@ import {
   createInferenceResult,
 } from '../inference/inference-result';
 import type { RelatedDoc } from './related-doc';
+import type { RelatedIssue } from './related-issue';
 
 export type ImpactAssessment = {
   level: 'high' | 'medium' | 'low';
@@ -15,12 +17,18 @@ export type ImpactAssessment = {
   reason: string;
 };
 
+export type AnalyzedChangelogEntryId = string & {
+  readonly __brand: 'AnalyzedChangelogEntryId';
+};
+
 export type AnalyzedChangelogEntry = {
+  id: AnalyzedChangelogEntryId;
   content: ChangelogEntryContent;
   contentJa?: string;
   prefix: ChangelogPrefix;
   featureAreas: string[];
   relatedDocs: RelatedDoc[];
+  relatedIssues: RelatedIssue[];
   inference?: InferenceResult;
   impact?: ImpactAssessment;
 };
@@ -31,6 +39,7 @@ export type CreateAnalyzedChangelogEntryInput = {
   prefix: ChangelogPrefix;
   featureAreas?: string[];
   relatedDocs?: RelatedDoc[];
+  relatedIssues?: RelatedIssue[];
   inference?: InferenceResult;
   impact?: ImpactAssessment;
 };
@@ -42,6 +51,14 @@ export type ApplyInferenceToAnalyzedEntryInput = {
   impact?: ImpactAssessment;
 };
 
+// sha256(content)[0:12] を entry_id として採番する
+export function toAnalyzedChangelogEntryId(
+  content: ChangelogEntryContent,
+): AnalyzedChangelogEntryId {
+  const hash = createHash('sha256').update(content, 'utf-8').digest('hex');
+  return hash.slice(0, 12) as AnalyzedChangelogEntryId;
+}
+
 /**
  * CHANGELOG 項目に関連ドキュメントや推論結果を付与した解析項目を生成する。
  */
@@ -49,11 +66,13 @@ export function createAnalyzedChangelogEntry(
   input: CreateAnalyzedChangelogEntryInput,
 ): AnalyzedChangelogEntry {
   return {
+    id: toAnalyzedChangelogEntryId(input.content),
     content: input.content,
     ...(input.contentJa !== undefined ? { contentJa: input.contentJa } : {}),
     prefix: input.prefix,
     featureAreas: input.featureAreas ?? [],
     relatedDocs: input.relatedDocs ?? [],
+    relatedIssues: input.relatedIssues ?? [],
     ...(input.inference !== undefined ? { inference: input.inference } : {}),
     ...(input.impact !== undefined ? { impact: input.impact } : {}),
   };
@@ -74,7 +93,10 @@ export function applyInferenceToAnalyzedEntry(
   const impact = input.impact ?? entry.impact;
 
   return createAnalyzedChangelogEntry({
-    ...entry,
+    content: entry.content,
+    prefix: entry.prefix,
+    relatedDocs: entry.relatedDocs,
+    relatedIssues: entry.relatedIssues,
     ...(contentJa !== undefined ? { contentJa } : {}),
     featureAreas: input.featureAreas ?? entry.featureAreas,
     ...(inference !== undefined ? { inference } : {}),

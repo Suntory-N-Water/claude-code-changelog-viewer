@@ -3,8 +3,9 @@
   "summary": "Amazon Bedrockのサービスティア選択機能の追加や、プルリクエストURLからのセッション検索機能の改善が行われました。Vertex AIやBedrock環境における構造化出力や思考オプション関連の不具合が多数修正され、エンタープライズ環境での安定性が向上しています。また、MCPツールの動的認識やOpenTelemetryのデータ型改善など、開発・運用を支える細かな機能修正も実施されています。",
   "items": [
     {
+      "id": "903ba3dbb7bf",
       "content": "- Added `ANTHROPIC_BEDROCK_SERVICE_TIER` environment variable to select a Bedrock service tier (`default`, `flex`, or `priority`), sent as the `X-Amzn-Bedrock-Service-Tier` header",
-      "content_ja": "Bedrockのサービスティア（default、flex、priority）を選択するための環境変数 ANTHROPIC_BEDROCK_SERVICE_TIER を追加しました",
+      "content_ja": "Bedrockのサービスティア(default、flex、priority)を選択するための環境変数 ANTHROPIC_BEDROCK_SERVICE_TIER を追加しました",
       "prefix": "Added",
       "feature_areas": [],
       "related_docs": [
@@ -25,6 +26,7 @@
       }
     },
     {
+      "id": "f6a604a4dc32",
       "content": "- Pasting a PR URL into the `/resume` search box now finds the session that created that PR (GitHub, GitHub Enterprise, GitLab, and Bitbucket)",
       "content_ja": "/resume の検索ボックスにPRのURLを貼り付けることで、そのPRを作成したセッションを検索できるようになりました",
       "prefix": "Changed",
@@ -47,6 +49,7 @@
       }
     },
     {
+      "id": "0b257079a13a",
       "content": "- `/mcp` now shows claude.ai connectors hidden by a manually-added server with the same URL, with a hint to remove the duplicate",
       "content_ja": "/mcp コマンドにおいて、手動追加されたサーバーと重複するURLを持つ claude.ai コネクタを表示し、重複削除のヒントを提示するように改善しました",
       "prefix": "Changed",
@@ -69,6 +72,7 @@
       }
     },
     {
+      "id": "67ac6dde151a",
       "content": "- Clarified the `/mcp` message shown when an MCP server is still unauthorized after the browser sign-in flow",
       "content_ja": "ブラウザでのサインイン後にMCPサーバーが未承認のままである場合の /mcp メッセージを分かりやすく改善しました",
       "prefix": "Changed",
@@ -91,6 +95,7 @@
       }
     },
     {
+      "id": "199ce2635a7d",
       "content": "- OpenTelemetry: numeric attributes on `api_request`/`api_error` log events are now emitted as numbers, not strings",
       "content_ja": "OpenTelemetry: api_request および api_error ログイベントの数値属性を、文字列ではなく数値型として出力するように変更しました",
       "prefix": "Changed",
@@ -101,12 +106,13 @@
         }
       ],
       "inference": {
-        "before": "APIリクエストやエラーに関する数値データ（ステータスコードやトークン数など）が文字列として出力されていたため、監視ツール側での計算や集計が困難でした。",
+        "before": "APIリクエストやエラーに関する数値データ(ステータスコードやトークン数など)が文字列として出力されていたため、監視ツール側での計算や集計が困難でした。",
         "after": "これらの属性が正しい数値データ型で出力されるようになり、ダッシュボードでの集計やアラート設定が直接行えるようになりました。",
         "benefit": "DatadogやNew Relicなどの監視基盤において、Claude Codeの利用統計やエラー率の分析をより正確かつ簡単に行えるようになります。"
       }
     },
     {
+      "id": "4dd77a04e164",
       "content": "- OpenTelemetry: added `claude_code.at_mention` log event for `@`-mention resolution",
       "content_ja": "OpenTelemetry: @メンションによるファイル解決時に claude_code.at_mention ログイベントを記録するようにしました",
       "prefix": "Changed",
@@ -129,8 +135,9 @@
       }
     },
     {
+      "id": "b88dedf4e3d7",
       "content": "- Fixed `/branch` producing forks that fail with \"tool_use ids were found without tool_result blocks\" when the source session contained entries from rewound timelines",
-      "content_ja": "/branch コマンドで、過去に巻き戻した（rewind）履歴を含むセッションからフォークを作成した際に tool_result ブロック不足で失敗する問題を修正しました",
+      "content_ja": "/branch コマンドで、過去に巻き戻した(rewind)履歴を含むセッションからフォークを作成した際に tool_result ブロック不足で失敗する問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": ["Permissions"],
       "related_docs": [
@@ -146,13 +153,14 @@
       ],
       "inference": {
         "before": "/rewind で履歴を操作したセッションから /branch を行うと、内部的なIDの不整合が起き、フォークされたセッションがエラーで動作しないことがありました。",
-        "after": "タイムラインが操作された複雑な履歴を持つセッションからでも、正しく整合性を保った状態で新しいブランチ（フォーク）を作成できるようになりました。",
+        "after": "タイムラインが操作された複雑な履歴を持つセッションからでも、正しく整合性を保った状態で新しいブランチ(フォーク)を作成できるようになりました。",
         "benefit": "試行錯誤を繰り返した長い会話からでも、エラーを気にせず安全に新しい作業枝を切り出すことができます。"
       }
     },
     {
+      "id": "d71824fe42f6",
       "content": "- Fixed `/model` not showing the Effort option for Bedrock application inference profile ARNs, and those ARNs not receiving `output_config.effort`",
-      "content_ja": "Bedrockのアプリケーション推論プロファイルARNを使用する際に、/model で思考（Effort）オプションが表示されない、および出力設定に反映されない問題を修正しました",
+      "content_ja": "Bedrockのアプリケーション推論プロファイルARNを使用する際に、/model で思考(Effort)オプションが表示されない、および出力設定に反映されない問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -167,12 +175,13 @@
         }
       ],
       "inference": {
-        "before": "Bedrockの推論プロファイル機能を使用している場合、モデルが思考（reasoning）に対応していても、その強度を調整するインターフェースが表示されませんでした。",
+        "before": "Bedrockの推論プロファイル機能を使用している場合、モデルが思考(reasoning)に対応していても、その強度を調整するインターフェースが表示されませんでした。",
         "after": "ARN指定時でも適切に思考レベルの設定オプションが表示され、APIリクエストにも output_config.effort が正しく含まれるようになりました。",
         "benefit": "AWS環境でBedrockを利用しているユーザーも、タスクの複雑さに応じてモデルの思考の深さを柔軟に調整できるようになります。"
       }
     },
     {
+      "id": "d442f3e62deb",
       "content": "- Fixed Vertex AI / Bedrock returning `invalid_request_error: output_config: Extra inputs are not permitted` on session-title generation and other structured-output queries",
       "content_ja": "Vertex AI および Bedrock において、セッションタイトルの生成などの構造化出力クエリで「余分な入力は許可されていません」というエラーが発生する問題を修正しました",
       "prefix": "Fixed",
@@ -195,6 +204,7 @@
       }
     },
     {
+      "id": "a4b4c4d35852",
       "content": "- Fixed Vertex AI `count_tokens` endpoint returning 400 errors for users behind proxy gateways",
       "content_ja": "プロキシゲートウェイ経由で Vertex AI を利用する際に count_tokens エンドポイントが 400 エラーを返す問題を修正しました",
       "prefix": "Fixed",
@@ -217,6 +227,7 @@
       }
     },
     {
+      "id": "36e9c4efb3fc",
       "content": "- Fixed `spinnerTipsOverride.excludeDefault` not suppressing the time-based spinner tips",
       "content_ja": "spinnerTipsOverride.excludeDefault 設定が、時間経過で表示されるヒントメッセージを抑制できていなかった問題を修正しました",
       "prefix": "Fixed",
@@ -233,6 +244,7 @@
       }
     },
     {
+      "id": "13c6c70f761c",
       "content": "- Fixed ToolSearch missing MCP tools that connected after session start in nonblocking mode",
       "content_ja": "セッション開始後に非ブロッキングモードで接続された MCP ツールが検索結果に反映されない問題を修正しました",
       "prefix": "Fixed",
@@ -255,6 +267,7 @@
       }
     },
     {
+      "id": "6aa6e18f54cb",
       "content": "- Fixed `!exit` / `!quit` in bash mode terminating the CLI instead of running as a shell command",
       "content_ja": "Bashモードで !exit や !quit を実行した際、シェルコマンドとして実行されず CLI 自体が終了してしまう問題を修正しました",
       "prefix": "Fixed",
@@ -277,6 +290,7 @@
       }
     },
     {
+      "id": "6e41cc8df182",
       "content": "- Fixed images sent to newer models being resized to 2576px per side instead of the correct 2000px maximum",
       "content_ja": "新しいモデルへ送信される画像が、正しい最大値である2000pxではなく2576pxにリサイズされていた問題を修正しました。",
       "prefix": "Fixed",
@@ -284,6 +298,7 @@
       "related_docs": []
     },
     {
+      "id": "853ccabc7117",
       "content": "- Fixed remote control session idle status redrawing twice per second, which could flood `tmux -CC` control pipes and pause the terminal",
       "content_ja": "リモートコントロールセッションのアイドル状態の更新頻度を抑え、tmux -CC 等の通信パイプが溢れる問題を修正しました",
       "prefix": "Fixed",
@@ -303,6 +318,7 @@
       }
     },
     {
+      "id": "140c061dd946",
       "content": "- Fixed assistant messages appearing blank in some sessions due to a stale view preference",
       "content_ja": "ビューの設定が古くなっていたことにより、一部のセッションでアシスタントのメッセージが空白で表示される問題を修正しました。",
       "prefix": "Fixed",
@@ -310,6 +326,7 @@
       "related_docs": []
     },
     {
+      "id": "495f0415a0ed",
       "content": "- Fixed a malformed hooks entry in `settings.json` no longer invalidating the entire file",
       "content_ja": "settings.json 内の hooks 項目の記述が不正な場合に、ファイル全体が無効化されてしまう問題を修正しました",
       "prefix": "Fixed",
@@ -326,12 +343,13 @@
         }
       ],
       "inference": {
-        "before": "設定ファイルのごく一部に記述ミスがあるだけで、他の正常な設定（パーミッションや環境変数など）まで全て読み込まれなくなっていました。",
+        "before": "設定ファイルのごく一部に記述ミスがあるだけで、他の正常な設定(パーミッションや環境変数など)まで全て読み込まれなくなっていました。",
         "after": "記述が不正なフック項目のみを個別に無視し、それ以外の正常な設定は可能な限り維持するように改善されました。",
         "benefit": "設定ミスによるツールの動作不能を防ぎ、一部のエラーがあっても安全にツールを使い続けることができます。"
       }
     },
     {
+      "id": "f16979acb27e",
       "content": "- Voice mode: keybindings bound to Caps Lock now show an error since terminals don't deliver Caps Lock as a key event",
       "content_ja": "音声モードにおいて、ターミナルがイベントとして送信できない Caps Lock キーへのバインドを試みた際にエラーを表示するように変更しました。",
       "prefix": "Changed",

@@ -3,12 +3,14 @@ import {
   AnalysisSchema,
   type InferredAnalysis,
   InferredAnalysisSchema,
+  type RelatedIssue as RelatedIssueJson,
 } from '@claude-code-changelog-viewer/types';
 import { createAnalyzedChangelogEntry } from '../../domain/analysis/analyzed-changelog-entry';
 import {
   createChangelogAnalysis,
   type ChangelogAnalysis,
 } from '../../domain/analysis/changelog-analysis';
+import type { RelatedIssue } from '../../domain/analysis/related-issue';
 import {
   type ChangelogPrefix,
   createChangelogEntryContent,
@@ -33,6 +35,7 @@ export function toChangelogAnalysis(analysis: Analysis): ChangelogAnalysis {
           snippets: doc.snippets,
           hitCount: doc.hit_count,
         })),
+        relatedIssues: (item.related_issues ?? []).map(fromRelatedIssueJson),
         ...(item.inference !== undefined
           ? {
               inference: createInferenceResult({
@@ -65,6 +68,7 @@ export function toAnalysisJson(analysis: ChangelogAnalysis): Analysis {
     version: toVersionNumber(analysis.version),
     ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
     items: analysis.items.map((entry) => ({
+      id: entry.id,
       content: entry.content,
       ...(entry.contentJa !== undefined ? { content_ja: entry.contentJa } : {}),
       prefix: entry.prefix,
@@ -74,6 +78,11 @@ export function toAnalysisJson(analysis: ChangelogAnalysis): Analysis {
         snippets: [...doc.snippets],
         hit_count: doc.hitCount,
       })),
+      ...(entry.relatedIssues.length > 0
+        ? {
+            related_issues: entry.relatedIssues.map(toRelatedIssueJson),
+          }
+        : {}),
       ...(entry.inference !== undefined
         ? {
             inference: {
@@ -102,6 +111,7 @@ export function toInferredJson(analysis: ChangelogAnalysis): InferredAnalysis {
     version: toVersionNumber(analysis.version),
     ...(analysis.summary !== undefined ? { summary: analysis.summary } : {}),
     items: analysis.items.map((entry) => ({
+      id: entry.id,
       content: entry.content,
       ...(entry.contentJa !== undefined ? { content_ja: entry.contentJa } : {}),
       prefix: entry.prefix,
@@ -109,6 +119,11 @@ export function toInferredJson(analysis: ChangelogAnalysis): InferredAnalysis {
       related_docs: entry.relatedDocs.map((doc) => ({
         file: doc.file,
       })),
+      ...(entry.relatedIssues.length > 0
+        ? {
+            related_issues: entry.relatedIssues.map(toRelatedIssueJson),
+          }
+        : {}),
       ...(entry.inference !== undefined
         ? {
             inference: {
@@ -130,4 +145,48 @@ export function toInferredJson(analysis: ChangelogAnalysis): InferredAnalysis {
         : {}),
     })),
   });
+}
+
+function toRelatedIssueJson(issue: RelatedIssue): RelatedIssueJson {
+  return {
+    number: issue.number,
+    title: issue.title,
+    url: issue.url,
+    state: issue.state,
+    reactions_total: issue.reactionsTotal,
+    comments_count: issue.commentsCount,
+    matched_reason: issue.matchedReason,
+    is_maintainer_involved: issue.isMaintainerInvolved,
+    ...(issue.duplicateOf !== undefined
+      ? { duplicate_of: issue.duplicateOf }
+      : {}),
+    scores: {
+      total: issue.scores.total,
+      has_nnn: issue.scores.hasNnn,
+      strong_token: issue.scores.strongToken,
+      cosine: issue.scores.cosine,
+    },
+  };
+}
+
+function fromRelatedIssueJson(issue: RelatedIssueJson): RelatedIssue {
+  return {
+    number: issue.number,
+    title: issue.title,
+    url: issue.url,
+    state: issue.state,
+    reactionsTotal: issue.reactions_total,
+    commentsCount: issue.comments_count,
+    matchedReason: issue.matched_reason,
+    isMaintainerInvolved: issue.is_maintainer_involved,
+    ...(issue.duplicate_of !== undefined
+      ? { duplicateOf: issue.duplicate_of }
+      : {}),
+    scores: {
+      total: issue.scores.total,
+      hasNnn: issue.scores.has_nnn,
+      strongToken: issue.scores.strong_token,
+      cosine: issue.scores.cosine,
+    },
+  };
 }

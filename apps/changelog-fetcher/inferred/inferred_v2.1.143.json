@@ -3,6 +3,7 @@
   "summary": "エージェントビューおよびバックグラウンド実行における大幅な機能強化が行われました。`claude agents` からの起動時に各種詳細設定を反映できるようになり、セッションの中断・再開時における権限設定やモデル設定の保持機能も改善されています。また、プラグインの依存関係強制やコスト推定、Windows上でのPowerShell挙動の安定化など、開発体験を向上させる多くの修正が含まれています。",
   "items": [
     {
+      "id": "d2ee7dec5107",
       "content": "- Added plugin dependency enforcement: `claude plugin disable` now refuses when another enabled plugin depends on the target (with a copy-pasteable disable-chain hint), and `claude plugin enable` force-enables transitive dependencies",
       "content_ja": "プラグインの依存関係強制機能の追加：依存されているプラグインの無効化を拒否し、必要な依存先を自動で有効化するようになりました",
       "prefix": "Added",
@@ -25,6 +26,7 @@
       }
     },
     {
+      "id": "af97fa5c3463",
       "content": "- Added projected context cost (per-turn and per-invocation token estimates) to the `/plugin` marketplace browse pane",
       "content_ja": "/plugin マーケットプレイスの閲覧画面に、1ターンあたりおよび1呼び出しあたりのトークン推定コストの表示を追加しました",
       "prefix": "Added",
@@ -47,6 +49,7 @@
       }
     },
     {
+      "id": "764d02f03380",
       "content": "- Added `worktree.bgIsolation: \"none\"` setting to let background sessions edit the working copy directly without `EnterWorktree`, for repos where worktrees are impractical",
       "content_ja": "worktree.bgIsolation: \"none\" 設定を追加し、worktreeの利用が現実的でないリポジトリでバックグラウンドセッションが作業コピーを直接編集できるようにしました",
       "prefix": "Added",
@@ -69,6 +72,7 @@
       }
     },
     {
+      "id": "14117d3a84dd",
       "content": "- PowerShell tool now passes `-ExecutionPolicy Bypass`. Opt out with `CLAUDE_CODE_POWERSHELL_RESPECT_EXECUTION_POLICY=1`",
       "content_ja": "PowerShellツールの実行ポリシーに `-ExecutionPolicy Bypass` をデフォルトで適用するように変更しました",
       "prefix": "Changed",
@@ -86,11 +90,12 @@
       ],
       "inference": {
         "before": "Windows環境において、システム側のスクリプト実行ポリシー制限によって、Claudeが提案したPowerShellコマンドが失敗することがありました。",
-        "after": "ツール実行時にポリシーを一時的にバイパスするフラグが自動付与されます（`CLAUDE_CODE_POWERSHELL_RESPECT_EXECUTION_POLICY=1`で以前の挙動に戻せます）。",
+        "after": "ツール実行時にポリシーを一時的にバイパスするフラグが自動付与されます(`CLAUDE_CODE_POWERSHELL_RESPECT_EXECUTION_POLICY=1`で以前の挙動に戻せます)。",
         "benefit": "Windows上でのスクリプト実行がよりスムーズになり、権限エラーによる作業の中断が減少します。"
       }
     },
     {
+      "id": "b9f1f9475fb5",
       "content": "- Background sessions now preserve the model and effort level you set after waking from idle",
       "content_ja": "バックグラウンドセッションがアイドル復帰後も、設定したモデルと努力レベルを保持するようになりました。",
       "prefix": "Changed",
@@ -98,6 +103,7 @@
       "related_docs": []
     },
     {
+      "id": "103cc094ddce",
       "content": "- Shift+Tab in attached agent sessions now includes auto mode in the cycle",
       "content_ja": "エージェントセッション中に Shift+Tab を押すことで、auto モードへの切り替えが可能になりました。",
       "prefix": "Added",
@@ -105,6 +111,7 @@
       "related_docs": []
     },
     {
+      "id": "beba9a89c10b",
       "content": "- Fixed a corrupt `.credentials.json` with a non-array `scopes` value hanging the CLI on startup or silently aborting OAuth token refresh",
       "content_ja": ".credentials.json の scopes 値が配列でない場合にCLIが起動時にハングしたり、OAuthリフレッシュがサイレントに失敗したりする問題を修正しました",
       "prefix": "Fixed",
@@ -115,12 +122,13 @@
         }
       ],
       "inference": {
-        "before": "認証情報のキャッシュファイルが破損（不正な形式）していると、エラー詳細が表示されず、CLIが応答不能になる場合がありました。",
+        "before": "認証情報のキャッシュファイルが破損(不正な形式)していると、エラー詳細が表示されず、CLIが応答不能になる場合がありました。",
         "after": "不正な形式の認証情報ファイルを適切に処理し、ハングやリフレッシュの失敗を防ぐロジックが追加されました。",
         "benefit": "認証周りのトラブルが起きにくくなり、万が一ファイルが壊れても安定して起動できるようになります。"
       }
     },
     {
+      "id": "e7282b74a323",
       "content": "- Fixed right-click paste in `claude agents` on Windows Terminal and WSL",
       "content_ja": "Windows Terminal および WSL 環境の `claude agents` における右クリック貼り付けを修正",
       "prefix": "Fixed",
@@ -137,12 +145,13 @@
         }
       ],
       "inference": {
-        "before": "Windows Terminal や WSL で `claude agents`（エージェントビュー）を使用している際、右クリックによるテキストの貼り付けが正常に機能していませんでした。",
+        "before": "Windows Terminal や WSL で `claude agents`(エージェントビュー)を使用している際、右クリックによるテキストの貼り付けが正常に機能していませんでした。",
         "after": "ターミナルの右クリック操作でプロンプトやパスなどのテキストを正しく入力できるようになりました。",
         "benefit": "Windows 環境のユーザーが、既存のワークフローを損なうことなく、エージェントビューで直感的に情報を入力できるようになります。"
       }
     },
     {
+      "id": "b9d7cda5baec",
       "content": "- Fixed stop hooks that block repeatedly looping forever — the turn now ends with a warning after 8 consecutive blocks (override via `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`)",
       "content_ja": "ループを繰り返してブロックし続けるStopフックの修正：8回連続でブロックされた場合、警告を表示してターンを終了するようになりました",
       "prefix": "Fixed",
@@ -160,13 +169,14 @@
       ],
       "inference": {
         "before": "Stopフックの設定によっては、Claudeが無限ループに陥り、APIコストが無駄にかかり続けてしまうリスクがありました。",
-        "after": "連続ブロック回数に上限（デフォルト8回、`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`で変更可）が設けられ、ループが自動検知されます。",
+        "after": "連続ブロック回数に上限(デフォルト8回、`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`で変更可)が設けられ、ループが自動検知されます。",
         "benefit": "バグのあるフックスクリプトによる意図しない課金の発生を防ぎ、安全に自動化を運用できます。"
       }
     },
     {
+      "id": "b185e3bf5790",
       "content": "- Fixed Esc/Ctrl+C not cancelling a pending `/loop` wakeup while Claude is idle between iterations",
-      "content_ja": "Claudeが待機状態（/loop の反復間）のときに Esc または Ctrl+C で待機をキャンセルできない問題を修正しました",
+      "content_ja": "Claudeが待機状態(/loop の反復間)のときに Esc または Ctrl+C で待機をキャンセルできない問題を修正しました",
       "prefix": "Fixed",
       "feature_areas": ["Skills"],
       "related_docs": [
@@ -187,6 +197,7 @@
       }
     },
     {
+      "id": "882c55393995",
       "content": "- Fixed `/goal` evaluator firing while background shells or delegated subagents are still running",
       "content_ja": "バックグラウンドシェルや委譲されたサブエージェントが実行中にもかかわらず、/goal の評価が開始されてしまう問題を修正しました",
       "prefix": "Fixed",
@@ -209,6 +220,7 @@
       }
     },
     {
+      "id": "cdbd00eeac72",
       "content": "- Fixed `NO_COLOR`/`FORCE_COLOR` in settings.json `env` stripping Claude Code's own UI colors — they now apply to subprocesses only",
       "content_ja": "settings.json の env に設定した NO_COLOR/FORCE_COLOR が Claude Code 自身のUI色まで消してしまう問題を修正しました",
       "prefix": "Fixed",
@@ -225,12 +237,13 @@
         }
       ],
       "inference": {
-        "before": "サブプロセス（シェルなど）の色設定を変えるつもりが、CLI自体のカラー表示まで無効化されてしまい、視認性が低下していました。",
+        "before": "サブプロセス(シェルなど)の色設定を変えるつもりが、CLI自体のカラー表示まで無効化されてしまい、視認性が低下していました。",
         "after": "env 設定はサブプロセスのみに適用されるようになり、Claude Code 自身のUI表示は独自の設定を維持します。",
         "benefit": "CLIの操作感はそのままに、実行するコマンドの出力色だけを自在に制御できます。"
       }
     },
     {
+      "id": "4be8c0649082",
       "content": "- Fixed agent view spawning repeated PowerShell processes on Windows when listing sessions",
       "content_ja": "Windowsのエージェントビューでセッション一覧を表示する際、不要なPowerShellプロセスが繰り返し起動する問題を修正しました。",
       "prefix": "Fixed",
@@ -238,6 +251,7 @@
       "related_docs": []
     },
     {
+      "id": "288bd726733f",
       "content": "- Fixed `/bg` without a prompt sending \"continue\" to the forked session — the fork now waits for input",
       "content_ja": "プロンプトなしの /bg 実行時に「continue」が送信されてしまう問題を修正し、フォークされたセッションが正しく入力を待つようにしました",
       "prefix": "Fixed",
@@ -257,6 +271,7 @@
       }
     },
     {
+      "id": "7479c475ff85",
       "content": "- Fixed `--agent <name>` not finding plugin-contributed agents without the `plugin:` prefix",
       "content_ja": "plugin: プレフィックスがない場合に、プラグイン提供のエージェントが --agent <name> で見つからない問題を修正しました",
       "prefix": "Fixed",
@@ -273,6 +288,7 @@
       }
     },
     {
+      "id": "1e446af9350b",
       "content": "- Fixed deleting a session from agent view not removing its transcript file",
       "content_ja": "エージェントビューからセッションを削除した際、その会話ログファイルが残ってしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -280,6 +296,7 @@
       "related_docs": []
     },
     {
+      "id": "954aa24c3c2b",
       "content": "- Fixed stale-fragment rendering when scrolling in attached background sessions on Windows Terminal",
       "content_ja": "Windows Terminal でバックグラウンドセッションを表示中、スクロール時に表示が崩れる問題を修正しました。",
       "prefix": "Fixed",
@@ -287,6 +304,7 @@
       "related_docs": []
     },
     {
+      "id": "78749e683c67",
       "content": "- Fixed background agents false-positive worker-stall detection storm after host sleep or macOS App Nap",
       "content_ja": "Macのスリープ復帰後などに、バックグラウンドエージェントが「失速」したと誤検知される問題を修正しました。",
       "prefix": "Fixed",
@@ -294,6 +312,7 @@
       "related_docs": []
     },
     {
+      "id": "13481dab077d",
       "content": "- Fixed 5xx error messages pointing at status.claude.com instead of naming the configured gateway or cloud provider",
       "content_ja": "5xx エラー発生時に、汎用的なURLではなく実際のゲートウェイやクラウドプロバイダー名を表示するように改善しました。",
       "prefix": "Fixed",
@@ -301,6 +320,7 @@
       "related_docs": []
     },
     {
+      "id": "2656b5e7c59d",
       "content": "- The PowerShell tool is now enabled by default on Windows for Bedrock, Vertex, and Foundry users. Opt out with `CLAUDE_CODE_USE_POWERSHELL_TOOL=0`.",
       "content_ja": "Bedrock、Vertex、FoundryユーザーのWindows環境において、PowerShellツールをデフォルトで有効化しました",
       "prefix": "Changed",
@@ -318,11 +338,12 @@
       ],
       "inference": {
         "before": "サードパーティのクラウドプロバイダーを利用しているWindowsユーザーは、手動でPowerShellツールを有効にする必要がありました。",
-        "after": "特別な設定なしでPowerShellを介した操作が可能になります（`CLAUDE_CODE_USE_POWERSHELL_TOOL=0`で無効化可能）。",
+        "after": "特別な設定なしでPowerShellを介した操作が可能になります(`CLAUDE_CODE_USE_POWERSHELL_TOOL=0`で無効化可能)。",
         "benefit": "どのプロバイダーを使用していても、Windows上での標準的なコマンド実行環境がすぐに整います。"
       }
     },
     {
+      "id": "59cab469547f",
       "content": "- `claude agents` now accepts `--add-dir`, `--settings`, `--mcp-config`, and `--plugin-dir` and applies them to the dashboard and to background sessions dispatched from it",
       "content_ja": "claude agents コマンドが --add-dir などの主要フラグを受け付け、ダッシュボードおよびそこから開始されるセッションに適用されるようになりました",
       "prefix": "Changed",
@@ -345,6 +366,7 @@
       }
     },
     {
+      "id": "486b99e94bcd",
       "content": "- `claude agents` accepts `--permission-mode`, `--model`, `--effort`, and `--dangerously-skip-permissions` to set defaults for sessions dispatched from the view",
       "content_ja": "claude agents で --permission-mode などのフラグを使用し、起動するセッションのデフォルト値を設定可能にしました",
       "prefix": "Changed",
@@ -363,12 +385,13 @@
       "inference": {
         "before": "バックグラウンドで開始されるエージェントの権限モードやモデル、努力レベルを一括で制御する手段が不足していました。",
         "after": "`--permission-mode`, `--model`, `--effort`, `--dangerously-skip-permissions` がエージェントビューでも有効になりました。",
-        "benefit": "大量のタスクを投入する際に、一度のフラグ指定で全セッションの挙動（承認の有無や賢さ）を統一できます。"
+        "benefit": "大量のタスクを投入する際に、一度のフラグ指定で全セッションの挙動(承認の有無や賢さ)を統一できます。"
       }
     },
     {
+      "id": "db8df18de555",
       "content": "- `claude --bg --dangerously-skip-permissions` now persists across retire→wake",
-      "content_ja": "claude --bg --dangerously-skip-permissions の設定が、セッションの中断と再開（retire→wake）を跨いで維持されるようになりました",
+      "content_ja": "claude --bg --dangerously-skip-permissions の設定が、セッションの中断と再開(retire→wake)を跨いで維持されるようになりました",
       "prefix": "Changed",
       "feature_areas": ["Permissions"],
       "related_docs": [
@@ -389,6 +412,7 @@
       }
     },
     {
+      "id": "6305f32ff3c2",
       "content": "- Fixed background sessions silently capturing IDE file references into the warm spare's input, which caused the reference to be prepended to the next prompt dispatched from `claude agents`",
       "content_ja": "バックグラウンドセッションがIDEのファイル参照を誤ってキャプチャし、次のプロンプトに意図しない参照が混入する問題を修正しました",
       "prefix": "Fixed",
@@ -411,6 +435,7 @@
       }
     },
     {
+      "id": "572b3a5e7fcb",
       "content": "- Worktree cleanup no longer falls back to `rm -rf` when `git worktree remove` fails, preventing loss of gitignored or in-progress files",
       "content_ja": "Worktree削除失敗時の rm -rf へのフォールバックを廃止し、追跡対象外のファイルや作業中のファイルを保護するようにしました",
       "prefix": "Changed",
@@ -427,12 +452,13 @@
         }
       ],
       "inference": {
-        "before": "gitコマンドでのクリーンアップに失敗すると強力な強制削除（rm -rf）が実行され、無視設定した重要なファイルまで消えるリスクがありました。",
+        "before": "gitコマンドでのクリーンアップに失敗すると強力な強制削除(rm -rf)が実行され、無視設定した重要なファイルまで消えるリスクがありました。",
         "after": "削除の安全性が強化され、不確実な状況ではファイルを消さずに残すようになりました。",
         "benefit": "誤操作やツールの不具合によって、手元の貴重なコードや設定ファイルが失われる心配がなくなります。"
       }
     },
     {
+      "id": "66ad8775fe47",
       "content": "- Fixed background-job sessions on macOS getting \"Operation not permitted\" errors when reading files under `~/Documents`, `~/Desktop`, or `~/Downloads`, even with Full Disk Access granted.",
       "content_ja": "macOSのバックグラウンドジョブが Documents などの保護フォルダを読み込む際に \"Operation not permitted\" エラーになる問題を修正しました",
       "prefix": "Fixed",
@@ -452,6 +478,7 @@
       }
     },
     {
+      "id": "68f2e0275e89",
       "content": "- `/bg` now preserves `--mcp-config`, `--settings`, `--add-dir`, `--plugin-dir`, and `--strict-mcp-config`, so backgrounded sessions keep their MCP servers and settings across respawn.",
       "content_ja": "/bg コマンド実行時に各種フラグ設定を保持するようにし、再起動後もMCPサーバーや設定が維持されるようにしました",
       "prefix": "Changed",
@@ -474,6 +501,7 @@
       }
     },
     {
+      "id": "c6c903c14d96",
       "content": "- Background sessions launched from `claude agents` now honor `permissions.defaultMode` from settings.json (was previously overridden to auto mode)",
       "content_ja": "claude agents から起動したセッションが、settings.json の permissions.defaultMode を優先的に参照するように修正しました",
       "prefix": "Changed",
@@ -492,10 +520,11 @@
       "inference": {
         "before": "エージェントビューからタスクを開始すると、ユーザー設定を無視して常に「auto」モードで開始されるなどの不整合がありました。",
         "after": "プロジェクトやユーザー設定で定義したデフォルトの権限モードが、バックグラウンド起動時にも正しく適用されます。",
-        "benefit": "自分の好みの承認ワークフロー（planモードなど）を、バックグラウンド作業でも一貫して利用できます。"
+        "benefit": "自分の好みの承認ワークフロー(planモードなど)を、バックグラウンド作業でも一貫して利用できます。"
       }
     },
     {
+      "id": "8c650c363f73",
       "content": "- Fixed: on Windows, pressing ← in `claude agents` while a response was streaming could leave the agents list unresponsive to all input",
       "content_ja": "Windows 環境において、応答のストリーミング中に `claude agents` で ← キーを押すと入力不能になる問題を修正",
       "prefix": "Fixed",
@@ -512,12 +541,13 @@
         }
       ],
       "inference": {
-        "before": "Windows でエージェントが応答を出力している最中に、デタッチ（一覧に戻る）操作である ← キーを押すと、エージェント一覧画面が操作を受け付けなくなることがありました。",
+        "before": "Windows でエージェントが応答を出力している最中に、デタッチ(一覧に戻る)操作である ← キーを押すと、エージェント一覧画面が操作を受け付けなくなることがありました。",
         "after": "応答の生成中であっても安全に一覧画面に戻ることができ、その後の操作も正常に継続できるようになりました。",
         "benefit": "並行して複数のタスクを回している際に、応答を待たずに画面を切り替えてもフリーズすることがなくなり、安定性が向上します。"
       }
     },
     {
+      "id": "c4220fe71bce",
       "content": "- `/bg` and `←`-detach now preserve `--fallback-model`, so backgrounded workers degrade to the fallback model on overload instead of hard-failing.",
       "content_ja": "/bg 移行時に --fallback-model 設定を維持し、負荷時にもバックグラウンドワーカーが停止しないようにしました",
       "prefix": "Changed",
@@ -540,6 +570,7 @@
       }
     },
     {
+      "id": "27273f38b392",
       "content": "- `/bg` and `←`-detach now preserve `--allow-dangerously-skip-permissions`, so the forked worker keeps bypass-permissions available in its Shift+Tab cycle.",
       "content_ja": "`/bg` コマンドや `←` によるデタッチ時に `--allow-dangerously-skip-permissions` フラグの状態を保持するように変更",
       "prefix": "Changed",
@@ -562,6 +593,7 @@
       }
     },
     {
+      "id": "9c5c446a5e5e",
       "content": "- Fixed: background daemon spawn now falls back to the running binary when the `~/.local/bin/claude` launcher is missing or non-executable",
       "content_ja": "~/.local/bin/claude ランチャーが見つからない場合に、現在実行中のバイナリを優先してバックグラウンドデーモンを起動するようにしました",
       "prefix": "Fixed",
@@ -572,12 +604,13 @@
         }
       ],
       "inference": {
-        "before": "パスの設定状況やカスタムインストール環境において、バックグラウンドプロセスの生成（スポーン）に失敗し、エージェント機能が使えないことがありました。",
+        "before": "パスの設定状況やカスタムインストール環境において、バックグラウンドプロセスの生成(スポーン)に失敗し、エージェント機能が使えないことがありました。",
         "after": "自身のプロセスパスから実行バイナリを特定するフォールバックが追加され、インストール場所を問わずデーモンが起動します。",
         "benefit": "どのような環境でインストールしていても、バックグラウンド実行機能が安定して動作します。"
       }
     },
     {
+      "id": "a38a26afce6e",
       "content": "- Fixed `claude agents --allow-dangerously-skip-permissions` defaulting dispatched sessions to bypass mode instead of making it available in the permission cycle",
       "content_ja": "claude agents --allow-dangerously-skip-permissions で開始した際に、いきなりバイパスモードにならず、切り替え候補として追加されるよう修正しました",
       "prefix": "Fixed",

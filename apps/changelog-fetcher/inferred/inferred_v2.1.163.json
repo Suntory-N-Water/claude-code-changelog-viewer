@@ -3,6 +3,7 @@
   "summary": "インストール済みプラグインをコマンドラインから即座に確認できる `/plugin list` が追加されたほか、`/btw` の回答を Markdown 形式で素早くコピーできるショートカットなど利便性が向上しました。組織管理機能が強化され、利用可能なバージョンの制限や起動時のパーミッションルールの適用がより確実になっています。また、バックグラウンドプロセスのクリーンアップやアップデート後のタスク復元など、CI 環境やエージェントビューでの安定性が大幅に改善されました。",
   "items": [
     {
+      "id": "3d0f5f6023a9",
       "content": "- Added `requiredMinimumVersion` and `requiredMaximumVersion` managed settings — Claude Code refuses to start if its version is outside the allowed range and directs the user to an approved version",
       "content_ja": "管理設定に `requiredMinimumVersion` と `requiredMaximumVersion` を追加。許容範囲外のバージョンでは起動を拒否し、承認済みバージョンへの更新を促します。",
       "prefix": "Added",
@@ -10,6 +11,7 @@
       "related_docs": []
     },
     {
+      "id": "d417ed03a9b0",
       "content": "- Added `/plugin list` command to list installed plugins, with `--enabled`/`--disabled` filters",
       "content_ja": "インストール済みプラグインを一覧表示する `/plugin list` コマンドを追加。`--enabled`/`--disabled` フィルタも利用可能",
       "prefix": "Added",
@@ -32,6 +34,7 @@
       }
     },
     {
+      "id": "20989dfa3e9f",
       "content": "- Added a \"c to copy\" shortcut to `/btw` that copies the raw markdown answer to the clipboard, preserving formatting when pasted elsewhere",
       "content_ja": "`/btw` に「c」キーでコピーできるショートカットを追加。生の Markdown 回答をクリップボードにコピーし、貼り付け時の書式を維持",
       "prefix": "Added",
@@ -54,6 +57,7 @@
       }
     },
     {
+      "id": "0265cc8e5bc4",
       "content": "- Hooks: Stop and SubagentStop hooks can now return `hookSpecificOutput.additionalContext` to give Claude feedback and keep the turn going without being labeled a hook error",
       "content_ja": "フック：Stop および SubagentStop フックが `hookSpecificOutput.additionalContext` を返せるよう改善。エラー扱いせずに Claude へフィードバックを返し、ターンを継続可能",
       "prefix": "Added",
@@ -70,6 +74,7 @@
       }
     },
     {
+      "id": "15e0fb91290e",
       "content": "- Skills: added `\\$` escape syntax to include a literal `$` before a digit in command bodies",
       "content_ja": "スキル：コマンド本体内の数字の前にリテラルの `$` を含めるための `\\$` エスケープ構文を追加",
       "prefix": "Changed",
@@ -89,6 +94,7 @@
       }
     },
     {
+      "id": "92248c48a7e8",
       "content": "- stdio MCP servers now receive the same `CLAUDE_CODE_SESSION_ID` as hooks/Bash on `--resume`",
       "content_ja": "stdio MCP サーバーが、`--resume` 実行時にフックや Bash と同じ `CLAUDE_CODE_SESSION_ID` を受け取るよう変更",
       "prefix": "Changed",
@@ -111,8 +117,9 @@
       }
     },
     {
+      "id": "ade9856c4a2e",
       "content": "- Fixed `claude -p` hanging forever after its final result when a backgrounded command never exits — background shells are now stopped ~5s after the result once stdin closes",
-      "content_ja": "非対話モード（`-p`）において、バックグラウンドコマンドが終了しない場合に最終結果の出力後もハングし続ける問題を修正。標準入力のクローズから約5秒後に停止するように改善",
+      "content_ja": "非対話モード(`-p`)において、バックグラウンドコマンドが終了しない場合に最終結果の出力後もハングし続ける問題を修正。標準入力のクローズから約5秒後に停止するように改善",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -133,6 +140,7 @@
       }
     },
     {
+      "id": "55d1dd8ea9e2",
       "content": "- Fixed `claude -p` failing with \"ANTHROPIC_API_KEY required\" on Bedrock/Vertex/Foundry when `CI=true` and no Anthropic API key is set",
       "content_ja": "Amazon Bedrock、Google Vertex AI、Microsoft Foundry 利用時に `CI=true` かつ Anthropic API キー未設定だと `claude -p` が失敗する問題を修正",
       "prefix": "Fixed",
@@ -155,6 +163,7 @@
       }
     },
     {
+      "id": "0f265db86fcf",
       "content": "- Fixed bash commands failing under bazel and EDR-protected Go workflows: `$TMPDIR` was overridden to `/tmp/claude-{uid}` for all commands instead of only sandboxed ones (regression in 2.1.154)",
       "content_ja": "Bazel や EDR で保護された Go のワークフローで Bash コマンドが失敗する問題を修正。`$TMPDIR` の上書きをサンドボックス化されたコマンドのみに限定",
       "prefix": "Fixed",
@@ -165,12 +174,13 @@
         }
       ],
       "inference": {
-        "before": "すべてのコマンドで一時ディレクトリが強制的に変更されていたため、Bazel などの厳格な環境でパスの不整合によるエラーが発生していました（v2.1.154 のデグレ）。",
+        "before": "すべてのコマンドで一時ディレクトリが強制的に変更されていたため、Bazel などの厳格な環境でパスの不整合によるエラーが発生していました(v2.1.154 のデグレ)。",
         "after": "環境に応じた適切な一時ディレクトリ設定が維持されるようになり、ビルドツール等の動作を妨げません。",
         "benefit": "特定のビルドシステムやセキュリティツールを使用している複雑な開発プロジェクトでも、Claude Code が正常に動作します。"
       }
     },
     {
+      "id": "059bed3ee65f",
       "content": "- Fixed Bash commands failing on Windows with \"EEXIST: file already exists\" on the session-env directory when it has the read-only attribute or is inside OneDrive",
       "content_ja": "Windows において、OneDrive 内や読み取り専用属性のディレクトリで `session-env` に関する「EEXIST」エラーで Bash コマンドが失敗する問題を修正。",
       "prefix": "Fixed",
@@ -178,6 +188,7 @@
       "related_docs": []
     },
     {
+      "id": "f2d6d4c9fd1c",
       "content": "- Fixed org-managed permission rules not applying for the entire session when the managed settings fetch completed during startup on a fresh config directory",
       "content_ja": "新規構成ディレクトリでの初回起動時、管理設定の取得が完了する前に開始されたセッションに、組織管理のパーミッションルールが適用されない問題を修正。",
       "prefix": "Fixed",
@@ -185,6 +196,7 @@
       "related_docs": []
     },
     {
+      "id": "9351d4432b92",
       "content": "- Fixed background sessions in `claude agents` losing their running background tasks when reattached after a Claude Code update",
       "content_ja": "`claude agents` において、Claude Code のアップデート後に再接続すると実行中のバックグラウンドタスクが消失する問題を修正",
       "prefix": "Fixed",
@@ -207,6 +219,7 @@
       }
     },
     {
+      "id": "fc7472e3f844",
       "content": "- Fixed terminal misalignment and a multi-second hang when exiting the agent view by pressing Esc",
       "content_ja": "エージェントビューを Esc キーで終了する際、ターミナルの表示が崩れたり数秒間フリーズしたりする問題を修正。",
       "prefix": "Fixed",
@@ -214,6 +227,7 @@
       "related_docs": []
     },
     {
+      "id": "b0d1a81ad593",
       "content": "- Fixed clicking Stop on a background-task chip in the desktop app not clearing the chip when the underlying process was already gone",
       "content_ja": "デスクトップアプリでバックグラウンドタスクの「Stop」をクリックした際、プロセスが既に終了している場合にチップが消えない問題を修正。",
       "prefix": "Fixed",
@@ -221,6 +235,7 @@
       "related_docs": []
     },
     {
+      "id": "ae6a19d0a461",
       "content": "- Fixed keyboard input becoming permanently unresponsive after a paste operation whose end marker is dropped by the terminal",
       "content_ja": "ターミナルによって貼り付け終了マーカーが欠落した際、キーボード入力が永続的に反応しなくなる問題を修正。",
       "prefix": "Fixed",
@@ -228,6 +243,7 @@
       "related_docs": []
     },
     {
+      "id": "c19ee3922152",
       "content": "- Fixed hook `if: \"Bash(...)\"` conditions firing on every Bash command containing `$()` or `$VAR`; the pattern now matches against commands inside subshells and backticks too",
       "content_ja": "フックの `if: \"Bash(...)\"` 条件が、サブシェルやバッククォート内のコマンドに対しても正しくマッチするよう修正",
       "prefix": "Fixed",
@@ -247,8 +263,9 @@
       }
     },
     {
+      "id": "b5ed7836c042",
       "content": "- Fixed deny rules on home-directory paths (e.g. `Read(~/Desktop/**)`) not blocking Bash commands that reference the path via `$HOME`",
-      "content_ja": "ホームディレクトリのパス（例：`~/Desktop/**`）に対する拒否ルールが、`$HOME` 経由で参照された Bash コマンドをブロックできない問題を修正",
+      "content_ja": "ホームディレクトリのパス(例：`~/Desktop/**`)に対する拒否ルールが、`$HOME` 経由で参照された Bash コマンドをブロックできない問題を修正",
       "prefix": "Fixed",
       "feature_areas": ["Permissions"],
       "related_docs": [
@@ -263,12 +280,13 @@
         }
       ],
       "inference": {
-        "before": "パスの記述方法（チルダと環境変数）の差異を利用して、制限されたディレクトリへのアクセスを許してしまう不備がありました。",
+        "before": "パスの記述方法(チルダと環境変数)の差異を利用して、制限されたディレクトリへのアクセスを許してしまう不備がありました。",
         "after": "パスの正規化が強化され、異なる表現を使っても同一のディレクトリに対する操作は一貫して制限されます。",
         "benefit": "組織やプロジェクトで設定したアクセス権限ルールがより正確に適用され、機密データの保護が強化されます。"
       }
     },
     {
+      "id": "8e444dfe996b",
       "content": "- Fixed a stray \"(no content)\" line left in the transcript after closing panel dialogs like /mcp and /plugins",
       "content_ja": "/mcp や /plugins などのパネルダイアログを閉じた後、履歴に不要な \"(no content)\" 行が残る問題を修正。",
       "prefix": "Fixed",
@@ -276,6 +294,7 @@
       "related_docs": []
     },
     {
+      "id": "c68e8dad36b5",
       "content": "- Background agent sessions now update to a new Claude Code version in the background, so opening a session after an update no longer waits on a cold restart",
       "content_ja": "バックグラウンドエージェントセッションがバックグラウンドで新バージョンに更新されるようになり、再開時の待機時間が短縮されました。",
       "prefix": "Changed",
@@ -283,6 +302,7 @@
       "related_docs": []
     },
     {
+      "id": "79d71bd4e6fe",
       "content": "- Clearer descriptions for built-in commands and skills in the / menu",
       "content_ja": "「/」メニューにおける組み込みコマンドとスキルの説明文をより分かりやすく改善。",
       "prefix": "Changed",
@@ -290,6 +310,7 @@
       "related_docs": []
     },
     {
+      "id": "0c49de310c21",
       "content": "- The subscription-switch suggestion now shows in the startup announcement slot instead of a toast",
       "content_ja": "サブスクリプション切り替えの提案をトースト通知から起動時のアナウンス枠での表示に変更。",
       "prefix": "Changed",
@@ -297,6 +318,7 @@
       "related_docs": []
     },
     {
+      "id": "bc0fe59b8249",
       "content": "- `claude agents` dispatching from the state-grouped view now starts the session in the directory the agent view was opened from",
       "content_ja": "エージェントビューの dispatch 入力から新しいセッションを開始する際、ビューを開いたディレクトリでセッションが開始されるよう改善",
       "prefix": "Changed",

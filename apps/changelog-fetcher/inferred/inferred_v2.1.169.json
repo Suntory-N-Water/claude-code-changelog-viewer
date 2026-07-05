@@ -1,8 +1,9 @@
 {
   "version": "2.1.169",
-  "summary": "開発の生産性と利便性を高める新機能として、プロンプトキャッシュを維持したままディレクトリを移動できる `/cd` コマンドや、トラブルシューティング用の `--safe-mode` が追加されました。バックグラウンドセッションの管理（Agent View）における表示の崩れや設定の継承に関する不具合が多数修正され、並列タスクの実行がより安定しています。さらに、ストリーミング応答時の CPU 負荷軽減や Windows 環境での動作改善など、パフォーマンス面での最適化も行われました。",
+  "summary": "開発の生産性と利便性を高める新機能として、プロンプトキャッシュを維持したままディレクトリを移動できる `/cd` コマンドや、トラブルシューティング用の `--safe-mode` が追加されました。バックグラウンドセッションの管理(Agent View)における表示の崩れや設定の継承に関する不具合が多数修正され、並列タスクの実行がより安定しています。さらに、ストリーミング応答時の CPU 負荷軽減や Windows 環境での動作改善など、パフォーマンス面での最適化も行われました。",
   "items": [
     {
+      "id": "593c371c1868",
       "content": "- Self-hosted runner: added a `post-session` lifecycle hook that runs after the session ends and before the workspace is deleted, so you can snapshot uncommitted work or export logs; also made the child-process SIGTERM→SIGKILL window configurable (default unchanged at 5s)",
       "content_ja": "セルフホストランナーにおいて、セッション終了後かつワークスペース削除前に実行される `post-session` ライフサイクルホックを追加しました。また、子プロセスの SIGTERM から SIGKILL までの待機時間を設定可能にしました。",
       "prefix": "Changed",
@@ -25,8 +26,9 @@
       }
     },
     {
+      "id": "7a1529ba18c9",
       "content": "- Added `--safe-mode` flag (and `CLAUDE_CODE_SAFE_MODE`) to start Claude Code with all customizations (CLAUDE.md, plugins, skills, hooks, MCP servers) disabled for troubleshooting",
-      "content_ja": "トラブルシューティング用に、すべてのカスタマイズ（CLAUDE.md、プラグイン、スキル、ホック、MCPサーバー）を無効にして起動する `--safe-mode` フラグを追加しました。",
+      "content_ja": "トラブルシューティング用に、すべてのカスタマイズ(CLAUDE.md、プラグイン、スキル、ホック、MCPサーバー)を無効にして起動する `--safe-mode` フラグを追加しました。",
       "prefix": "Added",
       "feature_areas": ["Plugins", "Skills", "Hooks", "MCP", "Memory"],
       "related_docs": [
@@ -47,6 +49,7 @@
       }
     },
     {
+      "id": "97194291fc61",
       "content": "- Added `/cd` command to move a session to a new working directory without breaking the prompt cache mid-session",
       "content_ja": "セッションのプロンプトキャッシュを維持したまま、作業ディレクトリを移動できる `/cd` コマンドを追加しました。",
       "prefix": "Added",
@@ -69,6 +72,7 @@
       }
     },
     {
+      "id": "d1f9f3830bac",
       "content": "- Added a `disableBundledSkills` setting and `CLAUDE_CODE_DISABLE_BUNDLED_SKILLS` environment variable to hide bundled skills, workflows, and built-in slash commands from the model",
       "content_ja": "組み込みのスキル、ワークフロー、およびスラッシュコマンドをモデルから隠すための `disableBundledSkills` 設定を追加しました。",
       "prefix": "Added",
@@ -91,6 +95,7 @@
       }
     },
     {
+      "id": "de86f02a15e3",
       "content": "- Fixed Up/Down arrows jumping to command history past the wrapped rows of a long input line — they now move through each visual row first, and history recall enters at the near edge",
       "content_ja": "長い入力行での上下矢印キーの挙動を修正しました。履歴に飛ぶ前に、折り返された各行を順番に移動し、履歴の呼び出しは入力端から行われるようになります。",
       "prefix": "Fixed",
@@ -98,8 +103,9 @@
       "related_docs": []
     },
     {
+      "id": "43eafe1594ce",
       "content": "- Fixed enterprise managed MCP policies (`allowedMcpServers`/`deniedMcpServers`) not being enforced on reconnect, IDE-typed configs, `--mcp-config` servers during the first session after install, or before remote settings loaded; also fixed slow cold starts for orgs without remote settings",
-      "content_ja": "エンタープライズ管理の MCP ポリシー（許可/拒否サーバー設定）が、再接続時や IDE からの設定、インストール直後の初回起動時など、一部の条件下で適用されない問題を修正しました。",
+      "content_ja": "エンタープライズ管理の MCP ポリシー(許可/拒否サーバー設定)が、再接続時や IDE からの設定、インストール直後の初回起動時など、一部の条件下で適用されない問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["MCP", "Settings", "Permissions"],
       "related_docs": [
@@ -115,13 +121,14 @@
       ],
       "inference": {
         "before": "管理者が特定の MCP サーバーの使用を制限していても、IDE の連携や起動フラグの組み合わせによって制限を回避できてしまうセキュリティ上の懸念がありました。",
-        "after": "あらゆる経路（再接続、IDE 入力、初回起動フラグ、リモート設定ロード前）において、管理ポリシーが常に最優先で強制適用されるようガードが強化されました。",
+        "after": "あらゆる経路(再接続、IDE 入力、初回起動フラグ、リモート設定ロード前)において、管理ポリシーが常に最優先で強制適用されるようガードが強化されました。",
         "benefit": "組織のセキュリティポリシーを例外なく徹底でき、管理の信頼性が向上します。"
       }
     },
     {
+      "id": "82cc0855205c",
       "content": "- Fixed a ~30-50ms UI stall at the start of each turn for macOS users logged in with claude.ai credentials",
-      "content_ja": "macOS ユーザーが claude.ai 認証でログインしている際に、ターンの開始時に発生していた 30-50ms の UI スタック（画面の固まり）を解消しました。",
+      "content_ja": "macOS ユーザーが claude.ai 認証でログインしている際に、ターンの開始時に発生していた 30-50ms の UI スタック(画面の固まり)を解消しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": [
@@ -142,6 +149,7 @@
       }
     },
     {
+      "id": "a1bb7d0dd8f7",
       "content": "- Fixed `claude -p` being slow or appearing to hang on Windows while waiting for the slash-command/skill scan (regression in 2.1.161)",
       "content_ja": "Windows において `claude -p` の実行がスラッシュコマンドのスキャン待ちにより、極端に遅くなる、またはフリーズしたように見える問題を修正しました。",
       "prefix": "Fixed",
@@ -158,12 +166,13 @@
         }
       ],
       "inference": {
-        "before": "非対話モード（SDK 等での利用）であっても Windows 環境では不要なスキャン処理がボトルネックとなり、起動に時間がかかっていました。",
+        "before": "非対話モード(SDK 等での利用)であっても Windows 環境では不要なスキャン処理がボトルネックとなり、起動に時間がかかっていました。",
         "after": "Windows 特有のファイルスキャン負荷が軽減され、非対話的なコマンド実行が即座に開始されるよう改善されました。",
         "benefit": "CI/CD パイプラインやスクリプトからの呼び出しにおいて、実行時間が大幅に短縮されます。"
       }
     },
     {
+      "id": "e8ef9c293a72",
       "content": "- Fixed Remote Control getting stuck on \"reconnecting\" after resuming a session when an OAuth token refresh happened at the same time",
       "content_ja": "リモートコントロール使用時、セッション再開と OAuth トークンの更新が重なると「再接続中」のまま進まなくなる問題を修正しました。",
       "prefix": "Fixed",
@@ -171,6 +180,7 @@
       "related_docs": []
     },
     {
+      "id": "494d66352bc7",
       "content": "- Fixed Git Credential Manager's \"Connect to GitHub\" popup appearing on Windows at startup when background git commands ran without cached credentials",
       "content_ja": "Windows でバックグラウンドの git コマンドが実行された際、キャッシュがない場合に Git Credential Manager のポップアップが勝手に出てしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -178,13 +188,15 @@
       "related_docs": []
     },
     {
+      "id": "2845368b908f",
       "content": "- Fixed footer hints (e.g. \"esc to interrupt\") not showing for users with a custom statusline",
-      "content_ja": "カスタムステータスラインを使用しているユーザーに、フッターのヒント（「esc で中断」など）が表示されない問題を修正しました。",
+      "content_ja": "カスタムステータスラインを使用しているユーザーに、フッターのヒント(「esc で中断」など)が表示されない問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "d5a392e1092c",
       "content": "- Fixed stale permission and dialog prompts reappearing every time you reattached to a remote session whose worker had died while waiting on them",
       "content_ja": "リモートセッションのワーカーが応答待ちの間に停止した際、再接続するたびに古いパーミッション確認やダイアログが再表示される不具合を修正しました。",
       "prefix": "Fixed",
@@ -192,6 +204,7 @@
       "related_docs": []
     },
     {
+      "id": "f4baed43a568",
       "content": "- Fixed `claude agents --json` omitting blocked and just-dispatched background sessions; added `--all` to include completed sessions, plus new `id` and `state` fields",
       "content_ja": "`claude agents --json` がブロック中のセッションや開始直後のセッションを省略する問題を修正し、完了したセッションを含めるための `--all` フラグと `id` / `state` フィールドを追加しました。",
       "prefix": "Fixed",
@@ -214,6 +227,7 @@
       }
     },
     {
+      "id": "5eb92dfa9250",
       "content": "- Fixed agents view leaving a stale/garbled frame after navigating back from an agent on WSL in Windows Terminal",
       "content_ja": "WSL 上の Windows Terminal で、エージェント表示から戻った際に古い画面のフレームが残ったり崩れたりする表示の不具合を修正しました。",
       "prefix": "Fixed",
@@ -236,8 +250,9 @@
       }
     },
     {
+      "id": "3bb90988d6a0",
       "content": "- Fixed background agents ignoring project-level settings `env` values (e.g. `ANTHROPIC_MODEL`) when dispatched onto a pre-warmed worker",
-      "content_ja": "バックグラウンドエージェントが、プロジェクトレベルの設定（settings.json）で定義された `env`（例: ANTHROPIC_MODEL）を無視してしまう問題を修正しました。",
+      "content_ja": "バックグラウンドエージェントが、プロジェクトレベルの設定(settings.json)で定義された `env`(例: ANTHROPIC_MODEL)を無視してしまう問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": ["Settings"],
       "related_docs": [
@@ -258,6 +273,7 @@
       }
     },
     {
+      "id": "45a02449877a",
       "content": "- Fixed MCPB plugin cache being spuriously invalidated on Windows, causing unnecessary re-extraction",
       "content_ja": "Windows において MCPB プラグインキャッシュが誤って無効化され、不要な再展開が発生していた問題を修正しました。",
       "prefix": "Fixed",
@@ -274,8 +290,9 @@
       }
     },
     {
+      "id": "d8455479d4d7",
       "content": "- Fixed plugin `.in_use` PID lock files accumulating without bound; stale markers from crashed sessions are now swept once per day",
-      "content_ja": "クラッシュしたセッションから残されたプラグインの PID ロックファイル（`.in_use`）が蓄積し続ける問題を修正しました。これらは 1 日 1 回自動的に削除されます。",
+      "content_ja": "クラッシュしたセッションから残されたプラグインの PID ロックファイル(`.in_use`)が蓄積し続ける問題を修正しました。これらは 1 日 1 回自動的に削除されます。",
       "prefix": "Fixed",
       "feature_areas": ["Plugins"],
       "related_docs": [
@@ -296,6 +313,7 @@
       }
     },
     {
+      "id": "0e0379f92008",
       "content": "- Fixed untrusted project settings being able to set OTEL client-certificate paths without trust confirmation",
       "content_ja": "信頼されていないプロジェクト設定から、ユーザーの承認なしに OpenTelemetry のクライアント証明書パスを設定できてしまうセキュリティ上の懸念を修正しました。",
       "prefix": "Fixed",
@@ -313,11 +331,12 @@
       ],
       "inference": {
         "before": "悪意のあるプロジェクトを Claude Code で開いた際、ローカルの証明書ファイルを意図しない場所に送信される等のリスクがありました。",
-        "after": "重要なネットワーク監視設定（OTEL 証明書）を変更しようとする場合、ユーザーへの信頼確認が必須となりました。",
+        "after": "重要なネットワーク監視設定(OTEL 証明書)を変更しようとする場合、ユーザーへの信頼確認が必須となりました。",
         "benefit": "オープンソースプロジェクトのコードを調査する際など、未知のレポジトリをより安全に扱えるようになります。"
       }
     },
     {
+      "id": "9d6ff47925ad",
       "content": "- `/workflows` now opens immediately even while a turn is in progress",
       "content_ja": "AI が回答を生成している途中であっても、`/workflows` コマンドですぐにワークフロー画面を開けるように変更しました。",
       "prefix": "Changed",
@@ -340,6 +359,7 @@
       }
     },
     {
+      "id": "c1ef54350225",
       "content": "- Improved `TaskCreate` reliability: malformed inputs are repaired automatically and validation errors for unloaded tools include the schema",
       "content_ja": "`TaskCreate` ツールの信頼性を向上しました。不正な形式の入力は自動修復され、未ロードのツールに関する検証エラーにはスキーマ情報が含まれるようになります。",
       "prefix": "Improved",
@@ -362,6 +382,7 @@
       }
     },
     {
+      "id": "74220598ce8a",
       "content": "- Improved the error message shown when your organization has disabled API key authentication, with guidance based on where the active API key comes from",
       "content_ja": "組織によって API キー認証が禁止されている際のエラーメッセージを改善し、現在使用されている API キーの出所に応じた解決策を表示するようにしました。",
       "prefix": "Improved",
@@ -384,6 +405,7 @@
       }
     },
     {
+      "id": "32cf56f73ae6",
       "content": "- Reduced CPU usage while responses stream and during spinner animations",
       "content_ja": "ストリーミング応答中およびアニメーション表示中の CPU 使用率を削減しました。",
       "prefix": "Changed",
@@ -406,6 +428,7 @@
       }
     },
     {
+      "id": "d25370c89d2b",
       "content": "- Restored a default 5-minute idle timeout on Vertex/Foundry so a stalled stream aborts instead of hanging indefinitely; set `API_FORCE_IDLE_TIMEOUT=0` to opt out",
       "content_ja": "Google Vertex AI および Microsoft Foundry において、5 分間のアイドルタイムアウトを復活させました。応答が停止したストリームを無限に待ち続けることを防ぎます。",
       "prefix": "Changed",
@@ -428,6 +451,7 @@
       }
     },
     {
+      "id": "9c5abe5a0374",
       "content": "- Remote-managed settings with an invalid entry now apply their remaining valid policies and surface the validation error, instead of silently dropping the whole payload",
       "content_ja": "リモート管理設定に無効な項目が含まれている場合、すべてを破棄するのではなく、有効な項目のみ適用し、エラーを表面化するように改善しました。",
       "prefix": "Changed",
@@ -435,6 +459,7 @@
       "related_docs": []
     },
     {
+      "id": "6dcca6fcf7f1",
       "content": "- Background sessions now preserve `--ide`, `--chrome`, `--bare`, `--remote-control`, and other flags across retire→wake, and respawn state validation was hardened",
       "content_ja": "バックグラウンドセッションがスリープから復帰する際、`--ide` や `--chrome` などの重要な起動フラグを正しく保持するようにし、状態の検証も強化しました。",
       "prefix": "Changed",
@@ -451,12 +476,13 @@
         }
       ],
       "inference": {
-        "before": "長時間放置したセッションに再接続（attach）した際、一部の連携機能が解除されてしまっていることがありました。",
+        "before": "長時間放置したセッションに再接続(attach)した際、一部の連携機能が解除されてしまっていることがありました。",
         "after": "セッションが一時停止・再開を繰り返しても、最初に指定した実行環境のオプションが完全に維持されます。",
         "benefit": "ブラウザ操作や IDE 連携を伴う長時間のタスクを、安心してバックグラウンドで放置できるようになります。"
       }
     },
     {
+      "id": "2cfde0830dc7",
       "content": "- Background sessions are now told that shared-checkout edits are blocked until they enter a worktree, avoiding a wasted rejected edit before `EnterWorktree`",
       "content_ja": "共有チェックアウト環境で作業する際、ワークツリーに入るまではファイルの編集がブロックされることを、事前に AI 側へ通知するように改善しました。",
       "prefix": "Changed",
@@ -473,12 +499,13 @@
         }
       ],
       "inference": {
-        "before": "AI が本来編集すべきでない場所を書き換えようとして拒否され、手番（トークン）を無駄にしてしまうことがありました。",
+        "before": "AI が本来編集すべきでない場所を書き換えようとして拒否され、手番(トークン)を無駄にしてしまうことがありました。",
         "after": "AI は「まず `EnterWorktree` で作業場所を確保する必要がある」ことを事前に理解するため、無駄な試行を避けて正しい手順を即座に踏むようになります。",
         "benefit": "特にマルチタスク実行時における AI の動作効率が上がり、トークン消費の無駄を抑えられます。"
       }
     },
     {
+      "id": "0007ebc10545",
       "content": "- The \"CLAUDE.md is too long\" warning threshold now scales with the model's context window",
       "content_ja": "「CLAUDE.md が長すぎる」という警告のしきい値を、使用しているモデルのコンテキストウィンドウの大きさに合わせて動的に調整するようにしました。",
       "prefix": "Changed",
@@ -495,12 +522,13 @@
         }
       ],
       "inference": {
-        "before": "1M コンテキスト（Extended Context）対応モデルを使用している場合でも、標準モデルと同じ厳しい制限で警告が出てしまい、情報の集約を阻害していました。",
+        "before": "1M コンテキスト(Extended Context)対応モデルを使用している場合でも、標準モデルと同じ厳しい制限で警告が出てしまい、情報の集約を阻害していました。",
         "after": "より大きなコンテキストを扱えるモデルでは、より多くのルールを CLAUDE.md に記述しても不必要な警告が出なくなります。",
         "benefit": "大規模なプロジェクトのルールを、モデルの能力をフルに活かして管理できるようになります。"
       }
     },
     {
+      "id": "5a0c1c8ac81e",
       "content": "- Auto-updater on Windows now stops retrying within a session once `claude.exe` is held by another process",
       "content_ja": "Windows での自動アップデート時、`claude.exe` が他のプロセスに使用されている場合に、同一セッション内での無意味な再試行を停止するようにしました。",
       "prefix": "Changed",
@@ -517,6 +545,7 @@
       }
     },
     {
+      "id": "2bcd04f259c1",
       "content": "- Improved color contrast for skill tags in the slash-command menu",
       "content_ja": "スラッシュコマンドメニューにおけるスキルのタグの配色コントラストを調整し、視認性を向上させました。",
       "prefix": "Improved",
@@ -524,6 +553,7 @@
       "related_docs": []
     },
     {
+      "id": "a29e4caf281a",
       "content": "- Promo credit claims for Apple/Google-billed subscribers without a payment method now explain where to add one",
       "content_ja": "Apple/Google 経由の購読者で支払い方法が未登録の場合、プロモーションクレジットの受け取り時に登録場所の案内を表示するようにしました。",
       "prefix": "Changed",
@@ -531,6 +561,7 @@
       "related_docs": []
     },
     {
+      "id": "deb951f6c822",
       "content": "- Added a tip suggesting `claude agents` when running multiple concurrent sessions",
       "content_ja": "複数のセッションを同時に実行している際、それらを一覧管理できる `claude agents` コマンドの使用を提案するヒントを追加しました。",
       "prefix": "Added",
@@ -547,7 +578,7 @@
         }
       ],
       "inference": {
-        "before": "便利な並列実行管理機能（Agent View）があることに気づかず、複数のターミナルを手動で行き来しているユーザーがいました。",
+        "before": "便利な並列実行管理機能(Agent View)があることに気づかず、複数のターミナルを手動で行き来しているユーザーがいました。",
         "after": "必要に応じて適切な機能が提案されるため、ツールの真価をより活用しやすくなります。",
         "benefit": "複雑なマルチタスクを、より効率的な公式推奨のフローでこなせるようになります。"
       }

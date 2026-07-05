@@ -3,12 +3,13 @@
   "summary": "Autoモードにおいて全てのシェルコマンドを分類器で検証する設定や、認証が必要なMCPサーバーの通知機能が追加されました。バックグラウンドエージェントの動作安定性が向上し、意図しない再確認や重複実行などのバグが修正されています。モニタリングのためのOpenTelemetryログ拡充や、Bashモードでのパス補完など、開発効率を高める改善も行われました。",
   "items": [
     {
+      "id": "38cb697ecd69",
       "content": "- Added `autoMode.classifyAllShell` setting to route all Bash/PowerShell commands through the auto-mode classifier instead of only arbitrary-code-execution patterns",
       "content_ja": "すべてのBash/PowerShellコマンドをAutoモードの分類器経由で実行する `autoMode.classifyAllShell` 設定を追加",
       "prefix": "Added",
       "feature_areas": ["Permissions", "Settings"],
       "inference": {
-        "before": "デフォルトでは特定の危険なパターン（任意のコード実行など）のみが分類器でチェックされ、その他のコマンドは通常の権限確認プロセスに従っていました。",
+        "before": "デフォルトでは特定の危険なパターン(任意のコード実行など)のみが分類器でチェックされ、その他のコマンドは通常の権限確認プロセスに従っていました。",
         "after": "この設定を有効にすると、すべてのシェルコマンドが分類器を通過するようになり、一貫した自動承認判定が可能になります。",
         "benefit": "安全性を維持しつつ、信頼できる環境での定型的なシェル操作に対する手動承認の頻度をさらに減らすことができます。"
       },
@@ -25,6 +26,7 @@
       ]
     },
     {
+      "id": "2e6c1a166a99",
       "content": "- Added auto-mode denial reasons to the transcript, the denial toast, and `/permissions` recent denials",
       "content_ja": "トランスクリプト、通知、および `/permissions` 内の拒否履歴にAutoモードの拒否理由を表示する機能を追加",
       "prefix": "Added",
@@ -32,7 +34,7 @@
       "inference": {
         "before": "Autoモードで操作が拒否された際、なぜ分類器がそのアクションをブロックしたのかという具体的な理由がユーザーに明示されていませんでした。",
         "after": "拒否理由がログやUIに表示されるようになり、`/permissions` コマンドから最近の拒否理由を詳しく確認できるようになりました。",
-        "benefit": "拒否された原因（信頼されていないドメインへのアクセスなど）が明確になるため、設定の修正や例外ルールの追加を迅速に行えるようになります。"
+        "benefit": "拒否された原因(信頼されていないドメインへのアクセスなど)が明確になるため、設定の修正や例外ルールの追加を迅速に行えるようになります。"
       },
       "related_docs": [
         {
@@ -47,6 +49,7 @@
       ]
     },
     {
+      "id": "8b773aa22d61",
       "content": "- Added `claude_code.assistant_response` OpenTelemetry log event containing the model's response text. Redacted unless `OTEL_LOG_ASSISTANT_RESPONSES=1`; when that var is unset it follows `OTEL_LOG_USER_PROMPTS`, so deployments that already log prompt content will start receiving response content on upgrade — set `OTEL_LOG_ASSISTANT_RESPONSES=0` to keep prompts-only.",
       "content_ja": "OpenTelemetry ログイベントにモデルの応答テキストを含む `claude_code.assistant_response` を追加",
       "prefix": "Added",
@@ -66,12 +69,13 @@
       ]
     },
     {
+      "id": "50bf35587032",
       "content": "- Added live file path autocomplete to bash mode (`!`)",
-      "content_ja": "Bashモード（`!` プレフィックス）でのリアルタイムなファイルパス補完機能を追加",
+      "content_ja": "Bashモード(`!` プレフィックス)でのリアルタイムなファイルパス補完機能を追加",
       "prefix": "Added",
       "feature_areas": [],
       "inference": {
-        "before": "シェルモード（!）でコマンドを入力する際、ファイルパスの自動補完が効かず、長いパスを手動で入力する必要がありました。",
+        "before": "シェルモード(!)でコマンドを入力する際、ファイルパスの自動補完が効かず、長いパスを手動で入力する必要がありました。",
         "after": "通常のプロンプトと同様に、シェルモードでも入力中に適切なファイルパスが提案され、Tabキーなどで補完できるようになります。",
         "benefit": "ターミナルでの直接的なコマンド実行がよりスムーズになり、入力ミスを減らしながら作業効率を向上させることができます。"
       },
@@ -88,6 +92,7 @@
       ]
     },
     {
+      "id": "4669cfb97964",
       "content": "- Added a startup notice when MCP servers need authentication, pointing at `/mcp`",
       "content_ja": "起動時にMCPサーバーの認証が必要な場合の通知を表示し、`/mcp` へ誘導する機能を追加",
       "prefix": "Added",
@@ -110,6 +115,7 @@
       ]
     },
     {
+      "id": "a1d83bdf702b",
       "content": "- Added automatic memory-pressure reaping for idle background shell commands (disable with `CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1`)",
       "content_ja": "アイドル状態のバックグラウンドシェルコマンドに対するメモリの自動解放機能を追加",
       "prefix": "Added",
@@ -132,6 +138,7 @@
       ]
     },
     {
+      "id": "3157df9a2771",
       "content": "- Fixed `/model` and other client-data-gated UI showing stale/empty state immediately after `/login`",
       "content_ja": "`/login` 直後に `/model` などのUIが古いデータや空の状態で表示される問題を修正",
       "prefix": "Fixed",
@@ -154,13 +161,15 @@
       ]
     },
     {
+      "id": "6cbec32811c8",
       "content": "- Fixed backgrounding (←←) spuriously cancelling with \"N background tasks would be abandoned\" when all running tasks carry over to the new session",
-      "content_ja": "バックグラウンド化（←←）時に、実行中のタスクがすべて新しいセッションに引き継がれる場合でも、「N個のバックグラウンドタスクが破棄されます」という誤った警告が出る問題を修正しました。",
+      "content_ja": "バックグラウンド化(←←)時に、実行中のタスクがすべて新しいセッションに引き継がれる場合でも、「N個のバックグラウンドタスクが破棄されます」という誤った警告が出る問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "89b8e83a6ac3",
       "content": "- Fixed pinned background agents being re-prompted to \"Continue from where you left off\" after every auto-update",
       "content_ja": "ピン留めされたバックグラウンドエージェントが、自動アップデートのたびに「中断した場所から続行しますか」と再確認される問題を修正しました。",
       "prefix": "Fixed",
@@ -168,13 +177,15 @@
       "related_docs": []
     },
     {
+      "id": "e608bb8b3741",
       "content": "- Fixed backgrounding the main turn spawning a phantom \"general-purpose (resumed)\" subagent that re-ran the main conversation",
-      "content_ja": "メインのターンをバックグラウンド化した際に、メインの会話を再実行してしまう幽霊のような「汎用（再開済み）」サブエージェントが生成される問題を修正しました。",
+      "content_ja": "メインのターンをバックグラウンド化した際に、メインの会話を再実行してしまう幽霊のような「汎用(再開済み)」サブエージェントが生成される問題を修正しました。",
       "prefix": "Fixed",
       "feature_areas": [],
       "related_docs": []
     },
     {
+      "id": "04b41d433a9b",
       "content": "- Fixed agent panel hiding sibling agents when viewing a subagent",
       "content_ja": "サブエージェントを表示中に、エージェントパネルで兄弟関係にある他のエージェントが非表示になってしまう問題を修正しました。",
       "prefix": "Fixed",
@@ -182,6 +193,7 @@
       "related_docs": []
     },
     {
+      "id": "32405d11d6f1",
       "content": "- Improved background agents: the launch result no longer instructs Claude to \"end your response\" — it keeps working on other tasks while the agent runs",
       "content_ja": "バックグラウンドエージェントの挙動を改善し、起動結果でClaudeに「応答を終了するように」指示しないようになりました。これにより、エージェントの実行中も他のタスクを継続できます。",
       "prefix": "Improved",
@@ -189,6 +201,7 @@
       "related_docs": []
     },
     {
+      "id": "a3bd2cb21342",
       "content": "- Improved MCP `headersHelper` auth: the helper now re-runs and reconnects automatically when a tool call returns 401/403",
       "content_ja": "MCPの `headersHelper` 認証において、401/403エラー発生時の自動再試行と再接続を改善",
       "prefix": "Improved",
@@ -208,13 +221,14 @@
       ]
     },
     {
+      "id": "38de240e3143",
       "content": "- Improved plugin auto-rename: marketplace `renames` maps are now followed automatically, updating your settings to the new name",
       "content_ja": "プラグインの自動リネーム機能を改善：マーケットプレイスの名称変更マップを自動追跡し、設定を新しい名前に更新するようになりました",
       "prefix": "Improved",
       "feature_areas": ["Plugins", "Settings"],
       "inference": {
         "before": "マーケットプレイス上でプラグインの名称が変更された際、ユーザー側の設定ファイル(settings.json)には古い名前が残ったままになり、依存関係の解決や更新に支障が出る可能性がありました。",
-        "after": "マーケットプレイスの名称変更マップ（renames maps）を自動的に参照するようになり、プラグイン名が変更されるとユーザーの設定も新しい名前に自動的に追従して更新されます。",
+        "after": "マーケットプレイスの名称変更マップ(renames maps)を自動的に参照するようになり、プラグイン名が変更されるとユーザーの設定も新しい名前に自動的に追従して更新されます。",
         "benefit": "プラグインの名称変更をユーザーが手動で監視して設定を書き換える手間がなくなり、常に最新の名称で正しくプラグインを利用し続けることができます。"
       },
       "related_docs": [
@@ -227,6 +241,7 @@
       ]
     },
     {
+      "id": "d874db830553",
       "content": "- Improved `/add-dir` message when the directory is already a working directory",
       "content_ja": "対象ディレクトリが既にワーキングディレクトリとして登録されている場合の `/add-dir` メッセージを改善しました",
       "prefix": "Improved",

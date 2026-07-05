@@ -6,7 +6,7 @@ import { z } from 'zod';
 const InferenceBatchResultSchema = z.object({
   inferred_items: z.array(
     z.object({
-      id: z.number(),
+      id: z.string(),
       content_ja: z.string(),
       before: z.string(),
       after: z.string(),
@@ -15,21 +15,21 @@ const InferenceBatchResultSchema = z.object({
   ),
   translated_items: z.array(
     z.object({
-      id: z.number(),
+      id: z.string(),
       content_ja: z.string(),
     }),
   ),
   feature_area_corrections: z
     .array(
       z.object({
-        id: z.number(),
+        id: z.string(),
         feature_areas: z.array(z.string()),
       }),
     )
     .optional(),
   impact_items: z.array(
     z.object({
-      id: z.number(),
+      id: z.string(),
       reason: z.string(),
       default_behavior_change: z.boolean(),
       breaking: z.boolean(),
@@ -160,8 +160,8 @@ export class GeminiClient {
                         type: Type.OBJECT,
                         properties: {
                           id: {
-                            type: Type.NUMBER,
-                            description: '元のitems配列のインデックス',
+                            type: Type.STRING,
+                            description: '入力項目の id (12桁の16進文字列)',
                           },
                           content_ja: {
                             type: Type.STRING,
@@ -204,8 +204,8 @@ export class GeminiClient {
                         type: Type.OBJECT,
                         properties: {
                           id: {
-                            type: Type.NUMBER,
-                            description: '元のitems配列のインデックス',
+                            type: Type.STRING,
+                            description: '入力項目の id (12桁の16進文字列)',
                           },
                           content_ja: {
                             type: Type.STRING,
@@ -223,8 +223,8 @@ export class GeminiClient {
                         type: Type.OBJECT,
                         properties: {
                           id: {
-                            type: Type.NUMBER,
-                            description: '元のitems配列のインデックス',
+                            type: Type.STRING,
+                            description: '入力項目の id (12桁の16進文字列)',
                           },
                           feature_areas: {
                             type: Type.ARRAY,
@@ -243,8 +243,8 @@ export class GeminiClient {
                         type: Type.OBJECT,
                         properties: {
                           id: {
-                            type: Type.NUMBER,
-                            description: '元のitems配列のインデックス',
+                            type: Type.STRING,
+                            description: '入力項目の id (12桁の16進文字列)',
                           },
                           reason: {
                             type: Type.STRING,

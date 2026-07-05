@@ -12,6 +12,7 @@ const changelogCollection = defineCollection({
     summary: z.string().optional(), // バージョン全体のサマリー(日本語)
     items: z.array(
       z.object({
+        id: z.string().length(12), // sha256(content)[0:12]
         content: z.string(), // 英語原文
         content_ja: z.string().optional(), // 日本語翻訳
         prefix: z.string(),
