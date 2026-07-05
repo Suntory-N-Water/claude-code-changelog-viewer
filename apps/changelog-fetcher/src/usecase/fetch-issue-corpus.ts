@@ -26,6 +26,10 @@ export type FetchIssueCorpusInput = {
   maintainerHandles: string[];
   fullScan: boolean;
   enrichAuthorAssociation: boolean;
+  // ISO 日付 (YYYY-MM-DD)。初回 seed で Search API の 1000 件制約を回避するため
+  // 期間分割走行するときに指定する
+  since?: string;
+  until?: string;
   logger: AppLogger;
 };
 
@@ -40,7 +44,18 @@ export async function fetchIssueCorpus(
   const runStartedAt = new Date().toISOString();
   const previousMetadata = await input.store.loadMetadata();
   const lastFetch = input.fullScan ? undefined : previousMetadata?.last_fetch;
-  const timeFilter = lastFetch ? `updated:>=${lastFetch}` : '';
+
+  const filters: string[] = [];
+  if (lastFetch) {
+    filters.push(`updated:>=${lastFetch}`);
+  }
+  if (input.since) {
+    filters.push(`created:>=${input.since}`);
+  }
+  if (input.until) {
+    filters.push(`created:<=${input.until}`);
+  }
+  const timeFilter = filters.join(' ');
 
   const encountered = new Map<number, SearchIssueItem>();
   const maintainerHits = new Set<number>();
@@ -58,6 +73,9 @@ export async function fetchIssueCorpus(
     timeFilter,
   );
 
+  // 並列化すると GitHub Search API の secondary rate limit (abuse detection)
+  // が発火して 403 になる。1000 件制約は since/until で time-slice する運用に任せ、
+  // レーン間は逐次に叩く
   const collect = async (
     query: string,
     onItem?: (item: SearchIssueItem) => void,
@@ -68,13 +86,13 @@ export async function fetchIssueCorpus(
     }
   };
 
-  await Promise.all([
-    ...heatQueries.map((q) => collect(q)),
-    ...maintainerQueries.map((q) =>
-      collect(q, (item) => maintainerHits.add(item.number)),
-    ),
-    collect(duplicateBaseQuery, (item) => duplicateChildren.push(item)),
-  ]);
+  for (const q of heatQueries) {
+    await collect(q);
+  }
+  for (const q of maintainerQueries) {
+    await collect(q, (item) => maintainerHits.add(item.number));
+  }
+  await collect(duplicateBaseQuery, (item) => duplicateChildren.push(item));
 
   input.logger.info(
     `Search API 完了: encountered=${encountered.size} maintainerHits=${maintainerHits.size} duplicateChildren=${duplicateChildren.length}`,

@@ -20,9 +20,36 @@ const MaintainersFileSchema = z.object({
 
 const log = getLogger({ name: 'fetch-issue-corpus' });
 
-const argv = new Set(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+const argv = new Set(rawArgs);
 const fullScan = argv.has('--full-scan');
 const enrichAuthorAssociation = argv.has('--enrich-author-association');
+
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function extractOption(name: string): string | undefined {
+  const withEq = rawArgs.find((a) => a.startsWith(`${name}=`));
+  if (withEq) {
+    return withEq.slice(name.length + 1);
+  }
+  const index = rawArgs.indexOf(name);
+  if (index >= 0 && index + 1 < rawArgs.length) {
+    return rawArgs[index + 1];
+  }
+  return;
+}
+
+const since = extractOption('--since');
+const until = extractOption('--until');
+for (const [name, value] of [
+  ['--since', since],
+  ['--until', until],
+] as const) {
+  if (value !== undefined && !DATE_PATTERN.test(value)) {
+    log.error(`${name} は YYYY-MM-DD 形式で指定してください: ${value}`);
+    process.exit(1);
+  }
+}
 
 const token = process.env['GITHUB_TOKEN'];
 if (!token) {
@@ -46,6 +73,8 @@ try {
     maintainerHandles: maintainers.handles,
     fullScan,
     enrichAuthorAssociation,
+    ...(since !== undefined ? { since } : {}),
+    ...(until !== undefined ? { until } : {}),
     logger: log,
   });
   log.info(
