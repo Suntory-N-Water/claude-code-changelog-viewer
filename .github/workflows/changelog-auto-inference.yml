@@ -13,7 +13,7 @@ on:
         type: string
 
 concurrency:
-  group: changelog-auto-inference
+  group: fetch-and-tie
   cancel-in-progress: false
 
 permissions: {}
@@ -172,6 +172,19 @@ jobs:
               exit 1
             fi
             echo "✅ analysis_${version}.json created"
+          done
+
+      - name: Tie issues to changelog items
+        if: steps.detect-updates.outputs.has_updates == 'true'
+        # issue corpus 未整備や embedding 失敗時も推論本体は継続させる
+        continue-on-error: true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CHANGED_VERSIONS: ${{ steps.detect-updates.outputs.changed_versions }}
+        run: |
+          for version in $CHANGED_VERSIONS; do
+            echo "🔗 Tying issues for $version..."
+            pnpm run tie:issues "$version"
           done
 
       - name: Infer benefits
