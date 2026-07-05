@@ -1,5 +1,6 @@
 import {
   type AnalyzedChangelogEntry,
+  type ImpactAssessment,
   applyInferenceToAnalyzedEntry,
   needsInference,
 } from '../domain/analysis/analyzed-changelog-entry';
@@ -26,10 +27,15 @@ export type FeatureAreaCorrection = {
   featureAreas: string[];
 };
 
+export type ImpactBatchItem = {
+  id: number;
+} & ImpactAssessment;
+
 export type InferenceBatch = {
   inferredItems: InferredBatchItem[];
   translatedItems: TranslatedBatchItem[];
   featureAreaCorrections: FeatureAreaCorrection[];
+  impactItems: ImpactBatchItem[];
   summary?: string;
 };
 
@@ -45,12 +51,14 @@ export function createInferenceBatch(input: {
   inferredItems?: InferredBatchItem[];
   translatedItems?: TranslatedBatchItem[];
   featureAreaCorrections?: FeatureAreaCorrection[];
+  impactItems?: ImpactBatchItem[];
   summary?: string;
 }): InferenceBatch {
   return {
     inferredItems: input.inferredItems ?? [],
     translatedItems: input.translatedItems ?? [],
     featureAreaCorrections: input.featureAreaCorrections ?? [],
+    impactItems: input.impactItems ?? [],
     ...(input.summary !== undefined ? { summary: input.summary } : {}),
   };
 }
@@ -82,10 +90,14 @@ export function applyInferenceBatch(
   const correctionById = new Map(
     batch.featureAreaCorrections.map((item) => [item.id, item]),
   );
+  const impactById = new Map(
+    batch.impactItems.map(({ id, ...impact }) => [id, impact]),
+  );
 
   const items = analysis.items.map((entry, index) => {
     const correction = correctionById.get(index);
     const featureAreas = correction?.featureAreas ?? entry.featureAreas;
+    const impact = impactById.get(index);
     const inferred = inferredById.get(index);
 
     if (inferred) {
@@ -97,6 +109,7 @@ export function applyInferenceBatch(
           after: inferred.after,
           benefit: inferred.benefit,
         },
+        ...(impact !== undefined ? { impact } : {}),
       });
     }
 
@@ -105,10 +118,14 @@ export function applyInferenceBatch(
       return applyInferenceToAnalyzedEntry(entry, {
         contentJa: translated.contentJa,
         featureAreas,
+        ...(impact !== undefined ? { impact } : {}),
       });
     }
 
-    return applyInferenceToAnalyzedEntry(entry, { featureAreas });
+    return applyInferenceToAnalyzedEntry(entry, {
+      featureAreas,
+      ...(impact !== undefined ? { impact } : {}),
+    });
   });
 
   const summary = batch.summary ?? analysis.summary;

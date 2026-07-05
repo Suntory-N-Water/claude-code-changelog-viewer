@@ -8,6 +8,13 @@ import {
 } from '../inference/inference-result';
 import type { RelatedDoc } from './related-doc';
 
+export type ImpactAssessment = {
+  level: 'high' | 'medium' | 'low';
+  defaultBehaviorChange: boolean;
+  breaking: boolean;
+  reason: string;
+};
+
 export type AnalyzedChangelogEntry = {
   content: ChangelogEntryContent;
   contentJa?: string;
@@ -15,6 +22,7 @@ export type AnalyzedChangelogEntry = {
   featureAreas: string[];
   relatedDocs: RelatedDoc[];
   inference?: InferenceResult;
+  impact?: ImpactAssessment;
 };
 
 export type CreateAnalyzedChangelogEntryInput = {
@@ -24,12 +32,14 @@ export type CreateAnalyzedChangelogEntryInput = {
   featureAreas?: string[];
   relatedDocs?: RelatedDoc[];
   inference?: InferenceResult;
+  impact?: ImpactAssessment;
 };
 
 export type ApplyInferenceToAnalyzedEntryInput = {
   contentJa?: string;
   featureAreas?: string[];
   inference?: InferenceResult;
+  impact?: ImpactAssessment;
 };
 
 /**
@@ -45,6 +55,7 @@ export function createAnalyzedChangelogEntry(
     featureAreas: input.featureAreas ?? [],
     relatedDocs: input.relatedDocs ?? [],
     ...(input.inference !== undefined ? { inference: input.inference } : {}),
+    ...(input.impact !== undefined ? { impact: input.impact } : {}),
   };
 }
 
@@ -60,12 +71,14 @@ export function applyInferenceToAnalyzedEntry(
     input.inference !== undefined
       ? createInferenceResult(input.inference)
       : entry.inference;
+  const impact = input.impact ?? entry.impact;
 
   return createAnalyzedChangelogEntry({
     ...entry,
     ...(contentJa !== undefined ? { contentJa } : {}),
     featureAreas: input.featureAreas ?? entry.featureAreas,
     ...(inference !== undefined ? { inference } : {}),
+    ...(impact !== undefined ? { impact } : {}),
   });
 }
 
