@@ -27,6 +27,15 @@ const InferenceBatchResultSchema = z.object({
       }),
     )
     .optional(),
+  impact_items: z.array(
+    z.object({
+      id: z.number(),
+      reason: z.string(),
+      default_behavior_change: z.boolean(),
+      breaking: z.boolean(),
+      level: z.enum(['high', 'medium', 'low']),
+    }),
+  ),
   summary: z.string(),
 });
 
@@ -227,6 +236,52 @@ export class GeminiClient {
                         required: ['id', 'feature_areas'],
                       },
                     },
+                    impact_items: {
+                      type: Type.ARRAY,
+                      description: '各項目の影響度評価(全項目対象)',
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          id: {
+                            type: Type.NUMBER,
+                            description: '元のitems配列のインデックス',
+                          },
+                          reason: {
+                            type: Type.STRING,
+                            description: '影響度判定の理由(1文)',
+                          },
+                          default_behavior_change: {
+                            type: Type.BOOLEAN,
+                            description:
+                              'opt-out 可能でもデフォルト挙動が黙って変わるか',
+                          },
+                          breaking: {
+                            type: Type.BOOLEAN,
+                            description: '今すでに使い方が壊れるか',
+                          },
+                          level: {
+                            type: Type.STRING,
+                            format: 'enum',
+                            enum: ['high', 'medium', 'low'],
+                            description: '総合的な影響度ラベル',
+                          },
+                        },
+                        propertyOrdering: [
+                          'id',
+                          'reason',
+                          'default_behavior_change',
+                          'breaking',
+                          'level',
+                        ],
+                        required: [
+                          'id',
+                          'reason',
+                          'default_behavior_change',
+                          'breaking',
+                          'level',
+                        ],
+                      },
+                    },
                     summary: {
                       type: Type.STRING,
                       description: 'バージョン全体のサマリー(日本語、2-3文)',
@@ -236,9 +291,15 @@ export class GeminiClient {
                     'inferred_items',
                     'translated_items',
                     'feature_area_corrections',
+                    'impact_items',
                     'summary',
                   ],
-                  required: ['inferred_items', 'translated_items', 'summary'],
+                  required: [
+                    'inferred_items',
+                    'translated_items',
+                    'impact_items',
+                    'summary',
+                  ],
                 },
                 thinkingConfig: {
                   thinkingBudget: 0,

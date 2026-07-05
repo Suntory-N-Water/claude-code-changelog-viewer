@@ -48,6 +48,13 @@ function toInferenceBatch(result: InferenceBatchResult): InferenceBatch {
         featureAreas: item.feature_areas,
       }),
     ),
+    impactItems: result.impact_items.map((item) => ({
+      id: item.id,
+      level: item.level,
+      defaultBehaviorChange: item.default_behavior_change,
+      breaking: item.breaking,
+      reason: item.reason,
+    })),
     summary: result.summary,
   });
 }

@@ -27,6 +27,14 @@ export type InferenceWithTranslation = z.infer<
   typeof InferenceWithTranslationSchema
 >;
 
+export const ImpactAssessmentSchema = z.object({
+  level: z.enum(['high', 'medium', 'low']),
+  default_behavior_change: z.boolean(),
+  breaking: z.boolean(),
+  reason: z.string(),
+});
+export type ImpactAssessment = z.infer<typeof ImpactAssessmentSchema>;
+
 // ChangelogItem
 export const ChangelogItemSchema = z.object({
   content: z.string(), // 英語原文
@@ -35,6 +43,7 @@ export const ChangelogItemSchema = z.object({
   feature_areas: z.array(z.string()).optional(), // 機能領域タグ
   related_docs: z.array(RelatedDocSchema),
   inference: InferenceResultSchema.optional(),
+  impact: ImpactAssessmentSchema.optional(),
 });
 export type ChangelogItem = z.infer<typeof ChangelogItemSchema>;
 

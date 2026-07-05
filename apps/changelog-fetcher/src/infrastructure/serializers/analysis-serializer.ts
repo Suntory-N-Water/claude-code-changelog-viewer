@@ -42,6 +42,16 @@ export function toChangelogAnalysis(analysis: Analysis): ChangelogAnalysis {
               }),
             }
           : {}),
+        ...(item.impact !== undefined
+          ? {
+              impact: {
+                level: item.impact.level,
+                defaultBehaviorChange: item.impact.default_behavior_change,
+                breaking: item.impact.breaking,
+                reason: item.impact.reason,
+              },
+            }
+          : {}),
         ...(item.content_ja !== undefined
           ? { contentJa: item.content_ja }
           : {}),
@@ -73,6 +83,16 @@ export function toAnalysisJson(analysis: ChangelogAnalysis): Analysis {
             },
           }
         : {}),
+      ...(entry.impact !== undefined
+        ? {
+            impact: {
+              level: entry.impact.level,
+              default_behavior_change: entry.impact.defaultBehaviorChange,
+              breaking: entry.impact.breaking,
+              reason: entry.impact.reason,
+            },
+          }
+        : {}),
     })),
   });
 }
@@ -95,6 +115,16 @@ export function toInferredJson(analysis: ChangelogAnalysis): InferredAnalysis {
               before: entry.inference.before,
               after: entry.inference.after,
               benefit: entry.inference.benefit,
+            },
+          }
+        : {}),
+      ...(entry.impact !== undefined
+        ? {
+            impact: {
+              level: entry.impact.level,
+              default_behavior_change: entry.impact.defaultBehaviorChange,
+              breaking: entry.impact.breaking,
+              reason: entry.impact.reason,
             },
           }
         : {}),
