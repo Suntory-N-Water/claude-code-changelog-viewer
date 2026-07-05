@@ -50,6 +50,12 @@ export function collectFeatureAreas(
 
 const CLAUDE_CODE_DOCS_BASE = 'https://code.claude.com/docs';
 
+export function getOfficialDocLinkLabel(url: string): string {
+  const withoutHash = url.split('#')[0] ?? url;
+  const pathname = new URL(withoutHash).pathname;
+  return pathname.split('/').filter(Boolean).at(-1) ?? url;
+}
+
 /**
  * description_en から公式ドキュメントURLとラベルを抽出する。
  * - Markdown リンク [text](/en/path) / [text](https://...)
@@ -78,7 +84,31 @@ export function extractOfficialDocUrls(
     const url = match[1];
     if (!seen.has(url)) {
       seen.add(url);
-      results.push({ label: '公式ドキュメントを参照', url });
+      results.push({ label: getOfficialDocLinkLabel(url), url });
+    }
+  }
+
+  return results;
+}
+
+export function mergeOfficialDocUrls(
+  primaryLinks: { label: string; url: string }[],
+  supplementalUrls: string[],
+): { label: string; url: string }[] {
+  const results: { label: string; url: string }[] = [];
+  const seen = new Set<string>();
+
+  for (const link of primaryLinks) {
+    if (!seen.has(link.url)) {
+      seen.add(link.url);
+      results.push(link);
+    }
+  }
+
+  for (const url of supplementalUrls) {
+    if (!seen.has(url)) {
+      seen.add(url);
+      results.push({ label: getOfficialDocLinkLabel(url), url });
     }
   }
 
