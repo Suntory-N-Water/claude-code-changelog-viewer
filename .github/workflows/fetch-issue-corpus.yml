@@ -1,0 +1,151 @@
+name: Fetch Issue Corpus
+
+on:
+  schedule:
+    - cron: "30 */6 * * *" # 6h 間隔 (builtin-data cron とタイミング分散)
+  workflow_dispatch:
+    inputs:
+      full_scan:
+        description: "初回 seed 等、last_fetch を無視して全件走査するか"
+        type: boolean
+        required: false
+        default: false
+      enrich_author_association:
+        description: "commenter クエリで拾えなかった issue の comments を追加取得して maintainer 判定を補正するか"
+        type: boolean
+        required: false
+        default: false
+
+# tie-issue と embeddings rebuild の競合を防ぐ
+concurrency:
+  group: fetch-and-tie
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 環境セットアップ
+        uses: ./.github/actions/setup
+
+      - name: Issue コーパスを取得
+        run: |
+          set --
+          if [ "${{ inputs.full_scan }}" = "true" ]; then
+            set -- "$@" --full-scan
+          fi
+          if [ "${{ inputs.enrich_author_association }}" = "true" ]; then
+            set -- "$@" --enrich-author-association
+          fi
+          pnpm run --filter changelog-fetcher fetch:issues -- "$@"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NODE_ENV: production
+
+      - name: コーパスの変更確認
+        id: corpus-check
+        run: |
+          git add \
+            apps/changelog-fetcher/issues-corpus/ \
+            apps/changelog-fetcher/metadata/issues-fetch.json
+
+          CHANGED=$(git diff --staged --name-only | wc -l | tr -d ' ')
+          echo "changed_files=$CHANGED" >> "$GITHUB_OUTPUT"
+
+          if [ "$CHANGED" -gt 0 ]; then
+            echo "should_embed=true" >> "$GITHUB_OUTPUT"
+            echo "✅ コーパスに更新あり: $CHANGED ファイル"
+          else
+            echo "should_embed=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ コーパスに更新なし"
+          fi
+
+      - name: Embeddings を再生成
+        if: steps.corpus-check.outputs.should_embed == 'true'
+        run: pnpm run --filter changelog-fetcher build:issues-embeddings
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NODE_ENV: production
+
+      - name: Embeddings 差分を stage
+        if: steps.corpus-check.outputs.should_embed == 'true'
+        id: embeddings-check
+        run: |
+          git add apps/changelog-fetcher/issues-embeddings/embeddings.jsonl
+
+          CHANGED=$(git diff --staged --name-only | wc -l | tr -d ' ')
+          echo "changed_files=$CHANGED" >> "$GITHUB_OUTPUT"
+
+      - name: PR メタデータ準備
+        id: pr-meta
+        if: steps.corpus-check.outputs.should_embed == 'true'
+        env:
+          CHANGED_COUNT: ${{ steps.embeddings-check.outputs.changed_files }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BODY="Issue コーパスと embeddings の自動更新"$'\n\n'"自動更新時刻: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"$'\n\n'"変更ファイル:"
+
+          for file in $(git diff --staged --name-only); do
+            BODY="${BODY}"$'\n'"- ${file}"
+          done
+
+          {
+            echo "title=chore: Issue コーパスと embeddings を更新 (${CHANGED_COUNT} files)"
+            echo "body<<EOF"
+            echo "${BODY}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: プルリクエストを作成
+        id: create-pr
+        if: steps.corpus-check.outputs.should_embed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ github.token }}
+          branch: chore/update-issue-corpus
+          commit-message: ${{ steps.pr-meta.outputs.title }}
+          title: ${{ steps.pr-meta.outputs.title }}
+          body: ${{ steps.pr-meta.outputs.body }}
+          delete-branch: true
+
+      - name: PR をマージ
+        if: steps.corpus-check.outputs.should_embed == 'true' &&
+          steps.create-pr.outputs.pull-request-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.create-pr.outputs.pull-request-number }}
+        run: |
+          gh pr merge "$PR_NUMBER" \
+            --merge \
+            --admin \
+            --delete-branch
+          echo "✓ PR #${PR_NUMBER} をマージしました"
+
+      - name: 失敗時に Issue を作成
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_TITLE: Issue コーパス取得に失敗
+          ISSUE_SUMMARY: Issue コーパス / embeddings の自動取得に失敗しました。
+          ISSUE_LABELS: automated-failure,workflow:fetch-issue-corpus,bug
+        with:
+          script: |
+            const createIssue = require('./.github/scripts/create-automated-failure-issue.cjs');
+            await createIssue({ github, context, core });
