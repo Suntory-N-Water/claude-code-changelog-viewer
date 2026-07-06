@@ -20,6 +20,12 @@ export type IssueCommentItem = Awaited<
 const REPO_OWNER = 'anthropics';
 const REPO_NAME = 'claude-code';
 const MAX_RETRY_COUNT = 3;
+const REQUEST_TIMEOUT_MS = 30_000;
+
+// Node fetch (undici) の keep-alive ソケットが腐ると応答が数十分単位で返らなくなり、
+// retry plugin もレスポンスが返らない限り発動しないため、明示的なタイムアウトで強制中断する。
+const fetchWithTimeout: typeof fetch = (input, init) =>
+  fetch(input, { ...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
 
 type ClientOptions = {
   token: string;
@@ -39,6 +45,9 @@ export class AnthropicIssuesClient {
     const log = this.log;
     this.octokit = new IssuesOctokit({
       auth: options.token,
+      request: {
+        fetch: fetchWithTimeout,
+      },
       throttle: {
         // biome-ignore lint/complexity/useMaxParams: octokit throttling plugin API signature
         onRateLimit: (retryAfter, requestOptions, _octokit, retryCount) => {
