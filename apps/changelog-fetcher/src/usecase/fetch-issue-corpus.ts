@@ -61,15 +61,16 @@ export async function fetchIssueCorpus(
   const maintainerHits = new Set<number>();
   const duplicateChildren: SearchIssueItem[] = [];
 
+  const repo = input.client.repoQualifier;
   const heatQueries = [
-    joinQuery('is:issue reactions:>=10', timeFilter),
-    joinQuery('is:issue comments:>=10', timeFilter),
+    joinQuery(`${repo} is:issue reactions:>=10`, timeFilter),
+    joinQuery(`${repo} is:issue comments:>=10`, timeFilter),
   ];
   const maintainerQueries = input.maintainerHandles.map((handle) =>
-    joinQuery(`is:issue commenter:${handle}`, timeFilter),
+    joinQuery(`${repo} is:issue commenter:${handle}`, timeFilter),
   );
   const duplicateBaseQuery = joinQuery(
-    'is:issue is:closed reason:not-planned',
+    `${repo} is:issue reason:duplicate`,
     timeFilter,
   );
 
@@ -92,7 +93,11 @@ export async function fetchIssueCorpus(
   for (const q of maintainerQueries) {
     await collect(q, (item) => maintainerHits.add(item.number));
   }
-  await collect(duplicateBaseQuery, (item) => duplicateChildren.push(item));
+  // duplicate 子は親元集計にのみ使い、corpus には取り込まない
+  // (被参照回数 >= 3 の親元だけを forcedParents 経由で強制取込する)
+  for await (const item of input.client.searchIssues(duplicateBaseQuery)) {
+    duplicateChildren.push(item);
+  }
 
   input.logger.info(
     `Search API 完了: encountered=${encountered.size} maintainerHits=${maintainerHits.size} duplicateChildren=${duplicateChildren.length}`,
