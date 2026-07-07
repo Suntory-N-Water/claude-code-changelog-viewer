@@ -1,0 +1,820 @@
+{
+  "version": "2.1.203",
+  "summary": "大規模なバイナリ最適化とメモリ使用量の削減が実施され、起動と応答性が全体的に向上しました。特にサブエージェントの動作やGit Worktree関連の致命的な不具合、macOSでのメモリ検出バグなどが集中的に修正され、バックグラウンド実行の安定性が大幅に強化されています。",
+  "items": [
+    {
+      "content": "- Added a warning when your login is about to expire, so you can re-authenticate before background sessions are interrupted",
+      "content_ja": "ログイン有効期限が近づいた際の警告を追加し、バックグラウンドセッションが切断される前に再認証できるようにしました。",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "OAuthトークンの有効期限が切れると、バックグラウンドセッションが予期せず中断されることがありました。",
+        "after": "有効期限が近づくと通知が表示され、中断前に手動で再認証を行えるようになりました。",
+        "benefit": "セッションの不意な切断を防ぎ、作業を中断させずに継続できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w26.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added a grey ⏸ badge to the footer when in manual permission mode, making the active mode always visible",
+      "content_ja": "手動パーミッションモード時にフッターへグレーの「⏸」バッジを表示し、現在のモードを常時確認できるようにしました。",
+      "prefix": "Added",
+      "feature_areas": ["Permissions"],
+      "inference": {
+        "before": "現在のパーミッション設定モードが一目で分からない場合がありました。",
+        "after": "フッターにステータスバッジが追加され、手動モードであることを視覚的に確認できます。",
+        "benefit": "誤って予期しないツール実行を許可してしまうリスクを減らし、安全な作業環境を維持できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/permission-modes.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/vs-code.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added the session's additional working directories to MCP `roots/list`, with `notifications/roots/list_changed` sent when the set changes",
+      "content_ja": "セッションで追加された作業ディレクトリをMCPのroots/listに追加し、変更時に通知を送信するようにしました。",
+      "prefix": "Added",
+      "feature_areas": ["MCP"],
+      "inference": {
+        "before": "MCPサーバーがセッション固有の動的な作業ディレクトリ変更を認識しにくい状態でした。",
+        "after": "作業ディレクトリが追加・変更されると、roots/listを通じてMCPへ適切に通知されます。",
+        "benefit": "ツール連携時に常に最新の作業ディレクトリが参照されるため、ファイル操作の正確性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/large-codebases.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed opening or switching background agent sessions on macOS stalling for 15–20 seconds due to a false low-memory detection (regression in 2.1.196)",
+      "content_ja": "macOSでバックグラウンドエージェントセッションの開始時に発生していた誤ったメモリ不足検出による停止（約15〜20秒のフリーズ）を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "macOS環境でメモリが十分であっても、開始プロセスが誤判定でフリーズすることがありました。",
+        "after": "メモリ検出ロジックが最適化され、不必要な停止を防ぐように改善されました。",
+        "benefit": "セッション起動時の安定性が向上し、ストレスなくエージェントを開始できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background sessions becoming permanently unresponsive to attach, replies, and stop when the daemon's session token went stale — the session now recovers automatically",
+      "content_ja": "セッションのトークン期限切れによりバックグラウンドセッションが応答不能になる問題を修正し、自動的に復旧するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "トークンが古くなるとセッションが反応しなくなり、手動での再起動が必要でした。",
+        "after": "トークン期限切れを検知し、自動的にセッションを回復させる仕組みが導入されました。",
+        "benefit": "放置していたバックグラウンドタスクがいつの間にか止まってしまう問題が解消されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/cli-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/web-quickstart.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed returning to `claude agents` silently stopping running subagents and re-running the prompt from scratch — their work now carries over",
+      "content_ja": "claude agentsに戻った際に実行中のサブエージェントが停止し、最初からやり直される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "エージェントの一覧に戻ると、実行中だったサブエージェントの作業状態が破棄されることがありました。",
+        "after": "エージェントの作業状態が適切に引き継がれ、中断地点から継続されるようになりました。",
+        "benefit": "長時間の並列タスクを安心して管理でき、無駄な再計算が発生しません。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed a memory and per-turn CPU regression in interactive sessions: the context-usage indicator no longer re-analyzes the entire transcript after every turn",
+      "content_ja": "対話型セッションにおけるコンテキスト使用量インジケーターのパフォーマンス低下を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ターンごとに全トランスクリプトを再解析しており、セッションが長くなるとCPUとメモリを圧迫していました。",
+        "after": "再解析処理を最適化し、表示に必要な負荷を大幅に削減しました。",
+        "benefit": "長い対話でもツール全体の応答速度と動作が軽快に保たれます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/terminal-config.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background agents inheriting a stale `PATH` from the daemon instead of the dispatching shell, causing missing tools on Windows",
+      "content_ja": "バックグラウンドエージェントが親セッションのPATHではなくデーモンの古いPATHを継承し、ツールが見つからない問題をWindowsで修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "Windows環境で、シェルが正しくPATHを読み込めず、コマンドが見つからないエラーが多発していました。",
+        "after": "起動シェル環境を正しく反映するように修正されました。",
+        "benefit": "Windows環境での環境構築の苦労が減り、コマンド実行の信頼性が高まります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background and agent-view sessions dropping a shell-exported `ANTHROPIC_BASE_URL`, which sent API keys to the default endpoint and failed with 401",
+      "content_ja": "バックグラウンドセッションでANTHROPIC_BASE_URLが適切に反映されない問題を修正し、401エラーを防ぐようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "特定の環境変数がバックグラウンドプロセスに引き継がれず、認証エラーになることがありました。",
+        "after": "環境変数が適切にセッション間で共有されるようになりました。",
+        "benefit": "LLMゲートウェイを利用している環境での認証失敗が解消されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-rollout.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-connect.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed Bash failing with \"argument list too long\" in repos with many git worktrees",
+      "content_ja": "Git worktreeが多数存在するリポジトリでBashの引数リストが長すぎる問題を防ぐようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "リポジトリの構造が複雑だと、シェル実行時に「Argument list too long」エラーで失敗することがありました。",
+        "after": "引数の処理方法を最適化し、大規模なリポジトリでも動作するように修正しました。",
+        "benefit": "巨大なモノレポなどでも問題なくコマンドを実行できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed worktree-isolated subagents sometimes running shell commands in the parent checkout instead of their own worktree",
+      "content_ja": "Worktree分離されたサブエージェントが誤ったリポジトリ内でコマンドを実行する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "サブエージェントが適切な作業ディレクトリではなく、親リポジトリでシェルを実行してしまうことがありました。",
+        "after": "サブエージェントの作業コンテキストを分離されたWorktreeに強制するように修正しました。",
+        "benefit": "並列作業中に意図しないファイル変更やコマンド実行が起こるリスクが低減されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed worktree creation rejecting nested repositories in multi-repo workspaces, leaving background sessions unable to isolate and edit",
+      "content_ja": "マルチレポ構成で入れ子のリポジトリがある場合にWorktree作成が失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "深い階層のリポジトリ構成でWorktreeの作成が拒否されることがありました。",
+        "after": "階層構造を適切にハンドリングするように修正しました。",
+        "benefit": "複雑なディレクトリ構成でも、問題なくエージェントの並列化が利用できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background agents crash-looping when their working directory was deleted, replaced by a file, or became an invalid path — they now fail once with a clear error",
+      "content_ja": "作業ディレクトリの消失やファイルへの置き換え時にバックグラウンドエージェントが無限ループするのを防ぐようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "ディレクトリの状態異常時にプロセスが無限ループし、CPUを消費し続けていました。",
+        "after": "異常検知時に1度だけ明確なエラーを表示して停止するようになりました。",
+        "benefit": "リソースの浪費を防ぎ、トラブルの原因が特定しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-marketplaces.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed a background daemon auto-upgrade failure silently killing all running background sessions",
+      "content_ja": "バックグラウンドデーモンの自動更新失敗によって、実行中のバックグラウンドセッションが全て終了してしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "更新の競合でエージェントプロセス全体が停止するリスクがありました。",
+        "after": "更新失敗時にも既存のセッションを可能な限り維持するように改善しました。",
+        "benefit": "アップデートに伴う予期せぬタスク中断を回避できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/setup.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `TaskStop` and `TaskOutput` failing to find background agents spawned by another agent — errors now list running agents by id and description",
+      "content_ja": "TaskStopおよびTaskOutputツールが、他のエージェントから起動されたエージェントを検出できるように修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "親エージェント以外が生成したタスクのID取得に失敗することがありました。",
+        "after": "タスクの追跡ロジックを強化し、実行中のエージェントを正確に特定可能にしました。",
+        "benefit": "複雑なサブエージェント構成でもタスク管理ツールが意図通りに動作します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed the `claude agents` composer discarding your typed message when a slash command isn't available there",
+      "content_ja": "claude agents内でコマンドが利用できない場合に、入力したメッセージが破棄される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "composer UIでスラッシュコマンド入力時にエラーがあると、入力した内容が消えてしまい書き直す必要がありました。",
+        "after": "無効なコマンドでも入力内容が維持されるように修正されました。",
+        "benefit": "誤入力時でもメッセージが消えず、スムーズに修正して送信できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/slash-commands.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/communications-kit.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed the agent list crashing when opening a stopped session whose conversation was already open in another session",
+      "content_ja": "既に別のセッションで開かれている停止中のセッションを開く際にエージェントリストがクラッシュする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "セッションの競合状態によってリスト表示がクラッシュすることがありました。",
+        "after": "セッション状態の整合性チェックを強化し、クラッシュを回避するようにしました。",
+        "benefit": "セッション管理機能の堅牢性が向上しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background sessions showing \"Needs input\" in the agent list after the question was already answered",
+      "content_ja": "質問に回答済みであるにもかかわらず、エージェントリストに「Needs input」が表示され続ける問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "回答の同期ずれにより、既に終わったタスクがいつまでも入力を待っているように見えていました。",
+        "after": "ステータスの同期処理を改善し、正確な状態を表示するようにしました。",
+        "benefit": "現在のタスクの状態を正しく把握でき、混乱を防げます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/user-input.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background agent startup failures showing only \"exit_with_message\" instead of the actual error",
+      "content_ja": "バックグラウンドエージェントの起動失敗時に詳細なエラーを出力するようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "何が原因で失敗したか不明なまま「exit_with_message」という汎用的なエラーが表示されていました。",
+        "after": "失敗時の実際のエラー内容を確認できるようになりました。",
+        "benefit": "トラブルシューティングが大幅に効率化されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/server-managed-settings.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background sessions ignoring `effortLevel` changes in settings.json when forked through the daemon",
+      "content_ja": "デーモン経由でフォークされた場合に、settings.jsonのeffortLevel変更が無視される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams", "Settings"],
+      "inference": {
+        "before": "設定ファイルでeffortLevelを変更しても、バックグラウンドフォークには反映されませんでした。",
+        "after": "設定変更がフォーク先にも正しく適用されるようになりました。",
+        "benefit": "推論設定が意図通りに動作し、期待する品質でタスクを進められます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/tools-reference.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed attached background sessions ignoring `CLAUDE_CODE_DISABLE_MOUSE` and `CLAUDE_CODE_DISABLE_MOUSE_CLICKS` opt-outs",
+      "content_ja": "再接続されたバックグラウンドセッションがマウス操作の無効化オプションを無視する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "設定でマウス操作を無効にしていても、再接続時に設定が反映されませんでした。",
+        "after": "マウス設定の引き継ぎが正しく行われるようになりました。",
+        "benefit": "自分好みのターミナル操作環境を一貫して維持できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/common-workflows.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `/exit` incorrectly warning about running background agents after all named agents had completed",
+      "content_ja": "全てのエージェントが完了した後に/exitがバックグラウンドエージェントの動作警告を誤って表示する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "終了しているにも関わらず、動作中と誤認して警告が出る場合がありました。",
+        "after": "実行状態を正確に判定して警告を表示するように修正しました。",
+        "benefit": "不要な警告に煩わされることなく、スムーズにツールを終了できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/quickstart.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background sessions started from a non-git directory unable to edit files when a `WorktreeCreate` hook was configured",
+      "content_ja": "WorktreeCreateフック設定時に、非Gitディレクトリから開始されたバックグラウンドセッションがファイル編集できない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Hooks", "Agent Teams"],
+      "inference": {
+        "before": "Gitリポジトリ外での作業でカスタムフックを使用する際、編集権限が得られない不具合がありました。",
+        "after": "フック経由の作業ディレクトリ設定をより柔軟に扱えるようにしました。",
+        "benefit": "SVNやPerforceなど、Git以外のバージョン管理環境でもエージェント機能が活用可能になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/worktrees.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed the `@` directory picker in `claude agents` not showing registered git worktrees",
+      "content_ja": "claude agentsの@ディレクトリピッカーで登録済みのGit Worktreeが表示されない問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "Worktreeを使用している際に、ディレクトリ候補としてリストに出てきませんでした。",
+        "after": "Git Worktreeのリストを正しくピッカーに含めるようにしました。",
+        "benefit": "複数のプロジェクトを効率的に管理している場合、迅速な作業切り替えが可能です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed background task output on Windows being permanently replaced by an empty file after `/clear`",
+      "content_ja": "Windowsで/clear実行後にバックグラウンドタスクの出力が空ファイルで置換される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "コンテキストクリアを行うと、ログ出力が失われてしまう現象がありました。",
+        "after": "ファイル操作の同期を見直し、データを保持するように修正しました。",
+        "benefit": "コンテキストをリセットしても、実行中のジョブのログ結果を失う心配がありません。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/best-practices.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-teams.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed content jumping when scrolling up through long transcript history",
+      "content_ja": "トランスクリプト履歴をスクロールする際、コンテンツが不自然にジャンプする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "長い履歴の閲覧時にスクロール位置が安定せず、読みづらい状態でした。",
+        "after": "描画処理を改善し、スムーズなスクロールを実現しました。",
+        "benefit": "過去のやり取りを見返す際の操作感が大幅に向上しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-directory.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed the terminal flickering and jumping while typing in bash mode when a shell-history suggestion was shown",
+      "content_ja": "Bashモードでの入力中に履歴提案が表示される際、ターミナルが点滅・ジャンプする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "補完候補の表示とターミナルのリフレッシュが干渉していました。",
+        "after": "描画タイミングを最適化し、点滅を抑制しました。",
+        "benefit": "Bashコマンド入力時の表示が安定し、集中を妨げられなくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w19.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed literal `^[[I` / `^[[O` escape codes being printed when reattaching to a background session",
+      "content_ja": "バックグラウンドセッションに再接続する際、リテラルなエスケープコードが表示される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "端末によっては再接続時に謎の文字コードが表示されていました。",
+        "after": "エスケープシーケンスを適切にハンドリングするように修正しました。",
+        "benefit": "クリーンで読みやすいターミナル表示が保たれます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed LSP-only plugins being incorrectly flagged for disuse when their language servers deliver diagnostics or answer navigation requests",
+      "content_ja": "LSP専用プラグインが診断結果やナビゲーションを提供しているにも関わらず、誤って「使用されていない」と判定される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Plugins"],
+      "inference": {
+        "before": "LSPが正しく機能していても、プラグイン自体が利用不可とみなされることがありました。",
+        "after": "診断情報などのアクティビティを正しく検知するようにしました。",
+        "benefit": "LSPプラグインの稼働状況が正確に可視化され、不要な通知がなくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/plugins-reference.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/discover-plugins.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugins.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved responsiveness while long responses stream: live-preview updates no longer re-render the whole screen",
+      "content_ja": "長い回答のストリーミング時に画面全体を再レンダリングしないようにし、応答性を向上させました。",
+      "prefix": "Improved",
+      "feature_areas": [],
+      "inference": {
+        "before": "回答のストリーミング中、画面描画負荷が高く遅延の原因になっていました。",
+        "after": "レンダリング効率を改善し、表示更新の負荷を軽減しました。",
+        "benefit": "長文の回答やコード生成中も、動作が滑らかで快適です。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/fullscreen.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/fast-mode.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved subagent behavior: agents are now less likely to re-delegate their entire task to another subagent",
+      "content_ja": "サブエージェントがタスクを他のサブエージェントに再委譲しすぎる挙動を抑制し、効率的に動作するように改善しました。",
+      "prefix": "Improved",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "エージェントの委譲チェーンが深くなりすぎて、推論効率が低下する傾向がありました。",
+        "after": "自律的な判断基準を調整し、適切な粒度でタスクをこなすようにしました。",
+        "benefit": "無駄なエージェント生成が減り、タスク完了までの速度と信頼性が向上します。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sub-agents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/subagents.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/glossary.md"
+        }
+      ]
+    },
+    {
+      "content": "- Reduced binary size by ~7 MB and startup memory by ~7 MB by loading a large bundled dependency lazily instead of inlining it",
+      "content_ja": "バンドルされていた大きな依存関係をインライン化ではなく遅延読み込みに変更し、バイナリサイズとメモリ使用量を約7MB削減しました。",
+      "prefix": "Changed",
+      "feature_areas": [],
+      "inference": {
+        "before": "起動時に大きなライブラリを全て読み込んでいたため、メモリ効率が悪化していました。",
+        "after": "必要なタイミングで読み込むよう設計を変更しました。",
+        "benefit": "Claude Code全体の軽量化と、初回起動の高速化を実現しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "content": "- Changed left arrow to no longer close the background tasks, diff, and workflow detail views — press Esc instead",
+      "content_ja": "左矢印キーによる詳細ビューの誤った終了を無効化し、Escキーでの終了に変更しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "タスク詳細を表示中に左矢印キーを押すと、意図せずビューが閉じてしまう問題がありました。",
+        "after": "誤操作を防ぐため、ビューの終了をEscキーに限定しました。",
+        "benefit": "キー操作中の誤クリックによる詳細ウィンドウの消失を防ぎ、作業を継続しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        }
+      ]
+    },
+    {
+      "content": "- Changed the empty `claude agents` view to always show the organized sections (Needs input / Working / Completed) with descriptions",
+      "content_ja": "エージェントリストが空の状態でも、「Needs input」「Working」「Completed」の各セクション説明が表示されるように改善しました。",
+      "prefix": "Changed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "初期状態でリストが空だと、各グループの用途が分かりにくい状態でした。",
+        "after": "各状態グループの説明文を常時表示し、UIのガイダンスを強化しました。",
+        "benefit": "初めてclaude agentsを開いたユーザーでも、現在の状態の意味が直感的に分かります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/ultraplan.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/todo-tracking.md"
+        }
+      ]
+    },
+    {
+      "content": "- Removed the startup \"claude command missing or broken\" warnings — they now appear in `/doctor` and `/status` instead",
+      "content_ja": "起動時の「claude command missing or broken」警告を非表示にし、/doctorや/statusで確認できるように変更しました。",
+      "prefix": "Removed",
+      "feature_areas": [],
+      "inference": {
+        "before": "起動のたびに警告が表示され、環境によっては鬱陶しい場合がありました。",
+        "after": "診断が必要な場合にのみユーザーがアクセスできるよう、警告を/doctor等へ集約しました。",
+        "benefit": "スタートアップの出力がクリーンになり、必要な時だけ情報を取得できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/llm-gateway-connect.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/sandboxing.md"
+        }
+      ]
+    },
+    {
+      "content": "- Removed a redundant navigation hint from the `claude agents` footer",
+      "content_ja": "claude agentsフッターの重複していたナビゲーションヒントを削除しました。",
+      "prefix": "Removed",
+      "feature_areas": ["Agent Teams"],
+      "inference": {
+        "before": "フッター部分に冗長な操作説明が表示されていました。",
+        "after": "インターフェースを整理し、視認性を高めました。",
+        "benefit": "表示領域が広がり、より重要な情報を集中して確認できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/plugin-hints.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/auto-mode-config.md"
+        }
+      ]
+    },
+    {
+      "content": "- [VSCode] Added a Settings toggle for \"Enable Remote Control for all sessions\"",
+      "content_ja": "[VSCode] 「全てのセッションでRemote Controlを有効にする」設定トグルを追加しました。",
+      "prefix": "Added",
+      "feature_areas": ["IDE"],
+      "inference": {
+        "before": "セッションごとに毎回設定を確認する必要がありました。",
+        "after": "VSCodeの設定パネルからデフォルトで有効化できるようになりました。",
+        "benefit": "頻繁に遠隔操作を利用するユーザーが、毎回の手間なしで作業を開始できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/computer-use.md"
+        }
+      ]
+    }
+  ]
+}
