@@ -68,7 +68,7 @@ const MODEL_RATE_LIMITS: Record<string, number> = {
   'gemini-2.5-flash-lite': 10 * 1000, // 6 RPM
 };
 
-const EMBEDDING_MODEL = 'gemini-embedding-001';
+const EMBEDDING_MODEL = 'gemini-embedding-2';
 const EMBEDDING_FREE_TIER_RPM = 100;
 const EMBEDDING_PAID_TIER_RPM = 3000;
 const EMBEDDING_BATCH_MAX_TEXTS = 100;
@@ -96,7 +96,7 @@ export class GeminiClient {
   private log: AppLogger;
   private lastRequestTimes: Map<string, number> = new Map();
   private lastEmbeddingBatchAt = 0;
-  private readonly embeddingMinIntervalMs: number;
+  private readonly embeddingRpm: number;
 
   constructor(apiKey: string, logger: AppLogger) {
     if (!apiKey) {
@@ -105,11 +105,10 @@ export class GeminiClient {
 
     this.ai = new GoogleGenAI({ apiKey });
     this.log = logger;
-    const rpm =
+    this.embeddingRpm =
       process.env['GEMINI_BILLING_TIER'] === 'paid'
         ? EMBEDDING_PAID_TIER_RPM
         : EMBEDDING_FREE_TIER_RPM;
-    this.embeddingMinIntervalMs = Math.ceil(60_000 / rpm);
   }
 
   /**
@@ -554,10 +553,15 @@ export class GeminiClient {
 
     return await pRetry(
       async () => {
-        await this.waitForEmbeddingRateLimit();
+        // free tier のクォータはリクエスト数ではなく embed 対象のテキスト数を消費するため、
+        // バッチサイズ分を考慮した間隔を空ける
+        await this.waitForEmbeddingRateLimit(texts.length);
         const response = await this.ai.models.embedContent({
           model: EMBEDDING_MODEL,
-          contents: texts,
+          // gemini-embedding-2 は contents に文字列配列をそのまま渡すと
+          // 全文字列が1つの Content に集約され単一 embedding になる。
+          // Content オブジェクトでラップすることで個別 embedding を得る。
+          contents: texts.map((text) => ({ parts: [{ text }] })),
         });
         const embeddings = response.embeddings;
         if (!embeddings || embeddings.length !== texts.length) {
@@ -581,8 +585,9 @@ export class GeminiClient {
           if (!this.isRetryableError(error)) {
             throw new AbortError(error.message);
           }
+          const status = error instanceof ApiError ? error.status : undefined;
           this.log.warn(
-            `埋め込みリトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1})`,
+            `埋め込みリトライ待機: ${RETRY_DELAY_MS / 1000}秒 (${attemptNumber}/${MAX_RETRIES_PER_MODEL + 1}) status=${status} message=${error.message}`,
             { method: 'batchEmbedContents' },
           );
           await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
@@ -591,12 +596,13 @@ export class GeminiClient {
     );
   }
 
-  private async waitForEmbeddingRateLimit(): Promise<void> {
+  private async waitForEmbeddingRateLimit(textCount: number): Promise<void> {
+    const minIntervalMs = Math.ceil((60_000 * textCount) / this.embeddingRpm);
     const now = Date.now();
     const elapsed = now - this.lastEmbeddingBatchAt;
-    if (elapsed < this.embeddingMinIntervalMs) {
+    if (elapsed < minIntervalMs) {
       await new Promise((resolve) =>
-        setTimeout(resolve, this.embeddingMinIntervalMs - elapsed),
+        setTimeout(resolve, minIntervalMs - elapsed),
       );
     }
     this.lastEmbeddingBatchAt = Date.now();
