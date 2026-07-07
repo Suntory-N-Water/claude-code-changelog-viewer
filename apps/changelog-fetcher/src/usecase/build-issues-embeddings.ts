@@ -47,12 +47,24 @@ export async function buildIssuesEmbeddings(
 
   const now = new Date().toISOString();
   const updated = new Map<number, EmbeddingRecord>(existing);
+  let embeddedCount = 0;
 
   for (let i = 0; i < targets.length; i += BATCH_SIZE) {
     const batch = targets.slice(i, i + BATCH_SIZE);
     const texts = batch.map(({ entry }) => buildEmbedText(entry));
-    const vectors = await input.embeddings.batchEmbedContents(texts);
+    let vectors: number[][];
+    try {
+      vectors = await input.embeddings.batchEmbedContents(texts);
+    } catch (error) {
+      await writeEmbeddings(input.embeddingsPath, updated);
+      const remaining = targets.length - i;
+      input.logger.error(
+        `batch 失敗: 完了=${i}/${targets.length} 残=${remaining} 部分保存済み。再実行時は残 ${remaining} 件のみ処理されます`,
+      );
+      throw error;
+    }
     if (vectors.length !== batch.length) {
+      await writeEmbeddings(input.embeddingsPath, updated);
       throw new Error(
         `バッチ応答不整合: batch=${batch.length} vectors=${vectors.length}`,
       );
@@ -68,13 +80,15 @@ export async function buildIssuesEmbeddings(
         embedding: vector,
       });
     });
-    input.logger.info(`batch 完了: ${i + batch.length}/${targets.length}`);
+    embeddedCount += batch.length;
+    await writeEmbeddings(input.embeddingsPath, updated);
+    input.logger.info(
+      `batch 完了: ${i + batch.length}/${targets.length} (jsonl 書き出し済み)`,
+    );
   }
 
-  await writeEmbeddings(input.embeddingsPath, updated);
-
   return {
-    embedded: targets.length,
+    embedded: embeddedCount,
     skipped:
       existing.size -
       targets.filter((t) => existing.has(t.entry.number)).length,
