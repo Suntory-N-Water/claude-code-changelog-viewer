@@ -1,0 +1,402 @@
+{
+  "version": "2.1.202",
+  "summary": "大規模リポジトリでのセッション再開速度向上や、インストール時のネットワーク中断対策など、開発ワークフローを支える信頼性の強化が行われました。また、レビュー機能の分離やワークフロー制御の柔軟化により、タスクに応じたリソース管理がより細かく行えるようになっています。",
+  "items": [
+    {
+      "content": "- Added a \"Dynamic workflow size\" setting in `/config` for controlling how large Claude generally makes dynamic workflows (small/medium/large agent counts) — an advisory guideline, not an enforced cap",
+      "content_ja": "「動的ワークフローのサイズ」設定が追加され、Claudeが生成するワークフローの規模（エージェント数）を制御可能になりました。",
+      "prefix": "Added",
+      "feature_areas": ["Settings"],
+      "inference": {
+        "before": "ワークフローを実行する際、エージェント数がClaudeの判断に委ねられており、大規模なタスクで予期せず多くのリソースを消費する懸念がありました。",
+        "after": "`/config`にて、小・中・大から規模の目安を設定できるようになりました。これはあくまでガイドラインであり、強制的な制限ではありません。",
+        "benefit": "ワークフローの規模を予測しやすくなり、トークン消費量を調整したい場合にコスト管理の目安として活用できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w22.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/subagents.md"
+        }
+      ]
+    },
+    {
+      "content": "- Added `workflow.run_id` and `workflow.name` OpenTelemetry attributes to telemetry emitted by workflow-spawned agents, so a workflow run's activity can be reconstructed from OTel data",
+      "content_ja": "ワークフローで生成されたエージェントのテレメトリに `workflow.run_id` と `workflow.name` の属性が追加されました。",
+      "prefix": "Added",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "ワークフローに関連するエージェントのアクティビティを、外部のOpenTelemetry（OTel）バックエンド側で関連付けることが困難でした。",
+        "after": "OTelデータにワークフローの実行IDと名前が付与されるようになったため、収集されたデータからワークフロー全体の活動を正確に再構築できます。",
+        "benefit": "大規模な開発組織において、ワークフロー実行のパフォーマンス監視やトラブルシューティングがより詳細に行えるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-apps-gateway-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/hosting.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed a crash in the inline Ctrl+R history search when accepting or cancelling while the search was still scanning the history file",
+      "content_ja": "Ctrl+Rでの履歴検索中に検索結果を決定またはキャンセルするとクラッシュする問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "履歴検索機能を使用中に、スキャンが完了する前に操作を行うと予期せぬクラッシュが発生していました。",
+        "after": "バックグラウンドでの検索処理とユーザーの確定操作の同期が改善され、クラッシュせずに安全に終了できるようになりました。",
+        "benefit": "履歴検索機能をより安定して利用でき、誤操作によるセッション中断のリスクが減りました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/keybindings.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w19.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `/rename` on background sessions being reverted when the job restarts, which broke addressing the session by its new name",
+      "content_ja": "バックグラウンドセッションで `/rename` した名前が、ジョブ再起動時に元に戻ってしまう問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "セッション名を変更しても、バックグラウンド処理の再起動に伴い名称がリセットされ、名前でセッションを特定できなくなる不便さがありました。",
+        "after": "セッション名の変更状態が永続的に保持されるようになり、再起動後も指定した名前でセッションを呼び出せます。",
+        "benefit": "並行して複数のセッションを管理している際に、識別名を使った正確な切り替えが維持されるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/prompt-caching.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed transient mTLS handshake failures when settings were re-applied during an in-place client certificate rotation",
+      "content_ja": "クライアント証明書ローテーション時に設定が再適用される際、一時的にmTLSハンドシェイクが失敗する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "証明書更新のタイミングで通信設定がリフレッシュされる際、一時的な認証エラーが発生し接続が中断される場合がありました。",
+        "after": "証明書の更新処理における通信の堅牢性が高められ、設定適用時もセッションが切断されないようになりました。",
+        "benefit": "厳格なmTLS認証を要求されるエンタープライズ環境においても、中断なしにセッションを継続できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/network-config.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/monitoring-usage.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed commands sent from Remote Control (mobile/web) into an interactive session failing with \"Unknown command\"",
+      "content_ja": "Remote Control（モバイル/Webアプリ）から対話型セッションへコマンドを送信すると「Unknown command」になる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "Remote Control経由で送信した一部のコマンドが正しく認識されず、実行に失敗していました。",
+        "after": "コマンド送信プロトコルの解釈が改善され、外部アプリからの指示がセッション内で正しく処理されるようになりました。",
+        "benefit": "外出先からモバイルデバイスを使ってセッションを操作する際、よりスムーズに制御が可能になります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w16.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed images and files sent from the Remote Control mobile or web app without a caption being silently dropped",
+      "content_ja": "Remote Control経由でキャプションなしの画像やファイルを送信すると、密かに無視される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "キャプションが付与されていないメディアファイルをRemote Controlからアップロードすると、システム上で正しく認識されず取り込まれない場合がありました。",
+        "after": "キャプションの有無に関わらず、すべてのメディア送信が確実に受信・処理されるようになりました。",
+        "benefit": "モバイルからコードやドキュメントのスクリーンショットを気軽に共有する際の信頼性が向上しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/platforms.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed the sign-in URL printed by `claude auth login` and `claude mcp login --no-browser` not being reliably clickable when it wraps over SSH — it is now emitted as a single hyperlink",
+      "content_ja": "SSH接続時に `claude auth login` などで出力されるログイン用URLが、改行されてクリックできなくなる問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "SSHターミナルでURLが長すぎて折り返されると、URLが断片化されコピーやクリックが困難になるケースがありました。",
+        "after": "ログインURLを1つのハイパーリンクとして出力するように変更し、コピーやアクセスを容易にしました。",
+        "benefit": "リモートサーバーからClaude Codeへログインする際、認証の手間が大幅に軽減されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w18.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed opening a chat from `claude agents` sometimes failing with \"currently running as a background agent\" followed by a worker crash/respawn loop",
+      "content_ja": "`claude agents` からチャットを開く際、バックグラウンド実行中と判定されクラッシュ・再起動ループが発生する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "特定のタイミングでエージェントの状態管理が競合し、バックグラウンドエージェントとして実行中であるとの誤判定でループが発生していました。",
+        "after": "エージェントの起動状態とチャットアクセスのステータス管理を修正し、安定して接続できるようになりました。",
+        "benefit": "`claude agents` を使用したタスクのモニタリング中に発生する意図しないセッション再起動を防げます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed workflow scripts with unicode quote escapes in strings being corrupted before parsing; workflow parse errors now show the offending line instead of always blaming TypeScript",
+      "content_ja": "ワークフロー内の文字列でUnicodeクォートがエスケープされている場合に発生するスクリプト破壊問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "クォートのパース処理においてUnicode文字が誤って扱われ、スクリプトが破損したり、原因がTypeScriptエラーと誤認される不具合がありました。",
+        "after": "クォート処理の解析ロジックを修正し、パースエラー発生時には該当行が具体的に示されるようになりました。",
+        "benefit": "ワークフロー開発中のエラー特定が容易になり、スクリプト作成の生産性が向上しました。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/workflows.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/typescript.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/hooks-guide.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed voice dictation retrying in an unbounded loop when the microphone or audio recorder fails — repeated capture failures now pause voice input",
+      "content_ja": "音声認識中にマイクや録音機能が失敗した際、無限ループでリトライし続ける問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ハードウェア障害が発生すると音声入力が止まらずにループし続け、システムに負荷をかけることがありました。",
+        "after": "連続的な録音失敗を検知した際に、自動的にボイス入力を一時停止するように仕様変更しました。",
+        "benefit": "機材の問題発生時に無駄なリソース消費を防ぎ、UIをフリーズさせずに問題を特定しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/voice-dictation.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/interactive-mode.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/desktop-linux.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed `/remote-control` sessions showing the wrong permission mode in the mobile and web apps",
+      "content_ja": "`/remote-control` セッションがモバイルおよびWebアプリ上で誤ったパーミッションモードを表示する問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "クライアント側での権限表示と実機側での設定が同期しておらず、誤認を招く可能性がありました。",
+        "after": "セッション側のパーミッション状態を正しくアプリへ伝達するようにし、常に正しい権限状況を確認できるようにしました。",
+        "benefit": "外出先でセッションの状態を監視する際、現在の権限設定を誤解することなく安全に操作できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/remote-control.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/commands.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed resuming a session by name, or opening the resume picker, taking minutes and using a large amount of memory in repositories with many git worktrees",
+      "content_ja": "Gitワークツリーが多いリポジトリで、名前によるセッション再開やピッカーの起動に数分かかる問題とメモリ消費を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "リポジトリ構造が複雑な環境において、セッション検索時に全ファイルを走査するため、起動とメモリ利用が非効率でした。",
+        "after": "セッション管理のインデックス処理を最適化し、大規模なワークツリー環境でも高速に起動できるようにしました。",
+        "benefit": "複雑なリポジトリ環境であっても、Claude Codeの再開速度が大幅に改善されます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/sessions.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/how-claude-code-works.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/claude-code-on-the-web.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed installer and updater downloads failing immediately with \"aborted\" when a proxy or network drops the connection mid-download — transient connection drops now retry",
+      "content_ja": "プロキシやネットワークの切断でインストール・アップデートが中断される問題を修正し、一時的な切断時にリトライするようにしました。",
+      "prefix": "Fixed",
+      "feature_areas": [],
+      "inference": {
+        "before": "ダウンロード中にプロキシ通信が少しでも途切れると直ちに失敗となり、再開のために最初からやり直す必要がありました。",
+        "after": "通信の一時的なドロップを許容し、自動的にリトライを行うことでダウンロードの成功率を高めました。",
+        "benefit": "不安定なネットワーク環境下でも、安定して最新版への更新を行うことができます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/errors.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/troubleshoot-install.md"
+        }
+      ]
+    },
+    {
+      "content": "- Fixed re-invoking an already-loaded skill appending a duplicate copy of its instructions to context",
+      "content_ja": "読み込み済みのスキルを再実行した際、手順がコンテキストに二重に重複して追加される問題を修正しました。",
+      "prefix": "Fixed",
+      "feature_areas": ["Skills"],
+      "inference": {
+        "before": "スキルを繰り返し呼び出すと、その指示内容が都度コンテキストに追加され、貴重なコンテキストウィンドウを消費していました。",
+        "after": "スキル実行時に既存のスキル手順が既に存在する場合は重複登録を避けるようにし、効率的に管理します。",
+        "benefit": "コンテキストウィンドウの消費を抑え、複雑なスキルを多用してもClaudeの推論精度を維持しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/costs.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/memory.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved `/workflows` agent list layout: wider titles, a dedicated time column, shorter model names, and no per-row tool-call counts",
+      "content_ja": "`/workflows` のエージェント一覧レイアウトを改善：タイトルの幅を広げ、専用の時間カラムを追加し、モデル名を短縮。行ごとのツール呼び出し回数の表示を廃止しました。",
+      "prefix": "Improved",
+      "feature_areas": ["Sub-agents"],
+      "inference": {
+        "before": "エージェントの一覧画面において、タイトルの表示幅が狭く、各セッションの実行時間や詳細なステータスを直感的に把握しにくいレイアウトでした。",
+        "after": "レイアウトが最適化され、タイトルの視認性が向上するとともに、実行時間が独立した列で確認できるようになりました。また、冗長だったモデル名やツール呼び出し回数が整理されました。",
+        "benefit": "複数のバックグラウンドタスクを並行して実行している際に、どのタスクがどの程度時間を要しているかを一目で比較・管理しやすくなります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/skills.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/statusline.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-view.md"
+        }
+      ]
+    },
+    {
+      "content": "- Improved MCP error messages: clearer error when a server config has `url` but no `type`, suggesting `\"type\": \"http\"` instead of the misleading \"command: expected string\"",
+      "content_ja": "MCP のエラーメッセージを改善：サーバー設定に `url` があり `type` が欠落している場合、誤解を招く「command: expected string」ではなく `\"type\": \"http\"` を提案するように変更しました。",
+      "prefix": "Improved",
+      "feature_areas": ["MCP", "Settings"],
+      "inference": {
+        "before": "HTTP サーバーの設定時に `type` フィールドを忘れると、実際には不要な `command` フィールドの不足としてエラーが表示され、原因の特定が困難でした。",
+        "after": "設定内容から HTTP 接続が意図されていることを推測し、不足している正確なフィールド名と具体的な修正案が表示されるようになりました。",
+        "benefit": "MCP サーバーのセットアップ時における設定ミスの修正が容易になり、トラブルシューティングの時間を大幅に短縮できます。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/mcp-quickstart.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/agent-sdk/mcp.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/mcp.md"
+        }
+      ]
+    },
+    {
+      "content": "- Changed `/review <pr>` back to a fast single-pass review; use `/code-review <level> <pr#>` for the multi-agent review at a chosen effort level",
+      "content_ja": "`/review <pr>` の挙動を高速なシングルパスレビューに戻しました。多角的な検証が必要な場合は、任意の effort レベルを指定できる `/code-review <level> <pr#>` を使用してください。",
+      "prefix": "Changed",
+      "feature_areas": ["Agent Teams", "Sub-agents"],
+      "inference": {
+        "before": "`/review` コマンドがマルチエージェントによる詳細なレビューに統合されていたため、迅速なフィードバックが欲しい場面でも完了まで時間がかかっていました。",
+        "after": "`/review` は本来の軽快な動作に戻り、一方で `/code-review` を通じてより深い分析や検証を伴う高度なレビューを使い分けられるようになりました。",
+        "benefit": "作業のフェーズに合わせて、速度重視のクイックな確認と、時間をかけた徹底的なバグ探索を柔軟に選択できるようになります。"
+      },
+      "related_docs": [
+        {
+          "file": "apps/docs-tracker/docs/en/ultrareview.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/code-review.md"
+        },
+        {
+          "file": "apps/docs-tracker/docs/en/whats-new/2026-w16.md"
+        }
+      ]
+    }
+  ]
+}
